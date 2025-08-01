@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "exam-bank-system/backend/pkg/proto/common";
+
+
+
+// Common response wrapper
+message Response {
+  bool success = 1;
+  string message = 2;
+  repeated string errors = 3;
+}
+
+// Pagination
+message PaginationRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string sort_by = 3;
+  string sort_order = 4;
+}
+
+message PaginationResponse {
+  int32 page = 1;
+  int32 limit = 2;
+  int32 total_count = 3;
+  int32 total_pages = 4;
+}
+
+// Common enums
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_STUDENT = 1;
+  USER_ROLE_TEACHER = 2;
+  USER_ROLE_ADMIN = 3;
+}
+
+enum QuestionType {
+  QUESTION_TYPE_UNSPECIFIED = 0;
+  QUESTION_TYPE_MULTIPLE_CHOICE = 1;
+  QUESTION_TYPE_TRUE_FALSE = 2;
+  QUESTION_TYPE_SHORT_ANSWER = 3;
+  QUESTION_TYPE_ESSAY = 4;
+}
+
+enum DifficultyLevel {
+  DIFFICULTY_LEVEL_UNSPECIFIED = 0;
+  DIFFICULTY_LEVEL_EASY = 1;
+  DIFFICULTY_LEVEL_MEDIUM = 2;
+  DIFFICULTY_LEVEL_HARD = 3;
+}

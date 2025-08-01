@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+
+option go_package = "exam-bank-system/backend/pkg/proto/v1";
+
+// Answer message
+message Answer {
+  string id = 1;
+  string text = 2;
+  bool is_correct = 3;
+}
+
+// Question message
+message Question {
+  string id = 1;
+  string text = 2;
+  common.QuestionType type = 3;
+  common.DifficultyLevel difficulty = 4;
+  repeated Answer answers = 5;
+  string explanation = 6;
+  repeated string tags = 7;
+  int32 points = 8;
+  string created_by = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+// Question management
+message CreateQuestionRequest {
+  string text = 1;
+  common.QuestionType type = 2;
+  common.DifficultyLevel difficulty = 3;
+  repeated Answer answers = 4;
+  string explanation = 5;
+  repeated string tags = 6;
+  int32 points = 7;
+}
+
+message CreateQuestionResponse {
+  common.Response response = 1;
+  Question question = 2;
+}
+
+message GetQuestionRequest {
+  string id = 1;
+}
+
+message GetQuestionResponse {
+  common.Response response = 1;
+  Question question = 2;
+}
+
+message ListQuestionsRequest {
+  common.PaginationRequest pagination = 1;
+}
+
+message ListQuestionsResponse {
+  common.Response response = 1;
+  repeated Question questions = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// Question service
+service QuestionService {
+  rpc CreateQuestion(CreateQuestionRequest) returns (CreateQuestionResponse);
+  rpc GetQuestion(GetQuestionRequest) returns (GetQuestionResponse);
+  rpc ListQuestions(ListQuestionsRequest) returns (ListQuestionsResponse);
+}

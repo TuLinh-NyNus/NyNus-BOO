@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+
+option go_package = "exam-bank-system/backend/pkg/proto/v1";
+
+
+
+// Exam message
+message Exam {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  int32 duration_minutes = 4;
+  repeated string question_ids = 5;
+  string created_by = 6;
+}
+
+// Exam attempt
+message ExamAttempt {
+  string id = 1;
+  string exam_id = 2;
+  string user_id = 3;
+  int32 score = 4;
+  bool completed = 5;
+}
+
+// Exam management
+message CreateExamRequest {
+  string title = 1;
+  string description = 2;
+  int32 duration_minutes = 3;
+  repeated string question_ids = 4;
+}
+
+message CreateExamResponse {
+  common.Response response = 1;
+  Exam exam = 2;
+}
+
+message GetExamRequest {
+  string id = 1;
+}
+
+message GetExamResponse {
+  common.Response response = 1;
+  Exam exam = 2;
+}
+
+message ListExamsRequest {
+  common.PaginationRequest pagination = 1;
+}
+
+message ListExamsResponse {
+  common.Response response = 1;
+  repeated Exam exams = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// Exam taking
+message StartExamRequest {
+  string exam_id = 1;
+}
+
+message StartExamResponse {
+  common.Response response = 1;
+  ExamAttempt attempt = 2;
+  repeated string question_ids = 3;
+}
+
+// Exam service
+service ExamService {
+  rpc CreateExam(CreateExamRequest) returns (CreateExamResponse);
+  rpc GetExam(GetExamRequest) returns (GetExamResponse);
+  rpc ListExams(ListExamsRequest) returns (ListExamsResponse);
+  rpc StartExam(StartExamRequest) returns (StartExamResponse);
+}

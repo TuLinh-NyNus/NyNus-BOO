@@ -1,0 +1,39 @@
+# Build artifacts
+apps/backend/bin/
+apps/backend/internal/proto/
+apps/frontend/build/
+apps/frontend/dist/
+apps/frontend/src/generated/
+
+# Dependencies
+apps/backend/vendor/
+apps/frontend/node_modules/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+
+# Generated files
+docs/api/*.json
+
+# Process files
+.backend.pid
+.frontend.pid
+
+# Test coverage
+coverage/
+*.out

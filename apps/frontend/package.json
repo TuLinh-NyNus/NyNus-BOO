@@ -1,0 +1,35 @@
+{
+  "name": "exam-bank-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"No tests yet\"",
+    "proxy": "docker-compose up envoy",
+    "proxy:down": "docker-compose down",
+    "start": "concurrently \"npm run proxy\" \"npm run dev\"",
+    "proto": "cd ../.. && make proto"
+  },
+  "dependencies": {
+    "@types/google-protobuf": "^3.15.12",
+    "google-protobuf": "^3.21.4",
+    "grpc-web": "^1.5.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.11",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.2.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.11",
+    "typescript": "^5.0.0",
+    "vite": "^4.4.0"
+  }
+}

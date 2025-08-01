@@ -1,0 +1,70 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+
+option go_package = "exam-bank-system/backend/pkg/proto/v1";
+
+
+// User message
+message User {
+  string id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  common.UserRole role = 5;
+  bool is_active = 6;
+}
+
+// Authentication
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  common.Response response = 1;
+  string access_token = 2;
+  User user = 3;
+}
+
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string first_name = 3;
+  string last_name = 4;
+}
+
+message RegisterResponse {
+  common.Response response = 1;
+  User user = 2;
+}
+
+// User management
+message GetUserRequest {
+  string id = 1;
+}
+
+message GetUserResponse {
+  common.Response response = 1;
+  User user = 2;
+}
+
+message ListUsersRequest {
+  common.PaginationRequest pagination = 1;
+}
+
+message ListUsersResponse {
+  common.Response response = 1;
+  repeated User users = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// User service
+service UserService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+}

@@ -1,0 +1,231 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1/question.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "QuestionService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "commonDifficultyLevel": {
+      "type": "string",
+      "enum": [
+        "DIFFICULTY_LEVEL_UNSPECIFIED",
+        "DIFFICULTY_LEVEL_EASY",
+        "DIFFICULTY_LEVEL_MEDIUM",
+        "DIFFICULTY_LEVEL_HARD"
+      ],
+      "default": "DIFFICULTY_LEVEL_UNSPECIFIED"
+    },
+    "commonPaginationRequest": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "sortBy": {
+          "type": "string"
+        },
+        "sortOrder": {
+          "type": "string"
+        }
+      },
+      "title": "Pagination"
+    },
+    "commonPaginationResponse": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "commonQuestionType": {
+      "type": "string",
+      "enum": [
+        "QUESTION_TYPE_UNSPECIFIED",
+        "QUESTION_TYPE_MULTIPLE_CHOICE",
+        "QUESTION_TYPE_TRUE_FALSE",
+        "QUESTION_TYPE_SHORT_ANSWER",
+        "QUESTION_TYPE_ESSAY"
+      ],
+      "default": "QUESTION_TYPE_UNSPECIFIED"
+    },
+    "commonResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Common response wrapper"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1Answer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "isCorrect": {
+          "type": "boolean"
+        }
+      },
+      "title": "Answer message"
+    },
+    "v1CreateQuestionResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "question": {
+          "$ref": "#/definitions/v1Question"
+        }
+      }
+    },
+    "v1GetQuestionResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "question": {
+          "$ref": "#/definitions/v1Question"
+        }
+      }
+    },
+    "v1ListQuestionsResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Question"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/commonPaginationResponse"
+        }
+      }
+    },
+    "v1Question": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/commonQuestionType"
+        },
+        "difficulty": {
+          "$ref": "#/definitions/commonDifficultyLevel"
+        },
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Answer"
+          }
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "points": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "createdBy": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "title": "Question message"
+    }
+  }
+}
