@@ -1,8 +1,7 @@
 package question
 
 import (
-	"exam-bank-system/backend/internal/entity"
-	"exam-bank-system/backend/internal/service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 )
 
 // RepositoryInterface defines the contract for question data access
@@ -21,18 +20,8 @@ type ServiceInterface interface {
 	Create(question *entity.Question, requestorUserID string) (*entity.Question, error)
 	Update(questionID string, question *entity.Question, requestorUserID string) (*entity.Question, error)
 	Delete(questionID string, requestorUserID string) error
-}
 
-// Service handles question business logic
-type Service struct {
-	repo        RepositoryInterface
-	authService auth.ServiceInterface
-}
-
-// NewService creates a new question service
-func NewService(repo RepositoryInterface, authService auth.ServiceInterface) *Service {
-	return &Service{
-		repo:        repo,
-		authService: authService,
-	}
+	// Cross-service methods
+	GetQuestionsByCreator(creatorID string, requestorUserID string) ([]entity.Question, error)
+	ValidateQuestionExists(questionID string) (bool, error)
 }

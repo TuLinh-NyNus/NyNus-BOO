@@ -6,8 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"exam-bank-system/backend/internal/app"
-	"exam-bank-system/backend/internal/config"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/app"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
 
 	"github.com/joho/godotenv"
 )

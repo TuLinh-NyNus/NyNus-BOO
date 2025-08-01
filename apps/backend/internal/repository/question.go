@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"exam-bank-system/backend/internal/entity"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"

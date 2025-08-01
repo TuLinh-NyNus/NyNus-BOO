@@ -1,6 +1,6 @@
 package auth
 
-import "exam-bank-system/backend/internal/entity"
+import "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 
 // RepositoryInterface defines the contract for user data access needed by auth
 type RepositoryInterface interface {
@@ -16,4 +16,6 @@ type ServiceInterface interface {
 	ValidateToken(tokenString string) (*Claims, error)
 	IsAdmin(userID string) (bool, error)
 	IsTeacherOrAdmin(userID string) (bool, error)
+	IsStudent(userID string) (bool, error)
+	GetUserRole(userID string) (string, error)
 }

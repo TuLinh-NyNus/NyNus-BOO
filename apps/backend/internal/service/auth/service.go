@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"exam-bank-system/backend/internal/entity"
-	"exam-bank-system/backend/internal/util"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -131,6 +131,25 @@ func (s *Service) IsTeacherOrAdmin(userID string) (bool, error) {
 	}
 	role := util.PgTextToString(user.Role)
 	return role == "admin" || role == "teacher", nil
+}
+
+// IsStudent checks if a user is a student
+func (s *Service) IsStudent(userID string) (bool, error) {
+	user, err := s.repo.GetByID(userID)
+	if err != nil {
+		return false, err
+	}
+	role := util.PgTextToString(user.Role)
+	return role == "student", nil
+}
+
+// GetUserRole returns the role of a user
+func (s *Service) GetUserRole(userID string) (string, error) {
+	user, err := s.repo.GetByID(userID)
+	if err != nil {
+		return "", err
+	}
+	return util.PgTextToString(user.Role), nil
 }
 
 // generateToken generates a JWT token for a user

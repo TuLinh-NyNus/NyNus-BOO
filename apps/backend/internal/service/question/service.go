@@ -3,8 +3,31 @@ package question
 import (
 	"fmt"
 
-	"exam-bank-system/backend/internal/entity"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 )
+
+// Service handles question business logic
+type Service struct {
+	repo        RepositoryInterface
+	authService auth.ServiceInterface
+	userService UserServiceInterface
+}
+
+// UserServiceInterface defines what we need from user service
+type UserServiceInterface interface {
+	ValidateUserExists(userID string) (bool, error)
+	GetUserBasicInfo(userID string) (*entity.User, error)
+}
+
+// NewService creates a new question service
+func NewService(repo RepositoryInterface, authService auth.ServiceInterface, userService UserServiceInterface) *Service {
+	return &Service{
+		repo:        repo,
+		authService: authService,
+		userService: userService,
+	}
+}
 
 // GetAll returns all questions (teacher/admin only)
 func (s *Service) GetAll(requestorUserID string) ([]entity.Question, error) {
@@ -133,6 +156,40 @@ func (s *Service) Delete(questionID string, requestorUserID string) error {
 	}
 
 	return s.repo.Delete(questionID)
+}
+
+// GetQuestionsByCreator returns questions created by a specific user
+func (s *Service) GetQuestionsByCreator(creatorID string, requestorUserID string) ([]entity.Question, error) {
+	// Check if requestor has permission
+	isAuthorized, err := s.authService.IsTeacherOrAdmin(requestorUserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check authorization: %w", err)
+	}
+	if !isAuthorized && creatorID != requestorUserID {
+		return nil, fmt.Errorf("insufficient permissions: can only view your own questions")
+	}
+
+	// Validate creator exists using user service
+	exists, err := s.userService.ValidateUserExists(creatorID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate creator: %w", err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("creator user not found")
+	}
+
+	// TODO: Implement repository method to get questions by creator
+	// For now, return empty slice
+	return []entity.Question{}, nil
+}
+
+// ValidateQuestionExists checks if a question exists (for internal service use)
+func (s *Service) ValidateQuestionExists(questionID string) (bool, error) {
+	_, err := s.repo.GetByID(questionID)
+	if err != nil {
+		return false, nil // Question doesn't exist
+	}
+	return true, nil
 }
 
 // validateQuestion validates question data

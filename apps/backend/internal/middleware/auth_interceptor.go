@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"exam-bank-system/backend/internal/service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

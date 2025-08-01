@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package common;
 
-option go_package = "exam-bank-system/backend/pkg/proto/common";
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common";
 
 
 

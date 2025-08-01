@@ -7,7 +7,7 @@
 package v1
 
 import (
-	common "exam-bank-system/backend/pkg/proto/common"
+	common "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -663,7 +663,7 @@ const file_v1_exam_proto_rawDesc = "" +
 	"CreateExam\x12\x15.v1.CreateExamRequest\x1a\x16.v1.CreateExamResponse\x122\n" +
 	"\aGetExam\x12\x12.v1.GetExamRequest\x1a\x13.v1.GetExamResponse\x128\n" +
 	"\tListExams\x12\x14.v1.ListExamsRequest\x1a\x15.v1.ListExamsResponse\x128\n" +
-	"\tStartExam\x12\x14.v1.StartExamRequest\x1a\x15.v1.StartExamResponseB'Z%exam-bank-system/backend/pkg/proto/v1b\x06proto3"
+	"\tStartExam\x12\x14.v1.StartExamRequest\x1a\x15.v1.StartExamResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
 
 var (
 	file_v1_exam_proto_rawDescOnce sync.Once

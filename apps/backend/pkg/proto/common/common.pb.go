@@ -416,7 +416,7 @@ const file_common_common_proto_rawDesc = "" +
 	"\x1cDIFFICULTY_LEVEL_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15DIFFICULTY_LEVEL_EASY\x10\x01\x12\x1b\n" +
 	"\x17DIFFICULTY_LEVEL_MEDIUM\x10\x02\x12\x19\n" +
-	"\x15DIFFICULTY_LEVEL_HARD\x10\x03B+Z)exam-bank-system/backend/pkg/proto/commonb\x06proto3"
+	"\x15DIFFICULTY_LEVEL_HARD\x10\x03BEZCgithub.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/commonb\x06proto3"
 
 var (
 	file_common_common_proto_rawDescOnce sync.Once

@@ -6,9 +6,9 @@ import (
 	"log"
 	"net"
 
-	"exam-bank-system/backend/internal/config"
-	"exam-bank-system/backend/internal/container"
-	v1 "exam-bank-system/backend/pkg/proto/v1"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/container"
+	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 
 	_ "github.com/lib/pq"
 	grpcServer "google.golang.org/grpc"

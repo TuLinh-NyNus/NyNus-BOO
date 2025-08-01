@@ -3,11 +3,11 @@ package container
 import (
 	"database/sql"
 
-	"exam-bank-system/backend/internal/grpc"
-	"exam-bank-system/backend/internal/middleware"
-	"exam-bank-system/backend/internal/repository"
-	"exam-bank-system/backend/internal/service/auth"
-	"exam-bank-system/backend/internal/service/user"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/grpc"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user"
 )
 
 // Container holds all dependencies

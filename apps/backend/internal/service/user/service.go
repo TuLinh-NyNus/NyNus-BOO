@@ -3,32 +3,15 @@ package user
 import (
 	"fmt"
 
-	"exam-bank-system/backend/internal/entity"
-	"exam-bank-system/backend/internal/service/auth"
-	"exam-bank-system/backend/internal/util"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 )
 
 // Service handles user business logic
 type Service struct {
 	repo        RepositoryInterface
 	authService auth.ServiceInterface
-}
-
-// CreateRequest represents a user creation request
-type CreateRequest struct {
-	Email     string `json:"email"`
-	Password  string `json:"password"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Role      string `json:"role,omitempty"` // Only admins can set this
-}
-
-// UpdateRequest represents a user update request
-type UpdateRequest struct {
-	FirstName *string `json:"first_name,omitempty"`
-	LastName  *string `json:"last_name,omitempty"`
-	Role      *string `json:"role,omitempty"` // Only admins can set this
-	IsActive  *bool   `json:"is_active,omitempty"`
 }
 
 // NewService creates a new user service
@@ -199,6 +182,39 @@ func (s *Service) Delete(userID string, requestorUserID string) error {
 
 // GetProfile returns the current user's profile
 func (s *Service) GetProfile(userID string) (*entity.User, error) {
+	return s.repo.GetByID(userID)
+}
+
+// GetUsersByRole returns users by role (admin/teacher only)
+func (s *Service) GetUsersByRole(role string, requestorUserID string) ([]entity.User, error) {
+	// Check if requestor has permission
+	isAuthorized, err := s.authService.IsTeacherOrAdmin(requestorUserID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check authorization: %w", err)
+	}
+	if !isAuthorized {
+		return nil, fmt.Errorf("insufficient permissions: only teachers and admins can list users by role")
+	}
+
+	if !isValidRole(role) {
+		return nil, fmt.Errorf("invalid role: must be one of 'student', 'teacher', 'admin'")
+	}
+
+	return s.repo.GetByRole(role)
+}
+
+// ValidateUserExists checks if a user exists (for internal service use)
+func (s *Service) ValidateUserExists(userID string) (bool, error) {
+	_, err := s.repo.GetByID(userID)
+	if err != nil {
+		return false, nil // User doesn't exist
+	}
+	return true, nil
+}
+
+// GetUserBasicInfo returns basic user info without authorization checks
+// This is for internal service-to-service communication
+func (s *Service) GetUserBasicInfo(userID string) (*entity.User, error) {
 	return s.repo.GetByID(userID)
 }
 

@@ -1,4 +1,4 @@
-module exam-bank-system/backend
+module github.com/AnhPhan49/exam-bank-system/apps/backend
 
 go 1.23.5
 

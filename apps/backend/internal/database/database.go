@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"exam-bank-system/backend/internal/util"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
