@@ -59,8 +59,18 @@ func (c *Container) initRepositories() {
 
 // initServices initializes all service dependencies
 func (c *Container) initServices() {
+	// Auth service uses the same repository instance for all auth operations
 	c.AuthService = auth.NewService(c.UserRepo, c.JWTSecret)
-	c.UserService = user.NewService(c.UserRepo, c.AuthService)
+
+	// User service uses the same repository instance for all user operations
+	// Following payment system pattern: pass same repo instance to all segregated interfaces
+	c.UserService = user.NewService(
+		c.UserRepo, // IUserRepositoryForCreateUser
+		c.UserRepo, // IUserRepositoryForGetUser
+		c.UserRepo, // IUserRepositoryForUpdateUser
+		c.UserRepo, // IUserRepositoryForDeleteUser
+		c.AuthService,
+	)
 }
 
 // initMiddleware initializes all middleware dependencies

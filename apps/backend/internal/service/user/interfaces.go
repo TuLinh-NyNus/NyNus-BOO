@@ -3,22 +3,42 @@ package user
 import (
 	"context"
 
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 )
 
-// RepositoryInterface defines the contract for user data access
-type RepositoryInterface interface {
-	// Context-aware methods (preferred)
-	Create(ctx context.Context, user *entity.User) error
-	GetByID(ctx context.Context, id string) (*entity.User, error)
-	GetByIDForUpdate(ctx context.Context, id string) (*entity.User, error)
-	Update(ctx context.Context, user *entity.User) error
-	Delete(ctx context.Context, id string) error
+// ✅ ĐÚNG: Interface nhỏ, tập trung theo use case để tránh circular dependency
 
-	// Legacy methods for backward compatibility
+// IUserRepositoryForCreateUser - Interface for user creation operations
+type IUserRepositoryForCreateUser interface {
+	Create(ctx context.Context, db database.QueryExecer, user *entity.User) error
+	GetByEmail(email string) (*entity.User, error) // Check if email exists
+}
+
+// IUserRepositoryForGetUser - Interface for user retrieval operations
+type IUserRepositoryForGetUser interface {
+	GetByID(ctx context.Context, db database.QueryExecer, id string) (user entity.User, err error)
 	GetAll() ([]entity.User, error)
-	GetByEmail(email string) (*entity.User, error)
 	GetByRole(role string) ([]entity.User, error)
+}
+
+// IUserRepositoryForUpdateUser - Interface for user update operations
+type IUserRepositoryForUpdateUser interface {
+	GetByIDForUpdate(ctx context.Context, db database.QueryExecer, id string) (user entity.User, err error)
+	Update(ctx context.Context, db database.QueryExecer, user *entity.User) error
+}
+
+// IUserRepositoryForDeleteUser - Interface for user deletion operations
+type IUserRepositoryForDeleteUser interface {
+	GetByID(ctx context.Context, db database.QueryExecer, id string) (user entity.User, err error)
+	Delete(ctx context.Context, db database.QueryExecer, id string) error
+}
+
+// IUserRepositoryForAuth - Interface for authentication operations
+type IUserRepositoryForAuth interface {
+	Create(ctx context.Context, db database.QueryExecer, user *entity.User) error
+	GetByEmail(email string) (*entity.User, error)
+	GetByID(ctx context.Context, db database.QueryExecer, id string) (user entity.User, err error)
 }
 
 // CreateRequest represents a user creation request

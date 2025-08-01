@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"go.uber.org/multierr"
 )
 
 type UserRepository struct {
@@ -18,24 +20,34 @@ func NewUserRepository(db database.QueryExecer) *UserRepository {
 }
 
 // Create creates a new user with automatic ULID generation and timestamps
-func (r *UserRepository) Create(ctx context.Context, user *entity.User) error {
+func (r *UserRepository) Create(ctx context.Context, db database.QueryExecer, user *entity.User) error {
 	span, ctx := util.StartSpan(ctx, "UserRepository.Create")
 	defer span.Finish()
 
-	cmdTag, err := database.Create(ctx, user, r.db.ExecContext)
+	now := time.Now()
+	if err := multierr.Combine(
+		user.ID.Set(util.ULIDNow()),
+		user.CreatedAt.Set(now),
+		user.UpdatedAt.Set(now),
+	); err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("multierr.Combine: %w", err)
+	}
+
+	cmdTag, err := database.InsertExcept(ctx, user, []string{"resource_path"}, db.ExecContext)
 	if err != nil {
 		span.FinishWithError(err)
-		return fmt.Errorf("failed to create user: %w", err)
+		return fmt.Errorf("err insert User: %w", err)
 	}
 
 	rowsAffected, err := cmdTag.RowsAffected()
 	if err != nil {
 		span.FinishWithError(err)
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return fmt.Errorf("err get RowsAffected: %w", err)
 	}
 
 	if rowsAffected != 1 {
-		err := fmt.Errorf("expected 1 row affected, got %d", rowsAffected)
+		err := fmt.Errorf("err insert User: %d RowsAffected", rowsAffected)
 		span.FinishWithError(err)
 		return err
 	}
@@ -44,30 +56,28 @@ func (r *UserRepository) Create(ctx context.Context, user *entity.User) error {
 }
 
 // GetByID retrieves a user by ID
-func (r *UserRepository) GetByID(ctx context.Context, id string) (*entity.User, error) {
+func (r *UserRepository) GetByID(ctx context.Context, db database.QueryExecer, id string) (user entity.User, err error) {
 	span, ctx := util.StartSpan(ctx, "UserRepository.GetByID")
 	defer span.Finish()
 
-	user := &entity.User{}
-	err := database.SelectByID(ctx, user, id, r.db.QueryContext)
+	err = database.SelectByID(ctx, &user, id, db.QueryContext)
 	if err != nil {
 		span.FinishWithError(err)
-		return nil, fmt.Errorf("failed to get user by ID: %w", err)
+		return user, fmt.Errorf("err get User by ID: %w", err)
 	}
 
 	return user, nil
 }
 
 // GetByIDForUpdate retrieves a user by ID with FOR UPDATE lock
-func (r *UserRepository) GetByIDForUpdate(ctx context.Context, id string) (*entity.User, error) {
+func (r *UserRepository) GetByIDForUpdate(ctx context.Context, db database.QueryExecer, id string) (user entity.User, err error) {
 	span, ctx := util.StartSpan(ctx, "UserRepository.GetByIDForUpdate")
 	defer span.Finish()
 
-	user := &entity.User{}
-	err := database.SelectByIDForUpdate(ctx, user, id, r.db.QueryContext)
+	err = database.SelectByIDForUpdate(ctx, &user, id, db.QueryContext)
 	if err != nil {
 		span.FinishWithError(err)
-		return nil, fmt.Errorf("failed to get user by ID for update: %w", err)
+		return user, fmt.Errorf("err get User by ID for update: %w", err)
 	}
 
 	return user, nil
@@ -136,9 +146,15 @@ func (r *UserRepository) GetByEmail(email string) (*entity.User, error) {
 }
 
 // Update updates an existing user
-func (r *UserRepository) Update(ctx context.Context, user *entity.User) error {
+func (r *UserRepository) Update(ctx context.Context, db database.QueryExecer, user *entity.User) error {
 	span, ctx := util.StartSpan(ctx, "UserRepository.Update")
 	defer span.Finish()
+
+	// Set updated timestamp
+	if err := user.UpdatedAt.Set(time.Now()); err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("multierr.Combine: %w", err)
+	}
 
 	// Get the ID as string for the update
 	userID := util.PgTextToString(user.ID)
@@ -148,20 +164,20 @@ func (r *UserRepository) Update(ctx context.Context, user *entity.User) error {
 		return err
 	}
 
-	cmdTag, err := database.Update(ctx, user, userID, r.db.ExecContext)
+	cmdTag, err := database.UpdateByID(ctx, user, userID, []string{"resource_path", "created_at"}, db.ExecContext)
 	if err != nil {
 		span.FinishWithError(err)
-		return fmt.Errorf("failed to update user: %w", err)
+		return fmt.Errorf("err update User: %w", err)
 	}
 
 	rowsAffected, err := cmdTag.RowsAffected()
 	if err != nil {
 		span.FinishWithError(err)
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return fmt.Errorf("err get RowsAffected: %w", err)
 	}
 
 	if rowsAffected != 1 {
-		err := fmt.Errorf("expected 1 row affected, got %d", rowsAffected)
+		err := fmt.Errorf("err update User: %d RowsAffected", rowsAffected)
 		span.FinishWithError(err)
 		return err
 	}
@@ -170,25 +186,25 @@ func (r *UserRepository) Update(ctx context.Context, user *entity.User) error {
 }
 
 // Delete deletes a user by ID
-func (r *UserRepository) Delete(ctx context.Context, id string) error {
+func (r *UserRepository) Delete(ctx context.Context, db database.QueryExecer, id string) error {
 	span, ctx := util.StartSpan(ctx, "UserRepository.Delete")
 	defer span.Finish()
 
 	template := &entity.User{}
-	cmdTag, err := database.DeleteByID(ctx, template, id, r.db.ExecContext)
+	cmdTag, err := database.DeleteByID(ctx, template, id, db.ExecContext)
 	if err != nil {
 		span.FinishWithError(err)
-		return fmt.Errorf("failed to delete user: %w", err)
+		return fmt.Errorf("err delete User: %w", err)
 	}
 
 	rowsAffected, err := cmdTag.RowsAffected()
 	if err != nil {
 		span.FinishWithError(err)
-		return fmt.Errorf("failed to get rows affected: %w", err)
+		return fmt.Errorf("err get RowsAffected: %w", err)
 	}
 
 	if rowsAffected != 1 {
-		err := fmt.Errorf("expected 1 row affected, got %d", rowsAffected)
+		err := fmt.Errorf("err delete User: %d RowsAffected", rowsAffected)
 		span.FinishWithError(err)
 		return err
 	}

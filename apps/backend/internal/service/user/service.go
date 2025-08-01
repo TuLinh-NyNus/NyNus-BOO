@@ -9,17 +9,32 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 )
 
-// Service handles user business logic
+// Service handles user business logic following payment system pattern
 type Service struct {
-	repo        RepositoryInterface
+	// Embed repository interfaces as anonymous fields for dependency injection
+	IUserRepositoryForCreateUser
+	IUserRepositoryForGetUser
+	IUserRepositoryForUpdateUser
+	IUserRepositoryForDeleteUser
+
+	// Auth service dependency
 	authService auth.ServiceInterface
 }
 
-// NewService creates a new user service
-func NewService(repo RepositoryInterface, authService auth.ServiceInterface) *Service {
+// NewService creates a new user service with dependency injection
+func NewService(
+	createRepo IUserRepositoryForCreateUser,
+	getRepo IUserRepositoryForGetUser,
+	updateRepo IUserRepositoryForUpdateUser,
+	deleteRepo IUserRepositoryForDeleteUser,
+	authService auth.ServiceInterface,
+) *Service {
 	return &Service{
-		repo:        repo,
-		authService: authService,
+		IUserRepositoryForCreateUser: createRepo,
+		IUserRepositoryForGetUser:    getRepo,
+		IUserRepositoryForUpdateUser: updateRepo,
+		IUserRepositoryForDeleteUser: deleteRepo,
+		authService:                  authService,
 	}
 }
 
@@ -34,7 +49,7 @@ func (s *Service) GetAll(requestorUserID string) ([]entity.User, error) {
 		return nil, fmt.Errorf("insufficient permissions: only teachers and admins can list users")
 	}
 
-	return s.repo.GetAll()
+	return s.IUserRepositoryForGetUser.GetAll()
 }
 
 // GetByID returns a user by ID with authorization checks
@@ -43,7 +58,8 @@ func (s *Service) GetByID(userID string, requestorUserID string) (*entity.User, 
 
 	// Users can access their own profile
 	if userID == requestorUserID {
-		return s.repo.GetByID(ctx, userID)
+		user, err := s.IUserRepositoryForGetUser.GetByID(ctx, nil, userID)
+		return &user, err
 	}
 
 	// Check if requestor is admin or teacher
@@ -55,7 +71,8 @@ func (s *Service) GetByID(userID string, requestorUserID string) (*entity.User, 
 		return nil, fmt.Errorf("insufficient permissions: can only access your own profile")
 	}
 
-	return s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForGetUser.GetByID(ctx, nil, userID)
+	return &user, err
 }
 
 // Create creates a new user with role validation
@@ -96,7 +113,7 @@ func (s *Service) Create(req CreateRequest, requestorUserID string) (*entity.Use
 	if req.Role != "student" {
 		ctx := context.Background()
 		user.Role = util.StringToPgText(req.Role)
-		if err := s.repo.Update(ctx, user); err != nil {
+		if err := s.IUserRepositoryForUpdateUser.Update(ctx, nil, user); err != nil {
 			return nil, fmt.Errorf("failed to update user role: %w", err)
 		}
 	}
@@ -109,7 +126,7 @@ func (s *Service) Update(userID string, req UpdateRequest, requestorUserID strin
 	ctx := context.Background()
 
 	// Get the user to update
-	user, err := s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForUpdateUser.GetByIDForUpdate(ctx, nil, userID)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
@@ -160,11 +177,11 @@ func (s *Service) Update(userID string, req UpdateRequest, requestorUserID strin
 	}
 
 	// Save changes
-	if err := s.repo.Update(ctx, user); err != nil {
+	if err := s.IUserRepositoryForUpdateUser.Update(ctx, nil, &user); err != nil {
 		return nil, fmt.Errorf("failed to update user: %w", err)
 	}
 
-	return user, nil
+	return &user, nil
 }
 
 // Delete deletes a user (admin only)
@@ -185,13 +202,14 @@ func (s *Service) Delete(userID string, requestorUserID string) error {
 		return fmt.Errorf("cannot delete your own account")
 	}
 
-	return s.repo.Delete(ctx, userID)
+	return s.IUserRepositoryForDeleteUser.Delete(ctx, nil, userID)
 }
 
 // GetProfile returns the current user's profile
 func (s *Service) GetProfile(userID string) (*entity.User, error) {
 	ctx := context.Background()
-	return s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForGetUser.GetByID(ctx, nil, userID)
+	return &user, err
 }
 
 // GetUsersByRole returns users by role (admin/teacher only)
@@ -209,13 +227,13 @@ func (s *Service) GetUsersByRole(role string, requestorUserID string) ([]entity.
 		return nil, fmt.Errorf("invalid role: must be one of 'student', 'teacher', 'admin'")
 	}
 
-	return s.repo.GetByRole(role)
+	return s.IUserRepositoryForGetUser.GetByRole(role)
 }
 
 // ValidateUserExists checks if a user exists (for internal service use)
 func (s *Service) ValidateUserExists(userID string) (bool, error) {
 	ctx := context.Background()
-	_, err := s.repo.GetByID(ctx, userID)
+	_, err := s.IUserRepositoryForGetUser.GetByID(ctx, nil, userID)
 	if err != nil {
 		return false, nil // User doesn't exist
 	}
@@ -226,7 +244,8 @@ func (s *Service) ValidateUserExists(userID string) (bool, error) {
 // This is for internal service-to-service communication
 func (s *Service) GetUserBasicInfo(userID string) (*entity.User, error) {
 	ctx := context.Background()
-	return s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForGetUser.GetByID(ctx, nil, userID)
+	return &user, err
 }
 
 func isValidRole(role string) bool {

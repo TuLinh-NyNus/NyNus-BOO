@@ -12,9 +12,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// Service handles authentication business logic
+// Service handles authentication business logic following payment system pattern
 type Service struct {
-	repo      RepositoryInterface
+	// Embed repository interface as anonymous field for dependency injection
+	IUserRepositoryForAuth
 	jwtSecret string
 }
 
@@ -26,18 +27,18 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-// NewService creates a new auth service
-func NewService(repo RepositoryInterface, jwtSecret string) *Service {
+// NewService creates a new auth service with dependency injection
+func NewService(repo IUserRepositoryForAuth, jwtSecret string) *Service {
 	return &Service{
-		repo:      repo,
-		jwtSecret: jwtSecret,
+		IUserRepositoryForAuth: repo,
+		jwtSecret:              jwtSecret,
 	}
 }
 
 // Login authenticates a user and returns a JWT token
 func (s *Service) Login(email, password string) (*entity.User, string, error) {
 	// Get user by email
-	user, err := s.repo.GetByEmail(email)
+	user, err := s.IUserRepositoryForAuth.GetByEmail(email)
 	if err != nil {
 		return nil, "", fmt.Errorf("invalid credentials")
 	}
@@ -65,7 +66,7 @@ func (s *Service) Login(email, password string) (*entity.User, string, error) {
 // Register creates a new user account
 func (s *Service) Register(email, password, firstName, lastName string) (*entity.User, error) {
 	// Check if user already exists
-	existingUser, _ := s.repo.GetByEmail(email)
+	existingUser, _ := s.IUserRepositoryForAuth.GetByEmail(email)
 	if existingUser != nil {
 		return nil, fmt.Errorf("user already exists")
 	}
@@ -88,7 +89,7 @@ func (s *Service) Register(email, password, firstName, lastName string) (*entity
 
 	// Save to database
 	ctx := context.Background()
-	if err := s.repo.Create(ctx, user); err != nil {
+	if err := s.IUserRepositoryForAuth.Create(ctx, nil, user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -118,7 +119,7 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 // IsAdmin checks if a user is an admin
 func (s *Service) IsAdmin(userID string) (bool, error) {
 	ctx := context.Background()
-	user, err := s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForAuth.GetByID(ctx, nil, userID)
 	if err != nil {
 		return false, err
 	}
@@ -129,7 +130,7 @@ func (s *Service) IsAdmin(userID string) (bool, error) {
 // IsTeacherOrAdmin checks if a user is a teacher or admin
 func (s *Service) IsTeacherOrAdmin(userID string) (bool, error) {
 	ctx := context.Background()
-	user, err := s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForAuth.GetByID(ctx, nil, userID)
 	if err != nil {
 		return false, err
 	}
@@ -140,7 +141,7 @@ func (s *Service) IsTeacherOrAdmin(userID string) (bool, error) {
 // IsStudent checks if a user is a student
 func (s *Service) IsStudent(userID string) (bool, error) {
 	ctx := context.Background()
-	user, err := s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForAuth.GetByID(ctx, nil, userID)
 	if err != nil {
 		return false, err
 	}
@@ -151,7 +152,7 @@ func (s *Service) IsStudent(userID string) (bool, error) {
 // GetUserRole returns the role of a user
 func (s *Service) GetUserRole(userID string) (string, error) {
 	ctx := context.Background()
-	user, err := s.repo.GetByID(ctx, userID)
+	user, err := s.IUserRepositoryForAuth.GetByID(ctx, nil, userID)
 	if err != nil {
 		return "", err
 	}
