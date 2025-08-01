@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -86,7 +87,8 @@ func (s *Service) Register(email, password, firstName, lastName string) (*entity
 	}
 
 	// Save to database
-	if err := s.repo.Create(user); err != nil {
+	ctx := context.Background()
+	if err := s.repo.Create(ctx, user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -115,7 +117,8 @@ func (s *Service) ValidateToken(tokenString string) (*Claims, error) {
 
 // IsAdmin checks if a user is an admin
 func (s *Service) IsAdmin(userID string) (bool, error) {
-	user, err := s.repo.GetByID(userID)
+	ctx := context.Background()
+	user, err := s.repo.GetByID(ctx, userID)
 	if err != nil {
 		return false, err
 	}
@@ -125,7 +128,8 @@ func (s *Service) IsAdmin(userID string) (bool, error) {
 
 // IsTeacherOrAdmin checks if a user is a teacher or admin
 func (s *Service) IsTeacherOrAdmin(userID string) (bool, error) {
-	user, err := s.repo.GetByID(userID)
+	ctx := context.Background()
+	user, err := s.repo.GetByID(ctx, userID)
 	if err != nil {
 		return false, err
 	}
@@ -135,7 +139,8 @@ func (s *Service) IsTeacherOrAdmin(userID string) (bool, error) {
 
 // IsStudent checks if a user is a student
 func (s *Service) IsStudent(userID string) (bool, error) {
-	user, err := s.repo.GetByID(userID)
+	ctx := context.Background()
+	user, err := s.repo.GetByID(ctx, userID)
 	if err != nil {
 		return false, err
 	}
@@ -145,7 +150,8 @@ func (s *Service) IsStudent(userID string) (bool, error) {
 
 // GetUserRole returns the role of a user
 func (s *Service) GetUserRole(userID string) (string, error) {
-	user, err := s.repo.GetByID(userID)
+	ctx := context.Background()
+	user, err := s.repo.GetByID(ctx, userID)
 	if err != nil {
 		return "", err
 	}

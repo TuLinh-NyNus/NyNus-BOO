@@ -1,17 +1,23 @@
 package user
 
 import (
+	"context"
+
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 )
 
 // RepositoryInterface defines the contract for user data access
 type RepositoryInterface interface {
+	// Context-aware methods (preferred)
+	Create(ctx context.Context, user *entity.User) error
+	GetByID(ctx context.Context, id string) (*entity.User, error)
+	GetByIDForUpdate(ctx context.Context, id string) (*entity.User, error)
+	Update(ctx context.Context, user *entity.User) error
+	Delete(ctx context.Context, id string) error
+
+	// Legacy methods for backward compatibility
 	GetAll() ([]entity.User, error)
-	GetByID(id string) (*entity.User, error)
 	GetByEmail(email string) (*entity.User, error)
-	Create(user *entity.User) error
-	Update(user *entity.User) error
-	Delete(id string) error
 	GetByRole(role string) ([]entity.User, error)
 }
 

@@ -1,12 +1,19 @@
 package auth
 
-import "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+import (
+	"context"
+
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+)
 
 // RepositoryInterface defines the contract for user data access needed by auth
 type RepositoryInterface interface {
+	// Context-aware methods (preferred)
+	Create(ctx context.Context, user *entity.User) error
+	GetByID(ctx context.Context, id string) (*entity.User, error)
+
+	// Legacy methods for backward compatibility
 	GetByEmail(email string) (*entity.User, error)
-	GetByID(id string) (*entity.User, error)
-	Create(user *entity.User) error
 }
 
 // ServiceInterface defines the contract for authentication operations

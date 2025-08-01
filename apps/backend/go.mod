@@ -5,6 +5,7 @@ go 1.23.5
 require (
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
+	github.com/oklog/ulid/v2 v2.1.0
 	golang.org/x/crypto v0.38.0
 )
 
@@ -18,6 +19,7 @@ require (
 
 require (
 	github.com/jackc/pgio v1.0.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
