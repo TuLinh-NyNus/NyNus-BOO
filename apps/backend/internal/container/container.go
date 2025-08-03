@@ -16,9 +16,8 @@ type Container struct {
 	DB *sql.DB
 
 	// Repositories
-	UserRepo     *repository.UserRepository
-	QuestionRepo *repository.QuestionRepository
-	AnswerRepo   *repository.AnswerRepository
+	UserRepo   *repository.UserRepository
+	AnswerRepo *repository.AnswerRepository
 
 	// Services
 	AuthService *auth.Service
@@ -53,7 +52,6 @@ func NewContainer(db *sql.DB, jwtSecret string) *Container {
 // initRepositories initializes all repository dependencies
 func (c *Container) initRepositories() {
 	c.UserRepo = repository.NewUserRepository(c.DB)
-	c.QuestionRepo = repository.NewQuestionRepository(c.DB)
 	c.AnswerRepo = repository.NewAnswerRepository(c.DB)
 }
 
@@ -86,11 +84,6 @@ func (c *Container) initGRPCServices() {
 // GetUserRepository returns the user repository
 func (c *Container) GetUserRepository() *repository.UserRepository {
 	return c.UserRepo
-}
-
-// GetQuestionRepository returns the question repository
-func (c *Container) GetQuestionRepository() *repository.QuestionRepository {
-	return c.QuestionRepo
 }
 
 // GetAnswerRepository returns the answer repository

@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"path/filepath"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/container"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/migration"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/seeder"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 
 	_ "github.com/lib/pq"
@@ -65,6 +68,16 @@ func (a *App) initDatabase() error {
 		a.config.Database.Port,
 		a.config.Database.Name,
 	)
+
+	// Run migrations
+	if err := a.runMigrations(); err != nil {
+		return fmt.Errorf("failed to run migrations: %w", err)
+	}
+
+	// Seed default data
+	if err := a.seedDefaultData(); err != nil {
+		return fmt.Errorf("failed to seed default data: %w", err)
+	}
 
 	return nil
 }
@@ -148,4 +161,37 @@ func (a *App) GetContainer() *container.Container {
 // GetConfig returns the application configuration
 func (a *App) GetConfig() *config.Config {
 	return a.config
+}
+
+// runMigrations runs database migrations on startup
+func (a *App) runMigrations() error {
+	// Get migrations directory path (relative to project root)
+	migrationsDir := filepath.Join("..", "..", "packages", "database", "migrations")
+
+	// Create migrator
+	migrator := migration.NewMigrator(a.db, migrationsDir)
+
+	// Run migrations
+	return migrator.RunMigrations()
+}
+
+// seedDefaultData seeds the database with default users and sample data
+func (a *App) seedDefaultData() error {
+	// Create seeder
+	seeder := seeder.NewSeeder(a.db)
+
+	// Seed default users
+	if err := seeder.SeedDefaultData(); err != nil {
+		return err
+	}
+
+	// Seed sample data for development (optional)
+	if a.config.Server.Environment == "development" {
+		if err := seeder.SeedSampleData(); err != nil {
+			log.Printf("⚠️  Warning: Failed to seed sample data: %v", err)
+			// Don't fail startup for sample data issues
+		}
+	}
+
+	return nil
 }

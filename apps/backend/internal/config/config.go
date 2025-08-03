@@ -29,8 +29,9 @@ type DatabaseConfig struct {
 
 // ServerConfig holds server configuration
 type ServerConfig struct {
-	GRPCPort string
-	HTTPPort string
+	GRPCPort    string
+	HTTPPort    string
+	Environment string
 }
 
 // JWTConfig holds JWT configuration
@@ -50,8 +51,9 @@ func LoadConfig() *Config {
 			SSLMode:  getEnv("DB_SSLMODE", "disable"),
 		},
 		Server: ServerConfig{
-			GRPCPort: getEnv("GRPC_PORT", "50051"),
-			HTTPPort: getEnv("HTTP_PORT", "8080"),
+			GRPCPort:    getEnv("GRPC_PORT", "50051"),
+			HTTPPort:    getEnv("HTTP_PORT", "8080"),
+			Environment: getEnv("ENV", "development"),
 		},
 		JWT: JWTConfig{
 			Secret: getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
