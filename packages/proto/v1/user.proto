@@ -61,10 +61,20 @@ message ListUsersResponse {
   common.PaginationResponse pagination = 3;
 }
 
+message GetStudentListRequest {
+  common.PaginationRequest pagination = 1;
+}
+
+message GetStudentListResponse {
+  repeated User users = 1;
+  common.PaginationResponse pagination = 2;
+}
+
 // User service
 service UserService {
   rpc Login(LoginRequest) returns (LoginResponse);
   rpc Register(RegisterRequest) returns (RegisterResponse);
   rpc GetUser(GetUserRequest) returns (GetUserResponse);
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+  rpc GetStudentList(GetStudentListRequest) returns (GetStudentListResponse);
 }

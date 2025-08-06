@@ -1,0 +1,141 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+import "google/protobuf/timestamp.proto";
+
+// QuestionService handles question management operations
+service QuestionService {
+  // ImportQuestions imports questions from CSV data (base64 encoded)
+  rpc ImportQuestions(ImportQuestionsRequest) returns (ImportQuestionsResponse);
+  
+  // CreateQuestion creates a single question
+  rpc CreateQuestion(CreateQuestionRequest) returns (CreateQuestionResponse);
+  
+  // GetQuestion retrieves a question by ID
+  rpc GetQuestion(GetQuestionRequest) returns (GetQuestionResponse);
+  
+  // GetQuestionsByCode retrieves questions by question code
+  rpc GetQuestionsByCode(GetQuestionsByCodeRequest) returns (GetQuestionsByCodeResponse);
+  
+  // UpdateQuestion updates an existing question
+  rpc UpdateQuestion(UpdateQuestionRequest) returns (UpdateQuestionResponse);
+  
+  // DeleteQuestion deletes a question
+  rpc DeleteQuestion(DeleteQuestionRequest) returns (DeleteQuestionResponse);
+}
+
+// Import Questions Messages
+message ImportQuestionsRequest {
+  string csv_data_base64 = 1;  // Base64 encoded CSV data
+  bool upsert_mode = 2;        // If true, update existing questions by ID
+  string creator = 3;          // User creating/importing the questions
+}
+
+message ImportQuestionsResponse {
+  int32 total_processed = 1;
+  int32 created_count = 2;
+  int32 updated_count = 3;
+  int32 error_count = 4;
+  repeated ImportError errors = 5;
+  string summary = 6;
+}
+
+message ImportError {
+  int32 row_number = 1;
+  string field_name = 2;
+  string error_message = 3;
+  string row_data = 4;
+}
+
+// Question Messages
+message Question {
+  string id = 1;
+  string raw_content = 2;
+  string content = 3;
+  string subcount = 4;
+  string type = 5;              // MC, TF, SA, ES, MA
+  string source = 6;
+  string answers = 7;           // JSON string
+  string correct_answer = 8;    // JSON string
+  string solution = 9;
+  repeated string tags = 10;
+  int32 usage_count = 11;
+  string creator = 12;
+  string status = 13;           // ACTIVE, PENDING, INACTIVE, ARCHIVED
+  int32 feedback = 14;
+  string difficulty = 15;       // EASY, MEDIUM, HARD
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+  string question_code_id = 18;
+}
+
+// Create Question Messages
+message CreateQuestionRequest {
+  string raw_content = 1;
+  string content = 2;
+  string type = 3;
+  string difficulty = 4;
+  string source = 5;
+  string solution = 6;
+  string creator = 7;
+  string question_code_id = 8;
+  string answers = 9;
+  string correct_answer = 10;
+  repeated string tags = 11;
+}
+
+message CreateQuestionResponse {
+  Question question = 1;
+  string message = 2;
+}
+
+// Get Question Messages
+message GetQuestionRequest {
+  string id = 1;
+}
+
+message GetQuestionResponse {
+  Question question = 1;
+}
+
+// Get Questions by Code Messages
+message GetQuestionsByCodeRequest {
+  string question_code_id = 1;
+}
+
+message GetQuestionsByCodeResponse {
+  repeated Question questions = 1;
+  int32 total_count = 2;
+}
+
+// Update Question Messages
+message UpdateQuestionRequest {
+  string id = 1;
+  string raw_content = 2;
+  string content = 3;
+  string type = 4;
+  string difficulty = 5;
+  string source = 6;
+  string solution = 7;
+  string question_code_id = 8;
+  string answers = 9;
+  string correct_answer = 10;
+  repeated string tags = 11;
+}
+
+message UpdateQuestionResponse {
+  Question question = 1;
+  string message = 2;
+}
+
+// Delete Question Messages
+message DeleteQuestionRequest {
+  string id = 1;
+}
+
+message DeleteQuestionResponse {
+  string message = 1;
+}

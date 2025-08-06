@@ -74,3 +74,18 @@ func SetBoolIfNotNil(pgBool *pgtype.Bool, b *bool) {
 		pgBool.Set(*b)
 	}
 }
+
+// PgJSONBToString converts pgtype.JSONB to string
+func PgJSONBToString(jsonb pgtype.JSONB) string {
+	if jsonb.Status == pgtype.Present {
+		return string(jsonb.Bytes)
+	}
+	return ""
+}
+
+// StringToPgJSONB converts a string to pgtype.JSONB
+func StringToPgJSONB(s string) pgtype.JSONB {
+	var jsonb pgtype.JSONB
+	jsonb.Set(s)
+	return jsonb
+}

@@ -91,6 +91,7 @@ func (a *App) initGRPCServer() error {
 
 	// Register services
 	v1.RegisterUserServiceServer(a.server, a.container.GetUserGRPCService())
+	v1.RegisterQuestionServiceServer(a.server, a.container.GetQuestionGRPCService())
 
 	// Enable reflection for grpcurl
 	reflection.Register(a.server)
@@ -100,7 +101,7 @@ func (a *App) initGRPCServer() error {
 
 // Run starts the application
 func (a *App) Run() error {
-	// Create listener
+	// Create gRPC listener
 	lis, err := net.Listen("tcp", ":"+a.config.Server.GRPCPort)
 	if err != nil {
 		return fmt.Errorf("failed to listen on port %s: %w", a.config.Server.GRPCPort, err)
@@ -109,7 +110,7 @@ func (a *App) Run() error {
 	// Log startup information
 	a.logStartupInfo()
 
-	// Start server
+	// Start gRPC server
 	log.Printf("🚀 Starting gRPC server on port %s...", a.config.Server.GRPCPort)
 	if err := a.server.Serve(lis); err != nil {
 		return fmt.Errorf("failed to serve gRPC server: %w", err)
@@ -125,6 +126,7 @@ func (a *App) logStartupInfo() {
 	log.Println("🗄️ Database: PostgreSQL")
 	log.Println("🌐 gRPC Services:")
 	log.Println("   - UserService (Login, Register, GetUser, ListUsers)")
+	log.Println("   - QuestionService (CreateQuestion, GetQuestion, ListQuestions, ImportQuestions)")
 	log.Println("🔐 Security:")
 	log.Println("   - JWT Authentication enabled")
 	log.Println("   - Role-based authorization (student, teacher, admin)")
@@ -166,7 +168,7 @@ func (a *App) GetConfig() *config.Config {
 // runMigrations runs database migrations on startup
 func (a *App) runMigrations() error {
 	// Get migrations directory path (relative to project root)
-	migrationsDir := filepath.Join("..", "..", "packages", "database", "migrations")
+	migrationsDir := filepath.Join("packages", "database", "migrations")
 
 	// Create migrator
 	migrator := migration.NewMigrator(a.db, migrationsDir)

@@ -10,6 +10,8 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 
 	"github.com/jackc/pgtype"
+	"github.com/jackc/pgx/v4"
+	"github.com/pkg/errors"
 )
 
 // Entity interface that all entities must implement
@@ -21,7 +23,56 @@ type Entity interface {
 // QueryExecer interface for database operations
 type QueryExecer interface {
 	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
 	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+}
+
+type Ext interface {
+	QueryExecer
+	Begin(ctx context.Context) (pgx.Tx, error)
+}
+
+type TxHandler = func(ctx context.Context, tx pgx.Tx) error
+
+// ExecInTx has a potential bug, then consider using ExecInTxV2
+func ExecInTx(ctx context.Context, db Ext, txHandler TxHandler) error {
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return errors.Wrap(err, "db.Begin")
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return
+		}
+		err = errors.Wrap(tx.Commit(ctx), "tx.Commit")
+	}()
+	err = txHandler(ctx, tx)
+	return err
+}
+
+func ExecInTxWithContextDeadline(ctx context.Context, db Ext, txHandler TxHandler) error {
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return errors.Wrap(err, "db.Begin")
+	}
+
+	defer func() {
+		if err != nil {
+			_ = tx.Rollback(ctx)
+			return
+		}
+		err = errors.Wrap(tx.Commit(ctx), "tx.Commit")
+	}()
+	err = txHandler(ctx, tx)
+	select {
+	case <-ctx.Done():
+		err = fmt.Errorf("the transaction is rolled back because context deadline was not met")
+		return err
+	default:
+		return err
+	}
 }
 
 // InsertExcept inserts an entity excluding specified fields

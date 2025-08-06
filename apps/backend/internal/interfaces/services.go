@@ -1,9 +1,10 @@
 package interfaces
 
 import (
+	"context"
+
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
 )
 
 // AuthServiceInterface defines the contract for authentication operations
@@ -18,49 +19,35 @@ type AuthServiceInterface interface {
 	GetUserRole(userID string) (string, error)
 }
 
-// UserServiceInterface defines the contract for user operations
-// This allows other services to access user functionality
+// UserServiceInterface defines the contract for user management operations
+// This follows the new pattern: Service Management Layer → Domain Service Layer → Repository Layer
 type UserServiceInterface interface {
-	GetAll(requestorUserID string) ([]entity.User, error)
-	GetByID(userID string, requestorUserID string) (*entity.User, error)
-	Create(req user.CreateRequest, requestorUserID string) (*entity.User, error)
-	Update(userID string, req user.UpdateRequest, requestorUserID string) (*entity.User, error)
-	Delete(userID string, requestorUserID string) error
-	GetProfile(userID string) (*entity.User, error)
-	
-	// Additional methods for cross-service usage
-	GetUsersByRole(role string, requestorUserID string) ([]entity.User, error)
-	ValidateUserExists(userID string) (bool, error)
-	GetUserBasicInfo(userID string) (*entity.User, error) // No auth check, for internal use
+	// User management operations with pagination
+	GetUser(ctx context.Context, userID string) (user entity.User, err error)
+	ListUsers(offset int, limit int) (total int, users []entity.User, err error)
+	GetStudentByPaging(offset int, limit int) (total int, users []entity.User, err error)
 }
 
-// QuestionServiceInterface defines the contract for question operations
+// QuestionServiceInterface defines the contract for question management operations
+// This follows the new pattern: Service Management Layer → Domain Service Layer → Repository Layer
 type QuestionServiceInterface interface {
-	// TODO: Add question service methods
-	GetByID(questionID string, requestorUserID string) (*entity.Question, error)
-	GetAll(requestorUserID string) ([]entity.Question, error)
-	Create(req interface{}, requestorUserID string) (*entity.Question, error)
-	Update(questionID string, req interface{}, requestorUserID string) (*entity.Question, error)
-	Delete(questionID string, requestorUserID string) error
-	
-	// Cross-service methods
-	GetQuestionsByCreator(creatorID string, requestorUserID string) ([]entity.Question, error)
-	ValidateQuestionExists(questionID string) (bool, error)
+	// Question management operations with pagination
+	GetQuestion(ctx context.Context, questionID string) (question entity.Question, err error)
+	ListQuestions(offset int, limit int) (total int, questions []entity.Question, err error)
+	CreateQuestion(ctx context.Context, question *entity.Question) error
+	UpdateQuestion(ctx context.Context, question *entity.Question) error
+	DeleteQuestion(ctx context.Context, questionID string) error
 }
 
-// ExamServiceInterface defines the contract for exam operations
+// ExamServiceInterface defines the contract for exam management operations
+// This follows the new pattern: Service Management Layer → Domain Service Layer → Repository Layer
 type ExamServiceInterface interface {
-	// TODO: Add exam service methods
-	GetByID(examID string, requestorUserID string) (*entity.Exam, error)
-	GetAll(requestorUserID string) ([]entity.Exam, error)
-	Create(req interface{}, requestorUserID string) (*entity.Exam, error)
-	Update(examID string, req interface{}, requestorUserID string) (*entity.Exam, error)
-	Delete(examID string, requestorUserID string) error
-	
-	// Cross-service methods
-	GetExamsByCreator(creatorID string, requestorUserID string) ([]entity.Exam, error)
-	GetExamsByStudent(studentID string, requestorUserID string) ([]entity.Exam, error)
-	ValidateExamExists(examID string) (bool, error)
+	// Exam management operations with pagination
+	GetExam(ctx context.Context, examID string) (exam entity.Exam, err error)
+	ListExams(offset int, limit int) (total int, exams []entity.Exam, err error)
+	CreateExam(ctx context.Context, exam *entity.Exam) error
+	UpdateExam(ctx context.Context, exam *entity.Exam) error
+	DeleteExam(ctx context.Context, examID string) error
 }
 
 // ServiceContainer holds all service interfaces for dependency injection
@@ -71,22 +58,15 @@ type ServiceContainer struct {
 	ExamService     ExamServiceInterface
 }
 
-// ServiceDependencies defines what services each service needs
+// ServiceDependencies defines what services each service needs following the new pattern
 type ServiceDependencies struct {
-	// AuthService dependencies (minimal - no other services)
-	AuthRepo interface{}
-	
-	// UserService dependencies
-	UserRepo    interface{}
-	AuthService AuthServiceInterface
-	
-	// QuestionService dependencies
+	// Repository dependencies for domain services
+	AuthRepo     interface{}
+	UserRepo     interface{}
 	QuestionRepo interface{}
-	AuthService  AuthServiceInterface
-	UserService  UserServiceInterface
-	
-	// ExamService dependencies
-	ExamRepo        interface{}
+	ExamRepo     interface{}
+
+	// Service dependencies for cross-service communication
 	AuthService     AuthServiceInterface
 	UserService     UserServiceInterface
 	QuestionService QuestionServiceInterface

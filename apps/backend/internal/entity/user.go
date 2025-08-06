@@ -14,7 +14,6 @@ type User struct {
 	IsActive     pgtype.Bool        `json:"is_active"`
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
-	ResourcePath pgtype.Text        `json:"resource_path"`
 }
 
 func (e *User) FieldMap() ([]string, []interface{}) {
@@ -28,7 +27,6 @@ func (e *User) FieldMap() ([]string, []interface{}) {
 			"is_active",
 			"created_at",
 			"updated_at",
-			"resource_path",
 		}, []interface{}{
 			&e.ID,
 			&e.Email,
@@ -39,7 +37,6 @@ func (e *User) FieldMap() ([]string, []interface{}) {
 			&e.IsActive,
 			&e.CreatedAt,
 			&e.UpdatedAt,
-			&e.ResourcePath,
 		}
 }
 
