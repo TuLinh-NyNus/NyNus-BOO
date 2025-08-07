@@ -80,7 +80,7 @@ export interface UserActivity {
   action: string;
   resource: string;
   timestamp: string;
-  details: any;
+  details: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
   location?: string;
@@ -109,32 +109,32 @@ export interface UserFilterParams {
  * Transform API user to AdminUser interface
  * Chuyển đổi API user sang AdminUser interface
  */
-export function transformApiUserToAdminUser(apiUser: any): AdminUser {
+export function transformApiUserToAdminUser(apiUser: Record<string, unknown>): AdminUser {
   return {
-    id: apiUser.id,
-    email: apiUser.email,
-    firstName: apiUser.firstName,
-    lastName: apiUser.lastName,
+    id: String(apiUser.id || ''),
+    email: String(apiUser.email || ''),
+    firstName: apiUser.firstName ? String(apiUser.firstName) : undefined,
+    lastName: apiUser.lastName ? String(apiUser.lastName) : undefined,
     name:
       apiUser.firstName && apiUser.lastName
-        ? `${apiUser.firstName} ${apiUser.lastName}`.trim()
-        : apiUser.firstName || apiUser.lastName || apiUser.email,
+        ? `${String(apiUser.firstName)} ${String(apiUser.lastName)}`.trim()
+        : String(apiUser.firstName || apiUser.lastName || apiUser.email || ''),
     role: (apiUser.role as UserRole) || "STUDENT",
     status: (apiUser.status as UserStatus) || "ACTIVE",
-    level: apiUser.level || 1,
+    level: Number(apiUser.level) || 1,
     emailVerified: apiUser.emailVerified !== false,
-    lastLoginAt: apiUser.lastLoginAt,
-    createdAt: apiUser.createdAt || new Date().toISOString(),
-    updatedAt: apiUser.updatedAt,
-    activeSessionsCount: apiUser.activeSessionsCount || 0,
-    totalResourceAccess: apiUser.totalResourceAccess || 0,
-    riskScore: apiUser.riskScore || 0.1,
-    permissions: apiUser.permissions || [],
+    lastLoginAt: apiUser.lastLoginAt ? String(apiUser.lastLoginAt) : undefined,
+    createdAt: String(apiUser.createdAt || new Date().toISOString()),
+    updatedAt: apiUser.updatedAt ? String(apiUser.updatedAt) : undefined,
+    activeSessionsCount: Number(apiUser.activeSessionsCount) || 0,
+    totalResourceAccess: Number(apiUser.totalResourceAccess) || 0,
+    riskScore: Number(apiUser.riskScore) || 0.1,
+    permissions: Array.isArray(apiUser.permissions) ? apiUser.permissions as string[] : [],
     isActive: apiUser.isActive !== false,
-    maxConcurrentSessions: apiUser.maxConcurrentSessions || 5,
-    lastLoginIp: apiUser.lastLoginIp,
-    loginAttempts: apiUser.loginAttempts || 0,
-    lockedUntil: apiUser.lockedUntil ? new Date(apiUser.lockedUntil) : undefined,
+    maxConcurrentSessions: Number(apiUser.maxConcurrentSessions) || 5,
+    lastLoginIp: apiUser.lastLoginIp ? String(apiUser.lastLoginIp) : undefined,
+    loginAttempts: Number(apiUser.loginAttempts) || 0,
+    lockedUntil: apiUser.lockedUntil ? new Date(String(apiUser.lockedUntil)) : undefined,
   };
 }
 

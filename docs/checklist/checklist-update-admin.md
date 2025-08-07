@@ -1,8 +1,8 @@
 # Checklist Chuyển Đổi Giao Diện Admin
-## Từ temp/admin (NextJS + NestJS) sang apps/frontend/src/app/3141592654 (NestJS + Go gRPC)
+## Từ temp1/admin (NextJS + NestJS) sang apps/frontend/src/app/3141592654 (NestJS + Go gRPC)
 
 ### 📋 Tổng Quan Dự Án
-- **Nguồn**: `temp/admin/FE/src/app/admin/` (NextJS)
+- **Nguồn**: `temp1/admin/FE/src/app/admin/` (NextJS)
 - **Đích**: `apps/frontend/src/app/3141592654/admin/` (NestJS)
 - **Mockdata**: `apps/frontend/src/lib/mockdata/`
 - **Components**: `apps/frontend/src/components/admin/`
@@ -21,7 +21,7 @@
 ## 🎯 PHASE 1: PHÂN TÍCH VÀ CHUẨN BỊ
 
 ### 1.1 Khảo Sát Cấu Trúc Dự Án Cũ
-- [x] **Phân tích layout chính**: `temp/admin/FE/src/app/admin/layout.tsx`
+- [x] **Phân tích layout chính**: `temp1/admin/FE/src/app/admin/layout.tsx`
 - [x] **Liệt kê tất cả pages**: Dashboard, Users, Questions, Roles, Permissions, Audit, etc.
 - [x] **Phân tích components dùng chung**: Header, Sidebar, Breadcrumb
 - [x] **Xác định hooks và services**: API calls, WebSocket, Auth
@@ -66,7 +66,7 @@
 ## 📊 PHASE 3: CHUYỂN ĐỔI PAGES CHÍNH (Theo Thứ Tự Ưu Tiên)
 
 ### 3.1 Dashboard Page (Ưu tiên cao nhất) ✅ COMPLETED
-- [x] **Phân tích**: `temp/admin/FE/src/app/admin/page.tsx`
+- [x] **Phân tích**: `temp1/admin/FE/src/app/admin/page.tsx`
 - [x] **Chuyển đổi**: `apps/frontend/src/app/3141592654/admin/dashboard/page.tsx`
 - [x] **Components cần thiết**:
   - [x] Dashboard widgets (DashboardHeader, RealtimeDashboardMetrics)
@@ -77,7 +77,7 @@
 - [x] **Hooks**: `apps/frontend/src/hooks/admin/use-dashboard-data.ts` (đã tạo mới)
 
 ### 3.2 Users Management ✅ HOÀN THÀNH (2025-01-16)
-- [x] **Phân tích**: `temp/admin/FE/src/app/admin/users/page.tsx` ✅
+- [x] **Phân tích**: `temp1/admin/FE/src/app/admin/users/page.tsx` ✅
 - [x] **Chuyển đổi**: `apps/frontend/src/app/3141592654/admin/users/page.tsx` ✅
 - [x] **Components**: ✅
   - [x] User table với virtual scrolling ✅ (`VirtualizedUserTable` - 634 lines)
@@ -97,7 +97,7 @@
 - **Testing**: ✅ Type-check passed, ✅ Build successful, ✅ Dev server running
 
 ### 3.3 Questions Management
-- [ ] **Phân tích**: `temp/admin/FE/src/app/admin/questions/`
+- [ ] **Phân tích**: `temp1/admin/FE/src/app/admin/questions/`
 - [ ] **Chuyển đổi pages**:
   - [ ] `page.tsx` → `apps/frontend/src/app/3141592654/admin/questions/page.tsx`
   - [ ] `create/page.tsx` → `apps/frontend/src/app/3141592654/admin/questions/create/page.tsx`
@@ -111,8 +111,8 @@
 - [ ] **Mockdata**: Mở rộng `apps/frontend/src/lib/mockdata/questions-enhanced.ts`
 
 ### 3.4 Roles & Permissions
-- [ ] **Roles page**: `temp/admin/FE/src/app/admin/roles/page.tsx`
-- [ ] **Permissions page**: `temp/admin/FE/src/app/admin/permissions/page.tsx`
+- [ ] **Roles page**: `temp1/admin/FE/src/app/admin/roles/page.tsx`
+- [ ] **Permissions page**: `temp1/admin/FE/src/app/admin/permissions/page.tsx`
 - [ ] **Chuyển đổi**: 
   - [ ] `apps/frontend/src/app/3141592654/admin/roles/page.tsx`
   - [ ] `apps/frontend/src/app/3141592654/admin/permissions/page.tsx`
@@ -127,26 +127,26 @@
 ## 🔧 PHASE 4: CHUYỂN ĐỔI PAGES PHỤ
 
 ### 4.1 Audit & Security
-- [ ] **Audit**: `temp/admin/FE/src/app/admin/audit/page.tsx`
-- [ ] **Security**: `temp/admin/FE/src/app/admin/security/page.tsx`
+- [ ] **Audit**: `temp1/admin/FE/src/app/admin/audit/page.tsx`
+- [ ] **Security**: `temp1/admin/FE/src/app/admin/security/page.tsx`
 - [ ] **Chuyển đổi**: Tương ứng trong dự án mới
 - [ ] **Mockdata**: Audit logs, security events
 
 ### 4.2 Notifications & Sessions
-- [ ] **Notifications**: `temp/admin/FE/src/app/admin/notifications/page.tsx`
-- [ ] **Sessions**: `temp/admin/FE/src/app/admin/sessions/page.tsx`
+- [ ] **Notifications**: `temp1/admin/FE/src/app/admin/notifications/page.tsx`
+- [ ] **Sessions**: `temp1/admin/FE/src/app/admin/sessions/page.tsx`
 - [ ] **Chuyển đổi**: Tương ứng trong dự án mới
 - [ ] **Mockdata**: Notification history, active sessions
 
 ### 4.3 Settings & Resources
-- [ ] **Settings**: `temp/admin/FE/src/app/admin/settings/page.tsx`
-- [ ] **Resources**: `temp/admin/FE/src/app/admin/resources/page.tsx`
+- [ ] **Settings**: `temp1/admin/FE/src/app/admin/settings/page.tsx`
+- [ ] **Resources**: `temp1/admin/FE/src/app/admin/resources/page.tsx`
 - [ ] **Chuyển đổi**: Tương ứng trong dự án mới
 - [ ] **Mockdata**: System settings, resource management
 
 ### 4.4 Level Progression & Mapcode
-- [ ] **Level Progression**: `temp/admin/FE/src/app/admin/level-progression/page.tsx`
-- [ ] **Mapcode**: `temp/admin/FE/src/app/admin/mapcode/page.tsx`
+- [ ] **Level Progression**: `temp1/admin/FE/src/app/admin/level-progression/page.tsx`
+- [ ] **Mapcode**: `temp1/admin/FE/src/app/admin/mapcode/page.tsx`
 - [ ] **Chuyển đổi**: Tương ứng trong dự án mới
 - [ ] **Mockdata**: Level data, mapcode configurations
 
@@ -155,11 +155,11 @@
 ## 🎨 PHASE 5: COMPONENTS VÀ HOOKS
 
 ### 5.1 Chuyển Đổi Components Chuyên Biệt
-- [ ] **Charts**: `temp/admin/FE/src/components/charts/`
-- [ ] **Widgets**: `temp/admin/FE/src/components/widgets/`
-- [ ] **Error Handling**: `temp/admin/FE/src/components/error-handling/`
-- [ ] **Performance**: `temp/admin/FE/src/components/performance/`
-- [ ] **WebSocket**: `temp/admin/FE/src/components/websocket/`
+- [ ] **Charts**: `temp1/admin/FE/src/components/charts/`
+- [ ] **Widgets**: `temp1/admin/FE/src/components/widgets/`
+- [ ] **Error Handling**: `temp1/admin/FE/src/components/error-handling/`
+- [ ] **Performance**: `temp1/admin/FE/src/components/performance/`
+- [ ] **WebSocket**: `temp1/admin/FE/src/components/websocket/`
 
 ### 5.2 Chuyển Đổi Hooks
 - [ ] **Auth hooks**: `use-admin-auth.ts`
@@ -169,9 +169,9 @@
 - [ ] **Search hooks**: `use-search-*.ts`
 
 ### 5.3 Chuyển Đổi Services
-- [ ] **Performance service**: `temp/admin/FE/src/services/performance-metrics.service.ts`
-- [ ] **API services**: `temp/admin/FE/src/lib/services/`
-- [ ] **WebSocket services**: `temp/admin/FE/src/lib/websocket/`
+- [ ] **Performance service**: `temp1/admin/FE/src/services/performance-metrics.service.ts`
+- [ ] **API services**: `temp1/admin/FE/src/lib/services/`
+- [ ] **WebSocket services**: `temp1/admin/FE/src/lib/websocket/`
 
 ---
 
@@ -187,10 +187,10 @@
 - [ ] **System Settings**: `admin-settings.ts`
 
 ### 6.2 Chuyển Đổi Types
-- [ ] **Admin User**: `temp/admin/FE/src/types/admin-user.ts`
-- [ ] **Dashboard**: `temp/admin/FE/src/types/dashboard-customization.ts`
-- [ ] **Performance**: `temp/admin/FE/src/types/performance-monitoring.ts`
-- [ ] **User Filters**: `temp/admin/FE/src/types/user-filters.ts`
+- [ ] **Admin User**: `temp1/admin/FE/src/types/admin-user.ts`
+- [ ] **Dashboard**: `temp1/admin/FE/src/types/dashboard-customization.ts`
+- [ ] **Performance**: `temp1/admin/FE/src/types/performance-monitoring.ts`
+- [ ] **User Filters**: `temp1/admin/FE/src/types/user-filters.ts`
 
 ---
 
