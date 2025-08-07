@@ -868,7 +868,10 @@ const Hero = () => {
         </div>
 
         {/* Scroll indicator */}
-        <ScrollIndicator targetSectionId="features-section" />
+        <ScrollIndicator
+          targetSectionId="features-section"
+          style={{ bottom: '-160px' }}
+        />
 
       </div>
 
