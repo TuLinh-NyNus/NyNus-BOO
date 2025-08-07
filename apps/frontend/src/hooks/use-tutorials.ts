@@ -3,7 +3,7 @@
  * Tương thích với dự án cũ
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { MockTutorial, MockTutorialFilterParams } from '@/lib/mockdata/courses-types';
 import { mockTutorials } from '@/lib/mockdata/courses-frontend';
 
@@ -94,12 +94,9 @@ export function useTutorials(params?: MockTutorialFilterParams): UseTutorialsRes
     }
   }, [params]);
 
-  // Memoize params serialization để tránh vòng lặp vô hạn
-  const paramsString = useMemo(() => JSON.stringify(params), [params]);
-
   useEffect(() => {
     fetchTutorials();
-  }, [paramsString]); // Chỉ depend vào paramsString, không depend fetchTutorials
+  }, [fetchTutorials]);
 
   return {
     data,

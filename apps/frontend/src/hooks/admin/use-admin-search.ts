@@ -273,10 +273,15 @@ export function useSearchSuggestions(query: string): {
   }, []);
 
   // Debounced suggestions loading
-  const debouncedLoadSuggestions = useCallback(
-    SearchUtils.debounceSearch(loadSuggestions, SEARCH_CONFIG.searchDelay),
-    [loadSuggestions]
-  );
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debouncedLoadSuggestions = useCallback((query: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => {
+      loadSuggestions(query);
+    }, SEARCH_CONFIG.searchDelay);
+  }, [loadSuggestions]);
 
   // Load suggestions when query changes
   useEffect(() => {
@@ -320,10 +325,15 @@ export function useSearchResults(query: string, category?: string): {
   }, []);
 
   // Debounced results loading
-  const debouncedLoadResults = useCallback(
-    SearchUtils.debounceSearch(loadResults, SEARCH_CONFIG.searchDelay),
-    [loadResults]
-  );
+  const resultsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debouncedLoadResults = useCallback((query: string, category?: string) => {
+    if (resultsTimeoutRef.current) {
+      clearTimeout(resultsTimeoutRef.current);
+    }
+    resultsTimeoutRef.current = setTimeout(() => {
+      loadResults(query, category);
+    }, SEARCH_CONFIG.searchDelay);
+  }, [loadResults]);
 
   // Load results when query or category changes
   useEffect(() => {
