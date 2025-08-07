@@ -1,0 +1,35 @@
+{
+  "name": "nynus-admin-system",
+  "version": "1.0.0",
+  "description": "NyNus Admin System - Standalone admin dashboard and API",
+  "scripts": {
+    "dev": "concurrently \"pnpm dev:be\" \"pnpm dev:fe\"",
+    "dev:fe": "cd FE && pnpm dev",
+    "dev:be": "cd BE && pnpm start:dev",
+    "build": "pnpm build:fe && pnpm build:be",
+    "build:fe": "cd FE && pnpm build",
+    "build:be": "cd BE && pnpm build",
+    "start": "concurrently \"pnpm start:be\" \"pnpm start:fe\"",
+    "start:fe": "cd FE && pnpm start",
+    "start:be": "cd BE && pnpm start:prod",
+    "install:all": "pnpm install && cd FE && pnpm install && cd ../BE && pnpm install",
+    "clean": "rimraf FE/.next FE/node_modules BE/dist BE/node_modules node_modules",
+    "test": "pnpm test:fe && pnpm test:be",
+    "test:fe": "cd FE && pnpm test",
+    "test:be": "cd BE && pnpm test"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5"
+  },
+  "keywords": [
+    "admin",
+    "dashboard",
+    "nextjs",
+    "nestjs",
+    "typescript",
+    "nynus"
+  ],
+  "author": "NyNus Team",
+  "license": "MIT"
+}

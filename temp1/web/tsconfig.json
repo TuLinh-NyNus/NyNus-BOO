@@ -1,0 +1,47 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@nynus/entities": ["../../packages/entities/src"],
+      "@nynus/entities/*": ["../../packages/entities/src/*"],
+      "@nynus/dto": ["../../packages/dto/src"],
+      "@nynus/dto/*": ["../../packages/dto/src/*"],
+      "@nynus/interfaces": ["../../packages/interfaces/src"],
+      "@nynus/interfaces/*": ["../../packages/interfaces/src/*"],
+      "@nynus/database": ["../../packages/database/src"],
+      "@nynus/database/*": ["../../packages/database/src/*"]
+    },
+    "types": ["node", "jest", "cypress"]
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "../../packages/*/src/**/*.ts"
+  ],
+  "exclude": ["node_modules", "cypress", "dist", "**/*.test.*", "**/*.spec.*"]
+}
