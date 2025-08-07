@@ -162,6 +162,58 @@
         }
       }
     },
+    "v1ImportError": {
+      "type": "object",
+      "properties": {
+        "rowNumber": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "fieldName": {
+          "type": "string"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "rowData": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ImportQuestionsResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "totalProcessed": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "createdCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "updatedCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "errorCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ImportError"
+          }
+        },
+        "summary": {
+          "type": "string"
+        }
+      }
+    },
     "v1ListQuestionsResponse": {
       "type": "object",
       "properties": {

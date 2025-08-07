@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
@@ -12,11 +13,6 @@ import (
 )
 
 type UserRepository struct {
-	db database.QueryExecer
-}
-
-func NewUserRepository(db database.QueryExecer) *UserRepository {
-	return &UserRepository{db: db}
 }
 
 // Create creates a new user with automatic ULID generation and timestamps
@@ -83,14 +79,14 @@ func (r *UserRepository) GetByIDForUpdate(ctx context.Context, db database.Query
 	return user, nil
 }
 
-func (r *UserRepository) GetAll() ([]entity.User, error) {
+func (r *UserRepository) GetAll(db database.QueryExecer) ([]entity.User, error) {
 	ctx := context.Background()
 	span, ctx := util.StartSpan(ctx, "UserRepository.GetAll")
 	defer span.Finish()
 
 	// Create a template entity for the query
 	template := &entity.User{}
-	rows, err := database.SelectAll(ctx, template, r.db.QueryContext)
+	rows, err := database.SelectAll(ctx, template, db.QueryContext)
 	if err != nil {
 		span.FinishWithError(err)
 		return nil, fmt.Errorf("failed to query users: %w", err)
@@ -116,13 +112,13 @@ func (r *UserRepository) GetAll() ([]entity.User, error) {
 	return users, nil
 }
 
-func (r *UserRepository) GetByEmail(email string) (*entity.User, error) {
+func (r *UserRepository) GetByEmail(email string, db database.QueryExecer) (*entity.User, error) {
 	ctx := context.Background()
 	span, ctx := util.StartSpan(ctx, "UserRepository.GetByEmail")
 	defer span.Finish()
 
 	template := &entity.User{}
-	rows, err := database.SelectByField(ctx, template, "email", email, r.db.QueryContext)
+	rows, err := database.SelectByField(ctx, template, "email", email, db.QueryContext)
 	if err != nil {
 		span.FinishWithError(err)
 		return nil, fmt.Errorf("failed to query user by email: %w", err)
@@ -213,7 +209,7 @@ func (r *UserRepository) Delete(ctx context.Context, db database.QueryExecer, id
 }
 
 // GetByRole returns all users with a specific role
-func (r *UserRepository) GetByRole(role string) ([]entity.User, error) {
+func (r *UserRepository) GetByRole(role string, db database.QueryExecer) ([]entity.User, error) {
 	ctx := context.Background()
 	span, ctx := util.StartSpan(ctx, "UserRepository.GetByRole")
 	defer span.Finish()
@@ -225,7 +221,7 @@ func (r *UserRepository) GetByRole(role string) ([]entity.User, error) {
 		ORDER BY created_at DESC
 	`
 
-	rows, err := r.db.QueryContext(ctx, query, role)
+	rows, err := db.QueryContext(ctx, query, role)
 	if err != nil {
 		span.FinishWithError(err)
 		return nil, fmt.Errorf("failed to query users by role: %w", err)
@@ -249,4 +245,60 @@ func (r *UserRepository) GetByRole(role string) ([]entity.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *UserRepository) GetUsersByPaging(db database.QueryExecer, offset int, limit int) (total int, users []entity.User, err error) {
+	ctx := context.Background()
+	span, ctx := util.StartSpan(ctx, "UserRepository.GetUsersByPaging")
+	defer span.Finish()
+	var user entity.User
+	fieldMap, _ := user.FieldMap()
+
+	query := `
+		SELECT %s
+		FROM %s
+		WHERE is_active = true
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	query = fmt.Sprintf(
+		query,
+		strings.Join(fieldMap, ","),
+		user.TableName(),
+	)
+
+	rows, err := db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		span.FinishWithError(err)
+		return 0, nil, fmt.Errorf("failed to query users: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user entity.User
+		_, values := user.FieldMap()
+		if err := rows.Scan(values...); err != nil {
+			span.FinishWithError(err)
+			return 0, nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		span.FinishWithError(err)
+		return 0, nil, fmt.Errorf("error iterating over users: %w", err)
+	}
+
+	query = `
+		SELECT COUNT(*) FROM users WHERE is_active = true
+	`
+
+	err = db.QueryRowContext(ctx, query).Scan(&total)
+	if err != nil {
+		span.FinishWithError(err)
+		return 0, nil, fmt.Errorf("failed to get total users: %w", err)
+	}
+
+	return
 }
