@@ -553,6 +553,219 @@ func (x *ListQuestionsResponse) GetPagination() *common.PaginationResponse {
 	return nil
 }
 
+// Import questions
+type ImportQuestionsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CsvDataBase64 string                 `protobuf:"bytes,1,opt,name=csv_data_base64,json=csvDataBase64,proto3" json:"csv_data_base64,omitempty"`
+	UpsertMode    bool                   `protobuf:"varint,2,opt,name=upsert_mode,json=upsertMode,proto3" json:"upsert_mode,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportQuestionsRequest) Reset() {
+	*x = ImportQuestionsRequest{}
+	mi := &file_v1_question_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportQuestionsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportQuestionsRequest) ProtoMessage() {}
+
+func (x *ImportQuestionsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_question_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportQuestionsRequest.ProtoReflect.Descriptor instead.
+func (*ImportQuestionsRequest) Descriptor() ([]byte, []int) {
+	return file_v1_question_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *ImportQuestionsRequest) GetCsvDataBase64() string {
+	if x != nil {
+		return x.CsvDataBase64
+	}
+	return ""
+}
+
+func (x *ImportQuestionsRequest) GetUpsertMode() bool {
+	if x != nil {
+		return x.UpsertMode
+	}
+	return false
+}
+
+type ImportError struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RowNumber     int32                  `protobuf:"varint,1,opt,name=row_number,json=rowNumber,proto3" json:"row_number,omitempty"`
+	FieldName     string                 `protobuf:"bytes,2,opt,name=field_name,json=fieldName,proto3" json:"field_name,omitempty"`
+	ErrorMessage  string                 `protobuf:"bytes,3,opt,name=error_message,json=errorMessage,proto3" json:"error_message,omitempty"`
+	RowData       string                 `protobuf:"bytes,4,opt,name=row_data,json=rowData,proto3" json:"row_data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ImportError) Reset() {
+	*x = ImportError{}
+	mi := &file_v1_question_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportError) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportError) ProtoMessage() {}
+
+func (x *ImportError) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_question_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportError.ProtoReflect.Descriptor instead.
+func (*ImportError) Descriptor() ([]byte, []int) {
+	return file_v1_question_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ImportError) GetRowNumber() int32 {
+	if x != nil {
+		return x.RowNumber
+	}
+	return 0
+}
+
+func (x *ImportError) GetFieldName() string {
+	if x != nil {
+		return x.FieldName
+	}
+	return ""
+}
+
+func (x *ImportError) GetErrorMessage() string {
+	if x != nil {
+		return x.ErrorMessage
+	}
+	return ""
+}
+
+func (x *ImportError) GetRowData() string {
+	if x != nil {
+		return x.RowData
+	}
+	return ""
+}
+
+type ImportQuestionsResponse struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Response       *common.Response       `protobuf:"bytes,1,opt,name=response,proto3" json:"response,omitempty"`
+	TotalProcessed int32                  `protobuf:"varint,2,opt,name=total_processed,json=totalProcessed,proto3" json:"total_processed,omitempty"`
+	CreatedCount   int32                  `protobuf:"varint,3,opt,name=created_count,json=createdCount,proto3" json:"created_count,omitempty"`
+	UpdatedCount   int32                  `protobuf:"varint,4,opt,name=updated_count,json=updatedCount,proto3" json:"updated_count,omitempty"`
+	ErrorCount     int32                  `protobuf:"varint,5,opt,name=error_count,json=errorCount,proto3" json:"error_count,omitempty"`
+	Errors         []*ImportError         `protobuf:"bytes,6,rep,name=errors,proto3" json:"errors,omitempty"`
+	Summary        string                 `protobuf:"bytes,7,opt,name=summary,proto3" json:"summary,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ImportQuestionsResponse) Reset() {
+	*x = ImportQuestionsResponse{}
+	mi := &file_v1_question_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ImportQuestionsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ImportQuestionsResponse) ProtoMessage() {}
+
+func (x *ImportQuestionsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_question_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ImportQuestionsResponse.ProtoReflect.Descriptor instead.
+func (*ImportQuestionsResponse) Descriptor() ([]byte, []int) {
+	return file_v1_question_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ImportQuestionsResponse) GetResponse() *common.Response {
+	if x != nil {
+		return x.Response
+	}
+	return nil
+}
+
+func (x *ImportQuestionsResponse) GetTotalProcessed() int32 {
+	if x != nil {
+		return x.TotalProcessed
+	}
+	return 0
+}
+
+func (x *ImportQuestionsResponse) GetCreatedCount() int32 {
+	if x != nil {
+		return x.CreatedCount
+	}
+	return 0
+}
+
+func (x *ImportQuestionsResponse) GetUpdatedCount() int32 {
+	if x != nil {
+		return x.UpdatedCount
+	}
+	return 0
+}
+
+func (x *ImportQuestionsResponse) GetErrorCount() int32 {
+	if x != nil {
+		return x.ErrorCount
+	}
+	return 0
+}
+
+func (x *ImportQuestionsResponse) GetErrors() []*ImportError {
+	if x != nil {
+		return x.Errors
+	}
+	return nil
+}
+
+func (x *ImportQuestionsResponse) GetSummary() string {
+	if x != nil {
+		return x.Summary
+	}
+	return ""
+}
+
 var File_v1_question_proto protoreflect.FileDescriptor
 
 const file_v1_question_proto_rawDesc = "" +
@@ -610,11 +823,32 @@ const file_v1_question_proto_rawDesc = "" +
 	"\tquestions\x18\x02 \x03(\v2\f.v1.QuestionR\tquestions\x12:\n" +
 	"\n" +
 	"pagination\x18\x03 \x01(\v2\x1a.common.PaginationResponseR\n" +
-	"pagination2\xe0\x01\n" +
+	"pagination\"a\n" +
+	"\x16ImportQuestionsRequest\x12&\n" +
+	"\x0fcsv_data_base64\x18\x01 \x01(\tR\rcsvDataBase64\x12\x1f\n" +
+	"\vupsert_mode\x18\x02 \x01(\bR\n" +
+	"upsertMode\"\x8b\x01\n" +
+	"\vImportError\x12\x1d\n" +
+	"\n" +
+	"row_number\x18\x01 \x01(\x05R\trowNumber\x12\x1d\n" +
+	"\n" +
+	"field_name\x18\x02 \x01(\tR\tfieldName\x12#\n" +
+	"\rerror_message\x18\x03 \x01(\tR\ferrorMessage\x12\x19\n" +
+	"\brow_data\x18\x04 \x01(\tR\arowData\"\x9e\x02\n" +
+	"\x17ImportQuestionsResponse\x12,\n" +
+	"\bresponse\x18\x01 \x01(\v2\x10.common.ResponseR\bresponse\x12'\n" +
+	"\x0ftotal_processed\x18\x02 \x01(\x05R\x0etotalProcessed\x12#\n" +
+	"\rcreated_count\x18\x03 \x01(\x05R\fcreatedCount\x12#\n" +
+	"\rupdated_count\x18\x04 \x01(\x05R\fupdatedCount\x12\x1f\n" +
+	"\verror_count\x18\x05 \x01(\x05R\n" +
+	"errorCount\x12'\n" +
+	"\x06errors\x18\x06 \x03(\v2\x0f.v1.ImportErrorR\x06errors\x12\x18\n" +
+	"\asummary\x18\a \x01(\tR\asummary2\xac\x02\n" +
 	"\x0fQuestionService\x12G\n" +
 	"\x0eCreateQuestion\x12\x19.v1.CreateQuestionRequest\x1a\x1a.v1.CreateQuestionResponse\x12>\n" +
 	"\vGetQuestion\x12\x16.v1.GetQuestionRequest\x1a\x17.v1.GetQuestionResponse\x12D\n" +
-	"\rListQuestions\x12\x18.v1.ListQuestionsRequest\x1a\x19.v1.ListQuestionsResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
+	"\rListQuestions\x12\x18.v1.ListQuestionsRequest\x1a\x19.v1.ListQuestionsResponse\x12J\n" +
+	"\x0fImportQuestions\x12\x1a.v1.ImportQuestionsRequest\x1a\x1b.v1.ImportQuestionsResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
 
 var (
 	file_v1_question_proto_rawDescOnce sync.Once
@@ -628,7 +862,7 @@ func file_v1_question_proto_rawDescGZIP() []byte {
 	return file_v1_question_proto_rawDescData
 }
 
-var file_v1_question_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_v1_question_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_v1_question_proto_goTypes = []any{
 	(*Answer)(nil),                    // 0: v1.Answer
 	(*Question)(nil),                  // 1: v1.Question
@@ -638,38 +872,45 @@ var file_v1_question_proto_goTypes = []any{
 	(*GetQuestionResponse)(nil),       // 5: v1.GetQuestionResponse
 	(*ListQuestionsRequest)(nil),      // 6: v1.ListQuestionsRequest
 	(*ListQuestionsResponse)(nil),     // 7: v1.ListQuestionsResponse
-	(common.QuestionType)(0),          // 8: common.QuestionType
-	(common.DifficultyLevel)(0),       // 9: common.DifficultyLevel
-	(*common.Response)(nil),           // 10: common.Response
-	(*common.PaginationRequest)(nil),  // 11: common.PaginationRequest
-	(*common.PaginationResponse)(nil), // 12: common.PaginationResponse
+	(*ImportQuestionsRequest)(nil),    // 8: v1.ImportQuestionsRequest
+	(*ImportError)(nil),               // 9: v1.ImportError
+	(*ImportQuestionsResponse)(nil),   // 10: v1.ImportQuestionsResponse
+	(common.QuestionType)(0),          // 11: common.QuestionType
+	(common.DifficultyLevel)(0),       // 12: common.DifficultyLevel
+	(*common.Response)(nil),           // 13: common.Response
+	(*common.PaginationRequest)(nil),  // 14: common.PaginationRequest
+	(*common.PaginationResponse)(nil), // 15: common.PaginationResponse
 }
 var file_v1_question_proto_depIdxs = []int32{
-	8,  // 0: v1.Question.type:type_name -> common.QuestionType
-	9,  // 1: v1.Question.difficulty:type_name -> common.DifficultyLevel
+	11, // 0: v1.Question.type:type_name -> common.QuestionType
+	12, // 1: v1.Question.difficulty:type_name -> common.DifficultyLevel
 	0,  // 2: v1.Question.answers:type_name -> v1.Answer
-	8,  // 3: v1.CreateQuestionRequest.type:type_name -> common.QuestionType
-	9,  // 4: v1.CreateQuestionRequest.difficulty:type_name -> common.DifficultyLevel
+	11, // 3: v1.CreateQuestionRequest.type:type_name -> common.QuestionType
+	12, // 4: v1.CreateQuestionRequest.difficulty:type_name -> common.DifficultyLevel
 	0,  // 5: v1.CreateQuestionRequest.answers:type_name -> v1.Answer
-	10, // 6: v1.CreateQuestionResponse.response:type_name -> common.Response
+	13, // 6: v1.CreateQuestionResponse.response:type_name -> common.Response
 	1,  // 7: v1.CreateQuestionResponse.question:type_name -> v1.Question
-	10, // 8: v1.GetQuestionResponse.response:type_name -> common.Response
+	13, // 8: v1.GetQuestionResponse.response:type_name -> common.Response
 	1,  // 9: v1.GetQuestionResponse.question:type_name -> v1.Question
-	11, // 10: v1.ListQuestionsRequest.pagination:type_name -> common.PaginationRequest
-	10, // 11: v1.ListQuestionsResponse.response:type_name -> common.Response
+	14, // 10: v1.ListQuestionsRequest.pagination:type_name -> common.PaginationRequest
+	13, // 11: v1.ListQuestionsResponse.response:type_name -> common.Response
 	1,  // 12: v1.ListQuestionsResponse.questions:type_name -> v1.Question
-	12, // 13: v1.ListQuestionsResponse.pagination:type_name -> common.PaginationResponse
-	2,  // 14: v1.QuestionService.CreateQuestion:input_type -> v1.CreateQuestionRequest
-	4,  // 15: v1.QuestionService.GetQuestion:input_type -> v1.GetQuestionRequest
-	6,  // 16: v1.QuestionService.ListQuestions:input_type -> v1.ListQuestionsRequest
-	3,  // 17: v1.QuestionService.CreateQuestion:output_type -> v1.CreateQuestionResponse
-	5,  // 18: v1.QuestionService.GetQuestion:output_type -> v1.GetQuestionResponse
-	7,  // 19: v1.QuestionService.ListQuestions:output_type -> v1.ListQuestionsResponse
-	17, // [17:20] is the sub-list for method output_type
-	14, // [14:17] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	15, // 13: v1.ListQuestionsResponse.pagination:type_name -> common.PaginationResponse
+	13, // 14: v1.ImportQuestionsResponse.response:type_name -> common.Response
+	9,  // 15: v1.ImportQuestionsResponse.errors:type_name -> v1.ImportError
+	2,  // 16: v1.QuestionService.CreateQuestion:input_type -> v1.CreateQuestionRequest
+	4,  // 17: v1.QuestionService.GetQuestion:input_type -> v1.GetQuestionRequest
+	6,  // 18: v1.QuestionService.ListQuestions:input_type -> v1.ListQuestionsRequest
+	8,  // 19: v1.QuestionService.ImportQuestions:input_type -> v1.ImportQuestionsRequest
+	3,  // 20: v1.QuestionService.CreateQuestion:output_type -> v1.CreateQuestionResponse
+	5,  // 21: v1.QuestionService.GetQuestion:output_type -> v1.GetQuestionResponse
+	7,  // 22: v1.QuestionService.ListQuestions:output_type -> v1.ListQuestionsResponse
+	10, // 23: v1.QuestionService.ImportQuestions:output_type -> v1.ImportQuestionsResponse
+	20, // [20:24] is the sub-list for method output_type
+	16, // [16:20] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_v1_question_proto_init() }
@@ -683,7 +924,7 @@ func file_v1_question_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_question_proto_rawDesc), len(file_v1_question_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

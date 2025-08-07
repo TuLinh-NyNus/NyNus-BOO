@@ -1,24 +1,20 @@
 package repository
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
 
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 
 	"github.com/google/uuid"
 )
 
-type AnswerRepository struct {
-	db *sql.DB
-}
+type AnswerRepository struct{}
 
-func NewAnswerRepository(db *sql.DB) *AnswerRepository {
-	return &AnswerRepository{db: db}
-}
-
-func (r *AnswerRepository) GetByQuestionID(questionID string) ([]entity.Answer, error) {
+func (r *AnswerRepository) GetByQuestionID(ctx context.Context, db database.QueryExecer, questionID string) ([]entity.Answer, error) {
 	query := `
 	SELECT id, question_id, text, is_correct, created_at
 	FROM answers
@@ -26,7 +22,7 @@ func (r *AnswerRepository) GetByQuestionID(questionID string) ([]entity.Answer, 
 	ORDER BY created_at ASC
 	`
 
-	rows, err := r.db.Query(query, questionID)
+	rows, err := db.QueryContext(ctx, query, questionID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query answers: %w", err)
 	}
@@ -47,7 +43,7 @@ func (r *AnswerRepository) GetByQuestionID(questionID string) ([]entity.Answer, 
 	return answers, nil
 }
 
-func (r *AnswerRepository) GetByID(id string) (*entity.Answer, error) {
+func (r *AnswerRepository) GetByID(ctx context.Context, db database.QueryExecer, id string) (*entity.Answer, error) {
 	query := `
 	SELECT id, question_id, text, is_correct, created_at
 	FROM answers
@@ -55,7 +51,7 @@ func (r *AnswerRepository) GetByID(id string) (*entity.Answer, error) {
 	`
 
 	var answer entity.Answer
-	err := r.db.QueryRow(query, id).Scan(
+	err := db.QueryRowContext(ctx, query, id).Scan(
 		&answer.ID, &answer.QuestionID, &answer.Text, &answer.IsCorrect, &answer.CreatedAt,
 	)
 
@@ -69,7 +65,7 @@ func (r *AnswerRepository) GetByID(id string) (*entity.Answer, error) {
 	return &answer, nil
 }
 
-func (r *AnswerRepository) Create(answer *entity.Answer) error {
+func (r *AnswerRepository) Create(ctx context.Context, db database.QueryExecer, answer *entity.Answer) error {
 	// Generate UUID if not provided
 	if answer.ID == "" {
 		answer.ID = uuid.New().String()
@@ -83,7 +79,7 @@ func (r *AnswerRepository) Create(answer *entity.Answer) error {
 	VALUES ($1, $2, $3, $4, $5)
 	`
 
-	_, err := r.db.Exec(query,
+	_, err := db.ExecContext(ctx, query,
 		answer.ID, answer.QuestionID, answer.Text, answer.IsCorrect, answer.CreatedAt,
 	)
 
@@ -94,14 +90,14 @@ func (r *AnswerRepository) Create(answer *entity.Answer) error {
 	return nil
 }
 
-func (r *AnswerRepository) Update(answer *entity.Answer) error {
+func (r *AnswerRepository) Update(ctx context.Context, db database.QueryExecer, answer *entity.Answer) error {
 	query := `
 	UPDATE answers
 	SET text = $2, is_correct = $3
 	WHERE id = $1
 	`
 
-	result, err := r.db.Exec(query, answer.ID, answer.Text, answer.IsCorrect)
+	result, err := db.ExecContext(ctx, query, answer.ID, answer.Text, answer.IsCorrect)
 	if err != nil {
 		return fmt.Errorf("failed to update answer: %w", err)
 	}
@@ -118,10 +114,10 @@ func (r *AnswerRepository) Update(answer *entity.Answer) error {
 	return nil
 }
 
-func (r *AnswerRepository) Delete(id string) error {
+func (r *AnswerRepository) Delete(ctx context.Context, db database.QueryExecer, id string) error {
 	query := `DELETE FROM answers WHERE id = $1`
 
-	result, err := r.db.Exec(query, id)
+	result, err := db.ExecContext(ctx, query, id)
 	if err != nil {
 		return fmt.Errorf("failed to delete answer: %w", err)
 	}
@@ -138,10 +134,10 @@ func (r *AnswerRepository) Delete(id string) error {
 	return nil
 }
 
-func (r *AnswerRepository) DeleteByQuestionID(questionID string) error {
+func (r *AnswerRepository) DeleteByQuestionID(ctx context.Context, db database.QueryExecer, questionID string) error {
 	query := `DELETE FROM answers WHERE question_id = $1`
 
-	_, err := r.db.Exec(query, questionID)
+	_, err := db.ExecContext(ctx, query, questionID)
 	if err != nil {
 		return fmt.Errorf("failed to delete answers for question: %w", err)
 	}

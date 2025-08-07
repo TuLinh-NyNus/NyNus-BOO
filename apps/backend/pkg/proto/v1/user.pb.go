@@ -541,6 +541,102 @@ func (x *ListUsersResponse) GetPagination() *common.PaginationResponse {
 	return nil
 }
 
+type GetStudentListRequest struct {
+	state         protoimpl.MessageState    `protogen:"open.v1"`
+	Pagination    *common.PaginationRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStudentListRequest) Reset() {
+	*x = GetStudentListRequest{}
+	mi := &file_v1_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStudentListRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStudentListRequest) ProtoMessage() {}
+
+func (x *GetStudentListRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStudentListRequest.ProtoReflect.Descriptor instead.
+func (*GetStudentListRequest) Descriptor() ([]byte, []int) {
+	return file_v1_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetStudentListRequest) GetPagination() *common.PaginationRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+type GetStudentListResponse struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Users         []*User                    `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	Pagination    *common.PaginationResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetStudentListResponse) Reset() {
+	*x = GetStudentListResponse{}
+	mi := &file_v1_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetStudentListResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetStudentListResponse) ProtoMessage() {}
+
+func (x *GetStudentListResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetStudentListResponse.ProtoReflect.Descriptor instead.
+func (*GetStudentListResponse) Descriptor() ([]byte, []int) {
+	return file_v1_user_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetStudentListResponse) GetUsers() []*User {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *GetStudentListResponse) GetPagination() *common.PaginationResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
 var File_v1_user_proto protoreflect.FileDescriptor
 
 const file_v1_user_proto_rawDesc = "" +
@@ -584,12 +680,22 @@ const file_v1_user_proto_rawDesc = "" +
 	"\x05users\x18\x02 \x03(\v2\b.v1.UserR\x05users\x12:\n" +
 	"\n" +
 	"pagination\x18\x03 \x01(\v2\x1a.common.PaginationResponseR\n" +
-	"pagination2\xe0\x01\n" +
+	"pagination\"R\n" +
+	"\x15GetStudentListRequest\x129\n" +
+	"\n" +
+	"pagination\x18\x01 \x01(\v2\x19.common.PaginationRequestR\n" +
+	"pagination\"t\n" +
+	"\x16GetStudentListResponse\x12\x1e\n" +
+	"\x05users\x18\x01 \x03(\v2\b.v1.UserR\x05users\x12:\n" +
+	"\n" +
+	"pagination\x18\x02 \x01(\v2\x1a.common.PaginationResponseR\n" +
+	"pagination2\xa9\x02\n" +
 	"\vUserService\x12,\n" +
 	"\x05Login\x12\x10.v1.LoginRequest\x1a\x11.v1.LoginResponse\x125\n" +
 	"\bRegister\x12\x13.v1.RegisterRequest\x1a\x14.v1.RegisterResponse\x122\n" +
 	"\aGetUser\x12\x12.v1.GetUserRequest\x1a\x13.v1.GetUserResponse\x128\n" +
-	"\tListUsers\x12\x14.v1.ListUsersRequest\x1a\x15.v1.ListUsersResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
+	"\tListUsers\x12\x14.v1.ListUsersRequest\x1a\x15.v1.ListUsersResponse\x12G\n" +
+	"\x0eGetStudentList\x12\x19.v1.GetStudentListRequest\x1a\x1a.v1.GetStudentListResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
 
 var (
 	file_v1_user_proto_rawDescOnce sync.Once
@@ -603,7 +709,7 @@ func file_v1_user_proto_rawDescGZIP() []byte {
 	return file_v1_user_proto_rawDescData
 }
 
-var file_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_v1_user_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_v1_user_proto_goTypes = []any{
 	(*User)(nil),                      // 0: v1.User
 	(*LoginRequest)(nil),              // 1: v1.LoginRequest
@@ -614,36 +720,43 @@ var file_v1_user_proto_goTypes = []any{
 	(*GetUserResponse)(nil),           // 6: v1.GetUserResponse
 	(*ListUsersRequest)(nil),          // 7: v1.ListUsersRequest
 	(*ListUsersResponse)(nil),         // 8: v1.ListUsersResponse
-	(common.UserRole)(0),              // 9: common.UserRole
-	(*common.Response)(nil),           // 10: common.Response
-	(*common.PaginationRequest)(nil),  // 11: common.PaginationRequest
-	(*common.PaginationResponse)(nil), // 12: common.PaginationResponse
+	(*GetStudentListRequest)(nil),     // 9: v1.GetStudentListRequest
+	(*GetStudentListResponse)(nil),    // 10: v1.GetStudentListResponse
+	(common.UserRole)(0),              // 11: common.UserRole
+	(*common.Response)(nil),           // 12: common.Response
+	(*common.PaginationRequest)(nil),  // 13: common.PaginationRequest
+	(*common.PaginationResponse)(nil), // 14: common.PaginationResponse
 }
 var file_v1_user_proto_depIdxs = []int32{
-	9,  // 0: v1.User.role:type_name -> common.UserRole
-	10, // 1: v1.LoginResponse.response:type_name -> common.Response
+	11, // 0: v1.User.role:type_name -> common.UserRole
+	12, // 1: v1.LoginResponse.response:type_name -> common.Response
 	0,  // 2: v1.LoginResponse.user:type_name -> v1.User
-	10, // 3: v1.RegisterResponse.response:type_name -> common.Response
+	12, // 3: v1.RegisterResponse.response:type_name -> common.Response
 	0,  // 4: v1.RegisterResponse.user:type_name -> v1.User
-	10, // 5: v1.GetUserResponse.response:type_name -> common.Response
+	12, // 5: v1.GetUserResponse.response:type_name -> common.Response
 	0,  // 6: v1.GetUserResponse.user:type_name -> v1.User
-	11, // 7: v1.ListUsersRequest.pagination:type_name -> common.PaginationRequest
-	10, // 8: v1.ListUsersResponse.response:type_name -> common.Response
+	13, // 7: v1.ListUsersRequest.pagination:type_name -> common.PaginationRequest
+	12, // 8: v1.ListUsersResponse.response:type_name -> common.Response
 	0,  // 9: v1.ListUsersResponse.users:type_name -> v1.User
-	12, // 10: v1.ListUsersResponse.pagination:type_name -> common.PaginationResponse
-	1,  // 11: v1.UserService.Login:input_type -> v1.LoginRequest
-	3,  // 12: v1.UserService.Register:input_type -> v1.RegisterRequest
-	5,  // 13: v1.UserService.GetUser:input_type -> v1.GetUserRequest
-	7,  // 14: v1.UserService.ListUsers:input_type -> v1.ListUsersRequest
-	2,  // 15: v1.UserService.Login:output_type -> v1.LoginResponse
-	4,  // 16: v1.UserService.Register:output_type -> v1.RegisterResponse
-	6,  // 17: v1.UserService.GetUser:output_type -> v1.GetUserResponse
-	8,  // 18: v1.UserService.ListUsers:output_type -> v1.ListUsersResponse
-	15, // [15:19] is the sub-list for method output_type
-	11, // [11:15] is the sub-list for method input_type
-	11, // [11:11] is the sub-list for extension type_name
-	11, // [11:11] is the sub-list for extension extendee
-	0,  // [0:11] is the sub-list for field type_name
+	14, // 10: v1.ListUsersResponse.pagination:type_name -> common.PaginationResponse
+	13, // 11: v1.GetStudentListRequest.pagination:type_name -> common.PaginationRequest
+	0,  // 12: v1.GetStudentListResponse.users:type_name -> v1.User
+	14, // 13: v1.GetStudentListResponse.pagination:type_name -> common.PaginationResponse
+	1,  // 14: v1.UserService.Login:input_type -> v1.LoginRequest
+	3,  // 15: v1.UserService.Register:input_type -> v1.RegisterRequest
+	5,  // 16: v1.UserService.GetUser:input_type -> v1.GetUserRequest
+	7,  // 17: v1.UserService.ListUsers:input_type -> v1.ListUsersRequest
+	9,  // 18: v1.UserService.GetStudentList:input_type -> v1.GetStudentListRequest
+	2,  // 19: v1.UserService.Login:output_type -> v1.LoginResponse
+	4,  // 20: v1.UserService.Register:output_type -> v1.RegisterResponse
+	6,  // 21: v1.UserService.GetUser:output_type -> v1.GetUserResponse
+	8,  // 22: v1.UserService.ListUsers:output_type -> v1.ListUsersResponse
+	10, // 23: v1.UserService.GetStudentList:output_type -> v1.GetStudentListResponse
+	19, // [19:24] is the sub-list for method output_type
+	14, // [14:19] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_v1_user_proto_init() }
@@ -657,7 +770,7 @@ func file_v1_user_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_user_proto_rawDesc), len(file_v1_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

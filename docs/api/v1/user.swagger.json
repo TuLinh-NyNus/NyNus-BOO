@@ -115,6 +115,21 @@
         }
       }
     },
+    "v1GetStudentListResponse": {
+      "type": "object",
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1User"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/commonPaginationResponse"
+        }
+      }
+    },
     "v1GetUserResponse": {
       "type": "object",
       "properties": {

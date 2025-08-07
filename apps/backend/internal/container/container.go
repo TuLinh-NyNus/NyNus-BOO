@@ -6,8 +6,9 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/grpc"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user"
+	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
+	question_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question"
+	user_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/user"
 )
 
 // Container holds all dependencies
@@ -20,14 +21,16 @@ type Container struct {
 	AnswerRepo *repository.AnswerRepository
 
 	// Services
-	AuthService *auth.Service
-	UserService *user.Service
+	AuthMgmt     *auth_mgmt.AuthMgmt
+	UserMgmt     *user_mgmt.UserMgmt
+	QuestionMgmt *question_mgmt.QuestionMgmt
 
 	// Middleware
 	AuthInterceptor *middleware.AuthInterceptor
 
 	// gRPC Services
-	UserGRPCService *grpc.UserServiceServer
+	UserGRPCService     *grpc.UserServiceServer
+	QuestionGRPCService *grpc.QuestionServiceServer
 
 	// Configuration
 	JWTSecret string
@@ -51,34 +54,31 @@ func NewContainer(db *sql.DB, jwtSecret string) *Container {
 
 // initRepositories initializes all repository dependencies
 func (c *Container) initRepositories() {
-	c.UserRepo = repository.NewUserRepository(c.DB)
-	c.AnswerRepo = repository.NewAnswerRepository(c.DB)
+	c.UserRepo = &repository.UserRepository{}
+	c.AnswerRepo = &repository.AnswerRepository{}
 }
 
 // initServices initializes all service dependencies
 func (c *Container) initServices() {
-	// Auth service uses the same repository instance for all auth operations
-	c.AuthService = auth.NewService(c.UserRepo, c.JWTSecret)
+	// Auth management service following the new clean pattern
+	c.AuthMgmt = auth_mgmt.NewAuthMgmt(c.DB, c.JWTSecret)
 
-	// User service uses the same repository instance for all user operations
-	// Following payment system pattern: pass same repo instance to all segregated interfaces
-	c.UserService = user.NewService(
-		c.UserRepo, // IUserRepositoryForCreateUser
-		c.UserRepo, // IUserRepositoryForGetUser
-		c.UserRepo, // IUserRepositoryForUpdateUser
-		c.UserRepo, // IUserRepositoryForDeleteUser
-		c.AuthService,
-	)
+	// Initialize UserMgmt with database connection
+	c.UserMgmt = user_mgmt.NewUserMgmt(c.DB)
+
+	// Initialize QuestionMgmt with database connection
+	c.QuestionMgmt = question_mgmt.NewQuestionMgmt(c.DB)
 }
 
 // initMiddleware initializes all middleware dependencies
 func (c *Container) initMiddleware() {
-	c.AuthInterceptor = middleware.NewAuthInterceptor(c.AuthService)
+	c.AuthInterceptor = middleware.NewAuthInterceptor(c.AuthMgmt)
 }
 
 // initGRPCServices initializes all gRPC service dependencies
 func (c *Container) initGRPCServices() {
-	c.UserGRPCService = grpc.NewUserServiceServer(c.UserService, c.AuthService)
+	c.UserGRPCService = grpc.NewUserServiceServer(c.UserMgmt, c.AuthMgmt)
+	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionMgmt)
 }
 
 // GetUserRepository returns the user repository
@@ -91,14 +91,19 @@ func (c *Container) GetAnswerRepository() *repository.AnswerRepository {
 	return c.AnswerRepo
 }
 
-// GetAuthService returns the auth service
-func (c *Container) GetAuthService() *auth.Service {
-	return c.AuthService
+// GetAuthMgmt returns the auth management service
+func (c *Container) GetAuthMgmt() *auth_mgmt.AuthMgmt {
+	return c.AuthMgmt
 }
 
-// GetUserService returns the user service
-func (c *Container) GetUserService() *user.Service {
-	return c.UserService
+// GetUserMgmt returns the user management service
+func (c *Container) GetUserMgmt() *user_mgmt.UserMgmt {
+	return c.UserMgmt
+}
+
+// GetQuestionMgmt returns the question management service
+func (c *Container) GetQuestionMgmt() *question_mgmt.QuestionMgmt {
+	return c.QuestionMgmt
 }
 
 // GetAuthInterceptor returns the auth interceptor
@@ -109,6 +114,11 @@ func (c *Container) GetAuthInterceptor() *middleware.AuthInterceptor {
 // GetUserGRPCService returns the user gRPC service
 func (c *Container) GetUserGRPCService() *grpc.UserServiceServer {
 	return c.UserGRPCService
+}
+
+// GetQuestionGRPCService returns the question gRPC service
+func (c *Container) GetQuestionGRPCService() *grpc.QuestionServiceServer {
+	return c.QuestionGRPCService
 }
 
 // Cleanup performs cleanup operations

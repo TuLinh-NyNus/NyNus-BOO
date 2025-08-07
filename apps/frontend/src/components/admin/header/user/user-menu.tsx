@@ -6,6 +6,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { User, Settings, LogOut, Shield, Bell, HelpCircle, ChevronDown } from 'lucide-react';
 import { UserMenuProps, AdminUser } from '@/types/admin/header';
 import { adminHeaderMockService } from '@/lib/mockdata/admin-header';
@@ -98,9 +99,11 @@ export function UserMenu({
   const renderUserAvatar = () => {
     if (user?.avatar) {
       return (
-        <img
+        <Image
           src={user.avatar}
           alt={user.name}
+          width={32}
+          height={32}
           className="w-8 h-8 rounded-full object-cover"
         />
       );

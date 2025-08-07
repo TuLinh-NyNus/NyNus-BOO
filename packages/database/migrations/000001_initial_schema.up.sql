@@ -10,17 +10,18 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
     applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Users table
+-- Users table (aligned with entity.User structure in user.go)
 CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT 'student',
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'student' CHECK (role IN ('student', 'teacher', 'admin')),
     is_active BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    resource_path TEXT
 );
 
 -- Questions table
@@ -50,7 +51,7 @@ CREATE TABLE exams (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     duration_minutes INTEGER NOT NULL,
-    created_by UUID NOT NULL REFERENCES users(id),
+    created_by TEXT NOT NULL REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -70,7 +71,7 @@ CREATE TABLE exam_questions (
 CREATE TABLE exam_attempts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     exam_id UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     score INTEGER NOT NULL DEFAULT 0,
     completed BOOLEAN NOT NULL DEFAULT false,
     started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),

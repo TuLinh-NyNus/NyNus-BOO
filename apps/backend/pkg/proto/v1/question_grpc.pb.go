@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	QuestionService_CreateQuestion_FullMethodName = "/v1.QuestionService/CreateQuestion"
-	QuestionService_GetQuestion_FullMethodName    = "/v1.QuestionService/GetQuestion"
-	QuestionService_ListQuestions_FullMethodName  = "/v1.QuestionService/ListQuestions"
+	QuestionService_CreateQuestion_FullMethodName  = "/v1.QuestionService/CreateQuestion"
+	QuestionService_GetQuestion_FullMethodName     = "/v1.QuestionService/GetQuestion"
+	QuestionService_ListQuestions_FullMethodName   = "/v1.QuestionService/ListQuestions"
+	QuestionService_ImportQuestions_FullMethodName = "/v1.QuestionService/ImportQuestions"
 )
 
 // QuestionServiceClient is the client API for QuestionService service.
@@ -33,6 +34,7 @@ type QuestionServiceClient interface {
 	CreateQuestion(ctx context.Context, in *CreateQuestionRequest, opts ...grpc.CallOption) (*CreateQuestionResponse, error)
 	GetQuestion(ctx context.Context, in *GetQuestionRequest, opts ...grpc.CallOption) (*GetQuestionResponse, error)
 	ListQuestions(ctx context.Context, in *ListQuestionsRequest, opts ...grpc.CallOption) (*ListQuestionsResponse, error)
+	ImportQuestions(ctx context.Context, in *ImportQuestionsRequest, opts ...grpc.CallOption) (*ImportQuestionsResponse, error)
 }
 
 type questionServiceClient struct {
@@ -73,6 +75,16 @@ func (c *questionServiceClient) ListQuestions(ctx context.Context, in *ListQuest
 	return out, nil
 }
 
+func (c *questionServiceClient) ImportQuestions(ctx context.Context, in *ImportQuestionsRequest, opts ...grpc.CallOption) (*ImportQuestionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ImportQuestionsResponse)
+	err := c.cc.Invoke(ctx, QuestionService_ImportQuestions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QuestionServiceServer is the server API for QuestionService service.
 // All implementations must embed UnimplementedQuestionServiceServer
 // for forward compatibility.
@@ -82,6 +94,7 @@ type QuestionServiceServer interface {
 	CreateQuestion(context.Context, *CreateQuestionRequest) (*CreateQuestionResponse, error)
 	GetQuestion(context.Context, *GetQuestionRequest) (*GetQuestionResponse, error)
 	ListQuestions(context.Context, *ListQuestionsRequest) (*ListQuestionsResponse, error)
+	ImportQuestions(context.Context, *ImportQuestionsRequest) (*ImportQuestionsResponse, error)
 	mustEmbedUnimplementedQuestionServiceServer()
 }
 
@@ -100,6 +113,9 @@ func (UnimplementedQuestionServiceServer) GetQuestion(context.Context, *GetQuest
 }
 func (UnimplementedQuestionServiceServer) ListQuestions(context.Context, *ListQuestionsRequest) (*ListQuestionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListQuestions not implemented")
+}
+func (UnimplementedQuestionServiceServer) ImportQuestions(context.Context, *ImportQuestionsRequest) (*ImportQuestionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ImportQuestions not implemented")
 }
 func (UnimplementedQuestionServiceServer) mustEmbedUnimplementedQuestionServiceServer() {}
 func (UnimplementedQuestionServiceServer) testEmbeddedByValue()                         {}
@@ -176,6 +192,24 @@ func _QuestionService_ListQuestions_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _QuestionService_ImportQuestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ImportQuestionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).ImportQuestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_ImportQuestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).ImportQuestions(ctx, req.(*ImportQuestionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // QuestionService_ServiceDesc is the grpc.ServiceDesc for QuestionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -194,6 +228,10 @@ var QuestionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListQuestions",
 			Handler:    _QuestionService_ListQuestions_Handler,
+		},
+		{
+			MethodName: "ImportQuestions",
+			Handler:    _QuestionService_ImportQuestions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

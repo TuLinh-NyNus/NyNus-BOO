@@ -181,7 +181,7 @@ export function RealtimeDashboardMetrics({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [metrics]);
 
   // Initial fetch
   useEffect(() => {

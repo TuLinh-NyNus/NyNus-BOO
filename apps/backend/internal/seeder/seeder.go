@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
-	"time"
 
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -101,12 +101,15 @@ func (s *Seeder) seedDefaultUsers() error {
 			return fmt.Errorf("failed to hash password for %s: %w", user.Email, err)
 		}
 
+		// Generate ULID for user ID
+		userID := util.ULIDNow()
+
 		// Insert user
 		query := `
-			INSERT INTO users (email, password_hash, first_name, last_name, role, is_active)
-			VALUES ($1, $2, $3, $4, $5, true)
+			INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active)
+			VALUES ($1, $2, $3, $4, $5, $6, true)
 		`
-		_, err = s.db.Exec(query, user.Email, string(hashedPassword), user.FirstName, user.LastName, user.Role)
+		_, err = s.db.Exec(query, userID, user.Email, string(hashedPassword), user.FirstName, user.LastName, user.Role)
 		if err != nil {
 			return fmt.Errorf("failed to insert user %s: %w", user.Email, err)
 		}
@@ -184,9 +187,9 @@ func (s *Seeder) SeedSampleData() error {
 		},
 	}
 
-	for i, q := range sampleQuestions {
-		// Generate a unique ID for the question
-		questionID := fmt.Sprintf("q_%d_%d", time.Now().Unix(), i+1)
+	for _, q := range sampleQuestions {
+		// Generate a unique ULID for the question
+		questionID := util.ULIDNow()
 
 		// Insert question into the new Question table
 		query := `
@@ -211,7 +214,7 @@ func (s *Seeder) SeedSampleData() error {
 			"ACTIVE",
 		)
 		if err != nil {
-			return fmt.Errorf("failed to insert question %d: %w", i+1, err)
+			return fmt.Errorf("failed to insert question %s: %w", q.Content, err)
 		}
 
 		log.Printf("   ✅ Created sample question: %s", q.Content)

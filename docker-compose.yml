@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: exam_bank_postgres
+    environment:
+      POSTGRES_DB: exam_bank_db
+      POSTGRES_USER: exam_bank_user
+      POSTGRES_PASSWORD: exam_bank_password
+    ports:
+      - "5439:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U exam_bank_user -d exam_bank_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
