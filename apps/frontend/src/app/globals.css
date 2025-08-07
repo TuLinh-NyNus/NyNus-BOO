@@ -1,0 +1,40 @@
+/*
+ * NyNus Global Styles - Tailwind CSS v4 Clean Theme
+ *
+ * This file imports ONLY color definitions:
+ * 1. Tailwind CSS base
+ * 2. Color tokens (base colors)
+ * 3. Theme color mappings (light, dark)
+ *
+ * Let Tailwind and components handle their own styling
+ */
+
+/* Import Tailwind CSS base */
+@import "tailwindcss";
+
+/* Import ONLY Color Definitions */
+@import "../styles/theme/tokens/colors.css";
+@import "../styles/theme/themes/light.css";
+@import "../styles/theme/themes/dark.css";
+
+/* Import Enhanced Gradient System */
+@import "../styles/gradients.css";
+
+/*
+ * Theme files now contain ONLY:
+ * - Base color tokens (colors.css)
+ * - Light theme color mappings (light.css)
+ * - Dark theme color mappings (dark.css)
+ */
+
+/* Custom utilities for modern carousel */
+.scrollbar-hide {
+  /* Firefox */
+  scrollbar-width: none;
+  /* Safari and Chrome */
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

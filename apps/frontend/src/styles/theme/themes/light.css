@@ -1,0 +1,53 @@
+/*
+ * NyNus Light Theme - ONLY COLORS
+ * Semantic color mappings for light mode using NyNus earth tones
+ */
+
+@theme {
+  /* Base Semantic Colors - Light Theme */
+  --color-background: var(--color-nynus-cream);
+  --color-foreground: var(--color-nynus-dark);
+
+  /* Card Colors */
+  --color-card: var(--color-nynus-jade);
+  --color-card-foreground: var(--color-nynus-dark);
+
+  /* Popover Colors */
+  --color-popover: var(--color-nynus-silver);
+  --color-popover-foreground: var(--color-nynus-dark);
+
+  /* Primary Colors */
+  --color-primary: var(--color-primary-gold);
+  --color-primary-foreground: var(--color-nynus-dark);
+
+  /* Secondary Colors */
+  --color-secondary: var(--color-primary-terracotta);
+  --color-secondary-foreground: var(--color-nynus-cream);
+
+  /* Muted Colors */
+  --color-muted: var(--color-nynus-silver);
+  --color-muted-foreground: var(--color-nynus-medium);
+
+  /* Accent Colors */
+  --color-accent: var(--color-primary-pink);
+  --color-accent-foreground: var(--color-nynus-dark);
+
+  /* Destructive Colors */
+  --color-destructive: var(--color-primary-sienna);
+  --color-destructive-foreground: var(--color-nynus-cream);
+
+  /* Border & Input Colors */
+  --color-border: color-mix(in srgb, var(--color-primary-terracotta) 20%, transparent);
+  --color-input: color-mix(in srgb, var(--color-primary-terracotta) 20%, transparent);
+  --color-ring: var(--color-primary-gold);
+
+  /* Success, Warning, Error, Info */
+  --color-success: var(--color-success);
+  --color-success-foreground: #ffffff;
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: #ffffff;
+  --color-error: var(--color-error);
+  --color-error-foreground: #ffffff;
+  --color-info: var(--color-info);
+  --color-info-foreground: #ffffff;
+}

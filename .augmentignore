@@ -1,0 +1,65 @@
+# Augment Ignore File
+# Sử dụng cú pháp giống .gitignore để loại trừ files/folders khỏi indexing
+
+# Loại trừ thư mục node_modules ở tất cả các cấp (rất quan trọng để tránh index)
+node_modules/
+**/node_modules/
+apps/*/node_modules/
+packages/*/node_modules/
+
+# Loại trừ thư mục build/dist ở tất cả các cấp
+dist/
+build/
+out/
+**/dist/
+**/build/
+**/out/
+apps/*/.next/
+apps/*/dist/
+apps/*/build/
+
+design-analysis/
+# Loại trừ các file log
+*.log
+logs/
+
+# Loại trừ thư mục cache
+.cache/
+.next/
+.nuxt/
+
+# Loại trừ thư mục test data hoặc mock data
+test-data/
+mock-data/
+fixtures/
+
+# Loại trừ thư mục documentation nếu không muốn index
+# docs/
+
+# Loại trừ các file config nhạy cảm
+.env*
+*.key
+*.pem
+
+# Loại trừ thư mục vendor (cho Go, PHP)
+vendor/
+
+# Loại trừ thư mục target (cho Rust, Java)
+target/
+
+# Loại trừ thêm các thư mục không cần thiết cho monorepo
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Loại trừ các file IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Bao gồm lại files từ .gitignore nếu muốn index (sử dụng ! prefix)
+# !node_modules/some-important-package
+
+# Ví dụ: Bao gồm lại một số thư mục docs cụ thể
+# !docs/api

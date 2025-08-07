@@ -1,0 +1,54 @@
+/*
+ * NyNus Dark Theme - DesignCode Inspired - ONLY COLORS
+ * Semantic color mappings for dark mode using DesignCode.io color scheme
+ * Background: #1F1F47 (RGB 31, 31, 71)
+ */
+
+.dark {
+  /* Base Semantic Colors - Dark Theme */
+  --color-background: var(--designcode-navy);
+  --color-foreground: var(--designcode-white);
+
+  /* Card Colors */
+  --color-card: var(--designcode-navy-light);
+  --color-card-foreground: var(--designcode-white);
+
+  /* Popover Colors */
+  --color-popover: var(--designcode-navy-light);
+  --color-popover-foreground: var(--designcode-white);
+
+  /* Primary Colors */
+  --color-primary: var(--designcode-accent);
+  --color-primary-foreground: var(--designcode-white);
+
+  /* Secondary Colors */
+  --color-secondary: var(--designcode-navy-lighter);
+  --color-secondary-foreground: var(--designcode-white);
+
+  /* Muted Colors */
+  --color-muted: var(--designcode-slate);
+  --color-muted-foreground: var(--designcode-gray);
+
+  /* Accent Colors */
+  --color-accent: var(--designcode-navy-lighter);
+  --color-accent-foreground: var(--designcode-white);
+
+  /* Destructive Colors */
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: var(--designcode-white);
+
+  /* Border & Input Colors */
+  --color-border: var(--designcode-slate);
+  --color-input: var(--designcode-navy-lighter);
+  --color-ring: var(--designcode-accent);
+
+  /* Success, Warning, Error, Info - Dark Theme */
+  --color-success: var(--color-success);
+  --color-success-foreground: var(--designcode-white);
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: var(--designcode-white);
+  --color-error: var(--color-error);
+  --color-error-foreground: var(--designcode-white);
+  --color-info: var(--color-info);
+  --color-info-foreground: var(--designcode-white);
+}

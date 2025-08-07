@@ -1,155 +1,36 @@
-# Exam Bank System - Frontend
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A React TypeScript frontend for the Exam Bank System that integrates with the gRPC backend via gRPC-Web.
+## Getting Started
 
-## Features
+First, run the development server:
 
-- 🔐 **Authentication**: Login with JWT tokens
-- 👥 **User Management**: List and view users with role-based access
-- 🎨 **Modern UI**: Built with React, TypeScript, and Tailwind CSS
-- 🌐 **gRPC Integration**: Direct integration with gRPC backend via gRPC-Web
-- 📱 **Responsive Design**: Works on desktop and mobile devices
-
-## Prerequisites
-
-- Node.js 18+ and npm
-- Docker (for running the gRPC-Web proxy)
-- Backend gRPC server running on port 50051
-
-## Setup
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Generate proto files:**
-   ```bash
-   npm run proto
-   ```
-
-3. **Start the development environment:**
-   ```bash
-   npm start
-   ```
-   This will start both the Envoy proxy (port 8080) and the React dev server (port 5173).
-
-## Manual Setup
-
-If you prefer to run components separately:
-
-1. **Start the gRPC-Web proxy:**
-   ```bash
-   npm run proxy
-   ```
-
-2. **Start the React development server:**
-   ```bash
-   npm run dev
-   ```
-
-3. **Stop the proxy:**
-   ```bash
-   npm run proxy:down
-   ```
-
-## Architecture
-
-### gRPC-Web Integration
-
-```
-Browser → Envoy Proxy (8080) → gRPC Server (50051)
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-The frontend uses gRPC-Web to communicate with the backend:
-- **Envoy Proxy**: Translates HTTP/1.1 and HTTP/2 requests to gRPC
-- **Generated Clients**: TypeScript clients generated from proto files
-- **Authentication**: JWT tokens passed in request headers
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Project Structure
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-```
-src/
-├── components/          # React components
-│   ├── Login.tsx       # Authentication component
-│   └── UserList.tsx    # User management component
-├── services/           # gRPC client services
-│   └── grpcClient.ts   # Main gRPC client wrapper
-├── generated/          # Generated proto files
-│   ├── common/         # Common proto types
-│   └── v1/            # API v1 proto files
-└── App.tsx            # Main application component
-```
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Demo Credentials
+## Learn More
 
-The system comes with demo users for testing:
+To learn more about Next.js, take a look at the following resources:
 
-- **Admin**: `admin@exambank.com` / `password123`
-- **Teacher**: `teacher@exambank.com` / `password123`  
-- **Student**: `student@exambank.com` / `password123`
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Available Scripts
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run proxy` - Start gRPC-Web proxy
-- `npm run proxy:down` - Stop gRPC-Web proxy
-- `npm start` - Start both proxy and dev server
-- `npm run proto` - Regenerate proto files
+## Deploy on Vercel
 
-## API Integration
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-The frontend integrates with these gRPC services:
-
-### UserService
-- `Register` - Create new user account
-- `Login` - Authenticate and get JWT token
-- `GetUser` - Get user details (authenticated)
-- `ListUsers` - Get paginated user list (admin/teacher only)
-
-### Authentication
-JWT tokens are automatically included in gRPC requests:
-```typescript
-const metadata = {
-  'authorization': `Bearer ${token}`
-};
-```
-
-## Development
-
-### Adding New Components
-1. Create component in `src/components/`
-2. Import and use in `App.tsx` or other components
-3. Use Tailwind CSS for styling
-
-### Adding New gRPC Services
-1. Update proto files in `packages/proto/`
-2. Run `npm run proto` to regenerate clients
-3. Add service methods to `src/services/grpcClient.ts`
-4. Use in React components
-
-### Styling
-The project uses Tailwind CSS for styling. Key classes:
-- Layout: `flex`, `grid`, `container`, `mx-auto`
-- Spacing: `p-4`, `m-2`, `space-x-4`
-- Colors: `bg-blue-500`, `text-gray-900`
-- Interactive: `hover:bg-blue-700`, `focus:ring-2`
-
-## Troubleshooting
-
-### gRPC Connection Issues
-- Ensure backend server is running on port 50051
-- Check Envoy proxy is running on port 8080
-- Verify CORS settings in envoy.yaml
-
-### Proto Generation Issues
-- Ensure protoc and protoc-gen-grpc-web are installed
-- Check proto file syntax
-- Verify import paths in proto files
-
-### Build Issues
-- Clear node_modules and reinstall: `rm -rf node_modules && npm install`
-- Check TypeScript errors: `npx tsc --noEmit`
-- Verify Tailwind CSS configuration
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

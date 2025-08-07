@@ -1,0 +1,37 @@
+/*
+ * NyNus Color Tokens - ONLY COLORS
+ * Base color definitions for the NyNus design system
+ */
+
+@theme {
+  /* NyNus Brand Colors - Base Tokens */
+  --color-nynus-cream: #FCFBF4;
+  --color-nynus-jade: #EAE4D1;
+  --color-nynus-silver: #F1F0ED;
+  --color-nynus-dark: #312520;
+  --color-nynus-medium: #7C5B3E;
+
+  /* NyNus Primary Colors */
+  --color-primary-gold: #E7B864;
+  --color-primary-pink: #F6BEC8;
+  --color-primary-terracotta: #7C4622;
+  --color-primary-sienna: #8F3D2C;
+
+  /* DesignCode Dark Theme Colors */
+  --designcode-navy: #1F1F47;
+  --designcode-navy-light: #2A2A5A;
+  --designcode-navy-lighter: #353570;
+  --designcode-slate: #475569;
+  --designcode-slate-light: #64748B;
+  --designcode-white: #F8FAFC;
+  --designcode-gray: #CBD5E1;
+  --designcode-accent: #6366F1;
+  --designcode-accent-light: #8B5CF6;
+  --designcode-accent-hover: #5855EB;
+
+  /* System Colors */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+}

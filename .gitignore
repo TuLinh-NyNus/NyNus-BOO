@@ -1,39 +1,285 @@
-# Build artifacts
+# =============================================================================
+# EXAM BANK SYSTEM - GITIGNORE
+# Tech Stack: Go gRPC Backend + React TypeScript Frontend
+# =============================================================================
+
+# =============================================================================
+# BUILD ARTIFACTS & GENERATED FILES
+# =============================================================================
+
+# Backend Go builds
 apps/backend/bin/
-apps/backend/internal/proto/
+apps/backend/build/
+apps/backend/dist/
+apps/backend/main
+apps/backend/exam-bank-backend
+*.exe
+*.exe~
+
+# Frontend builds (Vite)
 apps/frontend/build/
 apps/frontend/dist/
-apps/frontend/src/generated/
+apps/frontend/.vite/
 
-# Dependencies
+# Generated proto files
+apps/backend/internal/proto/
+apps/backend/pkg/proto/
+apps/frontend/src/generated/
+packages/proto/generated/
+*.pb.go
+*_pb.js
+*_pb.d.ts
+*_grpc_web_pb.js
+*_grpc_web_pb.d.ts
+
+# =============================================================================
+# DEPENDENCIES & MODULES
+# =============================================================================
+
+# Go modules
 apps/backend/vendor/
+go.work
+go.work.sum
+
+# Node.js dependencies
+node_modules/
 apps/frontend/node_modules/
+packages/*/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Package lock files (keep package-lock.json, ignore others)
+yarn.lock
+pnpm-lock.yaml
+.pnpm-store/
+
+# =============================================================================
+# ENVIRONMENT & CONFIGURATION
+# =============================================================================
 
 # Environment files
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env.*.local
 
-# Logs
+# Configuration overrides
+config.local.json
+config.override.json
+
+# =============================================================================
+# LOGS & DEBUGGING
+# =============================================================================
+
+# Application logs
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-# OS files
+# Runtime logs
+.npm
+.eslintcache
+.stylelintcache
+
+# =============================================================================
+# OPERATING SYSTEM FILES
+# =============================================================================
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# IDE files
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# IDE & EDITOR FILES
+# =============================================================================
+
+# Visual Studio Code
 .vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs
 .idea/
+*.iws
+*.iml
+*.ipr
+.idea_modules/
+
+# Vim
 *.swp
+*.swo
+*~
+.netrwhist
 
-# Generated files
-docs/api/*.json
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
 
-# Process files
-.backend.pid
-.frontend.pid
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+# =============================================================================
+# TESTING & COVERAGE
+# =============================================================================
 
 # Test coverage
 coverage/
 *.out
+.nyc_output/
+coverage.lcov
+coverage.xml
+coverage.json
+
+# Test results
+test-results/
+junit.xml
+test-report.xml
+
+# =============================================================================
+# DOCKER & CONTAINERS
+# =============================================================================
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+.docker/
+
+# =============================================================================
+# DATABASE & MIGRATIONS
+# =============================================================================
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Migration temp files
+*.sql.bak
+*.sql.tmp
+
+# =============================================================================
+# TEMPORARY & CACHE FILES
+# =============================================================================
+
+# Temporary directories
+temp/
+tmp/
+.tmp/
+.temp/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+.backend.pid
+.frontend.pid
+
+# =============================================================================
+# SECURITY & SENSITIVE DATA
+# =============================================================================
+
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+
+# API keys and secrets
+.secrets/
+secrets.json
+credentials.json
+
+# =============================================================================
+# DOCUMENTATION GENERATED FILES
+# =============================================================================
+
+# Generated API docs
+docs/api/*.json
+docs/api/*.yaml
+docs/generated/
+
+# =============================================================================
+# MISC
+# =============================================================================
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Archive files
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# System files
+.fseventsd
+.DS_Store
+.Spotlight-V100
+.Trashes
