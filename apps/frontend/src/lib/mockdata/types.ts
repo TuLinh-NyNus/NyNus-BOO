@@ -330,6 +330,35 @@ export interface AdminSettings {
   updatedAt: Date;
 }
 
+// Resource Access interfaces
+export interface ResourceAccess {
+  id: string;
+  userId: string;
+  userEmail: string;
+  userName: string;
+  resourceId: string;
+  resourceType: string;
+  action: string;
+  ipAddress: string;
+  userAgent?: string;
+  location?: string;
+  accessedAt: string;
+  riskScore?: number;
+  success: boolean;
+}
+
+export interface ResourceAccessStats {
+  totalAccessToday: number;
+  uniqueUsersToday: number;
+  mostAccessedResourceType: string;
+  mostCommonAction: string;
+  averageRiskScore: number;
+  highRiskAttempts: number;
+  accessByResourceType: Record<string, number>;
+  accessByAction: Record<string, number>;
+  topResources: Array<{ resourceId: string; resourceType: string; count: number }>;
+}
+
 // ✅ REMOVED: Duplicate interfaces - now imported from core-types.ts
 // These interfaces are now available from core-types.ts:
 // - MockPagination

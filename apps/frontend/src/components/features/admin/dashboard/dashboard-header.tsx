@@ -8,9 +8,9 @@
 import React from 'react';
 import { RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/form/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/display/card';
+import { Badge } from '@/components/ui/display/badge';
 
 /**
  * Dashboard Header Props

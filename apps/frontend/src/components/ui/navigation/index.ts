@@ -2,3 +2,4 @@
 export * from './pagination';
 export * from './scroll-to-top';
 export * from './tabs';
+export * from './command';

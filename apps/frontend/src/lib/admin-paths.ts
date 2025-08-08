@@ -44,6 +44,11 @@ export const ADMIN_PATHS = {
   QUESTIONS_CREATE: '/3141592654/admin/questions/create',
   QUESTIONS_EDIT: (id: string) => `/3141592654/admin/questions/${id}/edit`,
   QUESTIONS_VIEW: (id: string) => `/3141592654/admin/questions/${id}`,
+  QUESTIONS_INPUT_LATEX: '/3141592654/admin/questions/inputques',
+  QUESTIONS_INPUT_AUTO: '/3141592654/admin/questions/inputauto',
+  QUESTIONS_DATABASE: '/3141592654/admin/questions/database',
+  QUESTIONS_SAVED: '/3141592654/admin/questions/saved',
+  QUESTIONS_MAP_ID: '/3141592654/admin/questions/map-id',
   
   // User Management Sub-routes
   USERS_CREATE: '/3141592654/admin/users/create',

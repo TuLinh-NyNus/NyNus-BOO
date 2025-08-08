@@ -72,6 +72,23 @@ export {
   getMockSessionStatsResponse
 } from './sessions';
 
+// Export notifications mockdata
+export {
+  mockSystemNotifications,
+  mockNotificationStats,
+  getNotificationById,
+  getNotificationsByUser,
+  getUnreadNotifications as getUnreadSystemNotifications,
+  getNotificationsByType,
+  searchNotifications,
+  filterNotificationsByReadStatus,
+  getNotificationsByDateRange,
+  getMockNotificationsResponse,
+  getMockNotificationStatsResponse,
+  type SystemNotification,
+  type NotificationStats
+} from './notifications';
+
 // Export books mockdata
 export {
   mockBooks,
@@ -135,6 +152,21 @@ export {
   getMockSettingsStatsResponse
 } from './settings';
 
+// Export resource access mockdata
+export {
+  mockResourceAccessLogs,
+  mockResourceAccessStats,
+  getResourceAccessById,
+  getResourceAccessByUserId,
+  getResourceAccessByType,
+  getResourceAccessByAction,
+  getHighRiskAccess,
+  getFailedAccess,
+  searchResourceAccess,
+  getMockResourceAccessResponse,
+  getMockResourceAccessStatsResponse
+} from './resource-access';
+
 // Export enhanced authentication mockdata
 export {
   mockEnhancedSessions,
@@ -146,7 +178,7 @@ export {
   getSessionsByUser as getEnhancedSessionsByUser,
   getActiveSessions as getActiveEnhancedSessions,
   getResourceAccessByUser,
-  getHighRiskAccess,
+  getHighRiskAccess as getHighRiskAccessAuth,
   getUnreadNotifications,
   getAuditLogsByUser,
   getMockEnhancedSessionsResponse
@@ -187,7 +219,6 @@ export {
   mockPermissions,
   mockRoles,
   adminRolesMockService,
-  getRoleHierarchy,
   getPermissionCategories,
   roleHasPermission,
   type Permission,
@@ -222,6 +253,105 @@ export {
   type NavigationSection,
   type UserPermissions
 } from './admin-sidebar';
+
+// Export security mockdata
+export {
+  mockSecurityMetrics,
+  mockSecurityEvents,
+  mockAuditStats,
+  mockEnhancedAuditLogs,
+  getSecurityMetrics,
+  getSecurityEvents,
+  getAuditLogs,
+  getAuditStats,
+  securityMockService,
+  type SecurityMetrics,
+  type SecurityEvent,
+  type AuditLog,
+  type AuditStats
+} from './security';
+
+// Export level progression mockdata
+export {
+  mockProgressionSettings,
+  mockProgressionStatistics,
+  mockAuditLogs as mockProgressionAuditLogs,
+  mockProgressionHistory,
+  getProgressionSettings,
+  getProgressionStatistics,
+  getAuditLogs as getProgressionAuditLogs,
+  getProgressionHistory,
+  updateProgressionSettings,
+  type ProgressionSettings,
+  type ProgressionStatistics,
+  type AuditLogEntry as ProgressionAuditLogEntry,
+  type ProgressionHistoryEntry
+} from './level-progression';
+
+// Export mapcode mockdata
+export {
+  mockMapCodeVersions,
+  mockMapCodeStatistics,
+  getMapCodeVersions,
+  activateMapCodeVersion,
+  deleteMapCodeVersion,
+  exportMapCodeVersion,
+  saveMapCodeVersion,
+  type MapCodeVersion,
+  type MapCodeStatistics
+} from './mapcode';
+
+// Export user management mockdata
+export {
+  mockBulkOperations,
+  mockPromotionRequests,
+  mockUserActivities,
+  mockUserSessions,
+  mockSecurityEvents as mockUserSecurityEvents,
+  performBulkRolePromotion,
+  getPromotionRequests,
+  getUserActivities,
+  getUserSessions,
+  getSecurityEvents as getUserSecurityEvents,
+  terminateUserSession,
+  resolveSecurityEvent,
+  type BulkRolePromotionData,
+  type BulkOperationResult,
+  type PromotionWorkflowStep,
+  type PromotionRequest,
+  type UserActivity,
+  type UserSession,
+  type SecurityEvent as UserSecurityEvent,
+  type UserFilterOptions
+} from './user-management';
+
+// Export role management mockdata
+export {
+  mockPermissionCategories,
+  mockPermissionLevels,
+  mockRolePermissions,
+  mockRoleHierarchy,
+  mockRoleRelationships,
+  mockPromotionPaths,
+  mockPermissionTemplates,
+  getRoleHierarchy,
+  getPermissionMatrix,
+  getRolePermissions,
+  updateRolePermissions,
+  getPermissionTemplates,
+  applyPermissionTemplate,
+  createPermissionTemplate,
+  validateRolePromotion,
+  type RolePermission,
+  type PermissionCategory,
+  type PermissionLevel,
+  type RoleHierarchyNode,
+  type RoleRelationship,
+  type PromotionPath,
+  type PermissionTemplate,
+  type PermissionMatrixResponse,
+  type RoleHierarchyResponse
+} from './role-management';
 
 // Export homepage mockdata
 export {
@@ -262,12 +392,15 @@ import { mockQuestions } from './questions';
 import { mockCourses } from './courses';
 import { mockAnalytics } from './analytics';
 import { mockSessions } from './sessions';
+import { mockSystemNotifications, mockNotificationStats } from './notifications';
 import { mockBooks } from './books';
 import { mockFAQs } from './faq';
 import { mockForumPosts } from './forum';
 import { mockSettings } from './settings';
 import { mockEnhancedSessions, mockOAuthAccounts, mockResourceAccess, mockUserPreferences, mockAuditLogs, mockNotifications } from './auth-enhanced';
 import { mockQuestionCodes, mockEnhancedQuestions, mockQuestionImages, mockQuestionTags, mockQuestionFeedback, mockMapCodeConfig } from './questions-enhanced';
+import { mockProgressionSettings, mockProgressionStatistics, mockProgressionHistory } from './level-progression';
+import { mockMapCodeVersions, mockMapCodeStatistics } from './mapcode';
 
 // Export default object with all mockdata
 const mockDataExports = {
@@ -276,6 +409,8 @@ const mockDataExports = {
   courses: mockCourses,
   analytics: mockAnalytics,
   sessions: mockSessions,
+  systemNotifications: mockSystemNotifications,
+  notificationStats: mockNotificationStats,
   books: mockBooks,
   faqs: mockFAQs,
   forum: mockForumPosts,
@@ -294,6 +429,13 @@ const mockDataExports = {
   questionTags: mockQuestionTags,
   questionFeedback: mockQuestionFeedback,
   mapCodeConfig: mockMapCodeConfig,
+  // Level progression data
+  progressionSettings: mockProgressionSettings,
+  progressionStatistics: mockProgressionStatistics,
+  progressionHistory: mockProgressionHistory,
+  // MapCode data
+  mapCodeVersions: mockMapCodeVersions,
+  mapCodeStatistics: mockMapCodeStatistics,
   utils: MockDataUtils,
   constants: MOCK_DATA_CONSTANTS // ✅ Fixed: Use correct constant name
 };

@@ -3,15 +3,15 @@
  * Static navigation configuration cho admin sidebar
  */
 
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileQuestion, 
-  BookOpen, 
-  BarChart3, 
-  Bell, 
-  Shield, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  FileQuestion,
+  BookOpen,
+  BarChart3,
+  Bell,
+  Shield,
+  Settings,
   HelpCircle,
   List,
   Plus,
@@ -21,7 +21,10 @@ import {
   Lock,
   TrendingUp,
   Map,
-  FolderOpen
+  FolderOpen,
+  Upload,
+  Database,
+  Bookmark
 } from 'lucide-react';
 import { NavigationItem, NavigationSection } from '@/types/admin/sidebar';
 
@@ -66,6 +69,41 @@ export const ADMIN_NAVIGATION: NavigationItem[] = [
         href: '/3141592654/admin/questions/create',
         icon: 'Plus',
         permissions: ['questions.create']
+      },
+      {
+        id: 'questions-input-latex',
+        name: 'Nhập LaTeX',
+        href: '/3141592654/admin/questions/inputques',
+        icon: 'FileText',
+        permissions: ['questions.create']
+      },
+      {
+        id: 'questions-input-auto',
+        name: 'Nhập tự động',
+        href: '/3141592654/admin/questions/inputauto',
+        icon: 'Upload',
+        permissions: ['questions.create']
+      },
+      {
+        id: 'questions-database',
+        name: 'Kho câu hỏi',
+        href: '/3141592654/admin/questions/database',
+        icon: 'Database',
+        permissions: ['questions.read']
+      },
+      {
+        id: 'questions-saved',
+        name: 'Đã lưu',
+        href: '/3141592654/admin/questions/saved',
+        icon: 'Bookmark',
+        permissions: ['questions.read']
+      },
+      {
+        id: 'questions-map-id',
+        name: 'Map ID',
+        href: '/3141592654/admin/questions/map-id',
+        icon: 'Map',
+        permissions: ['questions.read']
       }
     ]
   },
@@ -241,7 +279,10 @@ export const ICON_COMPONENTS = {
   Lock,
   TrendingUp,
   Map,
-  FolderOpen
+  FolderOpen,
+  Upload,
+  Database,
+  Bookmark
 } as const;
 
 /**

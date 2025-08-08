@@ -11,18 +11,30 @@ import time
 from typing import Optional, Dict, Any
 
 # Import our components
-from .components.file_upload import FileUploadComponent
-from .components.progress_bar import ProgressBarComponent
-from .components.results_view import ResultsViewComponent
-from .components.download import DownloadComponent
-from .utils.session_state import SessionStateManager
+try:
+    from .components.file_upload import FileUploadComponent
+    from .components.results_view import ResultsViewComponent
+    from .components.download import DownloadComponent
+    from .utils.session_state import SessionStateManager
+except ImportError:
+    from ui.components.file_upload import FileUploadComponent
+    from ui.components.results_view import ResultsViewComponent
+    from ui.components.download import DownloadComponent
+    from ui.utils.session_state import SessionStateManager
 
 # Import processing modules
-from ..processor.file_reader import FileReader
-from ..processor.batch_processor import BatchProcessor
-from ..processor.error_handler import ErrorHandler
-from ..export.csv_exporter import CSVExporter
-from ..export.data_validator import DataValidator
+try:
+    from ..processor.file_reader import FileReader
+    from ..processor.batch_processor import BatchProcessor
+    from ..processor.error_handler import ErrorHandler
+    from ..export.csv_exporter import CSVExporter
+    from ..export.data_validator import DataValidator
+except ImportError:
+    from processor.file_reader import FileReader
+    from processor.batch_processor import BatchProcessor
+    from processor.error_handler import ErrorHandler
+    from export.csv_exporter import CSVExporter
+    from export.data_validator import DataValidator
 
 
 def main():

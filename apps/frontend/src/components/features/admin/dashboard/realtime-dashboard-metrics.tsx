@@ -16,8 +16,8 @@ import {
   Minus
 } from 'lucide-react';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/display/card';
+import { Badge } from '@/components/ui/display/badge';
 import { adminDashboardMockService, DashboardMetrics } from '@/lib/mockdata/admin-dashboard';
 
 /**
