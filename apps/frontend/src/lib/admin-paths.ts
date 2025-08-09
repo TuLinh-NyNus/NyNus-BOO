@@ -29,6 +29,15 @@ export const ADMIN_PATHS = {
   BOOKS: '/3141592654/admin/books',
   FAQ: '/3141592654/admin/faq',
   RESOURCES: '/3141592654/admin/resources',
+
+  // Questions Management - Extended routes
+  QUESTIONS_CREATE: '/3141592654/admin/questions/create',
+  QUESTIONS_EDIT: '/3141592654/admin/questions/[id]/edit',
+  QUESTIONS_INPUT_LATEX: '/3141592654/admin/questions/inputques',
+  QUESTIONS_INPUT_AUTO: '/3141592654/admin/questions/inputauto',
+  QUESTIONS_DATABASE: '/3141592654/admin/questions/database',
+  QUESTIONS_SAVED: '/3141592654/admin/questions/saved',
+  QUESTIONS_MAP_ID: '/3141592654/admin/questions/map-id',
   
   // System Management
   SETTINGS: '/3141592654/admin/settings',
@@ -40,15 +49,8 @@ export const ADMIN_PATHS = {
   LEVEL_PROGRESSION: '/3141592654/admin/level-progression',
   MAPCODE: '/3141592654/admin/mapcode',
   
-  // Question Management Sub-routes
-  QUESTIONS_CREATE: '/3141592654/admin/questions/create',
-  QUESTIONS_EDIT: (id: string) => `/3141592654/admin/questions/${id}/edit`,
+  // Question Management Sub-routes (functions)
   QUESTIONS_VIEW: (id: string) => `/3141592654/admin/questions/${id}`,
-  QUESTIONS_INPUT_LATEX: '/3141592654/admin/questions/inputques',
-  QUESTIONS_INPUT_AUTO: '/3141592654/admin/questions/inputauto',
-  QUESTIONS_DATABASE: '/3141592654/admin/questions/database',
-  QUESTIONS_SAVED: '/3141592654/admin/questions/saved',
-  QUESTIONS_MAP_ID: '/3141592654/admin/questions/map-id',
   
   // User Management Sub-routes
   USERS_CREATE: '/3141592654/admin/users/create',
@@ -197,7 +199,7 @@ export const AdminPathUtils = {
   // Dynamic routes
   userEdit: (id: string) => ADMIN_PATHS.USERS_EDIT(id),
   userView: (id: string) => ADMIN_PATHS.USERS_VIEW(id),
-  questionEdit: (id: string) => ADMIN_PATHS.QUESTIONS_EDIT(id),
+  questionEdit: (id: string) => `/3141592654/admin/questions/${id}/edit`,
   questionView: (id: string) => ADMIN_PATHS.QUESTIONS_VIEW(id),
 } as const;
 

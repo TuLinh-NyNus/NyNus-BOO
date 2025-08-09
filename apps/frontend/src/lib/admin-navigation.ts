@@ -279,10 +279,7 @@ export const ICON_COMPONENTS = {
   Lock,
   TrendingUp,
   Map,
-  FolderOpen,
-  Upload,
-  Database,
-  Bookmark
+  FolderOpen
 } as const;
 
 /**

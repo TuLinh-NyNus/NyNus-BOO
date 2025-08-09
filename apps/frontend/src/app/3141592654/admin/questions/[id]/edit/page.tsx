@@ -1,125 +1,118 @@
-/**
- * Admin Questions Edit Page
- * Trang chỉnh sửa câu hỏi trong admin panel
- * 
- * @author NyNus Team
- * @version 1.0.0
- */
+'use client';
 
-"use client";
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { ArrowLeft, Save, Eye, FileText, Map, Loader2, AlertTriangle } from 'lucide-react';
 
-import React, { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { useToast } from "@/components/ui/feedback/use-toast";
 import {
+  Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/form/input";
-import { Label } from "@/components/ui/form/label";
-import { Textarea } from "@/components/ui/form/textarea";
-import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Input,
+  Label,
+  Textarea,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/form/select";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/navigation/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  ArrowLeft,
-  Save,
-  Eye,
-  Plus,
-  X,
-  AlertCircle,
-} from "lucide-react";
+  Badge,
+  Alert,
+  AlertDescription
+} from '@/components/ui';
+import { useToast } from '@/hooks/use-toast';
+import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
-// Import types
-import {
-  EnhancedQuestion,
-  UpdateQuestionForm,
-  QuestionType,
+import { 
+  Question,
+  QuestionDraft, 
+  QuestionType, 
   QuestionDifficulty,
-  QuestionStatus,
-} from "@/types/question";
-
-// Import mock service
-import { mockQuestionsService } from "@/lib/services/mock/questions";
-
-// Import admin paths
-import { ADMIN_PATHS } from "@/lib/admin-paths";
+  AnswerOption 
+} from '@/lib/types/question';
+import { MockQuestionsService } from '@/lib/services/mock/questions';
+import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**
- * Edit Question Page Component
+ * Edit Question Page
+ * Trang chỉnh sửa câu hỏi với form tabs tương tự create page
  */
 export default function EditQuestionPage() {
   const router = useRouter();
   const params = useParams();
-  const questionId = params.id as string;
   const { toast } = useToast();
 
-  // State management
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [question, setQuestion] = useState<EnhancedQuestion | null>(null);
-  const [formData, setFormData] = useState<UpdateQuestionForm>({
-    id: questionId,
-    content: "",
-    rawContent: "",
+  const questionId = params.id as string;
+
+  // State cho question data
+  const [originalQuestion, setOriginalQuestion] = useState<Question | null>(null);
+  const [questionDraft, setQuestionDraft] = useState<QuestionDraft>({
+    content: '',
     type: QuestionType.MC,
     difficulty: QuestionDifficulty.MEDIUM,
-    status: QuestionStatus.PENDING,
-    source: "",
-    answers: [],
-    correctAnswer: "",
-    solution: "",
-    tag: [],
-    questionCodeId: "",
+    tags: [],
+    timeLimit: 300,
+    points: 10,
+    answers: []
   });
 
-  // UI state
-  const [newTag, setNewTag] = useState("");
-  const [activeTab, setActiveTab] = useState("basic");
+  // State cho UI
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
+  const [errors, setErrors] = useState<string[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   /**
-   * Load question data
+   * Load question data khi component mount
    */
-  const loadQuestion = async () => {
+  useEffect(() => {
+    loadQuestionData();
+  }, [questionId]);
+
+  /**
+   * Load question data từ mock service
+   */
+  const loadQuestionData = async () => {
     try {
       setIsLoading(true);
-      const response = await mockQuestionsService.getQuestion(questionId);
-      const questionData = response.question;
+      setLoadError(null);
 
-      setQuestion(questionData);
-      setFormData({
-        id: questionData.id,
-        content: questionData.content,
-        rawContent: questionData.rawContent,
-        type: questionData.type,
-        difficulty: questionData.difficulty,
-        status: questionData.status,
-        source: questionData.source || "",
-        answers: questionData.answers,
-        correctAnswer: questionData.correctAnswer,
-        solution: questionData.solution || "",
-        tag: questionData.tag,
-        questionCodeId: questionData.questionCodeId,
-      });
+      const response = await MockQuestionsService.getQuestion(questionId);
+      
+      if (response.error) {
+        setLoadError(response.error);
+        return;
+      }
+
+      if (response.data) {
+        setOriginalQuestion(response.data);
+        
+        // Convert Question to QuestionDraft
+        setQuestionDraft({
+          content: response.data.content,
+          rawContent: response.data.rawContent,
+          type: response.data.type,
+          difficulty: response.data.difficulty,
+          category: '', // Not in Question interface
+          tags: response.data.tag,
+          timeLimit: 300, // Default value
+          points: 10, // Default value
+          explanation: response.data.solution,
+          answers: response.data.answers as AnswerOption[],
+          source: response.data.source,
+          questionCodeId: response.data.questionCodeId
+        });
+      }
     } catch (error) {
-      console.error("Error loading question:", error);
-      toast({
-        title: "Lỗi",
-        description: "Không thể tải thông tin câu hỏi",
-        variant: "destructive"
-      });
-      router.push(ADMIN_PATHS.QUESTIONS);
+      console.error('Lỗi khi tải câu hỏi:', error);
+      setLoadError('Không thể tải dữ liệu câu hỏi');
     } finally {
       setIsLoading(false);
     }
@@ -128,96 +121,126 @@ export default function EditQuestionPage() {
   /**
    * Handle form field changes
    */
-  const handleFieldChange = (field: keyof UpdateQuestionForm, value: unknown) => {
-    setFormData((prev) => ({
+  const handleFieldChange = (field: keyof QuestionDraft, value: any) => {
+    setQuestionDraft(prev => ({
       ...prev,
-      [field]: value,
+      [field]: value
     }));
-  };
-
-  /**
-   * Handle tag management
-   */
-  const addTag = () => {
-    if (newTag.trim() && !formData.tag?.includes(newTag.trim())) {
-      handleFieldChange("tag", [...(formData.tag || []), newTag.trim()]);
-      setNewTag("");
+    
+    // Clear errors khi user thay đổi
+    if (errors.length > 0) {
+      setErrors([]);
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    handleFieldChange(
-      "tag",
-      formData.tag?.filter((tag) => tag !== tagToRemove) || []
-    );
+  /**
+   * Handle answer options changes cho multiple choice
+   */
+  const handleAnswerChange = (index: number, field: keyof AnswerOption, value: any) => {
+    const newAnswers = [...(questionDraft.answers as AnswerOption[] || [])];
+    if (newAnswers[index]) {
+      newAnswers[index] = { ...newAnswers[index], [field]: value };
+      handleFieldChange('answers', newAnswers);
+    }
   };
 
   /**
-   * Handle multiple choice answers
+   * Add new answer option
    */
-  const handleAnswersChange = (answers: string[]) => {
-    handleFieldChange("answers", answers);
-  };
-
-  const addAnswer = () => {
-    const currentAnswers = Array.isArray(formData.answers) ? formData.answers : [];
-    handleAnswersChange([...currentAnswers, ""]);
-  };
-
-  const updateAnswer = (index: number, value: string) => {
-    const currentAnswers = Array.isArray(formData.answers) ? formData.answers : [];
-    const newAnswers = [...currentAnswers];
-    newAnswers[index] = value;
-    handleAnswersChange(newAnswers);
-  };
-
-  const removeAnswer = (index: number) => {
-    const currentAnswers = Array.isArray(formData.answers) ? formData.answers : [];
-    const newAnswers = currentAnswers.filter((_, i) => i !== index);
-    handleAnswersChange(newAnswers);
+  const addAnswerOption = () => {
+    const newAnswers = [...(questionDraft.answers as AnswerOption[] || [])];
+    newAnswers.push({
+      id: `opt-${Date.now()}`,
+      content: '',
+      isCorrect: false
+    });
+    handleFieldChange('answers', newAnswers);
   };
 
   /**
-   * Handle form submission
+   * Remove answer option
    */
-  const handleSubmit = async () => {
+  const removeAnswerOption = (index: number) => {
+    const newAnswers = [...(questionDraft.answers as AnswerOption[] || [])];
+    newAnswers.splice(index, 1);
+    handleFieldChange('answers', newAnswers);
+  };
+
+  /**
+   * Validate form data
+   */
+  const validateForm = (): string[] => {
+    const validationErrors: string[] = [];
+
+    if (!questionDraft.content.trim()) {
+      validationErrors.push('Nội dung câu hỏi không được để trống');
+    }
+
+    if (questionDraft.content.length > 1000) {
+      validationErrors.push('Nội dung câu hỏi không được vượt quá 1000 ký tự');
+    }
+
+    if (questionDraft.type === QuestionType.MC) {
+      const answers = questionDraft.answers as AnswerOption[] || [];
+      if (answers.length < 2) {
+        validationErrors.push('Câu hỏi trắc nghiệm phải có ít nhất 2 đáp án');
+      }
+
+      const correctAnswers = answers.filter(a => a.isCorrect);
+      if (correctAnswers.length === 0) {
+        validationErrors.push('Phải có ít nhất 1 đáp án đúng');
+      }
+
+      const emptyAnswers = answers.filter(a => !a.content.trim());
+      if (emptyAnswers.length > 0) {
+        validationErrors.push('Tất cả đáp án phải có nội dung');
+      }
+    }
+
+    return validationErrors;
+  };
+
+  /**
+   * Handle update question
+   */
+  const handleUpdateQuestion = async () => {
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
+
     try {
       setIsSaving(true);
 
-      // Basic validation
-      if (!formData.content?.trim()) {
-        toast({
-          title: "Lỗi",
-          description: "Vui lòng nhập nội dung câu hỏi",
-          variant: "destructive"
-        });
-        return;
-      }
+      // Prepare update data
+      const updateData = {
+        content: questionDraft.content,
+        rawContent: questionDraft.rawContent || questionDraft.content,
+        type: questionDraft.type,
+        difficulty: questionDraft.difficulty,
+        tag: questionDraft.tags || [],
+        solution: questionDraft.explanation,
+        answers: questionDraft.answers,
+        source: questionDraft.source,
+        questionCodeId: questionDraft.questionCodeId || originalQuestion?.questionCodeId
+      };
 
-      if (!formData.questionCodeId?.trim()) {
-        toast({
-          title: "Lỗi",
-          description: "Vui lòng nhập mã câu hỏi",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Update question
-      await mockQuestionsService.updateQuestion(formData);
+      await MockQuestionsService.updateQuestion(questionId, updateData);
 
       toast({
-        title: "Thành công",
-        description: "Cập nhật câu hỏi thành công!",
-        variant: "success"
+        title: 'Thành công',
+        description: 'Câu hỏi đã được cập nhật thành công',
+        variant: 'success'
       });
+
       router.push(ADMIN_PATHS.QUESTIONS);
     } catch (error) {
-      console.error("Error updating question:", error);
+      console.error('Lỗi khi cập nhật câu hỏi:', error);
       toast({
-        title: "Lỗi",
-        description: "Có lỗi xảy ra khi cập nhật câu hỏi",
-        variant: "destructive"
+        title: 'Lỗi',
+        description: 'Không thể cập nhật câu hỏi',
+        variant: 'destructive'
       });
     } finally {
       setIsSaving(false);
@@ -225,361 +248,416 @@ export default function EditQuestionPage() {
   };
 
   /**
-   * Handle back navigation
+   * Handle LaTeX parsing
    */
-  const handleBack = () => {
-    router.push(ADMIN_PATHS.QUESTIONS);
+  const handleLatexParse = async (latexContent: string) => {
+    try {
+      const result = await MockQuestionsService.parseLatexContent(latexContent);
+      if (result.data) {
+        setQuestionDraft(prev => ({
+          ...prev,
+          ...result.data,
+          rawContent: latexContent
+        }));
+        toast({
+          title: 'Thành công',
+          description: 'Đã phân tích LaTeX thành công',
+          variant: 'success'
+        });
+      } else if (result.error) {
+        toast({
+          title: 'Lỗi',
+          description: result.error,
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể phân tích LaTeX',
+        variant: 'destructive'
+      });
+    }
   };
 
-  // Load question on mount
-  useEffect(() => {
-    if (questionId) {
-      loadQuestion();
-    }
-  }, [questionId]);
-
-  // Show loading state
+  // Loading state
   if (isLoading) {
     return (
-      <div className="edit-question-page space-y-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-9 w-24" />
-          <div>
-            <Skeleton className="h-8 w-48 mb-2" />
-            <Skeleton className="h-4 w-64" />
-          </div>
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-gray-600">Đang tải câu hỏi...</span>
         </div>
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-48" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-64 w-full" />
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
-  // Show error state if question not found
-  if (!question) {
+  // Error state
+  if (loadError) {
     return (
-      <div className="edit-question-page space-y-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Không tìm thấy câu hỏi</h1>
-            <p className="text-muted-foreground">
-              Câu hỏi với ID {questionId} không tồn tại
-            </p>
+      <div className="container mx-auto p-6">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Không thể tải câu hỏi
+          </h3>
+          <p className="text-gray-600 mb-4">{loadError}</p>
+          <div className="flex gap-2">
+            <Button onClick={loadQuestionData}>
+              Thử lại
+            </Button>
+            <Button variant="outline" onClick={() => router.back()}>
+              Quay lại
+            </Button>
           </div>
         </div>
-        <Card>
-          <CardContent className="text-center py-12">
-            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Câu hỏi không tồn tại</h3>
-            <p className="text-muted-foreground mb-4">
-              Câu hỏi bạn đang tìm kiếm có thể đã bị xóa hoặc không tồn tại.
-            </p>
-            <Button onClick={handleBack}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại danh sách
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
 
   return (
-    <div className="edit-question-page space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={handleBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Quay lại
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">Chỉnh sửa câu hỏi</h1>
-            <p className="text-muted-foreground">
-              ID: {question.questionCodeId} • Tạo: {question.createdAt.toLocaleDateString()}
-            </p>
+    <ErrorBoundary>
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Quay lại
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Chỉnh sửa câu hỏi</h1>
+              <p className="text-gray-600 mt-1">
+                ID: {questionId}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setActiveTab('preview')}>
+              <Eye className="h-4 w-4 mr-2" />
+              Xem trước
+            </Button>
+            <Button 
+              onClick={handleUpdateQuestion}
+              disabled={isSaving}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              Cập nhật câu hỏi
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setActiveTab("preview")}>
-            <Eye className="h-4 w-4 mr-2" />
-            Xem trước
-          </Button>
-          <Button onClick={handleSubmit} disabled={isSaving}>
-            <Save className="h-4 w-4 mr-2" />
-            {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
-          </Button>
-        </div>
-      </div>
 
-      {/* Form Tabs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin câu hỏi</CardTitle>
-          <CardDescription>
-            Chỉnh sửa thông tin câu hỏi
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="basic">Thông tin cơ bản</TabsTrigger>
-              <TabsTrigger value="answers">Đáp án</TabsTrigger>
-              <TabsTrigger value="metadata">Metadata</TabsTrigger>
-              <TabsTrigger value="status">Trạng thái</TabsTrigger>
-              <TabsTrigger value="preview">Xem trước</TabsTrigger>
-            </TabsList>
+        {/* Validation errors */}
+        {errors.length > 0 && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              <ul className="list-disc list-inside space-y-1">
+                {errors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
 
-            {/* Basic Information Tab */}
-            <TabsContent value="basic" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="questionCodeId">Mã câu hỏi *</Label>
-                  <Input
-                    id="questionCodeId"
-                    placeholder="VD: 2P5VN hoặc 0P1VH1"
-                    value={formData.questionCodeId}
-                    onChange={(e) => handleFieldChange("questionCodeId", e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="source">Nguồn</Label>
-                  <Input
-                    id="source"
-                    placeholder="VD: Sách giáo khoa Toán 12"
-                    value={formData.source}
-                    onChange={(e) => handleFieldChange("source", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="content">Nội dung câu hỏi *</Label>
-                <Textarea
-                  id="content"
-                  placeholder="Nhập nội dung câu hỏi..."
-                  rows={4}
-                  value={formData.content}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange("content", e.target.value)}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="type">Loại câu hỏi</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value) => handleFieldChange("type", value)}
+        {/* Form tabs - Sử dụng lại logic từ create page */}
+        <Card>
+          <CardContent className="p-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <div className="border-b">
+                <TabsList className="w-full justify-start rounded-none h-auto p-0 bg-transparent">
+                  <TabsTrigger 
+                    value="basic" 
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={QuestionType.MC}>Trắc nghiệm</SelectItem>
-                      <SelectItem value={QuestionType.TF}>Đúng/Sai</SelectItem>
-                      <SelectItem value={QuestionType.SA}>Trả lời ngắn</SelectItem>
-                      <SelectItem value={QuestionType.ES}>Tự luận</SelectItem>
-                      <SelectItem value={QuestionType.MA}>Ghép đôi</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="difficulty">Độ khó</Label>
-                  <Select
-                    value={formData.difficulty}
-                    onValueChange={(value) => handleFieldChange("difficulty", value)}
+                    Thông tin cơ bản
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="answers"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
                   >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={QuestionDifficulty.EASY}>Dễ</SelectItem>
-                      <SelectItem value={QuestionDifficulty.MEDIUM}>Trung bình</SelectItem>
-                      <SelectItem value={QuestionDifficulty.HARD}>Khó</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                    Đáp án
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="latex"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    LaTeX
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="mapid"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
+                  >
+                    <Map className="h-4 w-4 mr-2" />
+                    Map ID
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="preview"
+                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Xem trước
+                  </TabsTrigger>
+                </TabsList>
               </div>
-            </TabsContent>
 
-            {/* Answers Tab */}
-            <TabsContent value="answers" className="space-y-4">
-              {formData.type === QuestionType.MC && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Các lựa chọn</Label>
-                    <Button size="sm" onClick={addAnswer}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Thêm lựa chọn
-                    </Button>
+              {/* Basic tab */}
+              <TabsContent value="basic" className="p-6 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Question content */}
+                  <div className="md:col-span-2">
+                    <Label htmlFor="content">Nội dung câu hỏi *</Label>
+                    <Textarea
+                      id="content"
+                      placeholder="Nhập nội dung câu hỏi..."
+                      value={questionDraft.content}
+                      onChange={(e) => handleFieldChange('content', e.target.value)}
+                      rows={4}
+                      className="mt-1"
+                    />
                   </div>
-                  {Array.isArray(formData.answers) &&
-                    formData.answers.map((answer, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input
-                          placeholder={`Lựa chọn ${index + 1}`}
-                          value={answer}
-                          onChange={(e) => updateAnswer(index, e.target.value)}
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => removeAnswer(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  <div className="space-y-2">
-                    <Label htmlFor="correctAnswer">Đáp án đúng</Label>
+
+                  {/* Question type */}
+                  <div>
+                    <Label htmlFor="type">Loại câu hỏi *</Label>
+                    <Select 
+                      value={questionDraft.type} 
+                      onValueChange={(value) => handleFieldChange('type', value as QuestionType)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={QuestionType.MC}>Trắc nghiệm</SelectItem>
+                        <SelectItem value={QuestionType.TF}>Đúng/Sai</SelectItem>
+                        <SelectItem value={QuestionType.SA}>Tự luận ngắn</SelectItem>
+                        <SelectItem value={QuestionType.ES}>Tự luận</SelectItem>
+                        <SelectItem value={QuestionType.MA}>Ghép đôi</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Difficulty */}
+                  <div>
+                    <Label htmlFor="difficulty">Độ khó</Label>
+                    <Select 
+                      value={questionDraft.difficulty} 
+                      onValueChange={(value) => handleFieldChange('difficulty', value as QuestionDifficulty)}
+                    >
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={QuestionDifficulty.EASY}>Dễ</SelectItem>
+                        <SelectItem value={QuestionDifficulty.MEDIUM}>Trung bình</SelectItem>
+                        <SelectItem value={QuestionDifficulty.HARD}>Khó</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Source */}
+                  <div className="md:col-span-2">
+                    <Label htmlFor="source">Nguồn</Label>
                     <Input
-                      id="correctAnswer"
-                      placeholder="Nhập đáp án đúng"
-                      value={formData.correctAnswer as string}
-                      onChange={(e) => handleFieldChange("correctAnswer", e.target.value)}
+                      id="source"
+                      placeholder="Nguồn câu hỏi (sách, đề thi, ...)"
+                      value={questionDraft.source || ''}
+                      onChange={(e) => handleFieldChange('source', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  {/* Explanation */}
+                  <div className="md:col-span-2">
+                    <Label htmlFor="explanation">Giải thích</Label>
+                    <Textarea
+                      id="explanation"
+                      placeholder="Giải thích đáp án..."
+                      value={questionDraft.explanation || ''}
+                      onChange={(e) => handleFieldChange('explanation', e.target.value)}
+                      rows={3}
+                      className="mt-1"
                     />
                   </div>
                 </div>
-              )}
+              </TabsContent>
 
-              {formData.type === QuestionType.SA && (
-                <div className="space-y-2">
-                  <Label htmlFor="correctAnswer">Đáp án đúng</Label>
-                  <Input
-                    id="correctAnswer"
-                    placeholder="Nhập đáp án đúng"
-                    value={formData.correctAnswer as string}
-                    onChange={(e) => handleFieldChange("correctAnswer", e.target.value)}
-                  />
-                </div>
-              )}
+              {/* Answers tab */}
+              <TabsContent value="answers" className="p-6 space-y-6">
+                {questionDraft.type === QuestionType.MC && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium">Đáp án trắc nghiệm</h3>
+                      <Button onClick={addAnswerOption} size="sm">
+                        Thêm đáp án
+                      </Button>
+                    </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="solution">Lời giải</Label>
-                <Textarea
-                  id="solution"
-                  placeholder="Nhập lời giải chi tiết..."
-                  rows={4}
-                  value={formData.solution}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleFieldChange("solution", e.target.value)}
-                />
-              </div>
-            </TabsContent>
+                    {(questionDraft.answers as AnswerOption[] || []).map((answer, index) => (
+                      <div key={answer.id} className="flex items-center gap-4 p-4 border rounded-lg">
+                        <div className="flex items-center">
+                          <input
+                            type="radio"
+                            name="correctAnswer"
+                            checked={answer.isCorrect || false}
+                            onChange={(e) => {
+                              // Uncheck all others first
+                              const newAnswers = [...(questionDraft.answers as AnswerOption[] || [])];
+                              newAnswers.forEach(a => a.isCorrect = false);
+                              // Check current one
+                              newAnswers[index].isCorrect = e.target.checked;
+                              handleFieldChange('answers', newAnswers);
+                            }}
+                            className="mr-2"
+                          />
+                          <Label className="text-sm font-medium">
+                            {String.fromCharCode(65 + index)}
+                          </Label>
+                        </div>
+                        <Input
+                          placeholder={`Đáp án ${String.fromCharCode(65 + index)}`}
+                          value={answer.content}
+                          onChange={(e) => handleAnswerChange(index, 'content', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => removeAnswerOption(index)}
+                          disabled={(questionDraft.answers as AnswerOption[] || []).length <= 2}
+                        >
+                          Xóa
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-            {/* Metadata Tab */}
-            <TabsContent value="metadata" className="space-y-4">
-              <div className="space-y-2">
-                <Label>Tags</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    placeholder="Nhập tag mới"
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={(e) => e.key === "Enter" && addTag()}
-                  />
-                  <Button size="sm" onClick={addTag}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formData.tag?.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                      {tag}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => removeTag(tag)}
-                      />
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </TabsContent>
+                {questionDraft.type !== QuestionType.MC && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Loại câu hỏi này không cần thiết lập đáp án trắc nghiệm.</p>
+                  </div>
+                )}
+              </TabsContent>
 
-            {/* Status Tab */}
-            <TabsContent value="status" className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Trạng thái</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => handleFieldChange("status", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={QuestionStatus.ACTIVE}>Hoạt động</SelectItem>
-                    <SelectItem value={QuestionStatus.PENDING}>Chờ duyệt</SelectItem>
-                    <SelectItem value={QuestionStatus.INACTIVE}>Tạm ngưng</SelectItem>
-                    <SelectItem value={QuestionStatus.ARCHIVED}>Lưu trữ</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <Label className="text-muted-foreground">Số lần sử dụng</Label>
-                  <p className="font-medium">{question.usageCount}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Đánh giá</Label>
-                  <p className="font-medium">{question.feedback}/5</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Người tạo</Label>
-                  <p className="font-medium">{question.creator}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Cập nhật cuối</Label>
-                  <p className="font-medium">{question.updatedAt.toLocaleDateString()}</p>
-                </div>
-              </div>
-            </TabsContent>
-
-            {/* Preview Tab */}
-            <TabsContent value="preview" className="space-y-4">
-              <div className="border rounded-lg p-4 bg-muted/50">
-                <h3 className="font-semibold mb-2">Xem trước câu hỏi</h3>
+              {/* LaTeX tab */}
+              <TabsContent value="latex" className="p-6 space-y-6">
                 <div className="space-y-4">
                   <div>
-                    <p className="font-medium">Nội dung:</p>
-                    <p className="text-muted-foreground">{formData.content || "Chưa có nội dung"}</p>
+                    <Label htmlFor="latexContent">Nội dung LaTeX</Label>
+                    <Textarea
+                      id="latexContent"
+                      placeholder="Nhập nội dung LaTeX..."
+                      value={questionDraft.rawContent || ''}
+                      onChange={(e) => handleFieldChange('rawContent', e.target.value)}
+                      rows={8}
+                      className="mt-1 font-mono"
+                    />
                   </div>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span>Loại: <Badge variant="outline">{formData.type}</Badge></span>
-                    <span>Độ khó: <Badge variant="outline">{formData.difficulty}</Badge></span>
-                    <span>Trạng thái: <Badge variant="outline">{formData.status}</Badge></span>
-                    <span>Mã: <Badge variant="outline">{formData.questionCodeId || "Chưa có"}</Badge></span>
-                  </div>
-                  {formData.tag && formData.tag.length > 0 && (
-                    <div>
-                      <p className="font-medium mb-1">Tags:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {formData.tag.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <Button 
+                    onClick={() => handleLatexParse(questionDraft.rawContent || '')}
+                    disabled={!questionDraft.rawContent?.trim()}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Phân tích LaTeX
+                  </Button>
                 </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+              </TabsContent>
+
+              {/* MapID tab */}
+              <TabsContent value="mapid" className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="questionCodeId">Mã câu hỏi (Question Code ID)</Label>
+                    <Input
+                      id="questionCodeId"
+                      placeholder="Ví dụ: 0P1VH1"
+                      value={questionDraft.questionCodeId || ''}
+                      onChange={(e) => handleFieldChange('questionCodeId', e.target.value)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    <p>Format: [Grade][Subject][Chapter][Lesson][Form][Level]</p>
+                    <p>Ví dụ: 0P1VH1 = Lớp 10, Toán, Chương 1, Bài V, Dạng 1, Thông hiểu</p>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* Preview tab */}
+              <TabsContent value="preview" className="p-6">
+                <div className="space-y-6">
+                  <h3 className="text-lg font-medium">Xem trước câu hỏi</h3>
+                  
+                  <Card>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">
+                          {questionDraft.content || 'Chưa có nội dung câu hỏi'}
+                        </CardTitle>
+                        <div className="flex gap-2">
+                          <Badge variant="outline">
+                            {questionDraft.type === QuestionType.MC && 'Trắc nghiệm'}
+                            {questionDraft.type === QuestionType.TF && 'Đúng/Sai'}
+                            {questionDraft.type === QuestionType.SA && 'Tự luận ngắn'}
+                            {questionDraft.type === QuestionType.ES && 'Tự luận'}
+                            {questionDraft.type === QuestionType.MA && 'Ghép đôi'}
+                          </Badge>
+                          {questionDraft.difficulty && (
+                            <Badge variant="outline">
+                              {questionDraft.difficulty === QuestionDifficulty.EASY && 'Dễ'}
+                              {questionDraft.difficulty === QuestionDifficulty.MEDIUM && 'Trung bình'}
+                              {questionDraft.difficulty === QuestionDifficulty.HARD && 'Khó'}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {questionDraft.type === QuestionType.MC && (
+                        <div className="space-y-2">
+                          {(questionDraft.answers as AnswerOption[] || []).map((answer, index) => (
+                            <div 
+                              key={answer.id} 
+                              className={`p-3 border rounded ${answer.isCorrect ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}
+                            >
+                              <span className="font-medium mr-2">
+                                {String.fromCharCode(65 + index)}.
+                              </span>
+                              {answer.content || `Đáp án ${String.fromCharCode(65 + index)}`}
+                              {answer.isCorrect && (
+                                <Badge className="ml-2 bg-green-600">Đúng</Badge>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {questionDraft.explanation && (
+                        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                          <h4 className="font-medium text-blue-900 mb-2">Giải thích:</h4>
+                          <p className="text-blue-800">{questionDraft.explanation}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    </ErrorBoundary>
   );
 }
