@@ -57,9 +57,9 @@ export function NavItem({
     ];
 
     const stateClasses = {
-      active: 'bg-blue-50 text-blue-700 border-r-2 border-blue-700',
-      inactive: 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
-      disabled: 'text-gray-400 cursor-not-allowed'
+      active: 'bg-primary/10 text-primary border-r-2 border-primary',
+      inactive: 'text-foreground hover:bg-muted hover:text-foreground',
+      disabled: 'text-muted-foreground cursor-not-allowed'
     };
 
     const levelClasses = level > 0 ? `ml-${level * 4}` : '';
@@ -86,7 +86,7 @@ export function NavItem({
         className={cn(
           'flex-shrink-0 h-5 w-5',
           collapsed ? 'mx-auto' : 'mr-3',
-          isActive ? 'text-blue-700' : 'text-gray-500 group-hover:text-gray-700'
+          isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
         )}
         aria-hidden="true"
       />
@@ -106,8 +106,8 @@ export function NavItem({
       <span
         className={cn(
           'ml-auto inline-block py-0.5 px-2 text-xs rounded-full',
-          'bg-gray-100 text-gray-600',
-          isActive && 'bg-blue-100 text-blue-800'
+          'bg-muted text-muted-foreground',
+          isActive && 'bg-primary/20 text-primary'
         )}
       >
         {badgeValue}
@@ -128,7 +128,7 @@ export function NavItem({
       <ExpandIcon
         className={cn(
           'ml-auto h-4 w-4 transition-transform duration-150',
-          'text-gray-400 group-hover:text-gray-600'
+          'text-muted-foreground group-hover:text-foreground'
         )}
         aria-hidden="true"
       />
@@ -188,14 +188,14 @@ export function NavItem({
     return (
       <div
         className={cn(
-          'absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded',
+          'absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded border',
           'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
-          'pointer-events-none z-50 whitespace-nowrap'
+          'pointer-events-none z-50 whitespace-nowrap shadow-md'
         )}
       >
         {item.name}
         {item.badge && (
-          <span className="ml-1 px-1 bg-gray-700 rounded">
+          <span className="ml-1 px-1 bg-muted text-muted-foreground rounded">
             {item.badge}
           </span>
         )}

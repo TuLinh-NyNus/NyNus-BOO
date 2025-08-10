@@ -61,45 +61,42 @@ export function NavSection({
   const renderSectionTitle = () => {
     if (!hasTitle || collapsed) return null;
 
-    const titleContent = (
-      <>
-        <span className="flex-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          {section.title}
-        </span>
-        
-        {isCollapsible && (
-          <button
-            type="button"
-            className="p-1 hover:bg-gray-100 rounded transition-colors duration-150"
-            onClick={handleToggle}
-            aria-label={isExpanded ? `Thu gọn ${section.title}` : `Mở rộng ${section.title}`}
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-3 w-3 text-gray-400" />
-            ) : (
-              <ChevronRight className="h-3 w-3 text-gray-400" />
-            )}
-          </button>
-        )}
-      </>
-    );
-
+    // For collapsible sections, render as a single clickable div to avoid nested buttons
     if (isCollapsible) {
       return (
-        <button
-          type="button"
-          className="flex items-center w-full px-3 py-2 text-left hover:bg-gray-50 rounded-md transition-colors duration-150"
+        <div
+          className="flex items-center w-full px-3 py-2 cursor-pointer hover:bg-muted rounded-md transition-colors duration-150"
           onClick={handleToggle}
+          role="button"
+          tabIndex={0}
           aria-expanded={isExpanded}
+          aria-label={isExpanded ? `Thu gọn ${section.title}` : `Mở rộng ${section.title}`}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleToggle();
+            }
+          }}
         >
-          {titleContent}
-        </button>
+          <span className="flex-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            {section.title}
+          </span>
+
+          {isExpanded ? (
+            <ChevronDown className="h-3 w-3 text-muted-foreground ml-2" />
+          ) : (
+            <ChevronRight className="h-3 w-3 text-muted-foreground ml-2" />
+          )}
+        </div>
       );
     }
 
+    // For non-collapsible sections, render as simple div
     return (
       <div className="flex items-center px-3 py-2">
-        {titleContent}
+        <span className="flex-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          {section.title}
+        </span>
       </div>
     );
   };

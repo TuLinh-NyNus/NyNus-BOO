@@ -15,7 +15,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/display/card";
 import { Button } from "../../ui/form/button";
 import { Input } from "../../ui/form/input";
@@ -37,15 +37,10 @@ import {
 } from "../../ui/display/table";
 import {
   Search,
-  Filter,
   Download,
   RefreshCw,
-  Settings,
-  Eye,
-  Edit,
-  Clock,
 } from "lucide-react";
-import { toast } from "../../../hooks/use-toast";
+import { toast } from "@/components/ui/feedback/use-toast";
 
 /**
  * Configuration search result interface
@@ -137,49 +132,49 @@ export function ConfigurationSearch() {
   /**
    * Perform search
    */
-  const performSearch = async () => {
+  const performSearch = useCallback(async () => {
     setLoading(true);
     try {
       // TODO: Implement API call for search
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       let results = [...mockSearchResults];
-      
+
       // Apply filters
       if (searchQuery) {
-        results = results.filter(config => 
+        results = results.filter(config =>
           config.configKey.toLowerCase().includes(searchQuery.toLowerCase()) ||
           config.description.toLowerCase().includes(searchQuery.toLowerCase())
         );
       }
-      
+
       if (selectedCategory !== "all") {
         results = results.filter(config => config.category === selectedCategory);
       }
-      
+
       if (selectedType !== "all") {
         results = results.filter(config => config.dataType === selectedType);
       }
-      
+
       if (selectedStatus !== "all") {
         const isActive = selectedStatus === "active";
         results = results.filter(config => config.isActive === isActive);
       }
-      
+
       setSearchResults(results);
-    } catch (error) {
+    } catch {
       toast({ title: "Lỗi", description: "Lỗi khi tìm kiếm cấu hình", variant: "destructive" });
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, selectedCategory, selectedType, selectedStatus]);
 
   /**
    * Auto search when filters change
    */
   useEffect(() => {
     performSearch();
-  }, [searchQuery, selectedCategory, selectedType, selectedStatus]);
+  }, [performSearch]);
 
   /**
    * Export search results

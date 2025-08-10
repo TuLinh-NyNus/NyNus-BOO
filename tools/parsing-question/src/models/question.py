@@ -8,6 +8,15 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Union, Any
 from datetime import datetime
 import json
+import sys
+import os
+
+# Add parent directory to path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
+
+from utils.text_cleaner import TextCleaner
 
 
 @dataclass
@@ -87,10 +96,10 @@ class Question:
 
     def _format_correct_answer_for_csv(self) -> Optional[str]:
         """
-        Format correctAnswer for CSV export, preserving LaTeX format.
+        Format correctAnswer for CSV export with line breaks cleaned.
 
         Returns:
-            Plain text correctAnswer without JSON encoding
+            Plain text correctAnswer without JSON encoding and line breaks
         """
         if not self.correctAnswer:
             return None
@@ -98,23 +107,24 @@ class Question:
         # Handle different types of correctAnswer
         if isinstance(self.correctAnswer, list):
             # For TF questions: join multiple correct answers
-            return "; ".join(str(answer) for answer in self.correctAnswer)
+            answers_text = "; ".join(str(answer) for answer in self.correctAnswer)
+            return TextCleaner.clean_csv_field(answers_text)
         else:
             # For MC/SA questions: return as plain string
-            return str(self.correctAnswer)
+            return TextCleaner.clean_csv_field(str(self.correctAnswer))
 
     def to_csv_dict(self) -> dict:
-        """Convert to dictionary for CSV export."""
+        """Convert to dictionary for CSV export with line breaks cleaned."""
         return {
             'id': self.id,
-            'rawContent': self.rawContent,
-            'content': self.content,
+            'rawContent': TextCleaner.clean_csv_field(self.rawContent or ""),
+            'content': TextCleaner.clean_csv_field(self.content or ""),
             'subcount': self.subcount,
             'type': self.type,
-            'source': self.source,
+            'source': TextCleaner.clean_csv_field(self.source or ""),
             'answers': self._format_answers_as_text(),
             'correctAnswer': self._format_correct_answer_for_csv(),
-            'solution': self.solution,
+            'solution': TextCleaner.clean_csv_field(self.solution or ""),
             'tag': json.dumps(self.tag, ensure_ascii=False),
             'usageCount': self.usageCount,
             'creator': self.creator,
@@ -124,15 +134,15 @@ class Question:
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat() if self.updated_at else None,
             'questionCodeId': self.questionCodeId,
-            'generatedTags': self.generatedTags
+            'generatedTags': TextCleaner.clean_csv_field(self.generatedTags or "")
         }
 
     def _format_answers_as_text(self) -> str:
         """
-        Format answers as semicolon-separated text in original Tex/MD format.
+        Format answers as semicolon-separated text with line breaks cleaned.
 
         Returns:
-            Formatted answers string in original format (no escaping)
+            Formatted answers string with line breaks removed for CSV safety
         """
         if not self.answers:
             return ""
@@ -141,8 +151,9 @@ class Question:
         answer_texts = []
         for answer in self.answers:
             content = answer.content if hasattr(answer, 'content') else str(answer)
-            # Keep original Tex/MD format - no escaping
-            answer_texts.append(content)
+            # Clean line breaks while preserving LaTeX math
+            cleaned_content = TextCleaner.clean_csv_field(content)
+            answer_texts.append(cleaned_content)
 
         return "; ".join(answer_texts)
 

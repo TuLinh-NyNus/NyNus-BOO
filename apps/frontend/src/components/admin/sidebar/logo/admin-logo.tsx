@@ -39,7 +39,7 @@ export function AdminLogo({
     return (
       <div
         className={cn(
-          'flex items-center justify-center rounded-lg bg-blue-600 text-white',
+          'flex items-center justify-center rounded-lg bg-primary text-primary-foreground',
           collapsed ? 'w-8 h-8' : 'w-10 h-10'
         )}
       >
@@ -62,10 +62,10 @@ export function AdminLogo({
 
     return (
       <div className="ml-3 flex flex-col">
-        <span className="text-lg font-bold text-gray-900">
+        <span className="text-lg font-bold text-foreground">
           NyNus
         </span>
-        <span className="text-xs text-gray-500 -mt-1">
+        <span className="text-xs text-muted-foreground -mt-1">
           Admin Panel
         </span>
       </div>
@@ -82,7 +82,7 @@ export function AdminLogo({
     return (
       <div
         className={cn(
-          'absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded',
+          'absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded border shadow-md',
           'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
           'pointer-events-none z-50 whitespace-nowrap'
         )}
@@ -99,7 +99,7 @@ export function AdminLogo({
   const getLogoClasses = () => {
     const baseClasses = [
       'group flex items-center transition-all duration-150 ease-in-out',
-      'hover:bg-gray-50 rounded-lg p-2 relative'
+      'hover:bg-muted rounded-lg p-2 relative'
     ];
 
     const layoutClasses = collapsed ? 'justify-center' : 'justify-start';
@@ -190,7 +190,7 @@ export function CustomAdminLogo({
 }) {
   const logoClasses = cn(
     'group flex items-center transition-all duration-150 ease-in-out',
-    'hover:bg-gray-50 rounded-lg p-2 relative',
+    'hover:bg-muted rounded-lg p-2 relative',
     collapsed ? 'justify-center' : 'justify-start',
     className
   );
@@ -200,7 +200,7 @@ export function CustomAdminLogo({
       return (
         <div
           className={cn(
-            'flex items-center justify-center rounded-lg bg-blue-600 text-white',
+            'flex items-center justify-center rounded-lg bg-primary text-primary-foreground',
             collapsed ? 'w-8 h-8' : 'w-10 h-10'
           )}
         >
@@ -212,7 +212,7 @@ export function CustomAdminLogo({
     return (
       <div
         className={cn(
-          'flex items-center justify-center rounded-lg bg-blue-600 text-white',
+          'flex items-center justify-center rounded-lg bg-primary text-primary-foreground',
           collapsed ? 'w-8 h-8' : 'w-10 h-10'
         )}
       >
@@ -231,11 +231,11 @@ export function CustomAdminLogo({
 
     return (
       <div className="ml-3 flex flex-col">
-        <span className="text-lg font-bold text-gray-900">
+        <span className="text-lg font-bold text-foreground">
           {title}
         </span>
         {subtitle && (
-          <span className="text-xs text-gray-500 -mt-1">
+          <span className="text-xs text-muted-foreground -mt-1">
             {subtitle}
           </span>
         )}
@@ -249,7 +249,7 @@ export function CustomAdminLogo({
     return (
       <div
         className={cn(
-          'absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded',
+          'absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded border shadow-md',
           'opacity-0 group-hover:opacity-100 transition-opacity duration-150',
           'pointer-events-none z-50 whitespace-nowrap'
         )}

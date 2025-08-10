@@ -13,7 +13,7 @@ enableXsrfProtection = false
 fileWatcherType = "auto"
 
 # Port configuration
-port = 8516
+port = 8501
 
 # Increase connection timeout
 headless = false

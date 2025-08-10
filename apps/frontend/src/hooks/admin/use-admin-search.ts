@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { SearchSuggestion, SearchResult, SearchCategory } from '@/types/admin/header';
+import { SearchSuggestion, SearchResult } from '@/types/admin/header';
 import { MockSearchAPI, SearchUtils, SEARCH_CONFIG } from '@/lib/admin-search';
 
 /**

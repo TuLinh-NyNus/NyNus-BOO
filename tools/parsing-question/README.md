@@ -43,11 +43,34 @@ pip install -r requirements.txt
 
 ## 🚀 Quick Start
 
-### 1. Start the Application
+### 1. Easy Launch (Recommended)
+
+#### **Windows - Double Click:**
+```
+Double-click: khoi-dong-latex-parser.bat
+```
+- Tự động kiểm tra Python và dependencies
+- Tự động cài đặt Streamlit nếu chưa có
+- Tự động mở browser đến http://localhost:8501
+
+#### **Windows - Full Featured:**
+```
+Double-click: start-streamlit.bat
+```
+- Launcher đầy đủ với error handling chi tiết
+- Hiển thị thông tin debug và progress
+
+#### **Desktop Shortcut:**
+```
+Double-click: create-desktop-shortcut.vbs
+```
+- Tạo shortcut trên Desktop để khởi động nhanh
+
+### 2. Manual Start
 
 ```bash
 # Method 1: Using the run script
-python run.py
+python main.py
 
 # Method 2: Using Streamlit directly
 streamlit run run.py

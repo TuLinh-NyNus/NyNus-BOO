@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Badge } from "@/components/ui/display/badge";
 import { Button } from "@/components/ui/form/button";
@@ -109,7 +109,7 @@ export function UserSessionsTab({
   /**
    * Load user sessions
    */
-  const loadSessions = async () => {
+  const loadSessions = useCallback(async () => {
     setIsLoading(true);
     try {
       const userSessions = await getUserSessions(user.id);
@@ -124,7 +124,7 @@ export function UserSessionsTab({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user.id]);
 
   /**
    * Handle terminate session
@@ -193,7 +193,7 @@ export function UserSessionsTab({
   // Load sessions on mount
   useEffect(() => {
     loadSessions();
-  }, [user.id]);
+  }, [loadSessions]);
 
   const activeSessions = sessions.filter(s => s.isActive);
   const inactiveSessions = sessions.filter(s => !s.isActive);

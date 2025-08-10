@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Badge } from "@/components/ui/display/badge";
 import { Button } from "@/components/ui/form/button";
@@ -17,7 +17,6 @@ import {
   Lock,
   Unlock,
   Eye,
-  Clock,
   MapPin,
   Loader2,
 } from "lucide-react";
@@ -124,8 +123,6 @@ function getEventTypeIcon(eventType: string) {
 export function UserSecurityTab({
   user,
   isEditing = false,
-  onUpdate,
-  isLoading = false,
   className = "",
 }: UserSecurityTabProps) {
   // State management
@@ -136,7 +133,7 @@ export function UserSecurityTab({
   /**
    * Load security events
    */
-  const loadSecurityEvents = async () => {
+  const loadSecurityEvents = useCallback(async () => {
     setIsLoadingEvents(true);
     try {
       const events = await getSecurityEvents(user.id);
@@ -151,7 +148,7 @@ export function UserSecurityTab({
     } finally {
       setIsLoadingEvents(false);
     }
-  };
+  }, [user.id]);
 
   /**
    * Handle resolve security event
@@ -189,7 +186,7 @@ export function UserSecurityTab({
   // Load security events on mount
   useEffect(() => {
     loadSecurityEvents();
-  }, [user.id]);
+  }, [loadSecurityEvents]);
 
   return (
     <div className={`space-y-6 ${className}`}>

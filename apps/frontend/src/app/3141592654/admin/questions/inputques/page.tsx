@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, FileText, Play, Save, Eye, Loader2, Copy, Download } from 'lucide-react';
+import { ArrowLeft, FileText, Play, Save, Eye, Loader2, Copy } from 'lucide-react';
 
 import {
   Button,
@@ -20,7 +20,7 @@ import {
   TabsList,
   TabsTrigger
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import {
@@ -184,7 +184,7 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
         description: 'Đã sao chép vào clipboard',
         variant: 'success'
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể sao chép',
@@ -335,7 +335,7 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
               {!parsedQuestion && !parseError && (
                 <div className="text-center py-8 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>Nhập nội dung LaTeX và nhấn "Phân tích LaTeX" để xem kết quả</p>
+                  <p>Nhập nội dung LaTeX và nhấn &quot;Phân tích LaTeX&quot; để xem kết quả</p>
                 </div>
               )}
 

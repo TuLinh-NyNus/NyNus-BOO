@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Button } from "@/components/ui/form/button";
 import { Badge } from "@/components/ui/display/badge";
@@ -13,16 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/form/select";
-import { Textarea } from "@/components/ui/form/textarea";
 import { Alert, AlertDescription } from "@/components/ui/feedback/alert";
 import {
   Save,
-  Plus,
-  Trash2,
-  Edit,
   Shield,
-  Lock,
-  Unlock,
   AlertTriangle,
   CheckCircle,
   X,
@@ -37,7 +31,6 @@ import {
   getRolePermissions,
   updateRolePermissions,
   type RolePermission,
-  type PermissionCategory,
   mockPermissionCategories,
   mockPermissionLevels,
 } from "@/lib/mockdata/role-management";
@@ -99,13 +92,13 @@ export function PermissionEditor({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
-  const [editingPermission, setEditingPermission] = useState<RolePermission | null>(null);
+  // const [editingPermission, setEditingPermission] = useState<RolePermission | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
   /**
    * Load permissions for selected role
    */
-  const loadPermissions = async () => {
+  const loadPermissions = useCallback(async () => {
     if (!selectedRole) return;
 
     setIsLoading(true);
@@ -123,14 +116,14 @@ export function PermissionEditor({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedRole]);
 
   /**
    * Load permissions when role changes
    */
   useEffect(() => {
     loadPermissions();
-  }, [selectedRole]);
+  }, [loadPermissions]);
 
   /**
    * Handle permission toggle
@@ -159,7 +152,7 @@ export function PermissionEditor({
 
     setIsSaving(true);
     try {
-      await updateRolePermissions(selectedRole, permissions, reason);
+      await updateRolePermissions(selectedRole, permissions);
       setHasChanges(false);
       
       toast({

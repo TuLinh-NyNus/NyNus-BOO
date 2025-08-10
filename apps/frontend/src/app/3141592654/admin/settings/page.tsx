@@ -31,7 +31,7 @@ import {
   Database,
   BarChart3,
 } from "lucide-react";
-import { toast } from "../../../../hooks/use-toast";
+import { toast } from "@/components/ui/feedback/use-toast";
 
 import {
   ConfigurationOverview,

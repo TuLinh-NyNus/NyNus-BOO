@@ -13,6 +13,7 @@ import { UserMenu } from './user/user-menu';
 import { NotificationDropdown } from './notifications/notification-dropdown';
 import { AdminBreadcrumb } from '@/components/admin/breadcrumb';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/admin/theme/theme-toggle';
 
 /**
  * Admin Header Component
@@ -26,26 +27,49 @@ export function AdminHeader({
   showUserMenu = true,
   variant = 'default'
 }: AdminHeaderProps) {
-  const { isSidebarCollapsed, toggleSidebar, isMobile } = useAdminLayout();
+  const { toggleSidebar, isMobile } = useAdminLayout();
 
   /**
    * Get header classes
-   * Lấy CSS classes cho header
+   * Lấy CSS classes cho header với vibrant gradients inspired by Hero
    */
   const getHeaderClasses = () => {
     const baseClasses = [
-      'bg-white border-b border-gray-200',
+      // Vibrant gradient background inspired by Hero component (#4417DB, #E57885, #F18582)
+      'bg-gradient-to-r from-[#4417DB]/15 via-[#E57885]/10 to-[#F18582]/15',
+      'dark:from-[#4417DB]/25 dark:via-[#E57885]/15 dark:to-[#F18582]/25',
+      'border-b border-[#4417DB]/30 dark:border-[#4417DB]/40',
+      'backdrop-blur-sm',
       'transition-all duration-300 ease-in-out',
       'relative z-30'
     ];
 
     const variantClasses = {
-      default: 'shadow-sm',
-      minimal: '',
-      elevated: 'shadow-md'
+      default: 'shadow-lg shadow-[#4417DB]/15 dark:shadow-[#4417DB]/25',
+      minimal: 'shadow-sm',
+      elevated: 'shadow-xl shadow-[#4417DB]/20 dark:shadow-[#4417DB]/30'
     };
 
     return cn(baseClasses, variantClasses[variant], className);
+  };
+
+  /**
+   * Get header inline styles for enhanced visual appeal
+   */
+  const getHeaderStyles = (): React.CSSProperties => {
+    return {
+      // Add vibrant gradient overlay matching Hero component
+      background: `
+        linear-gradient(90deg,
+          rgba(68, 23, 219, 0.15) 0%,
+          rgba(229, 120, 133, 0.10) 50%,
+          rgba(241, 133, 130, 0.15) 100%
+        ),
+        var(--color-background)
+      `,
+      color: 'var(--color-foreground)',
+      borderColor: 'rgba(68, 23, 219, 0.3)'
+    };
   };
 
   /**
@@ -120,6 +144,9 @@ export function AdminHeader({
   const renderActionsSection = () => {
     return (
       <div className="flex items-center space-x-2">
+        {/* Theme Toggle */}
+        <ThemeToggle variant="ghost" size="md" />
+
         {/* Notifications */}
         {showNotifications && (
           <NotificationDropdown />
@@ -207,8 +234,11 @@ export function AdminHeader({
   };
 
   return (
-    <header className={getHeaderClasses()}>
-      <div className="px-4 sm:px-6 lg:px-8">
+    <header className={getHeaderClasses()} style={getHeaderStyles()}>
+      {/* Gradient overlay for enhanced visual appeal */}
+      <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 dark:from-white/10 dark:via-white/15 dark:to-white/10 pointer-events-none" />
+
+      <div className="px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex items-center justify-between h-16">
           {renderHeaderContent()}
         </div>

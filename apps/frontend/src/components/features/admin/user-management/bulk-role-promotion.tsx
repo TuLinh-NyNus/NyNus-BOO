@@ -44,8 +44,6 @@ import {
   ArrowUp,
   ArrowDown,
   Users,
-  X,
-  AlertCircle,
 } from "lucide-react";
 import { UserRole } from "@/lib/mockdata/core-types";
 import { toast } from "@/hooks/use-toast";
@@ -104,13 +102,13 @@ interface BulkRolePromotionDialogProps {
 /**
  * Interface cho operation result display
  */
-interface OperationResultItem {
-  userId: string;
-  success: boolean;
-  previousRole?: UserRole;
-  newRole?: UserRole;
-  error?: string;
-}
+// interface OperationResultItem {
+//   userId: string;
+//   success: boolean;
+//   previousRole?: UserRole;
+//   newRole?: UserRole;
+//   error?: string;
+// }
 
 /**
  * Bulk Role Promotion Component

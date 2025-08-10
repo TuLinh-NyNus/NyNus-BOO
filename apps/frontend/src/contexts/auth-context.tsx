@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 
 // Interface cho User từ mockdata
 interface User {
@@ -22,6 +23,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
 }
@@ -46,15 +48,34 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
+// Internal AuthProvider component that uses NextAuth session
+function InternalAuthProvider({ children }: AuthProviderProps) {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Kiểm tra authentication status khi component mount
+  // Kiểm tra authentication status từ NextAuth session và localStorage
   useEffect(() => {
     const checkAuthStatus = () => {
       try {
-        // Kiểm tra localStorage cho session
+        // Ưu tiên NextAuth session trước
+        if (session?.user) {
+          const googleUser: User = {
+            id: session.user.id || session.user.email || 'google-user',
+            email: session.user.email || '',
+            firstName: session.user.name?.split(' ')[0] || 'User',
+            lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
+            role: 'student', // Default role cho Google users
+            avatar: session.user.image || undefined,
+            isActive: true,
+            lastLoginAt: new Date()
+          };
+          setUser(googleUser);
+          setIsLoading(false);
+          return;
+        }
+
+        // Fallback to localStorage cho mock auth
         const savedUser = localStorage.getItem('nynus-auth-user');
         const authToken = localStorage.getItem('nynus-auth-token');
 
@@ -67,17 +88,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.removeItem('nynus-auth-user');
         localStorage.removeItem('nynus-auth-token');
       } finally {
-        setIsLoading(false);
+        if (status !== 'loading') {
+          setIsLoading(false);
+        }
       }
     };
 
     checkAuthStatus();
-  }, []);
+  }, [session, status]);
 
   // Login function với mockdata
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
-    
+
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -85,11 +108,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Mock authentication logic
       if (email === 'admin@nynus.edu.vn' && password === 'admin123') {
         const userData = { ...mockAdminUser, lastLoginAt: new Date() };
-        
+
         // Save to localStorage
         localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
         localStorage.setItem('nynus-auth-token', 'mock-jwt-token-admin');
-        
+
         setUser(userData);
       } else {
         throw new Error('Invalid credentials');
@@ -101,18 +124,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // Google OAuth login function
+  const loginWithGoogle = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      const result = await nextAuthSignIn('google', {
+        callbackUrl: '/',
+        redirect: false
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      setIsLoading(false);
+      throw error;
+    }
+  };
+
   // Logout function
   const logout = async (): Promise<void> => {
     setIsLoading(true);
-    
-    try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Clear localStorage
+    try {
+      // If user logged in via Google, sign out from NextAuth
+      if (session) {
+        await nextAuthSignOut({ callbackUrl: '/', redirect: false });
+      }
+
+      // Clear localStorage for mock auth
       localStorage.removeItem('nynus-auth-user');
       localStorage.removeItem('nynus-auth-token');
-      
+
       setUser(null);
     } catch (error) {
       console.error('Logout error:', error);
@@ -140,6 +183,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     isLoading,
     isAuthenticated,
     login,
+    loginWithGoogle,
     logout,
     updateUser
   };
@@ -148,6 +192,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
+  );
+}
+
+// Main AuthProvider that wraps with SessionProvider
+export function AuthProvider({ children }: AuthProviderProps) {
+  return (
+    <SessionProvider>
+      <InternalAuthProvider>
+        {children}
+      </InternalAuthProvider>
+    </SessionProvider>
   );
 }
 

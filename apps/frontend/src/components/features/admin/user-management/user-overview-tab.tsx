@@ -27,8 +27,6 @@ import {
   TrendingUp,
   Clock,
   MapPin,
-  Phone,
-  Edit,
   Save,
   X,
   CheckCircle,

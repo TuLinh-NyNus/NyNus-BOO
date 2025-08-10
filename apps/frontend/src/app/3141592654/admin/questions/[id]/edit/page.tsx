@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Save, Eye, FileText, Map, Loader2, AlertTriangle } from 'lucide-react';
 
@@ -26,7 +26,7 @@ import {
   Alert,
   AlertDescription
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import { 
@@ -70,22 +70,15 @@ export default function EditQuestionPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   /**
-   * Load question data khi component mount
-   */
-  useEffect(() => {
-    loadQuestionData();
-  }, [questionId]);
-
-  /**
    * Load question data từ mock service
    */
-  const loadQuestionData = async () => {
+  const loadQuestionData = useCallback(async () => {
     try {
       setIsLoading(true);
       setLoadError(null);
 
       const response = await MockQuestionsService.getQuestion(questionId);
-      
+
       if (response.error) {
         setLoadError(response.error);
         return;
@@ -93,7 +86,7 @@ export default function EditQuestionPage() {
 
       if (response.data) {
         setOriginalQuestion(response.data);
-        
+
         // Convert Question to QuestionDraft
         setQuestionDraft({
           content: response.data.content,
@@ -116,12 +109,19 @@ export default function EditQuestionPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [questionId]);
+
+  /**
+   * Load question data khi component mount
+   */
+  useEffect(() => {
+    loadQuestionData();
+  }, [loadQuestionData]);
 
   /**
    * Handle form field changes
    */
-  const handleFieldChange = (field: keyof QuestionDraft, value: any) => {
+  const handleFieldChange = (field: keyof QuestionDraft, value: unknown) => {
     setQuestionDraft(prev => ({
       ...prev,
       [field]: value
@@ -136,7 +136,7 @@ export default function EditQuestionPage() {
   /**
    * Handle answer options changes cho multiple choice
    */
-  const handleAnswerChange = (index: number, field: keyof AnswerOption, value: any) => {
+  const handleAnswerChange = (index: number, field: keyof AnswerOption, value: unknown) => {
     const newAnswers = [...(questionDraft.answers as AnswerOption[] || [])];
     if (newAnswers[index]) {
       newAnswers[index] = { ...newAnswers[index], [field]: value };
@@ -271,7 +271,7 @@ export default function EditQuestionPage() {
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể phân tích LaTeX',

@@ -13,7 +13,6 @@ import {
   UserDetailModal,
   RolePromotionWorkflow,
   UserStatsLoading,
-  UserTableLoading,
   UserErrorState
 } from '@/components/user-management';
 import { AdminUser } from '@/lib/mockdata/types';
@@ -31,18 +30,12 @@ export default function AdminUsersPage() {
     isLoading,
     isSearching,
     error,
-    pagination,
-    filters,
-    searchUsers,
     applyFilters,
-    changePage,
     refreshUsers,
     getUserById,
     clearSelectedUser,
     suspendUser,
     reactivateUser,
-    promoteUser,
-    resetUserSecurity,
     hasUsers,
     hasError
   } = useUserManagement();

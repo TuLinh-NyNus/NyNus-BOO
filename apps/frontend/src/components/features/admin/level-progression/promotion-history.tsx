@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/form/button";
 import { Input } from "@/components/ui/form/input";
 import { Badge } from "@/components/ui/display/badge";
@@ -46,7 +46,7 @@ export function PromotionHistory({ userId, className = "" }: PromotionHistoryPro
   /**
    * Load progression history
    */
-  const loadProgressionHistory = async () => {
+  const loadProgressionHistory = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await getProgressionHistory(userId);
@@ -58,12 +58,12 @@ export function PromotionHistory({ userId, className = "" }: PromotionHistoryPro
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
 
   /**
    * Filter entries based on search term
    */
-  const filterEntries = (term: string) => {
+  const filterEntries = useCallback((term: string) => {
     if (!term.trim()) {
       setFilteredEntries(historyEntries);
       return;
@@ -83,7 +83,7 @@ export function PromotionHistory({ userId, className = "" }: PromotionHistoryPro
     });
 
     setFilteredEntries(filtered);
-  };
+  }, [historyEntries]);
 
   /**
    * Format date for display
@@ -147,11 +147,11 @@ export function PromotionHistory({ userId, className = "" }: PromotionHistoryPro
   // Effects
   useEffect(() => {
     loadProgressionHistory();
-  }, [userId]);
+  }, [loadProgressionHistory]);
 
   useEffect(() => {
     filterEntries(searchTerm);
-  }, [searchTerm, historyEntries]);
+  }, [searchTerm, filterEntries]);
 
   return (
     <div className={`space-y-6 ${className}`}>

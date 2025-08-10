@@ -15,21 +15,17 @@ import {
   Loader2,
   Shield,
   Edit,
-  Eye,
   AlertCircle,
-  CheckCircle,
   Settings,
   Users,
   FileText,
   Lock,
 } from "lucide-react";
 import { UserRole, USER_ROLE_LABELS } from "../../../types/admin-user";
-import { 
-  mockPermissions, 
-  mockRoles, 
-  getPermissionCategories,
-  Permission,
-  Role 
+import {
+  mockPermissions,
+  mockRoles,
+  Permission
 } from "../../../lib/mockdata/admin-roles";
 
 /**
@@ -177,9 +173,9 @@ export function PermissionMatrix({ onEditRole, className = "" }: PermissionMatri
    * Check if role has permission
    * Kiểm tra role có permission không
    */
-  const hasPermission = (rolePermissions: Permission[], permissionId: string): boolean => {
-    return rolePermissions.some((p) => p.id === permissionId);
-  };
+  // const hasPermission = (rolePermissions: Permission[], permissionId: string): boolean => {
+  //   return rolePermissions.some((p) => p.id === permissionId);
+  // };
 
   // Effects
   useEffect(() => {

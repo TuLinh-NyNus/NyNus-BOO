@@ -1,31 +1,112 @@
-// Toast types
-type ToastVariant = 'default' | 'destructive' | 'success' | 'warning';
+/**
+ * Toast Hook
+ * Simple toast notification hook for user feedback
+ */
 
-export interface Toast {
-  id: string;
+import React, { useState, useCallback } from 'react';
+
+export interface ToastProps {
   title?: string;
   description?: string;
-  variant?: ToastVariant;
+  variant?: 'default' | 'destructive' | 'success' | 'warning';
   duration?: number;
-  action?: React.ReactNode;
 }
 
-// Export ToasterToast as alias for Toast
-export type ToasterToast = Toast;
+export interface Toast extends ToastProps {
+  id: string;
+  timestamp: number;
+}
 
-// Toast function
-export const toast = (props: Omit<Toast, 'id'>) => {
-  console.log('Toast:', props);
-  // In a real implementation, this would show a toast notification
+let toastCounter = 0;
+
+// Global toast state (simple implementation)
+const toastListeners: Array<(toasts: Toast[]) => void> = [];
+let globalToasts: Toast[] = [];
+
+const addToast = (toast: ToastProps): string => {
+  const id = `toast-${++toastCounter}`;
+  const newToast: Toast = {
+    ...toast,
+    id,
+    timestamp: Date.now(),
+    duration: toast.duration || 5000,
+  };
+
+  globalToasts = [...globalToasts, newToast];
+  toastListeners.forEach(listener => listener(globalToasts));
+
+  // Auto remove after duration
+  if (newToast.duration && newToast.duration > 0) {
+    setTimeout(() => {
+      removeToast(id);
+    }, newToast.duration);
+  }
+
+  return id;
 };
 
-// Simple useToast hook implementation
-export function useToast() {
+const removeToast = (id: string) => {
+  globalToasts = globalToasts.filter(toast => toast.id !== id);
+  toastListeners.forEach(listener => listener(globalToasts));
+};
+
+const clearToasts = () => {
+  globalToasts = [];
+  toastListeners.forEach(listener => listener(globalToasts));
+};
+
+export const toast = (props: ToastProps) => {
+  return addToast(props);
+};
+
+// Add convenience methods
+toast.success = (title: string, description?: string) => {
+  return addToast({ title, description, variant: 'success' });
+};
+
+toast.error = (title: string, description?: string) => {
+  return addToast({ title, description, variant: 'destructive' });
+};
+
+toast.warning = (title: string, description?: string) => {
+  return addToast({ title, description, variant: 'warning' });
+};
+
+export const useToast = () => {
+  const [toasts, setToasts] = useState<Toast[]>(globalToasts);
+
+  // Subscribe to global toast changes
+  const subscribe = useCallback((listener: (toasts: Toast[]) => void) => {
+    toastListeners.push(listener);
+    return () => {
+      const index = toastListeners.indexOf(listener);
+      if (index > -1) {
+        toastListeners.splice(index, 1);
+      }
+    };
+  }, []);
+
+  // Subscribe on mount
+  React.useEffect(() => {
+    const unsubscribe = subscribe(setToasts);
+    return unsubscribe;
+  }, [subscribe]);
+
+  const dismiss = useCallback((id: string) => {
+    removeToast(id);
+  }, []);
+
+  const clear = useCallback(() => {
+    clearToasts();
+  }, []);
+
   return {
-    toast,
-    dismiss: (toastId: string) => {
-      console.log('Dismiss toast:', toastId);
-    },
-    toasts: [] as Toast[]
+    toasts,
+    toast: addToast,
+    dismiss,
+    clear,
   };
-}
+};
+
+// Export for compatibility
+export { toast as default };

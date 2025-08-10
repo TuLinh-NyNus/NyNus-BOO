@@ -397,8 +397,7 @@ export function getRolePermissions(role: UserRole): Promise<RolePermission[]> {
  */
 export function updateRolePermissions(
   role: UserRole,
-  permissions: RolePermission[],
-  reason: string
+  permissions: RolePermission[]
 ): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -427,8 +426,7 @@ export function getPermissionTemplates(): Promise<PermissionTemplate[]> {
  */
 export function applyPermissionTemplate(
   templateId: string,
-  targetRole: UserRole,
-  reason: string
+  targetRole: UserRole
 ): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(() => {

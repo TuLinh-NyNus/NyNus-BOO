@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
-import { Trophy, Search, Video, Bot, ChevronRight, Info, TrendingUp, TrendingDown, Minus, CheckCircle, AlertCircle } from "lucide-react";
+import { Trophy, Search, Video, Bot, ChevronRight, Info, TrendingUp, TrendingDown, Minus, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useState, useCallback, useRef } from "react";
 

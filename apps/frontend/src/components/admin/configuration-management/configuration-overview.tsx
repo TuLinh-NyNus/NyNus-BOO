@@ -15,7 +15,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/display/card";
 import { Button } from "../../ui/form/button";
 import { Badge } from "../../ui/display/badge";
@@ -25,9 +25,7 @@ import {
   Activity,
   Clock,
   CheckCircle,
-  AlertTriangle,
   TrendingUp,
-  Users,
   Server,
   Zap,
   RefreshCw,
@@ -129,8 +127,8 @@ const categoriesSummary = [
  * Configuration Overview Component
  */
 export function ConfigurationOverview({ cacheStats }: ConfigurationOverviewProps) {
-  const [configStats, setConfigStats] = useState(mockConfigStats);
-  const [recentChanges, setRecentChanges] = useState(mockRecentChanges);
+  const [configStats] = useState(mockConfigStats);
+  const [recentChanges] = useState(mockRecentChanges);
   const [loading, setLoading] = useState(false);
 
   /**

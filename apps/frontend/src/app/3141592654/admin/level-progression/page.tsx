@@ -10,13 +10,9 @@ import { PromotionHistory } from "@/components/features/admin/level-progression/
 
 // Simple Tabs implementation
 const Tabs = ({
-  value,
-  onValueChange,
   children,
   className,
 }: {
-  value: string;
-  onValueChange: (value: string) => void;
   children: React.ReactNode;
   className?: string;
 }) => <div className={className}>{children}</div>;
@@ -26,12 +22,10 @@ const TabsList = ({ children, className }: { children: React.ReactNode; classNam
 );
 
 const TabsTrigger = ({
-  value,
   children,
   className,
   onClick,
 }: {
-  value: string;
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
@@ -96,10 +90,9 @@ export default function LevelProgressionPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger
-            value="management"
             className={`flex items-center gap-2 ${
               activeTab === "management"
                 ? "border-blue-500 text-blue-600"
@@ -111,7 +104,6 @@ export default function LevelProgressionPage() {
             Progression Management
           </TabsTrigger>
           <TabsTrigger
-            value="audit"
             className={`flex items-center gap-2 ${
               activeTab === "audit"
                 ? "border-blue-500 text-blue-600"
@@ -123,7 +115,6 @@ export default function LevelProgressionPage() {
             Audit Trail
           </TabsTrigger>
           <TabsTrigger
-            value="history"
             className={`flex items-center gap-2 ${
               activeTab === "history"
                 ? "border-blue-500 text-blue-600"

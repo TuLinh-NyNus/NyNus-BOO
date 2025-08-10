@@ -10,7 +10,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/feedback/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Button } from "@/components/ui/form/button";
 

@@ -4,13 +4,9 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 // Simple Tabs implementation
 const Tabs = ({
-  value,
-  onValueChange,
   children,
   className,
 }: {
-  value: string;
-  onValueChange: (value: string) => void;
   children: React.ReactNode;
   className?: string;
 }) => <div className={className}>{children}</div>;
@@ -20,12 +16,10 @@ const TabsList = ({ children, className }: { children: React.ReactNode; classNam
 );
 
 const TabsTrigger = ({
-  value,
   children,
   className,
   onClick,
 }: {
-  value: string;
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
@@ -121,10 +115,9 @@ export default function PermissionManagementPage() {
       </div>
 
       {/* Navigation Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger
-            value="matrix"
             className={`flex items-center gap-2 ${
               activeTab === "matrix"
                 ? "border-blue-500 text-blue-600"
@@ -136,7 +129,6 @@ export default function PermissionManagementPage() {
             Permission Matrix
           </TabsTrigger>
           <TabsTrigger
-            value="templates"
             className={`flex items-center gap-2 ${
               activeTab === "templates"
                 ? "border-blue-500 text-blue-600"

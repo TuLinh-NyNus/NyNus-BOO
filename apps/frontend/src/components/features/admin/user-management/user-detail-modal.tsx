@@ -22,76 +22,22 @@ import {
   Monitor,
   X,
   Edit,
-  Save,
-  AlertTriangle,
-  Phone,
-  MapPin,
-  Calendar,
-  Clock,
   CheckCircle,
   XCircle,
   Eye,
-  EyeOff,
 } from "lucide-react";
 
 import { UserRole } from "@/lib/mockdata/core-types";
 import { toast } from "@/hooks/use-toast";
+
+// Import proper Tabs components
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/navigation/tabs";
 
 // Import tab components (will be created)
 import { UserOverviewTab } from "./user-overview-tab";
 import { UserSecurityTab } from "./user-security-tab";
 import { UserActivityTab } from "./user-activity-tab";
 import { UserSessionsTab } from "./user-sessions-tab";
-
-/**
- * Simple Tabs implementation
- */
-const Tabs = ({
-  value,
-  onValueChange,
-  children,
-  className,
-}: {
-  value: string;
-  onValueChange: (value: string) => void;
-  children: React.ReactNode;
-  className?: string;
-}) => <div className={className}>{children}</div>;
-
-const TabsList = ({ children, className }: { children: React.ReactNode; className?: string }) => (
-  <div className={`flex border-b ${className}`}>{children}</div>
-);
-
-const TabsTrigger = ({
-  value,
-  children,
-  className,
-  onClick,
-}: {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
-  onClick?: () => void;
-}) => (
-  <button onClick={onClick} className={`px-4 py-2 border-b-2 transition-colors ${className}`}>
-    {children}
-  </button>
-);
-
-const TabsContent = ({
-  value,
-  children,
-  className,
-  activeTab,
-}: {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
-  activeTab?: string;
-}) => {
-  if (activeTab !== value) return null;
-  return <div className={className}>{children}</div>;
-};
 
 /**
  * Admin User interface (simplified)
@@ -330,68 +276,27 @@ export function UserDetailModal({
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger
-              value="overview"
-              className={`flex items-center gap-2 ${
-                activeTab === "overview"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent hover:border-gray-300"
-              }`}
-              onClick={() => setActiveTab("overview")}
-            >
+            <TabsTrigger value="overview" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Tổng quan
             </TabsTrigger>
-            <TabsTrigger
-              value="security"
-              className={`flex items-center gap-2 ${
-                activeTab === "security"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent hover:border-gray-300"
-              }`}
-              onClick={() => setActiveTab("security")}
-            >
+            <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Bảo mật
             </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className={`flex items-center gap-2 ${
-                activeTab === "activity"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent hover:border-gray-300"
-              }`}
-              onClick={() => setActiveTab("activity")}
-            >
+            <TabsTrigger value="activity" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Hoạt động
             </TabsTrigger>
-            <TabsTrigger
-              value="sessions"
-              className={`flex items-center gap-2 ${
-                activeTab === "sessions"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent hover:border-gray-300"
-              }`}
-              onClick={() => setActiveTab("sessions")}
-            >
+            <TabsTrigger value="sessions" className="flex items-center gap-2">
               <Monitor className="h-4 w-4" />
               Sessions
             </TabsTrigger>
           </TabsList>
 
           <div className="flex-1 overflow-auto p-4">
-            <TabsContent value="overview" activeTab={activeTab}>
-              <UserOverviewTab 
-                user={user} 
-                isEditing={isEditing}
-                onUpdate={handleUserUpdate}
-                isLoading={isLoading}
-              />
-            </TabsContent>
-
-            <TabsContent value="security" activeTab={activeTab}>
-              <UserSecurityTab 
+            <TabsContent value="overview">
+              <UserOverviewTab
                 user={user}
                 isEditing={isEditing}
                 onUpdate={handleUserUpdate}
@@ -399,14 +304,23 @@ export function UserDetailModal({
               />
             </TabsContent>
 
-            <TabsContent value="activity" activeTab={activeTab}>
-              <UserActivityTab 
+            <TabsContent value="security">
+              <UserSecurityTab
+                user={user}
+                isEditing={isEditing}
+                onUpdate={handleUserUpdate}
+                isLoading={isLoading}
+              />
+            </TabsContent>
+
+            <TabsContent value="activity">
+              <UserActivityTab
                 user={user}
               />
             </TabsContent>
 
-            <TabsContent value="sessions" activeTab={activeTab}>
-              <UserSessionsTab 
+            <TabsContent value="sessions">
+              <UserSessionsTab
                 user={user}
               />
             </TabsContent>

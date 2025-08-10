@@ -40,16 +40,12 @@ import {
 import {
   Upload,
   Download,
-  FileText,
   Database,
-  RefreshCw,
   CheckCircle,
   AlertTriangle,
-  Trash2,
-  Settings,
   Save,
 } from "lucide-react";
-import { toast } from "../../../hooks/use-toast";
+import { toast } from "@/components/ui/feedback/use-toast";
 
 /**
  * Bulk operation types
@@ -116,7 +112,7 @@ export function BulkOperations() {
       
       setPreviewData(preview);
       setShowPreview(true);
-    } catch (error) {
+    } catch {
       toast({ title: "Lỗi", description: "Dữ liệu import không hợp lệ", variant: "destructive" });
       setPreviewData([]);
       setShowPreview(false);
@@ -169,7 +165,7 @@ export function BulkOperations() {
       URL.revokeObjectURL(url);
       
       toast({ title: "Thành công", description: "Đã xuất cấu hình thành công", variant: "success" });
-    } catch (error) {
+    } catch {
       toast({ title: "Lỗi", description: "Lỗi khi xuất cấu hình", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -200,7 +196,7 @@ export function BulkOperations() {
       setImportData("");
       setPreviewData([]);
       setShowPreview(false);
-    } catch (error) {
+    } catch {
       toast({ title: "Lỗi", description: "Lỗi khi import cấu hình", variant: "destructive" });
     } finally {
       setLoading(false);
@@ -217,7 +213,7 @@ export function BulkOperations() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       toast({ title: "Thành công", description: "Đã tạo backup thành công", variant: "success" });
-    } catch (error) {
+    } catch {
       toast({ title: "Lỗi", description: "Lỗi khi tạo backup", variant: "destructive" });
     } finally {
       setLoading(false);

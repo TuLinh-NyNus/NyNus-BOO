@@ -24,13 +24,11 @@ import { Label } from "@/components/ui/form/label";
 import {
   Grid,
   Search,
-  Filter,
   Download,
   RefreshCw,
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Shield,
 } from "lucide-react";
 
 import { UserRole } from "@/lib/mockdata/core-types";
@@ -39,8 +37,6 @@ import { toast } from "@/hooks/use-toast";
 // Import mockdata functions
 import {
   getPermissionMatrix,
-  type RolePermission,
-  type PermissionCategory,
   type PermissionMatrixResponse,
   mockPermissionCategories,
   mockPermissionLevels,

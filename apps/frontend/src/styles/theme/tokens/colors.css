@@ -17,7 +17,7 @@
   --color-primary-terracotta: #7C4622;
   --color-primary-sienna: #8F3D2C;
 
-  /* DesignCode Dark Theme Colors */
+  /* DesignCode Dark Theme Colors - IMPROVED */
   --designcode-navy: #1F1F47;
   --designcode-navy-light: #2A2A5A;
   --designcode-navy-lighter: #353570;
@@ -28,6 +28,16 @@
   --designcode-accent: #6366F1;
   --designcode-accent-light: #8B5CF6;
   --designcode-accent-hover: #5855EB;
+
+  /* IMPROVED Dark Theme Colors - Better Contrast & Eye Comfort */
+  --improved-dark-bg: #0F172A;           /* Slate 900 - Softer than navy */
+  --improved-dark-surface: #1E293B;      /* Slate 800 - Card backgrounds */
+  --improved-dark-surface-hover: #334155; /* Slate 700 - Hover states */
+  --improved-dark-border: #475569;       /* Slate 600 - Borders */
+  --improved-dark-text: #F1F5F9;         /* Slate 100 - Primary text */
+  --improved-dark-text-muted: #94A3B8;   /* Slate 400 - Secondary text */
+  --improved-dark-accent: #3B82F6;       /* Blue 500 - Primary accent */
+  --improved-dark-accent-hover: #2563EB; /* Blue 600 - Accent hover */
 
   /* System Colors */
   --color-success: #10B981;

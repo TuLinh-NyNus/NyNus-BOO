@@ -28,7 +28,6 @@ import {
 import {
   RolePermission,
   getPermissionsByCategory,
-  ROLE_PERMISSIONS,
   ROLE_RESTRICTIONS,
   getPromotionPaths,
 } from "../../../lib/role-hierarchy";
@@ -184,7 +183,6 @@ function PermissionCategorySection({
  */
 export function RolePermissionsPanel({
   selectedRole,
-  compareWithRole,
   className = "",
 }: RolePermissionsPanelProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(

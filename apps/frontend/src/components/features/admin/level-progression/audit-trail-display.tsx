@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/form/button";
 import { Input } from "@/components/ui/form/input";
 import { Label } from "@/components/ui/form/label";
@@ -57,7 +57,7 @@ export function AuditTrailDisplay() {
   /**
    * Load audit logs với pagination và filters
    */
-  const loadAuditLogs = async (page: number = 1) => {
+  const loadAuditLogs = useCallback(async (page: number = 1) => {
     setIsLoading(true);
     try {
       const response = await getAuditLogs(page, pagination.limit);
@@ -69,7 +69,7 @@ export function AuditTrailDisplay() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pagination.limit]);
 
   /**
    * Handle filter change
@@ -146,7 +146,7 @@ export function AuditTrailDisplay() {
   // Load audit logs on mount
   useEffect(() => {
     loadAuditLogs();
-  }, []);
+  }, [loadAuditLogs]);
 
   return (
     <div className="space-y-6">

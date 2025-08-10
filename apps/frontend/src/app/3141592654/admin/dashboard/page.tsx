@@ -65,7 +65,7 @@ export default function AdminDashboardPage() {
 
         {/* Charts and Analytics */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
+          <Card className="col-span-4 theme-bg theme-border">
             <CardHeader>
               <CardTitle>Thống kê truy cập</CardTitle>
               <CardDescription>Số lượng người dùng hoạt động trong 7 ngày qua</CardDescription>
@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="col-span-3">
+          <Card className="col-span-3 theme-bg theme-border">
             <CardHeader>
               <CardTitle>Hoạt động gần đây</CardTitle>
               <CardDescription>Các sự kiện quan trọng trong hệ thống</CardDescription>
@@ -123,7 +123,7 @@ export default function AdminDashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
+          <Card className="theme-bg theme-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -138,7 +138,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="theme-bg theme-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
@@ -153,7 +153,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="theme-bg theme-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -170,7 +170,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* System Status */}
-        <Card>
+        <Card className="theme-bg theme-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
@@ -225,11 +225,11 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Temporarily show simple message instead of CustomizableDashboard */}
-        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="theme-bg theme-border border-2 border-dashed rounded-lg p-8 text-center">
+          <h3 className="text-lg font-medium theme-fg mb-2">
             Analytics Dashboard đang được cải thiện
           </h3>
-          <p className="text-gray-600">
+          <p className="theme-muted-fg">
             Dashboard sẽ được kích hoạt lại sau khi sửa xong vấn đề duplicate widgets.
           </p>
         </div>

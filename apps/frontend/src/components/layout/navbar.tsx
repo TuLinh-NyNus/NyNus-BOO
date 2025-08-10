@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Menu, X, User, Settings, LogOut, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 
 // Import UI components
@@ -67,6 +68,7 @@ const mockUser = {
 };
 
 const Navbar = () => {
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated] = useState(false); // Mock auth state
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -140,7 +142,10 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="fixed top-0 z-50 w-full bg-transparent backdrop-blur-md border-b border-white/10">
+      <header
+        className="fixed top-0 z-50 w-full bg-transparent backdrop-blur-md border-b border-white/10"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <nav className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 min-w-0">
           {/* Logo */}
           <Link
@@ -169,8 +174,10 @@ const Navbar = () => {
               >
                 <Link
                   href={item.href}
-                  className={`text-sm font-semibold tracking-wide transition-all duration-300 whitespace-nowrap ${
-                    item.isHighlight
+                  className={`text-sm font-semibold tracking-wide transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded-md px-2 py-1 ${
+                    pathname === item.href
+                      ? "text-white font-bold"
+                      : item.isHighlight
                       ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                       : "text-white/90 hover:text-white"
                   } font-sans`}
@@ -178,6 +185,7 @@ const Navbar = () => {
                     textShadow: item.isHighlight ? "0 0 20px rgba(168, 85, 247, 0.2)" : "0 0 10px rgba(0, 0, 0, 0.3)",
                     letterSpacing: "0.05em"
                   }}
+                  aria-current={pathname === item.href ? 'page' : undefined}
                 >
                   {item.title}
                 </Link>
@@ -190,7 +198,7 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-white/90 hover:text-white hover:bg-white/10"
+                  className="h-11 w-11 text-white/90 hover:text-white hover:bg-white/10"
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
                 >
                   <MoreHorizontal className="h-5 w-5" />
@@ -231,8 +239,9 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-9 w-9 text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+                className="relative h-11 w-11 text-white/90 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
+                aria-label="Mở tìm kiếm"
               >
                 <Search className="h-5 w-5" />
               </Button>
@@ -248,8 +257,8 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full">
-                      <div className="h-9 w-9 rounded-full bg-white/10 text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-colors">
+                    <Button variant="ghost" className="relative h-11 w-11 rounded-full">
+                      <div className="h-11 w-11 rounded-full bg-white/10 text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-colors">
                         <User className="h-5 w-5" />
                       </div>
                     </Button>
@@ -289,8 +298,9 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 bg-white/10 text-white/90 hover:text-white hover:bg-white/20 transition-colors rounded-full"
+                  className="h-11 w-11 bg-white/10 text-white/90 hover:text-white hover:bg-white/20 transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                   onClick={() => setIsAuthModalOpen(true)}
+                  aria-label="Tài khoản người dùng"
                 >
                   <User className="h-5 w-5" />
                 </Button>
@@ -301,8 +311,9 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden text-white/90 hover:text-white hover:bg-white/10"
+              className="md:hidden text-white/90 hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Menu điều hướng"
             >
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>

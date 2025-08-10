@@ -13,7 +13,6 @@ import {
   Command,
   CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/navigation/command";
@@ -22,18 +21,17 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/overlay/popover";
-import { 
-  Search, 
-  X, 
-  Clock, 
-  User, 
-  Mail, 
-  Hash,
-  Filter,
-  ChevronDown
+import {
+  Search,
+  X,
+  Clock,
+  User,
+  Mail,
+  Filter
 } from "lucide-react";
+import { QuickStreamlitButton } from "@/components/ui/buttons/streamlit-button";
 
-import { UserRole } from "@/lib/mockdata/core-types";
+// import { UserRole } from "@/lib/mockdata/core-types";
 
 /**
  * Search suggestion interface
@@ -63,13 +61,13 @@ interface EnhancedSearchProps {
 /**
  * User role labels mapping
  */
-const USER_ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "Khách",
-  [UserRole.STUDENT]: "Học viên",
-  [UserRole.TUTOR]: "Trợ giảng",
-  [UserRole.TEACHER]: "Giảng viên",
-  [UserRole.ADMIN]: "Quản trị viên",
-};
+// const USER_ROLE_LABELS: Record<UserRole, string> = {
+//   [UserRole.GUEST]: "Khách",
+//   [UserRole.STUDENT]: "Học viên",
+//   [UserRole.TUTOR]: "Trợ giảng",
+//   [UserRole.TEACHER]: "Giảng viên",
+//   [UserRole.ADMIN]: "Quản trị viên",
+// };
 
 /**
  * Default search suggestions
@@ -301,6 +299,7 @@ export function EnhancedSearch({
                   <X className="h-3 w-3" />
                 </Button>
               )}
+              <QuickStreamlitButton className="h-6 w-6 p-0" />
               <Button
                 variant="ghost"
                 size="sm"

@@ -10,17 +10,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Shield,
   FileText,
   Plus,
-  Download,
   Trash2,
   Copy,
   CheckCircle,
+  Download,
 } from "lucide-react";
 
-import { UserRole, USER_ROLE_LABELS } from "../../../types/admin-user";
-import { mockPermissions, Permission } from "../../../lib/mockdata/admin-roles";
+import { mockPermissions } from "../../../lib/mockdata/admin-roles";
 
 /**
  * Permission Template Interface

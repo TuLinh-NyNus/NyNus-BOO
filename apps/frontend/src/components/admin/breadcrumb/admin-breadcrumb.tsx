@@ -130,13 +130,20 @@ export function AdminBreadcrumb({
                   item={item}
                   isLast={isLast}
                   className={`
-                    ${isLast ? 'text-gray-900 font-medium' : 'text-gray-600 hover:text-gray-900'}
+                    ${isLast
+                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent font-medium'
+                      : 'text-foreground/70 hover:text-foreground hover:bg-gradient-to-r hover:from-indigo-600 hover:to-purple-600 dark:hover:from-indigo-400 dark:hover:to-purple-400 hover:bg-clip-text hover:text-transparent transition-all duration-200'
+                    }
                     ${isOverflow ? 'cursor-default' : ''}
                     ${isFirst && showHome ? 'flex items-center space-x-1' : ''}
                   `}
                 >
                   {/* Home icon for first item */}
-                  {isFirst && showHome && renderHomeIcon()}
+                  {isFirst && showHome && (
+                    <div className="text-indigo-600 dark:text-indigo-400">
+                      {renderHomeIcon()}
+                    </div>
+                  )}
 
                   {/* Item content */}
                   {isOverflow ? (
@@ -144,7 +151,7 @@ export function AdminBreadcrumb({
                   ) : item.href && !isLast ? (
                     <Link
                       href={item.href}
-                      className="hover:underline transition-colors duration-150"
+                      className="hover:underline transition-all duration-200 hover:text-indigo-600 dark:hover:text-indigo-400"
                     >
                       {item.label}
                     </Link>

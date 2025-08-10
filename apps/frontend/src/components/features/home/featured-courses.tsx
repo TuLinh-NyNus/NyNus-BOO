@@ -2,6 +2,8 @@
 
 import { ChevronLeft, ChevronRight, Clock, Users, Star, BookOpen, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { useAnalytics } from "@/lib/analytics";
 import { useState, useRef } from "react";
 
 // Import mockdata and UI components
@@ -11,18 +13,40 @@ import ScrollIndicator from "@/components/ui/scroll-indicator";
 
 const CourseCard = ({ course }: { course: FeaturedCourse }) => {
   const gradient = getGradient(course.color);
+  const analytics = useAnalytics();
 
   return (
-    <div className="relative h-full backdrop-blur-sm rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group">
+    <Link
+      href={`/courses/${course.id}`}
+      className="block relative h-full backdrop-blur-sm rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      onClick={() => {
+        analytics.courseClick(course.id, course.title, 'featured_courses_section');
+      }}
+    >
       {/* Background using semantic colors */}
       <div className="absolute inset-0 bg-card border border-border transition-colors duration-300"></div>
 
       <div className="relative">
         <div className="h-40 bg-muted relative overflow-hidden transition-colors duration-300">
-          {/* Placeholder for image */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-70`}></div>
+          {/* Course Image */}
+          <Image
+            src={course.image}
+            alt={course.title}
+            width={400}
+            height={160}
+            priority={course.id === "1" || course.id === "2"} // Priority cho 2 courses đầu
+            className="object-cover w-full h-full"
+            onError={(e) => {
+              // Fallback to gradient placeholder if image fails to load
+              e.currentTarget.style.display = 'none';
+            }}
+          />
 
-          <div className="absolute inset-0 flex items-center justify-center">
+          {/* Fallback gradient overlay */}
+          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30`}></div>
+
+          {/* Fallback icon - only show if image fails */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
               <BookOpen className="h-10 w-10 text-white" />
             </div>
@@ -53,15 +77,18 @@ const CourseCard = ({ course }: { course: FeaturedCourse }) => {
             </div>
           </div>
 
-          <Link
-            href={`/khoa-hoc/${course.id}`}
-            className="w-full block py-2.5 text-center rounded-lg bg-gradient-to-r from-primary to-secondary text-primary-foreground text-sm font-medium hover:shadow-lg transition-all duration-200"
+          <button
+            className="w-full py-2.5 text-center rounded-lg bg-gradient-to-r from-primary to-secondary text-primary-foreground text-sm font-medium hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent outer Link click
+              window.location.href = `/khoa-hoc/${course.id}`;
+            }}
           >
             Xem chi tiết
-          </Link>
+          </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

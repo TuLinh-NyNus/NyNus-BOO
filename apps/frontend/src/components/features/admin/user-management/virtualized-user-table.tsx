@@ -66,13 +66,13 @@ interface VirtualizedUserTableProps {
 /**
  * User role labels mapping
  */
-const USER_ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "Khách",
-  [UserRole.STUDENT]: "Học viên",
-  [UserRole.TUTOR]: "Trợ giảng",
-  [UserRole.TEACHER]: "Giảng viên",
-  [UserRole.ADMIN]: "Quản trị viên",
-};
+// const USER_ROLE_LABELS: Record<UserRole, string> = {
+//   [UserRole.GUEST]: "Khách",
+//   [UserRole.STUDENT]: "Học viên",
+//   [UserRole.TUTOR]: "Trợ giảng",
+//   [UserRole.TEACHER]: "Giảng viên",
+//   [UserRole.ADMIN]: "Quản trị viên",
+// };
 
 /**
  * Get role badge component

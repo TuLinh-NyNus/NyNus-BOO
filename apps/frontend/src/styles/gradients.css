@@ -187,10 +187,10 @@
 
 /* NyNus main background gradient for body - Light mode (default) */
 .nynus-gradient-bg {
-  background: #1F1F47;
+  background: var(--color-background);
 }
 
 /* NyNus main background gradient for body - Dark mode */
 .dark .nynus-gradient-bg {
-  background: #1F1F47;
+  background: var(--color-background);
 }

@@ -1,5 +1,5 @@
 // Extended types for admin mockdata
-import { User, Question } from '@/types';
+import { Question } from '@/types';
 // ✅ Import shared types from consolidated core-types
 import {
   UserRole,

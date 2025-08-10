@@ -42,7 +42,7 @@ export function AdminSidebar({
    */
   const getSidebarClasses = () => {
     const baseClasses = [
-      'bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out',
+      'theme-bg theme-fg theme-border border-r flex flex-col transition-all duration-300 ease-in-out',
       'h-full relative'
     ];
 
@@ -59,6 +59,17 @@ export function AdminSidebar({
   };
 
   /**
+   * Get sidebar inline styles for CSS variables
+   */
+  const getSidebarStyles = (): React.CSSProperties => {
+    return {
+      backgroundColor: 'var(--color-background)',
+      color: 'var(--color-foreground)',
+      borderColor: 'var(--color-border)'
+    };
+  };
+
+  /**
    * Render collapse button
    * Render button để toggle sidebar
    */
@@ -70,16 +81,16 @@ export function AdminSidebar({
         onClick={handleToggle}
         className={cn(
           'absolute -right-3 top-6 z-10',
-          'w-6 h-6 bg-white border border-gray-200 rounded-full',
+          'w-6 h-6 bg-background border border-border rounded-full',
           'flex items-center justify-center',
-          'hover:bg-gray-50 transition-colors duration-150',
+          'hover:bg-muted transition-colors duration-150',
           'shadow-sm'
         )}
         aria-label={isCollapsed ? 'Mở rộng sidebar' : 'Thu gọn sidebar'}
       >
         <svg
           className={cn(
-            'w-3 h-3 text-gray-600 transition-transform duration-150',
+            'w-3 h-3 text-muted-foreground transition-transform duration-150',
             isCollapsed ? 'rotate-180' : ''
           )}
           fill="none"
@@ -172,7 +183,7 @@ export function AdminSidebar({
 
         {/* Logo section */}
         {showLogo && (
-          <div className="p-6 border-b border-gray-200">
+          <div className="p-6 border-b border-border">
             <AdminLogo collapsed={isCollapsed} />
           </div>
         )}

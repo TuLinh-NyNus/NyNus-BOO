@@ -3,10 +3,8 @@
  * Mock API service cho question management với realistic latency
  */
 
-import { 
-  Question, 
-  QuestionDraft, 
-  QuestionFilters, 
+import {
+  Question,
   QuestionListResponse,
   QuestionStatus,
   QuestionType,
@@ -14,7 +12,9 @@ import {
   QuestionCode,
   LaTeXParseResult,
   FileUploadResult,
-  SavedQuestionsData
+  SavedQuestionsData,
+  AnswerOption,
+  CorrectAnswer
 } from '@/lib/types/question';
 import { mockEnhancedQuestions, mockQuestionCodes } from '@/lib/mockdata/questions-enhanced';
 
@@ -73,8 +73,8 @@ export class MockQuestionsService {
       subcount: q.subcount,
       type: q.type,
       source: q.source,
-      answers: q.answers as AnswerOption[],
-      correctAnswer: q.correctAnswer,
+      answers: (q.answers as unknown) as AnswerOption[],
+      correctAnswer: q.correctAnswer as CorrectAnswer | undefined,
       solution: q.solution,
       tag: q.tag,
       usageCount: q.usageCount,
@@ -112,7 +112,7 @@ export class MockQuestionsService {
 
     // Apply sorting
     filteredQuestions.sort((a, b) => {
-      let aValue: any, bValue: any;
+      let aValue: number, bValue: number;
       
       switch (sortBy) {
         case 'createdAt':
@@ -174,8 +174,8 @@ export class MockQuestionsService {
       subcount: enhancedQuestion.subcount,
       type: enhancedQuestion.type,
       source: enhancedQuestion.source,
-      answers: enhancedQuestion.answers as AnswerOption[],
-      correctAnswer: enhancedQuestion.correctAnswer,
+      answers: (enhancedQuestion.answers as unknown) as AnswerOption[],
+      correctAnswer: enhancedQuestion.correctAnswer as CorrectAnswer | undefined,
       solution: enhancedQuestion.solution,
       tag: enhancedQuestion.tag,
       usageCount: enhancedQuestion.usageCount,
@@ -225,8 +225,8 @@ export class MockQuestionsService {
       subcount: payload.subcount || existingQuestion.subcount,
       type: payload.type || existingQuestion.type,
       source: payload.source || existingQuestion.source,
-      answers: payload.answers as AnswerOption[] || existingQuestion.answers,
-      correctAnswer: payload.correctAnswer || existingQuestion.correctAnswer,
+      answers: (payload.answers as unknown) as AnswerOption[] || existingQuestion.answers,
+      correctAnswer: (payload.correctAnswer || existingQuestion.correctAnswer) as CorrectAnswer | undefined,
       solution: payload.solution || existingQuestion.solution,
       tag: payload.tag || existingQuestion.tag,
       usageCount: payload.usageCount || existingQuestion.usageCount,
@@ -245,7 +245,7 @@ export class MockQuestionsService {
   /**
    * Xóa câu hỏi
    */
-  static async deleteQuestion(id: string): Promise<{ ok: true }> {
+  static async deleteQuestion(): Promise<{ ok: true }> {
     await delay(MOCK_LATENCY.fast);
     return { ok: true };
   }
@@ -253,7 +253,7 @@ export class MockQuestionsService {
   /**
    * Cập nhật trạng thái hàng loạt
    */
-  static async bulkUpdateStatus(ids: string[], status: QuestionStatus): Promise<{ updated: number }> {
+  static async bulkUpdateStatus(ids: string[]): Promise<{ updated: number }> {
     await delay(MOCK_LATENCY.medium);
     return { updated: ids.length };
   }
@@ -347,7 +347,7 @@ export class MockQuestionsService {
 
       const parsedData: SavedQuestionsData = JSON.parse(savedData);
       return { data: parsedData.questions };
-    } catch (error) {
+    } catch {
       return { data: [] };
     }
   }
@@ -380,7 +380,7 @@ export class MockQuestionsService {
       localStorage.setItem('saved_questions', JSON.stringify(savedData));
 
       return { ok: true };
-    } catch (error) {
+    } catch {
       throw new Error('Lỗi khi lưu câu hỏi');
     }
   }

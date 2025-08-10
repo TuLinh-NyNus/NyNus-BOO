@@ -140,7 +140,7 @@ export function SystemNotifications() {
   const unreadCount = mockSystemNotifications.filter(notification => !notification.isRead).length;
 
   return (
-    <Card className="p-6 bg-white/80 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700 transition-colors duration-300">
+    <Card className="p-6 theme-bg theme-border border transition-colors duration-300">
       <CardHeader className="px-0 pt-0">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white transition-colors duration-300">

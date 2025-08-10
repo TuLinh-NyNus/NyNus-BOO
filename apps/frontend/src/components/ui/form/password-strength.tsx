@@ -5,7 +5,7 @@ import React from 'react';
 import { useMemo } from 'react';
 
 import { cn } from '@/lib/utils';
-import { calculatePasswordStrength, type PasswordStrength } from '@/lib/validation/auth-schemas';
+import { calculatePasswordStrength } from '@/lib/validation/auth-schemas';
 
 interface PasswordStrengthIndicatorProps {
   password: string;

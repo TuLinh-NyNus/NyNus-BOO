@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -183,16 +183,10 @@ export function RolePromotionDialog({
   /**
    * Load role validation when user changes
    */
-  useEffect(() => {
-    if (user && isOpen) {
-      loadRoleValidation();
-    }
-  }, [user, isOpen]);
-
   /**
    * Load role validation
    */
-  const loadRoleValidation = async () => {
+  const loadRoleValidation = useCallback(async () => {
     if (!user) return;
 
     setIsValidating(true);
@@ -209,7 +203,13 @@ export function RolePromotionDialog({
     } finally {
       setIsValidating(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user && isOpen) {
+      loadRoleValidation();
+    }
+  }, [user, isOpen, loadRoleValidation]);
 
   /**
    * Handle role promotion

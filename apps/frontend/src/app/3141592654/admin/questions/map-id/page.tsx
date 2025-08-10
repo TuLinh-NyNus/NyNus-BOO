@@ -31,7 +31,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import { QuestionCode } from '@/lib/types/question';
@@ -103,7 +103,7 @@ export default function MapIdQuestionsPage() {
         description: 'Đã sao chép vào clipboard',
         variant: 'success'
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể sao chép',
@@ -295,7 +295,7 @@ export default function MapIdQuestionsPage() {
                 {!decodedResult && !decodeError && (
                   <div className="text-center py-8 text-gray-500">
                     <Map className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p>Nhập mã câu hỏi và nhấn "Giải mã" để xem kết quả</p>
+                    <p>Nhập mã câu hỏi và nhấn &quot;Giải mã&quot; để xem kết quả</p>
                   </div>
                 )}
 

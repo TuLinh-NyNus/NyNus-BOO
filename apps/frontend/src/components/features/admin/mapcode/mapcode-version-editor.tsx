@@ -132,7 +132,7 @@ export function MapCodeVersionEditor({ version, onSave, onCancel }: MapCodeVersi
     } else {
       try {
         JSON.parse(formData.content);
-      } catch (e) {
+      } catch {
         errors.push("Nội dung MapCode phải là JSON hợp lệ");
       }
     }
@@ -179,7 +179,7 @@ export function MapCodeVersionEditor({ version, onSave, onCancel }: MapCodeVersi
     try {
       const parsed = JSON.parse(formData.content);
       return JSON.stringify(parsed, null, 2);
-    } catch (e) {
+    } catch {
       return "Invalid JSON format";
     }
   };

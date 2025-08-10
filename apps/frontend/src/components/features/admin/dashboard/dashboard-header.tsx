@@ -104,14 +104,14 @@ export function DashboardHeader({
   };
 
   return (
-    <Card className="bg-white/80 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700 transition-colors duration-300">
+    <Card className="theme-bg theme-border border transition-colors duration-300">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
+            <CardTitle className="text-2xl font-bold text-white dark:text-white transition-colors duration-300 drop-shadow-sm">
               Dashboard Admin
             </CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400 transition-colors duration-300">
+            <CardDescription className="text-gray-200 dark:text-gray-200 transition-colors duration-300 drop-shadow-sm">
               Tổng quan hệ thống và thống kê hoạt động
             </CardDescription>
           </div>
@@ -139,17 +139,17 @@ export function DashboardHeader({
 
       <CardContent className="pt-0">
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400 transition-colors duration-300">
+          <div className="flex items-center gap-4 text-gray-200 dark:text-gray-200 transition-colors duration-300 drop-shadow-sm">
             {/* Last Updated */}
             <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
+              <Clock className="h-4 w-4 text-blue-300" />
               <span>Cập nhật: {getLastUpdatedText()}</span>
             </div>
 
             {/* Refresh Count */}
             {refreshCount > 0 && (
               <div className="flex items-center gap-1">
-                <RefreshCw className="h-4 w-4" />
+                <RefreshCw className="h-4 w-4 text-emerald-300" />
                 <span>Đã làm mới {refreshCount} lần</span>
               </div>
             )}
@@ -157,7 +157,7 @@ export function DashboardHeader({
 
           {/* Error Message */}
           {error && (
-            <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+            <div className="flex items-center gap-1 text-red-300 dark:text-red-300 drop-shadow-sm">
               <AlertCircle className="h-4 w-4" />
               <span className="text-sm">{error}</span>
             </div>

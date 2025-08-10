@@ -12,6 +12,10 @@
 /* Import Tailwind CSS base */
 @import "tailwindcss";
 
+/* Enable animate-* utilities for Tailwind v4 */
+@plugin "tailwindcss-animate";
+
+
 /* Import ONLY Color Definitions */
 @import "../styles/theme/tokens/colors.css";
 @import "../styles/theme/themes/light.css";
@@ -37,4 +41,25 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Custom CSS classes for theme-aware components */
+.theme-bg {
+  background-color: var(--color-background) !important;
+}
+
+.theme-fg {
+  color: var(--color-foreground) !important;
+}
+
+.theme-border {
+  border-color: var(--color-border) !important;
+}
+
+.theme-muted-bg {
+  background-color: var(--color-muted);
+}
+
+.theme-muted-fg {
+  color: var(--color-muted-foreground);
 }

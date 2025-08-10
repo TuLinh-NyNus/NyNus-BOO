@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <AdminHeader />
 
               {/* Main Content với Breadcrumb */}
-              <main className="flex-1 overflow-y-auto p-6">
+              <main className="flex-1 overflow-y-auto p-6 text-foreground">
                 {/* Admin Breadcrumb */}
                 <AdminBreadcrumb />
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -29,13 +29,10 @@ import {
 import {
   FileText,
   Video,
-  Download,
   Eye,
   Search,
-  Filter,
   RefreshCw,
   TrendingUp,
-  Users,
   Activity,
   AlertTriangle,
 } from "lucide-react";
@@ -62,7 +59,7 @@ export default function ResourceAccessPage() {
   /**
    * Fetch resource access data từ mockdata
    */
-  const fetchResourceAccess = async () => {
+  const fetchResourceAccess = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -77,19 +74,19 @@ export default function ResourceAccessPage() {
       setStats(mockResourceAccessStats);
     } catch (error) {
       console.error("Failed to fetch resource access data:", error);
-      
+
       // Fallback to direct mockdata
       setStats(mockResourceAccessStats);
       setAccessLogs(mockResourceAccessLogs);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [searchTerm, filterResourceType, filterAction]);
 
   // Fetch data on component mount
   useEffect(() => {
     fetchResourceAccess();
-  }, []);
+  }, [fetchResourceAccess]);
 
   /**
    * Get resource type icon

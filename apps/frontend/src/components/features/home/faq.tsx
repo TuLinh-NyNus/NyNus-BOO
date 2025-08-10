@@ -5,7 +5,6 @@ import { useState } from "react";
 
 // Import mockdata
 import { homepageFAQData } from "@/lib/mockdata";
-import ScrollIndicator from "@/components/ui/scroll-indicator";
 
 interface FAQItemProps {
   question: string;

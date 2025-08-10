@@ -29,7 +29,7 @@ import {
   Alert,
   AlertDescription
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import { 
@@ -131,7 +131,7 @@ export default function SavedQuestionsPage() {
         description: 'Đã xóa tất cả câu hỏi đã lưu',
         variant: 'success'
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể xóa câu hỏi',
@@ -162,7 +162,7 @@ export default function SavedQuestionsPage() {
         description: 'Đã xuất file câu hỏi đã lưu',
         variant: 'success'
       });
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể xuất file',

@@ -26,10 +26,8 @@ import {
   getRoleHierarchyTree,
   getAllRolesInOrder,
   RoleHierarchyNode,
-  getPromotionPaths,
-  ROLE_LEVELS,
 } from "../../../lib/role-hierarchy";
-import { UserRole, USER_ROLE_LABELS, USER_ROLE_COLORS } from "../../../types/admin-user";
+import { UserRole, USER_ROLE_LABELS } from "../../../types/admin-user";
 
 /**
  * Role Hierarchy Tree Props
@@ -262,7 +260,6 @@ function RoleNodeContainer(props: RoleNodeContainerProps) {
 export function RoleHierarchyTree({
   onRoleSelect,
   selectedRole,
-  showPermissions = true,
   className = "",
 }: RoleHierarchyTreeProps) {
   const [hierarchyTree, setHierarchyTree] = useState<RoleHierarchyNode | null>(null);

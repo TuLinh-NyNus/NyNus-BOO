@@ -23,11 +23,10 @@ import {
 } from "lucide-react";
 
 import { UserRole, USER_ROLE_LABELS } from "../../../types/admin-user";
-import { 
-  mockPermissions, 
-  mockRoles, 
-  Permission,
-  Role 
+import {
+  mockPermissions,
+  mockRoles,
+  Permission
 } from "../../../lib/mockdata/admin-roles";
 
 /**

@@ -6,11 +6,7 @@ import { Button } from "@/components/ui/form/button";
 import { toSecretPath } from "@/lib/admin-paths";
 import {
   Activity,
-  AlertCircle,
   BookOpen,
-  Clock,
-  DollarSign,
-  GraduationCap,
   TrendingUp,
   Users,
 } from "lucide-react";
@@ -32,11 +28,8 @@ interface AdminErrorBoundaryProps {
   showErrorDetails?: boolean;
 }
 
-function AdminErrorBoundary({ 
-  children, 
-  level = "page", 
-  enableRetry = true, 
-  showErrorDetails = true 
+function AdminErrorBoundary({
+  children
 }: AdminErrorBoundaryProps) {
   return <>{children}</>;
 }
@@ -50,16 +43,12 @@ export default function AdminDashboardPage() {
 
   // Dashboard data hook
   const {
-    formattedMetrics,
     isLoading,
     isRefreshing,
     lastUpdated,
     error,
     refreshCount,
-    status,
-    hasData,
     refreshData,
-    retryFetch,
   } = useDashboardData({
     autoRefresh: true,
     refreshInterval: 30000, // 30 seconds
@@ -69,20 +58,26 @@ export default function AdminDashboardPage() {
   // Navigation handlers for quick actions
   // Handlers để navigate với secret paths
   const handleUsersNavigation = () => {
-    router.push(toSecretPath("/admin/users"));
+    router.push(toSecretPath("users"));
   };
 
   const handleCoursesNavigation = () => {
-    router.push(toSecretPath("/admin/courses"));
+    router.push(toSecretPath("courses"));
   };
 
-  const handleSecurityNavigation = () => {
-    router.push(toSecretPath("/admin/security"));
+  const handleAnalyticsNavigation = () => {
+    router.push(toSecretPath("analytics"));
   };
 
   return (
     <AdminErrorBoundary level="page" enableRetry={true} showErrorDetails={true}>
-      <div className="space-y-8">
+      <div className="space-y-8 relative">
+        {/* Vibrant background gradient overlay inspired by Hero */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#4417DB]/8 via-[#E57885]/6 to-[#F18582]/8 dark:from-[#4417DB]/15 dark:via-[#E57885]/10 dark:to-[#F18582]/15 pointer-events-none rounded-lg -z-10" />
+
+        {/* Additional color layers for more vibrancy */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-blue-400/5 via-purple-400/3 to-pink-400/5 dark:from-blue-400/10 dark:via-purple-400/6 dark:to-pink-400/10 pointer-events-none rounded-lg -z-10" />
+        <div className="absolute inset-0 bg-gradient-to-bl from-cyan-400/3 via-emerald-400/2 to-yellow-400/3 dark:from-cyan-400/8 dark:via-emerald-400/5 dark:to-yellow-400/8 pointer-events-none rounded-lg -z-10" />
         {/* Dashboard Header */}
         <DashboardHeader
           isLoading={isLoading}
@@ -98,21 +93,27 @@ export default function AdminDashboardPage() {
 
         {/* Charts and Analytics */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle>Thống kê truy cập</CardTitle>
+          <Card className="col-span-4 relative overflow-hidden border bg-gradient-to-br from-blue-400/10 via-purple-400/8 to-indigo-400/10 dark:from-blue-400/20 dark:via-purple-400/15 dark:to-indigo-400/20 border-blue-400/30 dark:border-blue-400/40 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-white/5 to-transparent dark:from-white/15 dark:via-white/10 dark:to-transparent pointer-events-none" />
+            <CardHeader className="relative z-10">
+              <CardTitle className="bg-gradient-to-r from-blue-400 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                📊 Thống kê truy cập
+              </CardTitle>
               <CardDescription>Số lượng người dùng hoạt động trong 7 ngày qua</CardDescription>
             </CardHeader>
-            <CardContent className="pl-2">
-              <div className="h-[200px] flex items-center justify-center text-muted-foreground">
+            <CardContent className="pl-2 relative z-10">
+              <div className="h-[200px] flex items-center justify-center text-muted-foreground/80">
                 [Biểu đồ sẽ được thêm vào sau]
               </div>
             </CardContent>
           </Card>
 
-          <Card className="col-span-3">
-            <CardHeader>
-              <CardTitle>Hoạt động gần đây</CardTitle>
+          <Card className="col-span-3 relative overflow-hidden border bg-gradient-to-br from-pink-400/10 via-rose-400/8 to-orange-400/10 dark:from-pink-400/20 dark:via-rose-400/15 dark:to-orange-400/20 border-pink-400/30 dark:border-pink-400/40 hover:shadow-xl hover:shadow-pink-500/20 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-white/5 to-transparent dark:from-white/15 dark:via-white/10 dark:to-transparent pointer-events-none" />
+            <CardHeader className="relative z-10">
+              <CardTitle className="bg-gradient-to-r from-pink-400 to-orange-600 dark:from-pink-400 dark:to-orange-400 bg-clip-text text-transparent">
+                🔥 Hoạt động gần đây
+              </CardTitle>
               <CardDescription>Các sự kiện quan trọng trong hệ thống</CardDescription>
             </CardHeader>
             <CardContent>
@@ -156,7 +157,7 @@ export default function AdminDashboardPage() {
 
         {/* Quick Actions */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card>
+          <Card className="theme-bg theme-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -171,7 +172,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="theme-bg theme-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
@@ -186,7 +187,7 @@ export default function AdminDashboardPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="theme-bg theme-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -195,7 +196,7 @@ export default function AdminDashboardPage() {
               <CardDescription>Xem báo cáo chi tiết về hoạt động</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" onClick={handleSecurityNavigation}>
+              <Button className="w-full" onClick={handleAnalyticsNavigation}>
                 Xem báo cáo
               </Button>
             </CardContent>
@@ -203,7 +204,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* System Status */}
-        <Card>
+        <Card className="theme-bg theme-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5" />
@@ -258,11 +259,11 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Temporarily show simple message instead of CustomizableDashboard */}
-        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="theme-bg theme-border border-2 border-dashed rounded-lg p-8 text-center">
+          <h3 className="text-lg font-medium theme-fg mb-2">
             Analytics Dashboard đang được cải thiện
           </h3>
-          <p className="text-gray-600">
+          <p className="theme-muted-fg">
             Dashboard sẽ được kích hoạt lại sau khi sửa xong vấn đề duplicate widgets.
           </p>
         </div>

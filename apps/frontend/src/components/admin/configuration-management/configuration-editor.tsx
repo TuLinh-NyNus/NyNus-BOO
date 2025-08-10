@@ -16,7 +16,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/display/card";
+import { Card, CardContent } from "../../ui/display/card";
 import { Button } from "../../ui/form/button";
 import { Input } from "../../ui/form/input";
 import { Label } from "../../ui/form/label";
@@ -24,24 +24,10 @@ import { Switch } from "../../ui/form/switch";
 import { Textarea } from "../../ui/form/textarea";
 import { Badge } from "../../ui/display/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../ui/form/select";
-import {
   Save,
-  RefreshCw,
-  History,
-  AlertTriangle,
-  CheckCircle,
-  Edit,
-  Eye,
-  EyeOff,
   Undo,
 } from "lucide-react";
-import { toast } from "../../../hooks/use-toast";
+import { toast } from "@/components/ui/feedback/use-toast";
 
 /**
  * Configuration Editor Props
@@ -178,7 +164,6 @@ const mockConfigurations: Record<string, ConfigurationItem[]> = {
  */
 export function ConfigurationEditor({ category, title, description }: ConfigurationEditorProps) {
   const [configurations, setConfigurations] = useState<ConfigurationItem[]>([]);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   /**
@@ -227,7 +212,7 @@ export function ConfigurationEditor({ category, title, description }: Configurat
       }));
       
       toast({ title: "Thành công", description: "Cấu hình đã được lưu thành công", variant: "success" });
-    } catch (error) {
+    } catch {
       toast({ title: "Lỗi", description: "Lỗi khi lưu cấu hình", variant: "destructive" });
     } finally {
       setSaving(false);

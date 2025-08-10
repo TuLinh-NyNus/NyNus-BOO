@@ -37,12 +37,8 @@ import {
   Edit,
   Trash2,
   Copy,
-  Download,
-  Upload,
   Star,
-  StarOff,
   CheckCircle,
-  Users,
 } from "lucide-react";
 
 import { UserRole } from "@/lib/mockdata/core-types";
@@ -83,7 +79,6 @@ const USER_ROLE_LABELS: Record<UserRole, string> = {
  * Component quản lý permission templates với predefined permission sets
  */
 export function PermissionTemplates({
-  selectedRole,
   onTemplateApply,
   className = "",
 }: PermissionTemplatesProps) {
@@ -178,7 +173,7 @@ export function PermissionTemplates({
     if (!reason) return;
 
     try {
-      await applyPermissionTemplate(selectedTemplate.id, targetRole as UserRole, reason);
+      await applyPermissionTemplate(selectedTemplate.id, targetRole as UserRole);
       
       if (onTemplateApply) {
         onTemplateApply(selectedTemplate, targetRole as UserRole);

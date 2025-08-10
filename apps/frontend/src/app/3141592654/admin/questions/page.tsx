@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Plus, 
@@ -41,7 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import { 
@@ -68,13 +68,13 @@ export default function AdminQuestionsPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filters, setFilters] = useState<QuestionFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize] = useState(20);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
   /**
    * Load questions data từ mock service
    */
-  const loadQuestions = async () => {
+  const loadQuestions = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await MockQuestionsService.listQuestions({
@@ -95,12 +95,12 @@ export default function AdminQuestionsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, pageSize, filters, toast]);
 
   // Load questions khi component mount hoặc filters thay đổi
   useEffect(() => {
     loadQuestions();
-  }, [currentPage, pageSize, filters]);
+  }, [loadQuestions]);
 
   /**
    * Handle filter changes
@@ -156,7 +156,7 @@ export default function AdminQuestionsPage() {
       });
       setSelectedIds([]);
       loadQuestions();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể xóa câu hỏi',
@@ -165,11 +165,11 @@ export default function AdminQuestionsPage() {
     }
   };
 
-  const handleBulkUpdateStatus = async (status: QuestionStatus) => {
+  const handleBulkUpdateStatus = async () => {
     if (selectedIds.length === 0) return;
 
     try {
-      await MockQuestionsService.bulkUpdateStatus(selectedIds, status);
+      await MockQuestionsService.bulkUpdateStatus(selectedIds);
       toast({
         title: 'Thành công',
         description: `Đã cập nhật trạng thái ${selectedIds.length} câu hỏi`,
@@ -177,7 +177,7 @@ export default function AdminQuestionsPage() {
       });
       setSelectedIds([]);
       loadQuestions();
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể cập nhật trạng thái',
@@ -318,15 +318,15 @@ export default function AdminQuestionsPage() {
               </div>
 
               {/* Type filter */}
-              <Select 
-                value={filters.type || ''} 
-                onValueChange={(value) => handleFilterChange({ type: value as QuestionType || undefined })}
+              <Select
+                value={filters.type || 'all'}
+                onValueChange={(value) => handleFilterChange({ type: value === 'all' ? undefined : value as QuestionType })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Loại câu hỏi" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả loại</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   <SelectItem value={QuestionType.MC}>Trắc nghiệm</SelectItem>
                   <SelectItem value={QuestionType.TF}>Đúng/Sai</SelectItem>
                   <SelectItem value={QuestionType.SA}>Tự luận ngắn</SelectItem>
@@ -336,15 +336,15 @@ export default function AdminQuestionsPage() {
               </Select>
 
               {/* Status filter */}
-              <Select 
-                value={filters.status || ''} 
-                onValueChange={(value) => handleFilterChange({ status: value as QuestionStatus || undefined })}
+              <Select
+                value={filters.status || 'all'}
+                onValueChange={(value) => handleFilterChange({ status: value === 'all' ? undefined : value as QuestionStatus })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   <SelectItem value={QuestionStatus.ACTIVE}>Hoạt động</SelectItem>
                   <SelectItem value={QuestionStatus.PENDING}>Chờ duyệt</SelectItem>
                   <SelectItem value={QuestionStatus.INACTIVE}>Không hoạt động</SelectItem>
@@ -353,15 +353,15 @@ export default function AdminQuestionsPage() {
               </Select>
 
               {/* Difficulty filter */}
-              <Select 
-                value={filters.difficulty || ''} 
-                onValueChange={(value) => handleFilterChange({ difficulty: value as QuestionDifficulty || undefined })}
+              <Select
+                value={filters.difficulty || 'all'}
+                onValueChange={(value) => handleFilterChange({ difficulty: value === 'all' ? undefined : value as QuestionDifficulty })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Độ khó" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả độ khó</SelectItem>
+                  <SelectItem value="all">Tất cả độ khó</SelectItem>
                   <SelectItem value={QuestionDifficulty.EASY}>Dễ</SelectItem>
                   <SelectItem value={QuestionDifficulty.MEDIUM}>Trung bình</SelectItem>
                   <SelectItem value={QuestionDifficulty.HARD}>Khó</SelectItem>
@@ -383,14 +383,14 @@ export default function AdminQuestionsPage() {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => handleBulkUpdateStatus(QuestionStatus.ACTIVE)}
+                    onClick={() => handleBulkUpdateStatus()}
                   >
                     Kích hoạt
                   </Button>
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => handleBulkUpdateStatus(QuestionStatus.INACTIVE)}
+                    onClick={() => handleBulkUpdateStatus()}
                   >
                     Vô hiệu hóa
                   </Button>

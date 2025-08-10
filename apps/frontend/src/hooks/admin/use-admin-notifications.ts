@@ -391,8 +391,7 @@ export function useNotificationToast() {
   const showToast = useCallback((
     title: string,
     message: string,
-    type: NotificationType = 'info',
-    href?: string
+    type: NotificationType = 'info'
   ) => {
     addNotification({
       title,
@@ -406,13 +405,13 @@ export function useNotificationToast() {
 
   return {
     showToast,
-    showInfo: (title: string, message: string, href?: string) => 
-      showToast(title, message, 'info', href),
-    showSuccess: (title: string, message: string, href?: string) => 
-      showToast(title, message, 'success', href),
-    showWarning: (title: string, message: string, href?: string) => 
-      showToast(title, message, 'warning', href),
-    showError: (title: string, message: string, href?: string) => 
-      showToast(title, message, 'error', href)
+    showInfo: (title: string, message: string) =>
+      showToast(title, message, 'info'),
+    showSuccess: (title: string, message: string) =>
+      showToast(title, message, 'success'),
+    showWarning: (title: string, message: string) =>
+      showToast(title, message, 'warning'),
+    showError: (title: string, message: string) =>
+      showToast(title, message, 'error')
   };
 }

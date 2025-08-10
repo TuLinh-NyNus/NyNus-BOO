@@ -21,10 +21,7 @@ import {
   Lock,
   TrendingUp,
   Map,
-  FolderOpen,
-  Upload,
-  Database,
-  Bookmark
+  FolderOpen
 } from 'lucide-react';
 import { NavigationItem, NavigationSection } from '@/types/admin/sidebar';
 

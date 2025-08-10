@@ -137,7 +137,6 @@ function getDisplayText(dateRange: DateRange): string {
 export function DateRangePicker({
   value,
   onChange,
-  placeholder = "Chọn khoảng thời gian",
   className = "",
 }: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);

@@ -171,28 +171,28 @@ const Footer = () => {
             <h3 className="font-semibold text-lg text-foreground mb-5 transition-colors duration-300">Liên kết</h3>
             <ul className="space-y-4">
               <li>
-                <Link href="/gioi-thieu" className="text-muted-foreground hover:text-primary transition-colors">
-                  Giới thiệu
+                <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
+                  Về NyNus
                 </Link>
               </li>
               <li>
-                <Link href="/khoa-hoc" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/khoa-hoc" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
                   Khóa học
                 </Link>
               </li>
               <li>
-                <Link href="/de-thi" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/de-thi" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
                   Đề thi
                 </Link>
               </li>
               <li>
-                <Link href="/cau-hoi" className="text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/cau-hoi" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
                   Câu hỏi
                 </Link>
               </li>
               <li>
-                <Link href="/thao-luan" className="text-muted-foreground hover:text-primary transition-colors">
-                  Thảo luận
+                <Link href="/careers" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
+                  Tuyển dụng
                 </Link>
               </li>
             </ul>
@@ -220,6 +220,11 @@ const Footer = () => {
               <li>
                 <Link href="/bao-cao-loi" className="text-muted-foreground hover:text-primary transition-colors">
                   Báo cáo lỗi
+                </Link>
+              </li>
+              <li>
+                <Link href="/support" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
+                  Hỗ trợ kỹ thuật
                 </Link>
               </li>
             </ul>
@@ -267,14 +272,17 @@ const Footer = () => {
               © {currentYear} NyNus. Tất cả quyền được bảo lưu.
             </div>
             <div className="flex flex-wrap gap-6 text-sm">
-              <Link href="/dieu-khoan" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
                 Điều khoản sử dụng
               </Link>
-              <Link href="/chinh-sach-bao-mat" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
                 Chính sách bảo mật
               </Link>
-              <Link href="/cookie" className="text-muted-foreground hover:text-primary transition-colors">
-                Chính sách Cookie
+              <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
+                Liên hệ
+              </Link>
+              <Link href="/help" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
+                Trợ giúp
               </Link>
             </div>
           </div>

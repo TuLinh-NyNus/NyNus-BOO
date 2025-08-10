@@ -15,6 +15,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 from parser.bracket_parser import BracketParser
+from utils.text_cleaner import TextCleaner
 
 
 class ContentExtractor:
@@ -332,36 +333,24 @@ class ContentExtractor:
     @classmethod
     def normalize_whitespace(cls, content: str) -> str:
         """
-        Step 7: Normalize whitespace.
-        
+        Step 7: Normalize whitespace and remove line breaks for CSV export.
+
         Args:
             content: Content to normalize
-            
+
         Returns:
-            Content with normalized whitespace
+            Content with normalized whitespace and no line breaks
         """
-        # Remove leading/trailing whitespace
+        # Use TextCleaner to remove line breaks while preserving LaTeX math
+        content = TextCleaner.clean_line_breaks(content, preserve_paragraphs=False)
+
+        # Additional normalization
         content = content.strip()
-        
+
         # Replace multiple spaces with single space
         content = re.sub(r' +', ' ', content)
-        
-        # Remove empty lines but preserve paragraph breaks
-        lines = content.split('\\n')
-        cleaned_lines = []
-        
-        for line in lines:
-            line = line.strip()
-            if line:  # Keep non-empty lines
-                cleaned_lines.append(line)
-            elif cleaned_lines and cleaned_lines[-1]:  # Add single empty line for paragraph break
-                cleaned_lines.append('')
-        
-        # Remove trailing empty lines
-        while cleaned_lines and not cleaned_lines[-1]:
-            cleaned_lines.pop()
-        
-        return '\\n'.join(cleaned_lines)
+
+        return content
     
     @classmethod
     def extract_clean_content(cls, latex_content: str) -> Tuple[str, str]:

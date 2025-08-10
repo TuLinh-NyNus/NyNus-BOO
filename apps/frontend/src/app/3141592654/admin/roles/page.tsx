@@ -8,7 +8,6 @@
 import React from "react";
 
 import { RolePermissionsPanel } from "@/components/features/admin/role-management";
-import { UserRole } from "@/lib/mockdata/core-types";
 
 /**
  * Roles Management Page Component

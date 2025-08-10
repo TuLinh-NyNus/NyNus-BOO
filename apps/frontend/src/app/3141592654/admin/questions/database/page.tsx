@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -11,8 +11,7 @@ import {
   Download,
   Loader2,
   AlertTriangle,
-  BookOpen,
-  FileText
+  BookOpen
 } from 'lucide-react';
 
 import {
@@ -35,7 +34,7 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import { 
@@ -61,14 +60,14 @@ export default function QuestionsDatabasePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<QuestionFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize] = useState(20);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
 
   /**
    * Load questions data từ mock service
    */
-  const loadQuestions = async () => {
+  const loadQuestions = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await MockQuestionsService.listQuestions({
@@ -91,12 +90,12 @@ export default function QuestionsDatabasePage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, pageSize, filters, toast]);
 
   // Load questions khi component mount hoặc filters thay đổi
   useEffect(() => {
     loadQuestions();
-  }, [currentPage, pageSize, filters]);
+  }, [loadQuestions]);
 
   /**
    * Handle filter changes
@@ -121,7 +120,7 @@ export default function QuestionsDatabasePage() {
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể tải chi tiết câu hỏi',
@@ -235,15 +234,15 @@ export default function QuestionsDatabasePage() {
                 {/* Type filter */}
                 <div>
                   <label className="text-sm font-medium mb-2 block">Loại câu hỏi</label>
-                  <Select 
-                    value={filters.type || ''} 
-                    onValueChange={(value) => handleFilterChange({ type: value as QuestionType || undefined })}
+                  <Select
+                    value={filters.type || 'all'}
+                    onValueChange={(value) => handleFilterChange({ type: value === 'all' ? undefined : value as QuestionType })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả loại" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tất cả loại</SelectItem>
+                      <SelectItem value="all">Tất cả loại</SelectItem>
                       <SelectItem value={QuestionType.MC}>Trắc nghiệm</SelectItem>
                       <SelectItem value={QuestionType.TF}>Đúng/Sai</SelectItem>
                       <SelectItem value={QuestionType.SA}>Tự luận ngắn</SelectItem>
@@ -256,15 +255,15 @@ export default function QuestionsDatabasePage() {
                 {/* Difficulty filter */}
                 <div>
                   <label className="text-sm font-medium mb-2 block">Độ khó</label>
-                  <Select 
-                    value={filters.difficulty || ''} 
-                    onValueChange={(value) => handleFilterChange({ difficulty: value as QuestionDifficulty || undefined })}
+                  <Select
+                    value={filters.difficulty || 'all'}
+                    onValueChange={(value) => handleFilterChange({ difficulty: value === 'all' ? undefined : value as QuestionDifficulty })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả độ khó" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Tất cả độ khó</SelectItem>
+                      <SelectItem value="all">Tất cả độ khó</SelectItem>
                       <SelectItem value={QuestionDifficulty.EASY}>Dễ</SelectItem>
                       <SelectItem value={QuestionDifficulty.MEDIUM}>Trung bình</SelectItem>
                       <SelectItem value={QuestionDifficulty.HARD}>Khó</SelectItem>
@@ -287,7 +286,7 @@ export default function QuestionsDatabasePage() {
                   <label className="text-sm font-medium mb-2 block">Sắp xếp theo</label>
                   <Select 
                     value={filters.sortBy || 'createdAt'} 
-                    onValueChange={(value) => handleFilterChange({ sortBy: value as any })}
+                    onValueChange={(value) => handleFilterChange({ sortBy: value as 'createdAt' | 'updatedAt' | 'usageCount' })}
                   >
                     <SelectTrigger>
                       <SelectValue />

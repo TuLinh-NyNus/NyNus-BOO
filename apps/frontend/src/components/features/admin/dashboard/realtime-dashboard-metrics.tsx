@@ -115,32 +115,69 @@ function MetricCard({
   const trend = getTrendIndicator(value, previousValue);
   
   const colorClasses = {
-    blue: 'text-blue-600 bg-blue-100/80 dark:bg-blue-500/20 dark:text-blue-400',
-    green: 'text-green-600 bg-green-100/80 dark:bg-green-500/20 dark:text-green-400',
-    yellow: 'text-yellow-600 bg-yellow-100/80 dark:bg-yellow-500/20 dark:text-yellow-400',
-    red: 'text-red-600 bg-red-100/80 dark:bg-red-500/20 dark:text-red-400',
-    purple: 'text-purple-600 bg-purple-100/80 dark:bg-purple-500/20 dark:text-purple-400'
+    blue: {
+      bg: 'bg-gradient-to-br from-blue-400/15 via-blue-500/10 to-blue-600/15 dark:from-blue-400/25 dark:via-blue-500/15 dark:to-blue-600/25',
+      border: 'border-blue-400/30 dark:border-blue-400/40',
+      iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/25',
+      iconColor: 'text-white',
+      valueGradient: 'bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent'
+    },
+    green: {
+      bg: 'bg-gradient-to-br from-emerald-400/15 via-emerald-500/10 to-emerald-600/15 dark:from-emerald-400/25 dark:via-emerald-500/15 dark:to-emerald-600/25',
+      border: 'border-emerald-400/30 dark:border-emerald-400/40',
+      iconBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/25',
+      iconColor: 'text-white',
+      valueGradient: 'bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent'
+    },
+    yellow: {
+      bg: 'bg-gradient-to-br from-yellow-400/15 via-orange-500/10 to-orange-600/15 dark:from-yellow-400/25 dark:via-orange-500/15 dark:to-orange-600/25',
+      border: 'border-orange-400/30 dark:border-orange-400/40',
+      iconBg: 'bg-gradient-to-br from-yellow-400 to-orange-600 shadow-lg shadow-orange-500/25',
+      iconColor: 'text-white',
+      valueGradient: 'bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent'
+    },
+    red: {
+      bg: 'bg-gradient-to-br from-rose-400/15 via-red-500/10 to-red-600/15 dark:from-rose-400/25 dark:via-red-500/15 dark:to-red-600/25',
+      border: 'border-rose-400/30 dark:border-rose-400/40',
+      iconBg: 'bg-gradient-to-br from-rose-400 to-red-600 shadow-lg shadow-red-500/25',
+      iconColor: 'text-white',
+      valueGradient: 'bg-gradient-to-r from-rose-400 to-red-600 bg-clip-text text-transparent'
+    },
+    purple: {
+      bg: 'bg-gradient-to-br from-purple-400/15 via-purple-500/10 to-purple-600/15 dark:from-purple-400/25 dark:via-purple-500/15 dark:to-purple-600/25',
+      border: 'border-purple-400/30 dark:border-purple-400/40',
+      iconBg: 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/25',
+      iconColor: 'text-white',
+      valueGradient: 'bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent'
+    }
   };
 
+  const scheme = colorClasses[color];
+
   return (
-    <Card className="bg-white/80 dark:bg-slate-800/50 border border-slate-200/50 dark:border-slate-700 transition-colors duration-300">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors duration-300">
+    <Card className={`relative overflow-hidden border transition-all duration-300 hover:scale-105 hover:shadow-lg backdrop-blur-sm ${scheme.bg} ${scheme.border}`}>
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-white/10 dark:to-transparent pointer-events-none" />
+
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+        <CardTitle className="text-sm font-medium text-white dark:text-white drop-shadow-sm">
           {title}
         </CardTitle>
-        <div className={`h-8 w-8 rounded-full flex items-center justify-center ${colorClasses[color]} transition-colors duration-300`}>
-          {icon}
+        <div className={`h-8 w-8 rounded-lg flex items-center justify-center transition-all duration-300 ${scheme.iconBg}`}>
+          <div className={scheme.iconColor}>
+            {icon}
+          </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
+      <CardContent className="relative z-10">
+        <div className={`text-2xl font-bold mb-1 ${scheme.valueGradient} drop-shadow-sm`}>
           {formatValue(value, format)}
         </div>
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-slate-600 dark:text-slate-400 transition-colors duration-300">
+          <p className="text-xs text-gray-200 dark:text-gray-200 drop-shadow-sm">
             {description}
           </p>
-          <Badge variant="outline" className={`flex items-center gap-1 ${trend.color}`}>
+          <Badge variant="outline" className={`flex items-center gap-1 ${trend.color} backdrop-blur-sm border-white/30 text-white`}>
             {trend.icon}
             <span className="text-xs">{trend.text}</span>
           </Badge>
@@ -217,10 +254,10 @@ export function RealtimeDashboardMetrics({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-800 dark:text-white transition-colors duration-300">
+        <h3 className="text-lg font-semibold text-white dark:text-white transition-colors duration-300 drop-shadow-sm">
           Thống kê thời gian thực
         </h3>
-        <Badge variant="outline" className="text-green-600 border-green-600">
+        <Badge variant="outline" className="text-emerald-300 border-emerald-300 bg-emerald-500/10 backdrop-blur-sm">
           <Activity className="h-3 w-3 mr-1" />
           Live
         </Badge>

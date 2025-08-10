@@ -1,0 +1,79 @@
+LaTeX Question Parser - HUONG DAN NHANH
+=====================================================
+
+CACH SU DUNG DE KHOI DONG STREAMLIT:
+
+CACH 1: DOUBLE-CLICK (DE NHAT)
+   > Double-click vao file: "khoi-dong-latex-parser.bat"
+   > Ung dung se tu dong khoi dong va mo browser
+
+CACH 2: FILE BATCH DAY DU  
+   > Double-click vao file: "start-streamlit.bat"
+   > Co them thong tin chi tiet va error handling
+
+CACH 3: POWERSHELL (CHO WINDOWS)
+   > Right-click vao file: "launch-parser.ps1"
+   > Chon "Run with PowerShell"
+
+CACH 4: TAO DESKTOP SHORTCUT
+   > Double-click vao file: "create-desktop-shortcut.vbs"
+   > Shortcut se xuat hien tren Desktop
+
+=====================================================
+
+YEU CAU HE THONG:
+   [OK] Python 3.7+ (da co: Python 3.12.5)
+   [OK] Internet connection (lan dau cai dat)
+   [OK] 100MB+ free disk space
+
+=====================================================
+
+SAU KHI KHOI DONG:
+   > Browser se tu dong mo: http://localhost:8501
+   > Neu khong tu dong mo, copy link tren vao browser
+   > De dung: Nhan Ctrl+C trong cua so command
+
+=====================================================
+
+UPLOAD FILE LATEX:
+   1. Mo ung dung Streamlit (http://localhost:8501)
+   2. Click "Browse files" hoac keo tha file .tex
+   3. Chon file LaTeX can parse
+   4. Click "Process" de bat dau
+   5. Download file CSV ket qua
+
+=====================================================
+
+NEU GAP LOI:
+   [X] "Python not found"
+      > Cai Python tu: https://python.org
+      > Nho check "Add Python to PATH"
+
+   [X] "Permission denied"  
+      > Right-click file -> "Run as administrator"
+
+   [X] "Port 8501 in use"
+      > Scripts se tu dong fix
+      > Hoac restart may tinh
+
+   [X] Browser khong mo
+      > Mo manual: http://localhost:8501
+
+=====================================================
+
+SUPPORT:
+   Doc file: "LAUNCHER-README.md" de biet chi tiet
+   Check console messages de debug
+   Thu restart va chay lai
+
+=====================================================
+
+TIPS:
+   Lan dau chay se lau hon (cai dat dependencies)
+   Lan sau se nhanh hon
+   Co the chay nhieu file cung luc
+   Streamlit se auto-reload khi co thay doi
+
+=====================================================
+
+ENJOY PARSING LATEX QUESTIONS!

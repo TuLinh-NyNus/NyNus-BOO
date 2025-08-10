@@ -163,14 +163,23 @@ export function SearchBar({
 
   /**
    * Get search bar classes
-   * Lấy CSS classes cho search bar
+   * Lấy CSS classes cho search bar với enhanced styling
    */
   const getSearchBarClasses = () => {
     const baseClasses = [
       'relative flex items-center',
-      'bg-gray-50 border border-gray-200 rounded-lg',
-      'transition-all duration-150 ease-in-out',
-      'hover:bg-gray-100 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500'
+      // Enhanced gradient background
+      'bg-gradient-to-r from-white/80 to-white/60 dark:from-gray-800/80 dark:to-gray-700/60',
+      'border border-indigo-200/50 dark:border-indigo-500/30',
+      'rounded-lg backdrop-blur-sm',
+      'transition-all duration-300 ease-in-out',
+      // Enhanced hover and focus states
+      'hover:from-white/90 hover:to-white/80 dark:hover:from-gray-800/90 dark:hover:to-gray-700/80',
+      'hover:border-indigo-300/70 dark:hover:border-indigo-400/50',
+      'focus-within:from-white dark:focus-within:from-gray-800',
+      'focus-within:border-indigo-500 dark:focus-within:border-indigo-400',
+      'focus-within:ring-2 focus-within:ring-indigo-500/20 dark:focus-within:ring-indigo-400/20',
+      'focus-within:shadow-lg focus-within:shadow-indigo-500/10 dark:focus-within:shadow-indigo-400/10'
     ];
 
     const variantClasses = {
@@ -184,12 +193,12 @@ export function SearchBar({
 
   /**
    * Render search icon
-   * Render search icon
+   * Render search icon với enhanced styling
    */
   const renderSearchIcon = () => {
     return (
       <div className="flex items-center justify-center w-10 h-full">
-        <Search className="w-4 h-4 text-gray-400" />
+        <Search className="w-4 h-4 text-indigo-500 dark:text-indigo-400 transition-colors duration-200" />
       </div>
     );
   };

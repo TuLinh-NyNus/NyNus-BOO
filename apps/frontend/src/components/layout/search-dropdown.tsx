@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, BookOpen, FileQuestion, GraduationCap, Library } from "lucide-react";
+import { Search, FileQuestion, GraduationCap, Library } from "lucide-react";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 
@@ -84,11 +84,15 @@ export function SearchDropdown({ isOpen, onClose }: SearchDropdownProps) {
           style={{
             background: 'linear-gradient(135deg, rgba(88, 28, 135, 0.66) 0%, rgba(124, 58, 237, 0.66) 100%)',
           }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="search-title"
         >
           {/* Search Input - Thu nhỏ padding */}
           <div className="p-4 border-b border-white/10">
+            <h3 id="search-title" className="sr-only">Tìm kiếm</h3>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/60" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-white/60" aria-hidden="true" />
               <input
                 ref={inputRef}
                 type="text"
@@ -96,6 +100,7 @@ export function SearchDropdown({ isOpen, onClose }: SearchDropdownProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-white/10 border border-white/20 rounded-full text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent transition-all text-sm"
+                aria-label="Tìm kiếm nội dung"
               />
             </div>
           </div>

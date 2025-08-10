@@ -31,13 +31,12 @@ import {
   TableRow,
   Progress
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import {
   Question,
   QuestionType,
-  QuestionDifficulty,
   QuestionStatus
 } from '@/lib/types/question';
 import { MockQuestionsService } from '@/lib/services/mock/questions';

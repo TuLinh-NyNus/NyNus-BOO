@@ -48,7 +48,6 @@ interface MapCodeVersionListProps {
  */
 export function MapCodeVersionList({
   versions,
-  activeVersion,
   onActivate,
   onEdit,
   onDelete,

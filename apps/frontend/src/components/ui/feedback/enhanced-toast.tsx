@@ -2,10 +2,10 @@
  * Enhanced Toast System với retry actions và better UX
  */
 
-import { CheckCircle2, AlertCircle, AlertTriangle, Info, X, RotateCcw } from 'lucide-react'
+import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui'
-import { toast as baseToast, ToasterToast } from '@/hooks/use-toast'
+import { toast as baseToast, type ToasterToast } from '@/components/ui/feedback/use-toast'
 
 export interface EnhancedToastOptions {
   title: string
@@ -32,20 +32,20 @@ export function enhancedToast({
   dismissible = true,
   persistent = false,
 }: EnhancedToastOptions): { id: string; dismiss: () => void; update: (props: ToasterToast) => void } {
-  const getIcon = () => {
-    switch (variant) {
-      case 'success':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      case 'info':
-        return <Info className="h-4 w-4 text-blue-600" />
-      default:
-        return null
-    }
-  }
+  // const getIcon = () => {
+  //   switch (variant) {
+  //     case 'success':
+  //       return <CheckCircle2 className="h-4 w-4 text-green-600" />
+  //     case 'error':
+  //       return <AlertCircle className="h-4 w-4 text-red-600" />
+  //     case 'warning':
+  //       return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+  //     case 'info':
+  //       return <Info className="h-4 w-4 text-blue-600" />
+  //     default:
+  //       return null
+  //   }
+  // }
 
   const getVariant = () => {
     switch (variant) {

@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 /**
  * Interface cho virtual table item

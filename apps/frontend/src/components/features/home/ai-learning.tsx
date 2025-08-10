@@ -176,7 +176,7 @@ const AILearning = () => {
       </div>
 
       {/* Wave decoration at bottom */}
-      <div className="absolute bottom-0 left-0 w-full h-24 bg-[url('/images/wave-light-bottom.svg')] dark:bg-[url('/images/wave-dark-bottom.svg')] bg-cover bg-bottom bg-no-repeat transition-colors duration-300"></div>
+      <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-r from-primary/10 via-secondary/15 to-accent/10 bg-cover bg-bottom bg-no-repeat transition-colors duration-300"></div>
 
       {/* Scroll indicator */}
       <ScrollIndicator targetSectionId="featured-courses-section" />

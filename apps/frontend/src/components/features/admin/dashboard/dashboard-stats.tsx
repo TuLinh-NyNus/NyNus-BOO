@@ -16,7 +16,7 @@ import { mockAnalytics } from '@/lib/mockdata/analytics';
  */
 function StatCardSkeleton() {
   return (
-    <Card>
+    <Card className="theme-bg theme-border">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <Skeleton className="h-4 w-[100px]" />
         <Skeleton className="h-4 w-4" />
@@ -92,13 +92,16 @@ export function DashboardStats() {
     <div className="space-y-6">
       {/* Thống kê người dùng tổng quan */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Thống kê người dùng</h3>
+        <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-blue-400 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+          👥 Thống kê người dùng
+        </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Tổng người dùng"
             value={overview.totalUsers}
             description="Tất cả tài khoản trong hệ thống"
-            icon={<Users className="h-4 w-4 text-muted-foreground" />}
+            icon={<Users className="h-4 w-4" />}
+            colorScheme="blue"
             trend={{
               value: overview.newUsersToday,
               label: "hôm nay",
@@ -109,38 +112,45 @@ export function DashboardStats() {
             title="Đang hoạt động"
             value={overview.activeUsers}
             description="Người dùng đang online"
-            icon={<UserCheck className="h-4 w-4 text-green-600" />}
+            icon={<UserCheck className="h-4 w-4" />}
+            colorScheme="emerald"
           />
           <StatCard
             title="Đăng ký mới"
             value={overview.newUsersToday}
             description="Tài khoản mới hôm nay"
-            icon={<Users className="h-4 w-4 text-blue-600" />}
+            icon={<Users className="h-4 w-4" />}
+            colorScheme="cyan"
           />
           <StatCard
             title="Phiên học"
             value={overview.totalSessions}
             description="Tổng số phiên học"
-            icon={<GraduationCap className="h-4 w-4 text-purple-600" />}
+            icon={<GraduationCap className="h-4 w-4" />}
+            colorScheme="purple"
           />
         </div>
       </div>
 
       {/* Thống kê nội dung hệ thống */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Thống kê nội dung</h3>
+        <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-pink-400 to-orange-600 dark:from-pink-400 dark:to-orange-400 bg-clip-text text-transparent">
+          📚 Thống kê nội dung
+        </h3>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
             title="Khóa học"
             value={overview.totalCourses}
             description="Tổng số khóa học"
-            icon={<BookOpen className="h-4 w-4 text-blue-600" />}
+            icon={<BookOpen className="h-4 w-4" />}
+            colorScheme="indigo"
           />
           <StatCard
             title="Câu hỏi"
             value={overview.totalQuestions}
             description="Ngân hàng câu hỏi"
-            icon={<HelpCircle className="h-4 w-4 text-purple-600" />}
+            icon={<HelpCircle className="h-4 w-4" />}
+            colorScheme="pink"
             trend={{
               value: overview.questionsAddedToday,
               label: "hôm nay",
@@ -151,13 +161,15 @@ export function DashboardStats() {
             title="Hoàn thành"
             value={overview.coursesCompletedToday}
             description="Khóa học hoàn thành hôm nay"
-            icon={<GraduationCap className="h-4 w-4 text-green-600" />}
+            icon={<GraduationCap className="h-4 w-4" />}
+            colorScheme="emerald"
           />
           <StatCard
             title="Tổng phiên"
             value={overview.totalSessions}
             description="Phiên học tổng cộng"
-            icon={<Users className="h-4 w-4 text-orange-600" />}
+            icon={<Users className="h-4 w-4" />}
+            colorScheme="orange"
           />
         </div>
       </div>

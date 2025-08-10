@@ -19,6 +19,7 @@ sys.path.insert(0, parent_dir)
 from models.question import Question
 from models.question_code import QuestionCode
 from models.question_tag import QuestionTag
+from utils.text_cleaner import TextCleaner
 
 
 class CSVExporter:
@@ -110,6 +111,9 @@ class CSVExporter:
             for question in questions:
                 row_data = question.to_csv_dict()
 
+                # Validate CSV content for line breaks
+                self._validate_row_data(row_data, question.id)
+
                 # Add question code data if available
                 if question.questionCodeId and question.questionCodeId in codes_lookup:
                     code = codes_lookup[question.questionCodeId]
@@ -165,6 +169,8 @@ class CSVExporter:
             
             for question in questions:
                 row_data = question.to_csv_dict()
+                # Validate CSV content for line breaks
+                self._validate_row_data(row_data, question.id)
                 writer.writerow(row_data)
         
         return file_path
@@ -294,6 +300,9 @@ class CSVExporter:
 
             for question in questions:
                 row_data = question.to_csv_dict()
+
+                # Validate CSV content for line breaks
+                self._validate_row_data(row_data, question.id)
 
                 # Add question code data if available
                 if question.questionCodeId and question.questionCodeId in codes_lookup:
@@ -544,3 +553,25 @@ class CSVExporter:
                 }
         
         return info
+
+    def _validate_row_data(self, row_data: Dict[str, Any], question_id: int = None) -> None:
+        """
+        Validate row data for CSV export to ensure no line breaks.
+
+        Args:
+            row_data: Dictionary of row data
+            question_id: Question ID for logging purposes
+        """
+        text_fields = ['rawContent', 'content', 'source', 'answers', 'solution', 'generatedTags']
+
+        for field_name in text_fields:
+            if field_name in row_data and row_data[field_name]:
+                field_value = str(row_data[field_name])
+                is_valid, issues = TextCleaner.validate_csv_content(field_value)
+
+                if not is_valid:
+                    print(f"Warning: Question {question_id} field '{field_name}' has issues: {', '.join(issues)}")
+                    # Auto-clean the field if it has line breaks
+                    if "Contains line breaks" in issues:
+                        row_data[field_name] = TextCleaner.clean_csv_field(field_value)
+                        print(f"  -> Auto-cleaned field '{field_name}' for question {question_id}")

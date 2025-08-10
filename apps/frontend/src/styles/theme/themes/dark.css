@@ -1,46 +1,46 @@
 /*
- * NyNus Dark Theme - DesignCode Inspired - ONLY COLORS
- * Semantic color mappings for dark mode using DesignCode.io color scheme
- * Background: #1F1F47 (RGB 31, 31, 71)
+ * NyNus Dark Theme - IMPROVED VERSION - ONLY COLORS
+ * Better contrast and eye comfort for admin panel
+ * Background: #0F172A (Slate 900) - Softer than navy
  */
 
 .dark {
-  /* Base Semantic Colors - Dark Theme */
-  --color-background: var(--designcode-navy);
-  --color-foreground: var(--designcode-white);
+  /* Base Semantic Colors - IMPROVED Dark Theme */
+  --color-background: var(--improved-dark-bg);
+  --color-foreground: var(--improved-dark-text);
 
-  /* Card Colors */
-  --color-card: var(--designcode-navy-light);
-  --color-card-foreground: var(--designcode-white);
+  /* Card Colors - Better contrast */
+  --color-card: var(--improved-dark-surface);
+  --color-card-foreground: var(--improved-dark-text);
 
   /* Popover Colors */
-  --color-popover: var(--designcode-navy-light);
-  --color-popover-foreground: var(--designcode-white);
+  --color-popover: var(--improved-dark-surface);
+  --color-popover-foreground: var(--improved-dark-text);
 
-  /* Primary Colors */
-  --color-primary: var(--designcode-accent);
+  /* Primary Colors - Better blue accent */
+  --color-primary: var(--improved-dark-accent);
   --color-primary-foreground: var(--designcode-white);
 
-  /* Secondary Colors */
-  --color-secondary: var(--designcode-navy-lighter);
-  --color-secondary-foreground: var(--designcode-white);
+  /* Secondary Colors - Subtle surface */
+  --color-secondary: var(--improved-dark-surface-hover);
+  --color-secondary-foreground: var(--improved-dark-text);
 
-  /* Muted Colors */
-  --color-muted: var(--designcode-slate);
-  --color-muted-foreground: var(--designcode-gray);
+  /* Muted Colors - Better readability */
+  --color-muted: var(--improved-dark-surface);
+  --color-muted-foreground: var(--improved-dark-text-muted);
 
-  /* Accent Colors */
-  --color-accent: var(--designcode-navy-lighter);
-  --color-accent-foreground: var(--designcode-white);
+  /* Accent Colors - Hover states */
+  --color-accent: var(--improved-dark-surface-hover);
+  --color-accent-foreground: var(--improved-dark-text);
 
   /* Destructive Colors */
   --color-destructive: var(--color-error);
   --color-destructive-foreground: var(--designcode-white);
 
-  /* Border & Input Colors */
-  --color-border: var(--designcode-slate);
-  --color-input: var(--designcode-navy-lighter);
-  --color-ring: var(--designcode-accent);
+  /* Border & Input Colors - Better visibility */
+  --color-border: var(--improved-dark-border);
+  --color-input: var(--improved-dark-surface);
+  --color-ring: var(--improved-dark-accent);
 
   /* Success, Warning, Error, Info - Dark Theme */
   --color-success: var(--color-success);

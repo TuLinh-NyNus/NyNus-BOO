@@ -23,10 +23,7 @@ import { toast } from "@/hooks/use-toast";
 // Import mockdata functions
 import {
   getRoleHierarchy,
-  validateRolePromotion,
   type RoleHierarchyNode,
-  type RoleRelationship,
-  type PromotionPath,
   type RoleHierarchyResponse,
 } from "@/lib/mockdata/role-management";
 

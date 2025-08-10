@@ -6,11 +6,10 @@ import {
   Toast,
   ToastClose,
   ToastDescription,
-  ToastProvider,
   ToastTitle,
   ToastContainer,
 } from "@/components/ui/feedback/toast";
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 
 export function Toaster() {
   const { toasts, dismiss } = useToast();

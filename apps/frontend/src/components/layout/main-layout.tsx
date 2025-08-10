@@ -7,7 +7,7 @@ import { Suspense } from 'react';
 import Footer from '@/components/layout/footer';
 import Navbar from '@/components/layout/navbar';
 import FloatingCTA from '@/components/layout/floating-cta';
-import ScrollToTop from '@/components/ui/scroll-to-top';
+import ScrollToTop from '@/components/ui/navigation/scroll-to-top';
 
 interface MainLayoutProps {
   children: React.ReactNode;

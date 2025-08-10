@@ -70,8 +70,8 @@ export function ProgressTracker({
   const overallProgress = totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
 
   // Get current step
-  const currentStep = currentStepId ? steps.find(step => step.id === currentStepId) : null;
-  const currentStepIndex = currentStep ? steps.indexOf(currentStep) : -1;
+  // const currentStep = currentStepId ? steps.find(step => step.id === currentStepId) : null;
+  // const currentStepIndex = currentStep ? steps.indexOf(currentStep) : -1;
 
   // Calculate estimated time remaining
   const completedDuration = steps
@@ -138,7 +138,7 @@ export function ProgressTracker({
       {/* Step Details */}
       {showStepDetails && (
         <CardContent className="space-y-3">
-          {steps.map((step, index) => {
+          {steps.map((step) => {
             const isActive = step.id === currentStepId;
             const isClickable = onStepClick && (step.status === 'completed' || step.status === 'error');
 
@@ -249,7 +249,7 @@ export function CompactProgressTracker({
     <div className={cn('flex items-center gap-2', className)}>
       {/* Step Indicators */}
       <div className="flex items-center gap-1">
-        {steps.map((step, index) => (
+        {steps.map((step) => (
           <div
             key={step.id}
             className={cn(

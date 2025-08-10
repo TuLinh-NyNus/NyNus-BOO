@@ -26,7 +26,7 @@ import {
   Alert,
   AlertDescription
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import {
@@ -66,7 +66,7 @@ export default function CreateQuestionPage() {
   /**
    * Handle form field changes
    */
-  const handleFieldChange = (field: keyof QuestionDraft, value: any) => {
+  const handleFieldChange = (field: keyof QuestionDraft, value: unknown) => {
     setQuestionDraft(prev => ({
       ...prev,
       [field]: value
@@ -81,7 +81,7 @@ export default function CreateQuestionPage() {
   /**
    * Handle answer options changes cho multiple choice
    */
-  const handleAnswerChange = (index: number, field: keyof AnswerOption, value: any) => {
+  const handleAnswerChange = (index: number, field: keyof AnswerOption, value: unknown) => {
     const newAnswers = [...(questionDraft.answers as AnswerOption[] || [])];
     if (newAnswers[index]) {
       newAnswers[index] = { ...newAnswers[index], [field]: value };
@@ -214,7 +214,7 @@ export default function CreateQuestionPage() {
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Lỗi',
         description: 'Không thể phân tích LaTeX',
@@ -476,7 +476,7 @@ export default function CreateQuestionPage() {
 
                     {(questionDraft.answers as AnswerOption[] || []).length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        <p>Chưa có đáp án nào. Nhấn "Thêm đáp án" để bắt đầu.</p>
+                        <p>Chưa có đáp án nào. Nhấn &quot;Thêm đáp án&quot; để bắt đầu.</p>
                       </div>
                     )}
                   </div>

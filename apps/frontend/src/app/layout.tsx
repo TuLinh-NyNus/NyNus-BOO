@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body
-        className={`${inter.variable} font-sans antialiased nynus-gradient-bg`}
+        className={`${inter.variable} font-sans antialiased nynus-gradient-bg text-foreground`}
         suppressHydrationWarning={true}
       >
         <AppProviders>

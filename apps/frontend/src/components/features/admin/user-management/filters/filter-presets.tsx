@@ -222,7 +222,7 @@ export function FilterPresets({
   };
 
   const activePreset = getActivePreset();
-  const allPresets = [...DEFAULT_PRESETS, ...customPresets];
+  // const allPresets = [...DEFAULT_PRESETS, ...customPresets];
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>

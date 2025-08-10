@@ -239,7 +239,7 @@ export default function AnalyticsPage() {
       {/* Các metric tổng quan */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {overviewMetrics.map((metric) => (
-          <Card key={metric.id} className="p-6 bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-colors duration-300 hover:scale-105">
+          <Card key={metric.id} className="p-6 theme-bg theme-border border transition-colors duration-300 hover:scale-105">
             <div className="flex justify-between items-start">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -323,7 +323,7 @@ export default function AnalyticsPage() {
           </div>
         </Card>
 
-        <Card className="md:col-span-6 p-6 bg-white/80 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 transition-colors duration-300">
+        <Card className="md:col-span-6 p-6 theme-bg theme-border border transition-colors duration-300">
           <h2 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2 mb-6 transition-colors duration-300">
             <BarChart className="h-5 w-5" />
             Hoạt động diễn đàn

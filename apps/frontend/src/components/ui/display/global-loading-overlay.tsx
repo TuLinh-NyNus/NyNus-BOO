@@ -11,7 +11,7 @@ import React from 'react';
 
 import { Button, Progress } from '@/components/ui';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
-import { useLoadingStore, LoadingState } from '@/lib/ui/loading-state-manager';
+import { useLoadingStore } from '@/lib/ui/loading-state-manager';
 import { cn } from '@/lib/utils';
 
 interface GlobalLoadingOverlayProps {

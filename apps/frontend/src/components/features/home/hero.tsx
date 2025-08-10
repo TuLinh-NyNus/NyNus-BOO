@@ -2,13 +2,14 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import {
-  Play, ArrowRight, ChevronDown, FileText, User, HelpCircle, BookOpen, Search,
-  LayoutDashboard, PlayCircle, Settings, Award, Clock, CheckCircle, Monitor,
-  Palette, Grid3X3, Layers, Moon, Home, MessageCircle, Send, MoreHorizontal,
-  CreditCard, Mouse
+  Play, FileText, BookOpen, Search,
+  LayoutDashboard, PlayCircle, Settings, CheckCircle, Monitor,
+  Grid3X3, Layers, Moon, Home, MessageCircle, Send, MoreHorizontal,
+  CreditCard
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAnalytics } from "@/lib/analytics";
 
 // Import mockdata
 import { heroData } from "@/lib/mockdata";
@@ -16,40 +17,54 @@ import ScrollIndicator from "@/components/ui/scroll-indicator";
 
 const Hero = () => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const shouldReduceMotion = useReducedMotion();
+  const analytics = useAnalytics();
 
-  // Data cho complex SwiftUI interface
-  const sidebarItems = [
-    { icon: LayoutDashboard, label: 'Dashboard' },
-    { icon: BookOpen, label: 'Courses' },
-    { icon: PlayCircle, label: 'Tutorials' },
-    { icon: FileText, label: 'Resources' },
-    { icon: Settings, label: 'Settings' }
-  ];
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
 
-  const courses = {
-    red: {
-      id: 1,
-      title: "Khóa học Thiết kế",
-      duration: "6:08",
-      color: "red",
-      lessons: [
-        { id: 1, title: "Thiết kế cơ bản", duration: "6:08", active: true, progress: 100 },
-        { id: 2, title: "Nguyên tắc thiết kế", duration: "9:02", active: false, progress: 0 },
-        { id: 3, title: "Màu sắc và gradient", duration: "9:31", active: false, progress: 0 }
-      ]
-    },
-    purple: {
-      id: 3,
-      title: "Khóa học Lập trình",
-      color: "purple",
-      lessons: [
-        { id: 1, title: "Lập trình cơ bản", duration: "10:08", progress: 80 },
-        { id: 2, title: "Layout và Grid", duration: "8:02", progress: 60 },
-        { id: 3, title: "Màu sắc nâng cao", duration: "11:12", progress: 40 }
-      ]
-    }
-  };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Data cho complex SwiftUI interface - commented out unused data
+  // const sidebarItems = [
+  //   { icon: LayoutDashboard, label: 'Dashboard' },
+  //   { icon: BookOpen, label: 'Courses' },
+  //   { icon: PlayCircle, label: 'Tutorials' },
+  //   { icon: FileText, label: 'Resources' },
+  //   { icon: Settings, label: 'Settings' }
+  // ];
+
+  // const courses = {
+  //   red: {
+  //     id: 1,
+  //     title: "Khóa học Thiết kế",
+  //     duration: "6:08",
+  //     color: "red",
+  //     lessons: [
+  //       { id: 1, title: "Thiết kế cơ bản", duration: "6:08", active: true, progress: 100 },
+  //       { id: 2, title: "Nguyên tắc thiết kế", duration: "9:02", active: false, progress: 0 },
+  //       { id: 3, title: "Màu sắc và gradient", duration: "9:31", active: false, progress: 0 }
+  //     ]
+  //   },
+  //   purple: {
+  //     id: 3,
+  //     title: "Khóa học Lập trình",
+  //     color: "purple",
+  //     lessons: [
+  //       { id: 1, title: "Lập trình cơ bản", duration: "10:08", progress: 80 },
+  //       { id: 2, title: "Layout và Grid", duration: "8:02", progress: 60 },
+  //       { id: 3, title: "Màu sắc nâng cao", duration: "11:12", progress: 40 }
+  //     ]
+  //   }
+  // };
 
   const userInfo = {
     name: "CÔNG THÀNH",
@@ -57,12 +72,12 @@ const Hero = () => {
     certificateProgress: 75
   };
 
-  const scrollToNextSection = () => {
-    const featuresSection = document.getElementById('features-section');
-    if (featuresSection) {
-      featuresSection.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  // const scrollToNextSection = () => {
+  //   const featuresSection = document.getElementById('features-section');
+  //   if (featuresSection) {
+  //     featuresSection.scrollIntoView({ behavior: 'smooth' });
+  //   }
+  // };
 
   return (
     <section id="hero-section" className="relative py-20 lg:py-36 overflow-hidden min-h-screen">
@@ -79,7 +94,7 @@ const Hero = () => {
           >
             <path
               d="M0,200 C300,150 600,250 900,180 C1050,140 1150,160 1200,180 L1200,400 L0,400 Z"
-              fill="rgba(65, 23, 219, 0.8)"
+              fill="rgba(65, 23, 219, 0.4)"
             />
           </svg>
 
@@ -92,7 +107,7 @@ const Hero = () => {
           >
             <path
               d="M0,180 C250,120 550,220 850,160 C1000,120 1120,140 1200,150 L1200,400 L0,400 Z"
-              fill="rgba(65, 23, 219, 0.6)"
+              fill="rgba(65, 23, 219, 0.3)"
             />
           </svg>
 
@@ -105,7 +120,7 @@ const Hero = () => {
           >
             <path
               d="M0,250 C200,200 500,300 800,220 C950,180 1100,200 1200,220 L1200,400 L0,400 Z"
-              fill="rgba(229, 120, 133, 0.7)"
+              fill="rgba(229, 120, 133, 0.4)"
             />
           </svg>
 
@@ -118,7 +133,7 @@ const Hero = () => {
           >
             <path
               d="M0,280 C350,230 650,330 950,260 C1080,240 1140,250 1200,260 L1200,400 L0,400 Z"
-              fill="rgba(229, 120, 133, 0.5)"
+              fill="rgba(229, 120, 133, 0.2)"
             />
           </svg>
 
@@ -131,14 +146,14 @@ const Hero = () => {
           >
             <path
               d="M0,300 C400,250 700,350 1000,280 C1100,260 1150,270 1200,280 L1200,400 L0,400 Z"
-              fill="rgba(241, 133, 130, 0.6)"
+              fill="rgba(241, 133, 130, 0.3)"
             />
           </svg>
         </div>
 
         {/* Stars effect */}
-        <div className="absolute inset-0 opacity-30">
-          {[...Array(50)].map((_, i) => {
+        <div className="absolute inset-0 opacity-20">
+          {[...Array(25)].map((_, i) => {
             // Tạo giá trị pseudo-random dựa trên index để tránh hydration mismatch
             const pseudoRandomX = ((i * 17) % 100);
             const pseudoRandomY = ((i * 23) % 60);
@@ -161,7 +176,7 @@ const Hero = () => {
         </div>
       </div>
 
-      <div className="container px-4 mx-auto relative z-10" style={{ transform: 'translateY(-8px)' }}>
+      <div className="container px-4 mx-auto relative z-10 max-w-7xl" style={{ transform: 'translateY(-8px)' }}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div
             initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
@@ -170,16 +185,25 @@ const Hero = () => {
             className="text-center lg:text-left mt-8"
           >
             {/* New Badge Design */}
-            <div className="mb-6 text-center lg:text-left">
-              <div className="text-white font-bold text-lg mb-2">
+            <div className="mb-8 text-center lg:text-left">
+              <div
+                className="text-white font-bold text-lg mb-3"
+                style={{ textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}
+              >
                 {heroData.badge.text}
               </div>
-              <div className="text-white/80 text-sm">
+              <div
+                className="text-white/90 text-base"
+                style={{ textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}
+              >
                 {heroData.subtitle}
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight text-white mb-6 text-center lg:text-left">
+            <h1
+              className="text-4xl md:text-6xl font-bold leading-tight text-white mb-6 text-center lg:text-left"
+              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}
+            >
               {heroData.title.split('\n').map((line, index) => (
                 <span key={index}>
                   {line}
@@ -188,7 +212,10 @@ const Hero = () => {
               ))}
             </h1>
 
-            <p className="text-lg md:text-xl text-white/80 max-w-xl mx-auto lg:mx-0 mb-8 text-center lg:text-left">
+            <p
+              className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto lg:mx-0 mb-8 text-center lg:text-left"
+              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.7)" }}
+            >
               {heroData.description}
             </p>
 
@@ -203,6 +230,9 @@ const Hero = () => {
                   href={heroData.ctaButtons.primary.href}
                   className="flex items-center bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
                   style={{ width: '280px', height: '80px' }}
+                  onClick={() => {
+                    analytics.ctaClick('hero_section', heroData.ctaButtons.primary.text);
+                  }}
                 >
                   {/* Card Icon with Animation */}
                   <div className="flex items-center justify-center w-16 h-16 ml-4">
@@ -277,12 +307,16 @@ const Hero = () => {
 
               {/* Video Icon - căn giữa với CTA */}
               <motion.button
-                className="w-12 h-12 rounded-full backdrop-blur-sm bg-white/20 border border-white/30 text-white flex items-center justify-center hover:bg-white/30 hover:shadow-lg transition-all duration-200"
+                className="w-12 h-12 rounded-full backdrop-blur-sm bg-white/20 border border-white/30 text-white flex items-center justify-center hover:bg-white/30 hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                 whileHover={{ scale: 1.26 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsVideoModalOpen(true)}
+                onClick={() => {
+                  setIsVideoModalOpen(true);
+                  analytics.videoModalOpen('hero_section');
+                }}
+                aria-label="Phát video giới thiệu"
               >
-                <Play className="h-5 w-5" />
+                <Play className="h-5 w-5" aria-hidden="true" />
               </motion.button>
             </div>
 
@@ -298,12 +332,13 @@ const Hero = () => {
             </div>
           </motion.div>
 
-          <motion.div
-            initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
-            animate={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="relative hidden lg:block"
-          >
+          {!isMobile && (
+            <motion.div
+              initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
+              animate={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              className="relative hidden lg:block"
+            >
             {/* Pages Group Container */}
             <div
               className="relative hidden lg:block group"
@@ -865,6 +900,7 @@ const Hero = () => {
 
             </div>
           </motion.div>
+          )}
         </div>
 
         {/* Scroll indicator */}
@@ -882,6 +918,9 @@ const Hero = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="video-title"
         >
           <motion.div
             className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden max-w-4xl w-full transition-colors duration-300"
@@ -890,10 +929,11 @@ const Hero = () => {
             exit={{ scale: 0.9 }}
           >
             <div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-800 transition-colors duration-300">
-              <h3 className="font-medium text-slate-800 dark:text-white transition-colors duration-300">Video giới thiệu NyNus</h3>
+              <h3 id="video-title" className="font-medium text-slate-800 dark:text-white transition-colors duration-300">Video giới thiệu NyNus</h3>
               <button
                 onClick={() => setIsVideoModalOpen(false)}
-                className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-white transition-colors duration-300"
+                className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-white transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                aria-label="Đóng video"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

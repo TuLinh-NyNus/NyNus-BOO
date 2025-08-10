@@ -3,8 +3,6 @@
  * Type definitions cho admin header components
  */
 
-import { ReactNode } from 'react';
-
 /**
  * Admin Header Props
  * Props cho AdminHeader component

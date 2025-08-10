@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Badge } from "@/components/ui/display/badge";
 import { Button } from "@/components/ui/form/button";
@@ -115,7 +115,7 @@ export function UserActivityTab({
   /**
    * Load user activities
    */
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     setIsLoading(true);
     try {
       const userActivities = await getUserActivities(user.id, limit);
@@ -130,12 +130,12 @@ export function UserActivityTab({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user.id, limit]);
 
   // Load activities on mount
   useEffect(() => {
     loadActivities();
-  }, [user.id, limit]);
+  }, [loadActivities]);
 
   return (
     <div className={`space-y-6 ${className}`}>

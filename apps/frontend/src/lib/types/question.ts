@@ -74,6 +74,11 @@ export interface Question {
   answers?: AnswerOption[] | MatchingOption[];
   correctAnswer?: CorrectAnswer;
   solution?: string; // Lời giải chi tiết
+  explanation?: string; // Giải thích đáp án
+
+  // Scoring and timing
+  points?: number; // Điểm số của câu hỏi
+  timeLimit?: number; // Thời gian làm bài (giây)
 
   // Metadata
   tag: string[]; // Tags cho câu hỏi
@@ -118,6 +123,9 @@ export interface QuestionFilters {
   sortBy?: 'createdAt' | 'updatedAt' | 'usageCount';
   sortDir?: 'asc' | 'desc';
 }
+
+// Alias for backward compatibility
+export type IQuestionFilters = QuestionFilters;
 
 // Pagination interface
 export interface QuestionPagination {

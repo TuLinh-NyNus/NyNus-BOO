@@ -118,11 +118,11 @@ export const heroData: HeroData = {
     text: "✨ NyNus ✨"
   },
   title: "Học Toán  \n cùng NyNus",
-  subtitle: "Dễ dàng - Chính Xác - Thuận tiện",
+  subtitle: "Nền tảng học toán trực tuyến được cá nhân hóa bởi AI",
   description: "Nền tảng học toán tương tác, cá nhân hóa trải nghiệm học tập, giúp học viên nâng cao kỹ năng.",
   ctaButtons: {
     primary: {
-      text: "NÂNG CẤP PRO MIỄN PHÍ",
+      text: "BẮT ĐẦU HỌC MIỄN PHÍ",
       href: "/auth/register",
       price: "Miễn phí 2 năm - 1 triệu",
       originalPrice: "",
@@ -135,7 +135,7 @@ export const heroData: HeroData = {
   },
   stats: {
     studentsCount: 1200,
-    studentsText: "Chưa có ai đăng kí hết, đăng kí để làm chuột bạch nhé!"
+    studentsText: "Hơn 1,200 học viên đã trải nghiệm học tập cùng NyNus"
   }
 };
 
@@ -166,7 +166,7 @@ export const featuresData: FeaturesData = {
         "Phân tích chi tiết kết quả",
         "Xếp hạng realtime"
       ],
-      detailedDescription: "Hệ thống phòng thi trực tuyến hiện đại với công nghệ chống gian lận, hỗ trợ nhiều định dạng câu hỏi và tự động tạo báo cáo chi tiết.",
+      detailedDescription: "Hệ thống phòng thi trực tuyến hiện đại với công nghệ chống gian lận, hỗ trợ nhiều định dạng câu hỏi và tự động tạo báo cáo chi tiết.\nVí dụ: Thi thử THPT QG với 40 câu hỏi, thời gian 90 phút, kết quả chi tiết theo từng chủ đề",
       cta: {
         text: "Thi thử ngay",
         href: "/exam/demo",
@@ -192,7 +192,7 @@ export const featuresData: FeaturesData = {
         "Bộ lọc thông minh",
         "Lưu lịch sử tìm kiếm"
       ],
-      detailedDescription: "Công cụ tìm kiếm được trang bị AI giúp tìm ra những câu hỏi phù hợp nhất với trình độ và mục tiêu học tập của bạn.",
+      detailedDescription: "Công cụ tìm kiếm được trang bị AI giúp tìm ra những câu hỏi phù hợp nhất với trình độ và mục tiêu học tập của bạn.\nVí dụ: Tìm 'phương trình bậc 2' → AI gợi ý 15 dạng bài từ cơ bản đến nâng cao",
       cta: {
         text: "Khám phá ngay",
         href: "/search",
@@ -218,7 +218,7 @@ export const featuresData: FeaturesData = {
         "Theo dõi tiến độ",
         "Chứng chỉ hoàn thành"
       ],
-      detailedDescription: "Thư viện khóa học phong phú với video bài giảng chất lượng cao, bài tập tương tác và hệ thống theo dõi tiến độ chi tiết.",
+      detailedDescription: "Thư viện khóa học phong phú với video bài giảng chất lượng cao, bài tập tương tác và hệ thống theo dõi tiến độ chi tiết.\nVí dụ: Khóa 'Hàm số lớp 12' - 24 video, 120 bài tập, hoàn thành 85% nhận chứng chỉ",
       cta: {
         text: "Xem khóa học",
         href: "/courses",
@@ -244,7 +244,7 @@ export const featuresData: FeaturesData = {
         "Trả lời tức thì",
         "Học máy liên tục"
       ],
-      detailedDescription: "Trợ lý AI thông minh có thể giải thích bài tập, đưa ra gợi ý học tập và hỗ trợ bạn 24/7 trong quá trình học.",
+      detailedDescription: "Trợ lý AI thông minh có thể giải thích bài tập, đưa ra gợi ý học tập và hỗ trợ bạn 24/7 trong quá trình học.\nVí dụ: 'Làm sao giải phương trình này?' → AI giải từng bước + 3 phương pháp khác",
       cta: {
         text: "Chat ngay",
         href: "/ai-chat",

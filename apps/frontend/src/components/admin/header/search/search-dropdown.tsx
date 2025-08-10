@@ -20,7 +20,6 @@ export function SearchDropdown({
   suggestions = [],
   isLoading = false,
   onSuggestionSelect,
-  onClose,
   className
 }: SearchDropdownProps) {
   /**

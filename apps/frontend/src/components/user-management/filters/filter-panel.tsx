@@ -97,7 +97,6 @@ const DEFAULT_FILTER_STATE: FilterState = {
  * Hỗ trợ filtering theo Enhanced User Model fields
  */
 export function FilterPanel({
-  users: _users, // Renamed to indicate it's not used in current implementation
   onFiltersChange,
   onSearchResults,
   className = ''
