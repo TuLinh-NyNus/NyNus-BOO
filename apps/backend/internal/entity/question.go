@@ -65,23 +65,23 @@ func (q Question) TableName() string {
 func (q Question) FieldMap() ([]string, []interface{}) {
 	fields := []string{
 		"id",
-		"rawcontent",
+		"raw_content",
 		"content",
 		"subcount",
 		"type",
 		"source",
 		"answers",
-		"correctanswer",
+		"correct_answer",
 		"solution",
 		"tag",
-		"usagecount",
+		"usage_count",
 		"creator",
 		"status",
 		"feedback",
 		"difficulty",
 		"created_at",
 		"updated_at",
-		"questioncodeid",
+		"question_code_id",
 	}
 
 	values := []interface{}{

@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
 	"strings"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"github.com/jackc/pgtype"
 )
 
 // ImportQuestions handles the import questions operation following the payment system pattern
@@ -41,7 +44,7 @@ func (q *QuestionMgmt) ImportQuestions(ctx context.Context, req *ImportQuestions
 		headerMap[strings.ToLower(strings.TrimSpace(h))] = i
 	}
 
-	// Check required fields
+	// Check required fields - updated for formatted CSV with snake_case headers
 	requiredFields := []string{"content", "type", "question_code_id"}
 	for _, field := range requiredFields {
 		if _, exists := headerMap[field]; !exists {
@@ -165,6 +168,21 @@ func (q *QuestionMgmt) processCSVRows(ctx context.Context, reader *csv.Reader, h
 			}
 			createdCount++
 		}
+
+		// Handle QuestionTags if provided
+		if questionData.QuestionTags != "" {
+			tagNames := strings.Split(questionData.QuestionTags, ";")
+			for i, tag := range tagNames {
+				tagNames[i] = strings.TrimSpace(tag)
+			}
+
+			// Create QuestionTag repository and save tags
+			questionTagRepo := &repository.QuestionTagRepository{}
+			if err := questionTagRepo.CreateMultiple(ctx, q.DB, question.ID.String, tagNames); err != nil {
+				// Log error but don't fail the import for tag issues
+				fmt.Printf("Warning: Failed to create tags for question %s: %v\n", question.ID.String, err)
+			}
+		}
 	}
 
 	// Generate summary
@@ -181,7 +199,7 @@ func (q *QuestionMgmt) processCSVRows(ctx context.Context, reader *csv.Reader, h
 	}, nil
 }
 
-// parseCSVRow parses a CSV row into QuestionData
+// parseCSVRow parses a CSV row into QuestionData - updated for comprehensive CSV format
 func (q *QuestionMgmt) parseCSVRow(record []string, headerMap map[string]int) (*QuestionData, error) {
 	data := &QuestionData{}
 
@@ -209,33 +227,80 @@ func (q *QuestionMgmt) parseCSVRow(record []string, headerMap map[string]int) (*
 		return nil, fmt.Errorf("question_code_id is required")
 	}
 
-	// Optional fields
+	// All other fields from formatted CSV - using snake_case field names
+	data.ID = getField("id")
 	data.RawContent = getField("raw_content")
 	if data.RawContent == "" {
 		data.RawContent = data.Content // Default to content if raw_content is empty
 	}
 
+	data.Subcount = getField("subcount")
 	data.Source = getField("source")
 	data.Answers = getField("answers")
 	data.CorrectAnswer = getField("correct_answer")
 	data.Solution = getField("solution")
-	data.Subcount = getField("subcount")
+	data.UsageCount = getField("usage_count")
+	data.Creator = getField("creator")
+	data.Status = getField("status")
+	data.Feedback = getField("feedback")
+	data.Difficulty = getField("difficulty")
+	data.CreatedAt = getField("created_at")
+	data.UpdatedAt = getField("updated_at")
+	data.GeneratedTags = getField("generated_tags")
+	data.Code = getField("code")
+	data.Format = getField("format")
+	data.Grade = getField("grade")
+	data.Subject = getField("subject")
+	data.Chapter = getField("chapter")
+	data.Lesson = getField("lesson")
+	data.Level = getField("level")
+	data.Form = getField("form")
+	data.QuestionTags = getField("question_tags")
+	data.TagCount = getField("tag_count")
 
-	// Parse tags (comma-separated)
-	tagsStr := getField("tags")
+	// Parse tag array field (comma-separated)
+	tagsStr := getField("tag")
 	if tagsStr != "" {
-		data.Tags = strings.Split(tagsStr, ",")
-		for i, tag := range data.Tags {
-			data.Tags[i] = strings.TrimSpace(tag)
+		data.Tag = strings.Split(tagsStr, ",")
+		for i, tag := range data.Tag {
+			data.Tag[i] = strings.TrimSpace(tag)
 		}
 	}
 
 	return data, nil
 }
 
-// createQuestionEntity creates a Question entity from parsed data
+// createQuestionEntity creates a Question entity from parsed data - updated for comprehensive CSV
 func (q *QuestionMgmt) createQuestionEntity(data *QuestionData, questionCode *entity.QuestionCode) (*entity.Question, error) {
+	// Create Question entity with proper initialization
 	question := &entity.Question{}
+
+	// Initialize all pgtype fields to avoid "status undefined" errors
+	question.ID.Status = pgtype.Null
+	question.RawContent.Status = pgtype.Null
+	question.Content.Status = pgtype.Null
+	question.Subcount.Status = pgtype.Null
+	question.Type.Status = pgtype.Null
+	question.Source.Status = pgtype.Null
+	question.Answers.Status = pgtype.Null
+	question.CorrectAnswer.Status = pgtype.Null
+	question.Solution.Status = pgtype.Null
+	question.Tag.Status = pgtype.Null
+	question.UsageCount.Status = pgtype.Null
+	question.Creator.Status = pgtype.Null
+	question.Status.Status = pgtype.Null
+	question.Feedback.Status = pgtype.Null
+	question.Difficulty.Status = pgtype.Null
+	question.CreatedAt.Status = pgtype.Null
+	question.UpdatedAt.Status = pgtype.Null
+	question.QuestionCodeID.Status = pgtype.Null
+
+	// Set ID if provided, otherwise generate
+	if data.ID != "" {
+		if err := question.ID.Set(data.ID); err != nil {
+			return nil, fmt.Errorf("failed to set id: %w", err)
+		}
+	}
 
 	// Set required fields
 	if err := question.Content.Set(data.Content); err != nil {
@@ -256,21 +321,49 @@ func (q *QuestionMgmt) createQuestionEntity(data *QuestionData, questionCode *en
 		return nil, fmt.Errorf("failed to set question_code_id: %w", err)
 	}
 
-	// Set optional fields
+	// Set all other fields from CSV
+	if data.Subcount != "" {
+		if err := question.Subcount.Set(data.Subcount); err != nil {
+			return nil, fmt.Errorf("failed to set subcount: %w", err)
+		}
+	} else {
+		// Set NULL for empty subcount
+		question.Subcount.Status = pgtype.Null
+	}
+
 	if data.Source != "" {
 		if err := question.Source.Set(data.Source); err != nil {
 			return nil, fmt.Errorf("failed to set source: %w", err)
 		}
 	}
 
+	// Convert answers and correctAnswer strings to JSONB arrays
 	if data.Answers != "" {
-		if err := question.Answers.Set(data.Answers); err != nil {
+		// Split semicolon-separated string into array
+		answers := strings.Split(data.Answers, ";")
+		for i, answer := range answers {
+			answers[i] = strings.TrimSpace(answer)
+		}
+		answersJSON, err := json.Marshal(answers)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal answers: %w", err)
+		}
+		if err := question.Answers.Set(answersJSON); err != nil {
 			return nil, fmt.Errorf("failed to set answers: %w", err)
 		}
 	}
 
 	if data.CorrectAnswer != "" {
-		if err := question.CorrectAnswer.Set(data.CorrectAnswer); err != nil {
+		// Split semicolon-separated string into array
+		correctAnswers := strings.Split(data.CorrectAnswer, ";")
+		for i, answer := range correctAnswers {
+			correctAnswers[i] = strings.TrimSpace(answer)
+		}
+		correctAnswersJSON, err := json.Marshal(correctAnswers)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal correct_answer: %w", err)
+		}
+		if err := question.CorrectAnswer.Set(correctAnswersJSON); err != nil {
 			return nil, fmt.Errorf("failed to set correct_answer: %w", err)
 		}
 	}
@@ -281,11 +374,46 @@ func (q *QuestionMgmt) createQuestionEntity(data *QuestionData, questionCode *en
 		}
 	}
 
-	if data.Subcount != "" {
-		if subcountInt, err := strconv.Atoi(data.Subcount); err == nil {
-			if err := question.Subcount.Set(int32(subcountInt)); err != nil {
-				return nil, fmt.Errorf("failed to set subcount: %w", err)
+	// Set tag array
+	if len(data.Tag) > 0 {
+		if err := question.Tag.Set(data.Tag); err != nil {
+			return nil, fmt.Errorf("failed to set tag: %w", err)
+		}
+	}
+
+	// Set numeric fields
+	if data.UsageCount != "" {
+		if usageCountInt, err := strconv.Atoi(data.UsageCount); err == nil {
+			if err := question.UsageCount.Set(int32(usageCountInt)); err != nil {
+				return nil, fmt.Errorf("failed to set usage_count: %w", err)
 			}
+		}
+	}
+
+	if data.Feedback != "" {
+		if feedbackInt, err := strconv.Atoi(data.Feedback); err == nil {
+			if err := question.Feedback.Set(int32(feedbackInt)); err != nil {
+				return nil, fmt.Errorf("failed to set feedback: %w", err)
+			}
+		}
+	}
+
+	// Set string fields
+	if data.Creator != "" {
+		if err := question.Creator.Set(data.Creator); err != nil {
+			return nil, fmt.Errorf("failed to set creator: %w", err)
+		}
+	}
+
+	if data.Status != "" {
+		if err := question.Status.Set(data.Status); err != nil {
+			return nil, fmt.Errorf("failed to set status: %w", err)
+		}
+	}
+
+	if data.Difficulty != "" {
+		if err := question.Difficulty.Set(data.Difficulty); err != nil {
+			return nil, fmt.Errorf("failed to set difficulty: %w", err)
 		}
 	}
 

@@ -14,24 +14,24 @@ type QuestionTag struct {
 
 // TableName returns the table name for QuestionTag
 func (qt QuestionTag) TableName() string {
-	return "questiontag"
+	return "question_tag"
 }
 
 // FieldMap returns the field mapping for database operations
 func (qt QuestionTag) FieldMap() ([]string, []interface{}) {
 	fields := []string{
 		"id",
-		"questionid",
-		"tagname",
+		"question_id",
+		"tag_name",
 		"created_at",
 	}
-	
+
 	values := []interface{}{
 		&qt.ID,
 		&qt.QuestionID,
 		&qt.TagName,
 		&qt.CreatedAt,
 	}
-	
+
 	return fields, values
 }

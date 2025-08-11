@@ -40,7 +40,7 @@ func (p *QuestionCodeParser) Parse(questionCode string) (*QuestionCodeComponents
 
 	// Determine if ID5 or ID6
 	isID6 := strings.Contains(cleaned, "-")
-	
+
 	var components *QuestionCodeComponents
 	var err error
 
@@ -123,9 +123,9 @@ func (p *QuestionCodeParser) validateComponents(comp *QuestionCodeComponents) er
 		return fmt.Errorf("invalid grade: %s. Must be 0 (10th), 1 (11th), or 2 (12th)", comp.Grade)
 	}
 
-	// Validate Subject (P, L, H)
+	// Validate Subject (A-Z)
 	if !p.isValidSubject(comp.Subject) {
-		return fmt.Errorf("invalid subject: %s. Must be P (Math), L (Physics), or H (Chemistry)", comp.Subject)
+		return fmt.Errorf("invalid subject: %s. Must be a single character A-Z", comp.Subject)
 	}
 
 	// Validate Level (N, H, V, C, T, M)
@@ -133,19 +133,19 @@ func (p *QuestionCodeParser) validateComponents(comp *QuestionCodeComponents) er
 		return fmt.Errorf("invalid level: %s. Must be N, H, V, C, T, or M", comp.Level)
 	}
 
-	// Validate Chapter (1-9, A-Z)
+	// Validate Chapter (0-9, A-Z)
 	if !p.isValidChapterOrLesson(comp.Chapter) {
-		return fmt.Errorf("invalid chapter: %s. Must be 1-9 or A-Z", comp.Chapter)
+		return fmt.Errorf("invalid chapter: %s. Must be 0-9 or A-Z", comp.Chapter)
 	}
 
-	// Validate Lesson (1-9, A-Z)
+	// Validate Lesson (0-9, A-Z)
 	if !p.isValidChapterOrLesson(comp.Lesson) {
-		return fmt.Errorf("invalid lesson: %s. Must be 1-9 or A-Z", comp.Lesson)
+		return fmt.Errorf("invalid lesson: %s. Must be 0-9 or A-Z", comp.Lesson)
 	}
 
-	// Validate Form if present (1-9, A-Z)
+	// Validate Form if present (0-9, A-Z)
 	if comp.Form != "" && !p.isValidChapterOrLesson(comp.Form) {
-		return fmt.Errorf("invalid form: %s. Must be 1-9 or A-Z", comp.Form)
+		return fmt.Errorf("invalid form: %s. Must be 0-9 or A-Z", comp.Form)
 	}
 
 	return nil
@@ -156,9 +156,13 @@ func (p *QuestionCodeParser) isValidGrade(grade string) bool {
 	return grade == "0" || grade == "1" || grade == "2"
 }
 
-// isValidSubject checks if subject is valid (P, L, H)
+// isValidSubject checks if subject is valid (any single character A-Z)
 func (p *QuestionCodeParser) isValidSubject(subject string) bool {
-	return subject == "P" || subject == "L" || subject == "H"
+	if len(subject) != 1 {
+		return false
+	}
+	char := subject[0]
+	return char >= 'A' && char <= 'Z'
 }
 
 // isValidLevel checks if level is valid (N, H, V, C, T, M)
@@ -174,13 +178,13 @@ func (p *QuestionCodeParser) isValidLevel(level string) bool {
 	return validLevels[level]
 }
 
-// isValidChapterOrLesson checks if chapter/lesson/form is valid (1-9, A-Z)
+// isValidChapterOrLesson checks if chapter/lesson/form is valid (0-9, A-Z)
 func (p *QuestionCodeParser) isValidChapterOrLesson(value string) bool {
 	if len(value) != 1 {
 		return false
 	}
 	char := value[0]
-	return (char >= '1' && char <= '9') || (char >= 'A' && char <= 'Z')
+	return (char >= '0' && char <= '9') || (char >= 'A' && char <= 'Z')
 }
 
 // GenerateFolderPath generates the Google Drive folder path from components
@@ -188,13 +192,13 @@ func (p *QuestionCodeParser) GenerateFolderPath(comp *QuestionCodeComponents) st
 	// Format: Grade/Subject/Chapter/Lesson/Form/Level/
 	// Example: "0P1N1-1" → "0/P/1/1/1/N/"
 	path := fmt.Sprintf("%s/%s/%s/%s", comp.Grade, comp.Subject, comp.Chapter, comp.Lesson)
-	
+
 	if comp.Form != "" {
 		path += "/" + comp.Form
 	}
-	
+
 	path += "/" + comp.Level + "/"
-	
+
 	return path
 }
 
@@ -274,14 +278,14 @@ func (p *QuestionCodeParser) ToNumericValues(comp *QuestionCodeComponents) (grad
 }
 
 // convertToNumeric converts a single character to numeric value
-// 1-9 → 1-9, A-Z → 10-35
+// 0-9 → 0-9, A-Z → 10-35
 func (p *QuestionCodeParser) convertToNumeric(char string) (int, error) {
 	if len(char) != 1 {
 		return 0, fmt.Errorf("expected single character, got %s", char)
 	}
 
 	c := char[0]
-	if c >= '1' && c <= '9' {
+	if c >= '0' && c <= '9' {
 		return int(c - '0'), nil
 	}
 	if c >= 'A' && c <= 'Z' {

@@ -12,7 +12,7 @@ import (
 )
 
 // QuestionRepository handles question data access following payment system pattern
-type QuestionRepository struct {}
+type QuestionRepository struct{}
 
 // Create creates a new question with automatic ULID generation and timestamps
 func (r *QuestionRepository) Create(ctx context.Context, db database.QueryExecer, question *entity.Question) error {
@@ -151,10 +151,10 @@ func (r *QuestionRepository) GetByQuestionCode(ctx context.Context, db database.
 	defer span.Finish()
 
 	query := `
-		SELECT id, rawcontent, content, subcount, type, source, answers, correctanswer, solution,
-		       tag, usagecount, creator, status, feedback, difficulty, created_at, updated_at, questioncodeid
-		FROM Question
-		WHERE questioncodeid = $1 AND status = 'ACTIVE'
+		SELECT id, raw_content, content, subcount, type, source, answers, correct_answer, solution,
+		       tag, usage_count, creator, status, feedback, difficulty, created_at, updated_at, question_code_id
+		FROM question
+		WHERE question_code_id = $1 AND status = 'ACTIVE'
 		ORDER BY created_at DESC
 	`
 
@@ -199,8 +199,8 @@ func (r *QuestionRepository) GetQuestionsByPaging(db database.QueryExecer, offse
 
 	// Get paginated results
 	query := `
-		SELECT id, rawcontent, content, subcount, type, source, answers, correctanswer, solution,
-		       questioncodeid, created_at, updated_at
+		SELECT id, raw_content, content, subcount, type, source, answers, correct_answer, solution,
+		       question_code_id, created_at, updated_at
 		FROM question
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
