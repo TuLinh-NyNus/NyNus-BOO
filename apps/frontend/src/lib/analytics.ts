@@ -13,7 +13,7 @@ declare global {
       targetId: string | Date | object,
       config?: object
     ) => void;
-    dataLayer: any[];
+    dataLayer: unknown[];
   }
 }
 
@@ -33,8 +33,8 @@ export const initGA = (measurementId: string) => {
 
   // Initialize dataLayer và gtag function
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function() {
-    window.dataLayer.push(arguments);
+  window.gtag = function(...args: unknown[]) {
+    window.dataLayer.push(args);
   };
 
   // Configure GA4
@@ -50,7 +50,7 @@ export const initGA = (measurementId: string) => {
  * @param eventName - Tên event (VD: 'cta_click_start_learning')
  * @param parameters - Parameters bổ sung cho event
  */
-export const trackEvent = (eventName: string, parameters?: Record<string, any>) => {
+export const trackEvent = (eventName: string, parameters?: Record<string, unknown>) => {
   // Chỉ track trên client-side và khi gtag available
   if (typeof window === 'undefined' || !window.gtag) {
     console.log('Analytics not available:', eventName, parameters);
@@ -234,9 +234,11 @@ export const withAnalytics = <P extends object>(
 };
 
 // Export default cho convenience
-export default {
+const analyticsDefault = {
   init: initGA,
   track: trackEvent,
   pageView: trackPageView,
   ...analytics,
 };
+
+export default analyticsDefault;

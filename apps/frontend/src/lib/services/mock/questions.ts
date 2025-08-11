@@ -14,9 +14,10 @@ import {
   FileUploadResult,
   SavedQuestionsData,
   AnswerOption,
+  MatchingOption,
   CorrectAnswer
-} from '@/lib/types/question';
-import { mockEnhancedQuestions, mockQuestionCodes } from '@/lib/mockdata/questions-enhanced';
+} from '../../types/question';
+import { mockEnhancedQuestions, mockQuestionCodes } from '../../mockdata/questions';
 
 // Simulate realistic API latency
 const MOCK_LATENCY = {
@@ -225,7 +226,7 @@ export class MockQuestionsService {
       subcount: payload.subcount || existingQuestion.subcount,
       type: payload.type || existingQuestion.type,
       source: payload.source || existingQuestion.source,
-      answers: (payload.answers as unknown) as AnswerOption[] || existingQuestion.answers,
+      answers: (Array.isArray(payload.answers) ? payload.answers as AnswerOption[] | MatchingOption[] : undefined) || (existingQuestion.answers as unknown as AnswerOption[] | MatchingOption[]),
       correctAnswer: (payload.correctAnswer || existingQuestion.correctAnswer) as CorrectAnswer | undefined,
       solution: payload.solution || existingQuestion.solution,
       tag: payload.tag || existingQuestion.tag,

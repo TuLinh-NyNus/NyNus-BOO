@@ -5,7 +5,7 @@ import {
   getMockUsersResponse,
   getMockUserStats,
   getUserById as getUserByIdFromMock
-} from '@/lib/mockdata/users';
+} from '@/lib/mockdata';
 import { AdminUser, UserStats, AdvancedUserFilters } from '@/lib/mockdata/types';
 import { UserRole, UserStatus, MockPagination } from '@/lib/mockdata/core-types';
 

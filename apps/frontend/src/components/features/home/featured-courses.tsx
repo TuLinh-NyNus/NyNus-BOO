@@ -7,7 +7,7 @@ import { useAnalytics } from "@/lib/analytics";
 import { useState, useRef } from "react";
 
 // Import mockdata and UI components
-import { featuredCourses, getGradient, type FeaturedCourse } from "@/lib/mockdata";
+import { homepageFeaturedCourses, getGradient, type FeaturedCourse } from "@/lib/mockdata";
 import { Skeleton } from "@/components/ui/skeleton";
 import ScrollIndicator from "@/components/ui/scroll-indicator";
 
@@ -192,7 +192,7 @@ const FeaturedCourses = () => {
             </div>
           ) : (
             // Hiển thị danh sách khóa học
-            featuredCourses.map(course => (
+            homepageFeaturedCourses.map((course: FeaturedCourse) => (
               <div key={course.id} className="snap-start h-full">
                 <CourseCard course={course} />
               </div>

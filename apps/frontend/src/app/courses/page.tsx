@@ -7,7 +7,7 @@ import { MathBackground } from "@/components/features/courses/ui";
 import { AdvancedSearchBar, SearchFilters, SortOption } from "@/components/features/courses/search/advanced-search-bar";
 import { CourseCard, CourseCardSkeleton } from "@/components/features/courses/cards";
 import { HeroSection } from "@/components/features/courses/layout";
-import { getCoursesByCategory } from "@/lib/mockdata/courses-frontend";
+import { getCoursesByCategory } from "@/lib/mockdata";
 import { MockTutorial, MockCourse } from "@/lib/mockdata/courses-types";
 import { useTutorials } from "@/hooks/use-tutorials";
 import { Button } from "@/components/ui/form/button";

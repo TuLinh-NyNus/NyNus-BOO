@@ -3,7 +3,7 @@
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 // Import mockdata services
-import { getFeaturedCourses, FeaturedCourse } from "@/lib/mockdata/featured-courses";
+import { getHomepageFeaturedCourses, type FeaturedCourse } from "@/lib/mockdata";
 
 // Mock error type
 export interface ApiError extends Error {
@@ -21,7 +21,7 @@ export function useFeaturedCourses(): UseQueryResult<FeaturedCourse[], ApiError>
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      const featuredCourses = await getFeaturedCourses();
+      const featuredCourses = await getHomepageFeaturedCourses();
 
       // Return courses as-is since they already match FeaturedCourse interface
       return featuredCourses;
@@ -40,7 +40,7 @@ export function useFeaturedCoursesByCategory(category: string): UseQueryResult<F
     queryFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      const featuredCourses = await getFeaturedCourses();
+      const featuredCourses = await getHomepageFeaturedCourses();
       // Note: FeaturedCourse doesn't have category field, so return all courses
       return featuredCourses;
     },
@@ -59,7 +59,7 @@ export function useFeaturedCoursesCount(): UseQueryResult<number, ApiError> {
     queryFn: async () => {
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      const featuredCourses = await getFeaturedCourses();
+      const featuredCourses = await getHomepageFeaturedCourses();
       return featuredCourses.length;
     },
     staleTime: 10 * 60 * 1000, // 10 minutes

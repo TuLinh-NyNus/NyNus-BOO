@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui";
 import { useToast } from '@/hooks/use-toast';
 // ✅ Import mock data instead of API service
-import { getUserById } from '@/lib/mockdata/users';
+import { getUserById } from '@/lib/mockdata';
 import { AdminUser } from '@/lib/mockdata/types';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
 

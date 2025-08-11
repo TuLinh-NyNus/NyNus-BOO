@@ -34,7 +34,7 @@ class MapCodeParser:
             # Try multiple possible locations for Map ID.tex
             possible_paths = [
                 os.path.join(current_dir, '..', '..', '..', 'temp1', 'web', 'DATA', 'template', 'Map ID.tex'),
-                os.path.join(current_dir, '..', 'MapCode.md'),  # Fallback
+                os.path.join(current_dir, 'MapCode.md'),  # Correct path - same directory
                 os.path.join(current_dir, '..', 'Map ID.tex')   # Alternative
             ]
 
@@ -45,8 +45,8 @@ class MapCodeParser:
                     break
 
             if map_code_file is None:
-                # Default fallback
-                map_code_file = os.path.join(current_dir, '..', 'MapCode.md')
+                # Default fallback - correct path
+                map_code_file = os.path.join(current_dir, 'MapCode.md')
         
         self.map_code_file = map_code_file
 

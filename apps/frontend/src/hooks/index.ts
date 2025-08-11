@@ -30,3 +30,6 @@ export * from './use-homepage';
 // Courses hooks
 export * from './use-featured-courses';
 export * from './use-tutorials';
+
+// UI hooks
+export * from './use-horizontal-scroll';

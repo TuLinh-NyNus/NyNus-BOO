@@ -18,7 +18,7 @@ import {
   Download,
 } from "lucide-react";
 
-import { mockPermissions } from "../../../lib/mockdata/admin-roles";
+import { mockPermissions } from "@/lib/mockdata/admin";
 
 /**
  * Permission Template Interface

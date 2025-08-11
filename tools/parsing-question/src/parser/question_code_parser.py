@@ -15,6 +15,7 @@ parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
 from models.question_code import QuestionCode
+from utils.text_cleaner import TextCleaner
 
 
 class QuestionCodeParser:
@@ -82,17 +83,20 @@ class QuestionCodeParser:
     def extract_source(cls, latex_content: str) -> Optional[str]:
         """
         Extract source information from LaTeX content.
-        
+
         Args:
             latex_content: LaTeX content to parse
-            
+
         Returns:
-            Source string or None if not found
+            Source string with newlines converted to literal \n
         """
         match = re.search(cls.SOURCE_PATTERN, latex_content)
         if match:
-            return match.group(1).strip()
-        
+            source = match.group(1).strip()
+            # Convert newlines to literal for CSV export
+            source = TextCleaner.convert_newlines_to_literal(source)
+            return source
+
         return None
     
     @classmethod

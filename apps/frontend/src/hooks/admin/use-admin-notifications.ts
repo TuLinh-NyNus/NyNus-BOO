@@ -7,7 +7,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { AdminNotification, NotificationType } from '@/types/admin/header';
-import { adminHeaderMockService } from '@/lib/mockdata/admin-header';
+import { adminHeaderMockService } from '@/lib/mockdata/admin';
 import { useMockWebSocket } from '@/components/admin/providers/mock-websocket-provider';
 
 /**

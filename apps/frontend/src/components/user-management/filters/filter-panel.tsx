@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { AdminUser, AdvancedUserFilters } from '@/lib/mockdata/types';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
-import { searchUsers as searchUsersFromMock } from '@/lib/mockdata/users';
+import { searchUsers as searchUsersFromMock } from '@/lib/mockdata';
 
 // ===== INTERFACES =====
 

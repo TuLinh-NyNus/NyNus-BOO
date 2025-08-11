@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { MockTutorial, MockTutorialFilterParams } from '@/lib/mockdata/courses-types';
-import { mockTutorials } from '@/lib/mockdata/courses-frontend';
+import { mockTutorials } from '@/lib/mockdata';
 
 interface UseTutorialsResult {
   data: MockTutorial[] | undefined;

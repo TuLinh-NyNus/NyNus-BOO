@@ -27,7 +27,7 @@ import {
   mockPermissions,
   mockRoles,
   Permission
-} from "../../../lib/mockdata/admin-roles";
+} from "@/lib/mockdata/admin";
 
 /**
  * Permission Editor Props

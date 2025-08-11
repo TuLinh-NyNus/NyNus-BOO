@@ -150,9 +150,9 @@ export const featuresData: FeaturesData = {
   features: [
     {
       id: 1,
-      icon: "Trophy",
-      title: "Phòng thi trực tuyến",
-      description: "Làm đề có sẵn, tùy chỉnh, thi đấu trực tiếp với bạn bè",
+      icon: "Calculator",
+      title: "Luyện tập theo chương",
+      description: "Hệ thống bài tập được phân loại theo từng chương, từ cơ bản đến nâng cao",
       color: "primary",
       link: "#",
       stats: {
@@ -161,77 +161,24 @@ export const featuresData: FeaturesData = {
         trend: "up"
       },
       benefits: [
-        "Thi thử không giới hạn",
-        "Chấm điểm tự động",
-        "Phân tích chi tiết kết quả",
-        "Xếp hạng realtime"
+        "Bài tập phân cấp độ khó",
+        "Chấm điểm tự động tức thì",
+        "Gợi ý khi làm sai"
       ],
-      detailedDescription: "Hệ thống phòng thi trực tuyến hiện đại với công nghệ chống gian lận, hỗ trợ nhiều định dạng câu hỏi và tự động tạo báo cáo chi tiết.\nVí dụ: Thi thử THPT QG với 40 câu hỏi, thời gian 90 phút, kết quả chi tiết theo từng chủ đề",
+      detailedDescription: "Hệ thống luyện tập được thiết kế theo chương trình SGK, giúp học sinh nắm vững kiến thức từng bước một cách có hệ thống.",
       cta: {
-        text: "Thi thử ngay",
-        href: "/exam/demo",
+        text: "Thử bài mẫu",
+        href: "/practice/demo",
         variant: "primary"
       },
-      highlights: ["Miễn phí", "Không giới hạn", "Kết quả tức thì"]
+      highlights: ["Theo SGK", "Phân cấp", "Tự động"]
     },
     {
       id: 2,
-      icon: "Search",
-      title: "Tìm kiếm thông minh",
-      description: "Gợi ý câu hỏi phù hợp, bộ lọc nâng cao theo chủ đề",
+      icon: "Brain",
+      title: "AI gợi ý từng bước",
+      description: "Trợ lý AI giải thích chi tiết cách làm bài, gợi ý phương pháp tối ưu",
       color: "secondary",
-      link: "#",
-      stats: {
-        value: "95%",
-        label: "Độ chính xác gợi ý",
-        trend: "stable"
-      },
-      benefits: [
-        "AI phân tích nhu cầu học tập",
-        "Gợi ý câu hỏi cá nhân hóa",
-        "Bộ lọc thông minh",
-        "Lưu lịch sử tìm kiếm"
-      ],
-      detailedDescription: "Công cụ tìm kiếm được trang bị AI giúp tìm ra những câu hỏi phù hợp nhất với trình độ và mục tiêu học tập của bạn.\nVí dụ: Tìm 'phương trình bậc 2' → AI gợi ý 15 dạng bài từ cơ bản đến nâng cao",
-      cta: {
-        text: "Khám phá ngay",
-        href: "/search",
-        variant: "secondary"
-      },
-      highlights: ["AI-powered", "Cá nhân hóa", "Thông minh"]
-    },
-    {
-      id: 3,
-      icon: "Video",
-      title: "Khóa học tương tác",
-      description: "Video bài giảng, bài tập tự động chấm điểm chi tiết",
-      color: "accent",
-      link: "#",
-      stats: {
-        value: "50+",
-        label: "Khóa học chất lượng",
-        trend: "up"
-      },
-      benefits: [
-        "Video HD chất lượng cao",
-        "Bài tập tương tác",
-        "Theo dõi tiến độ",
-        "Chứng chỉ hoàn thành"
-      ],
-      detailedDescription: "Thư viện khóa học phong phú với video bài giảng chất lượng cao, bài tập tương tác và hệ thống theo dõi tiến độ chi tiết.\nVí dụ: Khóa 'Hàm số lớp 12' - 24 video, 120 bài tập, hoàn thành 85% nhận chứng chỉ",
-      cta: {
-        text: "Xem khóa học",
-        href: "/courses",
-        variant: "primary"
-      },
-      highlights: ["HD Quality", "Tương tác", "Chứng chỉ"]
-    },
-    {
-      id: 4,
-      icon: "Bot",
-      title: "Chatbot AI hỗ trợ",
-      description: "Giải bài tập, gợi ý phương pháp học hiệu quả",
-      color: "primary",
       link: "#",
       stats: {
         value: "24/7",
@@ -239,18 +186,292 @@ export const featuresData: FeaturesData = {
         trend: "stable"
       },
       benefits: [
-        "Giải thích từng bước",
-        "Gợi ý phương pháp học",
-        "Trả lời tức thì",
-        "Học máy liên tục"
+        "Giải thích từng bước chi tiết",
+        "Gợi ý nhiều cách giải",
+        "Trả lời tức thì mọi lúc"
       ],
-      detailedDescription: "Trợ lý AI thông minh có thể giải thích bài tập, đưa ra gợi ý học tập và hỗ trợ bạn 24/7 trong quá trình học.\nVí dụ: 'Làm sao giải phương trình này?' → AI giải từng bước + 3 phương pháp khác",
+      detailedDescription: "AI thông minh phân tích bài toán và đưa ra lời giải chi tiết, giúp học sinh hiểu rõ phương pháp và tự tin giải các bài tương tự.",
       cta: {
-        text: "Chat ngay",
+        text: "Chat với AI",
         href: "/ai-chat",
         variant: "secondary"
       },
+      highlights: ["24/7", "Chi tiết", "Thông minh"]
+    },
+    {
+      id: 3,
+      icon: "Trophy",
+      title: "Thi thử miễn phí",
+      description: "Làm đề thi thử THPT Quốc gia, thi vào 10 với kết quả chi tiết",
+      color: "accent",
+      link: "#",
+      stats: {
+        value: "50+",
+        label: "Đề thi chất lượng",
+        trend: "up"
+      },
+      benefits: [
+        "Đề thi chuẩn Bộ GD&ĐT",
+        "Chấm điểm tự động",
+        "Phân tích chi tiết kết quả"
+      ],
+      detailedDescription: "Hệ thống thi thử với đề thi được biên soạn theo chuẩn Bộ GD&ĐT, giúp học sinh làm quen với format thi và đánh giá năng lực.",
+      cta: {
+        text: "Làm đề thử",
+        href: "/exam/demo",
+        variant: "primary"
+      },
+      highlights: ["Miễn phí", "Chuẩn BGD", "Chi tiết"]
+    },
+    {
+      id: 4,
+      icon: "Video",
+      title: "Học qua video bài giảng",
+      description: "Thư viện video HD với giảng viên kinh nghiệm, dễ hiểu và sinh động",
+      color: "primary",
+      link: "#",
+      stats: {
+        value: "200+",
+        label: "Video chất lượng",
+        trend: "up"
+      },
+      benefits: [
+        "Video HD chất lượng cao",
+        "Giảng viên kinh nghiệm",
+        "Học mọi lúc mọi nơi"
+      ],
+      detailedDescription: "Thư viện video bài giảng phong phú với các giảng viên có nhiều năm kinh nghiệm, giúp học sinh hiểu bài một cách trực quan và sinh động.",
+      cta: {
+        text: "Xem video mẫu",
+        href: "/courses/demo",
+        variant: "secondary"
+      },
+      highlights: ["HD", "Kinh nghiệm", "Linh hoạt"]
+    },
+    {
+      id: 5,
+      icon: "Progress",
+      title: "Theo dõi tiến độ học tập",
+      description: "Báo cáo chi tiết về quá trình học, điểm mạnh yếu và lộ trình cải thiện",
+      color: "secondary",
+      link: "#",
+      stats: {
+        value: "95%",
+        label: "Độ chính xác phân tích",
+        trend: "stable"
+      },
+      benefits: [
+        "Phân tích điểm mạnh yếu",
+        "Lộ trình học cá nhân hóa",
+        "Báo cáo tiến độ chi tiết"
+      ],
+      detailedDescription: "Hệ thống AI phân tích quá trình học tập và đưa ra báo cáo chi tiết về năng lực, giúp học sinh và phụ huynh theo dõi tiến độ hiệu quả.",
+      cta: {
+        text: "Xem báo cáo mẫu",
+        href: "/progress/demo",
+        variant: "secondary"
+      },
+      highlights: ["AI phân tích", "Cá nhân hóa", "Chi tiết"]
+    },
+    {
+      id: 6,
+      icon: "Users",
+      title: "Tài nguyên cho giáo viên",
+      description: "Ngân hàng đề thi, bài giảng và công cụ quản lý lớp học hiện đại",
+      color: "accent",
+      link: "#",
+      stats: {
+        value: "500+",
+        label: "Tài liệu chất lượng",
+        trend: "up"
+      },
+      benefits: [
+        "Ngân hàng đề thi phong phú",
+        "Công cụ quản lý lớp học",
+        "Báo cáo học sinh chi tiết"
+      ],
+      detailedDescription: "Bộ công cụ toàn diện dành cho giáo viên với ngân hàng đề thi, bài giảng và hệ thống quản lý lớp học hiện đại.",
+      cta: {
+        text: "Dành cho giáo viên",
+        href: "/teacher/resources",
+        variant: "primary"
+      },
+      highlights: ["Giáo viên", "Quản lý", "Toàn diện"]
+    },
+    {
+      id: 7,
+      icon: "BookOpen",
+      title: "Lý thuyết toán học",
+      description: "Hệ thống lý thuyết đầy đủ từ cơ bản đến nâng cao, được trình bày rõ ràng và dễ hiểu",
+      color: "primary",
+      link: "#",
+      stats: {
+        value: "300+",
+        label: "Chuyên đề lý thuyết",
+        trend: "up"
+      },
+      benefits: [
+        "Lý thuyết đầy đủ theo SGK",
+        "Ví dụ minh họa chi tiết",
+        "Công thức và định lý quan trọng"
+      ],
+      detailedDescription: "Hệ thống lý thuyết toán học được biên soạn theo chương trình SGK, giúp học sinh nắm vững kiến thức nền tảng trước khi làm bài tập.",
+      cta: {
+        text: "Xem lý thuyết",
+        href: "/theory",
+        variant: "primary"
+      },
+      highlights: ["Đầy đủ", "Dễ hiểu", "Theo SGK"]
+    },
+    {
+      id: 8,
+      icon: "GraduationCap",
+      title: "Khóa học trực tuyến",
+      description: "Các khóa học được thiết kế bài bản từ giáo viên kinh nghiệm, học theo lộ trình rõ ràng",
+      color: "primary",
+      link: "#",
+      stats: {
+        value: "50+",
+        label: "Khóa học chất lượng",
+        trend: "up"
+      },
+      benefits: [
+        "Lộ trình học có hệ thống",
+        "Giáo viên kinh nghiệm",
+        "Chứng chỉ hoàn thành"
+      ],
+      detailedDescription: "Các khóa học trực tuyến được thiết kế theo lộ trình khoa học, giúp học sinh học tập hiệu quả và đạt kết quả cao.",
+      cta: {
+        text: "Xem khóa học",
+        href: "/courses",
+        variant: "primary"
+      },
+      highlights: ["Có hệ thống", "Kinh nghiệm", "Chứng chỉ"]
+    },
+    {
+      id: 9,
+      icon: "Target",
+      title: "Luyện đề thi",
+      description: "Hệ thống đề thi đa dạng từ cơ bản đến nâng cao, giúp rèn luyện kỹ năng làm bài",
+      color: "accent",
+      link: "#",
+      stats: {
+        value: "100+",
+        label: "Đề thi đa dạng",
+        trend: "up"
+      },
+      benefits: [
+        "Đề thi phân cấp độ khó",
+        "Giải thích chi tiết đáp án",
+        "Thống kê kết quả học tập"
+      ],
+      detailedDescription: "Ngân hàng đề thi phong phú với các mức độ khác nhau, giúp học sinh rèn luyện và nâng cao kỹ năng làm bài thi.",
+      cta: {
+        text: "Luyện đề ngay",
+        href: "/practice-tests",
+        variant: "primary"
+      },
+      highlights: ["Đa dạng", "Phân cấp", "Chi tiết"]
+    },
+    {
+      id: 10,
+      icon: "HelpCircle",
+      title: "Hỏi đáp câu hỏi",
+      description: "Đặt câu hỏi và nhận câu trả lời từ giáo viên, AI hoặc cộng đồng học sinh",
+      color: "secondary",
+      link: "#",
+      stats: {
+        value: "24/7",
+        label: "Hỗ trợ liên tục",
+        trend: "stable"
+      },
+      benefits: [
+        "Hỏi đáp trực tiếp với giáo viên",
+        "AI trả lời tức thì",
+        "Cộng đồng học sinh hỗ trợ"
+      ],
+      detailedDescription: "Hệ thống hỏi đáp thông minh giúp học sinh giải quyết mọi thắc mắc trong quá trình học tập một cách nhanh chóng.",
+      cta: {
+        text: "Đặt câu hỏi",
+        href: "/questions",
+        variant: "secondary"
+      },
+      highlights: ["24/7", "Đa dạng", "Tức thì"]
+    },
+    {
+      id: 11,
+      icon: "MessageSquare",
+      title: "Thảo luận cộng đồng",
+      description: "Tham gia thảo luận với học sinh và giáo viên, chia sẻ kinh nghiệm học tập",
+      color: "accent",
+      link: "#",
+      stats: {
+        value: "5,000+",
+        label: "Thành viên tích cực",
+        trend: "up"
+      },
+      benefits: [
+        "Cộng đồng học tập sôi động",
+        "Chia sẻ kinh nghiệm học tập",
+        "Hỗ trợ lẫn nhau trong học tập"
+      ],
+      detailedDescription: "Diễn đàn thảo luận nơi học sinh có thể trao đổi, chia sẻ kinh nghiệm và cùng nhau tiến bộ trong học tập.",
+      cta: {
+        text: "Tham gia thảo luận",
+        href: "/discussions",
+        variant: "secondary"
+      },
+      highlights: ["Cộng đồng", "Chia sẻ", "Hỗ trợ"]
+    },
+    {
+      id: 12,
+      icon: "Bot",
+      title: "Nhắn tin với AI",
+      description: "Trò chuyện trực tiếp với AI để được hỗ trợ học tập 24/7, giải đáp mọi thắc mắc",
+      color: "secondary",
+      link: "#",
+      stats: {
+        value: "∞",
+        label: "Không giới hạn",
+        trend: "stable"
+      },
+      benefits: [
+        "AI thông minh và hiểu biết",
+        "Trả lời tức thì mọi lúc",
+        "Hỗ trợ đa dạng chủ đề"
+      ],
+      detailedDescription: "Trợ lý AI thông minh có thể trò chuyện và hỗ trợ học tập 24/7, giúp giải quyết mọi thắc mắc của học sinh.",
+      cta: {
+        text: "Chat với AI",
+        href: "/ai-chat",
+        variant: "primary"
+      },
       highlights: ["24/7", "Thông minh", "Tức thì"]
+    },
+    {
+      id: 13,
+      icon: "Library",
+      title: "Thư viện tài liệu",
+      description: "Kho tàng tài liệu học tập phong phú với sách, bài giảng và tài liệu tham khảo",
+      color: "primary",
+      link: "#",
+      stats: {
+        value: "1,000+",
+        label: "Tài liệu chất lượng",
+        trend: "up"
+      },
+      benefits: [
+        "Tài liệu đa dạng và phong phú",
+        "Được cập nhật thường xuyên",
+        "Dễ dàng tìm kiếm và tải về"
+      ],
+      detailedDescription: "Thư viện tài liệu số với hàng nghìn tài liệu học tập chất lượng cao, giúp học sinh mở rộng kiến thức.",
+      cta: {
+        text: "Khám phá thư viện",
+        href: "/library",
+        variant: "secondary"
+      },
+      highlights: ["Phong phú", "Chất lượng", "Cập nhật"]
     }
   ],
   ctaButton: {

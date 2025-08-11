@@ -9,7 +9,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { User, Settings, LogOut, Shield, Bell, HelpCircle, ChevronDown } from 'lucide-react';
 import { UserMenuProps, AdminUser } from '@/types/admin/header';
-import { adminHeaderMockService } from '@/lib/mockdata/admin-header';
+import { adminHeaderMockService } from '@/lib/mockdata/admin';
 import { cn } from '@/lib/utils';
 
 /**

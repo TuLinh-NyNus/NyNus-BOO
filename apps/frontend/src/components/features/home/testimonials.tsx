@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
-import Image from "next/image";
 
 // Testimonials data
 const testimonials = [
@@ -87,7 +86,7 @@ const Testimonials = () => {
 
                   {/* Content */}
                   <blockquote className="text-muted-foreground mb-6 leading-relaxed">
-                    "{testimonial.content}"
+                    &ldquo;{testimonial.content}&rdquo;
                   </blockquote>
 
                   {/* Author */}

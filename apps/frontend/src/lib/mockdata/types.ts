@@ -1,5 +1,5 @@
 // Extended types for admin mockdata
-import { Question } from '@/types';
+import { Question, AnswerOption } from '../types/question';
 // ✅ Import shared types from consolidated core-types
 import {
   UserRole,
@@ -87,12 +87,16 @@ export interface AdminUser {
 }
 
 // Admin-specific question interface extending base Question
-export interface AdminQuestion extends Question {
+export interface AdminQuestion extends Omit<Question, 'correctAnswer' | 'questionCodeId'> {
   subcount?: string;
   questionId?: string;
   source?: string;
-  rawContent?: string;
   solution?: string;
+  correctAnswer?: string; // Override to allow simple string for mockdata
+  category?: string; // Subject category for mockdata
+  options?: AnswerOption[]; // Question options for multiple choice
+  createdBy?: string; // Creator of the question
+  questionCodeId?: string; // Optional for mockdata
   subject?: string;
   grade?: string;
   chapter?: string;

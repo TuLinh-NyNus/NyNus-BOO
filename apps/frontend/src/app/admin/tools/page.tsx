@@ -4,7 +4,6 @@
  */
 
 import React from "react";
-import { StreamlitLauncher } from "@/components/features/admin/tools/streamlit-launcher";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { 
   Wrench, 
@@ -33,9 +32,29 @@ export default function AdminToolsPage() {
 
       {/* Tools Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        {/* Streamlit LaTeX Parser */}
-        <StreamlitLauncher className="col-span-1" />
+
+        {/* LaTeX Parser Tool (Placeholder) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              LaTeX Parser
+            </CardTitle>
+            <CardDescription>
+              Công cụ parsing câu hỏi từ LaTeX sang CSV
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm text-muted-foreground">
+              <p>• Upload LaTeX files</p>
+              <p>• Parse questions automatically</p>
+              <p>• Export to CSV format</p>
+            </div>
+            <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+              Tool temporarily disabled
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Database Tools */}
         <Card>

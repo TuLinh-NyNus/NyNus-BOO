@@ -18,11 +18,24 @@ class ErrorHandler:
     def __init__(self, output_dir: str = "tools/parsing-question"):
         """
         Initialize error handler.
-        
+
         Args:
             output_dir: Directory to save error files
         """
         self.output_dir = output_dir
+        self.errors = []
+        self.malformed_questions = []
+        self.statistics = {
+            'total_errors': 0,
+            'parsing_errors': 0,
+            'validation_errors': 0,
+            'malformed_questions': 0,
+            'processing_start_time': None,
+            'processing_end_time': None
+        }
+
+    def clear_errors(self):
+        """Clear all errors and reset statistics for fresh processing."""
         self.errors = []
         self.malformed_questions = []
         self.statistics = {

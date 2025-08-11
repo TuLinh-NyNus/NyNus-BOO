@@ -20,6 +20,7 @@ from parser.bracket_parser import BracketParser
 from parser.content_extractor import ContentExtractor
 from parser.answer_extractor import AnswerExtractor
 from parser.question_code_parser import QuestionCodeParser
+from utils.text_cleaner import TextCleaner
 
 
 class LaTeXQuestionParser:
@@ -98,8 +99,11 @@ class LaTeXQuestionParser:
             solution = AnswerExtractor.extract_solution(raw_content)
             
             # Step 6: Create Question object
+            # Convert newlines to literal for rawContent
+            raw_content_literal = TextCleaner.convert_newlines_to_literal(raw_content.strip())
+
             question = Question(
-                rawContent=raw_content.strip(),  # Chỉ lưu nội dung từ ex environment, không bao gồm source bên ngoài
+                rawContent=raw_content_literal,  # Chỉ lưu nội dung từ ex environment, không bao gồm source bên ngoài
                 content=clean_content,
                 type=question_type,
                 subcount=subcount,

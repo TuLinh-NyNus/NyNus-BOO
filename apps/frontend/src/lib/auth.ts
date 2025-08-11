@@ -5,24 +5,28 @@ import type { NextAuthConfig } from "next-auth";
 // Cấu hình NextAuth cho NyNus
 export const authConfig: NextAuthConfig = {
   providers: [
-    Google({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code"
-        }
-      }
-    })
+    // Chỉ enable Google provider khi có credentials
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [Google({
+          clientId: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          authorization: {
+            params: {
+              prompt: "consent",
+              access_type: "offline",
+              response_type: "code"
+            }
+          }
+        })]
+      : []
+    )
   ],
   pages: {
     signIn: "/", // Redirect về trang chủ thay vì trang sign-in mặc định
     error: "/", // Redirect về trang chủ khi có lỗi
   },
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user: _user, account, profile: _profile }) {
       // Kiểm tra xem user có được phép đăng nhập không
       if (account?.provider === "google") {
         // Có thể thêm logic kiểm tra email domain, whitelist, etc.

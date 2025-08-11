@@ -23,15 +23,17 @@ const ScrollIndicator = ({ targetSectionId, className = "", style }: ScrollIndic
   };
 
   return (
-    <motion.div
-      className={`absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center cursor-pointer ${className}`}
+    <motion.button
+      className={`absolute left-1/2 transform -translate-x-1/2 flex flex-col items-center cursor-pointer min-h-[48px] min-w-[48px] justify-center focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none rounded-lg ${className}`}
       style={{ bottom: '40px', ...style }}
       animate={{ y: [0, 8, 0] }}
       transition={{ duration: 2, repeat: Infinity }}
       onClick={scrollToNextSection}
+      aria-label="Cuộn xuống phần tiếp theo"
+      type="button"
     >
       <Mouse className="h-8 w-8 text-white/80 hover:text-white transition-colors" />
-    </motion.div>
+    </motion.button>
   );
 };
 

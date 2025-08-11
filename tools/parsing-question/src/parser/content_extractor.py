@@ -333,22 +333,22 @@ class ContentExtractor:
     @classmethod
     def normalize_whitespace(cls, content: str) -> str:
         """
-        Step 7: Normalize whitespace and remove line breaks for CSV export.
+        Step 7: Normalize whitespace and convert newlines to literal for CSV export.
 
         Args:
             content: Content to normalize
 
         Returns:
-            Content with normalized whitespace and no line breaks
+            Content with normalized whitespace and newlines converted to literal \n
         """
-        # Use TextCleaner to remove line breaks while preserving LaTeX math
-        content = TextCleaner.clean_line_breaks(content, preserve_paragraphs=False)
+        # Convert actual newlines to literal \n for CSV safety
+        content = TextCleaner.convert_newlines_to_literal(content)
 
-        # Additional normalization
+        # Basic whitespace normalization
         content = content.strip()
 
         # Replace multiple spaces with single space
-        content = re.sub(r' +', ' ', content)
+        content = re.sub(r'[ ]+', ' ', content)
 
         return content
     

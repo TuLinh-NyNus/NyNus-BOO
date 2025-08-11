@@ -18,7 +18,7 @@ import { Progress } from '@/components/ui/display/progress';
 import { Badge } from "@/components/ui/display/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { getChaptersByCourseId } from '@/lib/mockdata/course-details';
-import { getCourseBySlug } from '@/lib/mockdata/courses-frontend';
+import { getCourseBySlug } from '@/lib/mockdata';
 import { MockCourse, MockChapter, MockLesson } from '@/lib/mockdata/courses-types';
 
 export default function CourseLearningPage(): JSX.Element {

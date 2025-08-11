@@ -90,6 +90,8 @@ export enum FeedbackType {
   SUGGESTION = 'SUGGESTION'
 }
 
+
+
 // User Role Enum (matches Enhanced User Model from AUTH_COMPLETE_GUIDE.md)
 export enum UserRole {
   GUEST = 'GUEST',         // Khách (không đăng ký) - Không có level
@@ -117,6 +119,86 @@ export interface TimestampFields {
 export interface OptionalTimestampFields {
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+// ===== QUESTION INTERFACES =====
+
+// Question Code interface (matches database schema)
+export interface QuestionCode {
+  code: string;                  // Primary key - "0P1VH1" format
+  format: CodeFormat;            // ID5 or ID6
+  grade: string;                 // Grade level (0-9, A, B, C)
+  subject: string;               // Subject code (P=Math, L=Physics, etc.)
+  chapter: string;               // Chapter number (1-9)
+  lesson: string;                // Lesson identifier (1-9, A-Z)
+  form?: string;                 // Form/type identifier (1-9, only for ID6)
+  level: string;                 // Difficulty level (N,H,V,C,T,M)
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Unified Question interface (consolidates DatabaseQuestion + EnhancedQuestion)
+export interface Question {
+  // Core fields
+  id: string;                    // TEXT PRIMARY KEY
+  rawContent: string;            // TEXT NOT NULL - LaTeX gốc từ user
+  content: string;               // TEXT NOT NULL - Nội dung đã xử lý
+  subcount?: string;             // VARCHAR(10) - [XX.N] format
+  type: QuestionType;            // QuestionType NOT NULL
+  source?: string;               // TEXT - Nguồn câu hỏi
+
+  // Answer data (JSONB fields)
+  answers?: string[] | Record<string, unknown> | null;      // JSONB - Answer options
+  correctAnswer?: string | string[] | Record<string, unknown> | null; // JSONB - Correct answer(s)
+  solution?: string;             // TEXT - Lời giải chi tiết
+
+  // Metadata
+  tag: string[];                 // TEXT[] DEFAULT '{}' (note: 'tag' not 'tags')
+  usageCount: number;            // INT DEFAULT 0
+  creator: string;               // TEXT DEFAULT 'ADMIN'
+  status: QuestionStatus;        // QuestionStatus DEFAULT 'ACTIVE'
+  feedback: number;              // INT DEFAULT 0
+  difficulty: QuestionDifficulty; // QuestionDifficulty DEFAULT 'MEDIUM'
+
+  // Relations
+  questionCodeId: string;        // VARCHAR(7) NOT NULL REFERENCES QuestionCode(code)
+  questionCode?: QuestionCode;   // Optional populated relation
+
+  // Timestamps
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Question Image interface
+export interface QuestionImage {
+  id: string;
+  questionId: string;
+  imageType: ImageType;          // 'QUESTION' | 'SOLUTION'
+  imagePath?: string;            // Local path (temporary)
+  driveUrl?: string;             // Google Drive URL
+  driveFileId?: string;          // Google Drive file ID
+  status: ImageStatus;           // Upload status
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Question Tag interface
+export interface QuestionTag {
+  id: string;
+  questionId: string;
+  tagName: string;
+  createdAt: Date;
+}
+
+// Question Feedback interface
+export interface QuestionFeedback {
+  id: string;
+  questionId: string;
+  userId?: string;
+  feedbackType: FeedbackType;    // 'LIKE' | 'DISLIKE' | 'REPORT' | 'SUGGESTION'
+  content?: string;
+  rating?: number;               // 1-5 stars
+  createdAt: Date;
 }
 
 // ===== NOTIFICATION TYPES =====

@@ -13,9 +13,26 @@ export {
   mockUsers,
   getUserById,
   getUsersByRole,
+  getUsersByStatus,
   getActiveUsers,
+  getHighRiskUsers,
+  getLockedUsers,
+  getUsersWithMultipleSessions,
   searchUsers,
-  getMockUsersResponse
+  getMockUsersResponse,
+  getMockUserStats,
+  // Student users
+  mockStudentUsers,
+  getStudentById,
+  getActiveStudents,
+  getStudentsByLevel,
+  searchStudents,
+  // Instructor users
+  mockInstructorUsers,
+  getInstructorById,
+  getActiveInstructors,
+  getInstructorsByRole,
+  searchInstructors
 } from './users';
 
 // Export questions mockdata
@@ -26,20 +43,48 @@ export {
   getQuestionsByGrade,
   getQuestionsByDifficulty,
   searchQuestions,
-  getMockQuestionsResponse
+  getMockQuestionsResponse,
+  // Enhanced questions
+  mockEnhancedQuestions,
+  mockQuestionImages,
+  mockQuestionTags,
+  mockQuestionFeedback,
+  getEnhancedQuestionById,
+  getEnhancedQuestionsByType,
+  getEnhancedQuestionsByDifficulty,
+  getMockEnhancedQuestionsResponse,
+  // Question codes
+  mockQuestionCodes,
+  mockMapCodeConfig,
+  getQuestionCodeById,
+  getQuestionCodesByGrade,
+  getQuestionCodesBySubject,
+  getQuestionCodesByLevel,
+  parseQuestionCode,
+  generateQuestionCode,
+  getMockQuestionCodesResponse
 } from './questions';
 
 // Export courses mockdata
 export {
-  mockCourses,
-  getCourseById,
-  getCoursesByInstructor,
+  // Featured courses (frontend)
+  mockFrontendCourses,
+  mockTutorials,
   getCoursesByCategory,
+  getCourseBySlug,
   getFeaturedCourses,
   getPopularCourses,
-  searchCourses,
+  // Admin courses
   getMockCoursesResponse
-} from './courses';
+} from './courses/';
+
+// Export homepage featured courses
+export type { FeaturedCourse } from './homepage-featured-courses';
+export {
+  featuredCourses as homepageFeaturedCourses,
+  getHomepageFeaturedCourses,
+  getGradient
+} from './homepage-featured-courses';
 
 // Export analytics mockdata
 export {
@@ -184,21 +229,7 @@ export {
   getMockEnhancedSessionsResponse
 } from './auth-enhanced';
 
-// Export enhanced questions mockdata
-export {
-  mockQuestionCodes,
-  mockEnhancedQuestions,
-  mockQuestionImages,
-  mockQuestionTags,
-  mockQuestionFeedback,
-  mockMapCodeConfig,
-  getQuestionsByCode,
-  getQuestionsByStatus,
-  getQuestionsByType,
-  translateQuestionCode,
-  searchEnhancedQuestions,
-  getMockEnhancedQuestionsResponse
-} from './questions-enhanced';
+// Enhanced questions exports are now included in questions export above
 
 // Export admin dashboard mockdata
 export {
@@ -212,7 +243,7 @@ export {
   type DashboardMetrics,
   type SystemStatus,
   type RecentActivity
-} from './admin-dashboard';
+} from './admin';
 
 // Export admin roles mockdata
 export {
@@ -223,11 +254,11 @@ export {
   roleHasPermission,
   type Permission,
   type Role
-} from './admin-roles';
+} from './admin';
 
 // Export admin header mockdata
 export {
-  mockAdminUser,
+  mockAdminHeaderUser,
   mockNotifications as mockAdminNotifications,
   mockSearchSuggestions,
   adminHeaderMockService,
@@ -237,7 +268,13 @@ export {
   type AdminUser,
   type AdminNotification,
   type SearchSuggestion
-} from './admin-header';
+} from './admin';
+
+// Export auth mockdata
+export {
+  mockAdminUser,
+  type User as AuthUser
+} from './auth';
 
 // Export admin sidebar mockdata
 export {
@@ -252,7 +289,7 @@ export {
   type NavigationItem,
   type NavigationSection,
   type UserPermissions
-} from './admin-sidebar';
+} from './admin';
 
 // Export security mockdata
 export {
@@ -364,11 +401,7 @@ export {
   type FeatureItem
 } from './homepage';
 
-export {
-  featuredCourses,
-  getGradient,
-  type FeaturedCourse
-} from './featured-courses';
+// Removed duplicate export - now exported above
 
 export {
   homepageFAQData,
@@ -389,7 +422,7 @@ import { MOCK_DATA_CONSTANTS } from './core-types';
 // Import all mockdata for default export
 import { mockUsers } from './users';
 import { mockQuestions } from './questions';
-import { mockCourses } from './courses';
+import { mockCourses } from './courses/';
 import { mockAnalytics } from './analytics';
 import { mockSessions } from './sessions';
 import { mockSystemNotifications, mockNotificationStats } from './notifications';
@@ -398,7 +431,7 @@ import { mockFAQs } from './faq';
 import { mockForumPosts } from './forum';
 import { mockSettings } from './settings';
 import { mockEnhancedSessions, mockOAuthAccounts, mockResourceAccess, mockUserPreferences, mockAuditLogs, mockNotifications } from './auth-enhanced';
-import { mockQuestionCodes, mockEnhancedQuestions, mockQuestionImages, mockQuestionTags, mockQuestionFeedback, mockMapCodeConfig } from './questions-enhanced';
+import { mockQuestionCodes, mockEnhancedQuestions, mockQuestionImages, mockQuestionTags, mockQuestionFeedback, mockMapCodeConfig } from './questions';
 import { mockProgressionSettings, mockProgressionStatistics, mockProgressionHistory } from './level-progression';
 import { mockMapCodeVersions, mockMapCodeStatistics } from './mapcode';
 

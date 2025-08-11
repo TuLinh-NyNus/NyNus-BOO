@@ -26,7 +26,7 @@ import {
   mockPermissions,
   mockRoles,
   Permission
-} from "../../../lib/mockdata/admin-roles";
+} from "@/lib/mockdata/admin";
 
 /**
  * Interface cho permission matrix response

@@ -29,7 +29,7 @@ import {
   Mail,
   Filter
 } from "lucide-react";
-import { QuickStreamlitButton } from "@/components/ui/buttons/streamlit-button";
+
 
 // import { UserRole } from "@/lib/mockdata/core-types";
 
@@ -299,7 +299,7 @@ export function EnhancedSearch({
                   <X className="h-3 w-3" />
                 </Button>
               )}
-              <QuickStreamlitButton className="h-6 w-6 p-0" />
+
               <Button
                 variant="ghost"
                 size="sm"

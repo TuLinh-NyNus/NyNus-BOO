@@ -120,7 +120,7 @@ export function DashboardStats() {
             value={overview.newUsersToday}
             description="Tài khoản mới hôm nay"
             icon={<Users className="h-4 w-4" />}
-            colorScheme="cyan"
+            colorScheme="indigo"
           />
           <StatCard
             title="Phiên học"

@@ -45,9 +45,27 @@ pip install -r requirements.txt
 
 ### 1. Easy Launch (Recommended)
 
-#### **Windows - Double Click:**
+#### **Windows - Choose Your Launcher:**
+
+**🚀 Ultimate Launcher (Recommended):**
 ```
-Double-click: khoi-dong-latex-parser.bat
+Double-click: run-parser.bat
+```
+- ✅ Full dependency check & auto-install
+- ✅ Beautiful UI with progress indicators  
+- ✅ Auto port management
+- ✅ Error handling & recovery
+- ✅ Dark theme optimized
+
+**⚡ Quick Start (Fast):**
+```
+Double-click: quick-start.bat
+```
+- ✅ Minimal setup, fast startup
+- ✅ Auto Streamlit install
+- ✅ Perfect for daily use
+
+
 ```
 - Tự động kiểm tra Python và dependencies
 - Tự động cài đặt Streamlit nếu chưa có

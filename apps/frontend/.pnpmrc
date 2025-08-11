@@ -1,0 +1,4 @@
+# Cấu hình pnpm để khắc phục vấn đề module resolution với Next.js
+shamefully-hoist=true
+node-linker=hoisted
+auto-install-peers=true

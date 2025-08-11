@@ -5,17 +5,8 @@ import React from 'react';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 
-// Interface cho User từ mockdata
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: 'admin' | 'instructor' | 'student';
-  avatar?: string;
-  isActive: boolean;
-  lastLoginAt?: Date;
-}
+// Import User interface và mockAdminUser từ mockdata
+import { type User, mockAdminUser } from '../lib/mockdata/auth';
 
 // Interface cho Auth Context
 interface AuthContextType {
@@ -30,18 +21,6 @@ interface AuthContextType {
 
 // Tạo Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-// Mock user data cho admin
-const mockAdminUser: User = {
-  id: 'admin-001',
-  email: 'admin@nynus.edu.vn',
-  firstName: 'Admin',
-  lastName: 'NyNus',
-  role: 'admin',
-  avatar: '/avatars/admin.jpg',
-  isActive: true,
-  lastLoginAt: new Date()
-};
 
 // Provider component
 interface AuthProviderProps {

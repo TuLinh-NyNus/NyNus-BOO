@@ -18,7 +18,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/display/card';
 import { Badge } from '@/components/ui/display/badge';
-import { adminDashboardMockService, DashboardMetrics } from '@/lib/mockdata/admin-dashboard';
+import { adminDashboardMockService, DashboardMetrics } from '@/lib/mockdata/admin';
 
 /**
  * Realtime Dashboard Metrics Props

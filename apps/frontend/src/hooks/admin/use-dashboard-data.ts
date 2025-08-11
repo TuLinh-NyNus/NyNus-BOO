@@ -11,7 +11,7 @@ import {
   DashboardMetrics, 
   SystemStatus, 
   RecentActivity 
-} from '@/lib/mockdata/admin-dashboard';
+} from '@/lib/mockdata/admin';
 
 /**
  * Dashboard Data Hook Options

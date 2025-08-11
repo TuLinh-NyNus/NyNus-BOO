@@ -163,8 +163,7 @@ def clean_text_display(text):
     for cmd in formatting_commands:
         text = re.sub(rf'\\{cmd}\{{([^}}]*)\}}', r'\1', text)  # Remove formatting but keep content
 
-    # Clean up multiple spaces and newlines
-    text = re.sub(r'\n\s*\n', '\n\n', text)  # Multiple newlines to double
+    # Clean up multiple spaces only (preserve newlines)
     text = re.sub(r' +', ' ', text)  # Multiple spaces to single
     text = re.sub(r'\t+', '    ', text)  # Multiple tabs to spaces
 
@@ -234,13 +233,11 @@ def clean_raw_content_display(text):
     for old, new in basic_replacements.items():
         text = text.replace(old, new)
 
-    # Clean up multiple spaces and newlines
-    text = re.sub(r'\n\s*\n', '\n\n', text)  # Multiple newlines to double
+    # Clean up multiple spaces only (preserve newlines)
     text = re.sub(r' +', ' ', text)  # Multiple spaces to single
 
     return text.strip()
 
-@st.cache_data
 def load_data():
     """Load data from CSV files."""
     try:
@@ -251,21 +248,21 @@ def load_data():
         else:
             # Return empty DataFrames instead of None to allow dashboard to work
             questions_df = pd.DataFrame()
-        
+
         # Load question codes
         codes_path = "output/question_codes.csv"
         if os.path.exists(codes_path):
             codes_df = pd.read_csv(codes_path)
         else:
             codes_df = pd.DataFrame()
-        
+
         # Load question tags
         tags_path = "output/question_tags.csv"
         if os.path.exists(tags_path):
             tags_df = pd.read_csv(tags_path)
         else:
             tags_df = pd.DataFrame()
-        
+
         return questions_df, codes_df, tags_df
     
     except Exception as e:
@@ -491,106 +488,165 @@ def process_uploaded_file(uploaded_file):
         from processor.error_handler import ErrorHandler
         from export.data_validator import DataValidator
 
-        # Process file
-        with st.spinner('🔄 Đang xử lý file...'):
-            # Initialize components
-            error_handler = ErrorHandler()
+        # Create progress bar and status
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        # Step 1: Initialize modules
+        status_text.text("🔄 Đang khởi tạo modules...")
+        progress_bar.progress(10)
+        
+        # Initialize components
+        error_handler = ErrorHandler()
+        # Clear any previous errors for fresh processing
+        error_handler.clear_errors()
 
-            # Read file and create batches
-            file_reader = FileReader(tmp_file_path)
+        # Step 2: Read and analyze file
+        status_text.text("📖 Đang đọc và phân tích file...")
+        progress_bar.progress(20)
+        
+        # Read file and create batches
+        file_reader = FileReader(tmp_file_path)
 
-            # Count questions first
-            total_questions = file_reader.count_questions()
-            if total_questions == 0:
-                st.error("❌ Không tìm thấy câu hỏi nào trong file")
-                os.unlink(tmp_file_path)
-                return None, None, None
+        # Count questions first
+        total_questions = file_reader.count_questions()
+        if total_questions == 0:
+            st.error("❌ Không tìm thấy câu hỏi nào trong file")
+            os.unlink(tmp_file_path)
+            return None, None, None
 
-            st.info(f"📊 Tìm thấy {total_questions:,} câu hỏi")
+        st.info(f"📊 Tìm thấy {total_questions:,} câu hỏi")
 
-            # Create batches
-            batch_size = min(500, total_questions)  # Smaller batches for Streamlit
-            batches = file_reader.split_into_batches(batch_size)
+        # Step 3: Create batches
+        status_text.text("📦 Đang chia nhỏ thành batches...")
+        progress_bar.progress(30)
+        
+        # Create batches - Use optimal batch size based on performance analysis
+        optimal_batch_size = 250  # BEST PERFORMANCE: 73.4 q/s (+97% improvement)
+        batch_size = min(optimal_batch_size, total_questions)
+        batches = file_reader.split_into_batches(batch_size)
 
-            # Process batches
-            progress_bar = st.progress(0)
-            status_text = st.empty()
+        # Step 4: Process batches
+        status_text.text(f"⚙️ Đang xử lý {len(batches)} batches...")
+        progress_bar.progress(40)
 
-            def progress_callback(processed: int, total: int, elapsed_time: float):
-                progress = processed / total if total > 0 else 0
-                questions_per_sec = processed / elapsed_time if elapsed_time > 0 else 0
-                progress_bar.progress(progress)
-                status_text.text(f"⚡ Đã xử lý: {processed:,}/{total:,} ({progress*100:.1f}%) - {questions_per_sec:.1f} q/s")
-
-            # Process with BatchProcessor
-            batch_processor = BatchProcessor(max_workers=1)  # Single worker for Streamlit
-            questions, question_codes, errors = batch_processor.process_batches(
-                batches,
-                progress_callback
+        # Create progress callback for batch processing
+        import time
+        start_time = time.time()
+        processed_questions = 0
+        
+        def progress_callback(current_batch, total_batches, batch_questions):
+            nonlocal processed_questions, start_time
+            processed_questions += batch_questions
+            
+            # Calculate progress percentage
+            batch_progress = (current_batch / total_batches) * 40  # 40% for batch processing (40% to 80%)
+            total_progress = 40 + batch_progress
+            progress_bar.progress(int(total_progress))
+            
+            # Calculate processing speed
+            elapsed_time = time.time() - start_time
+            questions_per_second = processed_questions / elapsed_time if elapsed_time > 0 else 0
+            
+            # Estimate remaining time
+            remaining_questions = total_questions - processed_questions
+            eta_seconds = remaining_questions / questions_per_second if questions_per_second > 0 else 0
+            eta_text = f"{eta_seconds:.0f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
+            
+            # Update status with detailed info
+            status_text.text(
+                f"⚙️ Batch {current_batch}/{total_batches} | "
+                f"📊 {int(processed_questions):,}/{total_questions:,} câu hỏi | "
+                f"⚡ {questions_per_second:.1f} q/s | "
+                f"⏱️ ETA: {eta_text}"
             )
 
-            # Validate data
-            validator = DataValidator()
-            validation_results = validator.validate_all_data(questions, question_codes, [])
+        # Process with BatchProcessor - Use single-threaded mode for Streamlit compatibility
+        batch_processor = BatchProcessor(max_workers=1)  # Force single-threaded to avoid ScriptRunContext issues
+        
+        # Display performance info
+        worker_count = batch_processor.max_workers
+        st.info(f"🚀 Streamlit Mode: Using {worker_count} worker (single-threaded), batch size {batch_size}")
+        questions, question_codes, errors = batch_processor.process_batches(
+            batches,
+            progress_callback
+        )
 
-            # Auto-generate output files for consistency
-            st.info("💾 Đang tạo output files...")
+        # Step 5: Validate data
+        status_text.text("✅ Đang validate dữ liệu...")
+        progress_bar.progress(80)
+        
+        validator = DataValidator()
+        validation_results = validator.validate_all_data(questions, question_codes, [])
 
-            # Create output directory if not exists
-            output_dir = "output"
-            os.makedirs(output_dir, exist_ok=True)
+        # Step 6: Create output files
+        status_text.text("💾 Đang tạo output files...")
+        progress_bar.progress(90)
 
-            # Export to CSV
-            from export.csv_exporter import CSVExporter
-            csv_exporter = CSVExporter(output_dir)
-            csv_files = csv_exporter.export_all(
+        # Create output directory if not exists
+        output_dir = "output"
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Export to CSV
+        from export.csv_exporter import CSVExporter
+        csv_exporter = CSVExporter(output_dir)
+        csv_files = csv_exporter.export_all(
+            validation_results['valid_questions'],
+            validation_results['valid_question_codes'],
+            []
+        )
+
+        # Export to Excel
+        try:
+            from export.excel_exporter import ExcelExporter
+            excel_exporter = ExcelExporter(output_dir)
+            excel_file = excel_exporter.export_all(
                 validation_results['valid_questions'],
                 validation_results['valid_question_codes'],
                 []
             )
+            st.success(f"✅ Đã tạo Excel file: {excel_file}")
+        except Exception as excel_error:
+            st.warning(f"⚠️ Không thể tạo Excel file: {str(excel_error)}")
 
-            # Export to Excel
-            try:
-                from export.excel_exporter import ExcelExporter
-                excel_exporter = ExcelExporter(output_dir)
-                excel_file = excel_exporter.export_all(
-                    validation_results['valid_questions'],
-                    validation_results['valid_question_codes'],
-                    []
-                )
-                st.success(f"✅ Đã tạo Excel file: {excel_file}")
-            except Exception as excel_error:
-                st.warning(f"⚠️ Không thể tạo Excel file: {str(excel_error)}")
+        # Create error report
+        error_file = None
+        if errors:
+            error_file = os.path.join(output_dir, "error.md")
+            with open(error_file, 'w', encoding='utf-8') as f:
+                f.write("# Error Report\n\n")
+                for i, error in enumerate(errors, 1):
+                    f.write(f"## Error {i}\n{error}\n\n")
+            st.info(f"📋 Đã tạo error report: {error_file}")
+        else:
+            st.info("📋 Không có lỗi nào được tìm thấy")
 
-            # Create error report
-            if errors:
-                error_file = os.path.join(output_dir, "error.md")
-                with open(error_file, 'w', encoding='utf-8') as f:
-                    f.write("# Error Report\n\n")
-                    for i, error in enumerate(errors, 1):
-                        f.write(f"## Error {i}\n{error}\n\n")
-                st.info(f"📋 Đã tạo error report: {error_file}")
+        # Create summary
+        summary_file = os.path.join(output_dir, "export_summary.md")
+        with open(summary_file, 'w', encoding='utf-8') as f:
+            f.write("# Export Summary\n\n")
+            f.write(f"- **Total Questions**: {len(questions)}\n")
+            f.write(f"- **Valid Questions**: {len(validation_results['valid_questions'])}\n")
+            f.write(f"- **Question Codes**: {len(validation_results['valid_question_codes'])}\n")
+            f.write(f"- **Errors**: {len(errors)}\n")
+            f.write(f"- **Validation Errors**: {len(validation_results.get('validation_errors', []))}\n")
 
-            # Create summary
-            summary_file = os.path.join(output_dir, "export_summary.md")
-            with open(summary_file, 'w', encoding='utf-8') as f:
-                f.write("# Export Summary\n\n")
-                f.write(f"- **Total Questions**: {len(questions)}\n")
-                f.write(f"- **Valid Questions**: {len(validation_results['valid_questions'])}\n")
-                f.write(f"- **Question Codes**: {len(validation_results['valid_question_codes'])}\n")
-                f.write(f"- **Errors**: {len(errors)}\n")
-                f.write(f"- **Validation Errors**: {len(validation_results.get('validation_errors', []))}\n")
+        # Step 7: Complete
+        status_text.text("🎉 Hoàn thành xử lý!")
+        progress_bar.progress(100)
+        
+        st.success("✅ Đã tạo tất cả output files!")
 
-            st.success("✅ Đã tạo tất cả output files!")
+        # Clean up temp file
+        os.unlink(tmp_file_path)
 
-            # Clean up temp file
-            os.unlink(tmp_file_path)
+        # Clear progress indicators after a short delay
+        import time
+        time.sleep(1)
+        progress_bar.empty()
+        status_text.empty()
 
-            # Clear progress indicators
-            progress_bar.empty()
-            status_text.empty()
-
-            return validation_results['valid_questions'], validation_results['valid_question_codes'], []
+        return validation_results['valid_questions'], validation_results['valid_question_codes'], []
 
     except Exception as e:
         st.error(f"Lỗi xử lý file: {str(e)}")
@@ -603,6 +659,14 @@ def process_local_file(file_path: str):
             st.error(f"❌ File không tồn tại: {file_path}")
             return None, None, None
 
+        # Create progress bar and status
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        # Step 1: Initialize modules
+        status_text.text("🔄 Đang khởi tạo modules...")
+        progress_bar.progress(10)
+        
         # Import parser modules
         import sys
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -612,22 +676,89 @@ def process_local_file(file_path: str):
 
         from processor.file_reader import FileReader
         from processor.batch_processor import BatchProcessor
+        from processor.error_handler import ErrorHandler
         from export.data_validator import DataValidator
 
-        # Process file
-        with st.spinner('🔄 Đang xử lý file local...'):
-            file_reader = FileReader(file_path)
-            total_questions = file_reader.count_questions()
-            st.info(f"📊 Tìm thấy {total_questions} câu hỏi")
+        # Step 2: Initialize error handler
+        status_text.text("🔧 Đang khởi tạo error handler...")
+        progress_bar.progress(20)
+        
+        error_handler = ErrorHandler()
+        error_handler.clear_errors()
 
-            batches = file_reader.split_into_batches(500)
-            batch_processor = BatchProcessor(max_workers=1)
-            questions, question_codes, errors = batch_processor.process_batches(batches, lambda *args: None)
+        # Step 3: Read and analyze file
+        status_text.text("📖 Đang đọc và phân tích file...")
+        progress_bar.progress(30)
+        
+        file_reader = FileReader(file_path)
+        total_questions = file_reader.count_questions()
+        st.info(f"📊 Tìm thấy {total_questions} câu hỏi")
 
-            validator = DataValidator()
-            validation_results = validator.validate_all_data(questions, question_codes, [])
+        # Step 4: Split into batches
+        status_text.text("📦 Đang chia nhỏ thành batches...")
+        progress_bar.progress(40)
+        
+        batches = file_reader.split_into_batches(250)  # Optimal batch size for performance
+        
+        # Step 5: Process batches
+        status_text.text(f"⚙️ Đang xử lý {len(batches)} batches...")
+        progress_bar.progress(50)
+        
+        # Create progress callback for batch processing
+        import time
+        start_time = time.time()
+        processed_questions = 0
+        
+        def progress_callback(current_batch, total_batches, batch_questions):
+            nonlocal processed_questions, start_time
+            processed_questions += batch_questions
+            
+            # Calculate progress percentage
+            batch_progress = (current_batch / total_batches) * 30  # 30% for batch processing (50% to 80%)
+            total_progress = 50 + batch_progress
+            progress_bar.progress(int(total_progress))
+            
+            # Calculate processing speed
+            elapsed_time = time.time() - start_time
+            questions_per_second = processed_questions / elapsed_time if elapsed_time > 0 else 0
+            
+            # Estimate remaining time
+            remaining_questions = total_questions - processed_questions
+            eta_seconds = remaining_questions / questions_per_second if questions_per_second > 0 else 0
+            eta_text = f"{eta_seconds:.0f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
+            
+            # Update status with detailed info
+            status_text.text(
+                f"⚙️ Batch {current_batch}/{total_batches} | "
+                f"📊 {int(processed_questions):,}/{total_questions:,} câu hỏi | "
+                f"⚡ {questions_per_second:.1f} q/s | "
+                f"⏱️ ETA: {eta_text}"
+            )
+        
+        batch_processor = BatchProcessor()  # Auto-select optimal worker count
+        questions, question_codes, errors = batch_processor.process_batches(batches, progress_callback)
+        
+        # Step 6: Validate data
+        status_text.text("✅ Đang validate dữ liệu...")
+        progress_bar.progress(80)
+        
+        validator = DataValidator()
+        validation_results = validator.validate_all_data(questions, question_codes, [])
 
-            return validation_results['valid_questions'], validation_results['valid_question_codes'], []
+        valid_questions = validation_results['valid_questions']
+        valid_codes = validation_results['valid_question_codes']
+        
+        # Step 7: Complete
+        status_text.text("🎉 Hoàn thành xử lý!")
+        progress_bar.progress(100)
+        
+        # Clear progress indicators after a short delay
+        import time
+        time.sleep(1)
+        progress_bar.empty()
+        status_text.empty()
+
+        return valid_questions, valid_codes, []
 
     except Exception as e:
         st.error(f"❌ Lỗi xử lý file local: {str(e)}")
@@ -635,8 +766,6 @@ def process_local_file(file_path: str):
 
 def show_welcome_screen():
     """Show welcome screen when no data is available."""
-
-    st.markdown('<h1 class="main-header">📚 LaTeX Question Parser Dashboard</h1>', unsafe_allow_html=True)
 
     # Welcome content
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -722,6 +851,38 @@ def show_welcome_screen():
             if st.button("📖 Xem Hướng Dẫn", help="Xem hướng dẫn sử dụng"):
                 st.info("💡 Hướng dẫn: Sử dụng sidebar để upload file hoặc chọn file local")
 
+def clear_cache_and_session():
+    """Clear all cache and session state for fresh processing."""
+    # NOTE: Removed st.cache_data.clear() as it causes Streamlit rerun and interrupts logic flow
+    # st.cache_data.clear()
+
+    # Clear session state related to previous processing
+    keys_to_clear = [
+        'last_processed_file',
+        'processing_results',
+        'error_questions',
+        'pending_questions',
+        'file_hash',
+        'processing_complete',
+        'processing_stats',
+        'error_content',
+        'error_content_hash',
+        'filtered_data',
+        'current_filters'
+    ]
+
+    for key in keys_to_clear:
+        if key in st.session_state:
+            del st.session_state[key]
+
+    # NOTE: Removed st.rerun() as it causes uploaded_file to be reset
+    # st.rerun()
+
+def get_file_hash(file_content):
+    """Generate hash for file content to detect changes."""
+    import hashlib
+    return hashlib.md5(file_content).hexdigest()
+
 def main():
     """Main Streamlit app."""
 
@@ -749,6 +910,23 @@ def main():
             help="Upload file .tex hoặc .md để trích xuất câu hỏi. Hỗ trợ file lên đến 1GB.",
             key="file_uploader_main"
         )
+
+        # Check if a new file is uploaded
+        if uploaded_file is not None:
+            file_content = uploaded_file.getvalue()
+            current_file_hash = get_file_hash(file_content)
+
+            # Calculate file info
+            file_size_mb = len(file_content) / (1024 * 1024)
+
+            # Always clear cache and session for fresh processing when file is uploaded
+            clear_cache_and_session()
+            st.session_state['file_hash'] = current_file_hash
+            st.session_state['last_processed_file'] = uploaded_file.name
+
+            # Show file info - auto-processing will start automatically
+            st.sidebar.success(f"✅ File uploaded: {uploaded_file.name}")
+            st.sidebar.info(f"📊 File size: {file_size_mb:.2f} MB")
     else:
         # Local file selection
         st.sidebar.markdown("**📁 File Local Available:**")
@@ -772,23 +950,42 @@ def main():
             if selected_file != "-- Chọn file --":
                 # Extract file path from selection
                 local_file_path = selected_file.split(" (")[0]
+
+                # Always set the file for processing (simplified logic)
+                st.session_state['last_processed_file'] = local_file_path
                 st.sidebar.success(f"✅ Đã chọn: {os.path.basename(local_file_path)}")
         else:
             st.sidebar.warning("⚠️ Không tìm thấy file .tex hoặc .md nào")
 
     # Process uploaded file or load existing data
-    if uploaded_file is not None or local_file_path is not None:
+    if uploaded_file is not None or local_file_path is not None or st.session_state.get('trigger_processing', False):
         if uploaded_file is not None:
+            # Debug logging
+            st.sidebar.write(f"🔍 DEBUG: Processing section reached")
+            if uploaded_file:
+                st.sidebar.write(f"🔍 DEBUG: File: {uploaded_file.name}")
+            
+            # Clear trigger flag
+            if 'trigger_processing' in st.session_state:
+                del st.session_state['trigger_processing']
+                st.sidebar.write("🔍 DEBUG: Cleared trigger flag")
+            
             # Handle uploaded file
-            file_size_mb = len(uploaded_file.getvalue()) / (1024 * 1024)
-            st.sidebar.success(f"✅ File uploaded: {uploaded_file.name}")
-            st.sidebar.info(f"📊 File size: {file_size_mb:.2f} MB")
+            if uploaded_file:
+                file_size_mb = len(uploaded_file.getvalue()) / (1024 * 1024)
+                st.sidebar.success(f"✅ File uploaded: {uploaded_file.name}")
+                st.sidebar.info(f"📊 File size: {file_size_mb:.2f} MB")
 
-            # Show processing message for large files
-            if file_size_mb > 50:
-                st.sidebar.warning("⏳ File lớn - quá trình xử lý có thể mất vài phút...")
+                # Show processing message for large files
+                if file_size_mb > 50:
+                    st.sidebar.warning("⏳ File lớn - quá trình xử lý có thể mất vài phút...")
 
-            questions_list, codes_list, tags_list = process_uploaded_file(uploaded_file)
+                # Show auto-processing message
+                st.sidebar.info("🚀 Đang tự động xử lý file...")
+                
+                st.sidebar.write("🔍 DEBUG: About to call process_uploaded_file()")
+                questions_list, codes_list, tags_list = process_uploaded_file(uploaded_file)
+                st.sidebar.write("🔍 DEBUG: process_uploaded_file() completed")
         else:
             # Handle local file
             file_size_mb = os.path.getsize(local_file_path) / (1024 * 1024)
@@ -805,16 +1002,37 @@ def main():
             questions_df = pd.DataFrame([q.to_csv_dict() for q in questions_list])
             codes_df = pd.DataFrame([c.to_csv_dict() for c in codes_list]) if codes_list else pd.DataFrame()
             tags_df = pd.DataFrame()
-
+            
             st.sidebar.success(f"✅ Đã trích xuất {len(questions_list)} câu hỏi")
         else:
             st.error("❌ Không thể xử lý file. Vui lòng thử lại.")
             return
     else:
-        # Load existing data
-        questions_df, codes_df, tags_df = load_data()
+        # Check if user wants to load previous data
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("**📂 Previous Data**")
 
-        if questions_df is None or len(questions_df) == 0:
+        # Check if previous data exists
+        questions_path = "output/questions.csv"
+        has_previous_data = os.path.exists(questions_path)
+
+        if has_previous_data:
+            if st.sidebar.button("📊 Load Previous Data", help="Load data from previous parsing session"):
+                # Load existing data
+                questions_df, codes_df, tags_df = load_data()
+
+                if questions_df is not None and len(questions_df) > 0:
+                    st.sidebar.success(f"✅ Loaded {len(questions_df)} questions from previous session")
+                else:
+                    st.sidebar.error("❌ Could not load previous data")
+                    show_welcome_screen()
+                    return
+            else:
+                # Show welcome screen when no file upload and user hasn't chosen to load previous data
+                show_welcome_screen()
+                return
+        else:
+            st.sidebar.info("💡 No previous data available")
             # Show welcome screen when no data
             show_welcome_screen()
             return
@@ -824,6 +1042,9 @@ def main():
     
     # Apply filters
     filtered_df = apply_filters(questions_df, codes_df, filters)
+
+    # Store filtered_df in session state for CSV export
+    st.session_state['filtered_df'] = filtered_df
     
     # Main content tabs
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📊 Dashboard", "📝 Questions", "📋 Question Codes", "🏷️ Tags", "❌ Error Questions", "⏳ Pending Questions"])
@@ -1010,11 +1231,26 @@ def main():
     with tab5:
         st.subheader("❌ Error Questions")
 
-        # Load error data if exists
+        # Load error data if exists - force reload for new files
         error_file = "output/error.md"
+        error_content = ""
+
+        # Check if we should reload error data (new file processed or no cached data)
+        should_reload_errors = (
+            st.session_state.get('file_hash') and
+            st.session_state.get('error_content_hash') != st.session_state.get('file_hash')
+        ) or 'error_content' not in st.session_state
+
         if os.path.exists(error_file):
-            with open(error_file, 'r', encoding='utf-8') as f:
-                error_content = f.read()
+            if should_reload_errors or 'error_content' not in st.session_state:
+                with open(error_file, 'r', encoding='utf-8') as f:
+                    error_content = f.read()
+                # Cache the error content with current file hash
+                st.session_state['error_content'] = error_content
+                st.session_state['error_content_hash'] = st.session_state.get('file_hash', '')
+            else:
+                # Use cached error content
+                error_content = st.session_state.get('error_content', '')
 
             if error_content.strip():
                 # Parse error content to extract statistics
@@ -1097,21 +1333,81 @@ def main():
         else:
             st.info("No questions data available.")
 
-    # Footer with export options
-    st.markdown("---")
-    st.subheader("📥 Export Options")
+# Footer with export options - MOVED OUTSIDE TABS
+st.markdown("---")
+st.subheader("📥 Export Options")
 
-    col1, col2, col3 = st.columns(3)
+col1, col2, col3 = st.columns(3)
 
-    with col1:
-        if st.button("📊 Download Filtered CSV"):
-            csv = filtered_df.to_csv(index=False)
+with col1:
+    if st.button("📊 Download Filtered CSV"):
+        # Show progress for CSV generation
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+
+        try:
+            # Get filtered_df from session state
+            filtered_df = st.session_state.get('filtered_df', None)
+            if filtered_df is None or filtered_df.empty:
+                st.error("❌ No data available for export. Please process a file first.")
+                progress_bar.empty()
+                status_text.empty()
+                st.stop()
+
+            # Step 1: Prepare data
+            status_text.text("📋 Đang chuẩn bị dữ liệu...")
+            progress_bar.progress(20)
+
+            total_rows = len(filtered_df)
+
+            # Step 2: Generate CSV
+            status_text.text(f"📊 Đang tạo CSV cho {total_rows:,} câu hỏi...")
+            progress_bar.progress(50)
+
+            # Clean data for CSV export - remove excess newlines
+            csv_df = filtered_df.copy()
+            text_columns = ['rawContent', 'content', 'source', 'solution', 'answers', 'correctAnswer']
+
+            for col in text_columns:
+                if col in csv_df.columns:
+                    csv_df[col] = csv_df[col].astype(str).str.replace(r'\n+', ' ', regex=True)  # Replace multiple newlines with space
+                    csv_df[col] = csv_df[col].str.replace(r'\\n+', ' ', regex=True)  # Replace literal \n with space
+                    csv_df[col] = csv_df[col].str.strip()  # Remove leading/trailing whitespace
+
+            # Fix CSV export with proper newline handling
+            csv = csv_df.to_csv(
+                index=False,
+                escapechar='\\',  # Escape special characters
+                quoting=1,        # Quote all non-numeric fields
+                lineterminator='\n'  # Use consistent line endings
+            )
+
+            # Step 3: Prepare download
+            status_text.text("💾 Đang chuẩn bị download...")
+            progress_bar.progress(80)
+
+            # Step 4: Complete
+            status_text.text("✅ Hoàn thành!")
+            progress_bar.progress(100)
+
+            # Clear progress indicators
+            import time
+            time.sleep(1)
+            progress_bar.empty()
+            status_text.empty()
+
+            # Show download button
             st.download_button(
-                label="Download CSV",
+                label="📥 Download CSV File",
                 data=csv,
                 file_name=f"filtered_questions_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv"
             )
+
+        except Exception as e:
+            progress_bar.empty()
+            status_text.empty()
+            st.error(f"❌ Lỗi tạo CSV: {str(e)}")
 
     with col2:
         if os.path.exists("output/questions_export.xlsx"):

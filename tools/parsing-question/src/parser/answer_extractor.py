@@ -16,6 +16,7 @@ sys.path.insert(0, parent_dir)
 
 from models.question import QuestionAnswer
 from parser.bracket_parser import BracketParser
+from utils.text_cleaner import TextCleaner
 
 
 class AnswerExtractor:
@@ -151,15 +152,20 @@ class AnswerExtractor:
             if trimmed_content.startswith('\\True '):
                 is_correct = True
                 answer_content = trimmed_content[6:].strip()  # Remove '\True ' (6 chars)
-                correct_answer = answer_content
+                # Convert newlines to literal for correct answer
+                correct_answer = TextCleaner.convert_newlines_to_literal(answer_content)
             elif trimmed_content.startswith('\\True'):
                 is_correct = True
                 answer_content = trimmed_content[5:].strip()  # Remove '\True' (5 chars)
-                correct_answer = answer_content
+                # Convert newlines to literal for correct answer
+                correct_answer = TextCleaner.convert_newlines_to_literal(answer_content)
             else:
                 # Keep original content but trimmed
                 answer_content = trimmed_content
-            
+
+            # Convert newlines to literal for CSV export
+            answer_content = TextCleaner.convert_newlines_to_literal(answer_content)
+
             answers.append(QuestionAnswer(
                 id=answer_index,
                 content=answer_content,
@@ -218,14 +224,21 @@ class AnswerExtractor:
             if trimmed_content.startswith('\\True '):
                 is_correct = True
                 answer_content = trimmed_content[6:].strip()  # Remove '\True ' (6 chars)
-                correct_answers.append(answer_content)
+                # Convert newlines to literal for correct answers
+                correct_answer_literal = TextCleaner.convert_newlines_to_literal(answer_content)
+                correct_answers.append(correct_answer_literal)
             elif trimmed_content.startswith('\\True'):
                 is_correct = True
                 answer_content = trimmed_content[5:].strip()  # Remove '\True' (5 chars)
-                correct_answers.append(answer_content)
+                # Convert newlines to literal for correct answers
+                correct_answer_literal = TextCleaner.convert_newlines_to_literal(answer_content)
+                correct_answers.append(correct_answer_literal)
             else:
                 # Keep original content but trimmed
                 answer_content = trimmed_content
+
+            # Convert newlines to literal for CSV export
+            answer_content = TextCleaner.convert_newlines_to_literal(answer_content)
             
             answers.append(QuestionAnswer(
                 id=answer_index,
@@ -287,6 +300,8 @@ class AnswerExtractor:
                 answer = answer.strip()
                 # Remove quotes if present
                 answer = answer.strip('\'"')
+                # Convert newlines to literal for CSV export
+                answer = TextCleaner.convert_newlines_to_literal(answer)
                 return answer
 
         return None
@@ -295,12 +310,12 @@ class AnswerExtractor:
     def extract_solution(cls, content: str) -> Optional[str]:
         """
         Extract solution from \\loigiai{...} command.
-        
+
         Args:
             content: LaTeX content
-            
+
         Returns:
-            Solution content or None
+            Solution content with newlines converted to literal \n
         """
         loigiai_start = content.find('\\loigiai')
         if loigiai_start != -1:
@@ -308,8 +323,11 @@ class AnswerExtractor:
             brace_start = content.find('{', loigiai_start)
             if brace_start != -1:
                 solution = BracketParser.extract_content_from_braces(content, brace_start)
-                return solution.strip()
-        
+                solution = solution.strip()
+                # Convert newlines to literal for CSV export
+                solution = TextCleaner.convert_newlines_to_literal(solution)
+                return solution
+
         return None
     
     @classmethod

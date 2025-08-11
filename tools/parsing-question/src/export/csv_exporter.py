@@ -359,7 +359,8 @@ class CSVExporter:
             'difficulty',
             'created_at',
             'updated_at',
-            'questionCodeId'
+            'questionCodeId',
+            'generatedTags'
         ]
 
     def _get_merged_headers(self) -> List[str]:
@@ -556,7 +557,7 @@ class CSVExporter:
 
     def _validate_row_data(self, row_data: Dict[str, Any], question_id: int = None) -> None:
         """
-        Validate row data for CSV export to ensure no line breaks.
+        Validate row data for CSV export.
 
         Args:
             row_data: Dictionary of row data
@@ -571,7 +572,7 @@ class CSVExporter:
 
                 if not is_valid:
                     print(f"Warning: Question {question_id} field '{field_name}' has issues: {', '.join(issues)}")
-                    # Auto-clean the field if it has line breaks
-                    if "Contains line breaks" in issues:
+                    # Basic cleaning for control characters only
+                    if "Contains control characters" in issues:
                         row_data[field_name] = TextCleaner.clean_csv_field(field_value)
                         print(f"  -> Auto-cleaned field '{field_name}' for question {question_id}")

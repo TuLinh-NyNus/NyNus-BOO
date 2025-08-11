@@ -58,16 +58,7 @@ export function AdminSidebar({
     return cn(baseClasses, widthClasses, responsiveClasses, className);
   };
 
-  /**
-   * Get sidebar inline styles for CSS variables
-   */
-  const getSidebarStyles = (): React.CSSProperties => {
-    return {
-      backgroundColor: 'var(--color-background)',
-      color: 'var(--color-foreground)',
-      borderColor: 'var(--color-border)'
-    };
-  };
+
 
   /**
    * Render collapse button
