@@ -11,6 +11,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/container"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/migration"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/seeder"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/server"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 
 	_ "github.com/lib/pq"
@@ -20,10 +21,11 @@ import (
 
 // App represents the application
 type App struct {
-	config    *config.Config
-	container *container.Container
-	db        *sql.DB
-	server    *grpcServer.Server
+	config     *config.Config
+	container  *container.Container
+	db         *sql.DB
+	grpcServer *grpcServer.Server
+	httpServer *server.HTTPServer
 }
 
 // NewApp creates a new application instance
@@ -85,22 +87,32 @@ func (a *App) initDatabase() error {
 // initGRPCServer initializes the gRPC server with all services and interceptors
 func (a *App) initGRPCServer() error {
 	// Create gRPC server with interceptors
-	a.server = grpcServer.NewServer(
+	a.grpcServer = grpcServer.NewServer(
 		grpcServer.UnaryInterceptor(a.container.GetAuthInterceptor().Unary()),
 	)
 
 	// Register services
-	v1.RegisterUserServiceServer(a.server, a.container.GetUserGRPCService())
-	v1.RegisterQuestionServiceServer(a.server, a.container.GetQuestionGRPCService())
+	v1.RegisterUserServiceServer(a.grpcServer, a.container.GetUserGRPCService())
+	v1.RegisterQuestionServiceServer(a.grpcServer, a.container.GetQuestionGRPCService())
 
 	// Enable reflection for grpcurl
-	reflection.Register(a.server)
+	reflection.Register(a.grpcServer)
 
 	return nil
 }
 
 // Run starts the application
 func (a *App) Run() error {
+	// Initialize HTTP server with gRPC-Gateway
+	a.httpServer = server.NewHTTPServer(a.config.Server.HTTPPort, a.config.Server.GRPCPort)
+
+	// Start HTTP server in a goroutine
+	go func() {
+		if err := a.httpServer.Start(); err != nil {
+			log.Printf("❌ HTTP server error: %v", err)
+		}
+	}()
+
 	// Create gRPC listener
 	lis, err := net.Listen("tcp", ":"+a.config.Server.GRPCPort)
 	if err != nil {
@@ -112,7 +124,7 @@ func (a *App) Run() error {
 
 	// Start gRPC server
 	log.Printf("🚀 Starting gRPC server on port %s...", a.config.Server.GRPCPort)
-	if err := a.server.Serve(lis); err != nil {
+	if err := a.grpcServer.Serve(lis); err != nil {
 		return fmt.Errorf("failed to serve gRPC server: %w", err)
 	}
 
@@ -142,9 +154,15 @@ func (a *App) logStartupInfo() {
 func (a *App) Shutdown() {
 	log.Println("🛑 Shutting down application...")
 
-	if a.server != nil {
+	if a.grpcServer != nil {
 		log.Println("🔌 Stopping gRPC server...")
-		a.server.GracefulStop()
+		a.grpcServer.GracefulStop()
+	}
+
+	if a.httpServer != nil {
+		log.Println("🔌 Stopping HTTP server...")
+		// Note: In production, you might want to add context with timeout
+		a.httpServer.Stop(nil)
 	}
 
 	if a.container != nil {

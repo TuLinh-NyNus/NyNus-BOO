@@ -41,83 +41,83 @@ DROP TABLE IF EXISTS exams CASCADE;
 DROP TABLE IF EXISTS questions CASCADE;
 
 CREATE TABLE Question (
-    id             TEXT PRIMARY KEY,
-    rawContent     TEXT NOT NULL,
-    content        TEXT NOT NULL,
-    subcount       VARCHAR(10),
-    type           QuestionType NOT NULL,
-    source         TEXT,
+    id                TEXT PRIMARY KEY,
+    raw_content       TEXT NOT NULL,
+    content           TEXT NOT NULL,
+    subcount          VARCHAR(10),
+    type              QuestionType NOT NULL,
+    source            TEXT,
 
-    answers        JSONB,
-    correctAnswer  JSONB,
-    solution       TEXT,
+    answers           JSONB,
+    correct_answer    JSONB,
+    solution          TEXT,
 
-    tag            TEXT[] DEFAULT '{}',
-    usageCount     INT DEFAULT 0,
-    creator        TEXT DEFAULT 'ADMIN',
-    status         QuestionStatus DEFAULT 'ACTIVE',
-    feedback       INT DEFAULT 0,
+    tag               TEXT[] DEFAULT '{}',
+    usage_count       INT DEFAULT 0,
+    creator           TEXT DEFAULT 'ADMIN',
+    status            QuestionStatus DEFAULT 'ACTIVE',
+    feedback          INT DEFAULT 0,
 
-    difficulty     QuestionDifficulty DEFAULT 'MEDIUM',
+    difficulty        QuestionDifficulty DEFAULT 'MEDIUM',
 
-    created_at     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at        TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
-    questionCodeId VARCHAR(7) NOT NULL REFERENCES QuestionCode(code) ON DELETE RESTRICT
+    question_code_id  VARCHAR(7) NOT NULL REFERENCES QuestionCode(code) ON DELETE RESTRICT
 );
 
 -- Indexes for Question
-CREATE INDEX idx_question_questionCodeId ON Question(questionCodeId);
+CREATE INDEX idx_question_question_code_id ON Question(question_code_id);
 CREATE INDEX idx_question_type ON Question(type);
 CREATE INDEX idx_question_status ON Question(status);
-CREATE INDEX idx_question_usageCount ON Question(usageCount);
+CREATE INDEX idx_question_usage_count ON Question(usage_count);
 CREATE INDEX idx_question_creator ON Question(creator);
 CREATE INDEX idx_question_difficulty ON Question(difficulty);
 CREATE INDEX idx_question_content_fts ON Question USING GIN (to_tsvector('simple', content));
 
 -- 4️⃣ QuestionImage Table
 CREATE TABLE QuestionImage (
-    id           TEXT PRIMARY KEY,
-    questionId   TEXT NOT NULL REFERENCES Question(id) ON DELETE CASCADE,
-    imageType    ImageType NOT NULL,
-    imagePath    TEXT,
-    driveUrl     TEXT,
-    driveFileId  VARCHAR(100),
-    status       ImageStatus DEFAULT 'PENDING',
-    created_at   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    id              TEXT PRIMARY KEY,
+    question_id     TEXT NOT NULL REFERENCES Question(id) ON DELETE CASCADE,
+    image_type      ImageType NOT NULL,
+    image_path      TEXT,
+    drive_url       TEXT,
+    drive_file_id   VARCHAR(100),
+    status          ImageStatus DEFAULT 'PENDING',
+    created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for QuestionImage
-CREATE INDEX idx_questionimage_questionId ON QuestionImage(questionId);
+CREATE INDEX idx_questionimage_question_id ON QuestionImage(question_id);
 CREATE INDEX idx_questionimage_status ON QuestionImage(status);
 
 -- 5️⃣ QuestionTag Table
 CREATE TABLE QuestionTag (
-    id          TEXT PRIMARY KEY,
-    questionId  TEXT NOT NULL REFERENCES Question(id) ON DELETE CASCADE,
-    tagName     VARCHAR(100) NOT NULL,
-    created_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (questionId, tagName)
+    id           TEXT PRIMARY KEY,
+    question_id  TEXT NOT NULL REFERENCES Question(id) ON DELETE CASCADE,
+    tag_name     VARCHAR(100) NOT NULL,
+    created_at   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (question_id, tag_name)
 );
 
 -- Indexes for QuestionTag
-CREATE INDEX idx_questiontag_tagName ON QuestionTag(tagName);
+CREATE INDEX idx_questiontag_tag_name ON QuestionTag(tag_name);
 
 -- 6️⃣ QuestionFeedback Table
 CREATE TABLE QuestionFeedback (
-    id           TEXT PRIMARY KEY,
-    questionId   TEXT NOT NULL REFERENCES Question(id) ON DELETE CASCADE,
-    userId       TEXT,
-    feedbackType FeedbackType NOT NULL,
-    content      TEXT,
-    rating       INT,
-    created_at   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    id             TEXT PRIMARY KEY,
+    question_id    TEXT NOT NULL REFERENCES Question(id) ON DELETE CASCADE,
+    user_id        TEXT,
+    feedback_type  FeedbackType NOT NULL,
+    content        TEXT,
+    rating         INT,
+    created_at     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for QuestionFeedback
-CREATE INDEX idx_questionfeedback_questionId ON QuestionFeedback(questionId);
-CREATE INDEX idx_questionfeedback_userId ON QuestionFeedback(userId);
+CREATE INDEX idx_questionfeedback_question_id ON QuestionFeedback(question_id);
+CREATE INDEX idx_questionfeedback_user_id ON QuestionFeedback(user_id);
 
 -- 7️⃣ Create triggers for updated_at
 CREATE TRIGGER update_questioncode_updated_at BEFORE UPDATE ON QuestionCode FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
