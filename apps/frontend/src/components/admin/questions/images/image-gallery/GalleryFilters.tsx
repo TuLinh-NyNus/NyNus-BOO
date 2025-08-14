@@ -250,7 +250,7 @@ export function GalleryFiltersComponent({
                   const date = e.target.value ? new Date(e.target.value) : undefined;
                   updateFilter('dateRange', {
                     ...filters.dateRange,
-                    from: date,
+                    from: date || new Date(),
                     to: filters.dateRange?.to || new Date()
                   });
                 }}
@@ -269,7 +269,7 @@ export function GalleryFiltersComponent({
                   updateFilter('dateRange', {
                     ...filters.dateRange,
                     from: filters.dateRange?.from || new Date(),
-                    to: date
+                    to: date || new Date()
                   });
                 }}
               />

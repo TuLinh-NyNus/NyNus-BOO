@@ -151,14 +151,18 @@ export interface QuestionFilters {
   hasImages?: boolean;
 
   // Analytics filters
-  usageCount?: { min: number; max: number };
-  feedback?: { min: number; max: number };
-  dateRange?: { from: Date; to: Date; field: string };
+  usageCount?: { min?: number; max?: number };
+  feedback?: { min?: number; max?: number };
+  dateRange?: { from?: Date; to?: Date; field: 'createdAt' | 'updatedAt' };
 
   // Search filters
   solutionKeyword?: string;
   latexKeyword?: string;
   globalSearch?: string;
+
+  // Pagination (optional for compatibility)
+  page?: number;
+  pageSize?: number;
 }
 
 // Alias for backward compatibility
