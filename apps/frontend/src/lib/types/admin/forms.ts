@@ -3,7 +3,7 @@
  * Consolidated form types for admin interface
  */
 
-import { UserRole, UserStatus } from '../user';
+import { UserRole, UserStatus } from '../user/index';
 
 // ===== CORE FORM INTERFACES =====
 

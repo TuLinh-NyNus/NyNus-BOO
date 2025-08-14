@@ -3,7 +3,7 @@
  * Consolidated header types for admin interface
  */
 
-import { AdminUser } from '../user';
+import { AdminUser } from '../user/index';
 
 // ===== CORE HEADER INTERFACES =====
 

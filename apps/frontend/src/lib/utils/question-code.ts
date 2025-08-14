@@ -6,7 +6,10 @@
  * @version 1.0.0
  */
 
-import { ParsedQuestionCode } from '@/lib/types/question';
+import { QuestionCode } from '@/lib/types/question';
+
+// Type alias for backward compatibility
+type ParsedQuestionCode = QuestionCode;
 
 // ===== MAPCODE CONFIGURATION =====
 

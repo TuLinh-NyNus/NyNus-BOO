@@ -30,6 +30,8 @@ export interface AnswerOption {
   id: string;
   content: string;
   isCorrect?: boolean;
+  explanation?: string;  // Add explanation property
+  text?: string;         // Add backward compatibility for text property
 }
 
 // Matching Pair interface cho matching questions
@@ -59,6 +61,10 @@ export interface QuestionCode {
   lesson: string; // Bài học (1-9, A-Z)
   form?: string; // Dạng bài (1-9, chỉ ID6)
   level: string; // Mức độ (N,H,V,C,T,M)
+
+  // Validation properties
+  isValid?: boolean; // Indicates if the code is valid
+  error?: string; // Error message if invalid
 }
 
 // Main Question interface
@@ -113,15 +119,46 @@ export interface QuestionDraft {
   questionCodeId?: string;
 }
 
-// Filter interface cho question list
+// Filter interface cho question list - Extended version
 export interface QuestionFilters {
-  type?: QuestionType;
-  status?: QuestionStatus;
-  difficulty?: QuestionDifficulty;
+  // Core filters (existing - maintain backward compatibility)
+  type?: QuestionType | QuestionType[];
+  status?: QuestionStatus | QuestionStatus[];
+  difficulty?: QuestionDifficulty | QuestionDifficulty[];
   codePrefix?: string;
   keyword?: string;
-  sortBy?: 'createdAt' | 'updatedAt' | 'usageCount';
+  sortBy?: 'createdAt' | 'updatedAt' | 'usageCount' | 'feedback';
   sortDir?: 'asc' | 'desc';
+
+  // Academic/Educational filters
+  grade?: string[];
+  subject?: string[];
+  chapter?: string[];
+  level?: string[];
+  lesson?: string[];
+  form?: string[];
+  format?: ('ID5' | 'ID6')[];
+
+  // Metadata filters
+  creator?: string[];
+  source?: string[];
+  tags?: string[];
+  subcount?: string;
+
+  // Content flags
+  hasAnswers?: boolean;
+  hasSolution?: boolean;
+  hasImages?: boolean;
+
+  // Analytics filters
+  usageCount?: { min: number; max: number };
+  feedback?: { min: number; max: number };
+  dateRange?: { from: Date; to: Date; field: string };
+
+  // Search filters
+  solutionKeyword?: string;
+  latexKeyword?: string;
+  globalSearch?: string;
 }
 
 // Alias for backward compatibility
