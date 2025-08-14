@@ -253,7 +253,7 @@ export function getFilterOptions() {
  * Validate QuestionCode format
  */
 export function isValidQuestionCode(code: string): boolean {
-  return parseQuestionCode(code).isValid;
+  return parseQuestionCode(code).isValid ?? false;
 }
 
 /**

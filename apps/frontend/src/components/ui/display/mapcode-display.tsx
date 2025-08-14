@@ -14,7 +14,7 @@ import { Badge } from './badge';
 import { Separator } from './separator';
 import { cn } from '@/lib/utils';
 import { parseQuestionCode, MAPCODE_CONFIG } from '@/lib/utils/question-code';
-import { ParsedQuestionCode } from '@/lib/types/question';
+import { QuestionCode } from '@/lib/types/question';
 import { Copy, AlertCircle } from 'lucide-react';
 
 // ===== INTERFACES =====
@@ -65,7 +65,7 @@ async function copyToClipboard(text: string, onCopy?: (code: string) => void) {
 
 // ===== COMPONENT BREAKDOWN =====
 
-function MapCodeBreakdown({ parsed }: { parsed: ParsedQuestionCode }) {
+function MapCodeBreakdown({ parsed }: { parsed: QuestionCode }) {
   if (!parsed.isValid) {
     return (
       <div className="flex items-center gap-2 text-red-600">
@@ -136,7 +136,7 @@ function CardLayout({
   onCopy 
 }: {
   code: string;
-  parsed: ParsedQuestionCode;
+  parsed: QuestionCode;
   showHeader?: boolean;
   showCopyButton?: boolean;
   showBreakdown?: boolean;
@@ -196,7 +196,7 @@ function InlineLayout({
   onCopy 
 }: {
   code: string;
-  parsed: ParsedQuestionCode;
+  parsed: QuestionCode;
   showCopyButton?: boolean;
   showBreakdown?: boolean;
   className?: string;
@@ -232,7 +232,7 @@ function CompactLayout({
   onCopy 
 }: {
   code: string;
-  parsed: ParsedQuestionCode;
+  parsed: QuestionCode;
   showCopyButton?: boolean;
   className?: string;
   onCopy?: (code: string) => void;

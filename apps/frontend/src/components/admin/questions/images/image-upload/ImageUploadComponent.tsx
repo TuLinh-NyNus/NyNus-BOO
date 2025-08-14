@@ -118,7 +118,7 @@ export function ImageUploadComponent({
         }, 200);
 
         // Upload file
-        const result = await ImageUploadService.uploadImage(item.file, questionId, questionCode);
+        const result = await ImageUploadService.uploadImage(item.file, questionId);
         
         clearInterval(progressInterval);
         
@@ -168,7 +168,7 @@ export function ImageUploadComponent({
     if (results.length === validFiles.length) {
       setSelectedFiles([]);
     }
-  }, [hasValidFiles, isUploading, validFiles, questionId, questionCode, onUploadComplete, onUploadError]);
+  }, [hasValidFiles, isUploading, validFiles, questionId, onUploadComplete, onUploadError]);
 
   // Handle retry upload
   const handleRetryUpload = useCallback((itemId: string) => {
@@ -209,9 +209,9 @@ export function ImageUploadComponent({
         </CardTitle>
         <CardDescription>
           Upload hình ảnh cho câu hỏi. Files sẽ được tự động tổ chức theo cấu trúc MapCode.
-          {questionCode && (
+          {questionId && (
             <span className="block mt-1 font-mono text-sm">
-              MapCode: {questionCode}
+              Question ID: {questionId}
             </span>
           )}
         </CardDescription>

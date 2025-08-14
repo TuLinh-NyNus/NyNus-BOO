@@ -12,7 +12,7 @@ import React from 'react';
 import { Badge } from './badge';
 import { cn } from '@/lib/utils';
 import { parseQuestionCode, getQuestionCodeLabel } from '@/lib/utils/question-code';
-import { ParsedQuestionCode } from '@/lib/types/question';
+import { QuestionCode } from '@/lib/types/question';
 
 // ===== INTERFACES =====
 
@@ -30,7 +30,7 @@ export interface MapCodeBadgeProps {
   /** Custom className */
   className?: string;
   /** Click handler */
-  onClick?: (code: string, parsed: ParsedQuestionCode) => void;
+  onClick?: (code: string, parsed: QuestionCode) => void;
   /** Tooltip content override */
   title?: string;
 }
@@ -193,9 +193,9 @@ export function InteractiveMapCodeBadge({
   onCodeClick,
   ...props 
 }: Omit<MapCodeBadgeProps, 'onClick'> & {
-  onCodeClick?: (code: string, parsed: ParsedQuestionCode) => void;
+  onCodeClick?: (code: string, parsed: QuestionCode) => void;
 }) {
-  const handleClick = (code: string, parsed: ParsedQuestionCode) => {
+  const handleClick = (code: string, parsed: QuestionCode) => {
     if (onCodeClick) {
       onCodeClick(code, parsed);
     } else {

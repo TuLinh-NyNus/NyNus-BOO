@@ -57,7 +57,7 @@ export function QuestionUsageFilters({
     setDateRangeFilter({
       from: dateRange.from ? new Date(dateRange.from) : undefined,
       to: dateRange.to ? new Date(dateRange.to) : undefined,
-      field: currentField
+      field: currentField as "createdAt" | "updatedAt"
     });
   };
 
