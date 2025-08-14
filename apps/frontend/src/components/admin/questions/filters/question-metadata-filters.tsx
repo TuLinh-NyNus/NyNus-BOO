@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/display/badge";
 // Import store và types
 import { useQuestionFiltersStore } from "@/lib/stores/question-filters";
 import { QuestionType, QuestionStatus, QuestionDifficulty } from "@/lib/types/question";
+import { ensureArray } from '@/lib/utils/filter-type-adapters';
 import { cn } from "@/lib/utils";
 
 // ===== INTERFACES =====
@@ -85,7 +86,7 @@ export function QuestionMetadataFilters({
           )}
         </div>
         <MultiSelect
-          selected={filters.type?.map(t => t.toString()) || []}
+          selected={ensureArray(filters.type).map((t: QuestionType) => t.toString())}
           setSelected={(values) => setTypeFilter(values as QuestionType[])}
           Options={QUESTION_TYPE_OPTIONS}
           placeholder="Chọn loại câu hỏi..."
@@ -93,10 +94,10 @@ export function QuestionMetadataFilters({
         />
         
         {/* Type description */}
-        {filters.type && filters.type.length > 0 && (
+        {ensureArray(filters.type).length > 0 && (
           <div className="text-xs text-muted-foreground">
             <div className="flex flex-wrap gap-1">
-              {filters.type.map(type => {
+              {ensureArray(filters.type).map((type: QuestionType) => {
                 const option = QUESTION_TYPE_OPTIONS.find(opt => opt.value === type);
                 return option ? (
                   <span key={type} className="px-2 py-1 bg-muted rounded">
@@ -120,7 +121,7 @@ export function QuestionMetadataFilters({
           )}
         </div>
         <MultiSelect
-          selected={filters.status?.map(s => s.toString()) || []}
+          selected={ensureArray(filters.status).map((s: QuestionStatus) => s.toString())}
           setSelected={(values) => setStatusFilter(values as QuestionStatus[])}
           Options={QUESTION_STATUS_OPTIONS}
           placeholder="Chọn trạng thái..."
@@ -128,9 +129,9 @@ export function QuestionMetadataFilters({
         />
         
         {/* Status indicators */}
-        {filters.status && filters.status.length > 0 && (
+        {ensureArray(filters.status).length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {filters.status.map(status => {
+            {ensureArray(filters.status).map((status: QuestionStatus) => {
               const option = QUESTION_STATUS_OPTIONS.find(opt => opt.value === status);
               if (!option) return null;
               
@@ -171,17 +172,17 @@ export function QuestionMetadataFilters({
           )}
         </div>
         <MultiSelect
-          selected={filters.difficulty?.map(d => d.toString()) || []}
-          setSelected={(values) => setDifficultyFilter(values)}
+          selected={ensureArray(filters.difficulty).map((d: QuestionDifficulty) => d.toString())}
+          setSelected={(values) => setDifficultyFilter(values as QuestionDifficulty[])}
           Options={QUESTION_DIFFICULTY_OPTIONS}
           placeholder="Chọn độ khó..."
           className="w-full"
         />
         
         {/* Difficulty indicators */}
-        {filters.difficulty && filters.difficulty.length > 0 && (
+        {ensureArray(filters.difficulty).length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {filters.difficulty.map(difficulty => {
+            {ensureArray(filters.difficulty).map((difficulty: QuestionDifficulty) => {
               const option = QUESTION_DIFFICULTY_OPTIONS.find(opt => opt.value === difficulty);
               if (!option) return null;
               

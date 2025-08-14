@@ -19,12 +19,13 @@ import {
 } from "@/components/ui";
 
 // Import types từ lib/types
-import { 
+import {
   IQuestionFilters,
   QuestionType,
   QuestionStatus,
-  QuestionDifficulty 
+  QuestionDifficulty
 } from "@/lib/types/question";
+import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from "@/lib/utils/filter-type-adapters";
 
 /**
  * Filter options configuration
@@ -82,8 +83,8 @@ export function QuestionFilterGrid({
       <div className="space-y-2">
         <Label>Trạng thái</Label>
         <Select
-          value={filters.status || ""}
-          onValueChange={(value) => onFilterChange("status", value as QuestionStatus)}
+          value={questionStatusAdapters.toString(filters.status)}
+          onValueChange={(value) => onFilterChange("status", questionStatusAdapters.fromString(value))}
         >
           <SelectTrigger>
             <SelectValue placeholder="Chọn trạng thái" />
@@ -102,8 +103,8 @@ export function QuestionFilterGrid({
       <div className="space-y-2">
         <Label>Loại câu hỏi</Label>
         <Select
-          value={filters.type || ""}
-          onValueChange={(value) => onFilterChange("type", value as QuestionType)}
+          value={questionTypeAdapters.toString(filters.type)}
+          onValueChange={(value) => onFilterChange("type", questionTypeAdapters.fromString(value))}
         >
           <SelectTrigger>
             <SelectValue placeholder="Chọn loại" />
@@ -122,8 +123,8 @@ export function QuestionFilterGrid({
       <div className="space-y-2">
         <Label>Độ khó</Label>
         <Select
-          value={filters.difficulty || ""}
-          onValueChange={(value) => onFilterChange("difficulty", value as QuestionDifficulty)}
+          value={questionDifficultyAdapters.toString(filters.difficulty)}
+          onValueChange={(value) => onFilterChange("difficulty", questionDifficultyAdapters.fromString(value))}
         >
           <SelectTrigger>
             <SelectValue placeholder="Chọn độ khó" />

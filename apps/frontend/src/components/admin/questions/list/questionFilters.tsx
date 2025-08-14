@@ -27,12 +27,13 @@ import {
 import { Search, Filter, X, RotateCcw, Hash } from "lucide-react";
 
 // Import types từ lib/types
-import { 
+import {
   QuestionFilters as IQuestionFilters,
-  QuestionType, 
+  QuestionType,
   QuestionStatus,
-  QuestionDifficulty 
+  QuestionDifficulty
 } from "@/lib/types/question";
+import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from "@/lib/utils/filter-type-adapters";
 
 /**
  * Filter options configuration - cấu hình các tùy chọn bộ lọc
@@ -247,8 +248,8 @@ export function QuestionFilters({
           <div className="space-y-2">
             <Label>Trạng thái</Label>
             <Select
-              value={filters.status || ""}
-              onValueChange={(value) => handleFilterChange("status", value as QuestionStatus)}
+              value={questionStatusAdapters.toString(filters.status)}
+              onValueChange={(value) => handleFilterChange("status", questionStatusAdapters.fromString(value))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn trạng thái" />
@@ -267,8 +268,8 @@ export function QuestionFilters({
           <div className="space-y-2">
             <Label>Loại câu hỏi</Label>
             <Select
-              value={filters.type || ""}
-              onValueChange={(value) => handleFilterChange("type", value as QuestionType)}
+              value={questionTypeAdapters.toString(filters.type)}
+              onValueChange={(value) => handleFilterChange("type", questionTypeAdapters.fromString(value))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn loại" />
@@ -287,8 +288,8 @@ export function QuestionFilters({
           <div className="space-y-2">
             <Label>Độ khó</Label>
             <Select
-              value={filters.difficulty || ""}
-              onValueChange={(value) => handleFilterChange("difficulty", value as QuestionDifficulty)}
+              value={questionDifficultyAdapters.toString(filters.difficulty)}
+              onValueChange={(value) => handleFilterChange("difficulty", questionDifficultyAdapters.fromString(value))}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn độ khó" />

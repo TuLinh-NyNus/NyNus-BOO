@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { useQuestionFiltersStore } from "@/lib/stores/question-filters";
 import { MAPCODE_CONFIG } from "@/lib/utils/question-code";
 import { QuestionType, QuestionStatus, QuestionDifficulty } from "@/lib/types/question";
+import { ensureArray } from '@/lib/utils/filter-type-adapters';
 
 
 // ===== INTERFACES =====
@@ -180,13 +181,13 @@ export function FilterChips({
         setFormatFilter((filters.format || []).filter(v => v !== value) as ('ID5' | 'ID6')[]);
         break;
       case 'type':
-        setTypeFilter((filters.type || []).filter(v => v !== value));
+        setTypeFilter(ensureArray(filters.type).filter((v: QuestionType) => v !== value));
         break;
       case 'status':
-        setStatusFilter((filters.status || []).filter(v => v !== value));
+        setStatusFilter(ensureArray(filters.status).filter((v: QuestionStatus) => v !== value));
         break;
       case 'difficulty':
-        setDifficultyFilter((filters.difficulty || []).filter(v => v !== value));
+        setDifficultyFilter(ensureArray(filters.difficulty).filter((v: QuestionDifficulty) => v !== value));
         break;
       case 'creator':
         setCreatorFilter((filters.creator || []).filter(v => v !== value));
@@ -318,8 +319,9 @@ export function FilterChips({
     ];
 
     metadataFilters.forEach(({ key, values, label }) => {
-      if (values && values.length > 0) {
-        values.forEach(value => {
+      const arrayValues = ensureArray(values);
+      if (arrayValues && arrayValues.length > 0) {
+        arrayValues.forEach((value: string) => {
           categories.metadata.chips.push(
             <Badge
               key={`${key}-${value}`}
