@@ -26,34 +26,34 @@ const (
 type QuestionImage struct {
 	ID          pgtype.Text        `json:"id"`
 	QuestionID  pgtype.Text        `json:"question_id"`
-	ImageType   pgtype.Text        `json:"image_type"`   // ImageType enum
+	ImageType   pgtype.Text        `json:"image_type"` // ImageType enum
 	ImagePath   pgtype.Text        `json:"image_path"`
 	DriveURL    pgtype.Text        `json:"drive_url"`
 	DriveFileID pgtype.Text        `json:"drive_file_id"`
-	Status      pgtype.Text        `json:"status"`      // ImageStatus enum
+	Status      pgtype.Text        `json:"status"` // ImageStatus enum
 	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
 // TableName returns the table name for QuestionImage
 func (qi QuestionImage) TableName() string {
-	return "questionimage"
+	return "question_image"
 }
 
 // FieldMap returns the field mapping for database operations
 func (qi QuestionImage) FieldMap() ([]string, []interface{}) {
 	fields := []string{
 		"id",
-		"questionid",
-		"imagetype",
-		"imagepath",
-		"driveurl",
-		"drivefileid",
+		"question_id",
+		"image_type",
+		"image_path",
+		"drive_url",
+		"drive_file_id",
 		"status",
 		"created_at",
 		"updated_at",
 	}
-	
+
 	values := []interface{}{
 		&qi.ID,
 		&qi.QuestionID,
@@ -65,6 +65,6 @@ func (qi QuestionImage) FieldMap() ([]string, []interface{}) {
 		&qi.CreatedAt,
 		&qi.UpdatedAt,
 	}
-	
+
 	return fields, values
 }

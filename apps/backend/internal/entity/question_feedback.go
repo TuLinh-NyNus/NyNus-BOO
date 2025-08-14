@@ -27,21 +27,21 @@ type QuestionFeedback struct {
 
 // TableName returns the table name for QuestionFeedback
 func (qf QuestionFeedback) TableName() string {
-	return "questionfeedback"
+	return "question_feedback"
 }
 
 // FieldMap returns the field mapping for database operations
 func (qf QuestionFeedback) FieldMap() ([]string, []interface{}) {
 	fields := []string{
 		"id",
-		"questionid",
-		"userid",
-		"feedbacktype",
+		"question_id",
+		"user_id",
+		"feedback_type",
 		"content",
 		"rating",
 		"created_at",
 	}
-	
+
 	values := []interface{}{
 		&qf.ID,
 		&qf.QuestionID,
@@ -51,6 +51,6 @@ func (qf QuestionFeedback) FieldMap() ([]string, []interface{}) {
 		&qf.Rating,
 		&qf.CreatedAt,
 	}
-	
+
 	return fields, values
 }

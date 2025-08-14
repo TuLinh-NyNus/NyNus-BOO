@@ -70,9 +70,9 @@ func (r *QuestionCodeRepository) GetByCode(ctx context.Context, db database.Quer
 	defer span.Finish()
 
 	query := `
-		SELECT code, format, grade, subject, chapter, lesson, form, level, folder_path,
+		SELECT code, format, grade, subject, chapter, lesson, form, level,
 		       created_at, updated_at
-		FROM questioncode
+		FROM question_code
 		WHERE code = $1
 	`
 
@@ -85,7 +85,6 @@ func (r *QuestionCodeRepository) GetByCode(ctx context.Context, db database.Quer
 		&questionCode.Lesson,
 		&questionCode.Form,
 		&questionCode.Level,
-		&questionCode.FolderPath,
 		&questionCode.CreatedAt,
 		&questionCode.UpdatedAt,
 	)
@@ -164,9 +163,9 @@ func (r *QuestionCodeRepository) FindByFilter(ctx context.Context, db database.Q
 	defer span.Finish()
 
 	query := `
-		SELECT code, format, grade, subject, chapter, lesson, form, level, folder_path,
+		SELECT code, format, grade, subject, chapter, lesson, form, level,
 		       created_at, updated_at
-		FROM questioncode
+		FROM question_code
 		WHERE 1=1
 	`
 	args := []interface{}{}
@@ -230,7 +229,6 @@ func (r *QuestionCodeRepository) FindByFilter(ctx context.Context, db database.Q
 			&qc.Lesson,
 			&qc.Form,
 			&qc.Level,
-			&qc.FolderPath,
 			&qc.CreatedAt,
 			&qc.UpdatedAt,
 		)
@@ -262,25 +260,22 @@ func (r *QuestionCodeRepository) GetOrCreate(ctx context.Context, db database.Qu
 	}
 
 	// QuestionCode doesn't exist, create new one
-	parser := util.NewQuestionCodeParser()
-	grade, chapter, lesson, form, err := parser.ToNumericValues(components)
-	if err != nil {
-		span.FinishWithError(err)
-		return nil, fmt.Errorf("failed to convert components to numeric values: %w", err)
+	// Determine format based on IsID6 flag
+	format := "ID5"
+	if components.IsID6 {
+		format = "ID6"
 	}
-
-	folderPath := parser.GenerateFolderPath(components)
 
 	newQC := &entity.QuestionCode{}
 	if err := multierr.Combine(
 		newQC.Code.Set(code),
-		newQC.Grade.Set(int32(grade)),
+		newQC.Format.Set(format),
+		newQC.Grade.Set(components.Grade),
 		newQC.Subject.Set(components.Subject),
-		newQC.Chapter.Set(int32(chapter)),
+		newQC.Chapter.Set(components.Chapter),
 		newQC.Level.Set(components.Level),
-		newQC.Lesson.Set(int32(lesson)),
-		newQC.Form.Set(int32(form)),
-		newQC.FolderPath.Set(folderPath),
+		newQC.Lesson.Set(components.Lesson),
+		newQC.Form.Set(components.Form),
 	); err != nil {
 		span.FinishWithError(err)
 		return nil, fmt.Errorf("failed to set QuestionCode fields: %w", err)
@@ -311,7 +306,7 @@ func (r *QuestionCodeRepository) GetQuestionCodesByPaging(db database.QueryExece
 	defer span.Finish()
 
 	// Get total count
-	countQuery := `SELECT COUNT(*) FROM questioncode`
+	countQuery := `SELECT COUNT(*) FROM question_code`
 	err = db.QueryRowContext(ctx, countQuery).Scan(&total)
 	if err != nil {
 		return 0, nil, fmt.Errorf("failed to get total count: %w", err)
@@ -319,9 +314,9 @@ func (r *QuestionCodeRepository) GetQuestionCodesByPaging(db database.QueryExece
 
 	// Get paginated results
 	query := `
-		SELECT code, format, grade, subject, chapter, lesson, form, level, folder_path,
+		SELECT code, format, grade, subject, chapter, lesson, form, level,
 		       created_at, updated_at
-		FROM questioncode
+		FROM question_code
 		ORDER BY grade, subject, chapter, lesson, form
 		LIMIT $1 OFFSET $2
 	`
@@ -344,7 +339,6 @@ func (r *QuestionCodeRepository) GetQuestionCodesByPaging(db database.QueryExece
 			&qc.Lesson,
 			&qc.Form,
 			&qc.Level,
-			&qc.FolderPath,
 			&qc.CreatedAt,
 			&qc.UpdatedAt,
 		)

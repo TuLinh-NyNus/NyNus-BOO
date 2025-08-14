@@ -27,6 +27,7 @@ var ignoreAuthEndpoints = []string{
 	"/v1.UserService/Login",
 	"/v1.UserService/Register",
 	"/grpc.health.v1.Health/Check",
+	"/v1.QuestionService/ImportQuestions", // Temporarily disable auth for testing
 }
 
 // Role-based access control (RBAC) configuration

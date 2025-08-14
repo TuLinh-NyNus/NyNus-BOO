@@ -65,18 +65,37 @@ type ImportQuestionsResponse struct {
 	Summary        string         `json:"summary"`
 }
 
-// QuestionData represents parsed question data from CSV
+// QuestionData represents parsed question data from CSV - matches your comprehensive CSV format
 type QuestionData struct {
-	Content        string   `json:"content"`
+	ID             string   `json:"id"`
 	RawContent     string   `json:"raw_content"`
+	Content        string   `json:"content"`
+	Subcount       string   `json:"subcount"`
 	Type           string   `json:"type"`
 	Source         string   `json:"source"`
 	Answers        string   `json:"answers"`
 	CorrectAnswer  string   `json:"correct_answer"`
 	Solution       string   `json:"solution"`
+	Tag            []string `json:"tag"`
+	UsageCount     string   `json:"usage_count"`
+	Creator        string   `json:"creator"`
+	Status         string   `json:"status"`
+	Feedback       string   `json:"feedback"`
+	Difficulty     string   `json:"difficulty"`
+	CreatedAt      string   `json:"created_at"`
+	UpdatedAt      string   `json:"updated_at"`
 	QuestionCodeID string   `json:"question_code_id"`
-	Tags           []string `json:"tags"`
-	Subcount       string   `json:"subcount"`
+	GeneratedTags  string   `json:"generated_tags"`
+	Code           string   `json:"code"`
+	Format         string   `json:"format"`
+	Grade          string   `json:"grade"`
+	Subject        string   `json:"subject"`
+	Chapter        string   `json:"chapter"`
+	Lesson         string   `json:"lesson"`
+	Level          string   `json:"level"`
+	Form           string   `json:"form"`
+	QuestionTags   string   `json:"question_tags"`
+	TagCount       string   `json:"tag_count"`
 }
 
 // GetQuestionsByPaging retrieves questions with pagination

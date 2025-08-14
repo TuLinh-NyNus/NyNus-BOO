@@ -211,7 +211,7 @@ func (s *QuestionCodeService) GetQuestionCodeStats(ctx context.Context, db datab
 	// Calculate statistics
 	for _, qc := range allCodes {
 		// Grade stats
-		gradeStr := fmt.Sprintf("%d", qc.Grade.Int)
+		gradeStr := qc.Grade.String
 		stats.ByGrade[gradeStr]++
 
 		// Subject stats
@@ -221,7 +221,7 @@ func (s *QuestionCodeService) GetQuestionCodeStats(ctx context.Context, db datab
 		stats.ByLevel[qc.Level.String]++
 
 		// ID5/ID6 count
-		if qc.Form.Int == 0 {
+		if qc.Form.String == "" {
 			stats.ID5Count++
 		} else {
 			stats.ID6Count++
