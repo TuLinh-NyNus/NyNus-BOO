@@ -13,11 +13,13 @@ import {
   LaTeXParseResult,
   FileUploadResult,
   SavedQuestionsData,
+  QuestionFilters,
   AnswerOption,
   MatchingOption,
   CorrectAnswer
 } from '../../types/question';
 import { mockEnhancedQuestions, mockQuestionCodes } from '../../mockdata/questions';
+import { ensureSingle } from '../../utils/filter-type-adapters';
 
 // Simulate realistic API latency
 const MOCK_LATENCY = {
@@ -40,6 +42,7 @@ export class MockQuestionsService {
   
   /**
    * Lấy danh sách câu hỏi với pagination và filters
+   * Supports both legacy params và QuestionFilters interface
    */
   static async listQuestions(params: {
     page?: number;
@@ -51,20 +54,23 @@ export class MockQuestionsService {
     keyword?: string;
     sortBy?: 'createdAt' | 'updatedAt' | 'usageCount';
     sortDir?: 'asc' | 'desc';
-  } = {}): Promise<QuestionListResponse> {
+  } | QuestionFilters = {}): Promise<QuestionListResponse> {
     await delay(MOCK_LATENCY.medium);
 
+    // Extract and normalize parameters
     const {
       page = 1,
       pageSize = 20,
-      type,
-      status,
-      difficulty,
       codePrefix,
       keyword,
       sortBy = 'createdAt',
       sortDir = 'desc'
     } = params;
+
+    // Handle union types - convert arrays to single values for filtering
+    const type = ensureSingle(params.type);
+    const status = ensureSingle(params.status);
+    const difficulty = ensureSingle(params.difficulty);
 
     // Convert enhanced questions to Question format
     let filteredQuestions: Question[] = mockEnhancedQuestions.map(q => ({

@@ -338,8 +338,8 @@ export default function AdminQuestionsPage() {
 
               {/* Status filter */}
               <Select
-                value={filters.status || 'all'}
-                onValueChange={(value) => handleFilterChange({ status: value === 'all' ? undefined : value as QuestionStatus })}
+                value={questionStatusAdapters.toString(filters.status)}
+                onValueChange={(value) => handleFilterChange({ status: questionStatusAdapters.fromString(value) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Trạng thái" />
@@ -355,8 +355,8 @@ export default function AdminQuestionsPage() {
 
               {/* Difficulty filter */}
               <Select
-                value={filters.difficulty || 'all'}
-                onValueChange={(value) => handleFilterChange({ difficulty: value === 'all' ? undefined : value as QuestionDifficulty })}
+                value={questionDifficultyAdapters.toString(filters.difficulty)}
+                onValueChange={(value) => handleFilterChange({ difficulty: questionDifficultyAdapters.fromString(value) })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Độ khó" />

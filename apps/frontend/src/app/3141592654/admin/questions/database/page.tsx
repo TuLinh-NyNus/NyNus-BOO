@@ -37,13 +37,14 @@ import {
 import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
-import { 
-  Question, 
-  QuestionFilters, 
-  QuestionType, 
-  QuestionStatus, 
-  QuestionDifficulty 
+import {
+  Question,
+  QuestionFilters,
+  QuestionType,
+  QuestionStatus,
+  QuestionDifficulty
 } from '@/lib/types/question';
+import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from '@/lib/utils/filter-type-adapters';
 import { MockQuestionsService } from '@/lib/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
@@ -235,8 +236,8 @@ export default function QuestionsDatabasePage() {
                 <div>
                   <label className="text-sm font-medium mb-2 block">Loại câu hỏi</label>
                   <Select
-                    value={filters.type || 'all'}
-                    onValueChange={(value) => handleFilterChange({ type: value === 'all' ? undefined : value as QuestionType })}
+                    value={questionTypeAdapters.toString(filters.type)}
+                    onValueChange={(value) => handleFilterChange({ type: questionTypeAdapters.fromString(value) })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả loại" />
@@ -256,8 +257,8 @@ export default function QuestionsDatabasePage() {
                 <div>
                   <label className="text-sm font-medium mb-2 block">Độ khó</label>
                   <Select
-                    value={filters.difficulty || 'all'}
-                    onValueChange={(value) => handleFilterChange({ difficulty: value === 'all' ? undefined : value as QuestionDifficulty })}
+                    value={questionDifficultyAdapters.toString(filters.difficulty)}
+                    onValueChange={(value) => handleFilterChange({ difficulty: questionDifficultyAdapters.fromString(value) })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả độ khó" />
