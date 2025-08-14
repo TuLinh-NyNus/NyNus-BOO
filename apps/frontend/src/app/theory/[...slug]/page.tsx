@@ -34,37 +34,33 @@ export async function generateStaticParams() {
 
     // Generate params for all file paths
     allFiles.forEach(file => {
-      const pathParts = file.filePath.split('/').filter(Boolean);
-      
-      if (pathParts.length >= 3) {
-        // Extract grade, chapter, and file name
-        const grade = pathParts[pathParts.length - 3];
-        const chapter = pathParts[pathParts.length - 2];
-        const fileName = pathParts[pathParts.length - 1].replace('.tex', '');
+      // Use file metadata instead of path parsing để avoid issues với spaces
+      const grade = file.grade; // 'LỚP 10'
+      const chapter = file.chapter || 'Chapter 1'; // 'Chapter 1'
+      const fileName = file.fileName.replace('.tex', ''); // 'Chapter1-1'
 
-        // Convert to URL-friendly format
-        const gradeSlug = convertGradeToEnglishSlug(grade);
-        const chapterSlug = chapter.toLowerCase().replace(/\s+/g, '-');
-        const fileSlug = fileName.toLowerCase().replace(/\s+/g, '-');
+      // Convert to URL-friendly format
+      const gradeSlug = convertGradeToEnglishSlug(grade);
+      const chapterSlug = chapter.toLowerCase().replace(/\s+/g, '-');
+      const fileSlug = fileName.toLowerCase().replace(/\s+/g, '-');
 
-        // Add file-specific page
+      // Add file-specific page
+      params.push({
+        slug: [gradeSlug, chapterSlug, fileSlug]
+      });
+
+      // Add chapter page
+      if (!params.some(p => p.slug.length === 2 && p.slug[0] === gradeSlug && p.slug[1] === chapterSlug)) {
         params.push({
-          slug: [gradeSlug, chapterSlug, fileSlug]
+          slug: [gradeSlug, chapterSlug]
         });
+      }
 
-        // Add chapter page
-        if (!params.some(p => p.slug.length === 2 && p.slug[0] === gradeSlug && p.slug[1] === chapterSlug)) {
-          params.push({
-            slug: [gradeSlug, chapterSlug]
-          });
-        }
-
-        // Add grade page
-        if (!params.some(p => p.slug.length === 1 && p.slug[0] === gradeSlug)) {
-          params.push({
-            slug: [gradeSlug]
-          });
-        }
+      // Add grade page
+      if (!params.some(p => p.slug.length === 1 && p.slug[0] === gradeSlug)) {
+        params.push({
+          slug: [gradeSlug]
+        });
       }
     });
 

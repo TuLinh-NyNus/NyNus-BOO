@@ -50,29 +50,23 @@ export interface GradeInfo {
  */
 export async function getAllLatexFiles(): Promise<FileInfo[]> {
   try {
-    // In a real implementation, this would scan the file system
-    // For now, return mock data based on known structure
+    // Return only files that actually have content to avoid 404 errors during build
     const files: FileInfo[] = [];
-    
-    // Generate file list for LỚP 10 (we know these exist)
-    for (let chapter = 1; chapter <= 9; chapter++) {
-      for (let part = 1; part <= 2; part++) {
-        const fileName = `Chapter${chapter}-${part}.tex`;
-        files.push({
-          fileName,
-          filePath: `${CONTENT_PATHS.LOP_10}/${fileName}`,
-          grade: 'LỚP 10',
-          subject: 'TOÁN',
-          chapter: `Chapter ${chapter}`,
-          lastModified: new Date(),
-          size: 1024 // Mock size
-        });
-      }
-    }
 
-    // Note: LỚP 11 and LỚP 12 currently have no content
-    // This matches the QUICK_ACCESS_LINKS data showing 0 lessons
-    
+    // Only include Chapter1-1.tex which has actual content
+    files.push({
+      fileName: 'Chapter1-1.tex',
+      filePath: `${CONTENT_PATHS.LOP_10}/Chapter1-1.tex`,
+      grade: 'LỚP 10',
+      subject: 'TOÁN',
+      chapter: 'Chapter 1',
+      lastModified: new Date(),
+      size: 1024
+    });
+
+    // TODO: Add more files as content becomes available
+    // This prevents 404 errors during static generation
+
     return files;
   } catch (error) {
     console.error('Error getting LaTeX files:', error);

@@ -14,10 +14,12 @@ import { Skeleton, Card, CardContent } from "@/components/ui";
 // ===== TYPES =====
 
 export interface QuestionListSkeletonProps {
-  viewMode?: 'table' | 'cards' | 'virtual';
+  viewMode?: 'table' | 'cards' | 'virtual' | 'search';
   layout?: 'desktop' | 'tablet' | 'mobile';
   itemCount?: number;
   showHeader?: boolean;
+  showSearchInput?: boolean;
+  showSearchStats?: boolean;
   className?: string;
 }
 
@@ -211,17 +213,21 @@ export function QuestionListSkeleton({
   layout = 'desktop',
   itemCount,
   showHeader = true,
+  showSearchInput: _showSearchInput = false,
+  showSearchStats: _showSearchStats = false,
   className = ""
 }: QuestionListSkeletonProps) {
   // Determine default item count dựa trên view mode và layout
   const getDefaultItemCount = () => {
     if (itemCount) return itemCount;
-    
+
     switch (viewMode) {
       case 'virtual':
         return 20;
       case 'cards':
         return layout === 'mobile' ? 6 : layout === 'tablet' ? 8 : 12;
+      case 'search':
+        return layout === 'mobile' ? 3 : layout === 'tablet' ? 5 : 8;
       case 'table':
       default:
         return layout === 'mobile' ? 5 : layout === 'tablet' ? 8 : 10;

@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -53,11 +53,11 @@ export default function EnhancedQuestionListDemoPage() {
   const [forcedLayout, setForcedLayout] = useState<QuestionListLayout | undefined>(undefined);
   
   // ===== HOOKS =====
-  
+
   const {
     questions,
     pagination,
-    isLoading,
+    isLoading: originalIsLoading,
     viewMode,
     layout,
     selectedQuestions,
@@ -85,6 +85,30 @@ export default function EnhancedQuestionListDemoPage() {
       console.log('Layout changed:', newLayout);
     },
   });
+
+  // ===== DEMO FIXES =====
+
+  // Fix 1: Override loading state với timeout fallback
+  const [isLoadingOverride, setIsLoadingOverride] = useState(true);
+
+  useEffect(() => {
+    // Auto-disable loading sau 3 giây hoặc khi có data
+    const timeout = setTimeout(() => {
+      console.log('[DEMO FIX] Loading timeout - forcing false');
+      setIsLoadingOverride(false);
+    }, 3000);
+
+    // Disable loading khi có data
+    if (questions.length > 0) {
+      setIsLoadingOverride(false);
+      clearTimeout(timeout);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [questions.length]);
+
+  // Use override loading state for demo
+  const isLoading = isLoadingOverride && originalIsLoading;
   
   // ===== HANDLERS =====
   

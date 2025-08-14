@@ -34,15 +34,20 @@ export function TheoryHomePage() {
   const [searchResults, setSearchResults] = useState<FileInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Load directory structure
   useEffect(() => {
     async function loadData() {
       try {
+        console.log('Loading directory structure...');
         const structure = await getDirectoryStructure();
+        console.log('Directory structure loaded:', structure);
         setDirectoryStructure(structure);
+        setError(null);
       } catch (error) {
         console.error('Error loading directory structure:', error);
+        setError('Không thể tải cấu trúc thư mục. Vui lòng thử lại.');
       } finally {
         setLoading(false);
       }
@@ -79,12 +84,30 @@ export function TheoryHomePage() {
     return (
       <div className="max-w-6xl mx-auto">
         <div className="space-y-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Đang tải...</h1>
+            <p className="text-muted-foreground">Đang tải cấu trúc thư mục lý thuyết</p>
+          </div>
           <div className="h-32 bg-muted animate-pulse rounded-lg" />
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="h-48 bg-muted animate-pulse rounded-lg" />
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-destructive">Có lỗi xảy ra</h1>
+          <p className="text-muted-foreground">{error}</p>
+          <Button onClick={() => window.location.reload()}>
+            Thử lại
+          </Button>
         </div>
       </div>
     );

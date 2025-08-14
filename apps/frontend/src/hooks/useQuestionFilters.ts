@@ -111,6 +111,7 @@ export function useQuestionFilters(
   const [lastFetchTime, setLastFetchTime] = useState(0);
   const [fetchCount, setFetchCount] = useState(0);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Separate search filters từ other filters cho different debounce delays
   const searchFilters = {
@@ -152,6 +153,12 @@ export function useQuestionFilters(
         setIsSearching(true);
       } else {
         setIsLoading(true);
+
+        // Add loading timeout protection (10 seconds)
+        loadingTimeoutRef.current = setTimeout(() => {
+          console.warn('[useQuestionFilters] Loading timeout - forcing false');
+          setIsLoading(false);
+        }, 10000);
       }
       
       const startTime = performance.now();
@@ -186,8 +193,20 @@ export function useQuestionFilters(
       onError?.(error instanceof Error ? error : new Error('Unknown error'));
       
     } finally {
-      setIsLoading(false);
-      setIsSearching(false);
+      // Clear loading timeout
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+
+      // Chỉ update loading state nếu request này chưa bị cancel
+      if (!abortControllerRef.current?.signal.aborted) {
+        if (isSearchRequest) {
+          setIsSearching(false);
+        } else {
+          setIsLoading(false);
+        }
+      }
       abortControllerRef.current = null;
     }
   }, [onError, onSuccess]);
