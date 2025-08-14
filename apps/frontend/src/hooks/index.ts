@@ -33,3 +33,10 @@ export * from './use-tutorials';
 
 // UI hooks
 export * from './use-horizontal-scroll';
+
+// Question management hooks
+export { useQuestionList } from './useQuestionList';
+export type { UseQuestionListOptions, UseQuestionListReturn } from './useQuestionList';
+
+// Question filters hooks
+export { useQuestionFilters } from './useQuestionFilters';

@@ -10,3 +10,10 @@ export { QuestionSearchComponent } from './questionSearchComponent';
 export { QuestionFilterGrid } from './questionFilterGrid';
 export { QuestionListTable } from './questionListTable';
 export { QuestionListPagination } from './questionListPagination';
+
+// Enhanced components
+export {
+  EnhancedQuestionList,
+  type QuestionListViewMode,
+  type QuestionListLayout
+} from './enhanced-question-list';
