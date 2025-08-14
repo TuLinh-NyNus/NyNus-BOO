@@ -295,7 +295,7 @@ export function GalleryFiltersComponent({
             )}
             {filters.searchQuery && (
               <Badge variant="secondary" className="text-xs">
-                "{filters.searchQuery}"
+                &quot;{filters.searchQuery}&quot;
               </Badge>
             )}
             {filters.dateRange && (
