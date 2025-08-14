@@ -1,0 +1,57 @@
+\section{SỐ GẦN ĐÚNG VÀ SAI SỐ}
+\subsection{TÓM TẮT LÝ THUYẾT}
+\subsubsection{Số gần đúng}
+	Trong nhiều trường hợp, ta không biết hoặc khó biết số đúng (kí hiệu $\overline{a}$) mà chỉ tìm được giá trị khác xấp xỉ nó. Giá trị này được gọi là \indamm{số gần đúng}, kí hiệu là $a$.
+\begin{tcolorbox}[colframe=orange,colback=white,boxrule=0.2mm]
+	\indam{Ví dụ:} Cho hình vuông $ABCD$ có độ dài cạnh bằng 3. Khi đó, 
+	độ dài đường chéo hình vuông được tính theo công thức là \fbox{$\text{cạnh} \cdot \sqrt{2}=3\sqrt{2}$}.  
+	\begin{itemize}
+		\item [$\bullet$] Kết quả $3\sqrt{2}$ là số đúng khi tính đường chéo hình vuông.
+		\item [$\bullet$] Các kết quả \quad $4,2$; \quad $4,24$; \quad $4,23$; \quad$\cdots$ là các số gần đúng.
+	\end{itemize}
+\end{tcolorbox}
+\subsubsection{Sai số tuyệt đối và sai số tương đối}
+\begin{itemize}
+	\item [\iconMT] \indam{Sai số tuyệt đối:} Cho $\overline{a}$ là số đúng và $a$ là số gần đúng của $\overline{a}$. Giá trị $\Delta_a=\big|a-\overline{a}\big|$ phản ánh mức độ sai lêch giữa số đúng $\overline{a}$ và số gần đúng $a$, được gọi là \indamm{sai số tuyệt đối} của số gần đúng $a$.
+	\begin{boxkn}
+		\begin{itemize}
+			\item Trên thực tế, nhiều khi ta không biết $\overline{a}$ nên cũng không biết được $\Delta_a$. Tuy nhiên ta có thể đánh giá được $\Delta_a \le d$, với $d$ là một số dương nào đó.
+			\item  Nếu $\Delta_a \le d$ thì $\big|a-\overline{a}\big|\le d \Leftrightarrow a-d \le \overline{a} \le a+d$. Khi đó, ta có thể viết $\overline{a}=a \pm d$ và hiểu là số đúng $\overline{a}$ nằm trong đoạn $\left[a-d;a+d \right]$. 
+			\item Với $d$ càng nhỏ thì $a$ càng gần $\overline{a}$ nên \indamm{ $d$ gọi là độ chính xác của số gần đúng}.
+		\end{itemize}
+	\end{boxkn}
+	\item [\iconMT] \indam{Sai số tương đối:}  Sai số tương đối của số gần đúng $a$, kí hiệu là $\delta_{a}$ và được tính bởi công thức $\delta_{a}=\dfrac{\Delta_a}{|a|}$.
+	\begin{boxkn}
+		\begin{itemize}
+			\item  Nếu $\overline{a}=a \pm d$ thì $\Delta_a \le d$, suy ra $\delta_{a}=\dfrac{\Delta_a}{|a|} \le \dfrac{d}{|a|}$. Nếu $\dfrac{d}{|a|}$ càng nhỏ thì chất lượng của phép đo càng cao.
+			\item Người ta thường viết sai số tương đối dưới dạng phần trăm.
+		\end{itemize}
+	\end{boxkn}
+\end{itemize}
+\subsubsection{Quy tròn số gần đúng}
+Số thu được sau khi thực hiện làm tròn số được gọi là \indamm{số quy tròn}. Số quy tròn là một số gần đúng của số ban đầu.
+\begin{itemize}
+	\item [\iconMT] \indam{Quy tắc quy tròn số:}
+	\begin{itemize}
+		\item [\ding{172}] Đối với chữ số hàng làm tròn:
+		\begin{boxkn}
+			\begin{itemize}
+				\item Giữ nguyên nếu chữ số ngay bên phải nó nhỏ hơn $5$;
+				\item Tăng $1$ đơn vị nếu chữ số ngay bên phải nó lớn hơn hoặc bằng $5$.
+			\end{itemize}
+		\end{boxkn}
+		\item [\ding{173}] Đối với chữ số sau hàng làm tròn:
+		\begin{boxkn}
+			\begin{itemize}
+				\item Bỏ đi nếu ở phần thập phân;
+				\item Thay bởi các chữ số $0$ nếu ở phần số nguyên.
+			\end{itemize}
+		\end{boxkn}
+	\end{itemize}
+	\item [\iconMT] \indam{Nhận xét:}
+	\begin{itemize}
+		\item[\ding{172}]  Khi thay số đúng bởi số quy tròn đến một hàng nào đó thì sai số tuyệt đối của số quy tròn không vượt quá nửa đơn vị của hàng làm tròn.
+		\item[\ding{173}] Khi quy tròn số đúng $\overline{a}$ đến một hàng nào đó thì ta nói số gần đúng $a$ nhận được là chính xác đến hàng đó. Ví dụ, số gần đúng của $\pi$ chính xác đến hàng phần trăm là $3,14$.
+		\item[\ding{174}] Cho số gần đúng $a$ với độ chính xác $d$. Khi được yêu cầu làm tròn số $a$ mà không nói rõ làm tròn đến hàng nào thì ta làm tròn số $a$ đến hàng thấp nhất mà $d$ nhỏ hơn $1$ đơn vị của hàng đó.
+	\end{itemize}
+\end{itemize}

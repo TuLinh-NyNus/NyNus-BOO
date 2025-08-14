@@ -1,0 +1,27 @@
+\section{CẤP SỐ NHÂN}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Định nghĩa}
+Cấp số nhân là một dãy số (hữu hạn hoặc vô hạn), trong đó kể từ số hạng thứ hai, mỗi số hạng đều là tích của số hạng đứng ngay trước nó với một số không đổi $q$. Nghĩa là
+\boxminit{${{u}_{n+1}}={{u}_n}q$ với $n\in \mathbb{N}^*$.}
+\begin{gachsoc}
+	\begin{itemize}
+		\item [$\bullet$] Số $q$ được gọi là công bội của cấp số nhân.
+		\item [$\bullet$] Khi $q=0$ cấp số nhân có dạng ${{u}_{1}},0,0,\ldots,0,\ldots$
+		\item [$\bullet$] Khi $q=1$ cấp số nhân có dạng ${{u}_{1}},{{u}_{1}},{{u}_{1}},\ldots,{{u}_{1}},\ldots$
+		\item [$\bullet$] Khi ${{u}_{1}}=0$ thì với mọi $q$ cấp số nhân có dạng $0,0,0,\ldots,0,\ldots$
+	\end{itemize}
+\end{gachsoc}
+
+\subsubsection{Số hạng tổng quát} 
+	Nếu một cấp số nhân có số hạng đầu $u_1$ và công bội $q$ thì số hạng tổng quát $u_n$ của nó được xác định bởi công thức
+	\boxminit{$u_n=u_1 \cdot q^{n-1}\, \text{với} \,n \geq 2.$}
+\subsubsection{Tính chất của ba số hạng liên tiếp} 
+Giả sử $u_{k-1}$, $u_k$, $u_{k+1}$ là ba số hạng liên tiếp của một cấp số nhân thì 
+\boxminit{$u_k^2={{u}_{k-1}}\cdot{{u}_{k+1}}$ với $k\ge 2$}
+\subsubsection{Tổng của $ n $ số hạng đầu của một cấp số nhân}
+Cho cấp số nhân $\left(u_n\right)$ với công bội $q \neq 1$. Đặt $S_n=u_1+u_2+\cdots+u_n$. Khi đó
+\begin{itemize}
+	\item [$\bullet$] Nếu $q \ne 1$ thì \boxminit{$S_n=\dfrac{u_1\left(1-q^n\right)}{1-q}.$}
+	\item [$\bullet$] Nếu $ q=1 $ thì \boxminit{$S_n =nu_1 $}
+\end{itemize}
+

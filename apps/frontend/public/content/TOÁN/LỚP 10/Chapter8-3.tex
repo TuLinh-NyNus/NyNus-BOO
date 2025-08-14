@@ -1,0 +1,32 @@
+\section{NHỊ THỨC NEWTON}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Nhị thức Newton}
+\begin{itemize}
+\item [\ding{172}] Nhắc lại các hằng đẳng thức
+		\begin{boxkn}
+		\begin{listEX}[2]
+			\item [\ding{172}] $(a+b)^2=a^2+2ab+b^2$.
+			\item [\ding{173}] $(a-b)^2=a^2-2ab+b^2$.
+			\item [\ding{174}] $(a+b)^3=a^3+3a^2b+3ab^2+b^3$.
+			\item [\ding{175}] $(a-b)^3=a^3-3a^2b+3ab^2-b^3$.
+		\end{listEX}
+	\end{boxkn}
+\item [\ding{173}] Công thức nhị thức Newton
+	\begin{boxkn}
+		\begin{align*}
+		\left(a+b\right)^n &=\mathrm{C}_n^0a^n+\mathrm{C}_n^1{a}^{n-1}b+\cdots+\mathrm{C}_n^{n-1}a{b}^{n-1}+\mathrm{C}_n^nb^n \\ 
+		&=\displaystyle \sum\limits_{k=0}^n{\mathrm{C}_n^k{a}^{n-k}b^k.}
+		\end{align*}
+	\end{boxkn}
+	\begin{itemize}
+		\item [$\bullet$] Với $a=b=1$, ta có \quad $\mathrm{C}_n^0+\mathrm{C}_n^1+\cdots+\mathrm{C}_n^{n-1}+\mathrm{C}_n^n=2^n$.
+		\item [$\bullet$] Với $a=1;  b=-1$, ta có \quad $\mathrm{C}_n^0-\mathrm{C}_n^1+\cdots+{\left(-1\right)}^k\mathrm{C}_n^k+\cdots+{\left(-1\right)}^n\mathrm{C}_n^n=0$.
+	\end{itemize}
+	\end{itemize}
+\subsubsection{Chú ý}
+Trong biểu thức ở vế phải của khai triển $\left(a+b\right)^n$ thì
+	\begin{itemize}
+		\item Số các hạng tử là $n+1$;
+		\item Các hạng tử có số mũ của $a$ giảm dần từ $n$ đến $0$; số mũ của $b$ tăng dần từ $0$ đến $n$, nhưng tổng các số mũ của $a$ và $b$ trong mỗi hạng tử luôn bằng $n$ (quy ước $a^0=b^0=1$);
+		\item Các hệ số của mỗi cặp hạng tử cách đều hai hạng tử đầu và cuối đều bằng nhau.
+	\end{itemize}

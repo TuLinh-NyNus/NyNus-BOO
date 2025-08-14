@@ -1,0 +1,86 @@
+\section{SỐ TRUNG BÌNH VÀ MỐT CỦA MẪU SỐ LIỆU GHÉP NHÓM}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{SỐ LIỆU GHÉP NHÓM}
+\begin{enumerate}[\iconMT]
+	\item \indam{Định nghĩa:} Mẫu số liệu ghép nhóm thường được trình bày dưới dạng bảng tần số ghép nhóm có dạng như sau:\\
+	\hspace*{3cm}	\begin{tikzpicture}
+			\matrix[matrix of nodes,nodes in empty cells,
+			row sep=-\pgflinewidth,column sep=-\pgflinewidth,
+			nodes={minimum height=8mm,minimum width=20mm,draw=black,anchor=center},
+			column 1/.style={nodes={minimum width=24mm,color=black}},
+			row 1/.style={nodes={fill=cyan!10}},
+			row 2/.style={nodes={minimum height=10mm}},
+			]{
+				Nhóm &$[u_1;u_2)$&$[u_1;u_2)$&\dots&$[u_k;u_{k+1})$\\ 
+				\node[align=center]{Tần số}; &$n_1$&$n_2$&\dots&$n_k$\\
+			};
+		\end{tikzpicture}
+\item\indam{Chú ý:}
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+		\begin{itemize}
+			\item Bảng trên gồm $k$ nhóm $\left[u_j; u_{j+1}\right)$ với $1 \leq j \leq k$, mỗi nhóm gồm một số giá trị được ghép theo một tiêu chí xác định. Trong một số trường hợp, nhóm số liệu cuối cùng có thể lấy đầu mút bên phải.
+			\item Cỡ mẫu $n=n_1+n_2+\cdots+n_k$.
+			\item Giá trị chính giữa mỗi nhóm được dùng làm giá trị đại diện cho nhóm ấy. Ví dụ nhóm $\left[u_1; u_2\right)$ có giá trị đại diện là $\dfrac{1}{2}\left(u_1+u_2\right)$.
+			\item Hiệu $u_{j+1}-u_j$ được gọi là độ dài của nhóm $\left[u_j; u_{j+1}\right)$. Ta thường phân chia các chóm có độ dài $L$ bằng nhau và $L>\dfrac{R}{k}$, với $R$ là khoảng biến thiên, $k$ là số nhóm.
+		\end{itemize}
+	\end{tcolorbox}
+\item\indam{Một số quy tắc ghép nhóm của mẫu số liệu:} Mỗi mẫu số liệu có thể được ghép nhóm theo nhiều cách khác nhau nhưng thường tuân theo một số quy tắc sau:
+\begin{itemize}
+	\item Sử dụng từ $k=5$ đến $k=20$ nhóm. Cỡ mẫu càng lớn thì cần càng nhiều nhóm số liệu. Các nhóm có cùng độ dài bằng $L$ thoả mãn $R<k\cdot L$, trong đó $R$ là khoảng biến thiên, $k$ là số nhóm.
+	\item Giá trị nhỏ nhất của mẫu thuộc vào nhóm $\left[u_1; u_2\right)$ và càng gần $u_1$ càng tốt. Giá trị lớn nhất của mẫu thuộc nhóm $\left[u_k; u_{k+1}\right)$ và càng gần $u_{k+1}$ càng tốt.
+\end{itemize}
+\end{enumerate}
+
+\subsubsection{SỐ TRUNG BÌNH}
+Cho mẫu số liệu ghép nhóm \indamm{(BẢNG 1)}
+\begin{center}
+	\begin{tabular}{|c|c|c|c|c|c|}
+		\hline
+		Nhóm	&$\left[u_1;u_2 \right)$ & $\ldots$ & $\left[u_i;u_{i+1} \right)$ & $\ldots$ &$\left[u_k;u_{k+1} \right)$ \\
+		\hline
+		Tần số 	& $n_1$ & $\ldots$ & $n_i$ & $\ldots$ & $n_k$ \\
+		\hline
+	\end{tabular}	
+\end{center}
+\begin{enumerate}[\iconMT]
+	\item \indam{Công thức tính:} 
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+		Số trung bình của mẫu số liệu ghép nhóm kí hiệu là $\overline{x}$ và $$\overline{x}=\dfrac{n_1x_1+\ldots+n_kx_k}{n}$$
+		trong đó, $n=n_1+\ldots+n_k$ là cỡ mẫu và $x_i=\dfrac{u_i+u_{i+1}}{2}$ (với $i=1,\ldots,k$) là giá trị đại diện của nhóm $\left[u_i;u_{i+1} \right)$.
+	\end{tcolorbox}
+	\item \indam{Chú ý:} Đối với số liệu rời rạc, người ta thường cho các nhóm dưới dạng $k_1-k_2$, trong đó $k_1,\,k_2\in \mathbb{N}$. Nhóm $k_1-k_2$ được hiểu là nhóm gồm các giá trị $k_1,\,k_1+1,\,\ldots,\,k_2$. Khi đó, ta cần hiệu chỉnh mẫu số liệu ghép nhóm để đưa về dạng Bảng $1$ trước khi thực hiện tính toán các số đặc trưng bằng cách hiệu chỉnh nhóm $k_1-k_2$ với $k_1,\,k_2\in \mathbb{N}$ thành nhóm $\left[k_1-0{,}5;k_2+0{,}5 \right)$. Chẳng hạn, với dữ liệu ghép nhóm điểm thi môn Toán trong bảng 
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			Điểm thi	& $1-4$ & $5-7$ &$8-10$ \\
+			\hline
+			Số học sinh	& $5$ & $20$ & $10$ \\
+			\hline
+		\end{tabular}
+	\end{center}
+	sau khi hiệu chỉnh người ta được bảng:
+	\begin{center}
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			Điểm thi	& $\left[0{,}5;4{,}5 \right)$ & $\left[4{,}5;7{,}5 \right)$ &$\left[7{,}5;10{,}5 \right)$ \\
+			\hline
+			Số học sinh	& $5$ & $20$ & $10$ \\
+			\hline
+		\end{tabular} 
+	\end{center}
+	\item \indam{Ý nghĩa:} Số trung bình của mẫu số liệu ghép nhóm xấp xỉ cho số trung bình của mẫu số liệu gốc, nó cho biết vị trí trung tâm của mẫu số liệu và có thể dùng đại diện cho mẫu số liệu. 
+\end{enumerate}
+	\subsubsection{MỐT}
+\begin{enumerate}[\iconMT]
+	\item \indam{Công thức tính:} Để tìm mốt của mẫu số liệu ghép nhóm \indamm{(BẢNG 1)}, ta thực hiện theo các bước:
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+		\begin{itemize}
+			\item \indamm{Bước 1:} Xác định nhóm có tần số lớn nhất (gọi là nhóm chứa mốt), giả sử là nhóm $m:\left[u_m;u_{m+1} \right)$.
+			\item \indamm{Bước 2:} Mốt được xác định là $M_0=u_m+\dfrac{n_m-n_{m-1}}{\left(n_m-n_{m-1}\right)+\left(n_m-n_{m+1}\right)} \cdot h$
+		\end{itemize}
+		Trong đó, $n_m$ là tần số nhóm $m$ (quy ước $n_0=n_{k+1}=0$) và $h$ là độ dài của nhóm.	
+	\end{tcolorbox}
+	\item \indam{Chú ý:} Người ta chỉ định nghĩa mốt cho mẫu ghép nhóm có độ dài các nhóm bằng nhau. Một mẫu có thể không có mốt hoặc có nhiều hơn một mốt.	
+	\item \indam{Ý nghĩa:} Mốt của mẫu số liệu ghép nhóm xấp xỉ cho mốt của mẫu số liệu gốc, nó được dùng để đo xu thế trung tâm của mẫu số liệu.
+\end{enumerate}
+

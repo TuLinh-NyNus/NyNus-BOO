@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge, Alert, AlertDescription } from "@/components/ui";
 import { AlertTriangle } from "lucide-react";
 import {
-  IntegratedQuestionForm,
+  // IntegratedQuestionForm,
   // QuestionForm,
   LaTeXEditor
 } from "@/components/admin/questions/forms";
@@ -22,7 +22,7 @@ import {
   QuestionValidationPanel
 } from "@/components/admin/questions/management";
 import { Question, QuestionType, QuestionDifficulty, QuestionStatus, AnswerOption } from "@/lib/types/question";
-import { FormQuestion, createSampleFormQuestion, questionToFormQuestion } from "@/lib/types/form-compatibility";
+import { FormQuestion, createSampleFormQuestion } from "@/lib/types/form-compatibility";
 
 // ===== SAMPLE DATA =====
 
@@ -88,7 +88,7 @@ export default function QuestionFormDemoPage() {
     alert('Câu hỏi đã được lưu thành công!');
   };
   
-  const handleSaveDraft = async (data: unknown) => {
+  const _handleSaveDraft = async (data: unknown) => {
     console.log('Draft saved:', data);
     
     // Simulate API call

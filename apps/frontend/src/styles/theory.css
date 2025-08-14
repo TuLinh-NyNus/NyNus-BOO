@@ -1,0 +1,567 @@
+/**
+ * NyNus Theory Content Styles
+ * Enhanced styling system cho LaTeX content với theme integration
+ */
+
+/* ===== THEORY CSS VARIABLES ===== */
+:root {
+  /* Theory-specific spacing */
+  --theory-spacing-xs: 0.5rem;
+  --theory-spacing-sm: 0.75rem;
+  --theory-spacing-md: 1rem;
+  --theory-spacing-lg: 1.5rem;
+  --theory-spacing-xl: 2rem;
+
+  /* Theory-specific typography */
+  --theory-font-size-sm: 0.875rem;
+  --theory-font-size-base: 1rem;
+  --theory-font-size-lg: 1.125rem;
+  --theory-font-size-xl: 1.25rem;
+  --theory-font-size-2xl: 1.5rem;
+  --theory-font-size-3xl: 1.875rem;
+
+  /* Theory-specific border radius */
+  --theory-radius-sm: 0.375rem;
+  --theory-radius-md: 0.5rem;
+  --theory-radius-lg: 0.75rem;
+
+  /* Theory-specific shadows */
+  --theory-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --theory-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --theory-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== LIGHT THEME COLORS ===== */
+.light {
+  /* Theory semantic colors - Light theme */
+  --theory-bg-primary: var(--color-background);
+  --theory-bg-secondary: var(--color-muted);
+  --theory-text-primary: var(--color-foreground);
+  --theory-text-secondary: var(--color-muted-foreground);
+  --theory-border: var(--color-border);
+  --theory-accent: var(--color-primary);
+
+  /* Theory box colors - Light theme */
+  --theory-knowledge-bg: color-mix(in srgb, var(--color-info) 8%, transparent);
+  --theory-knowledge-border: var(--color-info);
+  --theory-knowledge-text: color-mix(in srgb, var(--color-info) 80%, var(--color-foreground));
+
+  --theory-definition-bg: color-mix(in srgb, var(--color-success) 8%, transparent);
+  --theory-definition-border: var(--color-success);
+  --theory-definition-text: color-mix(in srgb, var(--color-success) 80%, var(--color-foreground));
+
+  --theory-example-bg: color-mix(in srgb, var(--color-warning) 8%, transparent);
+  --theory-example-border: var(--color-warning);
+  --theory-example-text: color-mix(in srgb, var(--color-warning) 80%, var(--color-foreground));
+
+  --theory-note-bg: color-mix(in srgb, var(--color-destructive) 8%, transparent);
+  --theory-note-border: var(--color-destructive);
+  --theory-note-text: color-mix(in srgb, var(--color-destructive) 80%, var(--color-foreground));
+}
+
+/* ===== DARK THEME COLORS ===== */
+.dark {
+  /* Theory semantic colors - Dark theme */
+  --theory-bg-primary: var(--color-background);
+  --theory-bg-secondary: var(--color-muted);
+  --theory-text-primary: var(--color-foreground);
+  --theory-text-secondary: var(--color-muted-foreground);
+  --theory-border: var(--color-border);
+  --theory-accent: var(--color-primary);
+
+  /* Theory box colors - Dark theme */
+  --theory-knowledge-bg: color-mix(in srgb, var(--color-info) 15%, var(--color-background));
+  --theory-knowledge-border: color-mix(in srgb, var(--color-info) 60%, transparent);
+  --theory-knowledge-text: color-mix(in srgb, var(--color-info) 90%, var(--color-foreground));
+
+  --theory-definition-bg: color-mix(in srgb, var(--color-success) 15%, var(--color-background));
+  --theory-definition-border: color-mix(in srgb, var(--color-success) 60%, transparent);
+  --theory-definition-text: color-mix(in srgb, var(--color-success) 90%, var(--color-foreground));
+
+  --theory-example-bg: color-mix(in srgb, var(--color-warning) 15%, var(--color-background));
+  --theory-example-border: color-mix(in srgb, var(--color-warning) 60%, transparent);
+  --theory-example-text: color-mix(in srgb, var(--color-warning) 90%, var(--color-foreground));
+
+  --theory-note-bg: color-mix(in srgb, var(--color-destructive) 15%, var(--color-background));
+  --theory-note-border: color-mix(in srgb, var(--color-destructive) 60%, transparent);
+  --theory-note-text: color-mix(in srgb, var(--color-destructive) 90%, var(--color-foreground));
+}
+
+/* ===== ENHANCED TYPOGRAPHY ===== */
+.theory-content {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  line-height: 1.7;
+  color: var(--theory-text-primary);
+}
+
+.theory-section-enhanced {
+  font-size: var(--theory-font-size-3xl);
+  font-weight: 700;
+  color: var(--theory-text-primary);
+  margin-top: var(--theory-spacing-xl);
+  margin-bottom: var(--theory-spacing-lg);
+  line-height: 1.2;
+  scroll-margin-top: 2rem;
+  position: relative;
+}
+
+.theory-section-enhanced::before {
+  content: '';
+  position: absolute;
+  left: -1rem;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(to bottom, var(--theory-accent), transparent);
+  border-radius: var(--theory-radius-sm);
+}
+
+.theory-subsection-enhanced {
+  font-size: var(--theory-font-size-2xl);
+  font-weight: 600;
+  color: var(--theory-text-primary);
+  margin-top: var(--theory-spacing-lg);
+  margin-bottom: var(--theory-spacing-md);
+  line-height: 1.3;
+  scroll-margin-top: 2rem;
+}
+
+.theory-subsubsection-enhanced {
+  font-size: var(--theory-font-size-xl);
+  font-weight: 500;
+  color: var(--theory-text-primary);
+  margin-top: var(--theory-spacing-md);
+  margin-bottom: var(--theory-spacing-sm);
+  line-height: 1.4;
+  scroll-margin-top: 2rem;
+}
+
+/* ===== ENHANCED EMPHASIS ===== */
+.theory-emphasis-enhanced {
+  font-weight: 600;
+  color: var(--theory-accent);
+  background: color-mix(in srgb, var(--theory-accent) 10%, transparent);
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--theory-radius-sm);
+  transition: all 0.2s ease;
+}
+
+.theory-emphasis-enhanced:hover {
+  background: color-mix(in srgb, var(--theory-accent) 15%, transparent);
+  transform: translateY(-1px);
+}
+
+/* ===== ENHANCED THEORY BOXES ===== */
+.theory-box-enhanced {
+  border-radius: var(--theory-radius-lg);
+  padding: var(--theory-spacing-lg);
+  margin: var(--theory-spacing-lg) 0;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: var(--theory-shadow-sm);
+  border: 1px solid transparent;
+}
+
+.theory-box-enhanced:hover {
+  box-shadow: var(--theory-shadow-md);
+  transform: translateY(-2px);
+}
+
+.theory-box-enhanced::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: var(--theory-radius-lg) 0 0 var(--theory-radius-lg);
+}
+
+/* Knowledge Box */
+.theory-box-knowledge-enhanced {
+  background: var(--theory-knowledge-bg);
+  border-color: var(--theory-knowledge-border);
+  color: var(--theory-knowledge-text);
+}
+
+.theory-box-knowledge-enhanced::before {
+  background: var(--theory-knowledge-border);
+}
+
+/* Definition Box */
+.theory-box-definition-enhanced {
+  background: var(--theory-definition-bg);
+  border-color: var(--theory-definition-border);
+  color: var(--theory-definition-text);
+}
+
+.theory-box-definition-enhanced::before {
+  background: var(--theory-definition-border);
+}
+
+/* Example Box */
+.theory-example-enhanced {
+  background: var(--theory-example-bg);
+  border-color: var(--theory-example-border);
+  color: var(--theory-example-text);
+}
+
+.theory-example-enhanced::before {
+  background: var(--theory-example-border);
+}
+
+/* Note Box */
+.theory-note-enhanced {
+  background: var(--theory-note-bg);
+  border-color: var(--theory-note-border);
+  color: var(--theory-note-text);
+}
+
+.theory-note-enhanced::before {
+  background: var(--theory-note-border);
+}
+
+/* ===== ENHANCED LISTS ===== */
+.theory-itemize-enhanced {
+  list-style: none;
+  padding-left: 0;
+  margin: var(--theory-spacing-md) 0;
+}
+
+.theory-itemize-enhanced li {
+  position: relative;
+  padding-left: var(--theory-spacing-lg);
+  margin-bottom: var(--theory-spacing-sm);
+  line-height: 1.6;
+}
+
+.theory-itemize-enhanced li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--theory-accent);
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.theory-item-custom-enhanced {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--theory-spacing-sm);
+  margin-bottom: var(--theory-spacing-sm);
+}
+
+.theory-item-custom-enhanced::before {
+  content: '▶';
+  color: var(--theory-accent);
+  font-size: var(--theory-font-size-sm);
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+/* ===== ENHANCED MATH ELEMENTS ===== */
+.theory-math-enhanced {
+  background: var(--theory-bg-secondary);
+  border: 1px solid var(--theory-border);
+  border-radius: var(--theory-radius-md);
+  padding: var(--theory-spacing-sm);
+  margin: var(--theory-spacing-sm) 0;
+  overflow-x: auto;
+}
+
+.theory-math-display-enhanced {
+  text-align: center;
+  padding: var(--theory-spacing-md);
+  background: var(--theory-bg-secondary);
+  border-radius: var(--theory-radius-lg);
+  margin: var(--theory-spacing-lg) 0;
+  box-shadow: var(--theory-shadow-sm);
+}
+
+.theory-math-error-enhanced {
+  background: var(--theory-note-bg);
+  color: var(--theory-note-text);
+  border: 1px solid var(--theory-note-border);
+  border-radius: var(--theory-radius-sm);
+  padding: var(--theory-spacing-xs) var(--theory-spacing-sm);
+  font-size: var(--theory-font-size-sm);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  :root {
+    --theory-font-size-3xl: 1.5rem;
+    --theory-font-size-2xl: 1.25rem;
+    --theory-font-size-xl: 1.125rem;
+    --theory-spacing-lg: 1rem;
+    --theory-spacing-xl: 1.5rem;
+  }
+
+  .theory-section-enhanced::before {
+    left: -0.5rem;
+    width: 3px;
+  }
+
+  .theory-box-enhanced {
+    padding: var(--theory-spacing-md);
+    margin: var(--theory-spacing-md) 0;
+  }
+
+  .theory-math-display-enhanced {
+    padding: var(--theory-spacing-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --theory-font-size-3xl: 1.375rem;
+    --theory-font-size-2xl: 1.125rem;
+    --theory-spacing-md: 0.75rem;
+    --theory-spacing-lg: 1rem;
+  }
+
+  .theory-itemize-enhanced li {
+    padding-left: var(--theory-spacing-md);
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  :root {
+    --theory-spacing-xs: 0.25rem;
+    --theory-spacing-sm: 0.5rem;
+    --theory-spacing-md: 0.75rem;
+    --theory-spacing-lg: 1rem;
+    --theory-spacing-xl: 1.25rem;
+  }
+
+  .theory-content {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: black !important;
+  }
+
+  .theory-section-enhanced,
+  .theory-subsection-enhanced,
+  .theory-subsubsection-enhanced {
+    color: black !important;
+    page-break-after: avoid;
+  }
+
+  .theory-section-enhanced::before {
+    display: none;
+  }
+
+  .theory-box-enhanced {
+    background: white !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    transform: none !important;
+    page-break-inside: avoid;
+    margin: 0.5rem 0 !important;
+    padding: 0.75rem !important;
+  }
+
+  .theory-box-enhanced::before {
+    background: #666 !important;
+    width: 2px;
+  }
+
+  .theory-box-knowledge-enhanced,
+  .theory-box-definition-enhanced,
+  .theory-example-enhanced,
+  .theory-note-enhanced {
+    color: black !important;
+  }
+
+  .theory-emphasis-enhanced {
+    background: none !important;
+    color: black !important;
+    font-weight: bold;
+    transform: none !important;
+  }
+
+  .theory-math-enhanced,
+  .theory-math-display-enhanced {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+
+  .theory-itemize-enhanced li::before {
+    color: black !important;
+  }
+
+  .theory-item-custom-enhanced::before {
+    color: black !important;
+  }
+
+  /* Hide interactive elements */
+  button,
+  .hover\:shadow-md,
+  .transition-all {
+    display: none !important;
+  }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+@media (prefers-reduced-motion: reduce) {
+  .theory-box-enhanced,
+  .theory-emphasis-enhanced,
+  .theory-section-enhanced,
+  .theory-subsection-enhanced,
+  .theory-subsubsection-enhanced {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .theory-box-enhanced:hover {
+    transform: none !important;
+  }
+
+  .theory-emphasis-enhanced:hover {
+    transform: none !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .theory-box-enhanced {
+    border-width: 2px;
+  }
+
+  .theory-box-enhanced::before {
+    width: 6px;
+  }
+
+  .theory-emphasis-enhanced {
+    outline: 1px solid var(--theory-accent);
+  }
+}
+
+/* ===== FOCUS STYLES ===== */
+.theory-section-enhanced:focus,
+.theory-subsection-enhanced:focus,
+.theory-subsubsection-enhanced:focus {
+  outline: 2px solid var(--theory-accent);
+  outline-offset: 2px;
+  border-radius: var(--theory-radius-sm);
+}
+
+.theory-box-enhanced:focus-within {
+  outline: 2px solid var(--theory-accent);
+  outline-offset: 2px;
+}
+
+/* ===== SELECTION STYLES ===== */
+.theory-content ::selection {
+  background: color-mix(in srgb, var(--theory-accent) 25%, transparent);
+  color: var(--theory-text-primary);
+}
+
+.theory-content ::-moz-selection {
+  background: color-mix(in srgb, var(--theory-accent) 25%, transparent);
+  color: var(--theory-text-primary);
+}
+
+/* ===== ANIMATION KEYFRAMES ===== */
+@keyframes theory-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes theory-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.theory-animate-fade-in {
+  animation: theory-fade-in 0.5s ease-out;
+}
+
+.theory-animate-slide-in {
+  animation: theory-slide-in 0.6s ease-out;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.theory-prose {
+  max-width: none;
+  color: var(--theory-text-primary);
+}
+
+.theory-prose h1,
+.theory-prose h2,
+.theory-prose h3,
+.theory-prose h4,
+.theory-prose h5,
+.theory-prose h6 {
+  color: var(--theory-text-primary);
+  scroll-margin-top: 2rem;
+}
+
+.theory-prose p {
+  margin: var(--theory-spacing-md) 0;
+  line-height: 1.7;
+}
+
+.theory-prose code {
+  background: var(--theory-bg-secondary);
+  color: var(--theory-text-primary);
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--theory-radius-sm);
+  font-size: 0.875em;
+}
+
+.theory-prose pre {
+  background: var(--theory-bg-secondary);
+  color: var(--theory-text-primary);
+  padding: var(--theory-spacing-md);
+  border-radius: var(--theory-radius-md);
+  overflow-x: auto;
+  border: 1px solid var(--theory-border);
+}
+
+.theory-prose blockquote {
+  border-left: 4px solid var(--theory-accent);
+  padding-left: var(--theory-spacing-md);
+  margin: var(--theory-spacing-lg) 0;
+  font-style: italic;
+  color: var(--theory-text-secondary);
+}
+
+.theory-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--theory-spacing-lg) 0;
+}
+
+.theory-prose th,
+.theory-prose td {
+  border: 1px solid var(--theory-border);
+  padding: var(--theory-spacing-sm);
+  text-align: left;
+}
+
+.theory-prose th {
+  background: var(--theory-bg-secondary);
+  font-weight: 600;
+}
+
+.theory-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--theory-radius-md);
+  box-shadow: var(--theory-shadow-sm);
+}

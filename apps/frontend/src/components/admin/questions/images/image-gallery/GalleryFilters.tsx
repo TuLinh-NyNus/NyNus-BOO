@@ -16,14 +16,13 @@ import { Badge } from '@/components/ui/display/badge';
 import { cn } from '@/lib/utils';
 import type { GalleryFilters } from '../types';
 import { ImageType, ImageStatus } from '@/lib/mockdata/shared/core-types';
-import { 
-  Search, 
-  Filter, 
-  X, 
-  SortAsc, 
+import {
+  Search,
+  Filter,
+  X,
+  SortAsc,
   SortDesc,
   Calendar,
-  FileImage,
   CheckCircle,
   Clock,
   XCircle

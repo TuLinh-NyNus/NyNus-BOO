@@ -178,7 +178,7 @@ export function ImageCard({
     setImageError(true);
   };
 
-  const handleSelect = (checked: boolean) => {
+  const handleSelect = (_checked: boolean) => {
     if (onSelect) {
       onSelect(image.id);
     }

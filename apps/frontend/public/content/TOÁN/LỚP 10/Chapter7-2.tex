@@ -1,0 +1,172 @@
+\section{ĐƯỜNG TRÒN TRONG MẶT PHẲNG TỌA ĐỘ}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Phương trình đường tròn có tâm và bán kính cho trước}
+\immini{Trong mặt phẳng $Oxy$, đường tròn $\mathscr{(C)}\colon \heva{& \text{ tâm } I(a;b) \quad(1)\\& \text{ bán kính } R \quad(2)}$ có phương trình 
+\boxmini{$(x-a)^2+(y-b)^2=R^2 \quad(\star)$}
+}{\hspace{1cm}
+\begin{tikzpicture}[scale=0.8]
+	\tikzset{label style/.style={font=\footnotesize}}
+	\tkzDefPoints{0/0/I,2/0/M}
+	\tkzDrawCircle[radius](I,M)
+	\tkzLabelPoints[below](I)
+	\tkzLabelPoints[right](M)
+	\tkzDrawPoints[size=3,fill=black](I,M)
+	\tkzDrawSegments(I,M)
+	\tkzLabelSegment[pos=0.5,below](I,M){$R$}
+\end{tikzpicture}}
+\subsubsection{Dạng khai triển}
+\begin{itemize}
+	\item [\iconMT] \indam{Phương trình đường tròn:}  Ta có thể khai triển $(\star)$, biến đổi phương trình về dạng 
+	\boxmini{$x^2+y^2-2ax-2by+c=0 \quad (\star \star)$}
+	trong đó $c=a^2+b^2-R^2$.
+	\item [\iconMT] \indam{Chú ý:}
+	\begin{gachsoc}
+		\begin{itemize}
+			\item [\ding{172}] Trong trường hợp tổng quát, điều kiện để $(\star \star)$ là phương trình đường tròn là $a^2+b^2-c>0$.
+			\item [\ding{173}] Để xác định tâm và bán kính của đường tròn ở dạng $(\star \star)$, ta làm như sau:
+			\begin{itemize}
+				\item Đổi dấu hệ số trước $x$ và $y$ rồi chia 2, ta được tâm $I(a;b)$.
+				\item Tính bán kính theo công thức $R=\sqrt{a^2+b^2-c}$. 
+			\end{itemize}
+		\end{itemize}
+	\end{gachsoc}
+\end{itemize}
+
+\subsubsection{Phương trình tiếp tuyến của đường tròn}
+
+\immini{\iconMT \indam{Công thức tiếp tuyến:} Cho đường tròn $\mathscr{(C)}$ có tâm $I(a;b)$ và bán kính $R$. Đường thẳng $\Delta $ là tiếp tuyến với $\mathscr{(C)}$ tại điểm $M_0\left(x_0;y_0\right)$. Khi đó
+	\begin{itemize}
+		\item [$\bullet$] $M_0\left(x_0;y_0\right)$ thuộc $\Delta $.
+		\item [$\bullet$] $\overrightarrow{IM}_0=(x_0-a;y_0-b)$ là véc-tơ pháp tuyến của $\Delta $.
+	\end{itemize}
+	Do đó $\Delta $ có phương trình là
+	\boxmini{$\left(x_0-a\right)\left(x-x_0\right)+\left(y_0-b\right)\left(y-y_0\right)=0.$}
+}{\vspace{1cm}\hspace{1cm}
+\begin{tikzpicture}[scale=0.7, font=\footnotesize, line join=round, line cap=round, >=stealth]
+	\tkzDefPoints{0/0/I,-2/1/M_0}
+	\clip (-3.5,-2.3) rectangle (2.5,2.6);
+	\draw[->] (I)--(M_0);
+	\tkzDrawCircle[radius](I,M_0)
+	\tkzDefPointBy[rotation=center M_0 angle 90](I)\tkzGetPoint{M'}
+	\tkzDefPointBy[rotation=center M_0 angle -90](I)\tkzGetPoint{M''}	
+	\draw (M')--(M'');
+	\node at (-3.2,-1) [above]{$\Delta$};
+	\tkzDrawPoints[fill=black,size=3](I,M_0)
+	\tkzLabelPoints[above left](M_0)
+	\tkzLabelPoints[below](I)
+\end{tikzpicture}
+}
+
+\iconMT \indam{Chú ý:} Đường thẳng $\Delta$ tiếp xúc $\mathscr{(C)}$ khi $\mathrm{d}(I,\Delta)=R$.
+
+
+\begin{dang}{Tìm tâm và bán kính đường tròn.}
+	\begin{itemize}
+		\item [\iconMT] \indam{Xét dạng $(x-a)^2+(y-b)^2=m\quad(1)$.}
+		\begin{itemize}
+			\item [\ding{172}] Nếu $m > 0$ thì (1) là phương trình đường tròn có tâm $I\left(a;b\right)$ và bán kính $R=\sqrt{m}$.
+			\item [\ding{173}] Nếu $m\le 0$ thì (1) không phải là phương trình đường tròn.
+		\end{itemize}
+		\item [\iconMT] \indam{Xét dạng $x^2+y^2-2ax-2by+c=0 \quad(2)$.} Xét dấu biểu thức $m=a^2+b^2-c$.
+		\begin{itemize}
+			\item [\ding{172}] Nếu $m > 0$ thì (2) là phương trình đường tròn có
+			\begin{enumEX}{2}
+				\item  tâm $I\left(a;b\right)$
+				\item  bán kính $R=\sqrt{a^2+b^2-c}$.
+			\end{enumEX}
+			\item [\ding{173}] Nếu $m\le 0$ thì (2) không phải là phương trình đường tròn.
+		\end{itemize}
+	\end{itemize}
+\end{dang}
+
+\begin{dang}{Lập phương trình đường tròn}
+	\begin{itemize}
+		\item [\iconMT] \indam{Hướng tiếp cận 1.}  Từ giả thiết, giải tìm tọa độ tâm và tính độ dài bán kính. Sau đó, viết phương trình của $\mathscr{(C)}$ theo công thức $(x-a)^2+(y-b)^2=R^2$.
+		\begin{boxkn}
+			\begin{itemize}
+				\item [\ding{172}] $\mathscr{(C)}$ có tâm $I$ và đi qua điểm $M$, suy ra $R=IM=\sqrt{(x_M-x_I)^2+(y_M-y_I)^2}$.
+				\item [\ding{173}] $\mathscr{(C)}$ tiếp xúc với đường thẳng $\Delta $ tại $A$, suy ra $\mathrm{d}\left(I;\Delta\right)=R=IA$.\\
+				\hspace*{2cm}
+				\begin{tikzpicture}[scale=1]
+					\tikzset{label style/.style={font=\footnotesize}}
+					\tkzDefPoints{0/0/I,1/0/M}
+					\tkzDrawCircle[radius](I,M)
+					\tkzLabelPoints[below](I)
+					\tkzLabelPoints[right](M)
+					\tkzDrawPoints[size=3,fill=black](I,M)
+					\tkzDrawSegments(I,M)
+					\tkzLabelSegment[pos=0.5,below](I,M){\scriptsize $R$}
+				\end{tikzpicture}
+				\hspace{2cm}
+				\begin{tikzpicture}[scale=0.9]
+					\tikzset{label style/.style={font=\footnotesize}}
+					\tkzDefPoints{0/0/I,0/-1/A,-2/-1/H,2/-1/K}
+					\tkzDrawCircle[radius](I,A)
+					\tkzLabelPoints[below](A)
+					\tkzLabelPoints[above](I)
+					\tkzDrawPoints[size=3,fill=black](I,A)
+					\tkzDrawSegments(I,A H,K)
+					\tkzLabelSegment[pos=0.5,right](I,A){\scriptsize$R$}
+					\tkzLabelSegment[pos=1,below](H,K){\scriptsize$\Delta$}
+				\end{tikzpicture}
+			\end{itemize}
+		\end{boxkn}
+		\item [\iconMT] \indam{Hướng tiếp cận 2.} Thường dùng cho bài toán lập phương trình đường tròn ngoại tiếp tam giác (qua ba điểm) hoặc qua hai điểm và có tâm thuộc đường thẳng $d$.
+		\begin{itemize}
+			\item Giả sử phương trình đường tròn $\mathscr{(C)}$ là $x^2+y^2-2ax-2by+c=0 $
+			\item Từ điều kiện của đề bài, ta thiết lập hệ phương trình với ba ẩn là $a,b,c$.
+			\item Giải hệ tìm $a,b,c$. Từ đó suy ra phương trình đường tròn $\mathscr{(C)}$.
+		\end{itemize}
+	\end{itemize}
+\end{dang}
+
+\begin{dang}{Tiếp tuyến của đường tròn tại một điểm}
+	\immini{
+		Cho đường tròn $\mathscr{(C)}$ có tâm $I(a;b)$ và bán kính $R$. Đường thẳng $\Delta $ là tiếp tuyến với $\mathscr{(C)}$ tại điểm $M_0\left(x_0;y_0\right)$. Khi đó
+		\begin{itemize}
+			\item [$\bullet$] $M_0\left(x_0;y_0\right)$ thuộc $\Delta $.
+			\item [$\bullet$] $\overrightarrow{IM}_0=(x_0-a;y_0-b)$ là véc-tơ pháp tuyến của $\Delta $.
+		\end{itemize}
+		Do đó $\Delta $ có phương trình là
+		\begin{center}
+			\fbox{$\left(x_0-a\right)\left(x-x_0\right)+\left(y_0-b\right)\left(y-y_0\right)=0.$}.
+		\end{center}
+	}{\hspace{1cm}
+		\begin{tikzpicture}[scale=0.7, font=\footnotesize, line join=round, line cap=round, >=stealth]
+			\tkzDefPoints{0/0/I,-2/1/M_0}
+			\clip (-3.5,-2.3) rectangle (2.5,2.6);
+			\draw[->] (I)--(M_0);
+			\tkzDrawCircle[radius](I,M_0)
+			\tkzDefPointBy[rotation=center M_0 angle 90](I)\tkzGetPoint{M'}
+			\tkzDefPointBy[rotation=center M_0 angle -90](I)\tkzGetPoint{M''}	
+			\draw (M')--(M'');
+			\node at (-3.2,-1) [above]{$\Delta$};
+			\tkzDrawPoints[fill=black,size=4](I,M_0)
+			\tkzLabelPoints[above left](M_0)
+			\tkzLabelPoints[below](I)
+		\end{tikzpicture}
+	}	
+\end{dang}
+
+\begin{dang}{Tiếp tuyến của đường tròn song song hoặc vuông góc với một đường cho trước}
+	Cho đường tròn $\mathscr{(C)}$ có tâm $I(a;b)$ và bán kính $R$.
+	\begin{itemize}
+		\item [\iconMT] \indam{Loại 1:} Biết tiếp tuyến song song với $d \colon Ax + By +C=0$.
+		\begin{itemize}
+			\item [$\bullet$] Gọi $\Delta$ là tiếp tuyến và $\Delta \parallel d$ nên $\Delta$ có dạng $Ax + By +m=0$, với $m \ne C$.
+			\item [$\bullet$] $\Delta$ tiếp xúc $\mathscr{(C)}$ khi và chỉ khi
+			$$\mathrm{d}(I,\Delta)=R \Leftrightarrow \dfrac{\bigg|A\cdot a+ B \cdot b +m\bigg|}{\sqrt{A^2+B^2}}=R$$ 
+		\end{itemize}
+		Giải điều kiện này, tìm $m$.
+		\begin{luuy}
+			Chú ý rằng $m$ phải khác $C$. Nếu giải ra giá trị $m=C$ thì ta loại giá trị này. 
+		\end{luuy}
+		\item [\iconMT] \indam{Loại 2:} Biết tiếp tuyến vuông góc với $d \colon Ax + By +C=0$.
+		\begin{itemize}
+			\item [$\bullet$] Gọi $\Delta$ là tiếp tuyến và $\Delta \perp d$ nên $\Delta$ có dạng $Bx - Ay +n=0$.
+			\item [$\bullet$] $\Delta$ tiếp xúc $\mathscr{(C)}$ khi và chỉ khi
+			$$\mathrm{d}(I,\Delta)=R \Leftrightarrow \dfrac{\bigg|B\cdot a-A \cdot b +n\bigg|}{\sqrt{A^2+B^2}}=R$$ 
+		\end{itemize}
+		Giải điều kiện này, tìm $n$.
+	\end{itemize}
+\end{dang}	

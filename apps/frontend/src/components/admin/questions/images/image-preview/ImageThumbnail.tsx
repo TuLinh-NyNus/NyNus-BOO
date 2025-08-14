@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/display/badge';
 import { cn } from '@/lib/utils';
 import { ImageThumbnailProps } from '../types';
 import { ImageType, ImageStatus, QuestionImage } from '@/lib/mockdata/shared/core-types';
-import { Eye, Download, FileImage, Clock, CheckCircle, XCircle, Loader } from 'lucide-react';
+import { Eye, FileImage, Clock, CheckCircle, XCircle, Loader } from 'lucide-react';
 
 // ===== SIZE CONFIGURATIONS =====
 

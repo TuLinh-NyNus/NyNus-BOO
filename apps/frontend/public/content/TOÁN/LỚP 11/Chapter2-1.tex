@@ -1,0 +1,80 @@
+\section{DÃY SỐ}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{ĐỊNH NGHĨA DÃY SỐ}
+\begin{itemize}
+	\item [\iconMT]\indam{ Định nghĩa dãy số:} Mỗi hàm số $u$ xác định trên tập các số nguyên dương $\mathbb{N}^*$ được gọi là một dãy số vô hạn (gọi tắt là dãy số). Kí hiệu $u=u(n )$.
+	\begin{luuy}
+		Ta thường viết $u_n$ thay cho $u(n)$ và kí hiệu dãy số $u=u(n)$ bởi $\left(u_n\right)$. Do đó dãy số $(u_n)$ được viết dưới dạng khai triển ${{u}_{1}},{{u}_{2}},{{u}_{3}},\ldots,{{u}_n},\ldots,$ trong đó
+		\begin{gachsoc}
+			\begin{itemize}
+				\item [$\bullet$]  ${{u}_{1}}$ là số hạng đầu;
+				\item [$\bullet$]  ${{u}_n}$ là số hạng thứ $n$ và là số hạng tổng quát của dãy số.
+			\end{itemize}
+		\end{gachsoc}
+	\end{luuy}
+
+	\item [\iconMT]  \indam{Định nghĩa dãy số hữu hạn:}
+	\begin{itemize}
+		\item [$\bullet$] Mỗi hàm số $u$ xác định trên tập $M=\left\{ 1,2,3,\ldots,m \right\}$ với $m\in \mathbb{N}^*$ được gọi là một dãy số hữu hạn.
+		\item [$\bullet$]  Dạng khai triển của nó là ${{u}_{1}},{{u}_{2}},{{u}_{3}},\ldots,{{u}_m},$ trong đó ${{u}_{1}}$ là số hạng đầu, ${{u}_m}$ là số hạng cuối.
+	\end{itemize}
+\end{itemize}
+
+\subsubsection{CÁCH CHO MỘT DÃY SỐ }
+Ta thường gặp một trong các cách sau đây:
+\begin{listEX}[1]
+	\item [\ding{172}] Liệt kê các số hạng (chỉ dùng cho các dãy hữu hạn và có ít số hạng);
+	\item [\ding{173}] Dãy số cho bằng công thức của số hạng tổng quát;
+	\item [\ding{174}] Dãy số cho bằng phương pháp mô tả;
+	\item [\ding{175}] Dãy số cho bằng phương pháp truy hồi, nghĩa là
+		\begin{itemize}
+			\item [$\bullet$] Cho số hạng đầu (hay vài số hạng đầu).
+			\item [$\bullet$] Cho hệ thức truy hồi, tức là hệ thức biểu thị số hạng thứ $n$ qua số hạng (hay vài số hạng) đứng trước nó.
+		\end{itemize}
+\end{listEX}
+
+\subsubsection{DÃY SỐ TĂNG, DÃY SỐ GIẢM}
+\begin{itemize}
+\item [\ding{172}] Dãy số $({{u}_n})$ được gọi là dãy số tăng nếu ta có ${{u}_{n+1}}>{{u}_n}$ với mọi $n\in \mathbb{N}^*$.
+\item  [\ding{173}] Dãy số $({{u}_n} )$ được gọi là dãy số giảm nếu ta có ${{u}_{n+1}}<{{u}_n}$ với mọi $n\in \mathbb{N}^*$.
+\end{itemize}
+
+\subsubsection{DÃY SỐ BỊ CHẶN}
+
+\begin{itemize}
+\item [\ding{172}] Dãy số $({{u}_n} )$ được gọi là bị chặn trên nếu tồn tại một số $M$ sao cho ${{u}_n}\le M,\forall n\in \mathbb{N}^*$.
+\item [\ding{173}] Dãy số $({{u}_n} )$ được gọi là bị chặn dưới nếu tồn tại một số $m$ sao cho
+${{u}_n}\ge m,\forall n\in \mathbb{N}^*$.
+\item [\ding{174}] Dãy số $({{u}_n} )$ được gọi là bị chặn nếu nó vừa bị chặn trên vừa bị chặn dưới, tức là tồn tại các số $m$, $M$ sao cho
+$m\le {{u}_n}\le M,\forall n\in \mathbb{N}^*$.
+\end{itemize}
+
+\begin{dang}{Xét sự tăng giảm của dãy số}
+	
+	\begin{enumerate}[\iconMT]
+		\item \indam{Phương pháp 1:} Xét dấu của hiệu số $u_{n+1}-u_n$.
+		\begin{itemize}
+			\item Nếu $u_{n+1}-u_n>0, \forall n \in \mathbb{N}^*$ thì $(u_n)$ là dãy số tăng.
+			\item Nếu $u_{n+1}-u_n<0, \forall n \in \mathbb{N}^*$ thì $(u_n)$ là dãy số giảm.
+		\end{itemize}
+		\item \indam{Phương pháp 2:} Nếu $u_n>0, \forall n\in \mathbb{N}^*$ thì ta có thể so sánh thương $\dfrac{u_{n+1}}{u_n}$ với $1$.
+		\begin{itemize}
+			\item Nếu $\dfrac{u_{n+1}}{u_n}>1$ thì $(u_n)$ là dãy số tăng.
+			\item Nếu $\dfrac{u_{n+1}}{u_n}<1$ thì $(u_n)$ là dãy số giảm.
+		\end{itemize}
+		Nếu $u_n<0, \forall n\in \mathbb{N}^*$ thì ta có thể so sánh thương $\dfrac{u_{n+1}}{u_n}$ với $1$.
+		\begin{itemize}
+			\item Nếu $\dfrac{u_{n+1}}{u_n}<1$ thì $(u_n)$ là dãy số tăng.
+			\item Nếu $\dfrac{u_{n+1}}{u_n}>1$ thì $(u_n)$ là dãy số giảm.
+		\end{itemize}
+	\end{enumerate}
+\end{dang}
+
+\begin{dang}{Xét tính bị chặn của dãy số}
+	\begin{itemize}
+		\item Để chứng minh dãy số $(u_n)$ bị chặn trên bởi $M$, ta chứng minh $u_n\leq M, \forall n\in \mathbb{N}^*.$
+		\item Để chứng minh dãy số $(u_n)$ bị chặn dưới bởi $m$, ta chứng minh $u_n\geq m, \forall n\in \mathbb{N}^*.$
+		\item Để chứng minh dãy số bị chặn ta chứng minh nó bị chặn trên và bị chặn dưới.
+		\item Nếu dãy số $(u_n)$ tăng thì bị chặn dưới bởi $u_1$; dãy số $(u_n)$ giảm thì bị chặn trên bởi $u_1$.
+	\end{itemize}
+\end{dang}

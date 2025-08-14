@@ -1,0 +1,80 @@
+\section{HỆ BẤT PHƯƠNG TRÌNH BẬC NHẤT HAI ẨN}
+
+\subsection{TÓM TẮT LÝ THUYẾT}
+\subsubsection{Hệ bất phương trình bậc nhất hai ẩn}
+\begin{itemize}
+	\item [\iconMT] Là hệ bất phương trình gồm hai hay nhiều bất phương trình bậc nhất hai ẩn.
+	\item [\iconMT] Cặp số $(x_0;y_0)$ là nghiệm của hệ bất phương trình bậc nhất hai ẩn khi $(x_0;y_0)$ đồng thời là nghiệm của tất cả các bất phương trình trong hệ đó.
+\end{itemize}
+\subsubsection{Biểu diễn miền nghiệm của hệ bất phương trình bậc nhất hai ẩn}
+\begin{itemize}
+	\item [\iconMT] Miền nghiệm của hệ là giao các miền nghiệm của các bất phương trình trong hệ.
+	\item [\iconMT] Để biểu diễn miền nghiệm của hệ, ta làm như sau:
+	\begin{boxdn}
+	\begin{itemize}
+		\item [$\bullet$] Trên cùng một mặt phẳng tọa độ, xác định miền nghiệm của mỗi bất phương trình bậc nhất hai ẩn trong hệ và gạch bỏ miền còn lại.
+		\item [$\bullet$] Miền cuối cùng không bị gạch là miền nghiệm của hệ bất phương trình đã cho.
+	\end{itemize}
+	\end{boxdn}
+\end{itemize}
+\begin{vd}
+Biểu diễn hình học tập nghiệm của hệ bất phương trình
+$\heva{& 3x+y\leq 6 \quad (1)\\& x+y\leq 4 \quad(2)\\& x\geq 0 \quad(3)\\& y\geq 0 \quad(4).} \quad(\star)$ như sau: 
+\immini{
+\begin{itemize}
+	\item [$\bullet$] Vẽ đường thẳng $d_1 \colon 3x+y=6$.\\
+	Lấy điểm $M(1;1)$, thay tọa độ $M$ vào bất phương trình (1), ta được $3 \cdot 1 + 1 \le 6$ (thỏa mãn). Suy ra miền nghiệm của bất phương trình (1) là phần không bị gạch như hình vẽ 1, kể cả những điểm nằm trên $d_1$.
+	\item [$\bullet$] Tương tự cho bất phương trình (2) (Hình 2) và bất phương trình (3) và (4) (Hình 3).
+	\item [$\bullet$] Miền không bị tô đậm (hình tứ giác kể cả bốn cạnh của nó) trong hình vẽ bên là miền nghiệm của hệ bất phương trình đã cho.
+\end{itemize}
+}{
+\begin{tikzpicture}[line join=round, line cap=round, >=stealth,font=\footnotesize, scale=0.6]
+	\draw[->](-2,0)--(3,0) node[below right] {$x$};
+	\draw[->](0,-1)--(0,5) node[above] {$y$};
+	\node (0,0) [below left]{$ O $};
+	\foreach \x in {-1,...,2}
+	\draw[shift={(\x,0)},color=black] (0pt,2pt) -- (0pt,-2pt);
+	\foreach \y in {1,...,5}
+	\draw[shift={(0,\y)},color=black] (2pt,0pt) -- (-2pt,0pt);
+	\draw[samples=100,smooth,domain=0.333:2.333] plot(\x,{-3*(\x)+6});
+	\fill[pattern=north west lines,pattern color=orange] (0.333,5)--(3,5)--(3,-1)--(2.333,-1)--cycle;
+	\draw[dashed] (1,0)node[below] {$1$}--(1,1)node[above] {$M$}--(0,1)node[left] {$1$};
+	\node[below] at (0,-1.4) {Hình 1};
+\end{tikzpicture}
+\\
+\begin{tikzpicture}[line join=round, line cap=round, >=stealth,font=\footnotesize, scale=0.6]
+	\draw[->](-2,0)--(3,0) node[below right] {$x$};
+	\draw[->](0,-1)--(0,5) node[above] {$y$};
+	\node (0,0) [below left]{$ O $};
+	\foreach \x in {-1,...,2}
+	\draw[shift={(\x,0)},color=black] (0pt,2pt) -- (0pt,-2pt);
+	\foreach \y in {1,...,5}
+	\draw[shift={(0,\y)},color=black] (2pt,0pt) -- (-2pt,0pt);
+	\draw[samples=100,smooth,domain=0.333:2.333] plot(\x,{-3*(\x)+6});
+	\draw[samples=100,smooth,domain=-1:3] plot(\x,{-(\x)+4});
+	\fill[pattern=north west lines,pattern color=orange] (0.333,5)--(3,5)--(3,-1)--(2.333,-1)--cycle;
+	\fill[pattern=crosshatch dots,pattern color=blue] (-1,5)--(3,5)--(3,1)--cycle;
+	\node[below] at (0,-1.4) {Hình 2};
+\end{tikzpicture}
+\hspace{0.2cm}
+\begin{tikzpicture}[line join=round, line cap=round, >=stealth,font=\footnotesize, scale=0.6]
+	\draw[->](-2,0)--(3,0) node[below right] {$x$};
+	\draw[->](0,-1)--(0,5) node[above] {$y$};
+	\node (0,0) [below left]{$ O $};
+	\foreach \x in {-1,...,2}
+	\draw[shift={(\x,0)},color=black] (0pt,2pt) -- (0pt,-2pt);
+	\foreach \y in {1,...,3}
+	\draw[shift={(0,\y)},color=black] (2pt,0pt) -- (-2pt,0pt);
+	\draw[samples=100,smooth,domain=0.333:2.333] plot(\x,{-3*(\x)+6});
+	\draw[samples=100,smooth,domain=-1:3] plot(\x,{-(\x)+4});
+	\fill[pattern=north west lines,pattern color=orange] (0.333,5)--(3,5)--(3,-1)--(2.333,-1)--cycle;
+	\fill[pattern=crosshatch dots,pattern color=blue] (-1,5)--(3,5)--(3,1)--cycle;
+	\fill[pattern=north east lines,pattern color=cyan] (-2,-1)--(-2,5)--(0,5)--(0,-1)--cycle;
+	\fill[pattern=crosshatch dots,pattern color=magenta] (-2,-1)--(-2,0)--(3,0)--(3,-1)--cycle;
+	\node[below] at (0,-1.4) {Hình 3};
+\end{tikzpicture}
+}
+
+
+	
+\end{vd}

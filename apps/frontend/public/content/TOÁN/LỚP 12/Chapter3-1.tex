@@ -1,0 +1,42 @@
+\section{KHOẢNG BIẾN THIÊN, KHOẢNG TỨ PHÂN VỊ CỦA MẪU SỐ LIỆU GHÉP NHÓM}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Khoảng biến thiên}
+\begin{enumerate}[\iconMT] 
+	\item \indam{Định nghĩa:} Xét mẫu số liệu ghép nhóm được cho ở bảng sau:
+	\begin{center}
+		\begin{tikzpicture}
+			\matrix[matrix of nodes,nodes in empty cells,
+			row sep=-\pgflinewidth,column sep=-\pgflinewidth,
+			nodes={minimum height=7mm,minimum width=20mm,draw=black,anchor=center},
+			column 1/.style={nodes={minimum width=24mm,color=black}},
+			row 1/.style={nodes={fill=cyan!10}},
+			row 2/.style={nodes={minimum height=7mm}},
+			]{
+				Nhóm &$[u_1;u_2)$&$[u_1;u_2)$&\dots&$[u_k;u_{k+1})$\\ 
+				\node[align=center]{Tần số}; &$n_1$&$n_2$&\dots&$n_k$\\
+			};
+		\end{tikzpicture}
+	\end{center}
+	Nếu $n_1$ và $n_k$ cùng khác $0$ thì khoảng biến thiên của mẫu số liệu ghép nhóm được tính theo công thức
+		\boxmini{$R=u_{k+1}-u_1$}
+	\item \indam{Ý nghĩa:}
+	\begin{itemize}
+		\item [\iconCH] Khoảng biến thiên của mẫu số liệu ghép nhóm là giá trị xấp xỉ khoảng biến thiên của mẫu số liệu gốc và có thể dùng để đo mức độ phân tán của mẫu số liệu. Khoảng biến thiên càng lớn thì mẫu số liệu càng phân tán.
+		\item [\iconCH] Trong các đại lượng đo mức độ phân tán của mẫu số liệu ghép nhóm, khoảng biến thiên là đại lượng dễ hiểu, dễ tính toán. Tuy nhiên, do khoảng biến thiên chỉ sử dụng hai giá trị $u_1$ và $u_{m+1}$ của mẫu số liệu nên đại lượng đó dễ bị ảnh hưởng bởi các giá trị bất thuờng.
+	\end{itemize}
+\end{enumerate}
+
+\subsubsection{Khoảng tứ phân vị}
+\begin{enumerate}[\iconMT] 
+	\item \indam{Định nghĩa:}
+	Khoảng tứ phân vị của mẫu số liệu ghép nhóm, kí hiệu $\Delta_Q$, là hiệu giữa tứ phân vị thứ ba $Q_3$ và tứ phân vị thứ nhất $Q_1$ của mẫu số liệu ghép nhóm đó, tức là \boxmini{$\Delta_Q=Q_3-Q_1$}
+	\item \indam{Ý nghĩa:}
+	\begin{itemize}
+		\item [\iconCH] Khoảng tứ phân vị của mẫu số liệu ghép nhóm là giá trị xấp xỉ cho khoảng tứ phân vị của mẫu số liệu gốc và có thể dùng để đo mức độ phân tán của nửa giữa của mẫu số liệu (tập hợp gồm $50 \%$ số liệu nằm chính giữa mẫu số liệu).
+		\item [\iconCH] Khoảng tứ phân vị của mẫu số liệu ghép nhóm càng nhỏ thì dữ liệu càng tập trung xung quanh trung vị.
+		\item [\iconCH] Khoảng tứ phân vị được dùng để xác định giá trị ngoại lệ trong mẫu số liệu. Giá trị $x$ trong mẫu số liệu là giá trị ngoại lệ nếu $x>Q_3+1,5 \Delta_Q$ hoặc $x<Q_1-1,5 \Delta_Q$.
+		\item [\iconCH] Khoảng tứ phân vị của mẫu số liệu ghép nhóm không bị ảnh hưởng nhiều bởi các giá trị ngoại lệ trong mẫu số liệu.
+	\end{itemize}
+\end{enumerate}
+
+

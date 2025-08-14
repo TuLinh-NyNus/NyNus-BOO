@@ -1,0 +1,97 @@
+\section{MỆNH ĐỀ}
+
+\subsection{TÓM TẮT LÝ THUYẾT}
+\subsubsection{Mệnh đề, mệnh đề chứa biến}
+\begin{itemize}
+	\item [\iconMT] \indam{Mệnh đề:} Mệnh đề là một \indamm{ câu khẳng định} đúng hoặc sai. 
+	\begin{boxkn}
+		\begin{itemize}
+			\item Câu khẳng định đúng gọi là mệnh đề đúng.
+			\item Câu khẳng định sai gọi là mệnh đề \textbf{sai}.
+			\item Một mệnh đề không thể vừa đúng hoặc vừa \textbf{sai}.
+			\item Những mệnh đề liên quan đến toán học được gọi là mệnh đề toán học.
+		\end{itemize} 
+	\end{boxkn}
+	\item [\iconMT] \indam{Mệnh đề chứa biến:} Mệnh đề chứa biến là một câu khẳng định chứa biến nhận giá trị trong một tập $X$ nào đó và với mỗi giá trị của biến thuộc $X$ ta được một mệnh đề.
+	
+\end{itemize}
+\subsubsection{Mệnh đề phủ định}
+\begin{itemize}
+	\item [\iconMT] Cho mệnh đề $P$. Mệnh đề \lq\lq không phải $P$ \rq\rq gọi là mệnh đề phủ định của $P$.
+	\item [\iconMT] Chú ý: 
+		\begin{boxkn}
+	\begin{itemize}
+		\item  Mệnh đề phủ định của $P$, kí hiệu là $\overline{P}$.
+		\item  Nếu $P$ đúng thì $\overline{P}$ sai, nếu $P$ sai thì $\overline{P}$ đúng.
+	\end{itemize}
+	\end{boxkn}
+\end{itemize}
+\subsubsection{Mệnh đề kéo theo và mệnh đề đảo}
+	Cho hai mệnh đề $P$ và $Q$.
+		\begin{itemize}
+			\item[\iconMT] \indam{Mệnh đề kéo theo:} Mệnh đề "Nếu $P$ thì $Q$" gọi là mệnh đề kéo theo, kí hiệu  $P\Rightarrow Q$.
+				\begin{boxkn}
+			\begin{itemize}
+				\item  Mệnh đề $P\Rightarrow Q$ còn được phát biểu là "$P$ kéo theo $Q$" hoặc "Từ $P$ suy ra $Q$"
+				\item  Mệnh đề này chỉ sai khi $P$ đúng và $Q$ sai.
+			\end{itemize}
+				\end{boxkn}
+				\begin{khung4}{Lưu ý}
+					Xét định lý dạng $P\Rightarrow Q$. Khi đó, ta có thể phát biểu định lý này theo một trong 2 cách sau:
+					\begin{itemize}
+						\item[\ding{172}] $P$ là điều kiện đủ để có $Q$.
+						\item[\ding{173}] $Q$ là điều kiện cần để có $P$.
+					\end{itemize}
+				\end{khung4}
+			\item[\iconMT] \indam{Mệnh đề đảo:} Cho mệnh đề $P\Rightarrow Q$. Khi đó, $Q\Rightarrow P$ gọi là mệnh đề đảo của $P\Rightarrow Q$.
+			\end{itemize}
+\subsubsection{Mệnh đề tương đương}
+\begin{itemize}
+	\item [\iconMT] Cho hai mệnh đề $P$ và $Q$. Mệnh đề ``$P$ nếu và chỉ nếu $Q$''  gọi là hai mệnh đề tương đương.
+	\item [\iconMT] Chú ý:
+	\begin{boxkn}
+	\begin{itemize}
+		\item  Mệnh đề ``$P$ nếu và chỉ nếu $Q$'' được kí hiệu là $P\Leftrightarrow Q$.
+		\item 	Mệnh đề $P\Leftrightarrow Q$ đúng khi cả $P\Rightarrow Q$ và $Q\Rightarrow P$ cùng đúng.
+	\end{itemize}
+	\end{boxkn}
+\end{itemize}
+			\begin{khung4}{Lưu ý}
+				Xét định lý dạng $P \Leftrightarrow Q$. Khi đó, ta có thể phát biểu định lý này theo một trong 2 cách sau:
+				\begin{itemize}
+					\item[\ding{172}] $P$ là điều cần và đủ để có $Q$.
+					\item[\ding{173}] $P$ khi và chỉ khi $Q$.
+				\end{itemize}
+			\end{khung4}
+\subsubsection{Mệnh đề có chứa kí hiệu $\forall, \exists$}
+	\begin{itemize}
+		\item[\iconMT] Mệnh đề chứa kí hiệu với mọi: $\forall x \in X,\, P(x) $.
+	\begin{boxkn}
+		\begin{itemize}
+			\item Mệnh đề này đúng khi tất cả các giá trị của $x \in X$ đều làm cho phát biểu $P(x)$ đúng.
+			\item Nếu ta tìm được ít nhất một giá trị $x \in X$ làm cho $P(x)$ sai thì mệnh đề này \textbf{sai}.
+		\end{itemize}
+	\end{boxkn}
+		\begin{vd}
+			Mệnh đề "Bình phương mọi số thực đều không âm" được viết là
+			$\forall x \in \mathbb{R},\, x^2 \ge 0.$
+		\end{vd}
+		\item[\iconMT] Mệnh đề chứa kí hiệu tồn tại: $\exists x \in X,\, P(x) $.
+	\begin{boxkn}
+		\begin{itemize}
+			\item Mệnh đề này đúng khi ta tìm được ít nhất một giá trị của $x \in X$ làm cho phát biểu $P(x)$ đúng.
+			\item Nếu tất cả giá trị của $x \in X$ đều làm cho $P(x)$ sai thì mệnh đề này \textbf{sai}.
+		\end{itemize}
+	\end{boxkn}
+		\begin{vd}
+			Mệnh đề "Có một số tự nhiên mà bình phương của nó bằng 3" được viết là
+			$\exists x \in \mathbb{N},\, x^2=3.$
+		\end{vd}
+		\item[\iconMT] Phủ định của Mệnh đề chứa kí hiệu $\forall $, $\exists $.
+	\begin{boxkn}
+		\begin{itemize}
+			\item Phủ định của mệnh đề ``$\forall x\in X,P\left( x \right)"$ là mệnh đề ``$\exists x\in X,\overline{P(x)}"$.
+			\item Phủ định của mệnh đề ``$\exists x\in X,P\left( x \right)"$ là mệnh đề ``$\forall x\in X,\overline{P(x)}"$.
+		\end{itemize}
+	\end{boxkn}
+	\end{itemize}

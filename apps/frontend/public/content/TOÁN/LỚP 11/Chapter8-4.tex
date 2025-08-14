@@ -1,0 +1,420 @@
+\section{HAI MẶT PHẲNG VUÔNG GÓC}
+\subsection{KIẾN THỨC CẦN NHỚ}
+\subsubsection{Định nghĩa góc giữa hai mặt phẳng}
+\begin{itemize}
+	\item [\iconMT] \indam{Định nghĩa:} \immini{	
+		\begin{gachsoc}
+			\begin{itemize}
+				\item [$\bullet$] Góc giữa hai mặt phẳng là góc giữa hai đường thẳng lần lượt vuông góc với hai mặt phẳng đó.
+				\item [$\bullet$] Gọi $\varphi$ là góc giữa hai mặt phẳng thì $$0^\circ \le \varphi \le 90^\circ$$
+			\end{itemize}
+		\end{gachsoc}
+		
+	}{\vspace{1cm}
+		\begin{tikzpicture}[scale=.7]
+			\tkzDefPoints{-1.5/0/O',0/0/A, 3.5/0.5/B, 4.5/2/C,1.5/3/M}
+			\coordinate (D) at ($(A)+(C)-(B)$);
+			\coordinate (I) at ($(A)!0.5!(C)$);
+			\coordinate (K) at ($(M)!1.36!(I)$);
+			\coordinate (L) at ($(M)!1.6!(I)$);
+			\draw (A)--(B)--(C)--(D)--(A) (M)--(I) (K)--(L);
+			\draw [dashed] (I)--(K);
+			\tkzMarkAngles[size=1.2cm](B,A,D)
+			\tkzDrawPoint[size=4](I)
+			\coordinate (A') at ($(A)+(0.55,0.35)$);
+			\draw (A') node {$\alpha$};
+			\draw (M) node[below right] {$m$};
+			\tkzDefPoints{5/0/A, 8.5/0/B, 9.5/1.5/C}
+			\coordinate (D) at ($(A)+(C)-(B)$);
+			\coordinate (I) at ($(A)!0.5!(C)$);
+			\coordinate (M) at ($(I)+(0,2.2)$);
+			\coordinate (K) at ($(M)!1.3!(I)$);
+			\coordinate (L) at ($(M)!1.6!(I)$);
+			\draw (A)--(B)--(C)--(D)--(A) (M)--(I) (K)--(L);
+			\draw [dashed] (I)--(K);
+			\tkzMarkAngles[size=1.2cm](B,A,D)
+			\tkzDrawPoint[size=4](I)
+			\coordinate (A') at ($(A)+(0.68,0.3)$);
+			\draw (A') node {$\beta$};
+			\draw (M) node[below right] {$n$};
+		\end{tikzpicture}
+	}
+	\item [\iconMT] \indam{Chú ý:}	
+	\begin{gachsoc}
+		\begin{itemize}
+			\item [$\bullet$] Hai mặt phẳng song song hoặc trùng nhau thì góc giữa chúng bằng $0^\circ$.
+			\item [$\bullet$] Muốn xác định góc giữa hai mặt phẳng, ta tìm hai đường thẳng lần lượt vuông góc hai mặt phẳng. Khi đó, việc xác định góc giữa hai mặt phẳng được chuyển về bài toán xác định góc giữa hai đường thẳng (đã xét ở \indamm{Bài 2. Hai đường thẳng vuông góc})
+		\end{itemize}
+	\end{gachsoc}
+\end{itemize}
+
+\subsubsection{Cách xác định góc của hai mặt phẳng cắt nhau}
+\immini{
+	\begin{enumerate}
+		\item [] Cho hai mặt phẳng $(\alpha)$ và $(\beta)$ cắt nhau. Muốn xác định góc giữa chúng, ta thực hiện theo các bước sau:
+		\begin{gachsoc}
+			\begin{itemize}
+				\item [\ding{172}] Tìm giao tuyến $c$ của $(\alpha)$ và $(\beta)$.
+				\item [\ding{173}] Tìm hai đường thẳng $a$, $b$ lần lượt thuộc hai mặt phẳng và cùng vuông góc với $c$ tại một điểm.
+				\item [\ding{174}] Góc giữa $(\alpha)$ và $(\beta)$ là góc giữa $a$ và $b$.
+			\end{itemize}
+		\end{gachsoc}
+	\end{enumerate}
+}{
+	\begin{tikzpicture}[scale=0.66, line join=round, line cap=round]
+		\tikzset{label style/.style={font=\footnotesize}}
+		\tkzDefPoints{0/0/A,-1/1.5/B,3/1.5/C,0/5/C', 0/3.5/b,2/0.5/a}
+		\coordinate (D) at ($(A)+(C)-(B)$);
+		\coordinate (D') at ($(A)+(C')-(B)$);
+		\coordinate (M) at ($(A)!0.6!(B)$);
+		\tkzInterLL(C,B)(A,D')\tkzGetPoint{I}
+		\tkzInterLL(M,a)(A,D')\tkzGetPoint{N}
+		\tkzDrawSegments(A,D I,C C,D b,M N,a)
+		\tkzDrawSegments[dashed](B,I M,N)
+		\tkzDrawPolygon(A,B,C',D')
+		\tkzMarkRightAngle[size=0.2](b,M,A)
+		\tkzMarkRightAngle[size=0.2](a,M,A)
+		\tkzMarkAngles[size=0.7cm,arc=l](B,C',D')
+		\tkzLabelAngles[pos=0.4,rotate=10](B,C',D'){\scriptsize$\beta$}
+		\tkzMarkAngles[size=0.7cm,arc=l](C,D,A)
+		\tkzLabelAngles[pos=0.4,rotate=10](C,D,A){\scriptsize$\alpha$}
+		\tkzDrawPoints[size=5,fill=black](M)
+		\tkzLabelPoints[below left](M)
+		\tkzLabelPoints[above](a)
+		\tkzLabelPoints[above right](b)
+	\end{tikzpicture}
+}
+
+\subsubsection{Hai mặt phẳng vuông góc}
+\begin{itemize}
+	\item [\iconMT] \indam{Định nghĩa:} Hai mặt phẳng được gọi là vuông góc với nhau nếu góc giữa hai mặt phẳng đó là góc vuông.
+	\immini{\item [\iconMT] \indam{Cách chứng minh:} Điều kiện cần và đủ để hai mặt phẳng vuông góc với nhau là mặt phẳng này chứa một đường thẳng vuông góc với mặt phẳng kia.
+		\begin{luuy}
+			Tóm tắt: \quad \fbox{$\heva{& a \subset (\alpha)\\&  a \perp (\beta)} \Rightarrow (\alpha) \perp (\beta)$}
+		\end{luuy}
+	}{\hspace{1cm}
+		\begin{tikzpicture}[>=stealth,scale=1, line join = round, line cap = round]
+			\tikzset{label style/.style={font=\footnotesize}}
+			\tkzInit[xmin=0,xmax=4.7,ymin=0,ymax=3]
+			\tkzClip
+			%\tkzAxeXY
+			\tkzDefPoints{0/0/A,3/0/D,1.7/1/B}
+			\coordinate (C) at ($(B)+(D)-(A)$);
+			\coordinate (A') at ($(A)+(0,2)$);
+			\coordinate (B') at ($(B)+(A')-(A)$);
+			\coordinate (I) at ($(A)!0.5!(B)$);
+			\coordinate (a) at ($(I)+(0,1.6)$);
+			\tkzMarkRightAngles[size=0.2](a,I,B)
+			\tkzMarkAngles[size=0.4cm,arc=l](C,D,A)
+			\tkzMarkAngles[size=0.6cm,arc=l](A',B',B)
+			\tkzLabelAngles[pos=0.2,rotate=0](C,D,A){\footnotesize $\beta$ }
+			\tkzLabelAngles[pos=0.4,rotate=0](A',B',B){\footnotesize $\alpha$}
+			\tkzDrawSegments(A,B B,C C,D D,A A,A' B,B' I,a A',B')
+			\tkzDrawPoints[fill=black](I)
+			%\pgfresetboundingbox
+			\tkzLabelPoints[right](a)
+	\end{tikzpicture}}
+	\item [\iconMT] \indam{Các tính chất:}
+	\begin{gachsoc}
+		\begin{itemize}
+			\item [\ding{172}] Nếu hai mặt phẳng vuông góc với nhau thì bất cứ đường thẳng nào nằm trong mặt phẳng này và \textit{vuông góc với giao tuyến} thì vuông góc với mặt phẳng kia.
+			\item [\ding{173}] 	Cho hai mặt phẳng $(\alpha)$ và $(\beta)$ vuông góc với nhau. Nếu từ một điểm thuộc mặt phẳng $(\alpha)$ ta dựng một đường thẳng vuông góc với mặt phẳng $(\beta)$ thì đường thẳng này nằm trong mặt phẳng $(\alpha)$.
+			\item [\ding{174}] Nếu hai mặt phẳng cắt nhau và cùng vuông góc với một mặt phẳng thì giao tuyến của chúng vuông góc với mặt phẳng đó.
+		\end{itemize}
+	\end{gachsoc}
+\end{itemize}
+\subsubsection{Góc nhị diện}
+\begin{itemize}
+	\item [\iconMT] \indam{Định nghĩa:} \immini
+	{
+		Hình gồm hai nửa mặt phẳng $(P)$, $(Q)$ có chung bờ $a$ được gọi là một \text{\color{red} góc nhị diện}, kí hiệu là $[P, a, Q]$. Đường thẳng $a$ và các nửa mặt phẳng $(P)$, $(Q)$ tương ứng được gọi là các mặt phẳng của góc nhị diện đó.
+	}
+	{
+		\begin{tikzpicture}[>=stealth,line join=round,line cap=round,font=\footnotesize,scale=.91]
+			\path 
+			(0,0) coordinate (a1)
+			($(a1)+(60:2)$) coordinate (a2)
+			($(a1)+(0:4)$) coordinate (q1)
+			($(a1)+(150:3)$) coordinate (p1)
+			($(p1)+(a2)-(a1)$) coordinate (p2)
+			($(q1)+(a2)-(a1)$) coordinate (q2)
+			($(a1)!.1!(a2)$) coordinate (a)
+			;
+			\draw 
+			(a1)--(a2)--(p2)--(p1)--(a1)--(q1)--(q2)--(a2)
+			;
+			\draw (a) node[above left] {$a$};
+			\begin{scope}
+				\clip (p2)--(p1)--(a1);
+				\draw (p1) circle (.6cm);
+				\draw ($(p1)+(10:.35)$) node{$P$};
+			\end{scope}
+			\begin{scope}
+				\clip (q2)--(q1)--(a1);
+				\draw (q1) circle (.6cm);
+				\draw ($(q1)+(130:.3)$) node{$Q$};
+			\end{scope}
+		\end{tikzpicture}
+	}
+	\item [\iconMT] \indam{Góc phẳng nhị diện:} \immini
+	{
+		Từ một điểm $O$ bất kì thuộc cạnh $a$ của góc nhị diện $[P, a, Q]$, vẽ các tia $Ox$, $Oy$ tương ứng thuộc $(P)$, $(Q)$ và vuông góc với $a$. Góc $xOy$ được gọi là một \text{\color{red} góc phẳng của góc nhị diện} $[P, a, Q]$ (gọi tắt là \text{\color{red} góc phẳng nhị diện}). Số đo của góc $xOy$ không phụ thuộc vào vị trí của $O$ trên $a$, được gọi là số đo của góc nhị diện $[P,a,Q]$.
+	}
+	{
+		\begin{tikzpicture}[>=stealth,line join=round,line cap=round,font=\footnotesize,scale=.91]
+			\path 
+			(0,0) coordinate (a1)
+			($(a1)+(60:2)$) coordinate (a2)
+			($(a1)+(0:4)$) coordinate (q1)
+			($(a1)+(150:3)$) coordinate (p1)
+			($(p1)+(a2)-(a1)$) coordinate (p2)
+			($(q1)+(a2)-(a1)$) coordinate (q2)
+			($(a1)!.1!(a2)$) coordinate (a)
+			($(a1)!.6!(a2)$) coordinate (O)
+			($(p1)!.6!(p2)$) coordinate (x1)
+			($(O)!.8!(x1)$) coordinate (x)
+			($(q1)!.6!(q2)$) coordinate (y1)
+			($(O)!.8!(y1)$) coordinate (y)
+			;
+			\draw 
+			(a1)--(a2)--(p2)--(p1)--(a1)--(q1)--(q2)--(a2)
+			(x)--(O)--(y)
+			;
+			\draw (a) node[above left] {$a$}
+			(x) node[above] {$x$} (y) node[above] {$y$};
+			\draw[fill=black] (O) circle (1pt) node[shift=(-60:3mm)] {$O$} ;
+			\begin{scope}
+				\clip (p2)--(p1)--(a1);
+				\draw (p1) circle (.6cm);
+				\draw ($(p1)+(10:.35)$) node{$P$};
+			\end{scope}
+			\begin{scope}
+				\clip (q2)--(q1)--(a1);
+				\draw (q1) circle (.6cm);
+				\draw ($(q1)+(130:.3)$) node{$Q$};
+			\end{scope}
+			\tkzMarkRightAngle(x,O,a1)
+			\tkzMarkRightAngle(y,O,a2)
+		\end{tikzpicture}
+	}
+	\item [\iconMT] \indam{Chú ý:}
+	\begin{gachsoc}
+		\begin{itemize}
+		\item[\ding{172}] Số đo của góc phẳng nhị diện được gọi là số đo góc nhị diện và có thể nhận từ $0^\circ$ đến $180^\circ$. Góc nhị diện được gọi là vuông, nhọn, tù nếu nó có số đo tương ứng bằng, nhỏ hơn, lớn hơn $90^\circ$.
+		\item[\ding{173}]  Đối với hai điểm $M$, $N$ không thuộc đường thẳng $a$, ta kí hiệu $[M,a,N]$ là góc nhị diện có cạnh $a$ và các mặt phẳng tương ứng chứa $M$, $N$.
+		\item[\ding{174}]  Hai mặt phẳng cắt nhau tạo thành bốn góc nhị diện. Nếu một trong bốn góc nhị diện đó là góc nhị diện vuông thì các góc nhị diện còn lại cũng là góc nhị diện vuông.
+	\end{itemize}
+\end{gachsoc}
+\end{itemize}
+\subsubsection{Một số hình lăng trụ đặc biệt}
+\begin{itemize}
+	\item [\iconMT] \indam{Hình lăng trụ đứng:} là hình lăng trụ có các cạnh bên vuông góc với đáy. Độ dài cạnh bên được gọi là chiều cao của hình lăng trụ đứng.
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+		\begin{itemize}
+			\item Các mặt bên của hình lăng trụ đứng là hình chữ nhật và vuông góc với mặt đáy.
+			\item Hình lăng trụ đứng có đáy là tam giác, tứ giác, ngũ giác, $\ldots$ được gọi là hình lăng trụ đứng tam giác, hình lăng trụ đứng tứ giác, hình lăng trụ đứng ngũ giác, $\ldots$
+		\end{itemize}
+	\end{tcolorbox}
+	
+	\item [\iconMT] \indam{Hình lăng trụ đều:} là hình lăng trụ đứng có đáy là đa giác đều.
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+		\begin{itemize}
+			\item Các mặt bên của hình lăng trụ đều là những hình chữ nhật bằng nhau và vuông góc với mặt đáy.
+			\item Ta có các loại lăng trụ đều như hình lăng trụ tam giác đều, hình lăng trụ tứ giác đều, hình lăng trụ ngũ giác đều $\ldots$
+		\end{itemize}
+	\end{tcolorbox}
+	\item [\iconMT] \indam{Hình hộp đứng:} là hình lăng trụ đứng có đáy là hình bình hành.
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+			\begin{itemize}
+			\item \textit{Đặc biệt 1}: Hình hộp chữ nhật là hình hộp đứng có đáy là hình chữ nhật. Tất cả 6 mặt của hình hộp chữ nhật đều là hình chữ nhật.
+			\item  \textit{Đặc biệt 2}: Hình lập phương là hình hộp chữ nhật có tất cả các cạnh bằng nhau. Tất cả 6 mặt của hình lập phương đều là hình vuông.
+		\end{itemize}
+	\end{tcolorbox}
+\end{itemize}
+
+\subsubsection{Hình chóp đều. Hình chóp cụt đều}
+\begin{itemize}
+	\item [\iconMT] \indam{Hình chóp đều:} Một hình chóp được gọi là hình chóp đều nếu nó có đáy là một đa giác đều có chân đường cao trùng với tâm của đa giác đáy.\\
+	\hspace*{2cm} \begin{tikzpicture}[scale=0.7, line join=round, line cap=round]
+		\tikzset{label style/.style={font=\footnotesize}}
+		\tkzDefPoints{0/0/A,1.2/-1.6/B,4.5/0/C}
+		\tkzCentroid(A,B,C)\tkzGetPoint{G}
+		\coordinate (S) at ($(G)+(0,3.5)$);
+		\coordinate (M) at ($(B)!1/2!(C)$);
+		\tkzDrawPolygon(A,B,C,S)
+		\tkzDrawSegments(S,B)
+		\tkzDrawSegments[dashed](M,A A,C S,G)
+		\tkzDrawPoints[fill=black,size=4](A,B,C,S,G,M)
+		\tkzMarkRightAngle[size=0.13](S,G,A)
+		\tkzMarkRightAngle[size=0.14](A,M,B)
+		\tkzLabelPoints[above](S)
+		\tkzLabelPoints[below](B,G,M)
+		\tkzLabelPoints[left](A)
+		\tkzLabelPoints[right](C)
+		\node[below right] at (0,-2.5) {* \textit{Chóp tam giác đều}};
+		\node[below right] at (0,-3.5) {* $SG \perp (ABC)$};
+	\end{tikzpicture}
+	\hspace{2cm}
+	\begin{tikzpicture}[scale=0.7, line join=round, line cap=round]
+		\tikzset{label style/.style={font=\footnotesize}}
+		\tkzDefPoints{0/0/A,-2/-1.6/B,1.6/-1.6/C}
+		\coordinate (D) at ($(A)+(C)-(B)$);
+		\coordinate (O) at ($(A)!1/2!(C)$);
+		\coordinate (S) at ($(O)+(0,3)$);
+		\tkzDrawPolygon(S,B,C,D)
+		\tkzDrawSegments(S,C)
+		\tkzDrawSegments[dashed](A,S A,B A,D A,C B,D S,O)
+		\tkzDrawPoints[fill=black,size=4](D,C,A,B,S)
+		\tkzLabelPoints[above](S)
+		\tkzLabelPoints[below](A,B,C,O)
+		\tkzLabelPoints[right](D)
+		\node[below right] at (-1,-2.5) {* \textit{Chóp tứ giác đều}};
+		\node[below right] at (-1,-3.5) {* $SO \perp (ABCD)$};
+	\end{tikzpicture}
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+		Các mặt bên là những tam giác cân bằng nhau. Các mặt bên tạo với mặt đáy các góc bằng nhau; Các cạnh bên tạo với mặt đáy các góc bằng nhau.
+	\end{tcolorbox}
+	\item [\iconMT] \indam{Hình chóp cụt đều:} 
+	\begin{center}
+		\begin{tikzpicture}[scale=1, font=\footnotesize, line join=round, line cap=round, >=stealth]
+			\tkzInit[xmin=-1,xmax=5,ymin=-1.5, ymax=5.5] \tkzClip[space=.1]
+			\tkzDefPoints{0/0/A1,2/0/H,1/-1/A2,0/5/x}
+			\coordinate (A4) at ($(A1)!2!(H)$);
+			\coordinate (A3) at ($(H)-(A1)+(A2)$);
+			\coordinate (A5) at ($(A2)!2!(H)$);
+			\coordinate (A6) at ($(A3)!2!(H)$);
+			\coordinate (S) at ($(H)+(x)$);
+			\coordinate (B1) at ($(S)!0.5!(A1)$);
+			\coordinate (B2) at ($(S)!0.5!(A2)$);
+			\coordinate (B3) at ($(S)!0.5!(A3)$);
+			\coordinate (B4) at ($(S)!0.5!(A4)$);
+			\coordinate (B5) at ($(S)!0.5!(A5)$);
+			\coordinate (B6) at ($(S)!0.5!(A6)$);	
+			\coordinate (K) at ($(S)!0.5!(H)$);
+			\tkzDrawSegments(A1,A2 A2,A3 A3,A4 B1,B2 B2,B3 B3,B4 S,A1 S,A2 S,A3 S,A4)
+			\tkzDrawSegments[dashed](A1,A4 A4,A5 A5,A6 A6,A1 A3,A6 A2,A5 B4,B5 B5,B6 B6,B1 S,A5 S,A6 S,H B1,B4 B2,B5 B3,B6)
+			\node[left] at (A1) {$A_1$};
+			\node[right] at (A4) {$A_4$};
+			\node[below left] at (A2) {$A_2$};
+			\node[below right] at (A3) {$A_3$};
+			\node[left] at (B1) {$B_1$};
+			\node[right] at (B4) {$B_4$};
+			\node[below left=0 and -0.2] at (B3) {$B_3$};
+			\node[below right=0 and -0.2] at (B2) {$B_2$};
+			\node[above] at (S) {$S$};
+			\node[above] at (K) {$K$};
+			\node[below] at (H) {$H$};
+		\end{tikzpicture}
+		\begin{tikzpicture}[scale=1, font=\footnotesize, line join=round, line cap=round, >=stealth]
+			\tkzInit[xmin=-1,xmax=5,ymin=-1.5, ymax=5.5] \tkzClip[space=.1]
+			\tkzDefPoints{0/0/A1,2/0/H,1/-1/A2,0/5/x}
+			\coordinate (A4) at ($(A1)!2!(H)$);
+			\coordinate (A3) at ($(H)-(A1)+(A2)$);
+			\coordinate (A5) at ($(A2)!2!(H)$);
+			\coordinate (A6) at ($(A3)!2!(H)$);
+			\coordinate (S) at ($(H)+(x)$);
+			\coordinate (B1) at ($(S)!0.5!(A1)$);
+			\coordinate (B2) at ($(S)!0.5!(A2)$);
+			\coordinate (B3) at ($(S)!0.5!(A3)$);
+			\coordinate (B4) at ($(S)!0.5!(A4)$);
+			\coordinate (B5) at ($(S)!0.5!(A5)$);
+			\coordinate (B6) at ($(S)!0.5!(A6)$);	
+			\coordinate (K) at ($(S)!0.5!(H)$);
+			\tkzDrawSegments(A1,A2 A2,A3 A3,A4 B1,B2 B2,B3 B3,B4 B1,A1 B2,A2 B3,A3 B4,A4 B1,B4 B2,B5 B3,B6 B4,B5 B5,B6 B6,B1)
+			\tkzDrawSegments[dashed](A1,A4 A4,A5 A5,A6 A6,A1 A3,A6 A2,A5 B5,A5 B6,A6 K,H)
+			\node[left] at (A1) {$A_1$};
+			\node[right] at (A4) {$A_4$};
+			\node[below left] at (A2) {$A_2$};
+			\node[below right] at (A3) {$A_3$};
+			\node[left] at (B1) {$B_1$};
+			\node[right] at (B4) {$B_4$};
+			\node[below left=0 and -0.2] at (B3) {$B_3$};
+			\node[below right=0 and -0.2] at (B2) {$B_2$};
+			\draw[color=white] (S) circle (0pt);
+			\node[above] at (K) {$K$};
+			\node[below] at (H) {$H$};
+		\end{tikzpicture}
+	\end{center}
+	\begin{itemize}
+		\item Hình gồm các đa giác đều $A_1A_2\ldots A_n$, $B_1B_2\ldots B_n$ và các hình thang cân $A_1A_2B_2B_1$, $A_2A_3 B_3B_2$, $\ldots$, $A_nA_1B_1B_n$ được tạo thành như trên được gọi là một \textit{hình chóp cụt đều} (nói đơn giản là hình chóp cụt được tạo thành từ hình chóp đều $S . A_1A_2\ldots A_n$ sau khi cắt đi chóp đều $S.B_1B_2\ldots B_n$ ), kí hiệu là $A_1A_2\ldots A_n.B_1B_2\ldots B_n$.
+		
+		\item Các đa giác $A_1A_2\ldots A_n$ và $B_1B_2\ldots B_n$ được gọi là hai \textit{mặt đáy}, các hình thang $A_1A_2B_2B_1$, $A_2A_3 B_3B_2, \ldots, A_nA_1B_1B_n$ được gọi là các \textit{mặt bên} của hình chóp cụt. Các đoạn thẳng $A_1B_1$, $A_2B_2, \ldots, A_nB_n$ được gọi là các \textit{cạnh bên}; các cạnh của mặt đáy được gọi là các \textit{cạnh đáy} của hình chóp cụt.
+		
+		\item Đoạn thẳng $H K$ nối hai tâm của đáy được gọi là \textit{đường cao} của hình chóp cụt đều. Độ dài của đường cao được gọi là \textit{chiều cao} của hình chóp cụt.
+	\end{itemize}
+\end{itemize}
+
+\begin{dang}{Xác định góc giữa hai mặt phẳng}
+	\begin{enumerate}
+		\item[\iconCH] \indamm{\underline{Cách 1}: Dùng định nghĩa:} Góc giữa $(\alpha)$ và $(\beta)$ bằng góc giữa hai đường thẳng $a$ và $b$ lần lượt vuông góc với chúng.
+		\immini{
+			\item [\iconCH] \indamm{\underline{Cách 2}: Dựng hai đường trong hai mặt lần lượt vuông góc với giao tuyến.}  Các bước thực hiện:
+			\begin{itemize}
+				\item [\ding{172}] Dựng giao tuyến $c=(\alpha)\cap (\beta)$.
+				\item [\ding{173}] Dựng $m \bot c$ và $n \bot c$ tại $I$, với $m \in (\alpha)$ và $n \in (\beta)$.
+				\item [\ding{174}] Góc cần tìm là $\left(m; n\right)$.
+		\end{itemize}}{\begin{tikzpicture}[scale=.7][>=stealth, line join=round, line cap = round]
+				\tkzDefPoints{0/0/A, 4/0/B, 5/2/C, 1/2/D, 3/4/E, 4/6/F, 3.5/2/G, 2/1/H, 3.73/1/K,4/3/M, 4.5/1/N}
+				\tkzDrawSegments(A,B B,C A,D D,G B,E E,F C,F H,K M,N)
+				\tkzDrawPoints[fill=black](N)
+				\tkzDrawSegments[dashed](G,C K,N)
+				\tkzMarkAngle[mkpos=.3,size=.8](B,A,D)
+				\tkzMarkAngle[mkpos=.2,size=.6](B,E,F)
+				\tkzMarkAngle[mkpos=.2,size=.6](M,N,K)
+				\draw (3,1)node[below]{$m$} (4,3)node[right]{$n$} (0.4,-0.12)node[above]{\scriptsize $\alpha$} (2.95,4)node[right]{\scriptsize  $\beta$} (4.75,1)node[below]{$I$};
+		\end{tikzpicture}}
+		\begin{luuy}
+			Nếu $(\beta)$ chứa điểm $S$ và $H$ là hình chiếu vuông góc của $S$ lên $(\alpha)$ (hình vẽ) thì ta dựng như sau:
+			\immini{
+				\begin{itemize}
+					\item [\ding{172}] Từ chân đường cao $H$, kẻ $HI \bot BC$.
+					\begin{itemize}
+						\item [$\bullet$] Nếu $\Delta HBC$ cân tại $H$ hoặc đều thì $I$ là trung điểm của $BC$.
+						\item [$\bullet$] Nếu $\Delta HAB$ vuông tại $B$ (hoặc $C$) thì $I$ trùng $B$ (hoặc $C$).
+					\end{itemize}
+					\item [\ding{172}] Từ $S$, kẻ $SI$. Suy ra góc cần tìm là $\boxed{\widehat{SIH}}$.
+				\end{itemize}
+			}{\begin{tikzpicture}[scale=.7][>=stealth, line join=round, line cap = round]
+					\tikzset{label style/.style={font=\footnotesize}}
+					\tkzDefPoints{0/0/A, 4/0/B, 5/2/C, 1/2/D, 2/1/H, 2/4/S, 2/2/E, 4.5/1/I, 3.5/1/L}
+					\tkzDrawSegments(A,B B,C A,D D,E S,H H,L S,B S,C S,I H,B)
+					\tkzDrawPoints(I,S,H)
+					\tkzDrawSegments[dashed](E,C L,I H,C)
+					\tkzMarkAngle[mkpos=.3,size=.8](B,A,D)
+					\tkzMarkAngle[mkpos=.2,size=.6](S,I,H)
+					\tkzMarkRightAngle(S,I,C)
+					\tkzMarkRightAngle(H,I,B)
+					\draw (2,1)node[below]{$H$} (4.5,1)node[right]{$I$} (0.4,-0.05)node[above]{$\alpha$} (2,4)node[above]{$S$} (4,0)node[below]{$B$} (5,2)node[right]{$C$};
+			\end{tikzpicture}}
+		\end{luuy}
+	\end{enumerate}
+\end{dang}
+
+\begin{dang}{Chứng minh hai mặt phẳng vuông góc}
+	\begin{enumerate}[\iconCH]
+		\immini{
+			\item \indamm{Phương pháp:} Chứng minh mặt phẳng này chứa một đường thẳng vuông góc với mặt phẳng kia.
+			\begin{luuy} Sơ đồ trình bày:
+				\begin{tcolorbox}[colframe=red,colback=yellow!3!white,boxrule=0.18mm]
+					\begin{itemize}
+						\item [] Ta có  $\heva{& d \perp a \text{ \indammm{(giải thích )} }\\  & d \perp b \text{ \indammm{(giải thích )} }} \Rightarrow d \perp \left(\alpha\right)$.
+						\item [] Mà $d \subset (\beta)$ nên $\left(\beta\right) \perp \left(\alpha\right)$.
+					\end{itemize}
+				\end{tcolorbox}
+			\end{luuy}
+		}{\begin{tikzpicture}[scale=.7][>=stealth, line join=round, line cap = round]
+				\tkzDefPoints{0/0/A, 7/0/B, 8/2/C, 1/2/D, 2/0/H, 2/2/G, 4/2/M, 3/1/I, 2/4/N, 4/6/Q, 3/4/T, 3/0.5/P, 7/1.5/X, 5/1.5/R, 6/0.5/V}
+				\tkzDrawSegments(A,B B,C A,D D,G M,C H,M H,N M,Q I,T N,Q P,X R,V)
+				%\tkzDrawPoints(I)
+				\tkzDrawSegments[dashed](G,M)
+				\tkzMarkRightAngle(H,I,T)
+				\tkzMarkAngle[mkpos=.3,size=.8](B,A,D)
+				\tkzMarkAngle[mkpos=.3,size=.6](H,N,Q)
+				\draw (3,3)node[right]{$d$} (3.6,1.4)node[below]{$c$} (0.1,0.22)node[right]{$\alpha$} (1.9,3.85)node[right]{$\beta$} (4,0.1)node[above]{$a$} (6.2,0.3)node[above]{$b$};
+		\end{tikzpicture}}
+		\item \indamm{Lưu ý:}
+		\begin{itemize}
+			\item [] Nếu dựng được góc giữa $(\alpha)$ và $(\beta)$. Khi đó, muốn chứng minh $(\alpha)$ vuông góc $(\beta)$, ta chỉ cần chứng minh góc đó bằng $90^\circ$.
+		\end{itemize}
+	\end{enumerate}
+\end{dang}

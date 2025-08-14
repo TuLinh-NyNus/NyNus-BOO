@@ -1,0 +1,90 @@
+\section{NGUYÊN HÀM}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Định nghĩa} Cho hàm số $f$ xác định trên $K$ ($K$ là một khoảng, một đoạn hay một nửa khoảng). Hàm số $F$ được gọi là một nguyên hàm của $f$ trên $K$ nếu 
+\boxmini{$F'(x)=f(x),\,\forall x \in K.$}
+\begin{luuy}
+	\ind{Ví dụ:}
+		\begin{listEX}[1]
+			\item [$\bullet$] $F(x)=\dfrac{x^3}{3}$ là một nguyên hàm của $f(x)=x^2$ vì $\left( \dfrac{x^3}{3}\right)'=x^2,\,\forall x \in \mathbb{R}.$
+			\item [$\bullet$] $F(x)=\sin x$ là một nguyên hàm của $f(x)=\cos x$ vì $\left(\sin x \right)'=\cos x,\,\forall x \in \mathbb{R}.$
+			\item [$\bullet$] $F(x)=\mathrm{e}^x$ là một nguyên hàm của $f(x)=\mathrm{e}^x$ vì $\left(\mathrm{e}^x \right)'=\mathrm{e}^x,\,\forall x \in \mathbb{R}.$
+		\end{listEX}
+\end{luuy}
+\begin{note}
+	\begin{itemize}
+		\item [\ding{172}] Họ các nguyên hàm của $f$ trên $K$, kí hiệu $\displaystyle\int f(x)\mathrm{\,d}x$. Nếu $F$ là một nguyên hàm của $f$ trên $K$ thì mọi nguyên hàm của $f$ đều có dạng $F(x)+C$, với $C \in \mathbb{R}$.Vậy	$\displaystyle\int f(x)\mathrm{\,d}x=F(x)+C.$
+		\item [\ding{173}] Nếu hàm số $G(x)$ là một nguyên hàm của $f(x)$ trên $K$ thì tồn tại một hằng số $C$ sao cho $G(x)=F(x)+C$ với mọi $x \in K$.
+	\end{itemize}
+\end{note}
+\subsubsection{Các tính chất}
+\begin{boxkn}
+\begin{listEX}[2]
+	\item [\ding{172}] $\left(\displaystyle\int f(x)\mathrm{\,d}x \right)'=f(x)$.
+	\item [\ding{173}] $\displaystyle\int f'(x)\mathrm{\,d}x =f(x)+C$.
+	\item [\ding{174}] $ \displaystyle\int k \cdot f(x)\mathrm{\,d}x = k \cdot \displaystyle\int f(x)\mathrm{\,d}x$, với $k \ne 0$.
+	\item [\ding{175}] $ \displaystyle\int \big[f(x) \pm g(x)\big]\mathrm{\,d}x = \displaystyle\int f(x)\mathrm{\,d}x\pm \displaystyle\int g(x)\mathrm{\,d}x$.
+\end{listEX} 
+\end{boxkn}
+
+\subsubsection{Bảng công thức nguyên hàm của các hàm thường gặp}
+
+\begin{center}
+	\begin{tikzpicture}[xscale=5,yscale=1,font=\footnotesize]
+		\begin{scope}[shift={(-.5,.5)}]
+			\fill[pink!10] (0,-1) rectangle (1,-11);
+			\fill[cyan!20] (0,0) rectangle (3.45,-1);
+			\draw [line width=0.7pt,blue](0,0) grid (2,-11) rectangle (3.45,0) 
+			(1,-1)--(3.45,-1) (1,-2)--(3.45,-2)
+			(1,-3)--(3.45,-3) (0,-4)--(3.45,-4)
+			(1,-5)--(3.45,-5) (0,-6)--(3.45,-6)
+			(1,-7)--(3.45,-7) (0,-8)--(3.45,-8)
+			(1,-9)--(3.45,-9) (1,-10)--(3.45,-10)
+			;
+		\end{scope}
+		\path
+		(0,0) node{\text{\textbf{Đạo hàm}}}  
+		(-0.4,-1) node[right]{$(x)'=1$}
+		(-0.4,-2) node[right]{$\left({x^{\alpha +1}}\right)^{'}=\left({\alpha +1}\right)x^\alpha $}    
+		(-0.4,-3) node[right]{$\left({\dfrac{1}{x}}\right)^{'}=\dfrac{-1}{x^2}$}
+		(-0.4,-4) node[right]{$\left({a^x}\right)^{'}=a^x.\ln a$}    
+		(-0.4,-5) node[right]{$\left({e^x}\right)^{'}=e^x$}
+		(-0.4,-6) node[right]{$\left({\ln x}\right)^{'}=\dfrac{1}{x}$}    
+		(-0.4,-7) node[right]{$\left({\sin x}\right)^{'}=\cos x$}
+		(-0.4,-8) node[right]{$\left({\cos x}\right)^{'}=-\sin x$}    
+		(-0.4,-9) node[right]{$\left({\tan x}\right)^{'}=\dfrac{1}{{\cos}^2x}$}
+		(-0.4,-10) node[right]{$\left({\cot x}\right)^{'}=-\dfrac{1}{{\sin}^2x}$}		
+		(1,0) node{\text{\textbf{Nguyên hàm}}}    
+		(0.55,-1) node[right]{\ding{172}\,\,$\displaystyle\int 1 \text{d}x=x+C$}
+		(0.55,-2) node[right]{\ding{173}\,\,$\displaystyle\int x^\alpha\;\text{d}x=\dfrac{x^{\alpha +1}}{\alpha+1}+ C$}    							
+		(0.55,-3) node[right]{\ding{174}\,\,$\displaystyle \int \dfrac{1}{x^2} \;\mathrm{d}x=-\dfrac{1}{x}+C$}
+		(0.55,-4) node[right]{\ding{175}\,\,$\displaystyle\int{{a^x\text{d}x=\dfrac{a^x}{\ln a}+C}}$}    
+		(0.55,-5) node[right]{\ding{176}\,\,$\displaystyle\int{{e^x\text{d}x}}=e^x+C$}
+		(0.55,-6) node[right]{\ding{177}\,\,$\displaystyle\int{{\dfrac{1}{x}\text{d}x}}=\ln \left|x\right|+C$}    
+		(0.55,-7) node[right]{\ding{178}\,\,$\displaystyle\int{{\cos x\,\text{d}x}}=\sin x+C$}
+		(0.55,-8) node[right]{\ding{179}\,\,$\displaystyle\int{{\sin x\,\text{d}x}}=-\cos x+C$}    
+		(0.55,-9) node[right]{\ding{180}\,\,$\displaystyle\int{{\dfrac{1}{{\cos}^2x}\text{d}x}}=\tan x+C$}
+		(0.55,-10) node[right]{\ding{181}\,\, $\displaystyle\int{{\dfrac{1}{{\sin}^2x}\text{d}x}}=-\cot x+C$}
+		(2.2,0) node{\text{\textbf{Nguyên hàm mở rộng (đọc thêm)}}}    
+		(1.6,-1) node[right]{}
+		(1.6,-2) node[right]{$\displaystyle\int{{{\left({ax+b}\right)}^\alpha \text{d}x}}=\dfrac{1}{a}\cdot \dfrac{{\left({ax+b}\right)}^{\alpha +1}}{\alpha +1}+C$}    
+		(1.6,-3) node[right]{$\displaystyle\int{{\dfrac{\text{d}x}{{\left({ax+b}\right)}^2}=-\dfrac{1}{a}.\dfrac{1}{ax+b}+C}}$}
+		(1.6,-4) node[right]{$\displaystyle\int{{a^{mx+n}\text{d}x}}=\dfrac{1}{m}\cdot \dfrac{a^{mx+n}}{\ln a}+C$}    
+		(1.6,-5) node[right]{$\displaystyle\int{{e^{ax+b}\text{d}x}}=\dfrac{1}{a}e^{ax+b}+C$}
+		(1.6,-6) node[right]{$\displaystyle\int{{\dfrac{1}{ax+b}\text{d}x}}=\dfrac{1}{a}.\ln \left|{ax+b}\right|+C$}    
+		(1.6,-7) node[right]{$\displaystyle\int{{\cos \left({ax+b}\right)\,\text{d}x}}=\dfrac{1}{a}\cdot \sin \left({ax+b}\right)+C$}
+		(1.6,-8) node[right]{$\displaystyle\int{{\sin \left({ax+b}\right)\,\text{d}x}}=-\dfrac{1}{a}\cos \left({ax+b}\right)+C$}    
+		(1.6,-9) node[right]{$\displaystyle\int{{\dfrac{1}{{\cos}^2\left({ax+b}\right)}\text{d}x}}=\dfrac{1}{a}\tan \left({ax+b}\right)+C$}
+		(1.6,-10) node[right]{$\displaystyle\int{{\dfrac{1}{{\sin}^2\left({ax+b}\right)}\text{d}x}}=-\dfrac{1}{a}\cot \left({ax+b}\right)+C$}
+		;
+	\end{tikzpicture}
+\end{center}
+
+
+\subsubsection{Tính chất:}
+Cho các hàm số $y=f(x)$ và $y=g(x)$ liên tục trên đoạn $[a;b]$, $c \in [a;b]$. Ta có các tính chất sau:
+\begin{listEX}[2]
+	\item [\ding{172}] $\displaystyle\int\limits_a^b{k\cdot f(x)}\mathrm{\,d}x=k\cdot \displaystyle\int\limits_a^b{f(x)}\mathrm{\,d}x$ ($k$ là hằng số).
+	\item [\ding{173}] $\displaystyle\int\limits_a^b{\bigg[{f(x)+ g(x)}\bigg]}\mathrm{\,d}x=\displaystyle\int\limits_a^b{f(x)}\mathrm{\,d}x+ \displaystyle\int\limits_a^b{g(x)}\mathrm{\,d}x$.
+	\item [\ding{174}] $\displaystyle\int\limits_a^b{\bigg[{f(x)- g(x)}\bigg]}\mathrm{\,d}x=\displaystyle\int\limits_a^b{f(x)}\mathrm{\,d}x - \displaystyle\int\limits_a^b{g(x)}\mathrm{\,d}x$.
+	\item [\ding{175}] $\displaystyle\int\limits_a^b{f(x)}\mathrm{\,d}x+\displaystyle\int\limits_b^c{f(x)}\mathrm{\,d}x=\displaystyle\int\limits_a^c{f(x)}\mathrm{\,d}x$.
+\end{listEX}

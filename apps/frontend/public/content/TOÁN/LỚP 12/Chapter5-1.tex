@@ -1,0 +1,125 @@
+\section{PHƯƠNG TRÌNH MẶT PHẲNG}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Vec tơ pháp tuyến của mặt phẳng}
+\vspace{-0.3cm}
+\begin{itemize}
+	\item [\iconMT] \immini{\indam{Định nghĩa:} Véc tơ pháp tuyến $\vec{n}$ của mặt phẳng $(P)$ là những véc tơ khác $\vec{0}$ và có giá vuông góc với $(P)$. 
+		\item [\iconMT] \indam{Chú ý:} 
+		\begin{boxdn}
+			\begin{itemize}
+				\item [$\bullet$] $\vec{n} \ne \vec{0}$ và có giá vuông với $(P)$;
+				\item [$\bullet$] Nếu $\vec{n}$ và $\vec{n'}$ cùng là véc tơ pháp tuyến của $(P)$ thì $\vec{n'} = k \cdot \vec{n}$ (tọa độ tỉ lệ nhau).
+			\end{itemize}
+		\end{boxdn}
+	}{\vspace{0.5cm}\hspace{1cm}
+		\begin{tikzpicture}[scale=0.8, line join=round, line cap=round,>=stealth]
+			\tkzDefPoints{0/0/A,4/0/B,5/2/C}
+			\coordinate (D) at ($(A)+(C)-(B)$);
+			\tkzDrawPolygon(A,B,C,D)
+			\tkzMarkAngles[size=0.7cm,arc=l](B,A,D)
+			\tkzLabelAngles[pos=0.5,rotate=10](B,A,D){\scriptsize$P$}
+			\draw[->] (2,1)--(2,2.5)node[right]{\scriptsize$\vec{n}$};
+			\draw[->] (3,1.5)--(3,3)node[right]{\scriptsize$\vec{n'}$};
+	\end{tikzpicture}}
+\end{itemize}
+
+\subsubsection{Cặp vec-tơ chỉ phương của mặt phẳng}
+\vspace{-0.3cm}
+\begin{itemize}
+	\item [\iconMT] \indam{Định nghĩa:} Trong không gian $Oxyz$, cho hai véc-tơ $\vec u$, $\vec v$ được gọi là cặp véc-tơ chỉ phương của mặt phẳng $(P)$ nếu chúng không cùng phương và có giá nằm trong hoặc song song với mặt phẳng $(P)$.
+	\item [\iconMT] \indam{Chú ý:} 
+	\begin{boxdn}
+\immini{		\begin{itemize}
+			\item [$\bullet$] Cho hai vectơ $\vec u = (a; b; c)$ và $\vec v = (a'; b'; c')$. Khi đó 
+			$$\vec n = (bc' - b'c;ca' - c'a; ab' - a'b)$$
+			vuông góc với cả hai vectơ $\vec u$ và $\vec v$, được gọi là tích có hướng của $\vec u$ và $\vec v$, ký hiệu là $[\vec u, \vec v]$.
+			\item [$\bullet$] Nếu $\vec u$, $\vec v$ là cặp véc-tơ chỉ phương của $(P)$ thì $[\vec u,\vec v]$ là một véc-tơ pháp tuyến của $(P)$.
+		\end{itemize}}{
+	\begin{tikzpicture}[>=stealth, line join=round, line cap = round,scale=0.8]
+	\def\d{4}
+	\def\r{3}
+	\path (0:0) coordinate (B)
+	++(0:\d) coordinate (C)
+	++(50:\r) coordinate (D)
+	($(B)+(D)-(C)$) coordinate (A)
+	(2.5,2) coordinate (M)
+	(3.5,2) coordinate (N)
+	(3.,1.6) coordinate (P)
+	;
+	\draw[->] (M)--($(M)+(-130:1.5)$) node[pos=0.4,left] {$\vec u$};
+	\draw[->] (N)--($(N)+(0:1.8)$) node[pos=0.4,below] {$\vec v$};
+	\draw[->] (P)--($(P)+(90:1.8)$) node[pos=0.9,right] {${[\vec u,\vec v]}$};
+	\draw (A)--(B)--(C)--(D)--cycle;
+	\begin{scope}
+		\clip (A)--(B)--(C);
+		\draw[opacity=0.7] (B) circle(0.8cm)node[black,shift={(25:4mm)}]{$P$};
+	\end{scope}
+	%		\foreach \x/ \goc in {A/180,B/180,C/0,D/0} 
+	%		\fill (\x) circle (1pt) ($(\x)+(\goc:3mm)$) node {$\x$};
+\end{tikzpicture}}
+	\end{boxdn}
+
+\end{itemize}
+\subsubsection{Phương trình tổng quát của mặt phẳng}
+\begin{itemize}
+	\item [\iconMT] \indam{Công thức:} Mặt phẳng $(P)$ đi qua điểm $M(x_0;y_0;z_0)$ và nhận $\vec{n}=(a;b;c)$ làm véc tơ pháp tuyến có phương trình là 
+	\boxminit{$a(x-x_0)+b(y-y_0)+c(z-z_0)=0$}
+	Thu gọn ta được dạng 
+	$$ax+by+cz+d=0$$
+	\item [\iconMT] \indam{Chú ý:}
+	\begin{boxdn}
+		\begin{itemize}
+			\item [\ding{172}] Phương trình các mặt phẳng tọa độ: 
+			\begin{listEX}[2]
+				\item [$\bullet$] $(Oxy) \colon z=0$.
+				\item [$\bullet$] $(Oxz) \colon y=0$.
+				\item [$\bullet$] $(Oyz) \colon x=0$.
+			\end{listEX}
+			\item [\ding{173}] Phương trình mặt phẳng $(\alpha)$ song song với mặt phẳng tọa độ: 
+			\begin{listEX}[2]
+				\item [$\bullet$] $(\alpha) \parallel (Oxy) \Rightarrow z=a \quad a \ne 0$.
+				\item [$\bullet$] $(\alpha) \parallel (Oxz) \Rightarrow y=b \quad b \ne 0 $.
+				\item [$\bullet$] $(\alpha) \parallel (Oyz) \Rightarrow x=c \quad c \ne 0$.
+			\end{listEX}
+		\end{itemize}
+	\end{boxdn}
+\end{itemize}
+
+\subsubsection{Vị trị tương đối giữa hai mặt phẳng}
+\begin{itemize}
+	\item [] Cho hai mặt phẳng $(P) \colon a_1x + b_1y + c_1z + d_1=0$ và $(Q) \colon a_2x + b_2y + c_2z + d_2=0$. \\
+	Gọi $\vec{n_1}=(a_1;b_1;c_1)$, $\vec{n_2}=(a_2;b_2;c_2)$ lần lượt là véc tơ pháp tuyến của $(P)$ và $(Q)$.\\
+	\begin{boxdn}
+		\begin{listEX}[1]
+			\item [\ding{172}] Nếu $\heva{&\vec{n_1}= k \cdot \vec{n_2}\\& d_1 =k\cdot d_2}$ thì $(P)$ trùng $(Q)$.
+			\item [\ding{173}] Nếu $\heva{&\vec{n_1}= k \cdot \vec{n_2}\\& d_1 \ne k\cdot d_2}$ thì $(P)$ song song $(Q)$.
+			\item [\ding{174}] Nếu $\vec{n_1}$ không cùng phương với $\vec{n_2}$ thì $(P)$ cắt $(Q)$.
+			\item [\ding{175}] Nếu $\vec{n_1} \perp \vec{n_2}$ hay $a_1a_2+b_1b_2+c_1c_2=0$ thì $(P) \perp (Q)$.
+		\end{listEX}
+	\end{boxdn}  
+\end{itemize}
+
+\subsubsection{Khoảng cách từ một điểm đến mặt phẳng}
+\vspace{-0.4cm}
+\begin{itemize}
+	\item [\iconMT] \immini{\indam{Định nghĩa:} Cho điểm $M(x_0;y_0;z_0)$ và mặt phẳng $(P) \colon ax+by+cz+d=0$. Gọi $H$ là hình chiếu vuông góc của điểm $M$ lên mặt phẳng $(P)$. Khi đó độ dài đoạn $MH$ được gọi là khoảng cách từ điểm $M$ đến $(P)$. Kí hiệu $\mathrm{d}\left(M,(P) \right)$.
+		\item [\iconMT] \indam{Công thức tính:}
+		\boxminit{$\mathrm{d}\left(M,(P) \right)=\dfrac{\bigg|ax_0+by_0+cz_0+d\bigg|}{\sqrt{a^2+b^2+c^2}}$}
+	}{\vspace{0.5cm} \hspace{1cm}
+		\begin{tikzpicture}[scale=0.8, line join=round, line cap=round]
+			\tkzDefPoints{0/0/A,4/0/B,5/2/C}
+			\coordinate (D) at ($(A)+(C)-(B)$);
+			\tkzDrawPolygon(A,B,C,D)
+			\tkzMarkAngles[size=0.7cm,arc=l](B,A,D)
+			\tkzLabelAngles[pos=0.5,rotate=10](B,A,D){$P$}
+			\draw (2,1)node[right]{$H$}--(2,3)node[above]{$M$};
+			\draw[fill=black] (2,1) circle(1.5pt) (2,3) circle(1.5pt);
+	\end{tikzpicture}}
+	\item [\iconMT] \indam{Đặc biệt:} 
+	\begin{listEX}[3]
+		\item [\ding{172}] $\mathrm{d}\left(M,(Oxy) \right)=\big|z_M\big|$.
+		\item [\ding{173}]  $\mathrm{d}\left(M,(Oxz) \right)=\big|y_M\big|$.
+		\item [\ding{174}]  $\mathrm{d}\left(M,(Oyz) \right)=\big|x_M\big|$.
+	\end{listEX}
+\end{itemize}
+\newpage

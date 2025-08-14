@@ -1,0 +1,38 @@
+\section{CẤP SỐ CỘNG}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Định nghĩa}
+Cấp số cộng là một dãy số (hữu hạn hoặc vô hạn), trong đó kể từ số hạng thứ hai, mỗi số hạng đều bằng số hạng đứng ngay trước nó cộng với một số không đổi $d.$ Nghĩa là
+\boxminit{$u_{n+1}=u_n+d \text{ với } n\in \mathbb{N}^{*}.$}
+\begin{gachsoc}
+	\begin{itemize}
+		\item [$\bullet$] Số $d$ được gọi là công sai của cấp số cộng.
+		\item [$\bullet$] Đặc biệt khi $d=0$ thì cấp số cộng là một dãy số không đổi (tất cả các số hạng đều bằng nhau).
+	\end{itemize}
+\end{gachsoc}
+\subsubsection{Số hạng tổng quát}
+	Nếu cấp số cộng $\left(u_n\right)$ có số hạng đầu $u_1$ và công sai $d$ thì số hạng tổng quát $u_n$ của nó được xác định theo công thức
+	\boxminit{$u_n=u_1+(n-1) d$}
+
+\subsubsection{Tính chất của ba số hạng liên tiếp}
+Gọi $u_{k-1}$,$u_{k}$, $u_{k+1}$ là ba số hạng lien tiếp của một cấp số cộng thì \boxminit{$u_k=\dfrac{u_{k-1}+u_{k+1}}{2} \text{ với } k\ge 2$}
+
+\subsubsection{Tổng $ n $ số hạng đầu của một cấp số cộng}
+	Cho $(u_n)$ là một cấp số cộng với số hạng đầu là $u_1$ và công sai $d$. Đặt $${{S}_{n}}={{u}_{1}}+{{u}_{2}}+{{u}_{3}}+\cdots+{{u}_{n}}$$
+	Khi đó:
+		\boxminit{$S_n=\dfrac{n\left( u_1+u_n \right)}{2}=\dfrac{n\left( u_2+u_{n-1}\right)}{2}=\dfrac{n\left(u_3+u_{n-2} \right)}{2}=\cdots$}
+	hoặc 
+	\boxminit{$S_n=\dfrac{n}{2}\left(2u_1+(n-1)d \right)$}
+
+\begin{dang}{Tính chất của cấp số cộng}
+	\begin{itemize}
+		\item [\ding{172}] Nếu $a$; $b$; $c$ theo thứ tự lập thành cấp số cộng thì $a+c=2b$.
+		\item [\ding{173}] Lưu ý:
+		\begin{itemize}
+			\item [$\bullet$] Nếu cho ba số liên tiếp của một cấp số cộng, ta có thể xem ba số đó là $$a-d;\quad a; \quad a+d$$
+			\item [$\bullet$] Nếu cho bốn số liên tiếp của một cấp số cộng, ta có thể xem ba số đó là $$a-3d;\quad a-d; \quad a+d; \quad a+3d.$$
+		\end{itemize}
+	\end{itemize}
+\end{dang}
+ 
+
+

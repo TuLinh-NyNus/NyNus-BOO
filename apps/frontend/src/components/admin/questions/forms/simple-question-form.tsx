@@ -30,7 +30,6 @@ import {
   Save,
   Eye,
   AlertTriangle,
-  CheckCircle,
   Loader2,
   BookOpen,
   Target,

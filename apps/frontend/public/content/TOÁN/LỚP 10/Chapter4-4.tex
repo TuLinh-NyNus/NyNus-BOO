@@ -1,0 +1,109 @@
+\section{TÍCH VÔ HƯỚNG CỦA HAI VÉCTƠ}
+
+\subsection{TÓM TẮT LÝ THUYẾT}
+\subsubsection{Góc giữa hai véc tơ: }
+\immini{Cho hai vectơ $\vec{a}$ và $\vec{b}$ đều khác vectơ $\vec{0}$. Từ một điểm $O$ bất kì ta vẽ $\vec{OA}=\vec{a}$ và $\vec{OB}=\vec{b}$. Góc $\widehat{AOB}$ với số đo từ $0^\circ$ đến $180^\circ$ được gọi là góc giữa hai vectơ $\vec{a}$ và $\vec{b}$. Ta kí hiệu góc giữa hai vectơ $\vec{a}$ và $\vec{b}$ là $(\vec{a},\vec{b} )$.
+}{\begin{tikzpicture}[scale=0.5,font=\footnotesize,line join=round,line cap=round,>=stealth]
+		\tkzDefPoints{0/0/O,3/3/A,-2.5/1/B, 3/0/C, 7/0/D}
+		\tkzDefPointBy[translation=from O to A](C) \tkzGetPoint{C'}
+		\tkzDefPointBy[translation=from O to B](D) \tkzGetPoint{D'}
+		\tkzDrawSegments[->](O,A O,B C,C' D,D')
+		\tkzLabelPoints[above](A,B)
+		\tkzLabelPoints[below](O)
+		\tkzLabelSegment(C,C'){$ \vec{a} $}
+		\tkzLabelSegment(D,D'){$ \vec{b} $}
+		\tkzMarkAngles(A,O,B)
+\end{tikzpicture}}
+\begin{tcolorbox}[colframe=orange,colback=white,boxrule=0.2mm]
+	\begin{itemize}
+		\item [$\bullet$] Từ định nghĩa ta có $(\vec{a},\vec{b} )=(\vec{b},\vec{a} )$. 
+		\item [$\bullet$] Nếu $(\vec{a},\vec{b} )=90^\circ$ thì ta nói rằng $\vec{a}$ và $\vec{b}$ vuông góc với nhau, kí hiệu là $\vec{a}\perp \vec{b}$.
+		\item [$\bullet$] $\vec{a}$ cùng hướng $\vec{b}$ thì $(\vec{a},\vec{b} )=0^\circ$; $\vec{a}$ ngược hướng $\vec{b}$ thì $(\vec{a},\vec{b} )=180^\circ$.
+	\end{itemize}
+\end{tcolorbox}
+Trường hợp có ít nhất $\vec{a}$ hoặc $\vec{b}$ bằng $\vec{0}$ thì ta quy ước số đo góc của chúng là tùy ý (từ $0^\circ$ đến $180^\circ$)
+\subsubsection{Tích vô hướng của hai vectơ:} 
+\begin{itemize}
+	\item [\iconMT] \indam{Định nghĩa:}Cho hai véc-tơ $\vec{a}$ và $\vec{b}$ đều khác véc-tơ $\vec{0}$ Tích vô hướng của $\vec{a}$ và $\vec{b}$ là một số, kí hiệu là $\vec{a}\cdot\vec{b}$, được xác định bởi công thức sau:
+	\boxmini{$\vec{a}\cdot \vec{b}=\left|\vec{a}\right|\cdot \left|\vec{b}\right|\cos\left(\vec{a},\vec{b}\right)$}
+		Trường hợp ít nhất một trong hai véc-tơ $\vec{a}$ và $\vec{b}$ bằng véc-tơ $\vec{0}$ ta quy ước $\vec{a}\cdot\vec{b}=0$.
+	\item [\iconMT] \indam{Lưu ý:}
+		\begin{itemize}
+			\item Với $\vec{a}$ và $\vec{b}$ khác véc-tơ $\vec{0}$ ta có $\vec{a}\cdot\vec{b}=0\Leftrightarrow \vec{a}\perp \vec{b}$. 
+			\item Khi $\vec{a}=\vec{b}$ tích vô hướng $\vec{a}\cdot\vec{a}$ được kí hiệu là $\vec{a^2}$ và số này được gọi là bình phương vô hướng của véc-tơ $\vec{a}$. Ta có:
+			\boxmini{$\vec{a}^2=|\vec{a}|\cdot|\vec{a}|\cdot \cos0^\circ=|\vec{a}|^2$}
+		\end{itemize}
+\end{itemize}
+\subsubsection{Tính chất của tích vô hướng:}
+Với ba véc-tơ $\vec{a}$, $\vec{b}$, $\vec{c}$ bất kì và mọi số $k$ ta có:
+\begin{tcolorbox}[colframe=orange,colback=white,boxrule=0.2mm]
+	\begin{itemize}
+		\item $\vec{a}\cdot \vec{b}=\vec{b}\cdot \vec{a}$ (tính chất giao hoán);
+		\item $\vec{a}\left(\vec{b}+\vec{c}\right)=\vec{a}\cdot \vec{b}+\vec{a}\cdot \vec{c}$ (tính chất phân phối);
+		\item $(k\vec{a})\cdot \vec{b}=k(\vec{a}\cdot \vec{b})=\vec{a}\cdot (k\vec{b})$.
+	\end{itemize}
+\end{tcolorbox}
+
+\begin{dang}{Tính tích vô hướng bằng định nghĩa}
+	\indamm{Chú ý các công thức sau đây:} 
+	\begin{listEX}[1]
+		\item [\ding{172}] $\vec{a}\cdot \vec{b}=\left|\vec{a}\right|\cdot \left|\vec{b}\right|\cos\left(\vec{a},\vec{b}\right)$
+		\item [\ding{173}] $\vec{AB} \cdot \vec{AC} = AB \cdot AC \cdot \cos A$. 
+		\item [\ding{174}] $AB$ vuông góc với $CD$ khi $\vec{AB} \cdot \vec{CD}=0$. 
+	\end{listEX}
+\end{dang}
+
+\begin{dang}{Ứng dụng tích vô hướng để tính toán độ dài, tính góc}
+	\begin{itemize}
+		\item [\iconMT] \indam{Tính độ dài:} Chú ý công thức $\vec{AB}^2=AB^2$. Khi muốn tính độ dài $AB$, ta phân tích vectơ $\vec{AB}$ theo hai vec tơ khác (dễ tính độ lớn và góc), sau đó bình phương vô hướng 2 vế.
+		\item [\iconMT] \indam{Tính góc:}  
+		\begin{listEX}[2]
+			\item [\ding{172}] $\cos\left(\vec{a},\vec{b}\right)=\dfrac{\vec{a}\cdot \vec{b}}{\left|\vec{a}\right|\cdot \left|\vec{b}\right|}$
+			\item [\ding{173}] $\cos A= \dfrac{\vec{AB} \cdot \vec{AC}}{AB \cdot AC} $.
+			\item [\ding{174}] $AB\perp CD \Leftrightarrow\vec{AB} \cdot \vec{CD}=0$. 
+		\end{listEX}
+	\end{itemize}
+\end{dang}
+
+\begin{dang}{Tìm tập hợp điểm}
+	Cho $A$, $B$ là các điểm cố định, $M$ là điểm di động
+	\begin{itemize}
+		\item Nếu $\left| \vec{AM} \right|=k$ với $k$ là số thực dương cho trước thì tập hợp các điểm $M$ là đường tròn tâm $A$, bán kính $R=k$.
+		\item Nếu $\vec{MA}\cdot \vec{MB}=0$ thì tập hợp các điểm $M$ là đường tròn đường kính $AB$.
+		\item Nếu $\vec{MA}\cdot \vec{a}=0$ với $\vec{a}\neq \vec{0}$ cho trước thì tập hợp các điểm $M$ là đường thẳng đi qua $A$ và vuông góc với giá của vectơ $\vec{a}$.
+	\end{itemize}
+\end{dang}
+
+\begin{dang}{Ứng dụng tích vô hướng trong thực tế}
+	\indamm{Tính công sinh ra bởi lực $\vec{F}$:} Tác dụng một lực $\overrightarrow{F}$ vào một vật và làm cho vật đó dịch chuyển theo véc-tơ $\overrightarrow{d}$ thì sẽ sinh ra một công là $A$ (đơn vị J) được tính theo công thức
+	\[
+	A=\left |\overrightarrow{F} \right | \cdot \left |\overrightarrow{d} \right | \cdot \cos \alpha.
+	\]
+	Trong đó $\alpha$ là góc giữa hai véc-tơ $\overrightarrow{F}$ và $\overrightarrow{d}$. 
+	\begin{center}
+		\begin{tikzpicture}[scale=0.6, font=\footnotesize,>=stealth]
+			\path 
+			(0,-1) coordinate (M)
+			(2,-1) coordinate (N)
+			(0,0) coordinate (Q)
+			(2,0) coordinate (P) 
+			($(M)!0.5!(P)$)coordinate (A) 
+			($(A)+(0,2)$)coordinate (A1) 
+			($(A)+(3,0)$)coordinate (A2) 
+			($(A1)+(A2)-(A)$)coordinate (A3) 
+			($(A)+(5,0)$)coordinate (B) 
+			;
+			\fill[cyan!60!white](M)--(N)--(P)--(Q)--cycle;
+			\draw[->](A)--(A2)node[above right]{$\vec{d}$};
+			\draw[->](A)--(A3)node[above right]{$\vec{F}$};
+			\draw (M)--(N)--(P)--(Q)--cycle
+			pic["\scriptsize$60^\circ$",angle radius=18mm]{angle = A2--A--A3}
+			pic[draw,double,angle radius=8mm]{angle = A2--A--A3};
+			\draw[dashed] (A2)--(B);
+			\draw[fill=gray!30] (-0.5,-1)--(6.6,-1)--(6.6,{-1-0.25})--(-0.5,{-1-0.25})--cycle;
+			\foreach \i in {1,2,...,35}
+			\draw ({-0.5+0.2*(\i)},-1)--($({-0.5+0.2*(\i)},-1)+(-120:0.3)$);
+			\foreach \x/\g in {A/180,B/0} \draw [fill=black] (\x) circle (.05) + (\g:.45) node{$\x$};
+		\end{tikzpicture}
+	\end{center} 	
+\end{dang}

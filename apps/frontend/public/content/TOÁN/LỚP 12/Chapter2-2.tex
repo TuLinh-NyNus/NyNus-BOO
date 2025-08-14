@@ -1,0 +1,99 @@
+\section{TỌA ĐỘ CỦA VÉC TƠ TRONG KHÔNG GIAN}
+\subsection{LÝ THUYẾT CẦN NHỚ}
+\subsubsection{Hệ tọa độ trong không gian}
+Trong không gian, ba trục $O x$, $O y$, $O z$ đôi một vuông góc với nhau tại gốc $O$ của mỗi trục. Gọi $\vec{i}$, $\vec{j}$, $\vec{k}$ lần lượt là các véc-tơ đơn vị trên các trục $O x$, $O y$, $O z$.
+\immini{
+	\begin{gachsoc}
+		\begin{itemize}
+			\item  Hệ ba trục như vậy được gọi là hệ trục toạ độ Descartes vuông góc $Oxyz$, hay đơn giản là hệ toạ độ $Oxyz$. Điểm $O$ được gọi là gốc toạ độ.
+			\item  Các mặt phẳng $(O x y)$, $(O y z)$, $(O z x)$ đôi một vuông góc với nhau được gọi là các mặt phẳng toạ độ.
+			\item  ${\overrightarrow i ^2} = {\overrightarrow j ^2} = {\overrightarrow k ^2} = 1 \text{ và } \overrightarrow i  \cdot \overrightarrow j  = \overrightarrow j  \cdot \overrightarrow k  = \overrightarrow k  \cdot \overrightarrow i  = 0$
+		\end{itemize}
+	\end{gachsoc}
+	}{\hspace{1cm}
+\begin{tikzpicture}[>=stealth,line join=round,line cap=round,scale=1]
+	\def\a{3.0}
+	\path
+	(0,0) coordinate (A1)
+	(\a,0) coordinate (A2)
+	(\a,\a) coordinate (A3)
+	(0,\a) coordinate (A4);
+	\foreach \i in {1,...,4}
+	\path (A\i)+(45:.75) coordinate (B\i);
+	\draw (B1)--(A1) (B1)--(B2) (B1)--(B4);
+	%	\draw(A4)--(B4)--(B3)--(B2)--(A2) (A3)--(B3)
+	%	(A1)--(A2)--(A3)--(A4)--cycle;
+	\draw[-stealth] (B1)--(B2)node[right]{$y$};
+	\draw[-stealth] (B1)--(B4)node[above]{$z$};
+	\draw[dashed](B1)--+(45:0.85)[dashed](B1)--+(180:0.85)(B1)--+(270:0.85);
+	\draw[-stealth] (A1)--+(-135:.95)node[below]{$x$};
+	\draw[-stealth,blue] (B1)--+(0:.95)node[above]{$\vec{j}$};
+	\draw[-stealth,blue] (B1)--+(90:.85)node[above left]{$\vec{k}$};
+	\draw[-stealth,blue] (B1)--+(-135:0.95)node[right]{$\vec{i}$};
+	\fill(B1)circle(1pt) node[below right]{$O$};
+\end{tikzpicture}}
+Không gian với hệ toạ độ $Oxyz$ còn được gọi là không gian $Oxyz$.
+\subsubsection{Tọa độ của điểm}
+	Trong không gian với hệ tọa độ $Oxyz$, cho điểm $M$. Tọa độ điểm $M$ được xác định như sau:
+\immini{
+	\begin{gachsoc}
+	\begin{itemize}
+		\item Xác định hình chiếu $M_1$ của điểm $M$ trên mặt phẳng $Oxy$. Trong mặt phẳng tọa độ $Oxy$, tìm hoành độ $a$, tung độ $b$ của điểm $M_1$.
+		\item Xác định hình chiếu $P$ của điểm $M$ trên trục cao $Oz$, điểm $P$ ứng với số $c$ trên trục $Oz$. Số $c$ là cao độ của điểm $M$.
+	\end{itemize}
+	Bộ số $(a;b;c)$ là toạ độ của điểm $M$ trong không gian với hệ toạ độ $Oxyz$, kí hiệu là $M(a;b;c)$.
+	\end{gachsoc}
+}{
+\begin{tikzpicture}[scale=0.6, font=\footnotesize,>=stealth]
+	\path
+	(0,0) coordinate (O)
+	(-2,-2) coordinate (H)
+	(3,-2) coordinate (M_1)
+	(5,0) coordinate (K)
+	(3,1) coordinate (M)
+	(0,3) coordinate (P)
+	;
+	\draw[->] (0,0)--(6.7,0) node[below]{$y$};
+	\draw[->] (0,0)--(-3,-3) node[below]{$x$};
+	\draw[->] (0,0)--(0,4.3) node[left]{$z$};
+	\draw[dashed] (P)node[left]{$c$}--(M)--(M_1)--(H)node[left]{$a$} (O)--(M_1)--(K)node[above]{$b$} (O)--(M);
+	\foreach \x/\g in {O/160,M_1/-90,M/30,H/-80,K/-70,P/30}\draw[fill=black] (\x) circle (.05) +(\g:.5)node{\footnotesize$\x$};
+	\foreach \x/\y/\z in {M_1/H/O,M_1/K/O,M/P/O}{\path pic[draw,angle radius=5pt]{right angle= \x--\y--\z};}
+\end{tikzpicture}
+}
+\subsubsection{Tọa độ của vectơ}
+Trong không gian $Oxyz$:
+\immini{
+	\begin{gachsoc}
+	\begin{itemize}
+		\item Toạ độ của điểm $M$ cũng là toạ độ của vectơ $\overrightarrow{OM}$.
+		\item Cho $\vec{u}$. Dựng điểm $M(a;b;c)$ thỏa $\vec{OM}=\vec{u}$ thì tọa độ của điểm $M$ là tọa độ của $\vec{u}$. Theo hình vẽ thì 
+		$$\vec{u}=\vec{OM}=\vec{OH}+\vec{OK}+\vec{OP}=a\vec{i}+b\vec{j}+c\vec{k}.$$
+		Suy ra
+		$$\vec{u}=\left(a;b;c \right)\Leftrightarrow \vec{u}=a\vec{i}+b\vec{j}+c\vec{k}. $$
+	\end{itemize}
+\end{gachsoc}
+}{
+\begin{tikzpicture}[scale=0.6, font=\footnotesize,>=stealth]
+	\path
+	(0,0) coordinate (O)
+	(-2,-2) coordinate (H)
+	(3,-2) coordinate (M_1)
+	(5,0) coordinate (K)
+	(3,1) coordinate (M)
+	(0,3) coordinate (P)
+	;
+	\draw[->] (0,0)--(6.7,0) node[below]{$y$};
+	\draw[->] (0,0)--(-3,-3) node[below]{$x$};
+	\draw[->] (0,0)--(0,4.3) node[left]{$z$};
+	\draw[-stealth,blue,thick] (O)--(-1,-1)node[above]{$\vec{i}$};
+	\draw[-stealth,blue,thick](O)--(1,0)node[below right]{$\vec{j}$};
+	\draw[-stealth,blue,thick] (O)--(0,1)node[above left]{$\vec{k}$};
+	\draw[dashed] (P)node[left]{$c$}--(M)--(M_1)--(H)node[left]{$a$} (O)--(M_1)--(K)node[above]{$b$};
+	\draw[thick,->](O)--(M)node[midway,sloped,above,scale=1]{$\vec{u}$};
+	\foreach \x/\g in {O/160,M_1/-90,M/30,H/-80,K/-70,P/30}\draw[fill=black] (\x) circle (.05) +(\g:.5)node{\footnotesize$\x$};
+	\foreach \x/\y/\z in {M_1/H/O,M_1/K/O,M/P/O}{\path pic[draw,angle radius=5pt]{right angle= \x--\y--\z};}
+\end{tikzpicture}}
+\begin{luuy}
+	Tọa độ các véc tơ đơn vị lần lượt là: $\vec{i}=(1;0;0)$,\quad $\vec{j}=(0;1;0)$,\quad $\vec{k}=(0;0;1)$.
+\end{luuy}

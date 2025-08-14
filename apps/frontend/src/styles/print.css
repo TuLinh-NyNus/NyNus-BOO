@@ -1,0 +1,313 @@
+/**
+ * Print Styles for Question Management
+ * Optimized print layouts cho questions và solutions
+ * 
+ * @author NyNus Team
+ * @version 1.0.0
+ */
+
+/* Print Media Queries */
+@media print {
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 2cm 1.5cm;
+    
+    @top-center {
+      content: "NyNus Question Bank";
+      font-size: 10pt;
+      color: #666;
+    }
+    
+    @bottom-center {
+      content: "Trang " counter(page) " / " counter(pages);
+      font-size: 10pt;
+      color: #666;
+    }
+  }
+
+  /* Reset styles for print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide non-printable elements */
+  .print\\:hidden,
+  .no-print,
+  nav,
+  .sidebar,
+  .header,
+  .footer,
+  button:not(.print-button),
+  .tooltip,
+  .dropdown,
+  .modal-overlay {
+    display: none !important;
+  }
+
+  /* Show print-only elements */
+  .print\\:block {
+    display: block !important;
+  }
+
+  .print\\:inline {
+    display: inline !important;
+  }
+
+  .print\\:flex {
+    display: flex !important;
+  }
+
+  /* Page breaks */
+  .print\\:break-before-page {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .print\\:break-after-page {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .print\\:break-inside-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Typography for print */
+  body {
+    font-family: "Times New Roman", serif !important;
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    color: #000 !important;
+    background: white !important;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Arial", sans-serif !important;
+    color: #000 !important;
+    page-break-after: avoid !important;
+  }
+
+  h1 { font-size: 18pt !important; }
+  h2 { font-size: 16pt !important; }
+  h3 { font-size: 14pt !important; }
+  h4 { font-size: 13pt !important; }
+
+  /* Question-specific print styles */
+  .printable-question {
+    page-break-inside: avoid !important;
+    margin-bottom: 2cm !important;
+  }
+
+  .question-header {
+    border-bottom: 1pt solid #000 !important;
+    padding-bottom: 0.5cm !important;
+    margin-bottom: 0.5cm !important;
+  }
+
+  .question-number {
+    font-weight: bold !important;
+    font-size: 14pt !important;
+  }
+
+  .question-content {
+    margin: 0.5cm 0 !important;
+    line-height: 1.6 !important;
+  }
+
+  /* LaTeX content print optimization */
+  .latex-content {
+    font-family: "Computer Modern", "Latin Modern Math", "Times New Roman", serif !important;
+  }
+
+  .latex-content .katex {
+    font-size: 1em !important;
+  }
+
+  .latex-content .katex-display {
+    margin: 0.5cm 0 !important;
+    text-align: center !important;
+  }
+
+  /* Answer options print styles */
+  .print-answers {
+    margin: 0.5cm 0 !important;
+  }
+
+  .print-answers .multiple-choice-display .space-y-2 > div {
+    margin-bottom: 0.3cm !important;
+    padding: 0.2cm !important;
+    border: 1pt solid #ccc !important;
+    border-radius: 0 !important;
+  }
+
+  .print-answers .true-false-display .grid {
+    display: block !important;
+  }
+
+  .print-answers .true-false-display .grid > div {
+    display: inline-block !important;
+    width: 48% !important;
+    margin-right: 2% !important;
+    margin-bottom: 0.3cm !important;
+    padding: 0.2cm !important;
+    border: 1pt solid #ccc !important;
+  }
+
+  /* Answer space styles */
+  .answer-space {
+    margin: 0.5cm 0 !important;
+    page-break-inside: avoid !important;
+  }
+
+  .answer-space .border {
+    border: 1pt solid #000 !important;
+    padding: 0.3cm !important;
+    min-height: 3cm !important;
+  }
+
+  .answer-space .border-b {
+    border-bottom: 1pt solid #ccc !important;
+    height: 0.8cm !important;
+  }
+
+  /* Solution print styles */
+  .print-solution {
+    margin-top: 1cm !important;
+    padding-top: 0.5cm !important;
+    border-top: 2pt solid #000 !important;
+  }
+
+  .print-solution .solution-content {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .print-solution .solution-step {
+    margin: 0.3cm 0 !important;
+    padding: 0.2cm 0 !important;
+    border-bottom: 1pt dotted #ccc !important;
+  }
+
+  /* Header and footer styles */
+  .print-header {
+    margin-bottom: 1cm !important;
+    padding-bottom: 0.5cm !important;
+    border-bottom: 2pt solid #000 !important;
+    text-align: center !important;
+  }
+
+  .print-header h1 {
+    font-size: 20pt !important;
+    font-weight: bold !important;
+    margin-bottom: 0.3cm !important;
+  }
+
+  .print-footer {
+    margin-top: 1cm !important;
+    padding-top: 0.3cm !important;
+    border-top: 1pt solid #ccc !important;
+    font-size: 10pt !important;
+    color: #666 !important;
+  }
+
+  /* Table styles for print */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 0.5cm 0 !important;
+  }
+
+  th, td {
+    border: 1pt solid #000 !important;
+    padding: 0.2cm !important;
+    text-align: left !important;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  /* Badge and status styles for print */
+  .badge,
+  .status-badge {
+    border: 1pt solid #000 !important;
+    padding: 0.1cm 0.2cm !important;
+    font-size: 10pt !important;
+    background: white !important;
+    color: #000 !important;
+  }
+
+  /* Remove shadows and effects */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background-image: none !important;
+  }
+
+  /* Ensure proper spacing */
+  .space-y-2 > * + * {
+    margin-top: 0.2cm !important;
+  }
+
+  .space-y-4 > * + * {
+    margin-top: 0.4cm !important;
+  }
+
+  .space-y-6 > * + * {
+    margin-top: 0.6cm !important;
+  }
+
+  /* Print-specific utilities */
+  .print-page-break {
+    page-break-before: always !important;
+  }
+
+  .print-no-break {
+    page-break-inside: avoid !important;
+  }
+
+  .print-text-small {
+    font-size: 10pt !important;
+  }
+
+  .print-text-large {
+    font-size: 14pt !important;
+  }
+
+  /* Ensure links are visible in print */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 10pt;
+    color: #666;
+  }
+
+  /* Hide decorative elements */
+  .decoration,
+  .gradient,
+  .shadow,
+  .blur {
+    display: none !important;
+  }
+}
+
+/* Screen styles for print preview */
+@media screen {
+  .print-preview {
+    max-width: 21cm;
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .print-preview .printable-question {
+    padding: 2cm 1.5cm;
+    min-height: 29.7cm; /* A4 height */
+    border-bottom: 1px dashed #ccc;
+  }
+}

@@ -1,0 +1,43 @@
+\section{HOÁN VỊ - CHỈNH HỢP - TỔ HỢP}
+\subsubsection{Hoán vị}
+Cho tập $A$ gồm $n$ phần tử $\left(n\ge 1\right)$. Mỗi kết quả của sự sắp xếp thứ tự $n$ phần tử của tập hợp $A$ được gọi là một hoán vị của $n$ phần tử đó.
+\begin{boxkn}
+	\begin{itemize}
+		\item [$\bullet$] Số các hoán vị của $n$ phần tử, kí hiệu là $\mathrm{P}_n$.
+		\item [$\bullet$] Công thức tính $\mathrm{P}_n = n! = n\cdot (n - 1)\cdot (n - 2) \cdots 3\cdot 2\cdot 1$. ($n!$ đọc là $n$ giai thừa)
+	\end{itemize}
+\end{boxkn}
+\noindent
+\textit{Nhận dạng bài toán: "Chọn hết phần tử và đi sắp xếp"}
+\subsubsection{Chỉnh hợp}
+Cho tập $A$ gồm $n$ phần tử $\left(n\ge 1\right)$. Kết quả của việc lấy $k$ $\left(1\le k\le n\right)$ phần tử khác nhau từ $n$ phần tử của tập hợp $A$ và sắp xếp chúng theo một thứ tự nào đó được gọi là một chỉnh hợp chập $k$ của $n$ phần tử đã cho (gọi tắt là một chỉnh hợp chập $k$ của $A$).
+\begin{boxkn}
+	\begin{itemize}
+		\item [$\bullet$] Số các chỉnh hợp chập $k$ của một tập hợp có $n$ phần tử, kí hiệu là
+		$\mathrm{A}_n^k$.
+		\item [$\bullet$] Với quy ước $0! = 1$, ta có công thức tính $\mathrm{A}_n^k = n\cdot (n - 1)\cdot (n - 2)\cdots (n - k + 1) = \dfrac{n!}{(n - k)!}\cdot$
+		\item [$\bullet$] $\mathrm{A}_n^n = n! = \mathrm{P}_n$.
+	\end{itemize}
+\end{boxkn}
+\noindent
+\textit{Nhận dạng bài toán: "Chọn $k$ phần tử trong tập gồm $n$ phần tử và đi \textbf{sắp xếp}"}
+\subsubsection{Tổ hợp}
+Cho tập hợp $A$ gồm $n$ phần tử và số nguyên $k$ với $1\le k\le n$. Mỗi tập con của $A$ có $k$ phần tử được gọi là một tổ hợp chập $k$ của $n$ phần tử của $A$ (gọi tắt là một tổ hợp chập $k$ của $A$).
+\begin{boxkn}
+	\begin{itemize}
+		\item [$\bullet$] Số các tổ hợp chập $k$ của một tập hợp có $n$ phần tử, kí hiệu là
+		$\mathrm{C}_n^k$. 
+		\item [$\bullet$] Số $k$  trong định nghĩa cần thỏa mãn điều kiện $1 \leq k \leq n$. Tuy nhiên, tập hợp không có phần tử nào là tập rỗng nên ta quy ước gọi tổ hợp chập $0$  của $n$  phần tử là tập rỗng.
+		\item [$\bullet$] Cho các số nguyên dương $n$ và $k$ với $0\le k\le n$. Với quy ước $0! = 1$, số các tổ hợp chập $k$ của một tập hợp có $n$ phần tử là
+		$$\mathrm{C}_n^k=\dfrac{n!}{k!(n-k)!}=\dfrac{\mathrm{A}_n^k}{k!}\cdot$$
+	\end{itemize}
+\end{boxkn}
+\noindent
+\textit{Nhận dạng bài toán: "Chọn $k$ phần tử trong tập gồm $n$ phần tử để tạo thành 1 tập con.}
+\subsubsection{Các công thức cơ bản về tổ hợp}
+\begin{boxkn}
+	\begin{listEX}[1]
+		\item [\ding{172}] $\mathrm{C}_n^k=\mathrm{C}_n^{n-k}$ với mọi nguyên $n$ và $k$ thỏa $0\le k\le n$.
+		\item [\ding{173}] $\mathrm{C}_{n+1}^k=\mathrm{C}_n^k+\mathrm{C}_n^{k-1}$ với mọi nguyên $n$ và $k$ thỏa $1\le k\le n$.
+	\end{listEX}
+\end{boxkn}

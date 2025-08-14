@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/display/card';
 import { Button } from '@/components/ui/form/button';
 import { cn } from '@/lib/utils';

@@ -1,0 +1,385 @@
+\section{HAI MẶT PHẲNG SONG SONG}
+\subsection{KIẾN THỨC CẦN NHỚ}
+
+\subsubsection{VỊ TRÍ TƯƠNG ĐỐI CỦA HAI MẶT PHẲNG}
+Cho hai mặt phẳng $(P)$ và $(Q)$. Các trường hợp có thể xảy ra:
+\begin{itemize}
+	\item [\iconMT] \indam{Trường hợp 1:} $(P)$ và $(Q)$ trùng nhau.
+	\item [\iconMT] \indam{Trường hợp 2:} $(P)$ và $(Q)$ có một điểm chung. Khi đó chúng sẽ có điểm chung khác nữa. Tập hợp tất cả các điểm chung đó gọi là  giao tuyến của hai mặt phẳng $(P)$ và $(Q)$ (\textbf{Hình 1}).
+	\item [\iconMT] \indam{Trường hợp 3:} $(P)$ và $(Q)$ không có điểm chung. Khi đó ta nói $(P)$ song song $(Q)$ (\textbf{Hình 2}).
+	\begin{itemize}
+		\item Kí hiệu $(P)\parallel (Q)$;
+		\item Khi $(P)\parallel (Q)$ và $a \subset (P)$ thì $a \parallel (Q)$.
+	\end{itemize}
+\end{itemize}
+\hspace*{1cm}
+\begin{tikzpicture}[line join = round, line cap = round,>=stealth,font=\footnotesize,scale=0.7]
+\tkzDefPoints{0/0/A,5/0/B,6.5/1.5/C}
+\coordinate (D) at ($(A)+(C)-(B)$);
+\coordinate (E) at ($(A)!0.5!(B)$);
+\coordinate (F) at ($(D)!0.5!(C)$);
+\coordinate (M) at ($(E)+(-0.5,2)$);
+\coordinate (N) at ($(F)+(-0.5,2)$);
+\coordinate (Q) at ($(M)!2!(E)$);
+\coordinate (P) at ($(N)!2!(F)$);
+\tkzInterLL(M,Q)(C,D)    \tkzGetPoint{G}
+\tkzInterLL(N,P)(A,B)    \tkzGetPoint{H}
+\draw ($(A)+(0.6,0.2)$) node {$P$};
+\draw ($(N)+(-0.1,-0.5)$) node {$Q$};
+\tkzDrawSegments(A,B B,C C,F G,D N,F H,P D,A M,N P,Q Q,M E,F)
+\tkzDrawSegments[dashed](G,F F,H)
+\tkzMarkAngles[size=1cm,arc=l](B,A,D)
+\tkzMarkAngles[size=1cm,arc=l](M,N,P)
+\draw (3.25,-2.5) node {\textbf{Hình 1.}};
+\draw (3.5,1) node[below] {$d$};
+\draw (3.25,-3.5) node {$(P)$, $(Q)$ cắt nhau: $(P)\cap (Q)=d$};
+\end{tikzpicture}
+\hspace*{2cm}
+\begin{tikzpicture}[line join = round, line cap = round,>=stealth,font=\footnotesize,scale=0.7]
+\begin{scope}[shift={(8,0)}]
+\tkzDefPoints{0/0/A,5/0/B,6.5/2/C}
+\coordinate (D) at ($(A)+(C)-(B)$);
+\draw ($(A)+(0.5,0.3)$) node {$P$};
+\tkzDrawSegments(A,B B,C C,D D,A)
+\tkzMarkAngles[size=1cm,arc=l](B,A,D)
+\end{scope}
+\begin{scope}[shift={(8,-3)}]
+\tkzDefPoints{0/0/A,5/0/B,6.5/2/C}
+\coordinate (D) at ($(A)+(C)-(B)$);
+\draw ($(A)+(0.5,0.3)$) node {$Q$};
+\draw (2,4)--(5,4.5)node[below]{$a$};
+\tkzDrawSegments(A,B B,C C,D D,A)
+\tkzMarkAngles[size=1cm,arc=l](B,A,D)
+\draw (3.25,-1) node {\textbf{Hình 2.}};
+\draw (3.25,-2) node {$(P)$, $(Q)$ không có điểm chung: $(P)\parallel (Q)$};
+\end{scope}
+\end{tikzpicture}
+\subsubsection{CÁC ĐỊNH LÝ CƠ BẢN}
+\begin{enumerate}[\iconMT]
+	\item \indam{Định lý 1:} \immini{
+		Nếu mặt phẳng $(\alpha)$ chứa hai đường thẳng cắt nhau $a$, $b$ và $a$, $b$ cùng song song với mặt phẳng $(\beta)$ thì $(\alpha)$ song song với $(\beta)$.
+	}
+	{
+		\begin{tikzpicture}[line join = round, line cap = round,>=stealth,font=\footnotesize,scale=0.7]
+			\begin{scope}[shift={(0,0)}]
+				\tkzDefPoints{0/0/A,5/0/B,6.5/1.5/C}
+				\coordinate (D) at ($(A)+(C)-(B)$);
+				\coordinate (a) at ($(A)+(1.5,0.3)$);
+				\coordinate (b) at ($(A)+(4.5,0.3)$);
+				\coordinate (c) at ($(A)+(5.5,1.3)$);
+				\coordinate (d) at ($(A)+(1.7,1.3)$);
+				\tkzInterLL(a,c)(b,d)    \tkzGetPoint{M}
+				\draw ($(A)+(0.5,0.2)$) node {$\alpha$};
+				\tkzDrawSegments(A,B B,C C,D D,A a,c b,d)
+				\tkzMarkAngles[size=0.8cm,arc=l](B,A,D)
+				\tkzLabelPoints[above](M,a,b)
+				\tkzDrawPoints[fill=black](M)
+			\end{scope}
+			\begin{scope}[shift={(0,-2)}]
+				\tkzDefPoints{0/0/A,5/0/B,6.5/1.5/C}
+				\coordinate (D) at ($(A)+(C)-(B)$);
+				\draw ($(A)+(0.5,0.2)$) node {$\beta$};
+				\tkzDrawSegments(A,B B,C C,D D,A)
+				\tkzMarkAngles[size=0.8cm,arc=l](B,A,D)
+			\end{scope}
+		\end{tikzpicture}
+	}
+
+	\begin{luuy}
+		\begin{itemize}
+			\item Muốn chứng minh hai mặt phẳng song song, ta phải chứng minh có hai đường thẳng cắt nhau thuộc mặt phẳng này lần lượt song song với mặt phẳng kia.
+			\item Muốn chứng minh đường thẳng $a\parallel
+			(Q)$, ta chứng minh đường thẳng $a$ nằm trong mặt
+			phẳng $(P)$ và $(P)\parallel (Q)$.
+		\end{itemize}
+	\end{luuy}
+	\item \indam{Định lý 2:} \immini{
+		Qua một điểm nằm ngoài một mặt phẳng cho trước có một và chỉ một mặt phẳng song song với mặt phẳng đã cho.
+	}
+	{
+		\begin{tikzpicture}[line join = round, line cap = round,>=stealth,font=\footnotesize,scale=0.7]
+			\begin{scope}[shift={(0,0)}]
+				\tkzDefPoints{0/0/A,5/0/B,6.5/1.5/C}
+				\coordinate (D) at ($(A)+(C)-(B)$);
+				\coordinate (a) at ($(A)+(3.5,0.8)$);
+				\draw ($(A)+(0.5,0.2)$) node {$\alpha$};
+				\draw ($(a)+(0,-0.1)$) node[above] {$A$};
+				\tkzDrawSegments(A,B B,C C,D D,A)
+				\tkzMarkAngles[size=0.8cm,arc=l](B,A,D)
+				\tkzDrawPoints[fill=black](a)
+			\end{scope}
+			\begin{scope}[shift={(0,-2)}]
+				\tkzDefPoints{0/0/A,5/0/B,6.5/1.5/C}
+				\coordinate (D) at ($(A)+(C)-(B)$);
+				\draw ($(A)+(0.5,0.2)$) node {$\beta$};
+				\tkzDrawSegments(A,B B,C C,D D,A)
+				\tkzMarkAngles[size=0.8cm,arc=l](B,A,D)
+			\end{scope}
+		\end{tikzpicture}
+	}
+\end{enumerate}
+\begin{minipage}[b]{8cm}
+\iconMT\,\indam{Định lý 3:}Cho hai mặt phẳng song song. Nếu một mặt phẳng cắt mặt phẳng này thì cũng cắt mặt phẳng kia và hai giao tuyến song song với nhau.\\
+\hspace*{2cm}
+\begin{tikzpicture}[font=\footnotesize]
+	\coordinate (A) at (0,0);
+	\coordinate (B) at (3.1,0);
+	\coordinate (C) at (4,1.2);
+	\coordinate (A1) at (0,1.7);
+	\coordinate (M) at (1,3.2);
+	\coordinate (N) at (2,-1.5);
+	\coordinate (D) at ($(C)-(B)+(A)$);
+	\coordinate (B1) at ($(B)-(A)+(A1)$);
+	\coordinate (C1) at ($(C)-(B)+(B1)$);
+	\coordinate (D1) at ($(C1)-(B1)+(A1)$);
+	\coordinate (Q) at ($(D1)-(A1)+(M)$);
+	\coordinate (P) at ($(N)-(M)+(Q)$);
+	\path[name path=mn] (M)--(N); 
+	\path[name path=pq] (P)--(Q);
+	\path[name path=ab] (A)--(B); 
+	\path[name path=cd] (C)--(D);
+	\path[name path=a1b1] (A1)--(B1); 
+	\path[name path=c1d1] (C1)--(D1);
+	\path[name intersections={of=mn and ab,by=E}];
+	\path[name intersections={of=mn and a1b1,by=F}];
+	\path[name intersections={of=mn and cd,by=E1}];
+	\path[name intersections={of=mn and c1d1,by=F1}];
+	\path[name intersections={of=pq and ab,by=G1}];
+	\path[name intersections={of=pq and cd,by=G}];
+	\path[name intersections={of=pq and a1b1,by=H1}];
+	\path[name intersections={of=pq and c1d1,by=H}];
+	\draw (E1)--(D)--(A)--(B)--(C)--(G)--(E) (F1)--(D1)--(A1)--(B1)--(C1)--(H)--(F) (H)--(Q)--(M)--(N)--(P)--(G1) (G)--(H1);
+	\draw[dashed] (H1)--(H)--(F1) (G1)--(G)--(E1);
+	\draw ($(E)!.6!(G)$) node[left]{$a$} ($(F)!.6!(H)$) node[left]{$b$};
+	\draw pic[draw,"$\beta$"]{angle=B--A--D} pic[draw,"$\alpha$"]{angle=B1--A1--D1} pic[draw,"$\gamma$", angle eccentricity=0.7]{angle=M--Q--P};
+\end{tikzpicture}
+\end{minipage}\hspace{1cm}
+\begin{minipage}[b]{7cm}
+\iconMT\,\indam{Định lý 4:} (\textit{Định lí Thales}) Ba mặt phẳng đôi một song song chắn trên hai cát tuyến bất kì những đoạn thẳng tương ứng tỉ lệ.\\
+\hspace*{2cm}
+\begin{tikzpicture}[line join = round, line cap = round,>=stealth,font=\footnotesize,scale=0.7]
+	\tkzDefPoints{0/0/A,5/0/B,6.5/1.5/C,3.5/2/d,4/2/d',1/-4.9/e,4.8/-4.9/e'}
+	\coordinate (D) at ($(A)+(C)-(B)$);
+	\coordinate (E) at ($(A)+(0,-2.2)$);
+	\coordinate (F) at ($(E)+(5,0)$);
+	\coordinate (G) at ($(E)+(6.5,1.5)$);
+	\coordinate (H) at ($(E)+(G)-(F)$);
+	\coordinate (M) at ($(A)+(0,-4.4)$);
+	\coordinate (N) at ($(M)+(5,0)$);
+	\coordinate (P) at ($(M)+(6.5,1.5)$);
+	\coordinate (Q) at ($(M)+(P)-(N)$);
+	\draw ($(A)+(0.5,0.2)$) node {$\alpha$};
+	\draw ($(E)+(0.5,0.2)$) node {$\beta$};
+	\draw ($(M)+(0.5,0.2)$) node {$\gamma$};
+	\tkzInterLL(d,e)(A,B)    \tkzGetPoint{m}
+	\tkzInterLL(d',e')(A,B)    \tkzGetPoint{n}
+	\tkzInterLL(d,e)(E,F)    \tkzGetPoint{p}
+	\tkzInterLL(d',e')(E,F)    \tkzGetPoint{q}
+	\tkzInterLL(d,e)(M,N)    \tkzGetPoint{r}
+	\tkzInterLL(d',e')(M,N)    \tkzGetPoint{s}
+	\coordinate (a) at ($(d)!0.2!(e)$);
+	\coordinate (b) at ($(d)!0.5!(e)$);
+	\coordinate (c) at ($(d)!0.8!(e)$);
+	\coordinate (a') at ($(d')!0.15!(e')$);
+	\coordinate (b') at ($(d')!0.5!(e')$);
+	\coordinate (c') at ($(d')!0.85!(e')$);
+	\tkzDrawSegments(A,B B,C C,D D,A E,F F,G G,H H,E M,N N,P P,Q Q,M d,a m,b p,c r,e d',a' n,b' q,c' s,e' a,a' b,b' c,c')
+	\draw (a) node[left] {$A$};
+	\draw (a') node[right] {$A'$};
+	\draw (b) node[left] {$B$};
+	\draw (b') node[right] {$B'$};
+	\draw (c) node[left] {$C$};
+	\draw (c') node[right] {$C'$};
+	\tkzDrawSegments[dashed](a,m b,p c,r a',n b',q c',s)
+	\tkzMarkAngles[size=0.7cm,arc=l](B,A,D F,E,H N,M,Q)
+	\tkzDrawPoints[fill=black](a,a',b,b',c,c')
+\end{tikzpicture}
+\end{minipage}
+\subsubsection{HÌNH LĂNG TRỤ VÀ HÌNH HỘP}
+\begin{enumerate}[\iconMT]
+	\immini{\item \indam{Định nghĩa:}
+	Cho hai mặt phẳng $(\alpha)\parallel(\alpha')$. Trong $(\alpha)$ cho đa giác lồi $A_1A_2\ldots A_n$. Qua các điểm $A_1,A_2,\ldots,A_n$ ta dựng các đường song song với nhau và cắt $(\alpha')$ tại $A'_1,A'_2,\ldots,A'_n$.
+	
+	Hình tạo thành bởi hai đa giác $A_1A_2\ldots A_n$, $A'_1A'_2\ldots A'_n$ cùng với các hình bình hành $A_1A_2A'_2A'_1$, $A_2A_3A'_3A'_2$, \ldots, $A_nA_1A'_1A'_n$ được gọi là \textit{hình lăng trụ} và được ký hiệu bởi $A_1A_2\ldots A_n.A'_1A'_2\ldots A'_n$.
+	
+	\begin{itemize}
+		\item Hai đa giác $A_1A_2\ldots A_n$, $A'_1A'_2\ldots A'_n$ được gọi là hai \textit{mặt đáy} (bằng nhau) của hình lăng trụ.
+		\item Các đoạn thẳng $A_1A'_1$, $A_2A'_2$,\ldots, $A_nA'_n$ gọi là các \textit{cạnh bên} của hình lăng trụ.
+		\item Các hình bình hành $A_1A_2A'_2A'_1$, $A_2A_3A'_3A'_2$,\ldots, $A_nA_1A'_1A'_n$ gọi là các \textit{mặt bên} của hình lăng trụ.
+		\item Các đỉnh của hai đa giác đáy gọi là các \textit{đỉnh} của hình lăng trụ.
+	\end{itemize}
+}{
+	\begin{tikzpicture}[font=\footnotesize]
+	\coordinate (A) at (0,0);
+	\coordinate (B) at (5.5,0);
+	\coordinate (C) at (6.5,2);
+	\coordinate (A1) at (0,4.5);
+	\coordinate (M1) at (1,7);
+	\coordinate (N1) at (2,-1);
+	\coordinate (D) at ($(C)-(B)+(A)$);
+	\coordinate (B1) at ($(B)-(A)+(A1)$);
+	\coordinate (C1) at ($(C)-(B)+(B1)$);
+	\coordinate (D1) at ($(C1)-(B1)+(A1)$);
+	\coordinate (A11) at ($(M1)!.78!(N1)$);
+	\coordinate[shift={(1,-0.3)}] (M2) at (1,7);
+	\coordinate[shift={(3,-0.2)}] (M3) at (1,7);
+	\coordinate[shift={(3.5,0.5)}] (M4) at (1,7);
+	\coordinate[shift={(1.5,0.7)}] (M5) at (1,7);
+	\coordinate[shift={(1,-0.3)}] (N2) at (2,-1);
+	\coordinate[shift={(3,-0.2)}] (N3) at (2,-1);
+	\coordinate[shift={(3.5,0.5)}] (N4) at (2,-1);
+	\coordinate[shift={(1.5,0.7)}] (N5) at (2,-1);
+	\coordinate[shift={(1,-0.3)}] (B11) at ($(M1)!.78!(N1)$);
+	\coordinate[shift={(3,-0.2)}] (C11) at ($(M1)!.78!(N1)$);
+	\coordinate[shift={(3.5,0.5)}] (D11) at ($(M1)!.78!(N1)$);
+	\coordinate[shift={(1.5,0.7)}] (E11) at ($(M1)!.78!(N1)$);
+	\coordinate (A22) at ($(M1)!.22!(N1)$);
+	\coordinate[shift={(1,-0.3)}] (B22) at ($(M1)!.22!(N1)$);
+	\coordinate[shift={(3,-0.2)}] (C22) at ($(M1)!.22!(N1)$);
+	\coordinate[shift={(3.5,0.5)}] (D22) at ($(M1)!.22!(N1)$);
+	\coordinate[shift={(1.5,0.7)}] (E22) at ($(M1)!.22!(N1)$);
+	\path[name path=k1] (M1)--(N1); 
+	\path[name path=k2] (M2)--(N2);
+	\path[name path=k3] (M3)--(N3);
+	\path[name path=k4] (M4)--(N4);
+	\path[name path=k5] (M5)--(N5);
+	\path[name path=ab] (A)--(B); 
+	\path[name path=cd] (C)--(D);
+	\path[name path=a1b1] (A1)--(B1);
+	\path[name intersections={of=k1 and ab,by=E1}];
+	\path[name intersections={of=k2 and ab,by=E2}];
+	\path[name intersections={of=k3 and ab,by=E3}];
+	\path[name intersections={of=k4 and ab,by=E4}];
+	\path[name intersections={of=k5 and ab,by=E5}];
+	\path[name intersections={of=k1 and cd,by=F1}];
+	\path[name intersections={of=k4 and cd,by=F4}];
+	\path[name intersections={of=k1 and a1b1,by=G1}];
+	\path[name intersections={of=k2 and a1b1,by=G2}];
+	\path[name intersections={of=k3 and a1b1,by=G3}];
+	\path[name intersections={of=k4 and a1b1,by=G4}];
+	\path[name intersections={of=k5 and a1b1,by=G5}];
+	\draw (M1)--(A22) (M2)--(B22) (M3)--(C22) (M4)--(D22) (M5)--(E22);
+	\draw (F1)--(D)--(A)--(B)--(C)--(F4) (A1)--(B1)--(C1)--(D1)--cycle (A11)--(G1) (B11)--(G2) (C11)--(G3) (D11)--(G4) (E1)--(N1) (E2)--(N2) (E3)--(N3) (E4)--(N4) (E5)--(N5) (A11)--(B11)--(C11)--(D11) (A22)--(B22)--(C22)--(D22)--(E22)--cycle;
+	\draw[dashed] (A11)--(E1) (B11)--(E2) (C11)--(E3) (D11)--(E4) (E11)--(E5) (F1)--(F4) (A22)--(G1) (B22)--(G2) (C22)--(G3) (D22)--(G4) (E22)--(E11) (A11)--(E11)--(D11);
+	\draw (A11) node[left] {$A_1$} (A22) node[left] {$A_1'$} (B11) node[below left] {$A_2$} (C11) node[below left] {$A_3$} (D11) node[right] {$A_4$} (E11) node[above left] {$A_5$} (B22) node[above right] {$A_2'$} (C22) node[below left] {$A_3'$} (D22) node[right] {$A_4'$} (E22) node[above left] {$A_5'$};
+	\tkzMarkAngles[size=0.7cm,arc=l](B,A,D B1,A1,D1)
+	\tkzLabelAngles[pos=0.5](B,A,D){$\alpha$}
+	\tkzLabelAngles[pos=0.5](B1,A1,D1){$\alpha'$}
+	\end{tikzpicture}}
+	\item \indam{Tính chất:}
+		\begin{itemize}
+			\item Các cạnh bên của hình lăng trụ thì song song và bằng nhau.
+			\item Các mặt bên của hình lăng trụ đều là hình bình hành.
+			\item Hai đáy của hình lăng trụ là hai đa giác bằng nhau.
+	\end{itemize}
+	\begin{tcolorbox}[colframe=cyan,colback=red!3!white,boxrule=0.5mm]
+		Hình lăng trụ có đáy là hình bình hành gọi là \textit{hình hộp}. 
+		\begin{itemize}
+			\item Các mặt của hình hộp là hình bình hành.
+			\item Hai mặt phẳng lần lượt chứa hai mặt đối diện của hình hộp thì song song nhau.
+		\end{itemize}
+	\end{tcolorbox}
+	\item \indam{Minh họa vài mô hình thường gặp:}\\
+	\begin{tabular}{llll}
+		\begin{tikzpicture}[line cap=round,line join=round, scale=.6]%[Hoàng Anh]
+			\tkzDefPoints{0/0/A, 1.5/1/B, 3.5/-0.5/C, -0.5/3.5/z}
+			\coordinate (D) at ($(A)+(z)$);
+			\coordinate (E) at ($(B)+(D)-(A)$);%Vẽ hình bình hành ABED
+			\coordinate (F) at ($(C)+(E)-(B)$);
+			\tkzDrawPolygon(E,F,D) %Vẽ đa giác EFD
+			\tkzDrawSegments(D,A C,F A,C) %Vẽ các đoạn thẳng AD, CF, AC
+			\tkzDrawSegments[dashed](A,B B,C B,E)%Vẽ nét đứt các đoạn thẳng AB, BC, BE
+		\end{tikzpicture}
+		&
+		\begin{tikzpicture}[line cap=round,line join=round,  scale=0.5]
+			%-------------- Đáy ABCD
+			\tkzDefPoints{0/0/A, -0.5/-1/B, 3/0/D, 1/-1/C}
+			
+			%-------------- Đáy A'B'C'D'
+			\tkzDefPointBy[rotation = center A angle 100](D) \tkzGetPoint{A'} %Phép quay tâm A, góc quay 90 độ, biến D thành A'
+			\coordinate (B') at ($(B)+(A')-(A)$);
+			\coordinate (D') at ($(D)+(A')-(A)$);
+			\coordinate (C') at ($(C)+(B')-(B)$);
+			%---------------
+			\tkzDrawSegments[dashed](A,B A,D A,A')
+			\tkzDrawPolygon(A',B',C',D')
+			\tkzDrawPolygon(B,C,C',B')
+			\tkzDrawSegments(D,D' C,D)
+		\end{tikzpicture}
+		&
+		\begin{tikzpicture}[line cap=round,line join=round,scale=0.8]
+			%-------------- Đáy ABCD
+			\tkzDefPoints{0/0/A, -0.5/-1/B, 2/0/D}
+			\coordinate (C) at ($(B)+(D)-(A)$);
+			%-------------- Đáy A'B'C'D'
+			\tkzDefPointBy[rotation = center A angle 100](D) \tkzGetPoint{A'} %Phép quay tâm A, góc quay 90 độ, biến D thành A'
+			\coordinate (B') at ($(B)+(A')-(A)$);
+			\coordinate (D') at ($(D)+(A')-(A)$);
+			\coordinate (C') at ($(B')+(D')-(A')$);
+			%---------------
+			\tkzDrawSegments[dashed](A,B A,D A,A')
+			\tkzDrawPolygon(A',B',C',D')
+			\tkzDrawPolygon(B,C,C',B')
+			\tkzDrawSegments(D,D' C,D)
+		\end{tikzpicture}
+		&
+		\begin{tikzpicture}[line cap=round, line join=round, scale=.45]
+			\tkzDefPoints{1/5/A, 3.5/5/B,  6/5.5/C, 5/7.5/D, 2/7.5/E, 0/0/A'}
+			\tkzDefPointsBy[translation= from A to A'](B,C,D,E){B',C',D',E'}
+			\tkzFillPolygon[white](A,B,B',A')
+			\tkzFillPolygon[white](C,B,B',C')
+			\tkzDrawPolygon(A,B,C,D,E)
+			\tkzDrawSegments[dashed](E,E' D,D' A',E' E',D' D',C')
+			\tkzDrawSegments(A,A' B,B' C,C' A',B' B',C')
+		\end{tikzpicture}\\
+		\small * Lăng trụ tam giác & \small * Lăng trụ tứ giác  & \small * Hình hộp  & \small * Lăng trụ ngũ giác 
+	\end{tabular}
+\end{enumerate}
+
+\begin{dang}{Chứng minh hai mặt phẳng song song}
+	\begin{enumerate}[\iconMT]
+		\item \indam{Phương pháp:} 
+		\immini{Chứng minh trên mặt phẳng này có hai đường thẳng cắt nhau cùng song song với mặt phẳng còn lại.
+			\boxminit{$\heva{&a \text{ cắt } b\\&a \subset (\alpha),\,b\subset (\alpha)\\&a\parallel(\beta),\, b\parallel (\beta)}\quad\Rightarrow (\alpha) \parallel (\beta).$}
+			
+		}{
+			\begin{tikzpicture}[scale=0.4]
+				\tkzDefPoints{0/0/A, 9/0/B, 12/2.5/C}
+				\coordinate (A1) at ($(A)+(0,3)$);
+				\coordinate (B1) at ($(B)+(0,3)$);
+				\coordinate (C1) at ($(C)+(0,3)$);
+				\coordinate (D) at ($(A)-(B)+(C)$);
+				\coordinate (D1) at ($(A1)-(B1)+(C1)$);
+				\tkzDefPoints{2/3.3/a1, 9/5/a2, 3/5/b1, 8/3.3/b2}
+				\tkzDrawSegments(a1,a2 b1,b2 A,B B,C C,D D,A A1,B1 B1,C1 C1,D1 D1,A1)
+				\tkzDefPoint[label=above right:$a$](2.5,3.5){a}
+				\tkzDefPoint[label=right:$b$](4,5){b}
+				\tkzMarkAngles[size=1.6cm,arc=l](B,A,D)
+				\tkzMarkAngles[size=1.6cm,arc=l](B1,A1,D1)
+				\tkzLabelAngles[pos=1,rotate=30](B1,A1,D1){\scriptsize$\alpha$}
+				\tkzLabelAngles[pos=1,rotate=30](B,A,D){\scriptsize$\beta$}
+				%	\draw pic[draw,"$\beta$",  angle radius=1cm]{angle=B--A--D} pic[draw,"$\alpha$", angle radius=1cm]{angle=B1--A1--D1};
+		\end{tikzpicture}}
+		\item \indam{Chú ý:} Hai mặt phẳng phân biệt cùng song song với mặt phẳng thứ ba thì song song nhau.
+	\end{enumerate}
+\end{dang}
+
+\begin{dang}{Chứng minh đường thẳng song song với mặt phẳng}
+	Để chứng minh $a$ song song $(P)$, ta thường sử dụng một trong hai cách sau
+	\begin{enumerate}[\iconMT]
+		\item \indam{Cách 1: } (\textit{Đã xét ở bài học trước}) Ta cần chứng tỏ các ý sau:
+		\begin{itemize}
+			\item [$\bullet$] $a$ không nằm trên $(P)$;
+			\item [$\bullet$] $a$ song song với một đường thẳng $b$ nằm trong $(P)$. Suy ra $a\parallel (P)$ hay  \boxminit{$\heva{&a\not\subset (P)\\&a\parallel b \\&b\subset (P)\\}\Rightarrow a\parallel (P)$}
+		\end{itemize}
+		\item \indam{Cách 2:} Ta chứng minh đường thẳng $a$ nằm trong mặt
+		phẳng $(Q)$ và $(Q)\parallel (P)$ thì $a \parallel (P)$.
+	\end{enumerate}
+\end{dang}
+
+\begin{dang}{Định lý Thales}
+	\textbf{Định lí Thales}: Ba mặt phẳng đôi một song song chắn trên hai cát tuyến bất kì những đoạn thẳng tương ứng tỉ lệ.
+\end{dang}
+
+
+
