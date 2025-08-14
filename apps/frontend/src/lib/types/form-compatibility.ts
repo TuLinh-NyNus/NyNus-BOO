@@ -159,10 +159,15 @@ function convertFormQuestionStatus(status?: FormQuestion['status']): QuestionSta
   }
 }
 
-function convertAnswers(answers?: AnswerOption[]): FormAnswer[] {
+function convertAnswers(answers?: AnswerOption[] | any[]): FormAnswer[] {
   if (!answers) return [];
-  
-  return answers.map((answer, index) => ({
+
+  // Type guard to ensure we're working with AnswerOption-like objects
+  const answerOptions = answers.filter((answer: any) =>
+    answer && (answer.id !== undefined || answer.content !== undefined || answer.text !== undefined)
+  );
+
+  return answerOptions.map((answer: any, index: number) => ({
     id: answer.id || `answer-${index}`,
     content: answer.content || answer.text || `Answer ${index + 1}`,
     isCorrect: answer.isCorrect || false,
