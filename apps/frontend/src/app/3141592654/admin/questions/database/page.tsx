@@ -44,7 +44,7 @@ import {
   QuestionStatus,
   QuestionDifficulty
 } from '@/lib/types/question';
-import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from '@/lib/utils/filter-type-adapters';
+import { questionTypeAdapters, questionDifficultyAdapters } from '@/lib/utils/filter-type-adapters';
 import { MockQuestionsService } from '@/lib/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 

@@ -3,16 +3,13 @@
  * Test file để validate các mockdata questions theo đúng specification
  */
 
-import {
-  // mockMultipleChoiceQuestions,
-  // mockTrueFalseQuestions,
-  // mockShortAnswerQuestions,
-  // mockEssayQuestions,
-  mockQuestionCodes,
-  parseQuestionCode,
-  generateQuestionCode
-} from './index';
-import { QuestionType } from '../shared/core-types';
+// All imports temporarily disabled due to missing mock data exports
+// import {
+//   mockQuestionCodes,
+//   parseQuestionCode,
+//   generateQuestionCode
+// } from './index';
+// import { QuestionType } from '../shared/core-types';
 
 // Test validation functions
 export function validateQuestionDataStructure() {

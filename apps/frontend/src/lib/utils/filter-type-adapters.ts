@@ -176,7 +176,7 @@ export function hasFilterValues<T>(value: T | T[] | undefined): boolean {
 }
 
 // ===== EXPORT ALL =====
-export default {
+const filterTypeAdapters = {
   ensureArray,
   ensureSingle,
   filterToString,
@@ -190,3 +190,5 @@ export default {
   isSingleValue,
   hasFilterValues
 };
+
+export default filterTypeAdapters;

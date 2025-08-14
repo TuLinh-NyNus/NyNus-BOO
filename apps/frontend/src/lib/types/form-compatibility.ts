@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-import { Question, QuestionType, QuestionDifficulty, QuestionStatus, AnswerOption } from './question';
+import { Question, QuestionType, QuestionDifficulty, QuestionStatus } from './question';
 
 // ===== FORM COMPATIBLE TYPES =====
 
@@ -159,18 +159,29 @@ function convertFormQuestionStatus(status?: FormQuestion['status']): QuestionSta
   }
 }
 
-function convertAnswers(answers?: AnswerOption[] | any[]): FormAnswer[] {
-  if (!answers) return [];
+// Define a flexible type that can handle various answer structures
+type FlexibleAnswer = {
+  id?: string;
+  content?: string;
+  text?: string;
+  isCorrect?: boolean;
+  explanation?: string;
+} & Record<string, unknown>; // Allow additional properties
 
-  // Type guard to ensure we're working with AnswerOption-like objects
-  const answerOptions = answers.filter((answer: any) =>
-    answer && (answer.id !== undefined || answer.content !== undefined || answer.text !== undefined)
+function convertAnswers(answers?: unknown[]): FormAnswer[] {
+  if (!answers || !Array.isArray(answers)) return [];
+
+  // Type guard and filter to ensure we're working with answer-like objects
+  const validAnswers = answers.filter((answer): answer is FlexibleAnswer =>
+    typeof answer === 'object' &&
+    answer !== null &&
+    (('id' in answer) || ('content' in answer) || ('text' in answer))
   );
 
-  return answerOptions.map((answer: any, index: number) => ({
+  return validAnswers.map((answer, index) => ({
     id: answer.id || `answer-${index}`,
     content: answer.content || answer.text || `Answer ${index + 1}`,
-    isCorrect: answer.isCorrect || false,
+    isCorrect: Boolean(answer.isCorrect),
     explanation: answer.explanation
   }));
 }
