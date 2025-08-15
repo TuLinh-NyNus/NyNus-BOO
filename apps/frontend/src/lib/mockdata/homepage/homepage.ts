@@ -318,7 +318,7 @@ export const featuresData: FeaturesData = {
       detailedDescription: "Hệ thống lý thuyết toán học được biên soạn theo chương trình SGK, giúp học sinh nắm vững kiến thức nền tảng trước khi làm bài tập.",
       cta: {
         text: "Xem lý thuyết",
-        href: "/theory",
+        href: "/courses",
         variant: "primary"
       },
       highlights: ["Đầy đủ", "Dễ hiểu", "Theo SGK"]

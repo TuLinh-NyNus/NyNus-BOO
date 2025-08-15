@@ -26,14 +26,9 @@
 | Courses Listing | `src/app/courses/page.tsx` | Danh sách khóa học với search/filter | [Chi tiết](FE.md#srcappcoursespagetsxcourses-listing) |
 | Course Detail | `src/app/courses/[slug]/page.tsx` | Chi tiết khóa học với dynamic routing | [Chi tiết](FE.md#srcappcoursesslugpagetsxcourse-detail) |
 | Not Found | `src/app/not-found.tsx` | Custom 404 page với dark theme | [Chi tiết](FE.md#srcappnot-foundtsx404-error-page) |
-| LaTeX Testing | `src/app/test-theory/page.tsx` | Testing page cho LaTeX rendering | [Chi tiết](FE.md#srcapptest-theorypagetsxlatex-testing) |
 
-### Theory Pages
 
-| Page | Đường dẫn | Chức năng | Link báo cáo |
-|------|-----------|-----------|--------------|
-| Theory Homepage | `src/app/theory/page.tsx` | Landing page cho theory section | [Chi tiết](FE.md#srcapptheorypagetsxtheory-homepage) |
-| Theory Content | `src/app/theory/[...slug]/page.tsx` | Dynamic theory content với static generation | [Chi tiết](FE.md#srcapptheoryslugpagetsxdynamic-theory-content) |
+
 
 ### Admin Pages (Secret Path: `/3141592654/admin`)
 
@@ -238,14 +233,7 @@
 
 ### Theory Components
 
-#### Theory Interface (`src/components/theory/`)
 
-| Component | File | Chức năng | Link báo cáo |
-|-----------|------|-----------|--------------|
-| Theory Content Page | `TheoryContentPage.tsx` | Theory content display | [Chi tiết](FE.md#content-display) |
-| Theory Home Page | `TheoryHomePage.tsx` | Theory landing page | [Chi tiết](FE.md#content-display) |
-| Theory Layout Client | `TheoryLayoutClient.tsx` | Theory layout wrapper | [Chi tiết](FE.md#navigation) |
-| Theory Navigation | `TheoryNavigation.tsx` | Hierarchical navigation | [Chi tiết](FE.md#navigation) |
 
 ### Performance Components
 

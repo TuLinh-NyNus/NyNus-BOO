@@ -538,11 +538,11 @@ export function VirtualizedUserTable({
       
       <CardContent>
         <div
-          className="admin-table-container admin-table-scrollable"
-          style={{ height: containerHeight, maxHeight: '80vh' }}
+          className="admin-table-container"
+          style={{ height: containerHeight, maxHeight: '80vh', overflow: 'auto' }}
         >
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
                 {TABLE_COLUMNS.map((column) => (
                   <TableHead 

@@ -56,28 +56,7 @@
   - Course chapters và reviews
   - Responsive tabs layout
 
-### 1.2 Theory Pages
 
-#### **`src/app/theory/page.tsx`** - Theory Homepage
-- **Mục đích:** Landing page cho theory section
-- **Dependencies:** `TheoryHomePage` component
-- **SEO:** Metadata tối ưu cho lý thuyết toán học
-
-#### **`src/app/theory/layout.tsx`** - Theory Layout
-- **Mục đích:** Layout wrapper cho theory content
-- **Dependencies:** `TheoryLayoutClient` component
-- **Features:** Specialized layout cho theory content
-
-#### **`src/app/theory/[...slug]/page.tsx`** - Dynamic Theory Content
-- **Mục đích:** Dynamic routing cho theory content với static generation
-- **Props Interface:** `{ params: Promise<{ slug: string[] }> }`
-- **Dependencies:**
-  - `TheoryContentPage` component
-  - `getAllLatexFiles`, `parseLatexContent`
-- **Features:**
-  - Catch-all routing cho nested theory content
-  - Static generation với generateStaticParams
-  - Vietnamese grade name conversion
 
 ### 1.3 Admin Pages (Secret Path: `/3141592654/admin`)
 
@@ -144,16 +123,7 @@
 - **Dependencies:** `RolePermissionsPanel`
 - **Features:** Role và permission management
 
-#### **`src/app/3141592654/admin/theory/page.tsx`** - Theory Admin
-- **Mục đích:** Admin interface cho theory content management
-- **Dependencies:**
-  - `FileManager`, `LatexEditor`, `BatchOperations`
-  - Theory admin statistics
-- **Features:**
-  - File management interface
-  - LaTeX editor
-  - Batch operations
-  - Statistics dashboard
+
 
 #### **`src/app/3141592654/admin/books/page.tsx`** - Books Management
 - **Mục đích:** Quản lý thư viện tài liệu
@@ -193,12 +163,7 @@
 
 ### 1.4 Test Pages
 
-#### **`src/app/test-theory/page.tsx`** - LaTeX Testing
-- **Mục đích:** Testing page cho LaTeX rendering
-- **Dependencies:**
-  - LaTeX parsing utilities
-  - File operations cho theory content
-- **Features:** LaTeX to React conversion testing
+
 
 ---
 
@@ -305,7 +270,7 @@
   - `featured-courses.tsx` - Course highlights
   - `faq.tsx` - Frequently asked questions
   - `testimonials.tsx` - User testimonials
-  - `theory-section.tsx` - Theory content preview
+
 
 #### **Courses Components** (`src/components/features/courses/`)
 - **UI Components** (`ui/`)
@@ -373,23 +338,7 @@
   - `ImageGallery` - Image gallery
   - `DragDropZone` - File upload interface
 
-#### **Admin Theory Components** (`src/components/admin/theory/`)
-- **File Management**
-  - `FileManager` - Theory file management
-  - `LatexEditor` - LaTeX editor interface
-  - `BatchOperations` - Batch file operations
-  - `TemplateManager` - Template management
-  - `ProgressTracker` - Operation progress tracking
 
-### 2.4 Theory Components
-
-#### **Theory Interface** (`src/components/theory/`)
-- **Navigation**
-  - `TheoryNavigation.tsx` - Hierarchical navigation
-  - `TheoryLayoutClient.tsx` - Theory layout wrapper
-- **Content Display**
-  - `TheoryHomePage.tsx` - Theory landing page
-  - `TheoryContentPage.tsx` - Theory content display
 
 ### 2.5 Layout Components
 
@@ -587,16 +536,7 @@
 - **`shouldEnableVirtualScrolling()`** - Virtual scroll recommendations
 - **`getPerformanceRecommendation()`** - Optimization suggestions
 
-### 5.3 LaTeX Utilities (`src/lib/theory/`)
 
-#### **LaTeX Processing**
-- **`parseLatexToHtml()`** - LaTeX to HTML conversion
-- **`parseLatexToReact()`** - LaTeX to React components
-- **`extractMetadata()`** - LaTeX metadata extraction
-
-#### **File Operations**
-- **`getAllLatexFiles()`** - File system operations
-- **`getDirectoryStructure()`** - Directory tree building
 
 ---
 
@@ -743,22 +683,7 @@ src/
   - Batch processing
   - Error handling
 
-### 9.2 Theory Components (`src/components/theory/`)
 
-#### **TheoryNavigation** (`TheoryNavigation.tsx`)
-- **Props Interface:** Navigation tree structure
-- **Features:**
-  - Hierarchical navigation
-  - File system integration
-  - Collapsible sections
-  - Active state tracking
-
-#### **TheoryHomePage** (`TheoryHomePage.tsx`)
-- **Purpose:** Theory section landing page
-- **Features:**
-  - Content overview
-  - Navigation shortcuts
-  - Progress tracking
 
 ### 9.3 Image Management (`src/components/admin/questions/images/`)
 
@@ -1018,7 +943,7 @@ interface PaginatedApiResponse<T> {
 #### **Admin Pages đầy đủ:**
 - **Main Admin Routes:** 15 pages chính
   - Dashboard (2 variants: `/admin` và `/admin/dashboard`)
-  - Users, Questions, Roles, Theory, Books, FAQ, Analytics, Security
+  - Users, Questions, Roles, Books, FAQ, Analytics, Security
 - **Question Sub-routes:** 6 specialized pages
   - `inputques` (LaTeX input), `inputauto`, `database`, `saved`, `map-id`, `create`
 - **Dynamic Routes:** Support cho `[id]` và `[...slug]` patterns
@@ -1041,7 +966,7 @@ interface PaginatedApiResponse<T> {
 #### **Admin Components chi tiết:**
 - **Question Management:** 6 specialized component groups
 - **Image Management:** Google Drive integration components
-- **Theory Management:** 5 admin theory components
+
 - **Error Handling:** Dedicated admin error boundaries
 
 #### **Performance Components:**
