@@ -1,0 +1,151 @@
+/**
+ * Admin Color Scheme - New Color Palette
+ * Bảng màu mới cho admin panel: Vàng cam, Đỏ cam, Tím
+ * 
+ * @author NyNus Team
+ * @version 2.0.0
+ */
+
+@theme {
+  /* ===== NEW ADMIN COLOR PALETTE ===== */
+  
+  /* Primary Colors - Tím làm màu chính */
+  --admin-primary: #A259FF;           /* Tím chính - thay thế blue */
+  --admin-primary-dark: #32197D;      /* Tím đậm - hover states */
+  --admin-primary-light: #B366FF;     /* Tím nhạt - light variants */
+  
+  /* Secondary Colors */
+  --admin-secondary: #5B88B9;         /* Xanh nhạt - info states */
+  --admin-secondary-dark: #4A6B8A;    /* Xanh đậm - hover */
+  --admin-secondary-light: #7BA3D0;   /* Xanh sáng - light variants */
+  
+  /* Accent Colors */
+  --admin-warning: #FDAD00;           /* Vàng cam - warning states */
+  --admin-warning-dark: #E09900;      /* Vàng đậm - hover */
+  --admin-warning-light: #FFC233;     /* Vàng sáng - light variants */
+  
+  --admin-danger: #FD5653;            /* Đỏ cam - error/danger states */
+  --admin-danger-dark: #E04845;       /* Đỏ đậm - hover */
+  --admin-danger-light: #FF7875;      /* Đỏ sáng - light variants */
+  
+  /* Success - Giữ màu xanh lá truyền thống */
+  --admin-success: #48BB78;           /* Xanh lá - success states */
+  --admin-success-dark: #38A169;      /* Xanh đậm - hover */
+  --admin-success-light: #68D391;     /* Xanh sáng - light variants */
+  
+  /* ===== SEMANTIC COLOR MAPPING ===== */
+  
+  /* Primary Actions - Sử dụng tím */
+  --admin-action-primary: var(--admin-primary);
+  --admin-action-primary-hover: var(--admin-primary-dark);
+  --admin-action-primary-light: var(--admin-primary-light);
+  
+  /* Secondary Actions - Sử dụng xanh nhạt */
+  --admin-action-secondary: var(--admin-secondary);
+  --admin-action-secondary-hover: var(--admin-secondary-dark);
+  --admin-action-secondary-light: var(--admin-secondary-light);
+  
+  /* Warning States - Sử dụng vàng cam */
+  --admin-state-warning: var(--admin-warning);
+  --admin-state-warning-hover: var(--admin-warning-dark);
+  --admin-state-warning-light: var(--admin-warning-light);
+  
+  /* Error/Danger States - Sử dụng đỏ cam */
+  --admin-state-danger: var(--admin-danger);
+  --admin-state-danger-hover: var(--admin-danger-dark);
+  --admin-state-danger-light: var(--admin-danger-light);
+  
+  /* Success States - Sử dụng xanh lá */
+  --admin-state-success: var(--admin-success);
+  --admin-state-success-hover: var(--admin-success-dark);
+  --admin-state-success-light: var(--admin-success-light);
+  
+  /* Info States - Sử dụng xanh nhạt */
+  --admin-state-info: var(--admin-secondary);
+  --admin-state-info-hover: var(--admin-secondary-dark);
+  --admin-state-info-light: var(--admin-secondary-light);
+  
+  /* ===== COMPONENT SPECIFIC COLORS ===== */
+  
+  /* Navigation & Links */
+  --admin-nav-active: var(--admin-primary);
+  --admin-nav-hover: var(--admin-primary-dark);
+  --admin-link: var(--admin-primary);
+  --admin-link-hover: var(--admin-primary-dark);
+  
+  /* Buttons */
+  --admin-btn-primary: var(--admin-primary);
+  --admin-btn-primary-hover: var(--admin-primary-dark);
+  --admin-btn-secondary: var(--admin-secondary);
+  --admin-btn-secondary-hover: var(--admin-secondary-dark);
+  --admin-btn-warning: var(--admin-warning);
+  --admin-btn-warning-hover: var(--admin-warning-dark);
+  --admin-btn-danger: var(--admin-danger);
+  --admin-btn-danger-hover: var(--admin-danger-dark);
+  
+  /* Form Elements */
+  --admin-input-focus: var(--admin-primary);
+  --admin-input-border: var(--admin-primary);
+  --admin-input-ring: var(--admin-primary);
+  
+  /* Badges & Status */
+  --admin-badge-primary: var(--admin-primary);
+  --admin-badge-secondary: var(--admin-secondary);
+  --admin-badge-warning: var(--admin-warning);
+  --admin-badge-danger: var(--admin-danger);
+  --admin-badge-success: var(--admin-success);
+  
+  /* Charts & Data Visualization */
+  --admin-chart-primary: var(--admin-primary);
+  --admin-chart-secondary: var(--admin-secondary);
+  --admin-chart-accent1: var(--admin-warning);
+  --admin-chart-accent2: var(--admin-danger);
+  --admin-chart-accent3: var(--admin-success);
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Primary Color Utilities */
+.admin-text-primary { color: var(--admin-primary); }
+.admin-bg-primary { background-color: var(--admin-primary); }
+.admin-border-primary { border-color: var(--admin-primary); }
+
+.admin-text-primary-dark { color: var(--admin-primary-dark); }
+.admin-bg-primary-dark { background-color: var(--admin-primary-dark); }
+.admin-border-primary-dark { border-color: var(--admin-primary-dark); }
+
+/* Secondary Color Utilities */
+.admin-text-secondary { color: var(--admin-secondary); }
+.admin-bg-secondary { background-color: var(--admin-secondary); }
+.admin-border-secondary { border-color: var(--admin-secondary); }
+
+/* Warning Color Utilities */
+.admin-text-warning { color: var(--admin-warning); }
+.admin-bg-warning { background-color: var(--admin-warning); }
+.admin-border-warning { border-color: var(--admin-warning); }
+
+/* Danger Color Utilities */
+.admin-text-danger { color: var(--admin-danger); }
+.admin-bg-danger { background-color: var(--admin-danger); }
+.admin-border-danger { border-color: var(--admin-danger); }
+
+/* Success Color Utilities */
+.admin-text-success { color: var(--admin-success); }
+.admin-bg-success { background-color: var(--admin-success); }
+.admin-border-success { border-color: var(--admin-success); }
+
+/* ===== HOVER & FOCUS UTILITIES ===== */
+
+.admin-hover-primary:hover { color: var(--admin-primary-dark); }
+.admin-hover-bg-primary:hover { background-color: var(--admin-primary-dark); }
+.admin-hover-border-primary:hover { border-color: var(--admin-primary-dark); }
+
+.admin-focus-primary:focus { 
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 2px rgba(162, 89, 255, 0.2);
+}
+
+.admin-focus-ring-primary:focus {
+  --tw-ring-color: var(--admin-primary);
+  --tw-ring-opacity: 0.2;
+}

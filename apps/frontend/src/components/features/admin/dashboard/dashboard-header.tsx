@@ -9,7 +9,6 @@ import React from 'react';
 import { RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 import { Button } from '@/components/ui/form/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/display/card';
 import { Badge } from '@/components/ui/display/badge';
 
 /**
@@ -104,67 +103,64 @@ export function DashboardHeader({
   };
 
   return (
-    <Card className="theme-bg theme-border border transition-colors duration-300">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-white dark:text-white transition-colors duration-300 drop-shadow-sm">
-              Dashboard Admin
-            </CardTitle>
-            <CardDescription className="text-gray-200 dark:text-gray-200 transition-colors duration-300 drop-shadow-sm">
-              Tổng quan hệ thống và thống kê hoạt động
-            </CardDescription>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Status Badge */}
-            {getStatusBadge()}
-
-            {/* Refresh Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefresh}
-              disabled={isLoading || isRefreshing}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw 
-                className={`h-4 w-4 ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`} 
-              />
-              Làm mới
-            </Button>
-          </div>
+    <div className="flex items-center justify-between py-2 border-b border-white/10">
+      {/* Left section - Title and description */}
+      <div className="flex items-center gap-6">
+        <div>
+          <h1 className="text-xl font-bold text-white">
+            Dashboard Admin
+          </h1>
+          <p className="text-sm text-white/70">
+            Tổng quan hệ thống và thống kê hoạt động
+          </p>
         </div>
-      </CardHeader>
 
-      <CardContent className="pt-0">
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-4 text-gray-200 dark:text-gray-200 transition-colors duration-300 drop-shadow-sm">
-            {/* Last Updated */}
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4 text-blue-300" />
-              <span>Cập nhật: {getLastUpdatedText()}</span>
-            </div>
-
-            {/* Refresh Count */}
-            {refreshCount > 0 && (
-              <div className="flex items-center gap-1">
-                <RefreshCw className="h-4 w-4 text-emerald-300" />
-                <span>Đã làm mới {refreshCount} lần</span>
-              </div>
-            )}
+        {/* Status info */}
+        <div className="flex items-center gap-4 text-sm text-white/70">
+          {/* Last Updated */}
+          <div className="flex items-center gap-1">
+            <Clock className="h-4 w-4 text-blue-300" />
+            <span>Cập nhật: {getLastUpdatedText()}</span>
           </div>
+
+          {/* Refresh Count */}
+          {refreshCount > 0 && (
+            <div className="flex items-center gap-1">
+              <RefreshCw className="h-4 w-4 text-emerald-300" />
+              <span>Đã làm mới {refreshCount} lần</span>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
-            <div className="flex items-center gap-1 text-red-300 dark:text-red-300 drop-shadow-sm">
+            <div className="flex items-center gap-1 text-red-300">
               <AlertCircle className="h-4 w-4" />
-              <span className="text-sm">{error}</span>
+              <span>{error}</span>
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Right section - Status and actions */}
+      <div className="flex items-center gap-3">
+        {/* Status Badge */}
+        {getStatusBadge()}
+
+        {/* Refresh Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onRefresh}
+          disabled={isLoading || isRefreshing}
+          className="flex items-center gap-2 border-white/20 text-white hover:bg-white/10"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`}
+          />
+          Làm mới
+        </Button>
+      </div>
+    </div>
   );
 }
 

@@ -1,14 +1,10 @@
 "use client";
 
-import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
-import { toSecretPath } from "@/lib/admin-paths";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import {
   Activity,
-  BookOpen,
-  TrendingUp,
-  Users,
+  BarChart3,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 // Import dashboard components
 import { useDashboardData } from "@/hooks/admin/use-dashboard-data";
@@ -17,7 +13,6 @@ import { RealtimeDashboardMetrics } from "@/components/features/admin/dashboard/
 import { AdminErrorBoundary } from "@/components/admin/providers/admin-error-boundary";
 
 export default function AdminDashboardPage() {
-  const router = useRouter();
 
   // Dashboard data hook
   const {
@@ -33,19 +28,7 @@ export default function AdminDashboardPage() {
     enableCaching: true,
   });
 
-  // Navigation handlers for quick actions
-  // Handlers để navigate với secret paths
-  const handleUsersNavigation = () => {
-    router.push(toSecretPath("/admin/users"));
-  };
 
-  const handleCoursesNavigation = () => {
-    router.push(toSecretPath("/admin/courses"));
-  };
-
-  const handleSecurityNavigation = () => {
-    router.push(toSecretPath("/admin/security"));
-  };
 
   return (
     <AdminErrorBoundary level="page" enableRetry={true} showErrorDetails={true}>
@@ -67,7 +50,10 @@ export default function AdminDashboardPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
           <Card className="col-span-4 theme-bg theme-border">
             <CardHeader>
-              <CardTitle>Thống kê truy cập</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5" />
+                Thống kê truy cập
+              </CardTitle>
               <CardDescription>Số lượng người dùng hoạt động trong 7 ngày qua</CardDescription>
             </CardHeader>
             <CardContent className="pl-2">
@@ -79,7 +65,10 @@ export default function AdminDashboardPage() {
 
           <Card className="col-span-3 theme-bg theme-border">
             <CardHeader>
-              <CardTitle>Hoạt động gần đây</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Hoạt động gần đây
+              </CardTitle>
               <CardDescription>Các sự kiện quan trọng trong hệ thống</CardDescription>
             </CardHeader>
             <CardContent>
@@ -121,53 +110,7 @@ export default function AdminDashboardPage() {
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="theme-bg theme-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Quản lý người dùng
-              </CardTitle>
-              <CardDescription>Xem và quản lý tài khoản người dùng</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={handleUsersNavigation}>
-                Xem danh sách người dùng
-              </Button>
-            </CardContent>
-          </Card>
 
-          <Card className="theme-bg theme-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Quản lý khóa học
-              </CardTitle>
-              <CardDescription>Tạo mới và chỉnh sửa khóa học</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={handleCoursesNavigation}>
-                Quản lý khóa học
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="theme-bg theme-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Báo cáo & Thống kê
-              </CardTitle>
-              <CardDescription>Xem báo cáo chi tiết về hoạt động</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={handleSecurityNavigation}>
-                Xem báo cáo
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* System Status */}
         <Card className="theme-bg theme-border">
@@ -213,27 +156,7 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* Customizable Dashboard Section - TEMPORARILY DISABLED */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Analytics Dashboard</h2>
-            <p className="text-muted-foreground">
-              Comprehensive analytics với customizable widgets
-            </p>
-          </div>
-        </div>
 
-        {/* Temporarily show simple message instead of CustomizableDashboard */}
-        <div className="theme-bg theme-border border-2 border-dashed rounded-lg p-8 text-center">
-          <h3 className="text-lg font-medium theme-fg mb-2">
-            Analytics Dashboard đang được cải thiện
-          </h3>
-          <p className="theme-muted-fg">
-            Dashboard sẽ được kích hoạt lại sau khi sửa xong vấn đề duplicate widgets.
-          </p>
-        </div>
-      </div>
     </AdminErrorBoundary>
   );
 }

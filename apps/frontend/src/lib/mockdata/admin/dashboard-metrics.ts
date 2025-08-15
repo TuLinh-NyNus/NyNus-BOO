@@ -73,7 +73,7 @@ export const mockDashboardMetrics: DashboardMetrics = {
   },
   sessions: {
     total: 8934,
-    active: 1247,
+    active: 156, // Technical login sessions (from mockUserSessionStats.totalActiveSessions)
     averageDuration: 1847, // seconds
     bounceRate: 23.4
   },

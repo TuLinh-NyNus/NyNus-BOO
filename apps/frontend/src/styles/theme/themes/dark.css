@@ -1,54 +1,77 @@
 /*
- * NyNus Dark Theme - IMPROVED VERSION - ONLY COLORS
- * Better contrast and eye comfort for admin panel
- * Background: #0F172A (Slate 900) - Softer than navy
+ * NyNus Dark Theme - ENHANCED VERSION - OPTIMIZED FOR ADMIN PANEL
+ * Improved contrast, readability and eye comfort
+ * Background: #0A0E1A (Darker slate) - Better for long admin sessions
  */
 
 .dark {
-  /* Base Semantic Colors - IMPROVED Dark Theme */
-  --color-background: var(--improved-dark-bg);
-  --color-foreground: var(--improved-dark-text);
+  /* Base Semantic Colors - ENHANCED Dark Theme */
+  --color-background: var(--enhanced-dark-bg);
+  --color-foreground: var(--enhanced-dark-text);
 
-  /* Card Colors - Better contrast */
-  --color-card: var(--improved-dark-surface);
-  --color-card-foreground: var(--improved-dark-text);
+  /* Card Colors - Enhanced contrast */
+  --color-card: var(--enhanced-dark-surface);
+  --color-card-foreground: var(--enhanced-dark-text);
 
   /* Popover Colors */
-  --color-popover: var(--improved-dark-surface);
-  --color-popover-foreground: var(--improved-dark-text);
+  --color-popover: var(--enhanced-dark-surface);
+  --color-popover-foreground: var(--enhanced-dark-text);
 
-  /* Primary Colors - Better blue accent */
-  --color-primary: var(--improved-dark-accent);
-  --color-primary-foreground: var(--designcode-white);
+  /* Primary Colors - Brighter blue for better visibility */
+  --color-primary: var(--enhanced-dark-accent);
+  --color-primary-foreground: var(--enhanced-dark-bg);
 
-  /* Secondary Colors - Subtle surface */
-  --color-secondary: var(--improved-dark-surface-hover);
-  --color-secondary-foreground: var(--improved-dark-text);
+  /* Secondary Colors - More visible surface */
+  --color-secondary: var(--enhanced-dark-surface-hover);
+  --color-secondary-foreground: var(--enhanced-dark-text);
 
   /* Muted Colors - Better readability */
-  --color-muted: var(--improved-dark-surface);
-  --color-muted-foreground: var(--improved-dark-text-muted);
+  --color-muted: var(--enhanced-dark-surface-muted);
+  --color-muted-foreground: var(--enhanced-dark-text-muted);
 
   /* Accent Colors - Hover states */
-  --color-accent: var(--improved-dark-surface-hover);
-  --color-accent-foreground: var(--improved-dark-text);
+  --color-accent: var(--enhanced-dark-surface-hover);
+  --color-accent-foreground: var(--enhanced-dark-text);
 
-  /* Destructive Colors */
-  --color-destructive: var(--color-error);
-  --color-destructive-foreground: var(--designcode-white);
+  /* Destructive Colors - More visible red */
+  --color-destructive: var(--enhanced-dark-error);
+  --color-destructive-foreground: var(--enhanced-dark-bg);
 
   /* Border & Input Colors - Better visibility */
-  --color-border: var(--improved-dark-border);
-  --color-input: var(--improved-dark-surface);
-  --color-ring: var(--improved-dark-accent);
+  --color-border: var(--enhanced-dark-border);
+  --color-input: var(--enhanced-dark-surface);
+  --color-ring: var(--enhanced-dark-accent);
 
-  /* Success, Warning, Error, Info - Dark Theme */
-  --color-success: var(--color-success);
-  --color-success-foreground: var(--designcode-white);
-  --color-warning: var(--color-warning);
-  --color-warning-foreground: var(--designcode-white);
-  --color-error: var(--color-error);
-  --color-error-foreground: var(--designcode-white);
-  --color-info: var(--color-info);
-  --color-info-foreground: var(--designcode-white);
+  /* Success, Warning, Error, Info - Enhanced Dark Theme */
+  --color-success: var(--enhanced-dark-success);
+  --color-success-foreground: var(--enhanced-dark-bg);
+  --color-warning: var(--enhanced-dark-warning);
+  --color-warning-foreground: var(--enhanced-dark-bg);
+  --color-error: var(--enhanced-dark-error);
+  --color-error-foreground: var(--enhanced-dark-bg);
+  --color-info: var(--enhanced-dark-info);
+  --color-info-foreground: var(--enhanced-dark-bg);
+
+  /* Badge Colors - Optimized for dark theme */
+  --color-badge-default: var(--enhanced-dark-accent);
+  --color-badge-default-foreground: var(--enhanced-dark-bg);
+  --color-badge-secondary: var(--enhanced-dark-surface-hover);
+  --color-badge-secondary-foreground: var(--enhanced-dark-text);
+  --color-badge-success: var(--enhanced-dark-success);
+  --color-badge-success-foreground: var(--enhanced-dark-bg);
+  --color-badge-warning: var(--enhanced-dark-warning);
+  --color-badge-warning-foreground: var(--enhanced-dark-bg);
+  --color-badge-error: var(--enhanced-dark-error);
+  --color-badge-error-foreground: var(--enhanced-dark-bg);
+
+  /* Table Colors - Better for data tables */
+  --color-table-header: var(--enhanced-dark-surface-hover);
+  --color-table-header-foreground: var(--enhanced-dark-text);
+  --color-table-row-hover: var(--enhanced-dark-surface-muted);
+  --color-table-border: var(--enhanced-dark-border);
+
+  /* Icon Colors - Better visibility */
+  --color-icon-primary: var(--enhanced-dark-text);
+  --color-icon-secondary: var(--enhanced-dark-text-muted);
+  --color-icon-accent: var(--enhanced-dark-accent);
 }

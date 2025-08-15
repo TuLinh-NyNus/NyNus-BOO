@@ -17,12 +17,12 @@ import { getUserById } from '@/lib/mockdata';
 import { AdminUser } from '@/lib/mockdata/types';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
 
-// ✅ Role colors mapping với Enhanced User Model
+// ✅ Role colors mapping với Enhanced User Model - NEW COLOR SCHEME
 const roleColors = {
-  ADMIN: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-  TEACHER: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-  TUTOR: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-  STUDENT: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+  ADMIN: 'bg-[#FD5653]/10 text-[#FD5653] dark:bg-[#FD5653]/20 dark:text-[#FD5653]',
+  TEACHER: 'bg-[#A259FF]/10 text-[#A259FF] dark:bg-[#A259FF]/20 dark:text-[#A259FF]',
+  TUTOR: 'bg-[#5B88B9]/10 text-[#5B88B9] dark:bg-[#5B88B9]/20 dark:text-[#5B88B9]',
+  STUDENT: 'bg-[#48BB78]/10 text-[#48BB78] dark:bg-[#48BB78]/20 dark:text-[#48BB78]',
   GUEST: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
 };
 

@@ -17,75 +17,64 @@ interface StatCardProps {
     label: string; // Nhãn mô tả thời gian (ví dụ: "tuần này", "tháng này")
     isPositive: boolean; // Xác định xu hướng tích cực hay tiêu cực
   };
-  colorScheme?: 'blue' | 'purple' | 'emerald' | 'pink' | 'orange' | 'indigo'; // Color scheme cho card
+  colorScheme?: 'primary' | 'success' | 'education' | 'accent' | 'alert'; // Unified semantic color scheme
+  onClick?: () => void; // Optional click handler cho interactivity
+  isLoading?: boolean; // Loading state
+  className?: string; // Additional CSS classes
+  format?: 'number' | 'currency' | 'percentage'; // Format cho value display
 }
 
-// Color schemes inspired by Hero component - More vibrant and diverse
+// UNIFIED SEMANTIC COLOR PALETTE - NyNus Admin Panel
+// 5-color system với semantic meanings rõ ràng
 const colorSchemes = {
-  blue: {
-    bg: 'bg-gradient-to-br from-blue-400/15 via-blue-500/10 to-blue-600/15 dark:from-blue-400/25 dark:via-blue-500/15 dark:to-blue-600/25',
-    border: 'border-blue-400/30 dark:border-blue-400/40',
-    iconBg: 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg shadow-blue-500/25',
+  // PRIMARY BLUE - General metrics, user counts, courses
+  primary: {
+    bg: 'bg-gradient-to-br from-[#5B88B9]/15 via-[#5B88B9]/10 to-[#4A6B8A]/15 dark:from-[#5B88B9]/25 dark:via-[#5B88B9]/15 dark:to-[#4A6B8A]/25',
+    border: 'border-[#5B88B9]/30 dark:border-[#5B88B9]/40',
+    iconBg: 'bg-gradient-to-br from-[#5B88B9] to-[#4A6B8A] shadow-lg shadow-[#5B88B9]/25',
     iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-blue-500/30 dark:hover:shadow-blue-400/30'
+    valueGradient: 'bg-gradient-to-r from-[#5B88B9] to-[#4A6B8A] bg-clip-text text-transparent',
+    hoverGlow: 'hover:shadow-xl hover:shadow-[#5B88B9]/30 dark:hover:shadow-[#5B88B9]/30'
   },
-  purple: {
-    bg: 'bg-gradient-to-br from-purple-400/15 via-purple-500/10 to-purple-600/15 dark:from-purple-400/25 dark:via-purple-500/15 dark:to-purple-600/25',
-    border: 'border-purple-400/30 dark:border-purple-400/40',
-    iconBg: 'bg-gradient-to-br from-purple-400 to-purple-600 shadow-lg shadow-purple-500/25',
+
+  // SUCCESS GREEN - Active states, positive metrics
+  success: {
+    bg: 'bg-gradient-to-br from-[#48BB78]/15 via-[#48BB78]/10 to-[#38A169]/15 dark:from-[#48BB78]/25 dark:via-[#48BB78]/15 dark:to-[#38A169]/25',
+    border: 'border-[#48BB78]/30 dark:border-[#48BB78]/40',
+    iconBg: 'bg-gradient-to-br from-[#48BB78] to-[#38A169] shadow-lg shadow-[#48BB78]/25',
     iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-purple-500/30 dark:hover:shadow-purple-400/30'
+    valueGradient: 'bg-gradient-to-r from-[#48BB78] to-[#38A169] bg-clip-text text-transparent',
+    hoverGlow: 'hover:shadow-xl hover:shadow-[#48BB78]/30 dark:hover:shadow-[#48BB78]/30'
   },
-  emerald: {
-    bg: 'bg-gradient-to-br from-emerald-400/15 via-emerald-500/10 to-emerald-600/15 dark:from-emerald-400/25 dark:via-emerald-500/15 dark:to-emerald-600/25',
-    border: 'border-emerald-400/30 dark:border-emerald-400/40',
-    iconBg: 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/25',
+
+  // EDUCATION GOLDEN - Graduation caps, education achievements
+  education: {
+    bg: 'bg-gradient-to-br from-[#FDAD00]/15 via-[#FDAD00]/10 to-[#E09900]/15 dark:from-[#FDAD00]/25 dark:via-[#FDAD00]/15 dark:to-[#E09900]/25',
+    border: 'border-[#FDAD00]/30 dark:border-[#FDAD00]/40',
+    iconBg: 'bg-gradient-to-br from-[#FDAD00] to-[#E09900] shadow-lg shadow-[#FDAD00]/25',
     iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-emerald-500/30 dark:hover:shadow-emerald-400/30'
+    valueGradient: 'bg-gradient-to-r from-[#FDAD00] to-[#E09900] bg-clip-text text-transparent',
+    hoverGlow: 'hover:shadow-xl hover:shadow-[#FDAD00]/30 dark:hover:shadow-[#FDAD00]/30'
   },
-  pink: {
-    bg: 'bg-gradient-to-br from-pink-400/15 via-pink-500/10 to-pink-600/15 dark:from-pink-400/25 dark:via-pink-500/15 dark:to-pink-600/25',
-    border: 'border-pink-400/30 dark:border-pink-400/40',
-    iconBg: 'bg-gradient-to-br from-pink-400 to-pink-600 shadow-lg shadow-pink-500/25',
+
+  // ACCENT PURPLE - Sessions, activities, engagement
+  accent: {
+    bg: 'bg-gradient-to-br from-[#A259FF]/15 via-[#A259FF]/10 to-[#32197D]/15 dark:from-[#A259FF]/25 dark:via-[#A259FF]/15 dark:to-[#32197D]/25',
+    border: 'border-[#A259FF]/30 dark:border-[#A259FF]/40',
+    iconBg: 'bg-gradient-to-br from-[#A259FF] to-[#32197D] shadow-lg shadow-[#A259FF]/25',
     iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-pink-400 to-pink-600 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-pink-500/30 dark:hover:shadow-pink-400/30'
+    valueGradient: 'bg-gradient-to-r from-[#A259FF] to-[#32197D] bg-clip-text text-transparent',
+    hoverGlow: 'hover:shadow-xl hover:shadow-[#A259FF]/30 dark:hover:shadow-[#A259FF]/30'
   },
-  orange: {
-    bg: 'bg-gradient-to-br from-yellow-400/15 via-orange-500/10 to-orange-600/15 dark:from-yellow-400/25 dark:via-orange-500/15 dark:to-orange-600/25',
-    border: 'border-orange-400/30 dark:border-orange-400/40',
-    iconBg: 'bg-gradient-to-br from-yellow-400 to-orange-600 shadow-lg shadow-orange-500/25',
+
+  // ALERT CORAL - Warnings, questions, attention-needed items
+  alert: {
+    bg: 'bg-gradient-to-br from-[#FD5653]/15 via-[#FD5653]/10 to-[#E04845]/15 dark:from-[#FD5653]/25 dark:via-[#FD5653]/15 dark:to-[#E04845]/25',
+    border: 'border-[#FD5653]/30 dark:border-[#FD5653]/40',
+    iconBg: 'bg-gradient-to-br from-[#FD5653] to-[#E04845] shadow-lg shadow-[#FD5653]/25',
     iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-orange-500/30 dark:hover:shadow-orange-400/30'
-  },
-  indigo: {
-    bg: 'bg-gradient-to-br from-indigo-400/15 via-indigo-500/10 to-indigo-600/15 dark:from-indigo-400/25 dark:via-indigo-500/15 dark:to-indigo-600/25',
-    border: 'border-indigo-400/30 dark:border-indigo-400/40',
-    iconBg: 'bg-gradient-to-br from-indigo-400 to-indigo-600 shadow-lg shadow-indigo-500/25',
-    iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-indigo-400 to-indigo-600 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-indigo-500/30 dark:hover:shadow-indigo-400/30'
-  },
-  // New vibrant schemes inspired by Hero
-  coral: {
-    bg: 'bg-gradient-to-br from-rose-400/15 via-coral-500/10 to-red-500/15 dark:from-rose-400/25 dark:via-coral-500/15 dark:to-red-500/25',
-    border: 'border-rose-400/30 dark:border-rose-400/40',
-    iconBg: 'bg-gradient-to-br from-rose-400 to-red-500 shadow-lg shadow-rose-500/25',
-    iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-rose-400 to-red-500 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-rose-500/30 dark:hover:shadow-rose-400/30'
-  },
-  cyan: {
-    bg: 'bg-gradient-to-br from-cyan-400/15 via-cyan-500/10 to-teal-500/15 dark:from-cyan-400/25 dark:via-cyan-500/15 dark:to-teal-500/25',
-    border: 'border-cyan-400/30 dark:border-cyan-400/40',
-    iconBg: 'bg-gradient-to-br from-cyan-400 to-teal-500 shadow-lg shadow-cyan-500/25',
-    iconColor: 'text-white',
-    valueGradient: 'bg-gradient-to-r from-cyan-400 to-teal-500 bg-clip-text text-transparent',
-    hoverGlow: 'hover:shadow-xl hover:shadow-cyan-500/30 dark:hover:shadow-cyan-400/30'
+    valueGradient: 'bg-gradient-to-r from-[#FD5653] to-[#E04845] bg-clip-text text-transparent',
+    hoverGlow: 'hover:shadow-xl hover:shadow-[#FD5653]/30 dark:hover:shadow-[#FD5653]/30'
   }
 };
 
@@ -94,16 +83,66 @@ const colorSchemes = {
  * Sử dụng cho dashboard admin để hiển thị các metrics quan trọng
  * Enhanced với beautiful gradients và animations
  */
-export function StatCard({ title, value, description, icon, trend, colorScheme = 'blue' }: StatCardProps) {
+export function StatCard({
+  title,
+  value,
+  description,
+  icon,
+  trend,
+  colorScheme = 'primary',
+  onClick,
+  isLoading = false,
+  className,
+  format = 'number'
+}: StatCardProps) {
   const scheme = colorSchemes[colorScheme];
 
+  // Handle click với haptic feedback
+  const handleClick = () => {
+    if (onClick && !isLoading) {
+      onClick();
+    }
+  };
+
+  // Format value based on format type
+  const formatValue = (val: number) => {
+    switch (format) {
+      case 'currency':
+        return new Intl.NumberFormat('vi-VN', {
+          style: 'currency',
+          currency: 'VND',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(val);
+      case 'percentage':
+        return `${val.toFixed(1)}%`;
+      case 'number':
+      default:
+        return val.toLocaleString();
+    }
+  };
+
   return (
-    <Card className={cn(
-      "relative overflow-hidden border transition-all duration-300 hover:scale-105 hover:shadow-lg backdrop-blur-sm",
-      scheme.bg,
-      scheme.border,
-      scheme.hoverGlow
-    )}>
+    <Card
+      className={cn(
+        "relative overflow-hidden border transition-all duration-300 backdrop-blur-sm group",
+        onClick && !isLoading && "cursor-pointer hover:scale-[1.02] active:scale-[0.98] focus:ring-2 focus:ring-offset-2 focus:ring-offset-background",
+        scheme.bg,
+        scheme.border,
+        scheme.hoverGlow,
+        className
+      )}
+      onClick={handleClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick && !isLoading ? 0 : undefined}
+      aria-label={onClick ? `View details for ${title}` : undefined}
+      onKeyDown={(e) => {
+        if (onClick && !isLoading && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+    >
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-white/10 dark:to-transparent pointer-events-none" />
 
@@ -116,13 +155,18 @@ export function StatCard({ title, value, description, icon, trend, colorScheme =
         </div>
       </CardHeader>
       <CardContent className="relative z-10">
-        {/* Hiển thị giá trị chính với gradient text */}
-        <div className={cn("text-2xl font-bold mb-1", scheme.valueGradient)}>
-          {value.toLocaleString()}
+        {/* Hiển thị giá trị chính với enhanced typography */}
+        <div className={cn(
+          "text-3xl font-extrabold mb-2 transition-all duration-300 group-hover:scale-105",
+          scheme.valueGradient
+        )}>
+          {formatValue(value)}
         </div>
 
-        {/* Mô tả chi tiết về số liệu */}
-        <p className="text-xs text-muted-foreground/80">{description}</p>
+        {/* Mô tả chi tiết với improved readability */}
+        <p className="text-sm font-medium text-muted-foreground/90 leading-relaxed">
+          {description}
+        </p>
 
         {/* Hiển thị xu hướng nếu có với enhanced styling */}
         {trend && (

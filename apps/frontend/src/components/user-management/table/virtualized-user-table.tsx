@@ -83,14 +83,14 @@ const TABLE_COLUMNS: TableColumn[] = [
 ];
 
 /**
- * Role colors mapping
+ * Role colors mapping - Dark theme compatible
  */
 const ROLE_COLORS = {
-  [UserRole.GUEST]: 'bg-gray-100 text-gray-800',
-  [UserRole.STUDENT]: 'bg-green-100 text-green-800',
-  [UserRole.TUTOR]: 'bg-purple-100 text-purple-800',
-  [UserRole.TEACHER]: 'bg-blue-100 text-blue-800',
-  [UserRole.ADMIN]: 'bg-red-100 text-red-800',
+  [UserRole.GUEST]: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
+  [UserRole.STUDENT]: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  [UserRole.TUTOR]: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
+  [UserRole.TEACHER]: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  [UserRole.ADMIN]: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
 };
 
 /**
@@ -105,13 +105,13 @@ const ROLE_LABELS = {
 };
 
 /**
- * Status colors mapping
+ * Status colors mapping - Dark theme compatible
  */
 const STATUS_COLORS = {
-  [UserStatus.ACTIVE]: 'bg-green-100 text-green-800',
-  [UserStatus.INACTIVE]: 'bg-gray-100 text-gray-800',
-  [UserStatus.SUSPENDED]: 'bg-red-100 text-red-800',
-  [UserStatus.PENDING_VERIFICATION]: 'bg-yellow-100 text-yellow-800',
+  [UserStatus.ACTIVE]: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+  [UserStatus.INACTIVE]: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
+  [UserStatus.SUSPENDED]: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+  [UserStatus.PENDING_VERIFICATION]: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
 };
 
 /**
@@ -142,19 +142,19 @@ function formatDate(date: Date | string | undefined): string {
 }
 
 /**
- * Format risk score với color
+ * Format risk score với color - Dark theme compatible
  */
 function formatRiskScore(score: number | undefined): { text: string; color: string } {
   if (score === undefined || score === null) {
-    return { text: 'N/A', color: 'text-gray-500' };
+    return { text: 'N/A', color: 'text-muted-foreground' };
   }
-  
+
   if (score <= 30) {
-    return { text: score.toString(), color: 'text-green-600' };
+    return { text: score.toString(), color: 'text-green-600 dark:text-green-400' };
   } else if (score <= 70) {
-    return { text: score.toString(), color: 'text-yellow-600' };
+    return { text: score.toString(), color: 'text-yellow-600 dark:text-yellow-400' };
   } else {
-    return { text: score.toString(), color: 'text-red-600' };
+    return { text: score.toString(), color: 'text-red-600 dark:text-red-400' };
   }
 }
 
@@ -333,17 +333,17 @@ export function VirtualizedUserTable({
         <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
           {getUserInitials(user)}
         </div>
-        
+
         {/* User Info */}
         <div className="min-w-0 flex-1">
-          <div className="font-medium text-gray-900 truncate">
+          <div className="font-medium text-foreground truncate">
             {getUserDisplayName(user)}
           </div>
-          <div className="text-sm text-gray-500 truncate">
+          <div className="text-sm text-muted-foreground truncate">
             {user.email}
           </div>
           {user.username && (
-            <div className="text-xs text-gray-400 truncate">
+            <div className="text-xs text-muted-foreground/70 truncate">
               @{user.username}
             </div>
           )}
@@ -365,7 +365,7 @@ export function VirtualizedUserTable({
           {roleLabel}
         </Badge>
         {user.level && (
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-muted-foreground">
             Level {user.level}
           </div>
         )}
@@ -415,16 +415,16 @@ export function VirtualizedUserTable({
         {/* Active Sessions */}
         <div className="flex items-center space-x-1">
           <Shield className="h-3 w-3" />
-          <span className="text-gray-600">
+          <span className="text-muted-foreground">
             Sessions: {user.activeSessionsCount}
           </span>
         </div>
-        
+
         {/* Last IP */}
         {user.lastLoginIp && (
           <div className="flex items-center space-x-1">
             <Globe className="h-3 w-3" />
-            <span className="text-gray-500 truncate">
+            <span className="text-muted-foreground truncate">
               {user.lastLoginIp}
             </span>
           </div>
@@ -442,15 +442,15 @@ export function VirtualizedUserTable({
         {/* Last Login */}
         <div className="flex items-center space-x-1">
           <Clock className="h-3 w-3" />
-          <span className="text-gray-600">
+          <span className="text-muted-foreground">
             {formatDate(user.lastLoginAt)}
           </span>
         </div>
-        
+
         {/* Resource Access */}
         <div className="flex items-center space-x-1">
           <TrendingUp className="h-3 w-3" />
-          <span className="text-gray-600">
+          <span className="text-muted-foreground">
             Access: {user.totalResourceAccess}
           </span>
         </div>
@@ -524,7 +524,7 @@ export function VirtualizedUserTable({
   }
 
   return (
-    <Card className={className}>
+    <Card className={`theme-bg theme-border ${className}`}>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Danh sách người dùng ({users.length})</span>
@@ -537,9 +537,9 @@ export function VirtualizedUserTable({
       </CardHeader>
       
       <CardContent>
-        <div 
-          className="border rounded-lg overflow-hidden"
-          style={{ height: containerHeight }}
+        <div
+          className="admin-table-container admin-table-scrollable"
+          style={{ height: containerHeight, maxHeight: '80vh' }}
         >
           <Table>
             <TableHeader>
@@ -619,8 +619,8 @@ export function VirtualizedUserTable({
           {users.length === 0 && (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="text-gray-500 mb-2">Không có người dùng nào</div>
-                <div className="text-sm text-gray-400">
+                <div className="text-muted-foreground mb-2">Không có người dùng nào</div>
+                <div className="text-sm text-muted-foreground/70">
                   Thử thay đổi bộ lọc hoặc tìm kiếm
                 </div>
               </div>

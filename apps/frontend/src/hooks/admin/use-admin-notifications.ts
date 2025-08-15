@@ -119,7 +119,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
     setNotificationsState(prev => {
       const updatedNotifications = prev.notifications.map(notification =>
         notification.id === notificationId
-          ? { ...notification, isRead: true }
+          ? { ...notification, read: true, isRead: true }
           : notification
       );
 
@@ -142,6 +142,7 @@ export function useAdminNotifications(): UseAdminNotificationsReturn {
       ...prev,
       notifications: prev.notifications.map(notification => ({
         ...notification,
+        read: true,
         isRead: true
       })),
       unreadCount: 0

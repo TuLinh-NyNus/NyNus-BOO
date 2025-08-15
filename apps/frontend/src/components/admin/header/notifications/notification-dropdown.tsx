@@ -93,10 +93,10 @@ export function NotificationDropdown({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'relative p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+          'relative p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10',
           'transition-colors duration-150',
           'focus:outline-none focus:ring-2 focus:ring-blue-500',
-          isOpen && 'bg-gray-100 text-gray-900'
+          isOpen && 'bg-white/10 text-white'
         )}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -124,14 +124,13 @@ export function NotificationDropdown({
     return (
       <div
         className={cn(
-          'absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200',
-          'animate-in fade-in-0 zoom-in-95 duration-150',
+          'absolute right-0 top-full mt-2 w-80 bg-black/90 backdrop-blur-md rounded-lg border border-white/20',
           'z-50'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <h3 className="text-sm font-medium text-gray-900">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/20">
+          <h3 className="text-sm font-medium text-white">
             Thông báo
           </h3>
           
@@ -140,7 +139,7 @@ export function NotificationDropdown({
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                className="text-xs text-blue-400 hover:text-blue-300 font-medium"
               >
                 Đánh dấu đã đọc
               </button>
@@ -149,7 +148,7 @@ export function NotificationDropdown({
             <button
               type="button"
               onClick={() => window.location.href = '/3141592654/admin/notifications'}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded"
+              className="p-1 text-white/60 hover:text-white rounded"
               aria-label="Notification settings"
             >
               <Settings className="w-4 h-4" />
@@ -267,10 +266,10 @@ function NotificationItem({
    */
   const getTypeColor = () => {
     const colors = {
-      info: 'text-blue-600 bg-blue-50',
-      success: 'text-green-600 bg-green-50',
-      warning: 'text-yellow-600 bg-yellow-50',
-      error: 'text-red-600 bg-red-50'
+      info: 'bg-[#5B88B9]',      // Xanh nhạt - info
+      success: 'bg-[#48BB78]',   // Xanh lá - success
+      warning: 'bg-[#FDAD00]',   // Vàng cam - warning
+      error: 'bg-[#FD5653]'      // Đỏ cam - error
     };
 
     return colors[notification.type] || colors.info;
@@ -297,37 +296,51 @@ function NotificationItem({
   return (
     <div
       className={cn(
-        'relative px-4 py-3 hover:bg-gray-50 transition-colors duration-150',
-        !notification.read && 'bg-blue-50/50'
+        'relative px-4 py-3 transition-colors duration-150',
+        // Base background for all notifications
+        'bg-white/[0.02]',
+        // Unread notifications have slightly more prominent background
+        !notification.read && 'bg-white/[0.08]',
+        // Hover state
+        'hover:bg-white/[0.12]'
       )}
     >
       {/* Unread indicator */}
       {!notification.read && (
-        <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-blue-500 rounded-full" />
+        <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-[#A259FF] rounded-full" />
       )}
 
       {/* Main content */}
-      <button
-        type="button"
+      <div
         onClick={onClick}
-        className="w-full text-left focus:outline-none"
+        className="w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        }}
       >
         <div className="flex items-start space-x-3">
-          {/* Type indicator */}
-          <div className={cn(
-            'flex-shrink-0 w-2 h-2 rounded-full mt-2',
-            getTypeColor()
-          )} />
+          {/* Type indicator - perfectly aligned with text baseline */}
+          <div className="flex-shrink-0 flex items-baseline">
+            <div className={cn(
+              'w-2 h-2 rounded-full',
+              getTypeColor()
+            )} />
+          </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-gray-900 mb-1">
+            <div className="text-sm font-medium text-white mb-1">
               {notification.title}
             </div>
-            <div className="text-sm text-gray-600 mb-2">
+            <div className="text-sm text-white/80 mb-2">
               {notification.message}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-white/60">
               {formatTimeAgo(notification.timestamp)}
             </div>
           </div>
@@ -341,31 +354,31 @@ function NotificationItem({
                   e.stopPropagation();
                   onMarkRead();
                 }}
-                className="p-1 text-gray-400 hover:text-blue-600 rounded"
+                className="p-1 text-white/60 hover:text-[#A259FF] rounded"
                 aria-label="Mark as read"
               >
                 <Check className="w-3 h-3" />
               </button>
             )}
-            
+
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onClear();
               }}
-              className="p-1 text-gray-400 hover:text-red-600 rounded"
+              className="p-1 text-white/60 hover:text-[#FD5653] rounded"
               aria-label="Clear notification"
             >
               <X className="w-3 h-3" />
             </button>
 
             {notification.href && (
-              <ExternalLink className="w-3 h-3 text-gray-400" />
+              <ExternalLink className="w-3 h-3 text-white/60" />
             )}
           </div>
         </div>
-      </button>
+      </div>
     </div>
   );
 }

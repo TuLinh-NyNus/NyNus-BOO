@@ -43,7 +43,7 @@ export function AdminSidebar({
   const getSidebarClasses = () => {
     const baseClasses = [
       'theme-bg theme-fg theme-border border-r flex flex-col transition-all duration-300 ease-in-out',
-      'h-full relative'
+      'min-h-screen relative'
     ];
 
     const widthClasses = isCollapsed ? 'w-16' : 'w-64';

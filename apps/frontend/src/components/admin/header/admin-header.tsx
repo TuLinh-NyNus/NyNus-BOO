@@ -31,44 +31,36 @@ export function AdminHeader({
 
   /**
    * Get header classes
-   * Lấy CSS classes cho header với vibrant gradients inspired by Hero
+   * Lấy CSS classes cho header với màu nền hài hòa với trang
    */
   const getHeaderClasses = () => {
     const baseClasses = [
-      // Vibrant gradient background inspired by Hero component (#4417DB, #E57885, #F18582)
-      'bg-gradient-to-r from-[#4417DB]/15 via-[#E57885]/10 to-[#F18582]/15',
-      'dark:from-[#4417DB]/25 dark:via-[#E57885]/15 dark:to-[#F18582]/25',
-      'border-b border-[#4417DB]/30 dark:border-[#4417DB]/40',
+      // Sử dụng màu nền giống với background của trang
+      'bg-background',
+      'border-b border-border',
       'backdrop-blur-sm',
       'transition-all duration-300 ease-in-out',
       'relative z-30'
     ];
 
     const variantClasses = {
-      default: 'shadow-lg shadow-[#4417DB]/15 dark:shadow-[#4417DB]/25',
-      minimal: 'shadow-sm',
-      elevated: 'shadow-xl shadow-[#4417DB]/20 dark:shadow-[#4417DB]/30'
+      default: 'shadow-sm',
+      minimal: 'shadow-none',
+      elevated: 'shadow-md'
     };
 
     return cn(baseClasses, variantClasses[variant], className);
   };
 
   /**
-   * Get header inline styles for enhanced visual appeal
+   * Get header inline styles for clean appearance
    */
   const getHeaderStyles = (): React.CSSProperties => {
     return {
-      // Add vibrant gradient overlay matching Hero component
-      background: `
-        linear-gradient(90deg,
-          rgba(68, 23, 219, 0.15) 0%,
-          rgba(229, 120, 133, 0.10) 50%,
-          rgba(241, 133, 130, 0.15) 100%
-        ),
-        var(--color-background)
-      `,
-      color: 'var(--color-foreground)',
-      borderColor: 'rgba(68, 23, 219, 0.3)'
+      // Sử dụng màu nền và text mặc định của theme
+      backgroundColor: 'hsl(var(--background))',
+      color: 'hsl(var(--foreground))',
+      borderColor: 'hsl(var(--border))'
     };
   };
 
@@ -83,7 +75,7 @@ export function AdminHeader({
       <button
         onClick={toggleSidebar}
         className={cn(
-          'p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+          'p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent',
           'transition-colors duration-150',
           'lg:hidden'
         )}
@@ -235,10 +227,7 @@ export function AdminHeader({
 
   return (
     <header className={getHeaderClasses()} style={getHeaderStyles()}>
-      {/* Gradient overlay for enhanced visual appeal */}
-      <div className="absolute inset-0 bg-gradient-to-r from-white/5 via-white/10 to-white/5 dark:from-white/10 dark:via-white/15 dark:to-white/10 pointer-events-none" />
-
-      <div className="px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {renderHeaderContent()}
         </div>

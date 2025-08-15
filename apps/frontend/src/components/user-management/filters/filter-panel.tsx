@@ -270,7 +270,7 @@ export function FilterPanel({
   // ===== RENDER =====
 
   return (
-    <Card className={className}>
+    <Card className={`theme-bg theme-border ${className}`}>
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">

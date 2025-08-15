@@ -8,7 +8,6 @@
 import { ReactNode } from 'react';
 import { AdminHeader } from '@/components/admin/header';
 import { AdminSidebar } from '@/components/admin/sidebar';
-import { AdminBreadcrumb } from '@/components/admin/breadcrumb';
 import { MockWebSocketProvider } from '@/components/admin/providers/mock-websocket-provider';
 import { AdminErrorBoundary } from '@/components/admin/providers/admin-error-boundary';
 import { AdminLayoutProvider } from '@/components/admin/providers/admin-layout-provider';
@@ -46,13 +45,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               {/* Admin Header */}
               <AdminHeader />
 
-              {/* Main Content với Breadcrumb */}
-              <main className="flex-1 overflow-y-auto p-6 text-foreground">
-                {/* Admin Breadcrumb */}
-                <AdminBreadcrumb />
-
+              {/* Main Content */}
+              <main className="flex-1 overflow-y-auto px-6 pt-3 pb-6 text-foreground">
                 {/* Page Content */}
-                <div className="mt-4">
+                <div>
                   {children}
                 </div>
               </main>

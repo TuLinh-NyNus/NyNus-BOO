@@ -101,7 +101,7 @@ export function DashboardStats() {
             value={overview.totalUsers}
             description="Tất cả tài khoản trong hệ thống"
             icon={<Users className="h-4 w-4" />}
-            colorScheme="blue"
+            colorScheme="primary"
             trend={{
               value: overview.newUsersToday,
               label: "hôm nay",
@@ -113,21 +113,21 @@ export function DashboardStats() {
             value={overview.activeUsers}
             description="Người dùng đang online"
             icon={<UserCheck className="h-4 w-4" />}
-            colorScheme="emerald"
+            colorScheme="success"
           />
           <StatCard
             title="Đăng ký mới"
             value={overview.newUsersToday}
             description="Tài khoản mới hôm nay"
             icon={<Users className="h-4 w-4" />}
-            colorScheme="indigo"
+            colorScheme="accent"
           />
           <StatCard
             title="Phiên học"
             value={overview.totalSessions}
             description="Tổng số phiên học"
             icon={<GraduationCap className="h-4 w-4" />}
-            colorScheme="purple"
+            colorScheme="education"
           />
         </div>
       </div>
@@ -143,33 +143,28 @@ export function DashboardStats() {
             value={overview.totalCourses}
             description="Tổng số khóa học"
             icon={<BookOpen className="h-4 w-4" />}
-            colorScheme="indigo"
+            colorScheme="primary"
           />
           <StatCard
             title="Câu hỏi"
             value={overview.totalQuestions}
             description="Ngân hàng câu hỏi"
             icon={<HelpCircle className="h-4 w-4" />}
-            colorScheme="pink"
-            trend={{
-              value: overview.questionsAddedToday,
-              label: "hôm nay",
-              isPositive: true,
-            }}
+            colorScheme="accent"
           />
           <StatCard
             title="Hoàn thành"
             value={overview.coursesCompletedToday}
             description="Khóa học hoàn thành hôm nay"
             icon={<GraduationCap className="h-4 w-4" />}
-            colorScheme="emerald"
+            colorScheme="education"
           />
           <StatCard
-            title="Tổng phiên"
+            title="Tổng phiên học"
             value={overview.totalSessions}
             description="Phiên học tổng cộng"
-            icon={<Users className="h-4 w-4" />}
-            colorScheme="orange"
+            icon={<GraduationCap className="h-4 w-4" />}
+            colorScheme="alert"
           />
         </div>
       </div>

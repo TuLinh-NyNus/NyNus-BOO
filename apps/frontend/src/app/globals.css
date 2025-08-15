@@ -18,11 +18,15 @@
 
 /* Import ONLY Color Definitions */
 @import "../styles/theme/tokens/colors.css";
+@import "../styles/theme/admin-color-scheme.css";
 @import "../styles/theme/themes/light.css";
 @import "../styles/theme/themes/dark.css";
 
 /* Import Enhanced Gradient System */
 @import "../styles/gradients.css";
+
+/* Import Admin Dark Theme Enhancements */
+@import "../styles/admin-dark-theme.css";
 
 /*
  * Theme files now contain ONLY:
@@ -62,4 +66,82 @@
 
 .theme-muted-fg {
   color: var(--color-muted-foreground);
+}
+
+/* Enhanced Dark Theme Utilities */
+.dark-card {
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  color: var(--color-card-foreground);
+}
+
+.dark-surface {
+  background-color: var(--enhanced-dark-surface);
+  color: var(--enhanced-dark-text);
+}
+
+.dark-surface-hover:hover {
+  background-color: var(--enhanced-dark-surface-hover);
+}
+
+.dark-text-primary {
+  color: var(--enhanced-dark-text);
+}
+
+.dark-text-muted {
+  color: var(--enhanced-dark-text-muted);
+}
+
+.dark-border {
+  border-color: var(--enhanced-dark-border);
+}
+
+/* Badge utilities for dark theme */
+.badge-dark-default {
+  background-color: var(--color-badge-default);
+  color: var(--color-badge-default-foreground);
+}
+
+.badge-dark-secondary {
+  background-color: var(--color-badge-secondary);
+  color: var(--color-badge-secondary-foreground);
+}
+
+.badge-dark-success {
+  background-color: var(--color-badge-success);
+  color: var(--color-badge-success-foreground);
+}
+
+.badge-dark-warning {
+  background-color: var(--color-badge-warning);
+  color: var(--color-badge-warning-foreground);
+}
+
+.badge-dark-error {
+  background-color: var(--color-badge-error);
+  color: var(--color-badge-error-foreground);
+}
+
+/* Table utilities for dark theme */
+.table-dark-header {
+  background-color: var(--color-table-header);
+  color: var(--color-table-header-foreground);
+  border-color: var(--color-table-border);
+}
+
+.table-dark-row:hover {
+  background-color: var(--color-table-row-hover);
+}
+
+/* Icon utilities for dark theme */
+.icon-dark-primary {
+  color: var(--color-icon-primary);
+}
+
+.icon-dark-secondary {
+  color: var(--color-icon-secondary);
+}
+
+.icon-dark-accent {
+  color: var(--color-icon-accent);
 }

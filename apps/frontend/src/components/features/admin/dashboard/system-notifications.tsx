@@ -140,10 +140,10 @@ export function SystemNotifications() {
   const unreadCount = mockSystemNotifications.filter(notification => !notification.isRead).length;
 
   return (
-    <Card className="p-6 theme-bg theme-border border transition-colors duration-300">
+    <Card className="p-6 theme-bg theme-border border">
       <CardHeader className="px-0 pt-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white transition-colors duration-300">
+          <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
             Thông báo hệ thống
           </CardTitle>
           {unreadCount > 0 && (
@@ -159,15 +159,15 @@ export function SystemNotifications() {
           {mockSystemNotifications.map((notification) => (
             <div 
               key={notification.id} 
-              className={`flex items-start gap-4 p-3 rounded-lg transition-colors duration-300 hover:bg-slate-200/80 dark:hover:bg-slate-600/30 ${
-                notification.isRead 
-                  ? 'bg-slate-100/50 dark:bg-slate-700/20' 
+              className={`flex items-start gap-4 p-3 rounded-lg ${
+                notification.isRead
+                  ? 'bg-slate-100/50 dark:bg-slate-700/20'
                   : 'bg-slate-100/80 dark:bg-slate-700/30 border-l-4 border-blue-500'
               }`}
             >
               {/* Icon container với màu nền động */}
-              <div className={`h-10 w-10 rounded-full ${notification.iconBgColor} flex items-center justify-center transition-colors duration-300 flex-shrink-0`}>
-                <span className={`${notification.iconColor} transition-colors duration-300`}>
+              <div className={`h-10 w-10 rounded-full ${notification.iconBgColor} flex items-center justify-center flex-shrink-0`}>
+                <span className={notification.iconColor}>
                   {notification.icon}
                 </span>
               </div>
@@ -175,9 +175,9 @@ export function SystemNotifications() {
               {/* Nội dung thông báo */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className={`text-sm font-medium transition-colors duration-300 ${
-                    notification.isRead 
-                      ? 'text-slate-600 dark:text-slate-400' 
+                  <p className={`text-sm font-medium ${
+                    notification.isRead
+                      ? 'text-slate-600 dark:text-slate-400'
                       : 'text-slate-800 dark:text-white'
                   }`}>
                     {notification.title}
@@ -190,12 +190,12 @@ export function SystemNotifications() {
                   </Badge>
                 </div>
                 
-                <p className="text-xs text-slate-600 dark:text-slate-400 transition-colors duration-300 mb-2">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
                   {notification.message}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-500 dark:text-slate-500 transition-colors duration-300">
+                  <p className="text-xs text-slate-500 dark:text-slate-500">
                     {notification.timestamp}
                   </p>
                   {!notification.isRead && (

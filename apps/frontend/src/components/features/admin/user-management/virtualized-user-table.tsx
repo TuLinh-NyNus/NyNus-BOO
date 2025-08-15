@@ -79,11 +79,11 @@ interface VirtualizedUserTableProps {
  */
 function getRoleBadge(role: UserRole) {
   const roleConfig = {
-    [UserRole.ADMIN]: { label: "Admin", className: "bg-red-100 text-red-800" },
-    [UserRole.TEACHER]: { label: "Giáo viên", className: "bg-purple-100 text-purple-800" },
-    [UserRole.TUTOR]: { label: "Gia sư", className: "bg-green-100 text-green-800" },
-    [UserRole.STUDENT]: { label: "Học viên", className: "bg-blue-100 text-blue-800" },
-    [UserRole.GUEST]: { label: "Khách", className: "bg-gray-100 text-gray-800" },
+    [UserRole.ADMIN]: { label: "Admin", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
+    [UserRole.TEACHER]: { label: "Giáo viên", className: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" },
+    [UserRole.TUTOR]: { label: "Gia sư", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
+    [UserRole.STUDENT]: { label: "Học viên", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
+    [UserRole.GUEST]: { label: "Khách", className: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground" },
   };
 
   const config = roleConfig[role] || roleConfig[UserRole.STUDENT];
@@ -96,9 +96,9 @@ function getRoleBadge(role: UserRole) {
  */
 function getStatusBadge(status: string) {
   const statusConfig = {
-    ACTIVE: { label: "Hoạt động", className: "bg-green-100 text-green-800", icon: Activity },
-    SUSPENDED: { label: "Tạm ngưng", className: "bg-red-100 text-red-800", icon: UserX },
-    PENDING_VERIFICATION: { label: "Chờ xác thực", className: "bg-yellow-100 text-yellow-800", icon: Shield },
+    ACTIVE: { label: "Hoạt động", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: Activity },
+    SUSPENDED: { label: "Tạm ngưng", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: UserX },
+    PENDING_VERIFICATION: { label: "Chờ xác thực", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Shield },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ACTIVE;
@@ -280,9 +280,9 @@ export function VirtualizedUserTable({
                 </DropdownMenuItem>
               )}
               {onDeleteUser && (
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => onDeleteUser(user)}
-                  className="text-red-600"
+                  className="text-red-600 dark:text-red-400"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Xóa user
@@ -339,7 +339,7 @@ export function VirtualizedUserTable({
   }
 
   return (
-    <div className={`border rounded-lg overflow-hidden ${className}`}>
+    <div className={`admin-table-container ${className}`}>
       {/* Table Header */}
       <div className="flex items-center gap-4 p-4 bg-muted/25 border-b font-medium text-sm">
         {onSelectionChange && <div className="w-4"></div>}
@@ -353,7 +353,15 @@ export function VirtualizedUserTable({
       </div>
 
       {/* Virtual Table Container */}
-      <div ref={containerRef} {...scrollElementProps}>
+      <div
+        ref={containerRef}
+        {...scrollElementProps}
+        className="admin-table-scrollable"
+        style={{
+          height: containerHeight,
+          maxHeight: '80vh'
+        }}
+      >
         <div style={{ height: virtualState.totalHeight, position: 'relative' }}>
           {virtualState.visibleItems.map((item) => {
             const user = users[item.index];

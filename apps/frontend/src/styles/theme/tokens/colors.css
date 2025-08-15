@@ -39,6 +39,23 @@
   --improved-dark-accent: #3B82F6;       /* Blue 500 - Primary accent */
   --improved-dark-accent-hover: #2563EB; /* Blue 600 - Accent hover */
 
+  /* ENHANCED Dark Theme Colors - Optimized for Admin Panel */
+  --enhanced-dark-bg: #0A0E1A;           /* Darker slate - Better for long sessions */
+  --enhanced-dark-surface: #131B2B;      /* Gray 800 - Card backgrounds */
+  --enhanced-dark-surface-hover: #2D3748; /* Gray 700 - Hover states */
+  --enhanced-dark-surface-muted: #4A5568; /* Gray 600 - Muted surfaces */
+  --enhanced-dark-border: #4A5568;       /* Gray 600 - Borders */
+  --enhanced-dark-text: #F7FAFC;         /* Gray 50 - Primary text (higher contrast) */
+  --enhanced-dark-text-muted: #A0AEC0;   /* Gray 400 - Secondary text */
+  --enhanced-dark-accent: #4299E1;       /* Blue 400 - Primary accent (brighter) */
+  --enhanced-dark-accent-hover: #3182CE; /* Blue 500 - Accent hover */
+
+  /* Enhanced System Colors for Dark Theme */
+  --enhanced-dark-success: #48BB78;      /* Green 400 - Success (brighter) */
+  --enhanced-dark-warning: #ED8936;      /* Orange 400 - Warning (brighter) */
+  --enhanced-dark-error: #F56565;        /* Red 400 - Error (brighter) */
+  --enhanced-dark-info: #4299E1;         /* Blue 400 - Info (brighter) */
+
   /* System Colors */
   --color-success: #10B981;
   --color-warning: #F59E0B;

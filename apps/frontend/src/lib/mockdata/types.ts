@@ -218,6 +218,20 @@ export interface AdminAnalytics {
     averageScore: number;
     completedExams: number;
   }[];
+  performance: {
+    totalRevenue: number;
+    revenueGrowth: number;
+    coursesCompleted: number;
+    completionRate: number;
+    averageRating: number;
+  };
+  engagement: {
+    activeStudents: number;
+    studentGrowth: number;
+    averageStudyTime: number;
+    questionsAnswered: number;
+    correctAnswerRate: number;
+  };
 }
 
 // Session interfaces

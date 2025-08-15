@@ -132,7 +132,7 @@ export function UserMenu({
   const renderUserTrigger = () => {
     const triggerClasses = cn(
       'flex items-center space-x-2 p-2 rounded-lg',
-      'hover:bg-gray-100 transition-colors duration-150',
+      'hover:bg-white/10 transition-colors duration-150',
       'focus:outline-none focus:ring-2 focus:ring-blue-500',
       variant === 'compact' ? 'space-x-1' : 'space-x-2'
     );
@@ -151,10 +151,10 @@ export function UserMenu({
         {/* User info (hidden on compact) */}
         {variant !== 'compact' && user && (
           <div className="hidden sm:block text-left">
-            <div className="text-sm font-medium text-gray-900 truncate max-w-24">
+            <div className="text-sm font-medium text-white truncate max-w-24">
               {user.name}
             </div>
-            <div className="text-xs text-gray-500 truncate max-w-24">
+            <div className="text-xs text-white/70 truncate max-w-24">
               {user.role}
             </div>
           </div>
@@ -163,7 +163,7 @@ export function UserMenu({
         {/* Chevron icon */}
         <ChevronDown
           className={cn(
-            'w-4 h-4 text-gray-400 transition-transform duration-150',
+            'w-4 h-4 text-white/70 transition-transform duration-150',
             isOpen && 'transform rotate-180'
           )}
         />

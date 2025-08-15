@@ -11,12 +11,16 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+          "border-transparent bg-primary text-primary-foreground hover:bg-primary/80 dark:bg-[var(--color-badge-default)] dark:text-[var(--color-badge-default-foreground)]",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 dark:bg-[var(--color-badge-secondary)] dark:text-[var(--color-badge-secondary-foreground)]",
         destructive:
-          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
+          "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80 dark:bg-[var(--color-badge-error)] dark:text-[var(--color-badge-error-foreground)]",
+        success:
+          "border-transparent bg-green-100 text-green-800 hover:bg-green-200 dark:bg-[var(--color-badge-success)] dark:text-[var(--color-badge-success-foreground)]",
+        warning:
+          "border-transparent bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-[var(--color-badge-warning)] dark:text-[var(--color-badge-warning-foreground)]",
+        outline: "text-foreground border-border hover:bg-accent hover:text-accent-foreground",
       },
     },
     defaultVariants: {
@@ -27,7 +31,9 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+    VariantProps<typeof badgeVariants> {
+  variant?: "default" | "secondary" | "destructive" | "success" | "warning" | "outline";
+}
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return (

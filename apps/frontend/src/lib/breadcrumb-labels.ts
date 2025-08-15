@@ -134,16 +134,21 @@ export function generateBreadcrumbItems(
 
   // Build breadcrumb items
   let currentPath = config.homeHref;
-  
+
   filteredSegments.forEach((segment, index) => {
     currentPath += `/${segment}`;
     const isLast = index === filteredSegments.length - 1;
-    
+
     // Get label from mapping or custom labels
     const label = getLabelFromSegment(segment, config.customLabels);
-    
+
     // Skip if label is empty or invalid
     if (!label || !isValidSegment(segment, config.excludeSegments)) {
+      return;
+    }
+
+    // Skip segment 'dashboard' nếu nó trùng với home label để tránh duplicate
+    if (segment === 'dashboard' && config.showHome && config.homeLabel === 'Dashboard') {
       return;
     }
 

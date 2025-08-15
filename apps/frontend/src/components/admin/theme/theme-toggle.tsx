@@ -128,7 +128,7 @@ export function ThemeToggle({
 
     if (variant === 'ghost') {
       return {
-        color: 'var(--color-muted-foreground)',
+        color: 'white',
         backgroundColor: 'transparent'
       };
     }

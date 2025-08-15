@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, UserPlus, RefreshCw, AlertCircle } from 'lucide-react';
+import { DarkThemeProvider } from '@/components/admin/theme/dark-theme-provider';
 
 // Import user management components
 import { useUserManagement } from '@/hooks/admin/use-user-management';
@@ -105,7 +106,8 @@ export default function AdminUsersPage() {
   // ===== RENDER =====
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <DarkThemeProvider>
+      <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -136,7 +138,7 @@ export default function AdminUsersPage() {
         />
       ) : stats ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card>
+          <Card className="admin-unified-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Tổng người dùng</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -149,7 +151,7 @@ export default function AdminUsersPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="admin-unified-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Đang hoạt động</CardTitle>
               <UserPlus className="h-4 w-4 text-green-600" />
@@ -162,7 +164,7 @@ export default function AdminUsersPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="admin-unified-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Bị tạm ngưng</CardTitle>
               <AlertCircle className="h-4 w-4 text-red-600" />
@@ -175,7 +177,7 @@ export default function AdminUsersPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="admin-unified-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Chờ xác thực</CardTitle>
               <RefreshCw className="h-4 w-4 text-yellow-600" />
@@ -191,7 +193,7 @@ export default function AdminUsersPage() {
       ) : null}
 
       {/* Main Content */}
-      <Card>
+      <Card className="admin-unified-card">
         <CardHeader>
           <CardTitle>Quản lý Người dùng</CardTitle>
           <CardDescription>Quản lý tất cả tài khoản người dùng trong hệ thống</CardDescription>
@@ -243,7 +245,8 @@ export default function AdminUsersPage() {
         onClose={handleCloseDetailModal}
         onUserUpdate={handleUserUpdate}
       />
-    </div>
+      </div>
+    </DarkThemeProvider>
   );
 }
 

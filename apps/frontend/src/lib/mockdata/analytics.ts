@@ -133,7 +133,21 @@ export const mockAnalytics: AdminAnalytics = {
       averageScore: 7.9,
       completedExams: 31
     }
-  ]
+  ],
+  performance: {
+    totalRevenue: 125000000, // 125 triệu VND
+    revenueGrowth: 15.8, // 15.8% tăng trưởng
+    coursesCompleted: 1247,
+    completionRate: 78.5, // 78.5% completion rate
+    averageRating: 4.6 // 4.6/5 stars
+  },
+  engagement: {
+    activeStudents: 1845,
+    studentGrowth: 12.3, // 12.3% tăng trưởng học viên
+    averageStudyTime: 45, // 45 phút/ngày
+    questionsAnswered: 28934,
+    correctAnswerRate: 82.7 // 82.7% câu trả lời đúng
+  }
 };
 
 // Additional analytics data

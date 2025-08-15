@@ -52,7 +52,7 @@ export function SearchDropdown({
   const renderLoadingState = () => {
     return (
       <div className="p-4">
-        <div className="flex items-center justify-center space-x-2 text-gray-500">
+        <div className="flex items-center justify-center space-x-2 text-white/70">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
           <span className="text-sm">Đang tìm kiếm...</span>
         </div>
@@ -67,7 +67,7 @@ export function SearchDropdown({
   const renderSuggestions = () => {
     return (
       <div className="py-2">
-        <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <div className="px-3 py-2 text-xs font-medium text-white/70 uppercase tracking-wider">
           Kết quả tìm kiếm
         </div>
         
@@ -90,7 +90,7 @@ export function SearchDropdown({
   const renderNoResults = () => {
     return (
       <div className="p-4 text-center">
-        <div className="text-gray-500">
+        <div className="text-white/70">
           <div className="text-sm font-medium">Không tìm thấy kết quả</div>
           <div className="text-xs mt-1">Thử tìm kiếm với từ khóa khác</div>
         </div>
@@ -106,7 +106,7 @@ export function SearchDropdown({
     return (
       <div className="py-2">
         {/* Quick suggestions */}
-        <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <div className="px-3 py-2 text-xs font-medium text-white/70 uppercase tracking-wider">
           Gợi ý nhanh
         </div>
         
@@ -120,8 +120,8 @@ export function SearchDropdown({
         ))}
 
         {/* Popular searches */}
-        <div className="border-t border-gray-100 mt-2 pt-2">
-          <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <div className="border-t border-white/20 mt-2 pt-2">
+          <div className="px-3 py-2 text-xs font-medium text-white/70 uppercase tracking-wider">
             Tìm kiếm phổ biến
           </div>
           
@@ -145,7 +145,7 @@ export function SearchDropdown({
   return (
     <div
       className={cn(
-        'bg-white border border-gray-200 rounded-lg shadow-lg',
+        'bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg shadow-lg',
         'max-h-96 overflow-y-auto',
         'animate-in fade-in-0 zoom-in-95 duration-150',
         className
@@ -186,7 +186,7 @@ function SuggestionItem({
     return parts.map((part, index) => {
       if (part.toLowerCase() === searchQuery.toLowerCase()) {
         return (
-          <mark key={index} className="bg-yellow-200 text-yellow-900 rounded px-0.5">
+          <mark key={index} className="bg-yellow-400/30 text-yellow-300 rounded px-0.5">
             {part}
           </mark>
         );
@@ -201,24 +201,24 @@ function SuggestionItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center px-3 py-2 text-left',
-        'hover:bg-gray-50 transition-colors duration-150',
-        'focus:bg-gray-50 focus:outline-none'
+        'hover:bg-white/10 transition-colors duration-150',
+        'focus:bg-white/10 focus:outline-none'
       )}
     >
       {/* Icon */}
       {IconComponent && (
         <div className="flex-shrink-0 mr-3">
-          <IconComponent className="w-4 h-4 text-gray-400" />
+          <IconComponent className="w-4 h-4 text-white/70" />
         </div>
       )}
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-gray-900 truncate">
+        <div className="text-sm font-medium text-white truncate">
           {highlightText(suggestion.title, query)}
         </div>
         {suggestion.description && (
-          <div className="text-xs text-gray-500 truncate">
+          <div className="text-xs text-white/70 truncate">
             {highlightText(suggestion.description, query)}
           </div>
         )}
@@ -226,7 +226,7 @@ function SuggestionItem({
 
       {/* Arrow */}
       <div className="flex-shrink-0 ml-2">
-        <ArrowRight className="w-3 h-3 text-gray-400" />
+        <ArrowRight className="w-3 h-3 text-white/70" />
       </div>
     </button>
   );
@@ -249,25 +249,25 @@ function PopularSearchItem({
       onClick={onClick}
       className={cn(
         'w-full flex items-center px-3 py-2 text-left',
-        'hover:bg-gray-50 transition-colors duration-150',
-        'focus:bg-gray-50 focus:outline-none'
+        'hover:bg-white/10 transition-colors duration-150',
+        'focus:bg-white/10 focus:outline-none'
       )}
     >
       {/* Trending icon */}
       <div className="flex-shrink-0 mr-3">
-        <TrendingUp className="w-4 h-4 text-gray-400" />
+        <TrendingUp className="w-4 h-4 text-white/70" />
       </div>
 
       {/* Search text */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm text-gray-700 truncate">
+        <div className="text-sm text-white truncate">
           {search}
         </div>
       </div>
 
       {/* Clock icon */}
       <div className="flex-shrink-0 ml-2">
-        <Clock className="w-3 h-3 text-gray-400" />
+        <Clock className="w-3 h-3 text-white/70" />
       </div>
     </button>
   );

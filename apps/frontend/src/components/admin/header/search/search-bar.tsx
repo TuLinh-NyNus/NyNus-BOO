@@ -163,23 +163,22 @@ export function SearchBar({
 
   /**
    * Get search bar classes
-   * Lấy CSS classes cho search bar với enhanced styling
+   * Lấy CSS classes cho search bar với admin dark theme styling
    */
   const getSearchBarClasses = () => {
     const baseClasses = [
       'relative flex items-center',
-      // Enhanced gradient background
-      'bg-gradient-to-r from-white/80 to-white/60 dark:from-gray-800/80 dark:to-gray-700/60',
-      'border border-indigo-200/50 dark:border-indigo-500/30',
-      'rounded-lg backdrop-blur-sm',
+      // Dark theme background consistent with admin panel
+      'bg-black/90 backdrop-blur-md',
+      'border border-white/20',
+      'rounded-lg',
       'transition-all duration-300 ease-in-out',
-      // Enhanced hover and focus states
-      'hover:from-white/90 hover:to-white/80 dark:hover:from-gray-800/90 dark:hover:to-gray-700/80',
-      'hover:border-indigo-300/70 dark:hover:border-indigo-400/50',
-      'focus-within:from-white dark:focus-within:from-gray-800',
-      'focus-within:border-indigo-500 dark:focus-within:border-indigo-400',
-      'focus-within:ring-2 focus-within:ring-indigo-500/20 dark:focus-within:ring-indigo-400/20',
-      'focus-within:shadow-lg focus-within:shadow-indigo-500/10 dark:focus-within:shadow-indigo-400/10'
+      // Enhanced hover and focus states for dark theme - NEW PURPLE SCHEME
+      'hover:bg-black/95 hover:border-white/30',
+      'focus-within:bg-black/95',
+      'focus-within:border-[#A259FF]/50',
+      'focus-within:ring-2 focus-within:ring-[#A259FF]/20',
+      'focus-within:shadow-lg focus-within:shadow-[#A259FF]/10'
     ];
 
     const variantClasses = {
@@ -193,19 +192,19 @@ export function SearchBar({
 
   /**
    * Render search icon
-   * Render search icon với enhanced styling
+   * Render search icon với admin dark theme styling
    */
   const renderSearchIcon = () => {
     return (
       <div className="flex items-center justify-center w-10 h-full">
-        <Search className="w-4 h-4 text-indigo-500 dark:text-indigo-400 transition-colors duration-200" />
+        <Search className="w-4 h-4 text-white/60 transition-colors duration-200" />
       </div>
     );
   };
 
   /**
    * Render clear button
-   * Render button để clear search
+   * Render button để clear search với admin dark theme styling
    */
   const renderClearButton = () => {
     if (!query) return null;
@@ -214,7 +213,7 @@ export function SearchBar({
       <button
         type="button"
         onClick={handleClearSearch}
-        className="flex items-center justify-center w-8 h-full text-gray-400 hover:text-gray-600 transition-colors duration-150"
+        className="flex items-center justify-center w-8 h-full text-white/60 hover:text-white/80 transition-colors duration-150"
         aria-label="Clear search"
       >
         <X className="w-4 h-4" />
@@ -231,7 +230,7 @@ export function SearchBar({
 
     return (
       <div className="flex items-center justify-center w-16 h-full">
-        <div className="flex items-center space-x-1 text-xs text-gray-400">
+        <div className="flex items-center space-x-1 text-xs text-white/70">
           <Command className="w-3 h-3" />
           <span>K</span>
         </div>
@@ -275,7 +274,7 @@ export function SearchBar({
           placeholder={placeholder}
           className={cn(
             'flex-1 bg-transparent border-0 outline-none',
-            'text-sm text-gray-900 placeholder-gray-500',
+            'text-sm text-white placeholder-white/70',
             'px-0 py-0'
           )}
           autoComplete="off"

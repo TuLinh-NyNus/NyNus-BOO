@@ -81,9 +81,9 @@ const mockRecentActivities: RecentActivity[] = [
  */
 export function RecentActivities() {
   return (
-    <Card className="p-6 theme-bg theme-border border transition-colors duration-300">
+    <Card className="p-6 theme-bg theme-border border">
       <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white transition-colors duration-300">
+        <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
           Hoạt động gần đây
         </CardTitle>
       </CardHeader>
@@ -91,26 +91,26 @@ export function RecentActivities() {
       <CardContent className="px-0 pb-0">
         <div className="space-y-4">
           {mockRecentActivities.map((activity) => (
-            <div 
-              key={activity.id} 
-              className="flex items-center gap-4 p-3 rounded-lg bg-slate-100/80 dark:bg-slate-700/30 transition-colors duration-300 hover:bg-slate-200/80 dark:hover:bg-slate-600/30"
+            <div
+              key={activity.id}
+              className="flex items-center gap-4 p-3 rounded-lg bg-slate-100/80 dark:bg-slate-700/30"
             >
               {/* Icon container với màu nền động */}
-              <div className={`h-10 w-10 rounded-full ${activity.iconBgColor} flex items-center justify-center transition-colors duration-300`}>
-                <span className={`${activity.iconColor} transition-colors duration-300`}>
+              <div className={`h-10 w-10 rounded-full ${activity.iconBgColor} flex items-center justify-center`}>
+                <span className={activity.iconColor}>
                   {activity.icon}
                 </span>
               </div>
               
               {/* Nội dung hoạt động */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 dark:text-white transition-colors duration-300 truncate">
+                <p className="text-sm font-medium text-slate-800 dark:text-white truncate">
                   {activity.title}
                 </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 transition-colors duration-300 truncate">
+                <p className="text-xs text-slate-600 dark:text-slate-400 truncate">
                   {activity.description}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-500 transition-colors duration-300 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                   {activity.timestamp}
                 </p>
               </div>
