@@ -70,7 +70,6 @@ export function QueryProvider({ children }: QueryProviderProps) {
       {process.env.NODE_ENV === 'development' && !isAdminPage && (
         <ReactQueryDevtools
           initialIsOpen={false}
-          position="bottom-right"
         />
       )}
     </QueryClientProvider>

@@ -4,7 +4,6 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/display/card";
 import {
   Activity,
-  BarChart3,
 } from "lucide-react";
 
 // Import dashboard components
