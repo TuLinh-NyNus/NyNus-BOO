@@ -2,11 +2,14 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  Plus,
+import { 
+  Plus, 
+  Search, 
+  Filter, 
   MoreHorizontal,
   FileText,
   Upload,
+  Database,
   Bookmark,
   Map,
   Loader2,
@@ -17,6 +20,14 @@ import {
   Button,
   Card,
   CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
   Badge,
   Table,
   TableBody,
@@ -40,11 +51,10 @@ import {
   QuestionStatus,
   QuestionDifficulty
 } from '@/lib/types/question';
-
+import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from '@/lib/utils/filter-type-adapters';
+import { ComprehensiveQuestionFiltersNew } from '@/components/admin/questions/filters';
 import { MockQuestionsService } from '@/lib/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
-import { ComprehensiveQuestionFilters } from '@/components/admin/questions/filters';
-import { useFilterUrlSync } from '@/hooks/useFilterUrlSync';
 
 /**
  * Admin Questions List Page
@@ -54,21 +64,14 @@ export default function AdminQuestionsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Filter state với URL sync
-  const { filters, updateFilters, resetFilters } = useFilterUrlSync({
-    page: 1,
-    pageSize: 20
-  });
-
   // State management cho questions list
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [filters, setFilters] = useState<QuestionFilters>({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20);
   const [totalQuestions, setTotalQuestions] = useState(0);
-
-  // Extract pagination từ filters
-  const currentPage = filters.page || 1;
-  const pageSize = filters.pageSize || 20;
 
   /**
    * Load questions data từ mock service
@@ -105,11 +108,8 @@ export default function AdminQuestionsPage() {
    * Handle filter changes
    */
   const handleFilterChange = (newFilters: Partial<QuestionFilters>) => {
-    updateFilters(prev => ({
-      ...prev,
-      ...newFilters,
-      page: 1 // Reset về trang đầu khi filter
-    }));
+    setFilters(prev => ({ ...prev, ...newFilters }));
+    setCurrentPage(1); // Reset về trang đầu khi filter
   };
 
   /**
@@ -291,13 +291,14 @@ export default function AdminQuestionsPage() {
           </div>
         </div>
 
-        {/* Comprehensive Filters */}
-        <ComprehensiveQuestionFilters
-          filters={filters}
+        {/* Comprehensive Filters System */}
+        <ComprehensiveQuestionFiltersNew
           onFiltersChange={handleFilterChange}
-          onResetFilters={resetFilters}
           isLoading={isLoading}
-          showFilterCount={true}
+          defaultFilters={{
+            page: currentPage,
+            pageSize: pageSize
+          }}
         />
 
         {/* Bulk actions */}
@@ -475,7 +476,7 @@ export default function AdminQuestionsPage() {
                 variant="outline"
                 size="sm"
                 disabled={currentPage === 1}
-                onClick={() => updateFilters(prev => ({ ...prev, page: currentPage - 1 }))}
+                onClick={() => setCurrentPage(prev => prev - 1)}
               >
                 Trước
               </Button>
@@ -486,7 +487,7 @@ export default function AdminQuestionsPage() {
                 variant="outline"
                 size="sm"
                 disabled={currentPage >= Math.ceil(totalQuestions / pageSize)}
-                onClick={() => updateFilters(prev => ({ ...prev, page: currentPage + 1 }))}
+                onClick={() => setCurrentPage(prev => prev + 1)}
               >
                 Sau
               </Button>
