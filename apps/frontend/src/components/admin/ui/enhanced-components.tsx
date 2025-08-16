@@ -127,16 +127,20 @@ export function AdminBadge({
 }
 
 // Enhanced Table components for Admin
-export function AdminTable({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) {
+interface AdminTableProps extends React.HTMLAttributes<HTMLTableElement> {}
+
+export function AdminTable({ className, ...props }: AdminTableProps) {
   return (
-    <table
-      className={cn('admin-table w-full border-collapse', className)}
-      {...props}
+    <table 
+      className={cn('admin-table w-full border-collapse', className)} 
+      {...props} 
     />
   );
 }
 
-export function AdminTableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
+interface AdminTableHeaderProps extends React.HTMLAttributes<HTMLTableSectionElement> {}
+
+export function AdminTableHeader({ className, ...props }: AdminTableHeaderProps) {
   return (
     <thead 
       className={cn('admin-table-header', className)} 
@@ -145,16 +149,20 @@ export function AdminTableHeader({ className, ...props }: React.HTMLAttributes<H
   );
 }
 
-export function AdminTableBody({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
+interface AdminTableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {}
+
+export function AdminTableBody({ className, ...props }: AdminTableBodyProps) {
   return (
-    <tbody
-      className={cn('', className)}
-      {...props}
+    <tbody 
+      className={cn('', className)} 
+      {...props} 
     />
   );
 }
 
-export function AdminTableRow({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
+interface AdminTableRowProps extends React.HTMLAttributes<HTMLTableRowElement> {}
+
+export function AdminTableRow({ className, ...props }: AdminTableRowProps) {
   return (
     <tr 
       className={cn('admin-table-row', className)} 
@@ -178,7 +186,9 @@ export function AdminTableCell({ className, as = 'td', ...props }: AdminTableCel
 }
 
 // Enhanced Input for Admin
-export function AdminInput({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
+interface AdminInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+export function AdminInput({ className, ...props }: AdminInputProps) {
   return (
     <input 
       className={cn(

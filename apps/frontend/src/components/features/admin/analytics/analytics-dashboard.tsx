@@ -9,12 +9,17 @@ import React, { useState, useEffect } from 'react';
 import {
   BarChart3,
   TrendingUp,
+  Users,
+  BookOpen,
   GraduationCap,
   Activity,
+  Calendar,
   Target,
+  Award,
   Clock,
   Download,
   Eye,
+  FileText,
   Star,
   DollarSign
 } from 'lucide-react';
@@ -43,7 +48,7 @@ type AnalyticsTab = 'user-growth' | 'activity-access' | 'course-stats';
  * Advanced analytics dashboard với tab system và 3:1 layout
  */
 export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
-  const [analyticsData] = useState(mockAnalytics);
+  const [analyticsData, setAnalyticsData] = useState(mockAnalytics);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>('30d');
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('user-growth');
@@ -77,7 +82,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     );
   }
 
-  const { performance, engagement } = analyticsData;
+  const { overview, performance, engagement } = analyticsData;
 
   return (
     <div className={`space-y-6 ${className}`}>
