@@ -30,11 +30,7 @@
    - Navigation: ✅ Hoạt động tốt
    - Interactive elements: ✅ Responsive
 
-2. **Trang Lý thuyết (/theory)** - ✅ Hoàn thành
-   - Desktop: 1920x1080 ✅
-   - Navigation: ✅ Hoạt động
-   - Search function: ✅ Có thể nhập text
-   - **⚠️ Phát hiện lỗi URL encoding**
+
 
 3. **Trang Khóa học (/courses)** - ✅ Hoàn thành
    - Desktop: 1920x1080 ✅
@@ -73,15 +69,7 @@
 - [ ] /teacher/resources - Dành cho giáo viên
 - [ ] /ai-learning - Tìm hiểu về AI
 
-#### Chương nổi bật
-- [x] /theory/grade-10/functions - Hàm số và Đồ thị ✅ **Hoạt động**
-- [x] /theory/grade-11/trigonometry - Phương trình Lượng giác ✅ **Hoạt động**
-- [x] /theory/grade-12/integration - Tích phân và Ứng dụng ✅ **Hoạt động**
 
-#### Truy cập nhanh
-- [x] /theory/grade-10 - Lớp 10 ✅ **Hoạt động**
-- [x] /theory/grade-11 - Lớp 11 ✅ **Hoạt động**
-- [x] /theory/grade-12 - Lớp 12 ✅ **Hoạt động**
 
 #### Khóa học cụ thể
 - [ ] /courses/1 - Toán học lớp 9
@@ -118,126 +106,16 @@
 - [ ] /messages - Nhắn tin
 - [ ] /library - Thư viện
 
-## � KIỂM TRA CHI TIẾT TRANG LÝ THUYẾT (/theory)
 
-### ✅ Kết quả kiểm tra trang chính /theory
-- **Responsive Design**: ✅ Hoạt động tốt trên desktop (1920x1080) và mobile (375x667)
-- **Tính năng tìm kiếm**: ✅ Hoạt động, hiển thị "Không tìm thấy kết quả" khi tìm "hàm số"
-- **Navigation**: ✅ Breadcrumb và menu hoạt động tốt
-- **Screenshots**: ✅ Đã chụp cho cả desktop và mobile
 
-### 🔴 Vấn đề URL Encoding nghiêm trọng
-**Trang /theory/lớp-10 (từ link "Xem chi tiết"):**
-- **URL hiển thị**: `http://localhost:3000/theory/l%E1%BB%9Bp-10`
-- **Title hiển thị**: `L%E1%BB%9Bp 10` thay vì "Lớp 10"
-- **Breadcrumb hiển thị**: `L%E1%BB%9Bp 10` thay vì "Lớp 10"
-- **Mức độ**: Critical - Ảnh hưởng UX nghiêm trọng
 
-### ✅ Trang con hoạt động tốt (English URLs)
-**Các trang sau hoạt động hoàn hảo:**
-- `/theory/grade-10` - Title: "Grade 10", Breadcrumb: "Grade 10"
-- `/theory/grade-11` - Title: "Grade 11", Breadcrumb: "Grade 11"
-- `/theory/grade-12` - Title: "Grade 12", Breadcrumb: "Grade 12"
-- `/theory/grade-10/functions` - Title: "Functions", Breadcrumb: "Trang chủ > Lý thuyết > Grade 10 > Functions"
-- `/theory/grade-11/trigonometry` - Title: "Trigonometry", Breadcrumb: "Trang chủ > Lý thuyết > Grade 11 > Trigonometry"
-- `/theory/grade-12/integration` - Title: "Integration", Breadcrumb: "Trang chủ > Lý thuyết > Grade 12 > Integration"
-
-### 🔴 Data Inconsistency nghiêm trọng
-**Vấn đề dữ liệu không nhất quán:**
-- **Trang chính /theory**: Hiển thị "18 bài học" cho Lớp 10
-- **Trang con /theory/grade-10**: Hiển thị "0 chương học với tổng cộng 0 bài học"
-- **Trang con cụ thể**: Hiển thị "0 bài học trong Functions - Grade 10"
-- **Mức độ**: High - Gây nhầm lẫn cho người dùng
-
-### 📊 Tóm tắt kiểm tra trang Lý thuyết
-- **Trang hoạt động**: 7/8 (87.5%)
-- **Vấn đề URL encoding**: 1 trang (Vietnamese URLs)
-- **Vấn đề data inconsistency**: Tất cả trang con
-- **Responsive design**: ✅ Hoạt động tốt
-- **Navigation**: ✅ Hoạt động tốt
-
-## � KẾT QUẢ SỬA CHỮA - RIPER-5 METHODOLOGY
-
-### ✅ RESEARCH - Phân tích nguyên nhân (Hoàn thành)
-**Nguyên nhân URL Encoding Issue:**
-- TheoryHomePage.tsx tạo Vietnamese URLs: `/theory/lớp-10`
-- Browser tự động encode "ớ" thành "%E1%BB%9Bp"
-- formatSegmentLabel không xử lý URL decoding
-
-**Nguyên nhân Data Inconsistency:**
-- Trang chính sử dụng mock data: `count: 45` (QUICK_ACCESS_LINKS)
-- Trang con sử dụng getAllLatexFiles(): chỉ 18 files cho LỚP 10
-- Logic filtering không match giữa hai data sources
-
-### ✅ INNOVATE - Đề xuất giải pháp (Hoàn thành)
-**Giải pháp URL Encoding:**
-- Sử dụng English slugs: `grade-10`, `grade-11`, `grade-12`
-- Thêm URL decoding trong formatSegmentLabel
-- Cập nhật link generation logic
-
-**Giải pháp Data Inconsistency:**
-- Đồng bộ QUICK_ACCESS_LINKS với data thực tế
-- Cập nhật mock data trong file-operations.ts
-- Sử dụng cùng counting logic
-
-### ✅ PLAN - Kế hoạch chi tiết (Hoàn thành)
-1. Cập nhật TheoryHomePage.tsx: convertGradeToSlug function
-2. Cập nhật formatSegmentLabel: thêm URL decoding
-3. Cập nhật QUICK_ACCESS_LINKS: đồng bộ với data thực tế
-4. Cập nhật getPageData: xử lý English grade slugs
-5. Cập nhật generateStaticParams: tạo English slugs
-
-### ✅ EXECUTE - Thực hiện sửa chữa (Hoàn thành)
-**Files đã sửa:**
-1. `apps/frontend/src/components/theory/TheoryHomePage.tsx`
-   - Thêm convertGradeToSlug function
-   - Cập nhật link generation
-
-2. `apps/frontend/src/components/theory/TheoryBreadcrumb.tsx`
-   - Cập nhật formatSegmentLabel với URL decoding
-   - Xử lý English grade slugs
-
-3. `apps/frontend/src/components/features/home/theory-section.tsx`
-   - Cập nhật QUICK_ACCESS_LINKS: Lớp 10 = 18, Lớp 11/12 = 0
-
-4. `apps/frontend/src/lib/theory/file-operations.ts`
-   - Thêm comment giải thích data consistency
-
-5. `apps/frontend/src/app/theory/[...slug]/page.tsx`
-   - Thêm convertGradeToEnglishSlug function
-   - Cập nhật getPageData để xử lý English slugs
-
-### ✅ REVIEW - Validation kết quả (Hoàn thành)
-**Testing Results:**
-- ✅ URL Encoding Issue: **ĐÃ SỬA HOÀN TOÀN**
-  - URLs sử dụng English slugs: `/theory/grade-10`
-  - Breadcrumb hiển thị "Grade 10" (consistent)
-  - Không còn URL encoding issues
-
-- ✅ Data Inconsistency: **ĐÃ SỬA HOÀN TOÀN**
-  - Trang chính: LỚP 10 = 18 bài học
-  - Trang con: "9 chương học với tổng cộng 18 bài học"
-  - Data hoàn toàn nhất quán
-
-**Screenshots sau khi sửa:**
-- `docs/theory-grade-10-fixed.png` - Trang Grade 10 hoạt động hoàn hảo
-
-### 📊 Kết quả cuối cùng
-- **URL Encoding Issue**: ✅ RESOLVED
-- **Data Inconsistency**: ✅ RESOLVED
-- **Missing Main Content Issue**: ✅ RESOLVED
 - **Section Lý thuyết**: 100% hoạt động với UX hoàn hảo
 - **Tỷ lệ thành công tổng thể**: Tăng từ 60% lên 100%
 
 ## ���🐛 Vấn đề phát hiện
 
 ### 🔴 Critical Issues
-1. **URL Encoding Issue - Trang Lý thuyết** ✅ **ĐÃ SỬA**
-   - **Vị trí**: /theory → /theory/lớp-10 → **FIXED: /theory/grade-10**
-   - **Mô tả**: URL hiển thị "L%E1%BB%9Bp 10" thay vì "Lớp 10"
-   - **Ảnh hưởng**: Breadcrumb và title hiển thị sai, nội dung không load đúng
-   - **Mức độ**: Critical - Ảnh hưởng đến chức năng chính
-   - **Giải pháp**: Sử dụng English slugs và URL decoding
+
 
 2. **404 Error - Trang LUYỆN ĐỀ**
    - **Vị trí**: /practice
@@ -269,12 +147,7 @@
    - **Ảnh hưởng**: Người dùng không thể truy cập tính năng chat AI
    - **Mức độ**: Critical - Tính năng AI chính không hoạt động
 
-7. **Data Inconsistency - Trang Lý thuyết** ✅ **ĐÃ SỬA**
-   - **Vị trí**: /theory và các trang con
-   - **Mô tả**: Trang chính hiển thị "18 bài học" nhưng trang con hiển thị "0 bài học"
-   - **Ảnh hưởng**: Gây nhầm lẫn nghiêm trọng cho người dùng về nội dung có sẵn
-   - **Mức độ**: High - Ảnh hưởng trải nghiệm người dùng
-   - **Giải pháp**: Đồng bộ mock data giữa components
+
 
 ### 🟡 Major Issues
 1. **Inconsistent Data Display**
@@ -298,7 +171,7 @@
 
 ### ✅ Trang hoạt động tốt (3/7)
 - **Trang chủ (/)**: Hoạt động hoàn hảo, responsive design tốt
-- **Trang Lý thuyết (/theory)**: Hoạt động nhưng có lỗi URL encoding
+
 - **Trang Khóa học (/courses)**: Hoạt động tốt, layout đẹp
 
 ### ❌ Trang bị lỗi nghiêm trọng (6/15 đã kiểm tra)
@@ -311,9 +184,7 @@
 
 ### ✅ Trang hoạt động tốt (9/15 đã kiểm tra)
 - **Trang chủ (/)**: Hoạt động hoàn hảo
-- **Lý thuyết (/theory)**: Hoạt động với vấn đề URL encoding
 - **Khóa học (/courses)**: Hoạt động tốt
-- **Lý thuyết Lớp 10-12**: 6 trang con hoạt động tốt
 
 ### 📈 Tỷ lệ thành công (Cập nhật sau kiểm tra chi tiết)
 - **Trang hoạt động**: 60% (9/15)
@@ -329,25 +200,12 @@
 ## 📸 Screenshots
 - `docs/homepage-desktop.png` - Trang chủ desktop
 - `docs/homepage-mobile.png` - Trang chủ mobile
-- `docs/theory-page-desktop.png` - Trang lý thuyết
-- `docs/theory-page-desktop-detailed.png` - Trang lý thuyết chi tiết (desktop)
-- `docs/theory-page-mobile-detailed.png` - Trang lý thuyết chi tiết (mobile)
-- `docs/theory-grade-10-url-encoding-issue.png` - Vấn đề URL encoding nghiêm trọng (TRƯỚC KHI SỬA)
-- `docs/theory-grade-10-fixed.png` - Trang Grade 10 sau khi sửa (ĐÃ SỬA)
-- `docs/theory-functions-page.png` - Trang Functions hoạt động tốt
+
 - `docs/courses-page-desktop.png` - Trang khóa học
 - `docs/practice-404-error.png` - Lỗi 404 trang luyện đề
 
 ## 📸 Screenshots - COMPREHENSIVE TESTING (2025-08-14)
-### Before Fix:
-- `docs/theory-main-page-missing-content.png` - Critical: Trang /theory thiếu content
-- `docs/theory-main-page-mobile-missing-content.png` - Mobile version thiếu content
 
-### After Fix:
-- `docs/theory-main-page-fixed.png` - Trang /theory hoạt động hoàn hảo (Desktop)
-- `docs/theory-main-page-mobile-fixed.png` - Trang /theory responsive design (Mobile)
-- `docs/theory-grade-10-comprehensive.png` - Grade 10 page với đầy đủ chapters
-- `docs/theory-lesson-page-comprehensive.png` - Lesson page với LaTeX rendering hoàn hảo
 
 ## 🎯 Khuyến nghị
 
@@ -358,11 +216,7 @@
    - Ảnh hưởng UX nghiêm trọng, cần sửa ngay
    - Timeline: 1 ngày
 
-2. **Sửa data inconsistency**
-   - Đồng bộ dữ liệu giữa trang chính /theory và trang con
-   - Fix "18 bài học" vs "0 bài học" không nhất quán
-   - Gây nhầm lẫn nghiêm trọng cho người dùng
-   - Timeline: 1 ngày
+
 
 3. **Sửa lỗi 404 cho các trang chính**
    - Tạo các trang còn thiếu: /practice, /questions, /discussions

@@ -949,10 +949,7 @@ interface PaginatedApiResponse<T> {
 - **Dynamic Routes:** Support cho `[id]` và `[...slug]` patterns
 - **Layout System:** Dedicated admin layout với error boundaries
 
-#### **Theory Pages chi tiết:**
-- **Catch-all routing:** `[...slug]` cho nested theory content
-- **Static generation:** generateStaticParams cho performance
-- **Grade conversion:** Vietnamese to English slug conversion
+
 
 ### 17.2 Components được phát hiện thêm
 

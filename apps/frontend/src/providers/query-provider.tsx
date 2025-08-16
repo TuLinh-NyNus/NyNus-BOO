@@ -5,6 +5,7 @@ import React from 'react';
 import { ReactNode, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { usePathname } from 'next/navigation';
 
 // Interface cho props của QueryProvider
 interface QueryProviderProps {
@@ -22,6 +23,10 @@ interface QueryProviderProps {
  * - DevTools cho development
  */
 export function QueryProvider({ children }: QueryProviderProps) {
+  // Check if we're on admin page to conditionally disable DevTools
+  const pathname = usePathname();
+  const isAdminPage = pathname?.includes('/3141592654/admin') ?? false;
+
   // Tạo QueryClient instance với configuration tối ưu
   const [queryClient] = useState(
     () => new QueryClient({
@@ -61,10 +66,11 @@ export function QueryProvider({ children }: QueryProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {/* DevTools chỉ hiển thị trong development */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* DevTools chỉ hiển thị trong development và KHÔNG phải admin pages */}
+      {process.env.NODE_ENV === 'development' && !isAdminPage && (
         <ReactQueryDevtools
           initialIsOpen={false}
+          position="bottom-right"
         />
       )}
     </QueryClientProvider>

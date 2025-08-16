@@ -266,21 +266,14 @@ export default function AdminQuestionsPage() {
               <FileText className="h-4 w-4 mr-2" />
               Nhập LaTeX
             </Button>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => router.push(ADMIN_PATHS.QUESTIONS_INPUT_AUTO)}
             >
               <Upload className="h-4 w-4 mr-2" />
               Nhập tự động
             </Button>
-            <Button 
-              variant="outline"
-              onClick={() => router.push(ADMIN_PATHS.QUESTIONS_DATABASE)}
-            >
-              <Database className="h-4 w-4 mr-2" />
-              Kho câu hỏi
-            </Button>
-            <Button 
+            <Button
               variant="outline"
               onClick={() => router.push(ADMIN_PATHS.QUESTIONS_SAVED)}
             >

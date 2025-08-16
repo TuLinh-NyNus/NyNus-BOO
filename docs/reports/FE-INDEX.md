@@ -43,7 +43,7 @@
 | LaTeX Input | `src/app/3141592654/admin/questions/inputques/page.tsx` | LaTeX question input interface | [Chi tiết](FE.md#srcapp3141592654adminquestionsinputquespagetsxlatex-input) |
 | Role Management | `src/app/3141592654/admin/roles/page.tsx` | Quản lý vai trò với role hierarchy | [Chi tiết](FE.md#srcapp3141592654adminrolespagetsxrole-management) |
 | Security | `src/app/3141592654/admin/security/page.tsx` | Security monitoring và management | [Chi tiết](FE.md#srcapp3141592654adminsecuritypagetsxsecurity-management) |
-| Theory Admin | `src/app/3141592654/admin/theory/page.tsx` | Admin interface cho theory content | [Chi tiết](FE.md#srcapp3141592654admintheorypage.tsxtheory-admin) |
+
 | User Management | `src/app/3141592654/admin/users/page.tsx` | Quản lý người dùng với advanced features | [Chi tiết](FE.md#srcapp3141592654adminuserspagetsxuser-management) |
 
 ### Layout Pages
@@ -52,7 +52,7 @@
 |------|-----------|-----------|--------------|
 | Root Layout | `src/app/layout.tsx` | Root layout cho toàn bộ ứng dụng | [Chi tiết](FE.md#srcapplayouttsx-root-layout) |
 | Admin Layout | `src/app/3141592654/admin/layout.tsx` | Main layout cho admin interface | [Chi tiết](FE.md#srcapp3141592654adminlayouttsx-admin-layout) |
-| Theory Layout | `src/app/theory/layout.tsx` | Layout wrapper cho theory content | [Chi tiết](FE.md#srcapptheorylayouttsx-theory-layout) |
+
 
 ### Đánh giá hiện tại
 [Để trống cho team đánh giá]
@@ -170,7 +170,7 @@
 | Features | `features.tsx` | Feature showcase với horizontal scroll | [Chi tiết](FE.md#landing-sections) |
 | Hero | `hero.tsx` | Landing hero section với animations | [Chi tiết](FE.md#landing-sections) |
 | Testimonials | `testimonials.tsx` | User testimonials | [Chi tiết](FE.md#landing-sections) |
-| Theory Section | `theory-section.tsx` | Theory content preview | [Chi tiết](FE.md#landing-sections) |
+
 
 #### Courses Components (`src/components/features/courses/`)
 
@@ -207,15 +207,7 @@
 | MapId Decoder | `mapid/MapIdDecoder` | Question ID mapping | [Chi tiết](FE.md#mapid-components) |
 | Question Preview | `preview/QuestionPreview` | Question preview | [Chi tiết](FE.md#preview-components) |
 
-#### Admin Theory Components (`src/components/admin/theory/`)
 
-| Component | File | Chức năng | Link báo cáo |
-|-----------|------|-----------|--------------|
-| Batch Operations | `BatchOperations` | Batch file operations | [Chi tiết](FE.md#file-management) |
-| File Manager | `FileManager` | Theory file management | [Chi tiết](FE.md#file-management) |
-| Latex Editor | `LatexEditor` | LaTeX editor interface | [Chi tiết](FE.md#file-management) |
-| Progress Tracker | `ProgressTracker` | Operation progress tracking | [Chi tiết](FE.md#file-management) |
-| Template Manager | `TemplateManager` | Template management | [Chi tiết](FE.md#file-management) |
 
 ### Layout Components
 
@@ -231,7 +223,7 @@
 | Scroll to Top | `scroll-to-top.tsx` | Scroll to top button | [Chi tiết](FE.md#core-layout) |
 | Search Dropdown | `search-dropdown.tsx` | Search functionality | [Chi tiết](FE.md#core-layout) |
 
-### Theory Components
+
 
 
 
@@ -319,7 +311,7 @@
 | AI Learning with Loading | `ai-learning-with-loading.tsx` | AI learning với loading states | 8/10 | ✅ | Minor: có thể simplify loading logic | [Chi tiết](FE.md#ai-learning-loading-component) |
 | Featured Courses | `featured-courses.tsx` | Course display với horizontal scroll | 8/10 | ✅ | Function có thể dài (206+ lines), good structure | [Chi tiết](FE.md#featured-courses-component) |
 | FAQ | `faq.tsx` | FAQ section với accordion functionality | 8/10 | ✅ | Minor: có thể optimize state management | [Chi tiết](FE.md#faq-component) |
-| Theory Section | `theory-section.tsx` | Theory content showcase | 8/10 | ✅ | Minor: có thể optimize mock data structure | [Chi tiết](FE.md#theory-section-component) |
+
 
 ### Admin Components (`src/components/features/admin/`)
 
@@ -331,23 +323,7 @@
 | System Notifications | `dashboard/system-notifications.tsx` | System notifications panel với priority levels | 8/10 | ✅ | Function có thể dài (173+ lines), good structure | [Chi tiết](FE.md#system-notifications-component) |
 | Dashboard Header | `dashboard/dashboard-header.tsx` | Dashboard header với refresh controls | 8/10 | ✅ | Minor: có thể simplify status logic | [Chi tiết](FE.md#dashboard-header-component) |
 
-### Theory Components (`src/components/theory/`)
 
-| Component | File | Chức năng | Quality Score | Standards | Issues | Link báo cáo |
-|-----------|------|-----------|---------------|-----------|--------|--------------|
-| Theory Content Page | `TheoryContentPage.tsx` | Theory content rendering | 8/10 | ✅ | Minor: có thể simplify page type switching | [Chi tiết](FE.md#theory-content-page-component) |
-| Theory Navigation | `TheoryNavigation.tsx` | Theory navigation tree với hierarchical structure | 8/10 | ✅ | Minor: có thể optimize loading state | [Chi tiết](FE.md#theory-navigation-component) |
-| Theory Home Page | `TheoryHomePage.tsx` | Theory section landing page | N/A | N/A | File not found in analysis | [Chi tiết](FE.md#theory-home-page-component) |
-
-### Admin Theory Components (`src/components/admin/theory/`)
-
-| Component | File | Chức năng | Quality Score | Standards | Issues | Link báo cáo |
-|-----------|------|-----------|---------------|-----------|--------|--------------|
-| File Manager | `FileManager.tsx` | Theory file management với directory tree | 8/10 | ✅ | Function có thể dài (390+ lines), comprehensive | [Chi tiết](FE.md#file-manager-component) |
-| LaTeX Editor | `LatexEditor.tsx` | LaTeX editor với Monaco Editor và live preview | 7/10 | ⚠️ | Function quá dài (450+ lines), cần refactor | [Chi tiết](FE.md#latex-editor-component) |
-| Batch Operations | `BatchOperations.tsx` | Batch file operations với progress tracking | 8/10 | ✅ | Minor: có thể optimize operation configs | [Chi tiết](FE.md#batch-operations-component) |
-| Template Manager | `TemplateManager.tsx` | Template management với LaTeX editor integration | 8/10 | ✅ | Function có thể dài (207+ lines), good structure | [Chi tiết](FE.md#template-manager-component) |
-| Progress Tracker | `ProgressTracker.tsx` | Upload progress tracking với statistics | 8/10 | ✅ | Minor: có thể simplify stats calculation | [Chi tiết](FE.md#progress-tracker-admin-component) |
 
 ### Placeholder Components (`src/components/features/admin/`)
 
@@ -472,8 +448,8 @@
 - **Feedback**: Toast, Toaster, User Feedback System, Error Boundary (8/10)
 - **Layout**: Accordion, Collapsible, Scroll Area (8/10)
 - **LaTeX**: LaTeX Error Boundary, LaTeX Renderer, Question LaTeX Display (8/10)
-- **Feature**: Hero, AI Learning with Loading, Featured Courses, Theory Section, Dashboard Stats, Theory Content Page, FAQ, Admin Sidebar, Recent Activities, System Notifications, Dashboard Header, Theory Navigation (8/10)
-- **Admin Theory**: File Manager, Batch Operations, Template Manager, Progress Tracker (8/10)
+- **Feature**: Hero, AI Learning with Loading, Featured Courses, Dashboard Stats, FAQ, Admin Sidebar, Recent Activities, System Notifications, Dashboard Header (8/10)
+
 - **Layout**: Main Layout (9/10 reclassified as excellent)
 
 #### **Components Needing Improvement (7/10 or below)** - 13 components
@@ -483,7 +459,7 @@
 - **Navigation**: Command (hardcoded styles)
 - **LaTeX**: Solution LaTeX Display (199 lines, complex logic)
 - **Feature**: Features (560+ lines, complex structure)
-- **Admin Theory**: LaTeX Editor (450+ lines, cần refactor)
+
 - **Placeholder**: Admin Dashboard, User Management, Analytics Dashboard, Content Manager (1/10 - null implementations)
 
 ### Critical Issues Summary
@@ -637,9 +613,9 @@
 ### Thống kê chi tiết
 
 #### Pages Summary
-- **Public Pages:** 5 pages (Homepage, Courses, Theory, Testing, 404)
+- **Public Pages:** 4 pages (Homepage, Courses, Testing, 404)
 - **Admin Pages:** 12 main admin pages + 6 question sub-routes
-- **Layout Pages:** 3 layout files (Root, Admin, Theory)
+- **Layout Pages:** 2 layout files (Root, Admin)
 - **Dynamic Routes:** Support cho `[slug]`, `[...slug]`, `[id]` patterns
 - **Total Pages:** 25+ pages với comprehensive routing
 
@@ -658,9 +634,9 @@
   - Courses: 5+ components
   - Admin: 15+ components
   - Admin Questions: 9 components
-  - Admin Theory: 5 components
+
 - **Layout Components:** 7 main layout components
-- **Theory Components:** 4 theory-specific components
+
 - **Performance Components:** 3 optimization components
 - **Lazy Loading:** 1 comprehensive lazy loading system
 - **Total Components:** 200+ components

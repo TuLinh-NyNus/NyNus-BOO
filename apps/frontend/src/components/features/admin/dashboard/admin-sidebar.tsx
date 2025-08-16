@@ -56,7 +56,7 @@ const menuItems: MenuItem[] = [
   {
     title: 'Dashboard',
     icon: LayoutDashboard,
-    href: '/3141592654/admin/dashboard'
+    href: '/3141592654/admin'
   },
   {
     title: 'Quản lý Users',

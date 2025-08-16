@@ -538,16 +538,38 @@ export function VirtualizedUserTable({
       
       <CardContent>
         <div
-          className="admin-table-container"
-          style={{ height: containerHeight, maxHeight: '80vh', overflow: 'auto' }}
+          className="admin-table-container admin-table-scrollable"
+          style={{
+            height: containerHeight,
+            maxHeight: '80vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}
         >
           <Table>
-            <TableHeader className="sticky top-0 bg-background z-10">
+            <TableHeader
+              className="sticky top-0 z-20 border-b-2"
+              style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 20,
+                backgroundColor: 'hsl(var(--background))',
+                borderBottom: '2px solid hsl(var(--border))',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+              }}
+            >
               <TableRow>
                 {TABLE_COLUMNS.map((column) => (
-                  <TableHead 
-                    key={column.key} 
-                    className={`${column.width} ${column.sortable ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+                  <TableHead
+                    key={column.key}
+                    className={`${column.width} ${column.sortable ? 'cursor-pointer hover:bg-muted/50' : ''} sticky top-0 z-20 font-semibold`}
+                    style={{
+                      position: 'sticky',
+                      top: 0,
+                      zIndex: 20,
+                      backgroundColor: 'hsl(var(--background))',
+                      borderBottom: '2px solid hsl(var(--border))'
+                    }}
                     onClick={column.sortable ? () => handleSort(column.key) : undefined}
                   >
                     {column.key === 'select' ? (

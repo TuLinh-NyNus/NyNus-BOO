@@ -1,10 +1,97 @@
 /*
  * Admin Dark Theme Enhancements
  * Cải thiện màu sắc và contrast cho admin panel
- * 
+ *
  * @author NyNus Team
  * @version 1.0.0
  */
+
+/* ===== HIDE DEV TOOLS ===== */
+/* Hide TanStack Query DevTools that blocks content at bottom */
+/* Updated for TanStack Query v5.74.4+ with more aggressive hiding */
+
+/* Target all possible DevTools containers */
+.tsqd-parent-container,
+.tsqd-transitions-container,
+.tsqd-open-btn-container,
+.tsqd-open-btn,
+.tsqd-main-panel,
+.tsqd-devtools-panel,
+.tsqd-devtools {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -9999 !important;
+}
+
+/* Hide any element with DevTools-related classes */
+[class*="tsqd"],
+[class*="tanstack"],
+[class*="devtools"],
+[class*="react-query-devtools"],
+[data-testid*="devtools"],
+[id*="devtools"],
+[id*="tanstack"],
+[id*="tsqd"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Target DevTools by tag and attributes */
+div[style*="position: fixed"][style*="bottom"],
+div[style*="position: absolute"][style*="bottom"] {
+  /* Only hide if it contains DevTools-related content */
+}
+
+/* Ensure Next.js Dev Tools don't interfere either */
+button[class*="nextjs-portal"],
+div[class*="nextjs-portal"] {
+  display: none !important;
+}
+
+/* Additional safety net - hide any fixed positioned element at bottom that might be DevTools */
+body > div:last-child[style*="position: fixed"][style*="bottom: 0"] {
+  display: none !important;
+}
+
+/* Force hide React Query DevTools specifically */
+#__REACT_QUERY_DEVTOOLS__ {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* ===== ADMIN LAYOUT PROTECTION ===== */
+/* Ensure admin content is never blocked by overlays */
+.admin-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-panel main {
+  /* Ensure main content area has proper bottom padding */
+  padding-bottom: 2rem !important;
+  /* Prevent any fixed positioned elements from overlapping */
+  position: relative;
+  z-index: 2;
+}
+
+/* Force any remaining DevTools to stay out of admin area */
+body:has(.admin-panel) [class*="devtools"],
+body:has(.admin-panel) [class*="tsqd"],
+body:has(.admin-panel) [id*="devtools"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
 
 /* Admin Panel Dark Theme Overrides - NEW COLOR SCHEME */
 .dark .admin-panel {
@@ -273,6 +360,7 @@
   overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: var(--admin-border) var(--admin-bg-secondary);
+  position: relative;
 }
 
 .dark .admin-table-scrollable::-webkit-scrollbar {
@@ -290,6 +378,60 @@
 
 .dark .admin-table-scrollable::-webkit-scrollbar-thumb:hover {
   background: var(--admin-text-muted);
+}
+
+/* Enhanced sticky header for admin tables */
+.dark .admin-table-scrollable thead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--admin-bg-secondary);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.dark .admin-table-scrollable th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: var(--admin-bg-secondary);
+  border-bottom: 2px solid var(--admin-border);
+  font-weight: 600;
+}
+
+/* Enhanced sticky header for virtualized user table */
+.dark .admin-table-container .sticky {
+  background-color: var(--admin-bg-secondary) !important;
+  border-bottom: 2px solid var(--admin-border) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+/* Light theme sticky header support */
+.admin-table-scrollable {
+  position: relative;
+}
+
+.admin-table-scrollable thead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: hsl(var(--background));
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.admin-table-scrollable th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background-color: hsl(var(--background));
+  border-bottom: 2px solid hsl(var(--border));
+  font-weight: 600;
+}
+
+/* Enhanced sticky header for virtualized user table - light theme */
+.admin-table-container .sticky {
+  background-color: hsl(var(--background)) !important;
+  border-bottom: 2px solid hsl(var(--border)) !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
 /* ===== ADMIN UNIFIED BACKGROUND UTILITIES ===== */

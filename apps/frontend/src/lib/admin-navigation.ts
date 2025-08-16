@@ -82,13 +82,6 @@ export const ADMIN_NAVIGATION: NavigationItem[] = [
         permissions: ['questions.create']
       },
       {
-        id: 'questions-database',
-        name: 'Kho câu hỏi',
-        href: '/3141592654/admin/questions/database',
-        icon: 'Database',
-        permissions: ['questions.read']
-      },
-      {
         id: 'questions-saved',
         name: 'Đã lưu',
         href: '/3141592654/admin/questions/saved',

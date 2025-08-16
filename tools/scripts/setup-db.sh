@@ -187,7 +187,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO questions (id, text, type, difficulty, explanation, tags) VALUES
 ('550e8400-e29b-41d4-a716-446655440101', 'What is 2 + 2?', 'multiple_choice', 'easy', 'Basic arithmetic', ARRAY['math', 'basic']),
 ('550e8400-e29b-41d4-a716-446655440102', 'What is the capital of Vietnam?', 'multiple_choice', 'medium', 'Geography question', ARRAY['geography', 'vietnam']),
-('550e8400-e29b-41d4-a716-446655440103', 'Explain the theory of relativity', 'essay', 'hard', 'Physics concept', ARRAY['physics', 'einstein'])
+('550e8400-e29b-41d4-a716-446655440103', 'Explain quantum mechanics', 'essay', 'hard', 'Physics concept', ARRAY['physics', 'quantum'])
 ON CONFLICT (id) DO NOTHING;
 
 -- Insert sample answers
