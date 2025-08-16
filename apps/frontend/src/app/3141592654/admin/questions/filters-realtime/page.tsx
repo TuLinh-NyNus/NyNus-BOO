@@ -35,6 +35,7 @@ import {
 // Import components và hooks
 import { ComprehensiveQuestionFilters } from '@/components/admin/questions/filters';
 import { useQuestionFilters } from '@/hooks/useQuestionFilters';
+import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
 import { useToast } from '@/components/ui/feedback/use-toast';
 
 // Import validation utilities
@@ -57,7 +58,8 @@ import { getQuestionCodeLabel } from '@/lib/utils/question-code';
  */
 export default function RealTimeQuestionFiltersPage() {
   const { toast } = useToast();
-  
+  const { setFilters, resetFilters } = useQuestionFiltersStore();
+
   // State cho validation
   const [validationResult, setValidationResult] = useState<FilterValidationResult | null>(null);
   const [filterConflicts, setFilterConflicts] = useState<FilterConflict[]>([]);
@@ -268,8 +270,9 @@ export default function RealTimeQuestionFiltersPage() {
         {/* Filters Panel */}
         <div className="lg:col-span-1">
           <ComprehensiveQuestionFilters
-            resultCount={pagination.total}
-            isLoading={isLoading || isSearching}
+            filters={filters}
+            onFiltersChange={setFilters}
+            onResetFilters={resetFilters}
           />
         </div>
 

@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Plus,
   MoreHorizontal,
   FileText,
   Upload,
@@ -19,14 +17,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Badge,
   Table,
   TableBody,
@@ -50,9 +40,11 @@ import {
   QuestionStatus,
   QuestionDifficulty
 } from '@/lib/types/question';
-import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from '@/lib/utils/filter-type-adapters';
+
 import { MockQuestionsService } from '@/lib/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
+import { ComprehensiveQuestionFilters } from '@/components/admin/questions/filters';
+import { useFilterUrlSync } from '@/hooks/useFilterUrlSync';
 
 /**
  * Admin Questions List Page
@@ -62,14 +54,21 @@ export default function AdminQuestionsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  // Filter state với URL sync
+  const { filters, updateFilters, resetFilters } = useFilterUrlSync({
+    page: 1,
+    pageSize: 20
+  });
+
   // State management cho questions list
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [filters, setFilters] = useState<QuestionFilters>({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
   const [totalQuestions, setTotalQuestions] = useState(0);
+
+  // Extract pagination từ filters
+  const currentPage = filters.page || 1;
+  const pageSize = filters.pageSize || 20;
 
   /**
    * Load questions data từ mock service
@@ -106,8 +105,11 @@ export default function AdminQuestionsPage() {
    * Handle filter changes
    */
   const handleFilterChange = (newFilters: Partial<QuestionFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-    setCurrentPage(1); // Reset về trang đầu khi filter
+    updateFilters(prev => ({
+      ...prev,
+      ...newFilters,
+      page: 1 // Reset về trang đầu khi filter
+    }));
   };
 
   /**
@@ -289,80 +291,14 @@ export default function AdminQuestionsPage() {
           </div>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Bộ lọc
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Tìm kiếm câu hỏi..."
-                  value={filters.keyword || ''}
-                  onChange={(e) => handleFilterChange({ keyword: e.target.value })}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Type filter */}
-              <Select
-                value={questionTypeAdapters.toString(filters.type)}
-                onValueChange={(value) => handleFilterChange({ type: questionTypeAdapters.fromString(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Loại câu hỏi" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả loại</SelectItem>
-                  <SelectItem value={QuestionType.MC}>Trắc nghiệm</SelectItem>
-                  <SelectItem value={QuestionType.TF}>Đúng/Sai</SelectItem>
-                  <SelectItem value={QuestionType.SA}>Tự luận ngắn</SelectItem>
-                  <SelectItem value={QuestionType.ES}>Tự luận</SelectItem>
-                  <SelectItem value={QuestionType.MA}>Ghép đôi</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Status filter */}
-              <Select
-                value={questionStatusAdapters.toString(filters.status)}
-                onValueChange={(value) => handleFilterChange({ status: questionStatusAdapters.fromString(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  <SelectItem value={QuestionStatus.ACTIVE}>Hoạt động</SelectItem>
-                  <SelectItem value={QuestionStatus.PENDING}>Chờ duyệt</SelectItem>
-                  <SelectItem value={QuestionStatus.INACTIVE}>Không hoạt động</SelectItem>
-                  <SelectItem value={QuestionStatus.ARCHIVED}>Lưu trữ</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Difficulty filter */}
-              <Select
-                value={questionDifficultyAdapters.toString(filters.difficulty)}
-                onValueChange={(value) => handleFilterChange({ difficulty: questionDifficultyAdapters.fromString(value) })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Độ khó" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả độ khó</SelectItem>
-                  <SelectItem value={QuestionDifficulty.EASY}>Dễ</SelectItem>
-                  <SelectItem value={QuestionDifficulty.MEDIUM}>Trung bình</SelectItem>
-                  <SelectItem value={QuestionDifficulty.HARD}>Khó</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Comprehensive Filters */}
+        <ComprehensiveQuestionFilters
+          filters={filters}
+          onFiltersChange={handleFilterChange}
+          onResetFilters={resetFilters}
+          isLoading={isLoading}
+          showFilterCount={true}
+        />
 
         {/* Bulk actions */}
         {selectedIds.length > 0 && (
@@ -539,7 +475,7 @@ export default function AdminQuestionsPage() {
                 variant="outline"
                 size="sm"
                 disabled={currentPage === 1}
-                onClick={() => setCurrentPage(prev => prev - 1)}
+                onClick={() => updateFilters(prev => ({ ...prev, page: currentPage - 1 }))}
               >
                 Trước
               </Button>
@@ -550,7 +486,7 @@ export default function AdminQuestionsPage() {
                 variant="outline"
                 size="sm"
                 disabled={currentPage >= Math.ceil(totalQuestions / pageSize)}
-                onClick={() => setCurrentPage(prev => prev + 1)}
+                onClick={() => updateFilters(prev => ({ ...prev, page: currentPage + 1 }))}
               >
                 Sau
               </Button>

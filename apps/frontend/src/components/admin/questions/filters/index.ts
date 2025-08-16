@@ -6,8 +6,13 @@
  * @version 1.0.0
  */
 
-// Main comprehensive filter component
-export { ComprehensiveQuestionFilters } from './comprehensive-question-filters';
+// Main comprehensive filter component - NEW SYSTEM
+export { ComprehensiveQuestionFilters } from './ComprehensiveQuestionFilters';
+export { BasicFiltersRow } from './BasicFiltersRow';
+export { AdvancedFiltersSection } from './AdvancedFiltersSection';
+
+// Legacy comprehensive filter component
+export { ComprehensiveQuestionFilters as LegacyComprehensiveQuestionFilters } from './comprehensive-question-filters';
 
 // Individual filter components
 export { QuestionCodeFilters } from './question-code-filters';
