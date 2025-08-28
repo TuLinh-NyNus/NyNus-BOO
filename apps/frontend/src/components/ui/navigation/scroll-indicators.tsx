@@ -63,7 +63,7 @@ export function ScrollIndicators({
     }
   };
 
-  const colors = colorVariants[color];
+  const colors = colorVariants[color] || colorVariants.white; // Fallback to white if color is invalid
 
   // Render dots variant
   if (variant === 'dots') {
@@ -80,7 +80,7 @@ export function ScrollIndicators({
           >
             <div className={cn(
               "w-2 h-2 rounded-full transition-all duration-300",
-              index === activeIndicator ? colors.active : colors.inactive
+              index === activeIndicator ? (colors?.active || 'bg-white') : (colors?.inactive || 'bg-white/30')
             )} />
           </button>
         ))}
@@ -101,7 +101,7 @@ export function ScrollIndicators({
         </span>
         <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
           <div 
-            className={cn("h-full transition-all duration-300 rounded-full", colors.progress)}
+            className={cn("h-full transition-all duration-300 rounded-full", colors?.progress || 'bg-white')}
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -119,8 +119,8 @@ export function ScrollIndicators({
             className={cn(
               "h-1 rounded-full transition-all duration-300",
               index === activeIndicator 
-                ? cn("w-6", colors.active)
-                : cn("w-2", colors.inactive)
+                ? cn("w-6", colors?.active || 'bg-white')
+                : cn("w-2", colors?.inactive || 'bg-white/30')
             )}
           />
         ))}

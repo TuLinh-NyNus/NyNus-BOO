@@ -48,11 +48,15 @@ interface ModalProviderProps {
 
 export function ModalProvider({ children }: ModalProviderProps) {
   const [modals, setModals] = useState<ModalConfig[]>([]);
+  const [modalCounter, setModalCounter] = useState<number>(0);
 
-  // Tạo unique ID cho modal
+  // Tạo unique ID cho modal - sử dụng counter thay vì Date.now() + Math.random()
+  // để đảm bảo deterministic ID generation và tránh hydration mismatch
   const generateId = useCallback(() => {
-    return `modal-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }, []);
+    const id = `modal-${modalCounter}`;
+    setModalCounter(prev => prev + 1);
+    return id;
+  }, [modalCounter]);
 
   // Mở modal mới
   const openModal = useCallback((config: Omit<ModalConfig, 'id'>) => {

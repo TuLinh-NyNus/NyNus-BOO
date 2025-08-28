@@ -22,7 +22,7 @@ export const mockAdminUser: User = {
   firstName: 'Admin',
   lastName: 'NyNus',
   role: 'admin',
-  avatar: '/avatars/admin.jpg',
+  avatar: '/avatars/admin.svg',
   isActive: true,
   lastLoginAt: new Date()
 };

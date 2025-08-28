@@ -1,15 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Plus, 
-  Search, 
-  Filter, 
+import {
+  Plus,
   MoreHorizontal,
   FileText,
   Upload,
-  Database,
   Bookmark,
   Map,
   Loader2,
@@ -20,14 +17,6 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Badge,
   Table,
   TableBody,
@@ -48,10 +37,9 @@ import {
   Question,
   QuestionFilters,
   QuestionType,
-  QuestionStatus,
-  QuestionDifficulty
+  QuestionStatus
 } from '@/lib/types/question';
-import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from '@/lib/utils/filter-type-adapters';
+// Removed unused imports - now using ComprehensiveQuestionFiltersNew
 import { ComprehensiveQuestionFiltersNew } from '@/components/admin/questions/filters';
 import { MockQuestionsService } from '@/lib/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
@@ -70,8 +58,12 @@ export default function AdminQuestionsPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [filters, setFilters] = useState<QuestionFilters>({});
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(50);
   const [totalQuestions, setTotalQuestions] = useState(0);
+
+  // Ref để track previous values và tránh infinite loop
+  const prevFiltersRef = useRef<QuestionFilters>({});
+  const prevPageRef = useRef<number>(1);
 
   /**
    * Load questions data từ mock service
@@ -99,18 +91,30 @@ export default function AdminQuestionsPage() {
     }
   }, [currentPage, pageSize, filters, toast]);
 
-  // Load questions khi component mount hoặc filters thay đổi
+  // Initial load khi component mount
   useEffect(() => {
     loadQuestions();
-  }, [loadQuestions]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load questions khi dependencies thực sự thay đổi
+  useEffect(() => {
+    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current);
+    const pageChanged = currentPage !== prevPageRef.current;
+
+    if (filtersChanged || pageChanged) {
+      prevFiltersRef.current = filters;
+      prevPageRef.current = currentPage;
+      loadQuestions();
+    }
+  }, [filters, currentPage, loadQuestions]);
 
   /**
    * Handle filter changes
    */
-  const handleFilterChange = (newFilters: Partial<QuestionFilters>) => {
+  const handleFilterChange = useCallback((newFilters: Partial<QuestionFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setCurrentPage(1); // Reset về trang đầu khi filter
-  };
+  }, []);
 
   /**
    * Handle selection changes
@@ -139,8 +143,7 @@ export default function AdminQuestionsPage() {
   };
 
   const handleViewQuestion = (id: string) => {
-    // Implement view logic
-    console.log('View question:', id);
+    router.push(`/questions/${id}`);
   };
 
   /**
@@ -191,7 +194,7 @@ export default function AdminQuestionsPage() {
   /**
    * Render question type badge
    */
-  const renderQuestionTypeBadge = (type: QuestionType) => {
+  const _renderQuestionTypeBadge = (type: QuestionType) => {
     const typeLabels = {
       [QuestionType.MC]: 'Trắc nghiệm',
       [QuestionType.TF]: 'Đúng/Sai',
@@ -201,11 +204,11 @@ export default function AdminQuestionsPage() {
     };
 
     const typeColors = {
-      [QuestionType.MC]: 'bg-blue-100 text-blue-800',
-      [QuestionType.TF]: 'bg-green-100 text-green-800',
-      [QuestionType.SA]: 'bg-yellow-100 text-yellow-800',
-      [QuestionType.ES]: 'bg-purple-100 text-purple-800',
-      [QuestionType.MA]: 'bg-pink-100 text-pink-800'
+      [QuestionType.MC]: 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
+      [QuestionType.TF]: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
+      [QuestionType.SA]: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+      [QuestionType.ES]: 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800',
+      [QuestionType.MA]: 'bg-pink-50 text-pink-700 border border-pink-200 dark:bg-pink-950 dark:text-pink-300 dark:border-pink-800'
     };
 
     return (
@@ -229,10 +232,10 @@ export default function AdminQuestionsPage() {
     };
 
     const statusColors = {
-      [QuestionStatus.ACTIVE]: 'bg-green-100 text-green-800',
-      [QuestionStatus.PENDING]: 'bg-yellow-100 text-yellow-800',
-      [QuestionStatus.INACTIVE]: 'bg-gray-100 text-gray-800',
-      [QuestionStatus.ARCHIVED]: 'bg-red-100 text-red-800'
+      [QuestionStatus.ACTIVE]: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
+      [QuestionStatus.PENDING]: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+      [QuestionStatus.INACTIVE]: 'bg-muted text-muted-foreground border border-border',
+      [QuestionStatus.ARCHIVED]: 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
     };
 
     return (
@@ -244,19 +247,20 @@ export default function AdminQuestionsPage() {
 
   return (
     <ErrorBoundary>
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Quản lý câu hỏi</h1>
-            <p className="text-gray-600 mt-1">
-              Tổng cộng {totalQuestions} câu hỏi
-            </p>
-          </div>
+      <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
+        <div className="container mx-auto p-6 space-y-6">
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Quản lý câu hỏi</h1>
+              <p className="text-slate-700 dark:text-slate-300 mt-1">
+                Tổng cộng {totalQuestions} câu hỏi
+              </p>
+            </div>
 
           {/* Action buttons */}
           <div className="flex flex-wrap gap-2">
-            <Button onClick={handleCreateQuestion} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleCreateQuestion}>
               <Plus className="h-4 w-4 mr-2" />
               Tạo mới
             </Button>
@@ -303,10 +307,10 @@ export default function AdminQuestionsPage() {
 
         {/* Bulk actions */}
         {selectedIds.length > 0 && (
-          <Card className="border-blue-200 bg-blue-50">
+          <Card className="border-blue-200 bg-blue-50/80 backdrop-blur-sm shadow-md dark:bg-blue-900/20 dark:border-blue-800/60">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-800">
+                <span className="text-sm text-blue-900 dark:text-blue-200 font-medium">
                   Đã chọn {selectedIds.length} câu hỏi
                 </span>
                 <div className="flex gap-2">
@@ -338,20 +342,20 @@ export default function AdminQuestionsPage() {
         )}
 
         {/* Questions table */}
-        <Card>
+        <Card className="shadow-sm border-slate-200/60 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80 dark:border-slate-700/60">
           <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Đang tải...</span>
+                <span className="ml-2 text-slate-700 dark:text-slate-300 font-medium">Đang tải...</span>
               </div>
             ) : questions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertTriangle className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <AlertTriangle className="h-12 w-12 text-slate-400 dark:text-slate-500 mb-4" />
+                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
                   Không có câu hỏi nào
                 </h3>
-                <p className="text-gray-600 mb-4">
+                <p className="text-slate-700 dark:text-slate-300 mb-4">
                   Không tìm thấy câu hỏi phù hợp với bộ lọc hiện tại
                 </p>
                 <Button onClick={handleCreateQuestion}>
@@ -360,36 +364,63 @@ export default function AdminQuestionsPage() {
                 </Button>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={selectedIds.length === questions.length}
-                        onCheckedChange={handleToggleSelectAll}
-                      />
-                    </TableHead>
-                    <TableHead>Nội dung</TableHead>
-                    <TableHead>Loại</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead>Độ khó</TableHead>
-                    <TableHead>Mã câu hỏi</TableHead>
-                    <TableHead>Lượt sử dụng</TableHead>
-                    <TableHead className="w-12"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {questions.map((question) => (
-                    <TableRow key={question.id}>
-                      <TableCell>
+              <>
+                {/* Container with fixed header like Users page */}
+                <div
+                  className="border rounded-lg overflow-hidden"
+                  style={{
+                    maxHeight: '75vh',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  {/* Scrollable table with sticky header */}
+                  <div className="flex-1 overflow-auto">
+                    <Table>
+                      <colgroup>
+                        <col style={{ width: '48px' }} />
+                        <col style={{ width: '64px' }} />
+                        <col />
+                        <col style={{ width: '160px' }} />
+                        <col style={{ width: '48px' }} />
+                      </colgroup>
+                      <TableHeader className="sticky top-0 z-50 bg-background border-b-2 border-border">
+                        <TableRow className="bg-background hover:bg-background">
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={selectedIds.length === questions.length}
+                              onCheckedChange={handleToggleSelectAll}
+                            />
+                          </TableHead>
+                          <TableHead className="w-16 text-center font-semibold">STT</TableHead>
+                          <TableHead className="font-semibold">Nội dung</TableHead>
+                          <TableHead className="font-semibold w-40 text-center">Trạng thái</TableHead>
+                          <TableHead className="w-12"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                  {questions.map((question, index) => (
+                    <TableRow
+                      key={question.id}
+                      className={`
+                        ${index % 2 === 0 ? 'bg-slate-50/50 dark:bg-slate-900/50' : 'bg-white/50 dark:bg-slate-800/50'}
+                        hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-150
+                      `}
+                    >
+                      <TableCell className="w-12">
                         <Checkbox
                           checked={selectedIds.includes(question.id)}
                           onCheckedChange={() => handleToggleSelect(question.id)}
                         />
                       </TableCell>
-                      <TableCell>
+                      {/* STT thực tế theo trang và filter */}
+                      <TableCell className="w-16 text-center text-sm text-muted-foreground">
+                        {(currentPage - 1) * pageSize + index + 1}
+                      </TableCell>
+                      <TableCell className="min-w-0">
                         <div className="max-w-md">
-                          <p className="font-medium text-gray-900 truncate">
+                          <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
                             {question.content}
                           </p>
                           {question.tag.length > 0 && (
@@ -408,32 +439,10 @@ export default function AdminQuestionsPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {renderQuestionTypeBadge(question.type)}
-                      </TableCell>
-                      <TableCell>
+                      <TableCell className="w-40 text-center">
                         {renderStatusBadge(question.status)}
                       </TableCell>
-                      <TableCell>
-                        {question.difficulty && (
-                          <Badge variant="outline">
-                            {question.difficulty === QuestionDifficulty.EASY && 'Dễ'}
-                            {question.difficulty === QuestionDifficulty.MEDIUM && 'TB'}
-                            {question.difficulty === QuestionDifficulty.HARD && 'Khó'}
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                          {question.questionCodeId}
-                        </code>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-gray-600">
-                          {question.usageCount || 0}
-                        </span>
-                      </TableCell>
-                      <TableCell>
+                      <TableCell className="w-12">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -458,8 +467,11 @@ export default function AdminQuestionsPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                </TableBody>
-              </Table>
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
@@ -494,6 +506,7 @@ export default function AdminQuestionsPage() {
             </div>
           </div>
         )}
+        </div>
       </div>
     </ErrorBoundary>
   );

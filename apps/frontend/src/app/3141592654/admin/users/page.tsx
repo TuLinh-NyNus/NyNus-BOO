@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, UserPlus, RefreshCw, AlertCircle } from 'lucide-react';
 import { DarkThemeProvider } from '@/components/admin/theme/dark-theme-provider';
 
@@ -44,15 +44,27 @@ export default function AdminUsersPage() {
   // ===== LOCAL STATE =====
   const [selectedUsers, setSelectedUsers] = useState<AdminUser[]>([]);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
+  const [modalMode, setModalMode] = useState<'view' | 'edit'>('view');
 
   // ===== EVENT HANDLERS =====
 
   /**
-   * Handle user detail view
-   * Xử lý xem chi tiết user
+   * Handle user detail view (read-only mode)
+   * Xử lý xem chi tiết user ở chế độ chỉ đọc
    */
   const handleViewUserDetail = async (userId: string) => {
     await getUserById(userId);
+    setModalMode('view');
+    setIsDetailModalOpen(true);
+  };
+
+  /**
+   * Handle user edit
+   * Xử lý chỉnh sửa thông tin user
+   */
+  const handleEditUserDetail = async (userId: string) => {
+    await getUserById(userId);
+    setModalMode('edit');
     setIsDetailModalOpen(true);
   };
 
@@ -62,6 +74,7 @@ export default function AdminUsersPage() {
    */
   const handleCloseDetailModal = () => {
     setIsDetailModalOpen(false);
+    setModalMode('view'); // Reset về view mode
     clearSelectedUser();
   };
 
@@ -107,7 +120,7 @@ export default function AdminUsersPage() {
 
   return (
     <DarkThemeProvider>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="admin-users-page container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -192,51 +205,42 @@ export default function AdminUsersPage() {
         </div>
       ) : null}
 
-      {/* Main Content */}
-      <Card className="admin-unified-card">
-        <CardHeader>
-          <CardTitle>Quản lý Người dùng</CardTitle>
-          <CardDescription>Quản lý tất cả tài khoản người dùng trong hệ thống</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* Advanced Filters */}
-          <div className="mb-6">
-            <FilterPanel
-              users={users}
-              onFiltersChange={applyFilters}
-              onSearchResults={(query, results) => {
-                console.log(`Search "${query}" returned ${results.length} results`);
-              }}
-            />
-          </div>
+      {/* Main Content - Components hiển thị độc lập */}
+      <div className="space-y-6">
+        {/* Advanced Filters */}
+        <FilterPanel
+          users={users}
+          onFiltersChange={applyFilters}
+          onSearchResults={(query, results) => {
+            console.log(`Search "${query}" returned ${results.length} results`);
+          }}
+        />
 
-          {/* Role Promotion Workflow */}
-          <div className="mb-6">
-            <RolePromotionWorkflow
-              selectedUsers={selectedUsers}
-              onRefresh={refreshUsers}
-            />
-          </div>
+        {/* Role Promotion Workflow */}
+        <RolePromotionWorkflow
+          selectedUsers={selectedUsers}
+          onRefresh={refreshUsers}
+        />
 
-          {/* Virtualized Table */}
-          <VirtualizedUserTable
-            users={users}
-            isLoading={isLoading && !hasUsers}
-            selectedUsers={selectedUsers.map(u => u.id)}
-            onSelectionChange={(selectedIds) => {
-              const selected = users.filter(user => selectedIds.includes(user.id));
-              setSelectedUsers(selected);
-            }}
-            onViewUser={(user) => handleViewUserDetail(user.id)}
-            onEditUser={(user) => handleViewUserDetail(user.id)}
-            onSuspendUser={(user) => handleUserAction('suspend', user)}
-            onActivateUser={(user) => handleUserAction('activate', user)}
-            onDeleteUser={(user) => handleUserAction('delete', user)}
-            onPromoteUser={(user) => handleUserAction('promote', user)}
-            containerHeight={600}
-          />
-        </CardContent>
-      </Card>
+        {/* Virtualized Table */}
+        <VirtualizedUserTable
+          users={users}
+          isLoading={isLoading && !hasUsers}
+          selectedUsers={selectedUsers.map(u => u.id)}
+          onSelectionChange={(selectedIds) => {
+            const selected = users.filter(user => selectedIds.includes(user.id));
+            setSelectedUsers(selected);
+          }}
+          onViewUser={(user) => handleViewUserDetail(user.id)}
+          onEditUser={(user) => handleEditUserDetail(user.id)}
+          onSuspendUser={(user) => handleUserAction('suspend', user)}
+          onActivateUser={(user) => handleUserAction('activate', user)}
+          onDeleteUser={(user) => handleUserAction('delete', user)}
+          onPromoteUser={(user) => handleUserAction('promote', user)}
+          containerHeight={800}
+          pageSize={50}
+        />
+      </div>
 
       {/* User Detail Modal */}
       <UserDetailModal
@@ -244,6 +248,7 @@ export default function AdminUsersPage() {
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
         onUserUpdate={handleUserUpdate}
+        mode={modalMode}
       />
       </div>
     </DarkThemeProvider>

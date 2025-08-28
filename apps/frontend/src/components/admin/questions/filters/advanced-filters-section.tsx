@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { Search, RotateCcw, Image, FileText, CheckCircle, User, Tag, BarChart3 } from 'lucide-react';
+import { Search, RotateCcw, Image as ImageIcon, FileText, CheckCircle, User, Tag, BarChart3 } from 'lucide-react';
 import {
   Input,
   Select,
@@ -11,10 +11,10 @@ import {
   SelectValue,
   Button,
   Label,
-  Checkbox,
   Slider,
   Badge
 } from '@/components/ui';
+import { EnhancedCheckbox } from '@/components/ui/enhanced-checkbox';
 import { QuestionFilters, QuestionStatus } from '@/lib/types/question';
 import { useDebounce } from '@/hooks/use-debounce';
 
@@ -44,7 +44,7 @@ const CREATOR_OPTIONS = [
   { value: 'TEACHER_003', label: 'Giáo viên Lê Văn C' }
 ];
 
-const SOURCE_OPTIONS = [
+const _SOURCE_OPTIONS = [
   { value: 'SGK', label: 'Sách giáo khoa' },
   { value: 'SBT', label: 'Sách bài tập' },
   { value: 'DE_THI', label: 'Đề thi' },
@@ -81,7 +81,7 @@ export function AdvancedFiltersSection({
   /**
    * Handle filter changes
    */
-  const handleFilterChange = useCallback((key: keyof QuestionFilters, value: any) => {
+  const handleFilterChange = useCallback((key: keyof QuestionFilters, value: unknown) => {
     onFiltersChange({ [key]: value });
   }, [onFiltersChange]);
 
@@ -89,6 +89,7 @@ export function AdvancedFiltersSection({
    * Handle media filter changes
    */
   const handleMediaFilterChange = useCallback((key: 'hasImages' | 'hasSolution' | 'hasAnswers', checked: boolean) => {
+    // Set to undefined if unchecked to remove from filters
     handleFilterChange(key, checked ? true : undefined);
   }, [handleFilterChange]);
 
@@ -128,8 +129,8 @@ export function AdvancedFiltersSection({
       hasSolution: undefined,
       hasAnswers: undefined,
       tags: undefined,
-      status: undefined,
-      creator: undefined,
+      status: [],
+      creator: [],
       feedback: undefined
     });
   }, [onFiltersChange]);
@@ -140,17 +141,17 @@ export function AdvancedFiltersSection({
   const getArrayValue = (key: keyof QuestionFilters): string => {
     const value = filters[key];
     if (Array.isArray(value)) {
-      return value.length === 0 ? 'all' : value[0];
+      return value.length === 0 ? 'all' : String(value[0]);
     }
-    return value || 'all';
+    return value ? String(value) : 'all';
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-4 space-y-6">
+    <div className="bg-card border border-border rounded-lg p-6 mt-4 space-y-6 admin-card">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-card-foreground flex items-center gap-2">
           <Search className="h-5 w-5" />
           Bộ lọc nâng cao
         </h3>
@@ -169,7 +170,7 @@ export function AdvancedFiltersSection({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Content Search */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Label className="text-sm font-medium text-foreground flex items-center gap-2">
             <Search className="h-4 w-4" />
             Tìm kiếm nội dung
           </Label>
@@ -180,12 +181,12 @@ export function AdvancedFiltersSection({
             disabled={isLoading}
             className="w-full"
           />
-          <p className="text-xs text-gray-500">Debouncing 300ms</p>
+          <p className="text-xs text-muted-foreground">Debouncing 300ms</p>
         </div>
 
         {/* Usage Count Range */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Label className="text-sm font-medium text-foreground flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Lượt sử dụng ({usageRange[0]} - {usageRange[1]})
           </Label>
@@ -200,7 +201,7 @@ export function AdvancedFiltersSection({
               className="w-full"
             />
           </div>
-          <div className="flex justify-between text-xs text-gray-500">
+          <div className="flex justify-between text-xs text-muted-foreground">
             <span>0</span>
             <span>100+</span>
           </div>
@@ -208,32 +209,23 @@ export function AdvancedFiltersSection({
 
         {/* Source Filter */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Label className="text-sm font-medium text-foreground flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Nguồn câu hỏi
           </Label>
-          <Select
-            value={getArrayValue('source')}
-            onValueChange={(value) => handleFilterChange('source', value === 'all' ? undefined : [value])}
+          <Input
+            placeholder="Nhập nguồn câu hỏi (VD: SGK Toán 12, Đề thi THPT 2023...)"
+            value={filters.source || ''}
+            onChange={(e) => handleFilterChange('source', e.target.value || undefined)}
             disabled={isLoading}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn nguồn" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Tất cả nguồn</SelectItem>
-              {SOURCE_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            className="w-full"
+          />
+          <p className="text-xs text-muted-foreground">Nhập tự do nguồn câu hỏi</p>
         </div>
 
         {/* Status Filter */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Label className="text-sm font-medium text-foreground flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
             Trạng thái
           </Label>
@@ -258,7 +250,7 @@ export function AdvancedFiltersSection({
 
         {/* Creator Filter */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+          <Label className="text-sm font-medium text-foreground flex items-center gap-2">
             <User className="h-4 w-4" />
             Người tạo
           </Label>
@@ -283,37 +275,37 @@ export function AdvancedFiltersSection({
 
         {/* Media Filters */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-            <Image className="h-4 w-4" />
+          <Label className="text-sm font-medium text-foreground flex items-center gap-2">
+            <ImageIcon className="h-4 w-4" />
             Bộ lọc media
           </Label>
           <div className="space-y-2">
             <div className="flex items-center space-x-2">
-              <Checkbox
+              <EnhancedCheckbox
                 id="hasImages"
                 checked={filters.hasImages || false}
                 onCheckedChange={(checked) => handleMediaFilterChange('hasImages', checked as boolean)}
                 disabled={isLoading}
               />
-              <Label htmlFor="hasImages" className="text-sm">Có hình ảnh</Label>
+              <Label htmlFor="hasImages" className="text-sm cursor-pointer">Có hình ảnh</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox
+              <EnhancedCheckbox
                 id="hasSolution"
                 checked={filters.hasSolution || false}
                 onCheckedChange={(checked) => handleMediaFilterChange('hasSolution', checked as boolean)}
                 disabled={isLoading}
               />
-              <Label htmlFor="hasSolution" className="text-sm">Có lời giải</Label>
+              <Label htmlFor="hasSolution" className="text-sm cursor-pointer">Có lời giải</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox
+              <EnhancedCheckbox
                 id="hasAnswers"
                 checked={filters.hasAnswers || false}
                 onCheckedChange={(checked) => handleMediaFilterChange('hasAnswers', checked as boolean)}
                 disabled={isLoading}
               />
-              <Label htmlFor="hasAnswers" className="text-sm">Có đáp án</Label>
+              <Label htmlFor="hasAnswers" className="text-sm cursor-pointer">Có đáp án</Label>
             </div>
           </div>
         </div>
@@ -321,7 +313,7 @@ export function AdvancedFiltersSection({
 
       {/* Tags Section */}
       <div className="space-y-3">
-        <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+        <Label className="text-sm font-medium text-foreground flex items-center gap-2">
           <Tag className="h-4 w-4" />
           Tags phổ biến
         </Label>
@@ -333,9 +325,9 @@ export function AdvancedFiltersSection({
                 key={tag}
                 variant={isSelected ? "default" : "outline"}
                 className={`cursor-pointer transition-colors ${
-                  isSelected 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'hover:bg-gray-100'
+                  isSelected
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    : 'hover:bg-muted'
                 }`}
                 onClick={() => handleTagToggle(tag)}
               >
@@ -345,7 +337,7 @@ export function AdvancedFiltersSection({
           })}
         </div>
         {filters.tags && filters.tags.length > 0 && (
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Đã chọn: {filters.tags.join(', ')}
           </p>
         )}

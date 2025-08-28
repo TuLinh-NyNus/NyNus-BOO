@@ -74,39 +74,27 @@ class TextCleaner:
     @classmethod
     def convert_newlines_to_literal(cls, text: str) -> str:
         """
-        Convert actual newline characters to literal \n string while preserving LaTeX math.
+        Convert actual newlines to literal \\n for CSV storage.
+
+        Double-escapes newlines to prevent Python csv module from interpreting them.
 
         Args:
             text: Text to convert
 
         Returns:
-            Text with actual newlines converted to literal \n
+            Text with newlines converted to double-escaped \\\\n
         """
         if not text:
             return text
 
-        # Step 1: Protect LaTeX math expressions
-        protected_patterns = []
-        cleaned_text = text
-
-        for pattern, placeholder_template in cls.MATH_PATTERNS:
-            matches = re.findall(pattern, cleaned_text, re.DOTALL)
-            for i, match in enumerate(matches):
-                placeholder = placeholder_template.format(i)
-                cleaned_text = cleaned_text.replace(match, placeholder, 1)
-                protected_patterns.append((placeholder, match))
-
-        # Step 2: Convert actual newlines to literal \n
-        # Handle different newline combinations in order of specificity
-        cleaned_text = cleaned_text.replace('\r\n', '\\n')  # Windows CRLF
+        # Convert actual newlines to literal \\n (2 characters: backslash + n)
+        cleaned_text = text.replace('\r\n', '\\n')  # Windows CRLF
         cleaned_text = cleaned_text.replace('\r', '\\n')    # Mac CR
         cleaned_text = cleaned_text.replace('\n', '\\n')    # Unix LF
 
-        # Step 3: Restore protected LaTeX math expressions
-        for placeholder, original in protected_patterns:
-            cleaned_text = cleaned_text.replace(placeholder, original)
-
         return cleaned_text
+
+
 
     @classmethod
     def clean_csv_field(cls, text: str) -> str:
@@ -187,7 +175,82 @@ class TextCleaner:
             issues.append("Contains control characters")
 
         # Check for very long lines (potential issue)
-        if len(text) > 10000:
+        if len(text) > 100000:
             issues.append(f"Very long content ({len(text)} characters)")
 
         return len(issues) == 0, issues
+
+    @classmethod
+    def prepare_for_storage(cls, text: str) -> str:
+        """
+        Prepare text for storage in database/CSV - convert newlines to literal \\n.
+
+        This is the canonical method for preparing content for storage.
+        Used for rawContent and content fields in Question model.
+
+        Args:
+            text: Text to prepare for storage
+
+        Returns:
+            Text with actual newlines converted to literal \\n for safe storage
+        """
+        return cls.convert_newlines_to_literal(text)
+
+    @classmethod
+    def prepare_for_display(cls, text: str) -> str:
+        """
+        Prepare text for display in UI - convert literal \\n to actual newlines.
+
+        This is the canonical method for preparing stored content for display.
+        Used in Streamlit app and other UI components.
+
+        Args:
+            text: Text with literal \\n to convert for display
+
+        Returns:
+            Text with literal \\n converted to actual newlines for display
+        """
+        if not text:
+            return text
+
+        # Step 1: Protect LaTeX math expressions
+        protected_patterns = []
+        cleaned_text = text
+
+        for pattern, placeholder_template in cls.MATH_PATTERNS:
+            matches = re.findall(pattern, cleaned_text, re.DOTALL)
+            for i, match in enumerate(matches):
+                placeholder = placeholder_template.format(i)
+                cleaned_text = cleaned_text.replace(match, placeholder, 1)
+                protected_patterns.append((placeholder, match))
+
+        # Step 2: Convert literal \\n to actual newlines for display
+        cleaned_text = cleaned_text.replace('\\n', '\n')
+        cleaned_text = cleaned_text.replace('\\t', '\t')
+        cleaned_text = cleaned_text.replace('\\\\', '\n')  # LaTeX line breaks
+
+        # Step 3: Restore protected LaTeX math expressions
+        for placeholder, original in protected_patterns:
+            cleaned_text = cleaned_text.replace(placeholder, original)
+
+        # Step 4: Basic cleanup for display
+        cleaned_text = re.sub(r' +', ' ', cleaned_text)  # Multiple spaces to single
+        cleaned_text = cleaned_text.strip()
+
+        return cleaned_text
+
+    @classmethod
+    def prepare_for_csv(cls, text: str) -> str:
+        """
+        Prepare text for CSV export - remove all newlines and normalize.
+
+        This is the canonical method for preparing content for CSV export.
+        Removes both actual newlines and literal \\n strings.
+
+        Args:
+            text: Text to prepare for CSV export
+
+        Returns:
+            Text with all newlines removed and replaced with spaces
+        """
+        return cls.clean_csv_field(text)

@@ -405,9 +405,28 @@ body:has(.admin-panel) [id*="devtools"] {
   box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
 }
 
+/* Fix double scrollbar issue - dark theme */
+.dark .admin-layout-override {
+  /* Ensure dark theme admin layout works properly */
+  background-color: var(--admin-bg-primary) !important;
+}
+
+.dark .admin-users-page {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.dark .admin-users-page .admin-table-scrollable {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 /* Light theme sticky header support */
 .admin-table-scrollable {
   position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
 }
 
 .admin-table-scrollable thead {
@@ -432,6 +451,28 @@ body:has(.admin-panel) [id*="devtools"] {
   background-color: hsl(var(--background)) !important;
   border-bottom: 2px solid hsl(var(--border)) !important;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+}
+
+/* Fix double scrollbar issue - Admin Layout Override */
+.admin-layout-override {
+  /* Override MainLayout completely */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 50 !important;
+}
+
+/* Ensure admin pages have proper scrolling */
+.admin-users-page {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.admin-users-page .admin-table-scrollable {
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* ===== ADMIN UNIFIED BACKGROUND UTILITIES ===== */

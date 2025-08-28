@@ -65,7 +65,7 @@ export function DashboardStats() {
   // Hiển thị skeleton loading khi đang tải dữ liệu
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <StatCardSkeleton key={index} />
         ))}
@@ -95,7 +95,7 @@ export function DashboardStats() {
         <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-blue-400 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
           👥 Thống kê người dùng
         </h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <StatCard
             title="Tổng người dùng"
             value={overview.totalUsers}
@@ -137,7 +137,7 @@ export function DashboardStats() {
         <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-pink-400 to-orange-600 dark:from-pink-400 dark:to-orange-400 bg-clip-text text-transparent">
           📚 Thống kê nội dung
         </h3>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <StatCard
             title="Khóa học"
             value={overview.totalCourses}

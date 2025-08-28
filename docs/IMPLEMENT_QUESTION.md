@@ -671,6 +671,7 @@ Priority order:
 - **creator**: Lọc theo người tạo
 - **status**: ACTIVE, PENDING, INACTIVE, ARCHIVED
 - **usageCount**: Sắp xếp theo độ phổ biến
+- **updatedAt**: Lọc theo cập nhật gần nhất
 
 ### Advanced Search
 - **Full-text search**: Tìm kiếm trong content câu hỏi

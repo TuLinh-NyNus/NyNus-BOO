@@ -1,6 +1,11 @@
 /**
  * Admin Sidebar
  * Full implementation của AdminSidebar với Static Navigation strategy
+ *
+ * FIX HYDRATION ERROR:
+ * - Thêm suppressHydrationWarning cho các container elements
+ * - Ngăn chặn hydration mismatch do browser extensions (Bitwarden, etc.)
+ * - Browser extensions có thể inject attributes như bis_skin_checked="1"
  */
 
 'use client';
@@ -14,6 +19,7 @@ import { AdminLogo } from './logo/admin-logo';
 import { NavSection } from './navigation/nav-section';
 import { NavItem } from './navigation/nav-item';
 import { cn } from '@/lib/utils';
+import { HydrationSafe } from '@/components/common/hydration-safe';
 
 /**
  * Admin Sidebar Component
@@ -168,27 +174,36 @@ export function AdminSidebar({
       )}
 
       {/* Sidebar */}
-      <aside className={getSidebarClasses()}>
+      <aside
+        className={getSidebarClasses()}
+        suppressHydrationWarning={true}
+      >
         {/* Collapse button */}
         {renderCollapseButton()}
 
         {/* Logo section */}
         {showLogo && (
-          <div className="p-6 border-b border-border">
+          <div
+            className="p-6 border-b border-border"
+            suppressHydrationWarning={true}
+          >
             <AdminLogo collapsed={isCollapsed} />
           </div>
         )}
 
         {/* Navigation content */}
-        <div className="flex-1 overflow-y-auto">
+        <HydrationSafe className="flex-1 overflow-y-auto">
           <nav className="p-4 space-y-2">
             {/* Main navigation sections */}
             {renderNavigationSections()}
           </nav>
-        </div>
+        </HydrationSafe>
 
         {/* Bottom navigation */}
-        <div className="p-4">
+        <div
+          className="p-4"
+          suppressHydrationWarning={true}
+        >
           {renderBottomNavigation()}
         </div>
       </aside>

@@ -2,8 +2,8 @@
 
 ## 📋 Tổng Quan Dự Án
 - **Dự án**: NyNus - User & Auth System
-- **Kiến trúc**: Monorepo với Turbo
-- **Backend**: NestJS + PostgreSQL + Prisma
+- **Kiến trúc**: Monorepo với Go Backend + Next.js Frontend
+- **Backend**: Go + PostgreSQL + Raw SQL + Migrations
 - **Frontend**: Next.js 15 + Shadcn UI + Zustand
 - **Auth Strategy**: Gmail OAuth Primary + Simple Fallback
 - **Mục tiêu**: Bảo vệ tài nguyên học liệu NyNus, ngăn chặn chia sẻ tài khoản
@@ -32,340 +32,365 @@
 ### **Core Schema Requirements**
 
 #### **1. Enhanced User Model**
-```prisma
-model User {
-  // ===== CORE REQUIRED FIELDS (MVP) =====
-  id          String      @id @default(cuid())        // REQUIRED - Primary key
-  email       String      @unique                      // REQUIRED - Login identifier
-  role        UserRole    @default(STUDENT)            // REQUIRED - Authorization
-  status      UserStatus  @default(ACTIVE)            // REQUIRED - Account control
-  emailVerified Boolean   @default(false)             // REQUIRED - Security
-  createdAt   DateTime    @default(now())             // REQUIRED - Audit trail
-  updatedAt   DateTime    @updatedAt                  // REQUIRED - Audit trail
+```sql
+-- Enhanced Users table for NyNus Auth System
+CREATE TABLE users (
+    -- ===== CORE REQUIRED FIELDS (MVP) =====
+    id TEXT PRIMARY KEY,                                    -- REQUIRED - Primary key (cuid)
+    email TEXT UNIQUE NOT NULL,                             -- REQUIRED - Login identifier
+    role TEXT NOT NULL DEFAULT 'STUDENT'                    -- REQUIRED - Authorization
+        CHECK (role IN ('GUEST', 'STUDENT', 'TUTOR', 'TEACHER', 'ADMIN')),
+    status TEXT NOT NULL DEFAULT 'ACTIVE'                   -- REQUIRED - Account control
+        CHECK (status IN ('ACTIVE', 'INACTIVE', 'SUSPENDED')),
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,          -- REQUIRED - Security
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),          -- REQUIRED - Audit trail
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),          -- REQUIRED - Audit trail
 
-  // ===== AUTHENTICATION FIELDS (IMPORTANT) =====
-  googleId    String?     @unique                     // IMPORTANT - OAuth primary
-  password    String?                                 // IMPORTANT - Fallback only
+    -- ===== AUTHENTICATION FIELDS (IMPORTANT) =====
+    google_id TEXT UNIQUE,                                  -- IMPORTANT - OAuth primary
+    password_hash TEXT,                                     -- IMPORTANT - Fallback only (bcrypt)
 
-  // ===== CORE BUSINESS LOGIC (IMPORTANT) =====
-  level       Int?                                    // IMPORTANT - Hierarchy (1-9)
-  maxConcurrentSessions Int @default(3)               // IMPORTANT - Anti-sharing
+    -- ===== CORE BUSINESS LOGIC (IMPORTANT) =====
+    level INTEGER,                                          -- IMPORTANT - Hierarchy (1-9)
+    max_concurrent_sessions INTEGER NOT NULL DEFAULT 3,     -- IMPORTANT - Anti-sharing
 
-  // ===== SECURITY TRACKING (IMPORTANT) =====
-  lastLoginAt      DateTime?                          // IMPORTANT - Security monitoring
-  lastLoginIp      String?                            // IMPORTANT - Suspicious detection
-  loginAttempts    Int       @default(0)              // IMPORTANT - Brute force protection
-  lockedUntil      DateTime?                          // IMPORTANT - Account locking
+    -- ===== SECURITY TRACKING (IMPORTANT) =====
+    last_login_at TIMESTAMPTZ,                             -- IMPORTANT - Security monitoring
+    last_login_ip TEXT,                                    -- IMPORTANT - Suspicious detection
+    login_attempts INTEGER NOT NULL DEFAULT 0,             -- IMPORTANT - Brute force protection
+    locked_until TIMESTAMPTZ,                              -- IMPORTANT - Account locking
 
-  // ===== PROFILE INFORMATION (NICE-TO-HAVE) =====
-  username    String?     @unique                     // OPTIONAL - Display name
-  firstName   String?                                 // OPTIONAL - From Google/manual
-  lastName    String?                                 // OPTIONAL - From Google/manual
-  avatar      String?                                 // OPTIONAL - From Google/upload
-  bio         String?                                 // OPTIONAL - User description
-  phone       String?                                 // OPTIONAL - Contact info
-  address     String?                                 // OPTIONAL - Simple address
-  school      String?                                 // OPTIONAL - Educational background
-  dateOfBirth DateTime?                               // OPTIONAL - Age verification
-  gender      String?                                 // OPTIONAL - Analytics
+    -- ===== PROFILE INFORMATION (NICE-TO-HAVE) =====
+    username TEXT UNIQUE,                                   -- OPTIONAL - Display name
+    first_name TEXT,                                        -- OPTIONAL - From Google/manual
+    last_name TEXT,                                         -- OPTIONAL - From Google/manual
+    avatar TEXT,                                            -- OPTIONAL - From Google/upload
+    bio TEXT,                                               -- OPTIONAL - User description
+    phone TEXT,                                             -- OPTIONAL - Contact info
+    address TEXT,                                           -- OPTIONAL - Simple address
+    school TEXT,                                            -- OPTIONAL - Educational background
+    date_of_birth DATE,                                     -- OPTIONAL - Age verification
+    gender TEXT,                                            -- OPTIONAL - Analytics
 
-  // ===== RELATIONS (SYSTEM MANAGED) =====
-  sessions         UserSession[]                      // System managed
-  oauthAccounts    OAuthAccount[]                     // System managed
-  resourceAccess   ResourceAccess[]                   // System managed
-  enrollments      CourseEnrollment[]                 // Business logic
-  examResults      ExamResult[]                       // Business logic
-  createdQuestions Question[]                         // Content creation
-  createdCourses   Course[]                           // Content creation
-  notifications    Notification[]                     // System notifications
-  preferences      UserPreferences?                   // User settings
-  auditLogs        AuditLog[]                         // Compliance tracking
+    -- ===== METADATA =====
+    resource_path TEXT                                      -- OPTIONAL - File storage path
+);
 
-  // ===== PERFORMANCE INDEXES =====
-  @@index([email])                                    // CRITICAL - Login queries
-  @@index([googleId])                                 // CRITICAL - OAuth queries
-  @@index([role, level])                              // IMPORTANT - Permission queries
-  @@index([status])                                   // IMPORTANT - Active user queries
-  @@index([username])                                 // NICE-TO-HAVE - Search queries
-  @@map("users")
-}
+-- ===== PERFORMANCE INDEXES =====
+CREATE INDEX idx_users_email ON users(email);                      -- CRITICAL - Login queries
+CREATE INDEX idx_users_google_id ON users(google_id);              -- CRITICAL - OAuth queries
+CREATE INDEX idx_users_role_level ON users(role, level);           -- IMPORTANT - Permission queries
+CREATE INDEX idx_users_status ON users(status);                    -- IMPORTANT - Active user queries
+CREATE INDEX idx_users_username ON users(username);                -- NICE-TO-HAVE - Search queries
+CREATE INDEX idx_users_last_login ON users(last_login_at);         -- IMPORTANT - Security queries
 ```
 
 #### **2. OAuth Account Support**
-```prisma
-model OAuthAccount {
-  id           String  @id @default(cuid())
-  userId       String
-  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+```sql
+-- OAuth Accounts table for Google/Social login support
+CREATE TABLE oauth_accounts (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
-  // Provider Information
-  provider     String  // google, facebook, github, v.v.
-  providerAccountId String // ID người dùng Google
+    -- Provider Information
+    provider TEXT NOT NULL,                                 -- google, facebook, github, etc.
+    provider_account_id TEXT NOT NULL,                      -- ID người dùng từ provider
 
-  // OAuth Token Management
-  type         String  @default("oauth") // oauth, oidc
-  scope        String?
-  accessToken  String? // Token truy cập Google
-  refreshToken String? // Token làm mới Google
-  idToken      String? // Token ID Google
-  expiresAt    Int?    // Thời gian hết hạn token
-  tokenType    String? // Bearer
+    -- OAuth Token Management
+    type TEXT NOT NULL DEFAULT 'oauth',                     -- oauth, oidc
+    scope TEXT,                                             -- OAuth scope
+    access_token TEXT,                                      -- Token truy cập từ provider
+    refresh_token TEXT,                                     -- Token làm mới từ provider
+    id_token TEXT,                                          -- ID token từ provider
+    expires_at INTEGER,                                     -- Thời gian hết hạn token (Unix timestamp)
+    token_type TEXT,                                        -- Bearer, etc.
 
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+    -- Timestamps
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-  @@unique([provider, providerAccountId])
-  @@index([userId])
-  @@index([provider])
-  @@map("oauth_accounts")
-}
+-- Indexes and Constraints
+CREATE UNIQUE INDEX idx_oauth_provider_account ON oauth_accounts(provider, provider_account_id);
+CREATE INDEX idx_oauth_user_id ON oauth_accounts(user_id);
+CREATE INDEX idx_oauth_provider ON oauth_accounts(provider);
 ```
 
 #### **3. Session Management System - Anti-Sharing**
-```prisma
-model UserSession {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+```sql
+-- User Sessions table for multi-device session management
+CREATE TABLE user_sessions (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
-  // Session Identification
-  sessionToken String   @unique
-  ipAddress    String
-  userAgent    String?
+    -- Session Identification
+    session_token TEXT UNIQUE NOT NULL,                     -- Unique session identifier
+    ip_address TEXT NOT NULL,                               -- Client IP address
+    user_agent TEXT,                                        -- Browser/device info
 
-  // Device Fingerprinting (Browser + OS hash)
-  deviceFingerprint String?
-  location         String? // Thành phố, Quốc gia từ IP
+    -- Device Fingerprinting (Browser + OS hash)
+    device_fingerprint TEXT,                                -- Hash of browser + OS + screen
+    location TEXT,                                          -- Thành phố, Quốc gia từ IP
 
-  // Session Status & Control
-  isActive     Boolean  @default(true)
-  lastActivity DateTime @default(now())
-  expiresAt    DateTime
+    -- Session Status & Control
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,                -- Session active status
+    last_activity TIMESTAMPTZ NOT NULL DEFAULT NOW(),       -- Last activity timestamp
+    expires_at TIMESTAMPTZ NOT NULL,                        -- Session expiry time
 
-  createdAt    DateTime @default(now())
+    -- Timestamps
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-  @@index([userId])
-  @@index([sessionToken])
-  @@index([isActive])
-  @@index([expiresAt])
-  @@map("user_sessions")
-}
+-- Indexes for performance
+CREATE INDEX idx_user_sessions_user_id ON user_sessions(user_id);
+CREATE INDEX idx_user_sessions_token ON user_sessions(session_token);
+CREATE INDEX idx_user_sessions_active ON user_sessions(is_active);
+CREATE INDEX idx_user_sessions_expires ON user_sessions(expires_at);
+CREATE INDEX idx_user_sessions_activity ON user_sessions(last_activity);
 ```
 
 #### **4. Resource Access Tracking - Anti-Piracy**
-```prisma
-model ResourceAccess {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+```sql
+-- Resource Access table for tracking and anti-piracy
+CREATE TABLE resource_access (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
-  // Resource Information
-  resourceType String   // COURSE, LESSON, VIDEO, PDF, EXAM
-  resourceId   String   // ID của tài nguyên được truy cập
+    -- Resource Information
+    resource_type TEXT NOT NULL,                            -- COURSE, LESSON, VIDEO, PDF, EXAM
+    resource_id TEXT NOT NULL,                              -- ID của tài nguyên được truy cập
 
-  // Access Details
-  action       String   // VIEW, DOWNLOAD, STREAM, START_EXAM
-  ipAddress    String
-  userAgent    String?
-  sessionToken String?  // Liên kết đến phiên
+    -- Access Details
+    action TEXT NOT NULL,                                   -- VIEW, DOWNLOAD, STREAM, START_EXAM
+    ip_address TEXT NOT NULL,                               -- Client IP address
+    user_agent TEXT,                                        -- Browser/device info
+    session_token TEXT,                                     -- Liên kết đến phiên
 
-  // Simple Security - Logic cơ bản, không cần AI
-  isValidAccess Boolean @default(true) // Đánh dấu truy cập đáng nghi
-  riskScore     Int     @default(0)    // Điểm rủi ro 0-100 (tính toán đơn giản)
+    -- Simple Security - Logic cơ bản, không cần AI
+    is_valid_access BOOLEAN NOT NULL DEFAULT TRUE,          -- Đánh dấu truy cập đáng nghi
+    risk_score INTEGER NOT NULL DEFAULT 0,                  -- Điểm rủi ro 0-100 (tính toán đơn giản)
 
-  // Additional Data
-  duration     Int?     // Thời gian truy cập (giây)
-  metadata     Json?    // Dữ liệu bổ sung (tùy chọn)
+    -- Additional Data
+    duration INTEGER,                                       -- Thời gian truy cập (giây)
+    metadata JSONB,                                         -- Dữ liệu bổ sung (tùy chọn)
 
-  createdAt    DateTime @default(now())
+    -- Timestamps
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-  @@index([userId])
-  @@index([resourceType, resourceId])
-  @@index([createdAt])
-  @@index([isValidAccess])
-  @@index([riskScore])
-  @@map("resource_access")
-}
+-- Indexes for performance and security queries
+CREATE INDEX idx_resource_access_user_id ON resource_access(user_id);
+CREATE INDEX idx_resource_access_resource ON resource_access(resource_type, resource_id);
+CREATE INDEX idx_resource_access_created ON resource_access(created_at);
+CREATE INDEX idx_resource_access_valid ON resource_access(is_valid_access);
+CREATE INDEX idx_resource_access_risk ON resource_access(risk_score);
+CREATE INDEX idx_resource_access_ip ON resource_access(ip_address);
 ```
 
 #### **5. Enhanced Course Enrollment - Access Control**
-```prisma
-model CourseEnrollment {
-  id          String              @id @default(cuid())
+```sql
+-- Course Enrollments table for access control and progress tracking
+CREATE TABLE course_enrollments (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
 
-  // Relations
-  userId      String
-  user        User                @relation(fields: [userId], references: [id])
-  courseId    String
-  course      Course              @relation(fields: [courseId], references: [id])
+    -- Relations
+    user_id TEXT NOT NULL REFERENCES users(id),
+    course_id TEXT NOT NULL,                                -- References courses table
 
-  // Access Control System
-  status      EnrollmentStatus    @default(ACTIVE)
-  accessLevel AccessLevel         @default(BASIC) // BASIC, PREMIUM, FULL
+    -- Access Control System
+    status TEXT NOT NULL DEFAULT 'ACTIVE'                   -- ACTIVE, COMPLETED, DROPPED, SUSPENDED, EXPIRED
+        CHECK (status IN ('ACTIVE', 'COMPLETED', 'DROPPED', 'SUSPENDED', 'EXPIRED')),
+    access_level TEXT NOT NULL DEFAULT 'BASIC'              -- BASIC, PREMIUM, FULL
+        CHECK (access_level IN ('BASIC', 'PREMIUM', 'FULL')),
 
-  // Resource Limits - Anti-Piracy Protection
-  maxDownloads     Int?            // Giới hạn tải xuống mỗi đăng ký
-  currentDownloads Int @default(0) // Theo dõi tải xuống hiện tại
-  maxStreams       Int?            // Giới hạn stream đồng thời
+    -- Resource Limits - Anti-Piracy Protection
+    max_downloads INTEGER,                                  -- Giới hạn tải xuống mỗi đăng ký
+    current_downloads INTEGER NOT NULL DEFAULT 0,           -- Theo dõi tải xuống hiện tại
+    max_streams INTEGER,                                    -- Giới hạn stream đồng thời
 
-  // Time-based Access Control
-  expiresAt        DateTime?       // Hết hạn truy cập khóa học
+    -- Time-based Access Control
+    expires_at TIMESTAMPTZ,                                 -- Hết hạn truy cập khóa học
 
-  // Progress Tracking
-  progress         Int @default(0) // Phần trăm 0-100
-  completedAt      DateTime?
-  lastAccessedAt   DateTime?       // Theo dõi truy cập cuối
+    -- Progress Tracking
+    progress INTEGER NOT NULL DEFAULT 0,                    -- Phần trăm 0-100
+    completed_at TIMESTAMPTZ,                               -- Thời gian hoàn thành
+    last_accessed_at TIMESTAMPTZ,                           -- Theo dõi truy cập cuối
 
-  // Timestamps
-  enrolledAt  DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+    -- Timestamps
+    enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-  @@unique([userId, courseId])
-  @@index([userId])
-  @@index([courseId])
-  @@index([status])
-  @@index([expiresAt])
-  @@index([lastAccessedAt])
-  @@map("course_enrollments")
-}
+-- Constraints and Indexes
+CREATE UNIQUE INDEX idx_course_enrollments_user_course ON course_enrollments(user_id, course_id);
+CREATE INDEX idx_course_enrollments_user_id ON course_enrollments(user_id);
+CREATE INDEX idx_course_enrollments_course_id ON course_enrollments(course_id);
+CREATE INDEX idx_course_enrollments_status ON course_enrollments(status);
+CREATE INDEX idx_course_enrollments_expires ON course_enrollments(expires_at);
+CREATE INDEX idx_course_enrollments_accessed ON course_enrollments(last_accessed_at);
 ```
 
 #### **6. Notification System**
-```prisma
-model Notification {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+```sql
+-- Notifications table for user communication
+CREATE TABLE notifications (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
-  // Notification Content
-  type        NotificationType                      // SECURITY, COURSE, SYSTEM
-  title       String
-  message     String
-  data        Json?                                 // Additional payload
+    -- Notification Content
+    type TEXT NOT NULL                                      -- SECURITY_ALERT, COURSE_UPDATE, SYSTEM_MESSAGE, etc.
+        CHECK (type IN ('SECURITY_ALERT', 'COURSE_UPDATE', 'SYSTEM_MESSAGE', 'ACHIEVEMENT', 'SOCIAL', 'PAYMENT')),
+    title TEXT NOT NULL,                                    -- Notification title
+    message TEXT NOT NULL,                                  -- Notification content
+    data JSONB,                                             -- Additional payload
 
-  // Status Tracking
-  isRead      Boolean   @default(false)
-  readAt      DateTime?
+    -- Status Tracking
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,                 -- Read status
+    read_at TIMESTAMPTZ,                                    -- When notification was read
 
-  // Lifecycle
-  createdAt   DateTime  @default(now())
-  expiresAt   DateTime?                             // Auto-delete after expiry
+    -- Lifecycle
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMPTZ                                  -- Auto-delete after expiry
+);
 
-  @@index([userId, isRead])                         // Unread notifications query
-  @@index([createdAt])                              // Recent notifications
-  @@index([expiresAt])                              // Cleanup expired notifications
-  @@map("notifications")
-}
+-- Indexes for performance
+CREATE INDEX idx_notifications_user_read ON notifications(user_id, is_read);    -- Unread notifications query
+CREATE INDEX idx_notifications_created ON notifications(created_at);           -- Recent notifications
+CREATE INDEX idx_notifications_expires ON notifications(expires_at);           -- Cleanup expired notifications
+CREATE INDEX idx_notifications_type ON notifications(type);                    -- Filter by type
 ```
 
 #### **7. User Preferences System**
-```prisma
-model UserPreferences {
-  id                    String  @id @default(cuid())
-  userId                String  @unique
-  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+```sql
+-- User Preferences table for personalization
+CREATE TABLE user_preferences (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
-  // ===== NOTIFICATION PREFERENCES =====
-  emailNotifications    Boolean @default(true)      // Email alerts
-  pushNotifications     Boolean @default(true)      // Mobile push
-  smsNotifications      Boolean @default(false)     // SMS alerts
+    -- ===== NOTIFICATION PREFERENCES =====
+    email_notifications BOOLEAN NOT NULL DEFAULT TRUE,      -- Email alerts
+    push_notifications BOOLEAN NOT NULL DEFAULT TRUE,       -- Mobile push
+    sms_notifications BOOLEAN NOT NULL DEFAULT FALSE,       -- SMS alerts
 
-  // ===== LEARNING PREFERENCES =====
-  autoPlayVideos        Boolean @default(true)      // Auto-play next video
-  defaultVideoQuality   String  @default("720p")    // 480p, 720p, 1080p
-  playbackSpeed         Float   @default(1.0)       // Video playback speed
+    -- ===== LEARNING PREFERENCES =====
+    auto_play_videos BOOLEAN NOT NULL DEFAULT TRUE,         -- Auto-play next video
+    default_video_quality TEXT NOT NULL DEFAULT '720p'      -- 480p, 720p, 1080p
+        CHECK (default_video_quality IN ('480p', '720p', '1080p')),
+    playback_speed DECIMAL(3,2) NOT NULL DEFAULT 1.0,       -- Video playback speed
 
-  // ===== PRIVACY SETTINGS =====
-  profileVisibility     String  @default("PUBLIC")  // PUBLIC, FRIENDS, PRIVATE
-  showOnlineStatus      Boolean @default(true)      // Show online indicator
-  allowDirectMessages   Boolean @default(true)      // Allow DMs from others
+    -- ===== PRIVACY SETTINGS =====
+    profile_visibility TEXT NOT NULL DEFAULT 'PUBLIC'       -- PUBLIC, FRIENDS, PRIVATE
+        CHECK (profile_visibility IN ('PUBLIC', 'FRIENDS', 'PRIVATE')),
+    show_online_status BOOLEAN NOT NULL DEFAULT TRUE,       -- Show online indicator
+    allow_direct_messages BOOLEAN NOT NULL DEFAULT TRUE,    -- Allow DMs from others
 
-  // ===== LOCALIZATION =====
-  timezone              String  @default("Asia/Ho_Chi_Minh")  // User timezone
-  language              String  @default("vi")                // UI language
-  dateFormat            String  @default("DD/MM/YYYY")        // Date display format
+    -- ===== LOCALIZATION =====
+    timezone TEXT NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',      -- User timezone
+    language TEXT NOT NULL DEFAULT 'vi',                    -- UI language
+    date_format TEXT NOT NULL DEFAULT 'DD/MM/YYYY',         -- Date display format
 
-  updatedAt            DateTime @updatedAt
+    -- Timestamps
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-  @@map("user_preferences")
-}
+-- Indexes
+CREATE INDEX idx_user_preferences_user_id ON user_preferences(user_id);
 ```
 
 #### **8. Audit Log System - Compliance**
-```prisma
-model AuditLog {
-  id          String    @id @default(cuid())
-  userId      String?                               // Nullable for system actions
-  user        User?     @relation(fields: [userId], references: [id])
+```sql
+-- Audit Logs table for compliance and security tracking
+CREATE TABLE audit_logs (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT REFERENCES users(id),                     -- Nullable for system actions
 
-  // Action Information
-  action      String                                // LOGIN, LOGOUT, UPDATE_PROFILE
-  resource    String?                               // USER, COURSE, ENROLLMENT
-  resourceId  String?                               // ID of affected resource
+    -- Action Information
+    action TEXT NOT NULL,                                   -- LOGIN, LOGOUT, UPDATE_PROFILE, etc.
+    resource TEXT,                                          -- USER, COURSE, ENROLLMENT, etc.
+    resource_id TEXT,                                       -- ID of affected resource
 
-  // Change Tracking
-  oldValues   Json?                                 // Before change (for updates)
-  newValues   Json?                                 // After change (for updates)
+    -- Change Tracking
+    old_values JSONB,                                       -- Before change (for updates)
+    new_values JSONB,                                       -- After change (for updates)
 
-  // Request Context
-  ipAddress   String
-  userAgent   String?
-  sessionId   String?                               // Link to user session
+    -- Request Context
+    ip_address TEXT NOT NULL,                               -- Client IP address
+    user_agent TEXT,                                        -- Browser/device info
+    session_id TEXT,                                        -- Link to user session
 
-  // Additional Context
-  success     Boolean   @default(true)              // Action success/failure
-  errorMessage String?                              // Error details if failed
-  metadata    Json?                                 // Additional context data
+    -- Additional Context
+    success BOOLEAN NOT NULL DEFAULT TRUE,                  -- Action success/failure
+    error_message TEXT,                                     -- Error details if failed
+    metadata JSONB,                                         -- Additional context data
 
-  createdAt   DateTime  @default(now())
+    -- Timestamps
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
-  @@index([userId])                                 // User activity queries
-  @@index([action])                                 // Action type queries
-  @@index([resource, resourceId])                   // Resource-specific queries
-  @@index([createdAt])                              // Time-based queries
-  @@index([success])                                // Error tracking
-  @@map("audit_logs")
-}
+-- Indexes for audit queries
+CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);                    -- User activity queries
+CREATE INDEX idx_audit_logs_action ON audit_logs(action);                      -- Action type queries
+CREATE INDEX idx_audit_logs_resource ON audit_logs(resource, resource_id);     -- Resource-specific queries
+CREATE INDEX idx_audit_logs_created ON audit_logs(created_at);                 -- Time-based queries
+CREATE INDEX idx_audit_logs_success ON audit_logs(success);                    -- Error tracking
+CREATE INDEX idx_audit_logs_ip ON audit_logs(ip_address);                      -- IP-based queries
 ```
 
-#### **9. Role Hierarchy & Enums**
-```prisma
-enum UserRole {
-  GUEST     // Khách (không đăng ký) - Không có level
-  STUDENT   // Học sinh - Level 1-9
-  TUTOR     // Gia sư - Level 1-9
-  TEACHER   // Giáo viên - Level 1-9
-  ADMIN     // Quản trị viên - Không có level
-}
+#### **9. Role Hierarchy & Enums (Implemented via CHECK Constraints)**
+```sql
+-- User Role Values (implemented via CHECK constraints in tables)
+-- GUEST     - Khách (không đăng ký) - Không có level
+-- STUDENT   - Học sinh - Level 1-9
+-- TUTOR     - Gia sư - Level 1-9
+-- TEACHER   - Giáo viên - Level 1-9
+-- ADMIN     - Quản trị viên - Không có level
 
-enum UserStatus {
-  ACTIVE      // Hoạt động
-  INACTIVE    // Không hoạt động
-  SUSPENDED   // Bị đình chỉ
-}
+-- User Status Values
+-- ACTIVE      - Hoạt động
+-- INACTIVE    - Không hoạt động
+-- SUSPENDED   - Bị đình chỉ
 
-enum EnrollmentStatus {
-  ACTIVE      // Đang hoạt động
-  COMPLETED   // Đã hoàn thành
-  DROPPED     // Đã bỏ học
-  SUSPENDED   // Bị đình chỉ
-  EXPIRED     // Đã hết hạn
-}
+-- Enrollment Status Values
+-- ACTIVE      - Đang hoạt động
+-- COMPLETED   - Đã hoàn thành
+-- DROPPED     - Đã bỏ học
+-- SUSPENDED   - Bị đình chỉ
+-- EXPIRED     - Đã hết hạn
 
-enum AccessLevel {
-  BASIC     // Chỉ xem
-  PREMIUM   // Xem + Tải xuống giới hạn
-  FULL      // Truy cập đầy đủ + Tải xuống
-}
+-- Access Level Values
+-- BASIC     - Chỉ xem
+-- PREMIUM   - Xem + Tải xuống giới hạn
+-- FULL      - Truy cập đầy đủ + Tải xuống
 
-enum NotificationType {
-  SECURITY_ALERT    // Login from new device, suspicious activity
-  COURSE_UPDATE     // New lesson available, course updated
-  SYSTEM_MESSAGE    // Maintenance notice, platform updates
-  ACHIEVEMENT       // Level up, certificate earned, milestone
-  SOCIAL            // New follower, message, mention
-  PAYMENT           // Payment success, failure, refund
-}
+-- Notification Type Values
+-- SECURITY_ALERT    - Login from new device, suspicious activity
+-- COURSE_UPDATE     - New lesson available, course updated
+-- SYSTEM_MESSAGE    - Maintenance notice, platform updates
+-- ACHIEVEMENT       - Level up, certificate earned, milestone
+-- SOCIAL            - New follower, message, mention
+-- PAYMENT           - Payment success, failure, refund
+
+-- Helper function to validate user role and level combination
+CREATE OR REPLACE FUNCTION validate_user_role_level(role TEXT, level INTEGER)
+RETURNS BOOLEAN AS $$
+BEGIN
+    -- GUEST and ADMIN should not have levels
+    IF role IN ('GUEST', 'ADMIN') AND level IS NOT NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    -- STUDENT, TUTOR, TEACHER should have levels 1-9
+    IF role IN ('STUDENT', 'TUTOR', 'TEACHER') AND (level IS NULL OR level < 1 OR level > 9) THEN
+        RETURN FALSE;
+    END IF;
+
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Add constraint to users table for role-level validation
+ALTER TABLE users ADD CONSTRAINT chk_user_role_level
+    CHECK (validate_user_role_level(role, level));
 ```
 
 ### **🏆 Role Hierarchy System**
@@ -634,14 +659,14 @@ GUEST → STUDENT (Level 1) → ... → STUDENT (Level 9) → TUTOR (Level 1) �
 - Enhanced User model cho NyNus với Gmail OAuth
 - Session management tables
 - Resource access tracking
-- Migration scripts và Prisma setup
+- SQL Migration scripts và golang-migrate setup
 
 ### 🚀 [Backend Implementation + Code](./Backend%20Implementation%20+%20Code.md)
-- Google OAuth Strategy
+- Go OAuth Strategy implementation
 - Users Service với session management
-- Auth Service với token handling
-- Controllers và DTOs
-- Guards và middleware
+- Auth Service với JWT token handling
+- HTTP Handlers và DTOs
+- Middleware và Guards
 
 ### 🎨 [Frontend Implementation + Code](./Frontend%20Implementation%20+%20Code.md)
 - Zustand auth store
@@ -653,7 +678,7 @@ GUEST → STUDENT (Level 1) → ... → STUDENT (Level 9) → TUTOR (Level 1) �
 - Resource protection logic
 - Anti-piracy features
 - Session limits enforcement
-- Testing strategies
+- Testing strategies với Go testing framework
 
 ---
 
@@ -789,20 +814,21 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 
 #### **Service Layer Structure**
 **Core Services:**
-- **AuthService**: Handle Google OAuth, fallback login, logout, token management
+- **AuthService**: Handle Google OAuth, fallback login, logout, JWT token management
 - **UsersService**: User CRUD, session management, profile updates
 - **ResourceProtectionService**: Access validation, risk calculation, user blocking
 
-#### **Guard System**
-**Authentication Guards:**
-- JwtAuthGuard: Protect routes
-- GoogleAuthGuard: Google OAuth
-- ResourceAccessGuard: Resource protection
-- SessionLimitGuard: Session limits
+#### **Middleware System**
+**Authentication Middleware:**
+- JWTAuthMiddleware: Protect routes với JWT validation
+- OAuthMiddleware: Google OAuth flow handling
+- ResourceAccessMiddleware: Resource protection
+- SessionLimitMiddleware: Session limits enforcement
 
 **Usage Pattern:**
-- Routes are protected by combining multiple guards
+- HTTP routes are protected by combining multiple middleware
 - Auto-validation of JWT, enrollment, and session validity
+- Middleware chain: Logging → CORS → Auth → Business Logic
 
 ### **Frontend Architecture**
 
@@ -832,14 +858,14 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 
 ### **Phase 1: Database Setup (1 giờ)**
 1. **Schema Design**: Enhanced User, OAuth, Sessions, ResourceAccess models
-2. **Migration**: Generate và run database migrations
+2. **Migration**: Create và run SQL migration files với golang-migrate
 3. **Seeding**: Create sample data for testing
 
 ### **Phase 2: Backend Implementation (2-3 giờ)**
-1. **Google OAuth**: Setup OAuth strategy và endpoints
+1. **Google OAuth**: Setup OAuth flow và HTTP endpoints
 2. **Services**: Implement Auth, Users, ResourceProtection services
-3. **Guards**: Create authentication và authorization guards
-4. **Controllers**: Build API endpoints với proper validation
+3. **Middleware**: Create authentication và authorization middleware
+4. **Handlers**: Build HTTP API endpoints với proper validation
 
 ### **Phase 3: Frontend Implementation (1-2 giờ)**
 1. **Auth Store**: Setup Zustand store với persistence
@@ -850,7 +876,7 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 ### **Phase 4: Security & Testing (1 giờ)**
 1. **Resource Protection**: Implement access control logic
 2. **Security Features**: Risk scoring và auto-blocking
-3. **Testing**: Unit tests, integration tests, manual testing
+3. **Testing**: Go unit tests, integration tests, manual testing
 4. **Monitoring**: Setup basic security monitoring
 
 **📋 Chi tiết từng phase**: Xem [Checklist Overview.md](./Checklist%20Overview.md)
@@ -979,4 +1005,10 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 
 ---
 
-**📝 Ghi chú**: Guide này là high-level overview và business requirements specification cho NyNus platform. Chi tiết implementation code được tách riêng trong các file tương ứng để dễ maintain và reference. Mỗi section có link đến file implementation chi tiết.
+**📝 Ghi chú**: Guide này là high-level overview và business requirements specification cho NyNus platform với Go backend + PostgreSQL + Raw SQL. Chi tiết implementation code được tách riêng trong các file tương ứng để dễ maintain và reference. Mỗi section có link đến file implementation chi tiết.
+
+**🔧 Tech Stack Updated**:
+- Backend: Go + PostgreSQL + Raw SQL + golang-migrate
+- Migration Example: [migration-example-enhanced-auth.sql](./migration-example-enhanced-auth.sql)
+- Database Schema: SQL CREATE TABLE statements thay vì Prisma schema
+- ORM: Raw SQL queries thay vì Prisma ORM

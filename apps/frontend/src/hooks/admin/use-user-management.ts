@@ -68,7 +68,7 @@ interface UseUserManagementReturn {
  * Default configuration cho hook
  */
 const defaultConfig: UseUserManagementConfig = {
-  initialLimit: 25,
+  initialLimit: 1000, // Load all users for client-side pagination
   enableCaching: true,
   debounceDelay: 300,
 };

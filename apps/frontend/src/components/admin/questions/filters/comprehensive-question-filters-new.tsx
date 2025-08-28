@@ -6,6 +6,7 @@ import { QuestionFilters } from '@/lib/types/question';
 import { useQuestionFiltersUrl } from '@/hooks/use-question-filters-url';
 import { BasicFiltersRow } from './basic-filters-row';
 import { AdvancedFiltersSection } from './advanced-filters-section';
+import { FilterChips } from './filter-chips';
 
 /**
  * Comprehensive Question Filters Component
@@ -63,13 +64,28 @@ export function ComprehensiveQuestionFilters({
     setIsAdvancedOpen(false);
   }, [resetFilters]);
 
-  // Notify parent component when filters change
+  /**
+   * Notify parent when filters change
+   * Use previous filters comparison to prevent unnecessary calls
+   */
+  const onFiltersChangeRef = React.useRef(onFiltersChange);
+  const prevFiltersRef = React.useRef<QuestionFilters>({});
+  onFiltersChangeRef.current = onFiltersChange;
+
   React.useEffect(() => {
     if (isInitialized) {
-      const cleanFilters = getCleanFilters();
-      onFiltersChange(cleanFilters);
+      // Only notify if filters actually changed
+      const filtersChanged = JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current);
+
+      if (filtersChanged) {
+        prevFiltersRef.current = filters;
+        const cleanFilters = getCleanFilters();
+        onFiltersChangeRef.current(cleanFilters);
+      }
     }
-  }, [filters, onFiltersChange, getCleanFilters, isInitialized]);
+  }, [filters, isInitialized, getCleanFilters]);
+
+
 
   return (
     <div className="space-y-4">
@@ -89,7 +105,7 @@ export function ComprehensiveQuestionFilters({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ 
+            transition={{
               duration: 0.3,
               ease: 'easeInOut'
             }}
@@ -104,6 +120,13 @@ export function ComprehensiveQuestionFilters({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Filter Chips - Show active filters (positioned after advanced filters) */}
+      <FilterChips
+        filters={filters}
+        updateFilters={updateFilters}
+        resetFilters={resetFilters}
+      />
 
       {/* Filter Summary */}
       {isInitialized && (
@@ -154,7 +177,7 @@ function FilterSummary({ filters, onReset, isLoading }: FilterSummaryProps) {
         </span>
         {filters.keyword && (
           <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-            Tìm kiếm: "{filters.keyword}"
+            Tìm kiếm: &quot;{filters.keyword}&quot;
           </span>
         )}
         {filters.subcount && (
@@ -177,3 +200,6 @@ function FilterSummary({ filters, onReset, isLoading }: FilterSummaryProps) {
 
 // Export for backward compatibility
 export default ComprehensiveQuestionFilters;
+
+// Named export for new usage
+export { ComprehensiveQuestionFilters as ComprehensiveQuestionFiltersNew };

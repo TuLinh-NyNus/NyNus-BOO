@@ -24,12 +24,18 @@ import {
   Save,
   X,
   CheckCircle,
-  XCircle
+  XCircle,
+  Eye
 } from 'lucide-react';
 import { AdminUser } from '@/lib/mockdata/types';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
 
 // ===== INTERFACES =====
+
+/**
+ * Modal modes
+ */
+export type UserDetailModalMode = 'view' | 'edit';
 
 /**
  * Props cho UserDetailModal component
@@ -39,6 +45,7 @@ interface UserDetailModalProps {
   isOpen: boolean;                                              // Modal có đang mở không
   onClose: () => void;                                          // Callback khi đóng modal
   onUserUpdate?: (updatedUser: AdminUser) => void;             // Callback khi user được update
+  mode?: UserDetailModalMode;                                   // Initial mode: 'view' hoặc 'edit'
   className?: string;
 }
 
@@ -158,6 +165,7 @@ export function UserDetailModal({
   isOpen,
   onClose,
   onUserUpdate,
+  mode = 'view',
   className = ''
 }: UserDetailModalProps) {
   // ===== STATES =====
@@ -181,13 +189,22 @@ export function UserDetailModal({
   // ===== EFFECTS =====
 
   /**
-   * Update form khi user thay đổi
+   * Update form khi user thay đổi và set initial mode
    */
   useEffect(() => {
     if (user) {
       setEditForm(userToForm(user));
     }
   }, [user]);
+
+  /**
+   * Set initial editing mode khi modal mở
+   */
+  useEffect(() => {
+    if (isOpen) {
+      setIsEditing(mode === 'edit');
+    }
+  }, [isOpen, mode]);
 
   /**
    * Reset editing state khi modal đóng
@@ -285,6 +302,7 @@ export function UserDetailModal({
                     value={editForm.firstName}
                     onChange={(e) => handleFormChange('firstName', e.target.value)}
                     placeholder="Nhập họ"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                   />
                 </div>
                 <div>
@@ -294,6 +312,7 @@ export function UserDetailModal({
                     value={editForm.lastName}
                     onChange={(e) => handleFormChange('lastName', e.target.value)}
                     placeholder="Nhập tên"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                   />
                 </div>
               </div>
@@ -304,6 +323,7 @@ export function UserDetailModal({
                   value={editForm.username}
                   onChange={(e) => handleFormChange('username', e.target.value)}
                   placeholder="Nhập username"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                 />
               </div>
               <div>
@@ -314,6 +334,7 @@ export function UserDetailModal({
                   value={editForm.email}
                   onChange={(e) => handleFormChange('email', e.target.value)}
                   placeholder="Nhập email"
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                 />
               </div>
             </>
@@ -377,12 +398,12 @@ export function UserDetailModal({
                   value={editForm.role}
                   onValueChange={(value) => handleFormChange('role', value as UserRole)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-800 border-slate-600">
                     {ROLE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                      <SelectItem key={option.value} value={option.value} className="text-white focus:bg-slate-700">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -395,12 +416,12 @@ export function UserDetailModal({
                   value={editForm.status}
                   onValueChange={(value) => handleFormChange('status', value as UserStatus)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-700 border-slate-600 text-white focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-800 border-slate-600">
                     {STATUS_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
+                      <SelectItem key={option.value} value={option.value} className="text-white focus:bg-slate-700">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -418,6 +439,7 @@ export function UserDetailModal({
                     value={editForm.level || ''}
                     onChange={(e) => handleFormChange('level', e.target.value ? parseInt(e.target.value) : null)}
                     placeholder="Nhập cấp độ"
+                    className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                   />
                 </div>
               )}
@@ -430,6 +452,7 @@ export function UserDetailModal({
                   max="10"
                   value={editForm.maxConcurrentSessions}
                   onChange={(e) => handleFormChange('maxConcurrentSessions', parseInt(e.target.value))}
+                  className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                 />
               </div>
             </>
@@ -473,7 +496,19 @@ export function UserDetailModal({
       <DialogContent className={`max-w-4xl max-h-[90vh] overflow-y-auto ${className}`}>
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            <span>Chi tiết người dùng</span>
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <>
+                  <Edit className="h-5 w-5 text-blue-600" />
+                  <span>Chỉnh sửa thông tin người dùng</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="h-5 w-5 text-green-600" />
+                  <span>Xem chi tiết người dùng</span>
+                </>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               {isEditing ? (
                 <>
@@ -631,6 +666,7 @@ export function UserDetailModal({
                       onChange={(e) => handleFormChange('bio', e.target.value)}
                       placeholder="Nhập tiểu sử"
                       rows={3}
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -641,6 +677,7 @@ export function UserDetailModal({
                         value={editForm.phone}
                         onChange={(e) => handleFormChange('phone', e.target.value)}
                         placeholder="Nhập số điện thoại"
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                       />
                     </div>
                     <div>
@@ -650,6 +687,7 @@ export function UserDetailModal({
                         value={editForm.school}
                         onChange={(e) => handleFormChange('school', e.target.value)}
                         placeholder="Nhập tên trường"
+                        className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                       />
                     </div>
                   </div>
@@ -660,6 +698,7 @@ export function UserDetailModal({
                       value={editForm.address}
                       onChange={(e) => handleFormChange('address', e.target.value)}
                       placeholder="Nhập địa chỉ"
+                      className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400 focus:bg-slate-600 focus:border-slate-500 focus:ring-slate-500"
                     />
                   </div>
                 </>

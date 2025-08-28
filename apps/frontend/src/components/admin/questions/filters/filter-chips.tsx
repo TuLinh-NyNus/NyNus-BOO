@@ -14,10 +14,9 @@ import { Button } from "@/components/ui/form/button";
 import { X } from "lucide-react";
 import { cn } from '@/lib/utils';
 
-// Import store và utilities
-import { useQuestionFiltersStore } from "@/lib/stores/question-filters";
+// Import hooks và utilities
 import { MAPCODE_CONFIG } from "@/lib/utils/question-code";
-import { QuestionType, QuestionStatus, QuestionDifficulty } from "@/lib/types/question";
+import { QuestionType, QuestionStatus, QuestionDifficulty, QuestionFilters } from "@/lib/types/question";
 import { ensureArray } from '@/lib/utils/filter-type-adapters';
 
 
@@ -25,6 +24,9 @@ import { ensureArray } from '@/lib/utils/filter-type-adapters';
 
 interface FilterChipsProps {
   className?: string;
+  filters: QuestionFilters;
+  updateFilters: (newFilters: Partial<QuestionFilters>) => void;
+  resetFilters: () => void;
 }
 
 // ===== HELPER FUNCTIONS =====
@@ -70,6 +72,18 @@ function getFilterLabel(type: string, value: string): string {
         case QuestionDifficulty.HARD: return 'Khó';
         default: return value;
       }
+    case 'keyword':
+      return value; // Return keyword as-is
+    case 'hasAnswers':
+      return value === 'true' ? 'Có' : 'Không';
+    case 'hasSolution':
+      return value === 'true' ? 'Có' : 'Không';
+    case 'hasImages':
+      return value === 'true' ? 'Có' : 'Không';
+    case 'creator':
+      return value; // Return creator as-is
+    case 'source':
+      return value; // Return source as-is
     default:
       return value;
   }
@@ -87,30 +101,30 @@ function _getChipColor(type: string): string {
     case 'lesson':
     case 'form':
     case 'format':
-      return 'bg-blue-100 text-blue-800 border-blue-200';
+      return 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20';
     case 'type':
     case 'status':
     case 'difficulty':
     case 'creator':
-      return 'bg-green-100 text-green-800 border-green-200';
+      return 'bg-secondary/10 text-secondary-foreground border-secondary/20 hover:bg-secondary/20';
     case 'source':
     case 'tags':
     case 'subcount':
     case 'hasAnswers':
     case 'hasSolution':
     case 'hasImages':
-      return 'bg-purple-100 text-purple-800 border-purple-200';
+      return 'bg-accent/10 text-accent-foreground border-accent/20 hover:bg-accent/20';
     case 'usageCount':
     case 'feedback':
     case 'dateRange':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
+      return 'bg-warning/10 text-warning-foreground border-warning/20 hover:bg-warning/20';
     case 'keyword':
     case 'solutionKeyword':
     case 'latexKeyword':
     case 'globalSearch':
-      return 'bg-pink-100 text-pink-800 border-pink-200';
+      return 'bg-info/10 text-info-foreground border-info/20 hover:bg-info/20';
     default:
-      return 'bg-gray-100 text-gray-800 border-gray-200';
+      return 'bg-muted/50 text-muted-foreground border-border hover:bg-muted';
   }
 }
 
@@ -121,38 +135,11 @@ function _getChipColor(type: string): string {
  * Hiển thị tất cả active filters dưới dạng removable chips
  */
 export function FilterChips({
-  className = ""
+  className = "",
+  filters,
+  updateFilters,
+  resetFilters
 }: FilterChipsProps) {
-  // Store state và actions
-  const {
-    filters,
-    resetFilters,
-    resetFilterCategory,
-    setGradeFilter,
-    setSubjectFilter,
-    setChapterFilter,
-    setLevelFilter,
-    setLessonFilter,
-    setFormFilter,
-    setFormatFilter,
-    setTypeFilter,
-    setStatusFilter,
-    setDifficultyFilter,
-    setCreatorFilter,
-    setSourceFilter,
-    setTagsFilter,
-    setSubcountFilter,
-    setHasAnswersFilter,
-    setHasSolutionFilter,
-    setHasImagesFilter,
-    setUsageCountFilter,
-    setFeedbackFilter,
-    setDateRangeFilter,
-    setKeywordFilter,
-    setSolutionKeywordFilter,
-    setLatexKeywordFilter,
-    setGlobalSearchFilter
-  } = useQuestionFiltersStore();
 
   /**
    * Remove specific filter value
@@ -160,141 +147,101 @@ export function FilterChips({
   const removeFilterValue = (type: string, value: string) => {
     switch (type) {
       case 'grade':
-        setGradeFilter((filters.grade || []).filter(v => v !== value));
+        updateFilters({ grade: (filters.grade || []).filter(v => v !== value) });
         break;
       case 'subject':
-        setSubjectFilter((filters.subject || []).filter(v => v !== value));
+        updateFilters({ subject: (filters.subject || []).filter(v => v !== value) });
         break;
       case 'chapter':
-        setChapterFilter((filters.chapter || []).filter(v => v !== value));
+        updateFilters({ chapter: (filters.chapter || []).filter(v => v !== value) });
         break;
       case 'level':
-        setLevelFilter((filters.level || []).filter(v => v !== value));
+        updateFilters({ level: (filters.level || []).filter(v => v !== value) });
         break;
       case 'lesson':
-        setLessonFilter((filters.lesson || []).filter(v => v !== value));
+        updateFilters({ lesson: (filters.lesson || []).filter(v => v !== value) });
         break;
       case 'form':
-        setFormFilter((filters.form || []).filter(v => v !== value));
+        updateFilters({ form: (filters.form || []).filter(v => v !== value) });
         break;
       case 'format':
-        setFormatFilter((filters.format || []).filter(v => v !== value) as ('ID5' | 'ID6')[]);
+        updateFilters({ format: (filters.format || []).filter(v => v !== value) as ('ID5' | 'ID6')[] });
         break;
       case 'type':
-        setTypeFilter(ensureArray(filters.type).filter((v: QuestionType) => v !== value));
+        updateFilters({ type: ensureArray(filters.type).filter((v: QuestionType) => v !== value) });
         break;
       case 'status':
-        setStatusFilter(ensureArray(filters.status).filter((v: QuestionStatus) => v !== value));
+        updateFilters({ status: ensureArray(filters.status).filter((v: QuestionStatus) => v !== value) });
         break;
       case 'difficulty':
-        setDifficultyFilter(ensureArray(filters.difficulty).filter((v: QuestionDifficulty) => v !== value));
+        updateFilters({ difficulty: ensureArray(filters.difficulty).filter((v: QuestionDifficulty) => v !== value) });
         break;
       case 'creator':
-        setCreatorFilter((filters.creator || []).filter(v => v !== value));
+        updateFilters({ creator: (filters.creator || []).filter(v => v !== value) });
         break;
       case 'source':
-        setSourceFilter((filters.source || []).filter(v => v !== value));
+        updateFilters({ source: '' }); // Source is now a string, so clear it
         break;
       case 'tags':
-        setTagsFilter((filters.tags || []).filter(v => v !== value));
+        updateFilters({ tags: (filters.tags || []).filter(v => v !== value) });
+        break;
+      case 'keyword':
+        updateFilters({ keyword: '' }); // Clear keyword filter
+        break;
+      case 'hasAnswers':
+        updateFilters({ hasAnswers: undefined }); // Clear hasAnswers filter
+        break;
+      case 'hasSolution':
+        updateFilters({ hasSolution: undefined }); // Clear hasSolution filter
+        break;
+      case 'hasImages':
+        updateFilters({ hasImages: undefined }); // Clear hasImages filter
+        break;
+      case 'usageCount':
+        updateFilters({ usageCount: undefined }); // Clear usageCount filter
         break;
     }
   };
 
-  /**
-   * Remove entire filter category
-   */
-  const _removeFilterCategory = (type: string) => {
-    switch (type) {
-      case 'subcount':
-        setSubcountFilter('');
-        break;
-      case 'hasAnswers':
-        setHasAnswersFilter(undefined);
-        break;
-      case 'hasSolution':
-        setHasSolutionFilter(undefined);
-        break;
-      case 'hasImages':
-        setHasImagesFilter(undefined);
-        break;
-      case 'usageCount':
-        setUsageCountFilter(undefined);
-        break;
-      case 'feedback':
-        setFeedbackFilter(undefined);
-        break;
-      case 'dateRange':
-        setDateRangeFilter(undefined);
-        break;
-      case 'keyword':
-        setKeywordFilter('');
-        break;
-      case 'solutionKeyword':
-        setSolutionKeywordFilter('');
-        break;
-      case 'latexKeyword':
-        setLatexKeywordFilter('');
-        break;
-      case 'globalSearch':
-        setGlobalSearchFilter('');
-        break;
-    }
-  };
+
 
   /**
    * Generate categorized filter chips
    */
   const generateCategorizedChips = () => {
+    // Gộp tất cả filters vào một nhóm duy nhất
     const categories = {
-      questionCode: {
-        title: 'Mã câu hỏi',
+      all: {
+        title: 'Bộ lọc đang áp dụng',
         color: 'bg-blue-50 border-blue-200',
-        chips: [] as JSX.Element[]
-      },
-      metadata: {
-        title: 'Thông tin',
-        color: 'bg-green-50 border-green-200',
-        chips: [] as JSX.Element[]
-      },
-      content: {
-        title: 'Nội dung',
-        color: 'bg-purple-50 border-purple-200',
-        chips: [] as JSX.Element[]
-      },
-      usage: {
-        title: 'Sử dụng',
-        color: 'bg-orange-50 border-orange-200',
-        chips: [] as JSX.Element[]
-      },
-      search: {
-        title: 'Tìm kiếm',
-        color: 'bg-gray-50 border-gray-200',
         chips: [] as JSX.Element[]
       }
     };
 
-    // QuestionCode filters
+    // QuestionCode filters với icons
     const questionCodeFilters = [
-      { key: 'grade', values: filters.grade, label: 'Lớp' },
-      { key: 'subject', values: filters.subject, label: 'Môn' },
-      { key: 'chapter', values: filters.chapter, label: 'Chương' },
-      { key: 'level', values: filters.level, label: 'Mức độ' },
-      { key: 'lesson', values: filters.lesson, label: 'Bài' },
-      { key: 'form', values: filters.form, label: 'Dạng' },
-      { key: 'format', values: filters.format, label: 'Định dạng' }
+      { key: 'grade', values: filters.grade, label: '🎓 Lớp', icon: '🎓' },
+      { key: 'subject', values: filters.subject, label: '📚 Môn', icon: '📚' },
+      { key: 'chapter', values: filters.chapter, label: '📖 Chương', icon: '📖' },
+      { key: 'level', values: filters.level, label: '⭐ Mức độ', icon: '⭐' },
+      { key: 'lesson', values: filters.lesson, label: '📝 Bài', icon: '📝' },
+      { key: 'form', values: filters.form, label: '📋 Dạng', icon: '📋' },
+      { key: 'format', values: filters.format, label: '🎯 Định dạng', icon: '🎯' }
     ];
 
-    questionCodeFilters.forEach(({ key, values, label }) => {
+    questionCodeFilters.forEach(({ key, values, label, icon }) => {
       if (values && values.length > 0) {
         values.forEach(value => {
-          categories.questionCode.chips.push(
+          categories.all.chips.push(
             <Badge
               key={`${key}-${value}`}
               variant="secondary"
-              className={cn("gap-1 text-xs bg-blue-100 text-blue-800 hover:bg-blue-200")}
+              className={cn("gap-2 text-xs", _getChipColor(key))}
             >
-              <span>{label}: {getFilterLabel(key, value)}</span>
+              <span className="flex items-center gap-1">
+                <span>{icon}</span>
+                <span>{label.replace(icon + ' ', '')}: {getFilterLabel(key, value)}</span>
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -310,30 +257,33 @@ export function FilterChips({
       }
     });
 
-    // Metadata filters
+    // Metadata filters với icons
     const metadataFilters = [
-      { key: 'type', values: filters.type, label: 'Loại' },
-      { key: 'status', values: filters.status, label: 'Trạng thái' },
-      { key: 'difficulty', values: filters.difficulty, label: 'Độ khó' },
-      { key: 'creator', values: filters.creator, label: 'Người tạo' }
+      { key: 'type', values: filters.type, label: '🔤 Loại', icon: '🔤' },
+      { key: 'status', values: filters.status, label: '🔄 Trạng thái', icon: '🔄' },
+      { key: 'difficulty', values: filters.difficulty, label: '⚡ Độ khó', icon: '⚡' },
+      { key: 'creator', values: filters.creator, label: '👤 Người tạo', icon: '👤' }
     ];
 
-    metadataFilters.forEach(({ key, values, label }) => {
+    metadataFilters.forEach(({ key, values, label, icon }) => {
       const arrayValues = ensureArray(values);
       if (arrayValues && arrayValues.length > 0) {
         arrayValues.forEach((value: string) => {
-          categories.metadata.chips.push(
+          categories.all.chips.push(
             <Badge
               key={`${key}-${value}`}
               variant="secondary"
-              className={cn("gap-1 text-xs bg-green-100 text-green-800 hover:bg-green-200")}
+              className={cn("gap-2 text-xs", _getChipColor(key))}
             >
-              <span>{label}: {getFilterLabel(key, value.toString())}</span>
+              <span className="flex items-center gap-1">
+                <span>{icon}</span>
+                <span>{label.replace(icon + ' ', '')}: {getFilterLabel(key, value.toString())}</span>
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => removeFilterValue(key, value.toString())}
-                className="h-3 w-3 p-0 hover:bg-transparent"
+                className="h-3 w-3 p-0 hover:bg-transparent text-muted-foreground hover:text-foreground"
                 aria-label={`Xóa filter ${label}: ${getFilterLabel(key, value.toString())}`}
               >
                 <X className="h-2 w-2" />
@@ -344,44 +294,62 @@ export function FilterChips({
       }
     });
 
-    // Content filters
-    const contentFilters = [
-      { key: 'source', values: filters.source, label: 'Nguồn' },
-      { key: 'tags', values: filters.tags, label: 'Tag' }
-    ];
+    // Content filters - Source (string) và Tags (array)
+    if (filters.source && typeof filters.source === 'string' && filters.source.trim()) {
+      categories.all.chips.push(
+        <Badge
+          key="source"
+          variant="secondary"
+          className={cn("gap-2 text-xs", _getChipColor('source'))}
+        >
+          <span className="flex items-center gap-1">
+            <span>📚</span>
+            <span>Nguồn: &quot;{filters.source}&quot;</span>
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => removeFilterValue('source', '')}
+            className="h-3 w-3 p-0 hover:bg-transparent text-muted-foreground hover:text-foreground"
+            aria-label={`Xóa filter Nguồn: ${filters.source}`}
+          >
+            <X className="h-2 w-2" />
+          </Button>
+        </Badge>
+      );
+    }
 
-    contentFilters.forEach(({ key, values, label }) => {
-      if (values && values.length > 0) {
-        values.forEach(value => {
-          categories.content.chips.push(
-            <Badge
-              key={`${key}-${value}`}
-              variant="secondary"
-              className={cn("gap-1 text-xs bg-purple-100 text-purple-800 hover:bg-purple-200")}
+    // Tags filter (array)
+    if (filters.tags && filters.tags.length > 0) {
+      filters.tags.forEach(tag => {
+        categories.all.chips.push(
+          <Badge
+            key={`tag-${tag}`}
+            variant="secondary"
+            className={cn("gap-1 text-xs", _getChipColor('tags'))}
+          >
+            <span>🏷️ Tag: {tag}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => removeFilterValue('tags', tag)}
+              className="h-3 w-3 p-0 hover:bg-transparent"
+              aria-label={`Xóa filter Tag: ${tag}`}
             >
-              <span>{label}: {value}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => removeFilterValue(key, value)}
-                className="h-3 w-3 p-0 hover:bg-transparent"
-                aria-label={`Xóa filter ${label}: ${value}`}
-              >
-                <X className="h-2 w-2" />
-              </Button>
-            </Badge>
-          );
-        });
-      }
-    });
+              <X className="h-2 w-2" />
+            </Button>
+          </Badge>
+        );
+      });
+    }
 
     // Single value content filters
     if (filters.subcount) {
-      categories.content.chips.push(
+      categories.all.chips.push(
         <Badge
           key="subcount"
           variant="secondary"
-          className={cn("gap-1 text-xs bg-purple-100 text-purple-800 hover:bg-purple-200")}
+          className={cn("gap-1 text-xs", _getChipColor('subcount'))}
         >
           <span>Subcount: {filters.subcount}</span>
           <Button
@@ -406,11 +374,11 @@ export function FilterChips({
 
     booleanFilters.forEach(({ key, value, label }) => {
       if (value !== undefined) {
-        categories.content.chips.push(
+        categories.all.chips.push(
           <Badge
             key={key}
             variant="secondary"
-            className={cn("gap-1 text-xs bg-purple-100 text-purple-800 hover:bg-purple-200")}
+            className={cn("gap-1 text-xs", _getChipColor(key))}
           >
             <span>{label}: {value ? 'Có' : 'Không'}</span>
             <Button
@@ -430,11 +398,11 @@ export function FilterChips({
     // Usage filters
     if (filters.usageCount) {
       const { min, max } = filters.usageCount;
-      categories.usage.chips.push(
+      categories.all.chips.push(
         <Badge
           key="usageCount"
           variant="secondary"
-          className={cn("gap-1 text-xs bg-orange-100 text-orange-800 hover:bg-orange-200")}
+          className={cn("gap-1 text-xs", _getChipColor('usageCount'))}
         >
           <span>Sử dụng: {min !== undefined ? min : 0} - {max !== undefined ? max : '∞'}</span>
           <Button
@@ -452,11 +420,11 @@ export function FilterChips({
 
     if (filters.feedback) {
       const { min, max } = filters.feedback;
-      categories.usage.chips.push(
+      categories.all.chips.push(
         <Badge
           key="feedback"
           variant="secondary"
-          className={cn("gap-1 text-xs bg-orange-100 text-orange-800 hover:bg-orange-200")}
+          className={cn("gap-1 text-xs", _getChipColor('feedback'))}
         >
           <span>Feedback: {min !== undefined ? min.toFixed(1) : '0.0'} - {max !== undefined ? max.toFixed(1) : '10.0'}</span>
           <Button
@@ -478,11 +446,11 @@ export function FilterChips({
       const fromStr = from ? from.toLocaleDateString('vi-VN') : 'Không giới hạn';
       const toStr = to ? to.toLocaleDateString('vi-VN') : 'Không giới hạn';
 
-      categories.usage.chips.push(
+      categories.all.chips.push(
         <Badge
           key="dateRange"
           variant="secondary"
-          className={cn("gap-1 text-xs bg-orange-100 text-orange-800 hover:bg-orange-200")}
+          className={cn("gap-1 text-xs", _getChipColor('dateRange'))}
         >
           <span>{fieldLabel}: {fromStr} - {toStr}</span>
           <Button
@@ -498,28 +466,31 @@ export function FilterChips({
       );
     }
 
-    // Search filters
+    // Search filters với format đẹp hơn
     const searchFilters = [
-      { key: 'keyword', value: filters.keyword, label: 'Từ khóa' },
-      { key: 'solutionKeyword', value: filters.solutionKeyword, label: 'Từ khóa lời giải' },
-      { key: 'latexKeyword', value: filters.latexKeyword, label: 'Từ khóa LaTeX' },
-      { key: 'globalSearch', value: filters.globalSearch, label: 'Tìm kiếm toàn bộ' }
+      { key: 'keyword', value: filters.keyword, label: '🔍 Nội dung', icon: '🔍' },
+      { key: 'solutionKeyword', value: filters.solutionKeyword, label: '📝 Lời giải', icon: '📝' },
+      { key: 'latexKeyword', value: filters.latexKeyword, label: '🔢 LaTeX', icon: '🔢' },
+      { key: 'globalSearch', value: filters.globalSearch, label: '🌐 Toàn bộ', icon: '🌐' }
     ];
 
-    searchFilters.forEach(({ key, value, label }) => {
+    searchFilters.forEach(({ key, value, label, icon }) => {
       if (value && value.trim()) {
-        categories.search.chips.push(
+        categories.all.chips.push(
           <Badge
             key={key}
             variant="secondary"
-            className={cn("gap-1 text-xs bg-gray-100 text-gray-800 hover:bg-gray-200")}
+            className={cn("gap-2 text-xs", _getChipColor(key))}
           >
-            <span>{label}: &quot;{value}&quot;</span>
+            <span className="flex items-center gap-1">
+              <span>{icon}</span>
+              <span>{label.replace(icon + ' ', '')}: &quot;{value}&quot;</span>
+            </span>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => removeFilterValue(key, '')}
-              className="h-3 w-3 p-0 hover:bg-transparent"
+              className="h-3 w-3 p-0 hover:bg-transparent text-muted-foreground hover:text-foreground"
               aria-label={`Xóa filter ${label}: ${value}`}
             >
               <X className="h-2 w-2" />
@@ -557,33 +528,11 @@ export function FilterChips({
         </Button>
       </div>
 
-      {/* Categorized filter chips */}
-      <div className="space-y-2">
-        {Object.entries(categories).map(([categoryKey, category]) => {
-          if (category.chips.length === 0) return null;
-
-          return (
-            <div key={categoryKey} className={cn("p-2 rounded-md border", category.color)}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-muted-foreground">
-                  {category.title} ({category.chips.length})
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => resetFilterCategory(categoryKey as 'questionCode' | 'metadata' | 'content' | 'usage' | 'search')}
-                  className="text-xs h-5 px-1"
-                  aria-label={`Xóa tất cả filters ${category.title}`}
-                >
-                  <X className="h-2 w-2" />
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {category.chips}
-              </div>
-            </div>
-          );
-        })}
+      {/* All filter chips in one group */}
+      <div className="p-3 rounded-md border bg-muted/50 border-border">
+        <div className="flex flex-wrap gap-2">
+          {categories.all.chips}
+        </div>
       </div>
     </div>
   );

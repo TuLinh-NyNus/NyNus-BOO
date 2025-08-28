@@ -1,6 +1,8 @@
 "use client";
 
 import { ChevronDown, HelpCircle, MessageCircle } from "lucide-react";
+import ScrollIndicator from "@/components/ui/scroll-indicator";
+import { motion } from "framer-motion";
 import { useState } from "react";
 
 // Import mockdata
@@ -15,31 +17,58 @@ interface FAQItemProps {
 
 const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
   return (
-    <div className="rounded-xl overflow-hidden backdrop-blur-sm transition-all duration-200 hover:shadow-lg border border-border">
+    <motion.div 
+      className="group rounded-2xl overflow-hidden backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl border border-white/10 bg-white/5 hover:bg-white/10"
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.3 }}
+    >
       <button
-        className={`w-full p-5 flex items-center justify-between text-left font-medium ${
-          isOpen ? "bg-muted" : "bg-card"
-        } transition-colors duration-300`}
+        className={`w-full p-5 md:p-6 flex items-center justify-between text-left font-semibold transition-all duration-300 ${
+          isOpen 
+            ? "bg-white/10 text-white" 
+            : "bg-transparent text-slate-200 hover:bg-white/5"
+        }`}
         onClick={toggleOpen}
       >
         <div className="flex items-center">
-          <HelpCircle className={`h-4 w-4 mr-2.5 ${isOpen ? "text-primary" : "text-muted-foreground"}`} />
-          <span className="text-card-foreground text-sm transition-colors duration-300">{question}</span>
+          <div className="relative mr-3">
+            <HelpCircle className={`h-5 w-5 ${isOpen ? "text-blue-300" : "text-slate-400"}`} />
+            {isOpen && (
+              <motion.div
+                className="absolute inset-0 h-5 w-5 bg-blue-300 rounded-full opacity-30 blur-md"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.3 }}
+              />
+            )}
+          </div>
+          <span className="text-base md:text-lg transition-colors duration-300">{question}</span>
         </div>
-        <ChevronDown
-          className={`h-4 w-4 text-muted-foreground transition-transform ${
-            isOpen ? "transform rotate-180" : ""
-          }`}
-        />
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <ChevronDown className="h-5 w-5 text-slate-400" />
+        </motion.div>
       </button>
+      
       {isOpen && (
-        <div className="p-5 text-muted-foreground text-sm bg-card border-t border-border transition-colors duration-300">
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+          className="px-5 md:px-6 pb-5 md:pb-6 text-slate-300/90 leading-relaxed text-sm md:text-base"
+        >
           {answer}
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
+
+// ScrollIndicator Component
+
 
 const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
@@ -49,53 +78,148 @@ const FAQ = () => {
   };
 
   return (
-    <section id="faq-section" className="py-24 relative min-h-screen" style={{ backgroundColor: '#1F1F47' }}>
+    <>
+      <section id="faq-section" className="py-16 md:py-20 lg:py-24 relative min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
+        {/* Background Pattern Overlay */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            backgroundSize: '60px 60px'
+          }}
+        />
+        
+        {/* Floating Elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" />
 
+        <div className="container px-4 md:px-6 lg:px-8 mx-auto relative z-10 max-w-4xl">
+          <motion.div 
+            className="text-center mb-8 md:mb-10 lg:mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            {/* Enhanced Badge */}
+            <motion.div
+              className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-emerald-500/20 border border-white/20 backdrop-blur-xl shadow-2xl mb-4 md:mb-5"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 25px 50px -12px rgba(59, 130, 246, 0.25)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="relative mr-2 md:mr-3">
+                <HelpCircle className="h-4 md:h-5 w-4 md:w-5 text-blue-300" />
+                <div className="absolute inset-0 h-4 md:h-5 w-4 md:w-5 bg-blue-300 rounded-full opacity-30 blur-md animate-pulse" />
+              </div>
+              <span className="font-bold text-blue-200 text-sm md:text-base tracking-wide">
+                Hỗ trợ & Hướng dẫn
+              </span>
+            </motion.div>
 
+            {/* Enhanced Typography */}
+            <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
+              Câu hỏi thường gặp
+            </h2>
+            <p className="text-base md:text-lg lg:text-xl text-slate-300/80 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8">
+              Những thắc mắc phổ biến về nền tảng học tập NyNus
+            </p>
+          </motion.div>
 
+          {/* FAQ Items with Stagger Animation */}
+          <motion.div 
+            className="max-w-2xl lg:max-w-3xl mx-auto mb-8 md:mb-10 lg:mb-12"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: {
+                  staggerChildren: 0.1,
+                  duration: 0.5
+                }
+              }
+            }}
+          >
+            <div className="space-y-2 md:space-y-3">
+              {homepageFAQData.map((faq, index) => (
+                <motion.div
+                  key={faq.id}
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0 }
+                  }}
+                >
+                  <FAQItem
+                    question={faq.question}
+                    answer={faq.answer}
+                    isOpen={openIndex === index}
+                    toggleOpen={() => toggleFAQ(index)}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
 
-      <div className="container px-4 mx-auto relative z-10">
-        <div className="text-center mb-14">
-          <div className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-accent/20 border border-accent/30 text-secondary backdrop-blur-sm mb-3.5 transition-colors duration-300">
-            <HelpCircle className="h-3.5 w-3.5 mr-1.5" /> Hỗ trợ & Hướng dẫn
-          </div>
-          <h2 className="text-2xl md:text-4xl font-bold mb-5 text-foreground transition-colors duration-300">
-            Câu hỏi thường gặp
-          </h2>
-          <p className="text-muted-foreground text-base max-w-xl mx-auto transition-colors duration-300">
-            Những thắc mắc phổ biến về nền tảng học tập NyNus
-          </p>
-        </div>
-
-        <div className="max-w-2xl mx-auto">
-          <div className="space-y-3">
-            {homepageFAQData.map((faq, index) => (
-              <FAQItem
-                key={faq.id}
-                question={faq.question}
-                answer={faq.answer}
-                isOpen={openIndex === index}
-                toggleOpen={() => toggleFAQ(index)}
-              />
-            ))}
-          </div>
-
-          <div className="mt-10 text-center">
-            <p className="text-muted-foreground text-sm mb-5 transition-colors duration-300">
+          {/* Enhanced CTA Section */}
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <p className="text-slate-300/70 text-sm md:text-base lg:text-lg mb-3 md:mb-4 transition-colors duration-300">
               Không tìm thấy câu trả lời bạn cần?
             </p>
-            <button className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-primary to-secondary text-primary-foreground text-sm font-medium hover:shadow-lg hover:shadow-primary/25 transition-all duration-200">
-              <MessageCircle className="h-4 w-4 mr-1.5" /> Liên hệ ngay
+            
+            {/* Modern CTA Button */}
+            <button className="group relative inline-flex items-center px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-sm md:text-base hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <MessageCircle className="h-4 md:h-5 w-4 md:w-5 mr-2 relative z-10 group-hover:scale-110 transition-transform duration-300" />
+              <span className="relative z-10">Liên hệ ngay</span>
+              
+              {/* Shine effect */}
+              <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
             </button>
-          </div>
+          </motion.div>
         </div>
-      </div>
 
+        {/* ScrollIndicator Component */}
+        <ScrollIndicator />
 
-
-
-    </section>
-  );
+        {/* Enhanced CSS Animations */}
+        <style jsx>{`
+          @keyframes float-subtle {
+            0%, 100% { 
+              transform: translateY(0px) scale(1); 
+              opacity: 0.5;
+            }
+            50% { 
+              transform: translateY(-4px) scale(1.02); 
+              opacity: 0.8;
+            }
+          }
+          
+          @keyframes glow-pulse {
+            0%, 100% { 
+              box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+            }
+            50% { 
+              box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+            }
+          }
+        `}</style>
+      </section>
+      </>
+    );
 };
 
 export default FAQ;

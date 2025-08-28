@@ -250,7 +250,7 @@ export function NavItem({
   };
 
   return (
-    <div>
+    <div suppressHydrationWarning={true}>
       {renderNavItem()}
       {renderChildren()}
     </div>

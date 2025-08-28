@@ -60,7 +60,7 @@ interface QuestionFiltersState {
   setCreatorFilter: (creators: string[]) => void;
   
   // Content filters
-  setSourceFilter: (sources: string[]) => void;
+  setSourceFilter: (source: string) => void; // Changed from string[] to string
   setTagsFilter: (tags: string[]) => void;
   setSubcountFilter: (subcount: string) => void;
   setHasAnswersFilter: (hasAnswers: boolean | undefined) => void;
@@ -112,7 +112,7 @@ const DEFAULT_FILTERS: QuestionFilters = {
   creator: [],
   
   // Content filters
-  source: [],
+  source: '', // Changed from [] to '' for free input
   tags: [],
   subcount: '',
   hasAnswers: undefined,
@@ -239,7 +239,7 @@ export const useQuestionFiltersStore = create<QuestionFiltersState>()(
                 newFilters.creator = [];
                 break;
               case 'content':
-                newFilters.source = [];
+                newFilters.source = '';
                 newFilters.tags = [];
                 newFilters.subcount = '';
                 newFilters.hasAnswers = undefined;
@@ -346,9 +346,9 @@ export const useQuestionFiltersStore = create<QuestionFiltersState>()(
         },
 
         // Content filter actions
-        setSourceFilter: (sources) => {
+        setSourceFilter: (source) => {
           set((state) => ({
-            filters: { ...state.filters, source: sources },
+            filters: { ...state.filters, source: source },
             activePresetId: null
           }));
         },

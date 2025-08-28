@@ -450,7 +450,7 @@ export function RolePromotionWorkflow({
 
   return (
     <>
-      <Card className={className}>
+      <Card className={`bg-transparent ${className}`}>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
@@ -467,7 +467,7 @@ export function RolePromotionWorkflow({
             </Button>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {/* Role Hierarchy */}
           <div>

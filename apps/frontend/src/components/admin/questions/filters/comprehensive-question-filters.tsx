@@ -36,7 +36,7 @@ import { QuestionContentFilters } from "./question-content-filters";
 import { QuestionUsageFilters } from "./question-usage-filters";
 import { QuestionSearchFilters } from "./question-search-filters";
 import { FilterPresets } from "./filter-presets";
-import { FilterChips } from "./filter-chips";
+import { FilterChips as _FilterChips } from "./filter-chips";
 import { SmartFilterInteractions } from "./smart-filter-interactions";
 import { FilterValidationUI } from "./filter-validation-ui";
 import { FilterHelpSystem } from "./filter-help-system";
@@ -270,7 +270,7 @@ export function ComprehensiveQuestionFilters({
             <FilterPresets />
 
             {/* Active Filter Chips */}
-            <FilterChips />
+            {/* <FilterChips /> */}
 
             {/* Smart Filter Interactions */}
             <SmartFilterInteractions />

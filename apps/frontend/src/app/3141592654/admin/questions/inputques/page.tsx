@@ -229,8 +229,8 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
               Quay lại
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Nhập câu hỏi LaTeX</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold text-foreground">Nhập câu hỏi LaTeX</h1>
+              <p className="text-muted-foreground mt-1">
                 Nhập và phân tích câu hỏi từ định dạng LaTeX
               </p>
             </div>

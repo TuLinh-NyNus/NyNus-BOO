@@ -18,20 +18,34 @@ import ScrollIndicator from "@/components/ui/scroll-indicator";
 const Hero = () => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const analytics = useAnalytics();
 
-  // Mobile detection
+  // Client-side mounting check để tránh hydration mismatch
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Mobile detection - chỉ chạy sau khi component đã mounted trên client
+  useEffect(() => {
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
 
+    // Chạy check đầu tiên
     checkMobile();
+
+    // Thêm event listener
     window.addEventListener('resize', checkMobile);
 
+    // Cleanup
     return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  }, [isMounted]);
 
   // Data cho complex SwiftUI interface - commented out unused data
   // const sidebarItems = [
@@ -155,14 +169,15 @@ const Hero = () => {
         <div className="absolute inset-0 opacity-20">
           {[...Array(25)].map((_, i) => {
             // Tạo giá trị pseudo-random dựa trên index để tránh hydration mismatch
-            const pseudoRandomX = ((i * 17) % 100);
-            const pseudoRandomY = ((i * 23) % 60);
-            const pseudoRandomDelay = ((i * 7) % 30) / 10; // 0-3s
-            const pseudoRandomDuration = 2 + ((i * 11) % 20) / 10; // 2-4s
+            // Sử dụng các số nguyên tố để đảm bảo phân bố tốt hơn
+            const pseudoRandomX = ((i * 17 + 13) % 100);
+            const pseudoRandomY = ((i * 23 + 7) % 60);
+            const pseudoRandomDelay = ((i * 7 + 3) % 30) / 10; // 0.3-3.3s
+            const pseudoRandomDuration = 2 + ((i * 11 + 5) % 20) / 10; // 2.5-4.5s
 
             return (
               <div
-                key={i}
+                key={`star-${i}`}
                 className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
                 style={{
                   left: `${pseudoRandomX}%`,
@@ -332,7 +347,7 @@ const Hero = () => {
             </div>
           </motion.div>
 
-          {!isMobile && (
+          {isMounted && !isMobile && (
             <motion.div
               initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
               animate={shouldReduceMotion ? {} : { opacity: 1, scale: 1 }}

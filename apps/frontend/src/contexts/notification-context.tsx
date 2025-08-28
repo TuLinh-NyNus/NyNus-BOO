@@ -40,11 +40,15 @@ interface NotificationProviderProps {
 
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationCounter, setNotificationCounter] = useState<number>(0);
 
-  // Tạo unique ID cho notification
+  // Tạo unique ID cho notification - sử dụng counter thay vì Date.now() + Math.random()
+  // để đảm bảo deterministic ID generation và tránh hydration mismatch
   const generateId = useCallback(() => {
-    return `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }, []);
+    const id = `notification-${notificationCounter}`;
+    setNotificationCounter(prev => prev + 1);
+    return id;
+  }, [notificationCounter]);
 
   // Thêm notification mới
   const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {

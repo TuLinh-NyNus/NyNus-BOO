@@ -3,13 +3,16 @@ import {
   UserRole,
   UserStatus,
   MockPagination,
-  MockApiResponse,
-  ProfileVisibility
+  MockApiResponse
 } from '../core-types';
 import { AdminUser, UserStats } from '../types';
+import { generateLargeUserDataset } from './generate-large-dataset';
 
-// Mock users data với Enhanced User Model từ AUTH_COMPLETE_GUIDE.md
-export const mockUsers: AdminUser[] = [
+// Generate large dataset for testing pagination (250 users)
+export const mockUsers: AdminUser[] = generateLargeUserDataset();
+
+// Original small dataset for reference (commented out)
+/* const originalMockUsers: AdminUser[] = [
   // Admin users
   {
     // ===== CORE REQUIRED FIELDS =====
@@ -42,7 +45,7 @@ export const mockUsers: AdminUser[] = [
     username: 'admin_nynus',
     firstName: 'Nguyễn',
     lastName: 'Quản Trị',
-    avatar: '/avatars/admin-001.jpg',
+    avatar: '/avatars/admin-001.svg',
     bio: 'Quản trị viên hệ thống NyNus',
     phone: '+84901234567',
     address: '123 Nguyễn Văn Linh, Q7, TP.HCM',
@@ -107,7 +110,7 @@ export const mockUsers: AdminUser[] = [
     username: 'support_admin',
     firstName: 'Trần',
     lastName: 'Hỗ Trợ',
-    avatar: '/avatars/admin-002.jpg',
+    avatar: '/avatars/admin-002.svg',
     bio: 'Quản trị viên hỗ trợ',
     phone: '+84901234568',
     address: '456 Lê Văn Việt, Q9, TP.HCM',
@@ -174,7 +177,7 @@ export const mockUsers: AdminUser[] = [
     username: 'teacher_toan',
     firstName: 'Lê',
     lastName: 'Văn Toán',
-    avatar: '/avatars/teacher-001.jpg',
+    avatar: '/avatars/teacher-001.svg',
     bio: 'Giảng viên Toán học',
     phone: '+84901234569',
     address: '789 Võ Văn Tần, Q3, TP.HCM',
@@ -239,7 +242,7 @@ export const mockUsers: AdminUser[] = [
     username: 'teacher_ly',
     firstName: 'Phạm',
     lastName: 'Thị Lý',
-    avatar: '/avatars/teacher-002.jpg',
+    avatar: '/avatars/teacher-002.svg',
     bio: 'Giảng viên Vật lý',
     phone: '+84901234570',
     address: '321 Điện Biên Phủ, Q1, TP.HCM',
@@ -306,7 +309,7 @@ export const mockUsers: AdminUser[] = [
     username: 'tutor_math',
     firstName: 'Nguyễn',
     lastName: 'Minh Tutor',
-    avatar: '/avatars/tutor-001.jpg',
+    avatar: '/avatars/tutor-001.svg',
     bio: 'Gia sư Toán học',
     phone: '+84901234575',
     address: '555 Cách Mạng Tháng 8, Q10, TP.HCM',
@@ -374,7 +377,7 @@ export const mockUsers: AdminUser[] = [
     username: 'student_an',
     firstName: 'Nguyễn',
     lastName: 'Văn An',
-    avatar: '/avatars/student-001.jpg',
+    avatar: '/avatars/student-001.svg',
     bio: 'Học viên lớp 12A1',
     phone: '+84901234571',
     address: '123 Nguyễn Thị Minh Khai, Q3, TP.HCM',
@@ -439,7 +442,7 @@ export const mockUsers: AdminUser[] = [
     username: 'student_binh',
     firstName: 'Trần',
     lastName: 'Thị Bình',
-    avatar: '/avatars/student-002.jpg',
+    avatar: '/avatars/student-002.svg',
     bio: 'Học viên lớp 11B2',
     phone: '+84901234572',
     address: '456 Lê Lợi, Q1, TP.HCM',
@@ -504,7 +507,7 @@ export const mockUsers: AdminUser[] = [
     username: 'student_cuong',
     firstName: 'Lê',
     lastName: 'Minh Cường',
-    avatar: '/avatars/student-003.jpg',
+    avatar: '/avatars/student-003.svg',
     bio: 'Học viên lớp 10C3',
     phone: '+84901234573',
     address: '789 Hai Bà Trưng, Q1, TP.HCM',
@@ -571,7 +574,7 @@ export const mockUsers: AdminUser[] = [
     username: 'guest_user',
     firstName: 'Khách',
     lastName: 'Hàng',
-    avatar: '/avatars/guest-001.jpg',
+    avatar: '/avatars/guest-001.svg',
     bio: 'Khách hàng mới',
     phone: null,                         // Guest không cần phone
     address: null,                       // Guest không cần address
@@ -606,7 +609,7 @@ export const mockUsers: AdminUser[] = [
       averageScore: 0                   // Guest chưa có điểm
     }
   }
-];
+]; */
 
 // Helper functions for Enhanced User Management
 export function getUserById(id: string): AdminUser | undefined {

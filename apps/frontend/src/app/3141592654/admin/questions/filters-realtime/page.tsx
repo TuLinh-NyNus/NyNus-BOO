@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 
 // Import components và hooks
-import { ComprehensiveQuestionFilters } from '@/components/admin/questions/filters';
+import { ComprehensiveQuestionFiltersNew } from '@/components/admin/questions/filters';
 import { useQuestionFilters } from '@/hooks/useQuestionFilters';
 import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
 import { useToast } from '@/components/ui/feedback/use-toast';
@@ -58,7 +58,7 @@ import { getQuestionCodeLabel } from '@/lib/utils/question-code';
  */
 export default function RealTimeQuestionFiltersPage() {
   const { toast } = useToast();
-  const { setFilters, resetFilters } = useQuestionFiltersStore();
+  const { setFilters, resetFilters: _resetFilters } = useQuestionFiltersStore();
 
   // State cho validation
   const [validationResult, setValidationResult] = useState<FilterValidationResult | null>(null);
@@ -269,10 +269,10 @@ export default function RealTimeQuestionFiltersPage() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Filters Panel */}
         <div className="lg:col-span-1">
-          <ComprehensiveQuestionFilters
-            filters={filters}
+          <ComprehensiveQuestionFiltersNew
             onFiltersChange={setFilters}
-            onResetFilters={resetFilters}
+            isLoading={false}
+            defaultFilters={filters}
           />
         </div>
 

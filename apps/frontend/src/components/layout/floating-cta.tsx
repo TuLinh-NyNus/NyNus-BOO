@@ -8,9 +8,20 @@ import { useState, useEffect } from "react";
 const FloatingCTA = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Client-side mounting check để tránh hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Check scroll position to show/hide the button
   useEffect(() => {
+    // Chỉ chạy sau khi component đã mounted trên client
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     const checkScroll = () => {
       // Show after scrolling down 300px
       if (window.scrollY > 300) {
@@ -22,20 +33,43 @@ const FloatingCTA = () => {
 
     window.addEventListener("scroll", checkScroll);
     return () => window.removeEventListener("scroll", checkScroll);
-  }, []);
+  }, [isMounted]);
 
   // Check localStorage to see if the button was previously dismissed
   useEffect(() => {
-    const dismissed = localStorage.getItem("cta-dismissed");
-    if (dismissed === "true") {
-      setIsDismissed(true);
+    // Chỉ chạy sau khi component đã mounted trên client
+    if (!isMounted || typeof window === 'undefined') {
+      return;
     }
-  }, []);
+
+    try {
+      const dismissed = localStorage.getItem("cta-dismissed");
+      if (dismissed === "true") {
+        setIsDismissed(true);
+      }
+    } catch (error) {
+      console.error('Error reading CTA dismissed state:', error);
+      // Fallback to not dismissed state
+    }
+  }, [isMounted]);
 
   const handleDismiss = () => {
     setIsDismissed(true);
-    localStorage.setItem("cta-dismissed", "true");
+    // Chỉ access localStorage trên client
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem("cta-dismissed", "true");
+      } catch (error) {
+        console.error('Error saving CTA dismissed state:', error);
+        // Continue anyway, user preference will be lost on refresh but component still works
+      }
+    }
   };
+
+  // Không render gì cho đến khi component mounted trên client
+  if (!isMounted) {
+    return null;
+  }
 
   // If dismissed or not visible, don't show
   if (isDismissed || !isVisible) {

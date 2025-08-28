@@ -32,9 +32,20 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
   const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isMounted, setIsMounted] = useState<boolean>(false);
+
+  // Client-side mounting check để tránh hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Kiểm tra authentication status từ NextAuth session và localStorage
   useEffect(() => {
+    // Chỉ chạy sau khi component đã mounted trên client và NextAuth đã load xong
+    if (!isMounted || status === 'loading') {
+      return;
+    }
+
     const checkAuthStatus = () => {
       try {
         // Ưu tiên NextAuth session trước
@@ -54,27 +65,38 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
           return;
         }
 
-        // Fallback to localStorage cho mock auth
-        const savedUser = localStorage.getItem('nynus-auth-user');
-        const authToken = localStorage.getItem('nynus-auth-token');
+        // Fallback to localStorage cho mock auth - chỉ trên client
+        if (typeof window !== 'undefined') {
+          const savedUser = localStorage.getItem('nynus-auth-user');
+          const authToken = localStorage.getItem('nynus-auth-token');
 
-        if (savedUser && authToken) {
-          setUser(JSON.parse(savedUser));
+          if (savedUser && authToken) {
+            try {
+              const parsedUser = JSON.parse(savedUser);
+              setUser(parsedUser);
+            } catch (parseError) {
+              console.error('Error parsing saved user data:', parseError);
+              // Clear invalid data
+              localStorage.removeItem('nynus-auth-user');
+              localStorage.removeItem('nynus-auth-token');
+            }
+          }
         }
       } catch (error) {
         console.error('Error checking auth status:', error);
-        // Clear invalid data
-        localStorage.removeItem('nynus-auth-user');
-        localStorage.removeItem('nynus-auth-token');
-      } finally {
-        if (status !== 'loading') {
-          setIsLoading(false);
+        // Clear invalid data - chỉ trên client
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('nynus-auth-user');
+          localStorage.removeItem('nynus-auth-token');
         }
+      } finally {
+        // Đảm bảo luôn set isLoading = false sau khi check xong
+        setIsLoading(false);
       }
     };
 
     checkAuthStatus();
-  }, [session, status]);
+  }, [session, status, isMounted]);
 
   // Login function với mockdata
   const login = async (email: string, password: string): Promise<void> => {
@@ -88,9 +110,11 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
       if (email === 'admin@nynus.edu.vn' && password === 'admin123') {
         const userData = { ...mockAdminUser, lastLoginAt: new Date() };
 
-        // Save to localStorage
-        localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
-        localStorage.setItem('nynus-auth-token', 'mock-jwt-token-admin');
+        // Save to localStorage - chỉ trên client
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
+          localStorage.setItem('nynus-auth-token', 'mock-jwt-token-admin');
+        }
 
         setUser(userData);
       } else {
@@ -131,9 +155,11 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
         await nextAuthSignOut({ callbackUrl: '/', redirect: false });
       }
 
-      // Clear localStorage for mock auth
-      localStorage.removeItem('nynus-auth-user');
-      localStorage.removeItem('nynus-auth-token');
+      // Clear localStorage for mock auth - chỉ trên client
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('nynus-auth-user');
+        localStorage.removeItem('nynus-auth-token');
+      }
 
       setUser(null);
     } catch (error) {
@@ -148,9 +174,11 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
     if (user) {
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
-      
-      // Update localStorage
-      localStorage.setItem('nynus-auth-user', JSON.stringify(updatedUser));
+
+      // Update localStorage - chỉ trên client
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nynus-auth-user', JSON.stringify(updatedUser));
+      }
     }
   };
 

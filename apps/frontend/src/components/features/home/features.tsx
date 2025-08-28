@@ -4,15 +4,15 @@ import React from "react";
 import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import { Calculator, Brain, Trophy, Video, TrendingUp as Progress, Users, ChevronRight, ChevronLeft, Info, TrendingUp, TrendingDown, Minus, CheckCircle, BookOpen, GraduationCap, Target, HelpCircle, MessageSquare, Bot, Library } from "lucide-react";
 import Link from "next/link";
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 // Import mockdata
 import { featuresData, type FeatureItem } from "@/lib/mockdata";
 import ScrollIndicator from "@/components/ui/scroll-indicator";
 import { useAnalytics } from "@/lib/analytics";
 
-// Import new components and hooks
-import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
+// Embla Carousel (loop)
+import useEmblaCarousel from 'embla-carousel-react';
 
 import { ScrollIndicators } from "@/components/ui/navigation/scroll-indicators";
 import NeuralNetworkBackground from "@/components/ui/neural-network-background";
@@ -179,8 +179,8 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
       transition={{ duration: 0.3, delay }}
       whileHover={shouldReduceMotion ? {} : {
         y: -2,
-        scale: 1.01,
-        transition: { type: "spring", stiffness: 200, damping: 25 }
+        scale: 1.03,
+        transition: { duration: 0.1 }
       }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
@@ -339,6 +339,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
 const Features = () => {
   const shouldReduceMotion = useReducedMotion();
   const analytics = useAnalytics();
+  const [_isScrolling, _setIsScrolling] = useState(false);
 
   // Track section view on mount
   React.useEffect(() => {
@@ -349,18 +350,28 @@ const Features = () => {
     });
   }, [analytics]);
 
-  // Horizontal scroll cho mobile/tablet
-  const { containerRef, scrollState, scroll } = useHorizontalScroll({
-    scrollAmount: 0.8,
-    scrollThreshold: 10
-  });
+  // Embla setup (loop)
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Keyboard navigation cho scroll container
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect);
+  }, [emblaApi, onSelect]);
+
+  // Keyboard navigation cho Embla viewport
   const handleScrollKeyDown = useCallback((e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'ArrowLeft':
         e.preventDefault();
-        scroll('left');
+        emblaApi?.scrollPrev();
         analytics.trackEvent('features_scroll_keyboard', {
           direction: 'left',
           method: 'keyboard',
@@ -370,7 +381,7 @@ const Features = () => {
         break;
       case 'ArrowRight':
         e.preventDefault();
-        scroll('right');
+        emblaApi?.scrollNext();
         analytics.trackEvent('features_scroll_keyboard', {
           direction: 'right',
           method: 'keyboard',
@@ -380,33 +391,26 @@ const Features = () => {
         break;
       case 'Home':
         e.preventDefault();
-        if (containerRef.current) {
-          containerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-          analytics.trackEvent('features_scroll_keyboard', {
-            direction: 'home',
-            method: 'keyboard',
-            location: 'features_section',
-            category: 'navigation'
-          });
-        }
+        emblaApi?.scrollTo(0);
+        analytics.trackEvent('features_scroll_keyboard', {
+          direction: 'home',
+          method: 'keyboard',
+          location: 'features_section',
+          category: 'navigation'
+        });
         break;
       case 'End':
         e.preventDefault();
-        if (containerRef.current) {
-          containerRef.current.scrollTo({
-            left: containerRef.current.scrollWidth,
-            behavior: 'smooth'
-          });
-          analytics.trackEvent('features_scroll_keyboard', {
-            direction: 'end',
-            method: 'keyboard',
-            location: 'features_section',
-            category: 'navigation'
-          });
-        }
+        emblaApi?.scrollTo(featuresData.features.length - 1);
+        analytics.trackEvent('features_scroll_keyboard', {
+          direction: 'end',
+          method: 'keyboard',
+          location: 'features_section',
+          category: 'navigation'
+        });
         break;
     }
-  }, [scroll, containerRef, analytics]);
+  }, [emblaApi, analytics]);
 
   return (
     <section
@@ -469,10 +473,10 @@ const Features = () => {
 
 
             {/* Floating scroll buttons */}
-            <div className="absolute left-2 top-1/2 -translate-y-1/2 z-20">
+            <div className="absolute -left-8 top-1/2 -translate-y-1/2 z-20">
               <button
                 onClick={() => {
-                  scroll('left');
+                  emblaApi?.scrollPrev();
                   analytics.trackEvent('features_scroll_floating', {
                     direction: 'left',
                     method: 'floating_button',
@@ -480,19 +484,7 @@ const Features = () => {
                     category: 'navigation'
                   });
                 }}
-                onMouseEnter={() => {
-                  if (scrollState.canScrollLeft) {
-                    scroll('left');
-                    analytics.trackEvent('features_scroll_floating', {
-                      direction: 'left',
-                      method: 'hover_auto_scroll',
-                      location: 'features_section',
-                      category: 'navigation'
-                    });
-                  }
-                }}
-                disabled={!scrollState.canScrollLeft}
-                className="group p-3 rounded-full bg-white/5 border border-white/10 transition-all duration-300 hover:bg-white/15 hover:border-white/30 disabled:opacity-30 disabled:pointer-events-none opacity-40 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none"
+                className={`group p-3 rounded-full bg-white/5 border border-white/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none hover:bg-white/15 hover:border-white/30 opacity-80 hover:opacity-100`}
                 aria-label="Cuộn sang trái"
                 type="button"
               >
@@ -500,10 +492,10 @@ const Features = () => {
               </button>
             </div>
 
-            <div className="absolute right-10 top-1/2 -translate-y-1/2 z-20">
+            <div className="absolute -right-8 top-1/2 -translate-y-1/2 z-20">
               <button
                 onClick={() => {
-                  scroll('right');
+                  emblaApi?.scrollNext();
                   analytics.trackEvent('features_scroll_floating', {
                     direction: 'right',
                     method: 'floating_button',
@@ -511,19 +503,7 @@ const Features = () => {
                     category: 'navigation'
                   });
                 }}
-                onMouseEnter={() => {
-                  if (scrollState.canScrollRight) {
-                    scroll('right');
-                    analytics.trackEvent('features_scroll_floating', {
-                      direction: 'right',
-                      method: 'hover_auto_scroll',
-                      location: 'features_section',
-                      category: 'navigation'
-                    });
-                  }
-                }}
-                disabled={!scrollState.canScrollRight}
-                className="group p-3 rounded-full bg-white/5 border border-white/10 transition-all duration-300 hover:bg-white/15 hover:border-white/30 disabled:opacity-30 disabled:pointer-events-none opacity-40 hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none"
+                className={`group p-3 rounded-full bg-white/5 border border-white/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none hover:bg-white/15 hover:border-white/30 opacity-80 hover:opacity-100`}
                 aria-label="Cuộn sang phải"
                 type="button"
               >
@@ -532,30 +512,28 @@ const Features = () => {
             </div>
 
             <div
-              ref={containerRef}
-              className="flex gap-4 sm:gap-6 overflow-x-auto pb-8 pt-2 snap-x snap-mandatory scrollbar-hide px-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
-              }}
+              ref={emblaRef}
+              className="overflow-hidden px-4"
               role="region"
-              aria-label="Danh sách tính năng - cuộn ngang để xem thêm"
+              aria-label="Danh sách tính năng - carousel"
               aria-live="polite"
               tabIndex={0}
               onKeyDown={handleScrollKeyDown}
             >
-              {featuresData.features.map((feature, index) => (
-                <div
-                  key={feature.id}
-                  className="flex-none w-[82%] sm:w-[58%] md:w-[43%] lg:w-[32%] xl:w-[28%] snap-start first:ml-0 last:mr-4"
-                >
-                  <FeatureCard
-                    feature={feature}
-                    index={index}
-                    delay={shouldReduceMotion ? 0 : 0.05}
-                  />
-                </div>
-              ))}
+              <div className="flex gap-4 sm:gap-6 pb-8 pt-2 pr-4 sm:pr-6">
+                {featuresData.features.map((feature, index) => (
+                  <div
+                    key={`${feature.id}-${index}`}
+                    className="flex-none w-[82%] sm:w-[58%] md:w-[43%] lg:w-[32%] xl:w-[calc(25%-12px)]"
+                  >
+                    <FeatureCard
+                      feature={feature}
+                      index={index}
+                      delay={shouldReduceMotion ? 0 : 0.05}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -569,22 +547,22 @@ const Features = () => {
           >
             <ScrollIndicators
               totalItems={featuresData.features.length}
-              currentIndex={scrollState.currentIndex}
+              currentIndex={Math.max(0, Math.min(selectedIndex, featuresData.features.length - 1))}
               visibleItems={1}
               variant="minimal"
               color="white"
+              onIndicatorClick={(index) => emblaApi?.scrollTo(index)}
               className=""
             />
           </motion.div>
         </div>
 
-
       </div>
 
-
-
       {/* Scroll indicator */}
-      <ScrollIndicator targetSectionId="ai-learning-section" />
+      <div className="-mt-20">
+        <ScrollIndicator targetSectionId="ai-learning-section" />
+      </div>
     </section>
   );
 };

@@ -58,8 +58,24 @@ export function AdminLayoutProvider({
     }
   }), [configOverride]);
 
-  // State management
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(config.sidebar.defaultCollapsed);
+  // State management với hydration-safe approach
+  // FIX HYDRATION ERROR: Sử dụng function để get initial state
+  const getInitialSidebarState = () => {
+    // Trên server, luôn sử dụng default config
+    if (typeof window === 'undefined') {
+      return config.sidebar.defaultCollapsed;
+    }
+
+    // Trên client, check localStorage trước
+    const savedState = localStorage.getItem('admin-sidebar-collapsed');
+    if (savedState !== null) {
+      return savedState === 'true';
+    }
+
+    return config.sidebar.defaultCollapsed;
+  };
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(getInitialSidebarState);
   const [windowSize, setWindowSize] = useState<{ width: number; height: number }>({
     width: typeof window !== 'undefined' ? window.innerWidth : 1024,
     height: typeof window !== 'undefined' ? window.innerHeight : 768
@@ -144,16 +160,10 @@ export function AdminLayoutProvider({
 
   /**
    * Initialize layout state
-   * Khởi tạo layout state từ localStorage
+   * Khởi tạo layout state - localStorage đã được handle trong getInitialSidebarState
    */
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Load sidebar state from localStorage
-      const savedSidebarState = localStorage.getItem('admin-sidebar-collapsed');
-      if (savedSidebarState !== null) {
-        setIsSidebarCollapsed(savedSidebarState === 'true');
-      }
-
       // Set initial window size
       setWindowSize({
         width: window.innerWidth,
@@ -229,26 +239,40 @@ export function useAdminLayout(): AdminLayoutContextValue {
  */
 export function useResponsiveBreakpoint(): ResponsiveBreakpoint {
   const { config, isMobile, isTablet, isDesktop } = useAdminLayout();
+  // Sử dụng consistent initial values để tránh hydration mismatch
   const [windowSize, setWindowSize] = useState<{ width: number; height: number }>({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
-    height: typeof window !== 'undefined' ? window.innerHeight : 768
+    width: 1024, // Default desktop width
+    height: 768  // Default desktop height
   });
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Client-side mounting check
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
+    // Chỉ chạy sau khi component đã mounted trên client
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     const handleResize = () => {
-      if (typeof window !== 'undefined') {
-        setWindowSize({
-          width: window.innerWidth,
-          height: window.innerHeight
-        });
-      }
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, []);
+    // Set initial window size
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMounted]);
 
   const { width, height } = windowSize;
   let breakpoint: 'mobile' | 'tablet' | 'desktop';

@@ -112,7 +112,10 @@ export function NavSection({
     }
 
     return (
-      <div className={cn('space-y-1', hasTitle && !collapsed && 'mt-2')}>
+      <div
+        className={cn('space-y-1', hasTitle && !collapsed && 'mt-2')}
+        suppressHydrationWarning={true}
+      >
         {section.items.map((item) => (
           <NavItem
             key={item.id}
@@ -142,13 +145,13 @@ export function NavSection({
   }
 
   return (
-    <div className={cn('navigation-section', className)}>
+    <div className={cn('navigation-section', className)} suppressHydrationWarning={true}>
       {/* Section divider (before title) */}
       {hasTitle && renderSectionDivider()}
-      
+
       {/* Section title */}
       {renderSectionTitle()}
-      
+
       {/* Section items */}
       {renderSectionItems()}
     </div>

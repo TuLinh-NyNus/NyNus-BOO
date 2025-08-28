@@ -9,3 +9,13 @@ export * from './progress-tracker';
 export * from './separator';
 export * from './skeleton';
 export * from './table';
+
+// AI Dashboard Components
+// export * from './interactive-chart';
+export * from './ai-dashboard-card';
+export * from './ai-progress-chart';
+
+// Testimonial Components
+export * from './testimonial-avatar';
+export * from './video-testimonial';
+export * from './video-modal';

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, useScroll } from "framer-motion";
 import { 
   Facebook, 
   Instagram, 
@@ -12,10 +12,10 @@ import {
   Globe, 
   ChevronDown, 
   ArrowRight, 
-  CheckCircle 
+  CheckCircle
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -23,6 +23,12 @@ const Footer = () => {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('vi');
   const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
+  
+  const footerRef = useRef<HTMLElement>(null);
+  const _scrollYProgress = useScroll({
+    target: footerRef,
+    offset: ["start end", "end end"]
+  });
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,255 +48,456 @@ const Footer = () => {
     { code: 'ja', name: 'Japanese' }
   ];
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" as const }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5, ease: "easeOut" as const }
+    },
+    hover: {
+      y: -8,
+      scale: 1.02,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  const socialIconVariants = {
+    hover: {
+      scale: 1.15,
+      y: -5,
+      rotate: [0, -10, 10, 0],
+      transition: { duration: 0.3 }
+    },
+    tap: { scale: 0.9 }
+  };
+
+  // Enhanced Link component với improved underline effect
+  const EnhancedLink = ({ href, text, className = "" }: { href: string; text: string; className?: string }) => {
+    return (
+      <Link 
+        href={href} 
+        className={`text-slate-300 hover:text-blue-400 transition-all duration-300 hover:translate-x-2 inline-block font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1B293D] rounded-md group relative pb-2 ${className}`}
+      >
+        <span className="relative">
+          {text}
+          <motion.span
+            className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 rounded-full group-hover:w-full transition-all duration-300 ease-out"
+            initial={false}
+          />
+        </span>
+      </Link>
+    );
+  };
+
   return (
-    <footer className="relative pt-24 pb-8 overflow-hidden transition-colors duration-300" style={{ backgroundColor: '#1F1F47' }}>
-      {/* Background decorations using semantic colors */}
+    <footer 
+      ref={footerRef}
+      className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out"
+      style={{ backgroundColor: '#0A0E1A' }}
+    >
+      {/* Enhanced Background decorations */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute -top-[20%] right-[30%] w-1/3 h-1/3 bg-primary/5 blur-[150px] rounded-full"></div>
-        <div className="absolute -bottom-[10%] left-[20%] w-1/3 h-1/3 bg-accent/5 blur-[150px] rounded-full"></div>
+        <motion.div 
+          className="absolute -top-[20%] right-[30%] w-1/3 h-1/3 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 blur-[100px] rounded-full"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 4,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute -bottom-[10%] left-[20%] w-1/3 h-1/3 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 blur-[100px] rounded-full"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/4 h-1/4 bg-gradient-to-r from-violet-500/5 to-cyan-500/5 blur-[120px] rounded-full"
+          animate={{
+            rotate: [0, 360],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
       </div>
 
+      {/* Floating particles */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        {[...Array(6)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-white/10 rounded-full"
+            style={{
+              left: `${20 + i * 15}%`,
+              top: `${30 + i * 10}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              opacity: [0.1, 0.3, 0.1],
+            }}
+            transition={{
+              duration: 3 + i,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 0.5
+            }}
+          />
+        ))}
+      </div>
 
-
-      <div className="container px-4 mx-auto">
-
-        {/* Newsletter Subscription */}
-        <div className="mb-16 border border-border rounded-2xl p-8 bg-card transition-colors duration-300 mt-8">
+      <div className="container px-6 mx-auto">
+        {/* Enhanced Newsletter Subscription với glassmorphism */}
+        <motion.div 
+          className="mb-16 border border-white/10 rounded-2xl p-8 bg-white/5 backdrop-blur-md shadow-2xl transition-all duration-500 ease-out mt-8"
+          variants={cardVariants}
+          initial="hidden"
+          whileInView="visible"
+          whileHover="hover"
+          viewport={{ once: true }}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-xl font-semibold text-card-foreground mb-3 transition-colors duration-300">Nhận thông tin mới nhất</h3>
-              <p className="text-muted-foreground mb-4 transition-colors duration-300">Đăng ký nhận thông báo về các khóa học, đề thi và tính năng mới nhất.</p>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground transition-colors duration-300">
-                <CheckCircle className="h-4 w-4 text-success" />
+            <motion.div variants={itemVariants}>
+              <div className="mb-4">
+                <h3 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 bg-clip-text text-transparent">
+                  Nhận thông tin mới nhất
+                </h3>
+              </div>
+              <p className="text-slate-200 text-lg leading-relaxed mb-6">
+                Đăng ký nhận thông báo về các khóa học, đề thi và tính năng mới nhất.
+              </p>
+              <div className="flex items-center gap-3 text-base text-slate-300">
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <CheckCircle className="h-5 w-5 text-emerald-400" />
+                </motion.div>
                 <span>Không spam, chỉ tin tức hữu ích</span>
               </div>
-            </div>
-            <div>
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 relative">
                   <input
                     type="email"
                     placeholder="Email của bạn"
-                    className="w-full px-4 py-3 bg-background border border-input rounded-lg focus:outline-none focus:border-ring text-foreground transition-colors"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 text-white placeholder-slate-300 transition-all duration-300 backdrop-blur-sm"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                   {isSubscribed && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
                       className="absolute right-3 top-1/2 transform -translate-y-1/2"
                     >
-                      <CheckCircle className="h-5 w-5 text-success" />
+                      <CheckCircle className="h-6 w-6 text-emerald-400" />
                     </motion.div>
                   )}
                 </div>
                 <motion.button
                   type="submit"
-                  className="px-6 py-3 bg-gradient-to-r from-primary to-secondary text-primary-foreground font-medium rounded-lg hover:shadow-lg transition-all flex items-center justify-center gap-2"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  className="px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-300 flex items-center justify-center gap-2 min-w-[120px]"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {isSubscribed ? "Đã đăng ký!" : <>Đăng ký <ArrowRight className="h-4 w-4" /></>}
                 </motion.button>
               </form>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Main footer content */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-16">
+        {/* Main footer content với enhanced animations */}
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
           {/* Company Info */}
-          <div>
-            <Link href="/" className="text-2xl font-bold mb-6 inline-block">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary transition-colors duration-300">
+          <motion.div variants={itemVariants}>
+            <Link href="/" className="text-3xl font-bold mb-6 inline-block group">
+              <motion.span 
+                className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+              >
                 NyNus
-              </span>
+              </motion.span>
             </Link>
-            <p className="text-muted-foreground mb-6 transition-colors duration-300">
+            <p className="text-slate-200 text-base leading-relaxed mb-6">
               Nền tảng học toán thông minh với AI, giúp học sinh cải thiện kỹ năng và đạt kết quả cao trong các kỳ thi quan trọng.
             </p>
             
-            {/* Social Links */}
+            {/* Enhanced Social Links */}
             <div className="flex space-x-3 mb-6">
-              <Link href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-primary/20 hover:text-primary transition-all duration-200">
-                <Facebook className="h-4 w-4" />
-              </Link>
-              <Link href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-accent/20 hover:text-accent transition-all duration-200">
-                <Instagram className="h-4 w-4" />
-              </Link>
-              <Link href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-destructive/20 hover:text-destructive transition-all duration-200">
-                <Youtube className="h-4 w-4" />
-              </Link>
-              <Link href="#" className="w-9 h-9 flex items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-secondary/20 hover:text-secondary transition-all duration-200">
-                <Twitter className="h-4 w-4" />
-              </Link>
+              {[
+                { 
+                  icon: Facebook, 
+                  href: "#", 
+                  hoverBg: "hover:bg-[#1877F2]", 
+                  hoverText: "hover:text-white",
+                  shadow: "hover:shadow-[#1877F2]/30" 
+                },
+                { 
+                  icon: Instagram, 
+                  href: "#", 
+                  hoverBg: "hover:bg-gradient-to-r hover:from-[#E4405F] hover:to-[#833AB4]", 
+                  hoverText: "hover:text-white",
+                  shadow: "hover:shadow-[#E4405F]/30" 
+                },
+                { 
+                  icon: Youtube, 
+                  href: "#", 
+                  hoverBg: "hover:bg-[#FF0000]", 
+                  hoverText: "hover:text-white",
+                  shadow: "hover:shadow-[#FF0000]/30" 
+                },
+                { 
+                  icon: Twitter, 
+                  href: "#", 
+                  hoverBg: "hover:bg-[#1DA1F2]", 
+                  hoverText: "hover:text-white",
+                  shadow: "hover:shadow-[#1DA1F2]/30" 
+                }
+              ].map((social, index) => (
+                <motion.div
+                  key={index}
+                  className="social-icon"
+                  variants={socialIconVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                >
+                  <Link 
+                    href={social.href} 
+                    className={`w-10 h-10 flex items-center justify-center rounded-full bg-white/10 ${social.hoverBg} text-slate-300 ${social.hoverText} transition-all duration-300 shadow-lg ${social.shadow} border border-white/20 hover:border-white/40`}
+                  >
+                    <social.icon className="h-5 w-5" />
+                  </Link>
+                </motion.div>
+              ))}
             </div>
 
-            {/* Language Selector */}
+            {/* Enhanced Language Selector */}
             <div className="relative">
-              <button
+              <motion.button
                 onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-                className="w-full flex items-center justify-between px-4 py-2 bg-background border border-border rounded-lg text-foreground hover:border-ring transition-colors duration-300"
+                className="w-full flex items-center justify-between px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-slate-200 hover:border-blue-400 hover:bg-white/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/30 backdrop-blur-sm"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4" />
-                  <span>
+                  <Globe className="h-4 w-4 text-slate-400" />
+                  <span className="font-medium">
                     {languages.find(lang => lang.code === selectedLanguage)?.name || 'Tiếng Việt'}
                   </span>
                 </div>
-                <ChevronDown className={`h-4 w-4 transition-transform ${isLanguageMenuOpen ? 'rotate-180' : ''}`} />
-              </button>
+                <motion.div
+                  animate={{ rotate: isLanguageMenuOpen ? 180 : 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                </motion.div>
+              </motion.button>
 
               {isLanguageMenuOpen && (
                 <motion.div
-                  className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden z-20 transition-colors duration-300"
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute top-full left-0 right-0 mt-2 bg-white/10 border border-white/20 rounded-lg overflow-hidden z-20 backdrop-blur-md shadow-2xl"
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
                 >
                   {languages.map((language) => (
-                    <button
+                    <motion.button
                       key={language.code}
-                      className={`w-full text-left px-4 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-300 ${selectedLanguage === language.code ? 'text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'}`}
+                      className={`w-full text-left px-4 py-3 hover:bg-white/20 transition-all duration-200 ${
+                        selectedLanguage === language.code 
+                          ? 'text-blue-400 bg-blue-500/20' 
+                          : 'text-slate-300 hover:text-slate-100'
+                      }`}
                       onClick={() => {
                         setSelectedLanguage(language.code);
                         setIsLanguageMenuOpen(false);
                       }}
+                      whileHover={{ x: 5 }}
                     >
                       {language.name}
-                    </button>
+                    </motion.button>
                   ))}
                 </motion.div>
               )}
             </div>
-          </div>
+          </motion.div>
 
           {/* Links Column 1 */}
-          <div className="lg:ml-auto">
-            <h3 className="font-semibold text-lg text-foreground mb-5 transition-colors duration-300">Liên kết</h3>
+          <motion.div className="lg:ml-auto" variants={itemVariants}>
+            <h3 className="font-bold text-xl text-white mb-6">
+              Liên kết
+            </h3>
             <ul className="space-y-4">
-              <li>
-                <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                  Về NyNus
-                </Link>
-              </li>
-              <li>
-                <Link href="/khoa-hoc" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                  Khóa học
-                </Link>
-              </li>
-              <li>
-                <Link href="/de-thi" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                  Đề thi
-                </Link>
-              </li>
-              <li>
-                <Link href="/cau-hoi" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                  Câu hỏi
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                  Tuyển dụng
-                </Link>
-              </li>
+              {[
+                { href: "/about", text: "Về NyNus" },
+                { href: "/courses", text: "Khóa học" },
+                { href: "/practice", text: "Luyện tập" },
+                { href: "/question", text: "Câu hỏi" },
+                { href: "/careers", text: "Tuyển dụng" }
+              ].map((link, index) => (
+                <motion.li 
+                  key={link.href}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <EnhancedLink href={link.href} text={link.text} />
+                </motion.li>
+              ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Links Column 2 */}
-          <div>
-            <h3 className="font-semibold text-lg text-foreground mb-5 transition-colors duration-300">Hỗ trợ</h3>
+          <motion.div variants={itemVariants}>
+            <h3 className="font-bold text-xl text-white mb-6">
+              Hỗ trợ
+            </h3>
             <ul className="space-y-4">
-              <li>
-                <Link href="/huong-dan" className="text-muted-foreground hover:text-primary transition-colors">
-                  Hướng dẫn
-                </Link>
-              </li>
-              <li>
-                <Link href="/faq" className="text-muted-foreground hover:text-primary transition-colors">
-                  FAQ
-                </Link>
-              </li>
-              <li>
-                <Link href="/lien-he" className="text-muted-foreground hover:text-primary transition-colors">
-                  Liên hệ
-                </Link>
-              </li>
-              <li>
-                <Link href="/bao-cao-loi" className="text-muted-foreground hover:text-primary transition-colors">
-                  Báo cáo lỗi
-                </Link>
-              </li>
-              <li>
-                <Link href="/support" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                  Hỗ trợ kỹ thuật
-                </Link>
-              </li>
+              {[
+                { href: "/huong-dan", text: "Hướng dẫn" },
+                { href: "/faq", text: "FAQ" },
+                { href: "/lien-he", text: "Liên hệ" },
+                { href: "/bao-cao-loi", text: "Báo cáo lỗi" },
+                { href: "/support", text: "Hỗ trợ kỹ thuật" }
+              ].map((link, index) => (
+                <motion.li 
+                  key={link.href}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <EnhancedLink href={link.href} text={link.text} />
+                </motion.li>
+              ))}
             </ul>
-          </div>
+          </motion.div>
 
-          {/* Contact Info */}
-          <div>
-            <h3 className="font-semibold text-lg text-foreground mb-5 transition-colors duration-300">Liên hệ</h3>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground transition-colors duration-300">Email</p>
-                  <Link href="mailto:support@nynus.edu.vn" className="text-primary hover:underline">
-                    support@nynus.edu.vn
-                  </Link>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground transition-colors duration-300">Hotline</p>
-                  <Link href="tel:1900-xxxx" className="text-primary hover:underline">
-                    1900-xxxx
-                  </Link>
-                </div>
-              </li>
-              <li className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-muted-foreground transition-colors duration-300">Địa chỉ</p>
-                  <p className="text-muted-foreground transition-colors duration-300">
-                    Việt Nam
-                  </p>
-                </div>
-              </li>
+          {/* Enhanced Contact Info */}
+          <motion.div variants={itemVariants}>
+            <h3 className="font-bold text-xl text-white mb-6">
+              Liên hệ
+            </h3>
+            <ul className="space-y-5">
+              {[
+                { icon: Mail, label: "Email", value: "support@nynus.edu.vn", href: "mailto:support@nynus.edu.vn", color: "group-hover:bg-blue-600" },
+                { icon: Phone, label: "Hotline", value: "1900-xxxx", href: "tel:1900-xxxx", color: "group-hover:bg-green-600" },
+                { icon: MapPin, label: "Địa chỉ", value: "Việt Nam", href: null, color: "group-hover:bg-purple-600" }
+              ].map((contact, index) => (
+                <motion.li 
+                  key={contact.label}
+                  className="flex items-start gap-3 group"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <motion.div 
+                    className={`w-10 h-10 flex items-center justify-center rounded-full bg-white/10 ${contact.color} transition-all duration-300 border border-white/20 group-hover:border-white/40`}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                  >
+                    <contact.icon className="h-5 w-5 text-slate-300 group-hover:text-white" />
+                  </motion.div>
+                  <div>
+                    <p className="text-slate-400 text-sm font-medium">{contact.label}</p>
+                    {contact.href ? (
+                      <Link 
+                        href={contact.href} 
+                        className="text-blue-400 hover:text-blue-300 transition-all duration-300 font-medium"
+                      >
+                        {contact.value}
+                      </Link>
+                    ) : (
+                      <p className="text-slate-300 font-medium">{contact.value}</p>
+                    )}
+                  </div>
+                </motion.li>
+              ))}
             </ul>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {/* Bottom section */}
-        <div className="border-t border-border pt-8 transition-colors duration-300">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-muted-foreground text-sm transition-colors duration-300">
+        {/* Enhanced Bottom section */}
+        <motion.div 
+          className="border-t border-white/10 pt-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div className="text-slate-400 text-base font-medium">
               © {currentYear} NyNus. Tất cả quyền được bảo lưu.
             </div>
-            <div className="flex flex-wrap gap-6 text-sm">
-              <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                Điều khoản sử dụng
-              </Link>
-              <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                Chính sách bảo mật
-              </Link>
-              <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                Liên hệ
-              </Link>
-              <Link href="/help" className="text-muted-foreground hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-md">
-                Trợ giúp
-              </Link>
+            <div className="flex flex-wrap gap-6 text-base">
+              {[
+                { href: "/terms", text: "Điều khoản sử dụng" },
+                { href: "/privacy", text: "Chính sách bảo mật" },
+                { href: "/contact", text: "Liên hệ" },
+                { href: "/help", text: "Trợ giúp" }
+              ].map((link, index) => (
+                <motion.div
+                  key={link.href}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <EnhancedLink href={link.href} text={link.text} />
+                </motion.div>
+              ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );
 };
 
 export default Footer;
-

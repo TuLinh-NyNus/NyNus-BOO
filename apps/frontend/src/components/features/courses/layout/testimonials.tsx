@@ -1,11 +1,12 @@
 'use client';
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, Star, Quote } from "lucide-react";
+import { ChevronLeft, ChevronRight, Star, Quote, Target, Clock, TrendingUp } from "lucide-react";
 import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/form/button";
 import { cn } from "@/lib/utils";
+import { coursesTestimonials } from "@/lib/mockdata/testimonials";
 
 interface Testimonial {
   id: number;
@@ -14,6 +15,9 @@ interface Testimonial {
   avatar: string;
   content: string;
   rating: number;
+  achievement?: string;
+  studyTime?: string;
+  improvement?: string;
 }
 
 interface TestimonialsProps {
@@ -22,54 +26,10 @@ interface TestimonialsProps {
   autoPlayInterval?: number;
 }
 
-// Testimonials data với avatar placeholders
-const testimonials: Testimonial[] = [
-  {
-    id: 1,
-    name: "Nguyễn Minh Anh",
-    role: "Học sinh lớp 12",
-    avatar: "/avatars/student-1.jpg",
-    content: "Nhờ có NyNus mà em đã cải thiện được điểm Toán từ 6 lên 9. Các bài giảng rất dễ hiểu và có nhiều bài tập thực hành.",
-    rating: 5
-  },
-  {
-    id: 2,
-    name: "Trần Văn Hùng",
-    role: "Phụ huynh",
-    avatar: "/avatars/parent-1.jpg",
-    content: "Con tôi học trên NyNus được 6 tháng, tiến bộ rất rõ rệt. Giao diện thân thiện, nội dung chất lượng cao.",
-    rating: 5
-  },
-  {
-    id: 3,
-    name: "Lê Thị Mai",
-    role: "Học sinh lớp 10",
-    avatar: "/avatars/student-2.jpg",
-    content: "Em rất thích cách giảng dạy của các thầy cô trên NyNus. Học online mà vẫn cảm thấy như được học trực tiếp.",
-    rating: 5
-  },
-  {
-    id: 4,
-    name: "Phạm Đức Nam",
-    role: "Học sinh lớp 11",
-    avatar: "/avatars/student-3.jpg",
-    content: "Hệ thống bài tập trên NyNus rất phong phú, giúp em luyện tập và củng cố kiến thức hiệu quả.",
-    rating: 5
-  },
-  {
-    id: 5,
-    name: "Hoàng Thị Lan",
-    role: "Giáo viên",
-    avatar: "/avatars/teacher-1.jpg",
-    content: "Tôi thường giới thiệu NyNus cho học sinh của mình. Nội dung bài giảng rất chất lượng và phù hợp với chương trình học.",
-    rating: 5
-  }
-];
-
 /**
  * Testimonials Component
- * Hiển thị testimonials với carousel functionality
- * Tương thích 100% với dự án cũ + thêm carousel
+ * Hiển thị testimonials với carousel functionality và height 920px
+ * Tương thích 100% với dự án cũ + thêm carousel và cải tiến
  */
 export function Testimonials({ 
   className, 
@@ -78,24 +38,44 @@ export function Testimonials({
 }: TestimonialsProps): JSX.Element {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Intersection Observer để trigger animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const element = document.getElementById('courses-testimonials-section');
+    if (element) {
+      observer.observe(element);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   // Auto play functionality
   useEffect(() => {
     if (!autoPlay || isHovered) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+      setCurrentIndex((prev) => (prev + 1) % coursesTestimonials.length);
     }, autoPlayInterval);
 
     return () => clearInterval(interval);
   }, [autoPlay, autoPlayInterval, isHovered]);
 
   const nextTestimonial = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length);
+    setCurrentIndex((prev) => (prev + 1) % coursesTestimonials.length);
   };
 
   const prevTestimonial = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+    setCurrentIndex((prev) => (prev - 1 + coursesTestimonials.length) % coursesTestimonials.length);
   };
 
   const goToTestimonial = (index: number) => {
@@ -103,28 +83,31 @@ export function Testimonials({
   };
 
   return (
-    <section className={cn("relative py-16 sm:py-24", className)}>
+    <section 
+      id="courses-testimonials-section"
+      className={cn("h-[920px] relative overflow-hidden", className)}
+    >
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-purple-100/20 to-slate-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-slate-900" />
       
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5 }}
-          className="text-center"
+          className="text-center mb-16"
         >
-          <h2 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-white sm:text-4xl">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-slate-800 dark:text-white">
             Học viên nói gì về chúng tôi
           </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
+          <p className="mt-4 text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
             Những phản hồi tích cực từ cộng đồng học viên NyNus
           </p>
         </motion.div>
 
         {/* Carousel Container */}
         <div 
-          className="mt-16 relative"
+          className="relative flex-1 flex flex-col justify-center"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
         >
@@ -134,7 +117,7 @@ export function Testimonials({
               variant="outline"
               size="sm"
               onClick={prevTestimonial}
-              className="rounded-full w-12 h-12 bg-white/90 dark:bg-slate-800/90 border-gray-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 shadow-lg"
+              className="rounded-full w-12 h-12 bg-white/90 dark:bg-slate-800/90 border-gray-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 shadow-lg hover:scale-105 transition-transform"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
@@ -145,7 +128,7 @@ export function Testimonials({
               variant="outline"
               size="sm"
               onClick={nextTestimonial}
-              className="rounded-full w-12 h-12 bg-white/90 dark:bg-slate-800/90 border-gray-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 shadow-lg"
+              className="rounded-full w-12 h-12 bg-white/90 dark:bg-slate-800/90 border-gray-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 shadow-lg hover:scale-105 transition-transform"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -164,16 +147,18 @@ export function Testimonials({
               >
                 {/* Show 3 testimonials at a time on desktop, 1 on mobile */}
                 {Array.from({ length: 3 }).map((_, offset) => {
-                  const testimonialIndex = (currentIndex + offset) % testimonials.length;
-                  const testimonial = testimonials[testimonialIndex];
+                  const testimonialIndex = (currentIndex + offset) % coursesTestimonials.length;
+                  const testimonial: Testimonial = coursesTestimonials[testimonialIndex];
                   
                   return (
-                    <div
+                    <motion.div
                       key={testimonial.id}
                       className={cn(
-                        "group relative overflow-hidden rounded-xl bg-white dark:bg-slate-800/50 p-8 shadow-lg hover:shadow-xl transition-all duration-300",
+                        "group relative overflow-hidden rounded-xl bg-white dark:bg-slate-800/50 p-8 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1",
                         offset > 0 && "hidden lg:block" // Hide on mobile for offset items
                       )}
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ duration: 0.2 }}
                     >
                       {/* Gradient border effect */}
                       <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 opacity-0 transition-opacity duration-300 group-hover:opacity-5" />
@@ -195,9 +180,35 @@ export function Testimonials({
                         </div>
 
                         {/* Content */}
-                        <blockquote className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed">
+                        <blockquote className="text-gray-700 dark:text-gray-300 mb-6 leading-relaxed text-sm md:text-base">
                           &quot;{testimonial.content}&quot;
                         </blockquote>
+
+                        {/* Achievement Badge */}
+                        {testimonial.achievement && (
+                          <div className="flex items-center gap-2 mb-4 p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                            <Target className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                              {testimonial.achievement}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Study Time & Improvement */}
+                        <div className="flex items-center gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400">
+                          {testimonial.studyTime && (
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{testimonial.studyTime}</span>
+                            </div>
+                          )}
+                          {testimonial.improvement && (
+                            <div className="flex items-center gap-1">
+                              <TrendingUp className="h-3 w-3" />
+                              <span>{testimonial.improvement}</span>
+                            </div>
+                          )}
+                        </div>
 
                         {/* Author */}
                         <div className="flex items-center">
@@ -217,7 +228,7 @@ export function Testimonials({
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </motion.div>
@@ -226,12 +237,12 @@ export function Testimonials({
 
           {/* Dots Indicator */}
           <div className="flex justify-center mt-8 space-x-2">
-            {testimonials.map((_, index) => (
+            {coursesTestimonials.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToTestimonial(index)}
                 className={cn(
-                  "w-3 h-3 rounded-full transition-all duration-300",
+                  "w-3 h-3 rounded-full transition-all duration-300 hover:scale-125",
                   index === currentIndex
                     ? "bg-purple-500 scale-125"
                     : "bg-gray-300 dark:bg-gray-600 hover:bg-purple-300 dark:hover:bg-purple-700"
@@ -247,20 +258,20 @@ export function Testimonials({
 
 /**
  * TestimonialsSkeleton Component
- * Loading state cho testimonials
+ * Loading state cho testimonials với height 920px
  */
 export function TestimonialsSkeleton({ className }: { className?: string }): JSX.Element {
   return (
-    <section className={cn("relative py-16 sm:py-24", className)}>
+    <section className={cn("h-[920px] relative overflow-hidden", className)}>
       <div className="absolute inset-0 bg-gradient-to-b from-slate-50 via-purple-100/20 to-slate-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-slate-900" />
       
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center animate-pulse">
-          <div className="h-10 bg-gray-300 dark:bg-gray-700 rounded-lg mb-4 max-w-md mx-auto" />
-          <div className="h-6 bg-gray-300 dark:bg-gray-700 rounded-lg max-w-2xl mx-auto" />
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center">
+        <div className="text-center animate-pulse mb-16">
+          <div className="h-10 md:h-12 lg:h-14 bg-gray-300 dark:bg-gray-700 rounded-lg mb-4 max-w-md mx-auto" />
+          <div className="h-6 md:h-7 bg-gray-300 dark:bg-gray-700 rounded-lg max-w-2xl mx-auto" />
         </div>
 
-        <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 flex-1 flex flex-col justify-center">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={index} className="animate-pulse">
               <div className="bg-white dark:bg-slate-800/50 p-8 rounded-xl shadow-lg">

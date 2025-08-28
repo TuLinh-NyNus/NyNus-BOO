@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/form/checkbox';
@@ -19,18 +18,22 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { 
-  MoreHorizontal, 
-  Eye, 
-  Edit, 
-  UserX, 
-  UserCheck, 
-  Trash2, 
+import {
+  MoreHorizontal,
+  Eye,
+  Edit,
+  UserX,
+  UserCheck,
+  Trash2,
   Shield,
   AlertTriangle,
   Clock,
   Globe,
-  TrendingUp
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react';
 import { AdminUser } from '@/lib/mockdata/types';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
@@ -54,6 +57,7 @@ interface VirtualizedUserTableProps {
   onDeleteUser?: (user: AdminUser) => void;                    // Callback khi delete user
   onPromoteUser?: (user: AdminUser) => void;                   // Callback khi promote user
   containerHeight?: number;                                     // Chiều cao container (default: 600)
+  pageSize?: number;                                            // Số users mỗi trang (default: 50)
   className?: string;
 }
 
@@ -74,9 +78,10 @@ interface TableColumn {
  */
 const TABLE_COLUMNS: TableColumn[] = [
   { key: 'select', label: '', width: 'w-12' },
+  { key: 'stt', label: 'STT', width: 'w-16' },
   { key: 'user', label: 'Người dùng', width: 'w-64', sortable: true },
   { key: 'role', label: 'Vai trò', width: 'w-32', sortable: true },
-  { key: 'status', label: 'Trạng thái', width: 'w-32', sortable: true },
+  { key: 'status', label: 'Trạng thái', width: 'w-40', sortable: true },
   { key: 'security', label: 'Bảo mật', width: 'w-40' },
   { key: 'activity', label: 'Hoạt động', width: 'w-40' },
   { key: 'actions', label: 'Thao tác', width: 'w-24' },
@@ -198,27 +203,22 @@ export function VirtualizedUserTable({
   onDeleteUser,
   onPromoteUser,
   containerHeight = 600,
+  pageSize = 50,
   className = ''
 }: VirtualizedUserTableProps) {
   // ===== STATES =====
   const [sortColumn, setSortColumn] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   // ===== COMPUTED VALUES =====
-  
-  /**
-   * Check if all users are selected
-   */
-  const isAllSelected = useMemo(() => {
-    return users.length > 0 && selectedUsers.length === users.length;
-  }, [users.length, selectedUsers.length]);
 
   /**
-   * Check if some users are selected
+   * Reset to page 1 when users list changes
    */
-  const isSomeSelected = useMemo(() => {
-    return selectedUsers.length > 0 && selectedUsers.length < users.length;
-  }, [selectedUsers.length, users.length]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [users.length]);
 
   /**
    * Sorted users based on current sort settings
@@ -253,20 +253,64 @@ export function VirtualizedUserTable({
     });
   }, [users, sortColumn, sortDirection]);
 
+  /**
+   * Pagination calculations
+   */
+  const paginationData = useMemo(() => {
+    const totalUsers = sortedUsers.length;
+    const totalPages = Math.ceil(totalUsers / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalUsers);
+    const currentPageUsers = sortedUsers.slice(startIndex, endIndex);
+
+    return {
+      totalUsers,
+      totalPages,
+      startIndex,
+      endIndex,
+      currentPageUsers,
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1
+    };
+  }, [sortedUsers, currentPage, pageSize]);
+
+  /**
+   * Check if all users on current page are selected
+   */
+  const isAllSelected = useMemo(() => {
+    const currentPageUserIds = paginationData.currentPageUsers.map(user => user.id);
+    return currentPageUserIds.length > 0 && currentPageUserIds.every(id => selectedUsers.includes(id));
+  }, [paginationData.currentPageUsers, selectedUsers]);
+
+  /**
+   * Check if some users on current page are selected
+   */
+  const isSomeSelected = useMemo(() => {
+    const currentPageUserIds = paginationData.currentPageUsers.map(user => user.id);
+    const selectedOnPage = currentPageUserIds.filter(id => selectedUsers.includes(id));
+    return selectedOnPage.length > 0 && selectedOnPage.length < currentPageUserIds.length;
+  }, [paginationData.currentPageUsers, selectedUsers]);
+
   // ===== EVENT HANDLERS =====
 
   /**
-   * Handle select all checkbox
+   * Handle select all checkbox (only for current page)
    */
   const handleSelectAll = useCallback(() => {
     if (!onSelectionChange) return;
 
+    const currentPageUserIds = paginationData.currentPageUsers.map(user => user.id);
+
     if (isAllSelected) {
-      onSelectionChange([]);
+      // Deselect all users on current page
+      const newSelection = selectedUsers.filter(id => !currentPageUserIds.includes(id));
+      onSelectionChange(newSelection);
     } else {
-      onSelectionChange(users.map(user => user.id));
+      // Select all users on current page
+      const newSelection = [...new Set([...selectedUsers, ...currentPageUserIds])];
+      onSelectionChange(newSelection);
     }
-  }, [isAllSelected, users, onSelectionChange]);
+  }, [isAllSelected, paginationData.currentPageUsers, selectedUsers, onSelectionChange]);
 
   /**
    * Handle individual user selection
@@ -320,6 +364,29 @@ export function VirtualizedUserTable({
         console.warn(`Unknown action: ${action}`);
     }
   }, [onViewUser, onEditUser, onSuspendUser, onActivateUser, onDeleteUser, onPromoteUser]);
+
+  /**
+   * Pagination handlers
+   */
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  const handleFirstPage = useCallback(() => {
+    setCurrentPage(1);
+  }, []);
+
+  const handlePrevPage = useCallback(() => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
+  }, []);
+
+  const handleNextPage = useCallback(() => {
+    setCurrentPage(prev => Math.min(paginationData.totalPages, prev + 1));
+  }, [paginationData.totalPages]);
+
+  const handleLastPage = useCallback(() => {
+    setCurrentPage(paginationData.totalPages);
+  }, [paginationData.totalPages]);
 
   // ===== RENDER HELPERS =====
 
@@ -379,13 +446,13 @@ export function VirtualizedUserTable({
   const renderStatusCell = useCallback((user: AdminUser) => {
     const statusLabel = STATUS_LABELS[user.status];
     const statusColor = STATUS_COLORS[user.status];
-    
+
     return (
-      <div className="space-y-1">
-        <Badge className={`${statusColor} text-xs`}>
+      <div className="flex flex-col gap-1">
+        <Badge className={`${statusColor} text-xs whitespace-nowrap`}>
           {statusLabel}
         </Badge>
-        <div className="flex items-center text-xs">
+        <div className="flex items-center text-xs whitespace-nowrap">
           {user.emailVerified ? (
             <span className="text-green-600">✓ Email xác thực</span>
           ) : (
@@ -470,14 +537,23 @@ export function VirtualizedUserTable({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => handleUserAction('view', user)}>
+          <DropdownMenuItem
+            onClick={() => handleUserAction('view', user)}
+            className="text-white hover:text-white focus:text-white hover:bg-slate-700 focus:bg-slate-700"
+            style={{ color: '#F5F8FA' }}
+          >
             <Eye className="h-4 w-4 mr-2" />
             Xem chi tiết
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => handleUserAction('edit', user)}>
+          <DropdownMenuItem
+            onClick={() => handleUserAction('edit', user)}
+            className="text-yellow-400 hover:text-yellow-300 focus:text-yellow-300 hover:bg-slate-700 focus:bg-slate-700"
+            style={{ color: '#EEB70B' }}
+          >
             <Edit className="h-4 w-4 mr-2" />
             Chỉnh sửa
           </DropdownMenuItem>
+          <div className="border-t my-1" />
           {user.status === UserStatus.ACTIVE ? (
             <DropdownMenuItem 
               onClick={() => handleUserAction('suspend', user)}
@@ -524,52 +600,47 @@ export function VirtualizedUserTable({
   }
 
   return (
-    <Card className={`theme-bg theme-border ${className}`}>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Danh sách người dùng ({users.length})</span>
-          {selectedUsers.length > 0 && (
-            <Badge variant="secondary">
-              Đã chọn: {selectedUsers.length}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      
-      <CardContent>
+    <div className={`space-y-4 ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Danh sách người dùng ({paginationData.totalUsers})</h3>
+        {selectedUsers.length > 0 && (
+          <Badge variant="secondary">
+            Đã chọn: {selectedUsers.length}
+          </Badge>
+        )}
+      </div>
+
+      {/* Table Container with Fixed Header */}
+      <div
+        className="border rounded-lg overflow-hidden"
+        style={{
+          height: containerHeight,
+          maxHeight: '80vh',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        {/* Fixed Header */}
         <div
-          className="admin-table-container admin-table-scrollable"
+          className="bg-background border-b-2 border-border"
           style={{
-            height: containerHeight,
-            maxHeight: '80vh',
-            overflow: 'auto',
-            position: 'relative'
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            backgroundColor: 'hsl(var(--background))',
+            borderBottom: '2px solid hsl(var(--border))',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
           }}
         >
           <Table>
-            <TableHeader
-              className="sticky top-0 z-20 border-b-2"
-              style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 20,
-                backgroundColor: 'hsl(var(--background))',
-                borderBottom: '2px solid hsl(var(--border))',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-              }}
-            >
-              <TableRow>
+            <TableHeader>
+              <TableRow className="bg-background hover:bg-background">
                 {TABLE_COLUMNS.map((column) => (
                   <TableHead
                     key={column.key}
-                    className={`${column.width} ${column.sortable ? 'cursor-pointer hover:bg-muted/50' : ''} sticky top-0 z-20 font-semibold`}
-                    style={{
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 20,
-                      backgroundColor: 'hsl(var(--background))',
-                      borderBottom: '2px solid hsl(var(--border))'
-                    }}
+                    className={`${column.width} ${column.sortable ? 'cursor-pointer hover:bg-muted/50' : ''} font-semibold bg-background`}
                     onClick={column.sortable ? () => handleSort(column.key) : undefined}
                   >
                     {column.key === 'select' ? (
@@ -577,6 +648,10 @@ export function VirtualizedUserTable({
                         checked={isAllSelected || isSomeSelected}
                         onCheckedChange={handleSelectAll}
                       />
+                    ) : column.key === 'stt' ? (
+                      <div className="text-center">
+                        <span>{column.label}</span>
+                      </div>
                     ) : (
                       <div className="flex items-center space-x-1">
                         <span>{column.label}</span>
@@ -591,65 +666,172 @@ export function VirtualizedUserTable({
                 ))}
               </TableRow>
             </TableHeader>
-            
+          </Table>
+        </div>
+
+        {/* Scrollable Body */}
+        <div
+          className="flex-1 overflow-auto"
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden'
+          }}
+        >
+          <Table>
             <TableBody>
-              {sortedUsers.map((user) => (
-                <TableRow key={user.id} className="hover:bg-muted/50">
-                  {/* Selection */}
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedUsers.includes(user.id)}
-                      onCheckedChange={() => handleUserSelect(user.id)}
-                    />
-                  </TableCell>
-                  
-                  {/* User Info */}
-                  <TableCell>
-                    {renderUserCell(user)}
-                  </TableCell>
-                  
-                  {/* Role */}
-                  <TableCell>
-                    {renderRoleCell(user)}
-                  </TableCell>
-                  
-                  {/* Status */}
-                  <TableCell>
-                    {renderStatusCell(user)}
-                  </TableCell>
-                  
-                  {/* Security */}
-                  <TableCell>
-                    {renderSecurityCell(user)}
-                  </TableCell>
-                  
-                  {/* Activity */}
-                  <TableCell>
-                    {renderActivityCell(user)}
-                  </TableCell>
-                  
-                  {/* Actions */}
-                  <TableCell>
-                    {renderActionsCell(user)}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {paginationData.currentPageUsers.map((user, index) => {
+                const stt = (currentPage - 1) * pageSize + index + 1;
+                return (
+                  <TableRow key={user.id} className="hover:bg-muted/50">
+                    {/* Selection */}
+                    <TableCell className="w-12">
+                      <Checkbox
+                        checked={selectedUsers.includes(user.id)}
+                        onCheckedChange={() => handleUserSelect(user.id)}
+                      />
+                    </TableCell>
+
+                    {/* STT */}
+                    <TableCell className="w-16 text-center text-sm text-muted-foreground">
+                      {stt}
+                    </TableCell>
+
+                    {/* User Info */}
+                    <TableCell className="w-64">
+                      {renderUserCell(user)}
+                    </TableCell>
+
+                    {/* Role */}
+                    <TableCell className="w-32">
+                      {renderRoleCell(user)}
+                    </TableCell>
+
+                    {/* Status */}
+                    <TableCell className="w-40">
+                      {renderStatusCell(user)}
+                    </TableCell>
+
+                    {/* Security */}
+                    <TableCell className="w-40">
+                      {renderSecurityCell(user)}
+                    </TableCell>
+
+                    {/* Activity */}
+                    <TableCell className="w-40">
+                      {renderActivityCell(user)}
+                    </TableCell>
+
+                    {/* Actions */}
+                    <TableCell className="w-32">
+                      {renderActionsCell(user)}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
-          
-          {/* Empty State */}
-          {users.length === 0 && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="text-muted-foreground mb-2">Không có người dùng nào</div>
-                <div className="text-sm text-muted-foreground/70">
-                  Thử thay đổi bộ lọc hoặc tìm kiếm
-                </div>
+        </div>
+
+        {/* Empty State */}
+        {paginationData.totalUsers === 0 && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="text-muted-foreground mb-2">Không có người dùng nào</div>
+              <div className="text-sm text-muted-foreground/70">
+                Thử thay đổi bộ lọc hoặc tìm kiếm
               </div>
             </div>
-          )}
+          </div>
+        )}
+      </div>
+
+      {/* Pagination Controls */}
+      {paginationData.totalPages > 1 && (
+        <div className="flex items-center justify-between px-2">
+          {/* Pagination Info */}
+          <div className="text-sm text-muted-foreground">
+            Hiển thị {paginationData.startIndex + 1}-{paginationData.endIndex} trong tổng số {paginationData.totalUsers} người dùng
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center space-x-2">
+            {/* First Page */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleFirstPage}
+              disabled={!paginationData.hasPrevPage}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+
+            {/* Previous Page */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevPage}
+              disabled={!paginationData.hasPrevPage}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-1">
+              {(() => {
+                const { totalPages } = paginationData;
+                const maxVisiblePages = 5;
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+                const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+                if (endPage - startPage + 1 < maxVisiblePages) {
+                  startPage = Math.max(1, endPage - maxVisiblePages + 1);
+                }
+
+                const pages = [];
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <Button
+                      key={i}
+                      variant={i === currentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(i)}
+                      className="h-8 w-8 p-0"
+                    >
+                      {i}
+                    </Button>
+                  );
+                }
+                return pages;
+              })()}
+            </div>
+
+            {/* Next Page */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNextPage}
+              disabled={!paginationData.hasNextPage}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+
+            {/* Last Page */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLastPage}
+              disabled={!paginationData.hasNextPage}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-      </CardContent>
-    </Card>
+      )}
+    </div>
   );
 }

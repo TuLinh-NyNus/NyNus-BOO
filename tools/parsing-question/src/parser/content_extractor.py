@@ -53,8 +53,10 @@ class ContentExtractor:
         r'\\matching(?:\s*\{[^}]*\})*',
     ]
     
-    # Pattern for solution section - improved for nested braces
-    SOLUTION_PATTERN = r'\\loigiai\s*\{.*?\}'
+    # Pattern for solution section - DEPRECATED: Use BracketParser instead
+    # SOLUTION_PATTERN = r'\\loigiai\s*\{.*?\}'  # Old regex-based approach
+
+    # Note: Solution removal now uses bracket-aware parsing in remove_solution_section()
     
     @classmethod
     def extract_from_ex_environment(cls, latex_content: str) -> str:
@@ -311,8 +313,17 @@ class ContentExtractor:
             # Count braces to find the matching closing brace
             brace_count = 0
             pos = brace_start
+            max_search_length = len(content) - brace_start
+            search_count = 0
 
             while pos < len(content):
+                # Safety check to prevent infinite loops
+                search_count += 1
+                if search_count > max_search_length:
+                    # Fallback: remove from loigiai to end of content
+                    content = content[:loigiai_start]
+                    break
+
                 if content[pos] == '{':
                     brace_count += 1
                 elif content[pos] == '}':

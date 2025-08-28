@@ -5,7 +5,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { GraduationCap } from 'lucide-react';
 import { AdminLogoProps } from '@/types/admin/sidebar';
@@ -14,6 +14,11 @@ import { cn } from '@/lib/utils';
 /**
  * Admin Logo Component
  * Component để render logo trong admin sidebar
+ *
+ * FIX HYDRATION ERROR:
+ * - Sử dụng useState và useEffect để handle client-side state
+ * - Thêm suppressHydrationWarning cho dynamic content
+ * - Ensure server-client consistency
  */
 export function AdminLogo({
   collapsed = false,
@@ -21,6 +26,19 @@ export function AdminLogo({
   className,
   onClick
 }: AdminLogoProps) {
+  // State để handle hydration mismatch
+  const [isClient, setIsClient] = useState(false);
+  const [clientCollapsed, setClientCollapsed] = useState(collapsed);
+
+  /**
+   * Handle client-side hydration
+   * Xử lý hydration để tránh server-client mismatch
+   */
+  useEffect(() => {
+    setIsClient(true);
+    setClientCollapsed(collapsed);
+  }, [collapsed]);
+
   /**
    * Handle logo click
    * Xử lý khi click vào logo
@@ -33,21 +51,26 @@ export function AdminLogo({
 
   /**
    * Render logo icon
-   * Render icon của logo
+   * Render icon của logo với hydration-safe approach
    */
   const renderLogoIcon = () => {
+    // Sử dụng clientCollapsed sau khi hydration hoàn tất
+    const isCollapsed = isClient ? clientCollapsed : collapsed;
+
     return (
       <div
         className={cn(
           'flex items-center justify-center rounded-lg bg-gradient-to-br from-[#FDAD00] to-[#E09900] shadow-lg shadow-[#FDAD00]/25',
-          collapsed ? 'w-8 h-8' : 'w-10 h-10'
+          isCollapsed ? 'w-8 h-8' : 'w-10 h-10'
         )}
+        suppressHydrationWarning={true}
       >
         <GraduationCap
           className={cn(
             'text-white',
-            collapsed ? 'h-5 w-5' : 'h-6 w-6'
+            isCollapsed ? 'h-5 w-5' : 'h-6 w-6'
           )}
+          suppressHydrationWarning={true}
         />
       </div>
     );
@@ -55,13 +78,16 @@ export function AdminLogo({
 
   /**
    * Render logo text
-   * Render text của logo
+   * Render text của logo với hydration-safe approach
    */
   const renderLogoText = () => {
-    if (collapsed || !showText) return null;
+    // Sử dụng clientCollapsed sau khi hydration hoàn tất
+    const isCollapsed = isClient ? clientCollapsed : collapsed;
+
+    if (isCollapsed || !showText) return null;
 
     return (
-      <div className="ml-3 flex flex-col">
+      <div className="ml-3 flex flex-col" suppressHydrationWarning={true}>
         <span className="text-lg font-bold text-foreground">
           NyNus
         </span>
@@ -74,10 +100,13 @@ export function AdminLogo({
 
   /**
    * Render tooltip for collapsed state
-   * Render tooltip khi sidebar collapsed
+   * Render tooltip khi sidebar collapsed với hydration-safe approach
    */
   const renderTooltip = () => {
-    if (!collapsed) return null;
+    // Sử dụng clientCollapsed sau khi hydration hoàn tất
+    const isCollapsed = isClient ? clientCollapsed : collapsed;
+
+    if (!isCollapsed) return null;
 
     return (
       <div
@@ -86,6 +115,7 @@ export function AdminLogo({
           'opacity-0 group-hover:opacity-100',
           'pointer-events-none z-50 whitespace-nowrap'
         )}
+        suppressHydrationWarning={true}
       >
         NyNus Admin Panel
       </div>
@@ -94,15 +124,18 @@ export function AdminLogo({
 
   /**
    * Get logo container classes
-   * Lấy CSS classes cho logo container
+   * Lấy CSS classes cho logo container với hydration-safe approach
    */
   const getLogoClasses = () => {
+    // Sử dụng clientCollapsed sau khi hydration hoàn tất
+    const isCollapsed = isClient ? clientCollapsed : collapsed;
+
     const baseClasses = [
       'group flex items-center',
       'rounded-lg p-2 relative'
     ];
 
-    const layoutClasses = collapsed ? 'justify-center' : 'justify-start';
+    const layoutClasses = isCollapsed ? 'justify-center' : 'justify-start';
 
     return cn(baseClasses, layoutClasses, className);
   };

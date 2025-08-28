@@ -114,8 +114,8 @@ export function QuestionContentFilters({
         </div>
         
         <MultiSelect
-          selected={filters.source || []}
-          setSelected={setSourceFilter}
+          selected={Array.isArray(filters.source) ? filters.source : []}
+          setSelected={(sources: string[]) => setSourceFilter(sources[0] || '')}
           Options={filteredSources}
           placeholder="Chọn nguồn câu hỏi..."
           className="w-full"
@@ -305,7 +305,7 @@ export function QuestionContentFilters({
           {/* Textbook Questions */}
           <button
             onClick={() => {
-              setSourceFilter(['sach-giao-khoa']);
+              setSourceFilter('sach-giao-khoa');
               setTagsFilter(['co-ban']);
             }}
             className="px-3 py-1 text-xs bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors"
@@ -316,7 +316,7 @@ export function QuestionContentFilters({
           {/* Exam Questions */}
           <button
             onClick={() => {
-              setSourceFilter(['de-thi-dai-hoc', 'de-thi-thpt']);
+              setSourceFilter('de-thi-dai-hoc');
               setTagsFilter(['on-thi']);
             }}
             className="px-3 py-1 text-xs bg-purple-100 text-purple-800 rounded-full hover:bg-purple-200 transition-colors"

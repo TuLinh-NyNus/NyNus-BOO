@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { QuestionFilters } from '@/lib/types/question';
 
@@ -18,14 +18,15 @@ interface UseQuestionFiltersUrlOptions {
 export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { defaultFilters = {}, debounceMs = 300 } = options;
+  const { defaultFilters = {} } = options;
 
   const [filters, setFilters] = useState<QuestionFilters>(() => {
     // Initialize filters from URL params on mount
     return parseFiltersFromUrl(searchParams, defaultFilters);
   });
 
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized] = useState(false);
+  const [shouldSyncUrl, setShouldSyncUrl] = useState(false);
 
   /**
    * Parse filters from URL search params
@@ -40,22 +41,23 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
     if (params.get('subcount')) parsed.subcount = params.get('subcount')!;
     if (params.get('keyword')) parsed.keyword = params.get('keyword')!;
     if (params.get('codePrefix')) parsed.codePrefix = params.get('codePrefix')!;
+    if (params.get('source')) parsed.source = params.get('source')!;
 
-    // Array fields (comma-separated)
-    const arrayFields = ['grade', 'subject', 'chapter', 'lesson', 'level', 'format', 'type', 'status', 'creator', 'source', 'tags'];
+    // Array fields (comma-separated) - removed 'source' as it's now a string
+    const arrayFields: (keyof QuestionFilters)[] = ['grade', 'subject', 'chapter', 'lesson', 'level', 'format', 'type', 'status', 'creator', 'tags'];
     arrayFields.forEach(field => {
       const value = params.get(field);
       if (value && value !== 'all') {
-        parsed[field as keyof QuestionFilters] = value.split(',').filter(Boolean);
+        (parsed[field] as string[]) = value.split(',').filter(Boolean);
       }
     });
 
     // Boolean fields
-    const booleanFields = ['hasImages', 'hasSolution', 'hasAnswers'];
+    const booleanFields: (keyof QuestionFilters)[] = ['hasImages', 'hasSolution', 'hasAnswers'];
     booleanFields.forEach(field => {
       const value = params.get(field);
       if (value === 'true') {
-        parsed[field as keyof QuestionFilters] = true;
+        (parsed[field] as boolean) = true;
       }
     });
 
@@ -85,7 +87,7 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
     if (pageSize) parsed.pageSize = parseInt(pageSize);
 
     // Sort
-    if (params.get('sortBy')) parsed.sortBy = params.get('sortBy') as any;
+    if (params.get('sortBy')) parsed.sortBy = params.get('sortBy') as QuestionFilters['sortBy'];
     if (params.get('sortDir')) parsed.sortDir = params.get('sortDir') as 'asc' | 'desc';
 
     return parsed;
@@ -101,9 +103,10 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
     if (filters.subcount) params.set('subcount', filters.subcount);
     if (filters.keyword) params.set('keyword', filters.keyword);
     if (filters.codePrefix) params.set('codePrefix', filters.codePrefix);
+    if (filters.source) params.set('source', filters.source);
 
-    // Array fields
-    const arrayFields = ['grade', 'subject', 'chapter', 'lesson', 'level', 'format', 'type', 'status', 'creator', 'source', 'tags'];
+    // Array fields - removed 'source' as it's now a string
+    const arrayFields = ['grade', 'subject', 'chapter', 'lesson', 'level', 'format', 'type', 'status', 'creator', 'tags'];
     arrayFields.forEach(field => {
       const value = filters[field as keyof QuestionFilters];
       if (Array.isArray(value) && value.length > 0) {
@@ -159,10 +162,10 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
   /**
    * Update URL with current filters
    */
-  const updateUrl = useCallback((newFilters: QuestionFilters) => {
+  const _updateUrl = useCallback((newFilters: QuestionFilters) => {
     const params = filtersToUrlParams(newFilters);
     const url = params.toString() ? `?${params.toString()}` : '';
-    
+
     // Use replace to avoid creating too many history entries
     router.replace(url, { scroll: false });
   }, [router]);
@@ -173,7 +176,7 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
   const updateFilters = useCallback((newFilters: Partial<QuestionFilters>) => {
     setFilters(prev => {
       const updated = { ...prev, ...newFilters };
-      
+
       // Reset page to 1 when filters change (except when page itself is being updated)
       if (!('page' in newFilters) && Object.keys(newFilters).length > 0) {
         updated.page = 1;
@@ -181,6 +184,9 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
 
       return updated;
     });
+
+    // Trigger URL sync after state update
+    setShouldSyncUrl(true);
   }, []);
 
   /**
@@ -189,14 +195,18 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
   const resetFilters = useCallback(() => {
     const resetFilters = { ...defaultFilters, page: 1 };
     setFilters(resetFilters);
+
+    // Trigger URL sync after state update
+    setShouldSyncUrl(true);
   }, [defaultFilters]);
 
   /**
    * Get clean filters (remove undefined/empty values)
+   * Not using useCallback to avoid dependency issues
    */
-  const getCleanFilters = useCallback((): QuestionFilters => {
+  const getCleanFilters = (): QuestionFilters => {
     const clean: QuestionFilters = {};
-    
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== '') {
         if (Array.isArray(value) && value.length === 0) {
@@ -207,37 +217,81 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
     });
 
     return clean;
-  }, [filters]);
+  };
 
   // Sync filters to URL when filters change (with debounce)
+  // Use refs to track state and prevent circular updates
+  const _prevFiltersForUrlRef = useRef<QuestionFilters | null>(null);
+  const _isUpdatingFromUrlRef = useRef(false);
+  const _currentFiltersRef = useRef<QuestionFilters>(filters);
+
+  // Update ref whenever filters change
   useEffect(() => {
-    if (!isInitialized) {
-      setIsInitialized(true);
-      return;
-    }
+    _currentFiltersRef.current = filters;
+  }, [filters]);
 
-    const timeoutId = setTimeout(() => {
-      updateUrl(filters);
-    }, debounceMs);
+  // useEffect(() => {
+  //   if (!isInitialized) {
+  //     return;
+  //   }
 
-    return () => clearTimeout(timeoutId);
-  }, [filters, updateUrl, debounceMs, isInitialized]);
+  //   // Skip if we're updating from URL
+  //   if (isUpdatingFromUrlRef.current) {
+  //     return;
+  //   }
+
+  //   // Only update URL if filters actually changed
+  //   const filtersChanged = JSON.stringify(filters) !== JSON.stringify(prevFiltersForUrlRef.current);
+
+  //   if (!filtersChanged) {
+  //     return;
+  //   }
+
+  //   const timeoutId = setTimeout(() => {
+  //     prevFiltersForUrlRef.current = filters;
+  //     const params = filtersToUrlParams(filters);
+  //     const url = params.toString() ? `?${params.toString()}` : '';
+  //     router.replace(url, { scroll: false });
+  //   }, debounceMs);
+
+  //   return () => clearTimeout(timeoutId);
+  // }, [filters, debounceMs, isInitialized, router]);
 
   // Listen to URL changes (browser navigation)
   useEffect(() => {
-    const handleUrlChange = () => {
-      const newFilters = parseFiltersFromUrl(searchParams, defaultFilters);
-      setFilters(newFilters);
-    };
+    const newFilters = parseFiltersFromUrl(searchParams, defaultFilters);
 
-    // Only update if URL actually changed
-    const currentParams = filtersToUrlParams(filters);
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    if (currentParams.toString() !== urlParams.toString()) {
-      handleUrlChange();
+    // Use ref to compare with current filters to avoid stale closure
+    const currentFiltersString = JSON.stringify(_currentFiltersRef.current);
+    const newFiltersString = JSON.stringify(newFilters);
+    const filtersChanged = newFiltersString !== currentFiltersString;
+
+    if (filtersChanged) {
+      // Set flag to prevent URL sync effect from running
+      _isUpdatingFromUrlRef.current = true;
+      setFilters(newFilters);
+
+      // Reset flag after state update
+      setTimeout(() => {
+        _isUpdatingFromUrlRef.current = false;
+      }, 0);
     }
-  }, [searchParams, defaultFilters, filters]);
+  }, [searchParams, defaultFilters]);
+
+  // Sync URL when shouldSyncUrl flag is set (with debouncing)
+  useEffect(() => {
+    if (shouldSyncUrl && !_isUpdatingFromUrlRef.current) {
+      // Debounce URL updates to prevent rapid-fire API calls
+      const timeoutId = setTimeout(() => {
+        const params = filtersToUrlParams(filters);
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        router.push(newUrl, { scroll: false });
+        setShouldSyncUrl(false);
+      }, 300); // 300ms debounce
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [shouldSyncUrl, filters, router]);
 
   return {
     filters,

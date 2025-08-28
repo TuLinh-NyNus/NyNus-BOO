@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional, Union, Any
 from datetime import datetime
 import json
+import re
 import sys
 import os
 
@@ -114,17 +115,19 @@ class Question:
             return TextCleaner.clean_csv_field(str(self.correctAnswer))
 
     def to_csv_dict(self) -> dict:
-        """Convert to dictionary for CSV export with line breaks cleaned."""
+        """Convert to dictionary for CSV export with literal \\n preserved in content fields."""
         return {
             'id': self.id,
-            'rawContent': TextCleaner.clean_csv_field(self.rawContent or ""),
-            'content': TextCleaner.clean_csv_field(self.content or ""),
+            # PRESERVE literal \n in content fields - only clean whitespace
+            'rawContent': self._clean_content_preserve_newlines(self.rawContent or ""),
+            'content': self._clean_content_preserve_newlines(self.content or ""),
             'subcount': self.subcount,
             'type': self.type,
             'source': TextCleaner.clean_csv_field(self.source or ""),
             'answers': self._format_answers_as_text(),
             'correctAnswer': self._format_correct_answer_for_csv(),
-            'solution': TextCleaner.clean_csv_field(self.solution or ""),
+            # PRESERVE literal \n in solution - only clean whitespace
+            'solution': self._clean_content_preserve_newlines(self.solution or ""),
             'tag': json.dumps(self.tag, ensure_ascii=False),
             'usageCount': self.usageCount,
             'creator': self.creator,
@@ -136,6 +139,29 @@ class Question:
             'questionCodeId': self.questionCodeId,
             'generatedTags': TextCleaner.clean_csv_field(self.generatedTags or "")
         }
+
+    def _clean_content_preserve_newlines(self, text: str) -> str:
+        """
+        Clean content for CSV while converting newlines to literal \\n string.
+
+        Double-escapes newlines to prevent Python csv module from interpreting them.
+        """
+        if not text:
+            return ""
+
+        # Convert actual newlines to literal \\n (2 characters: backslash + n)
+        cleaned = text.replace('\r\n', '\\n')  # Windows CRLF → literal \n
+        cleaned = cleaned.replace('\r', '\\n')  # Mac CR → literal \n
+        cleaned = cleaned.replace('\n', '\\n')  # Unix LF → literal \n
+
+        # Keep existing literal \\n as is (no double conversion)
+
+        # Only clean excessive whitespace and control characters
+        cleaned = re.sub(r'[ ]+', ' ', cleaned)  # Multiple spaces to single
+        cleaned = re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', cleaned)  # Control chars
+        cleaned = cleaned.strip()
+
+        return cleaned
 
     def _format_answers_as_text(self) -> str:
         """

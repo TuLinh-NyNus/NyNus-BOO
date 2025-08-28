@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import dynamic from 'next/dynamic';
 
 // Import home components từ index files
-import { Hero, Features, FAQ } from "@/components/features/home";
+import { Hero, Features, FAQ, ProgressScrollIndicator } from "@/components/features/home";
 
 // Dynamic imports cho performance optimization
 const AILearning = dynamic(() => import('@/components/features/home/ai-learning'), {
@@ -24,13 +24,14 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <>
+    <div>
       <Hero />
       <Features />
       <AILearning />
       <FeaturedCourses />
-      <Testimonials />
+      <Testimonials />  
       <FAQ />
-    </>
+      <ProgressScrollIndicator />
+    </div>
   );
 }

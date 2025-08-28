@@ -11,6 +11,7 @@ import { AdminSidebar } from '@/components/admin/sidebar';
 import { MockWebSocketProvider } from '@/components/admin/providers/mock-websocket-provider';
 import { AdminErrorBoundary } from '@/components/admin/providers/admin-error-boundary';
 import { AdminLayoutProvider } from '@/components/admin/providers/admin-layout-provider';
+import { useHydrationFix } from '@/hooks/use-hydration-fix';
 
 /**
  * Admin Layout Props
@@ -32,24 +33,33 @@ interface AdminLayoutProps {
  * - Breadcrumb navigation
  */
 export default function AdminLayout({ children }: AdminLayoutProps) {
+  // Fix hydration issues caused by browser extensions
+  useHydrationFix();
+
   return (
     <AdminErrorBoundary>
       <MockWebSocketProvider>
         <AdminLayoutProvider>
-          <div className="flex h-screen bg-background">
+          {/* Admin layout với fixed positioning để override MainLayout */}
+          <div
+            className="admin-layout-override fixed inset-0 flex h-screen bg-background z-50"
+            suppressHydrationWarning={true}
+          >
             {/* Admin Sidebar */}
             <AdminSidebar />
 
             {/* Main Content Area */}
-            <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col">
               {/* Admin Header */}
               <AdminHeader />
 
-              {/* Main Content */}
-              <main className="flex-1 overflow-y-auto px-6 pt-3 pb-6 text-foreground">
-                {/* Page Content */}
-                <div>
-                  {children}
+              {/* Main Content - Improved spacing và responsive design */}
+              <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 text-foreground overflow-y-auto admin-main-content">
+                {/* Page Content với proper spacing */}
+                <div className="min-h-full max-w-full overflow-x-hidden admin-container">
+                  <div className="w-full max-w-7xl mx-auto space-y-6">
+                    {children}
+                  </div>
                 </div>
               </main>
             </div>

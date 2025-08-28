@@ -313,7 +313,7 @@ export function FilterPanel({
             placeholder="Tìm kiếm theo tên, email, username..."
             value={filterState.search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-slate-800 border-slate-600"
           />
           {isSearching && (
             <RefreshCw className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
@@ -366,7 +366,7 @@ export function FilterPanel({
                   value={filterState.emailVerified === null ? 'all' : filterState.emailVerified ? 'verified' : 'unverified'}
                   onValueChange={handleEmailVerifiedChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-800 border-slate-600">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -388,7 +388,7 @@ export function FilterPanel({
                     max="9"
                     value={filterState.levelMin}
                     onChange={(e) => handleLevelChange('levelMin', e.target.value)}
-                    className="w-20"
+                    className="w-20 bg-slate-800 border-slate-600"
                   />
                   <span className="self-center text-muted-foreground">-</span>
                   <Input
@@ -398,7 +398,7 @@ export function FilterPanel({
                     max="9"
                     value={filterState.levelMax}
                     onChange={(e) => handleLevelChange('levelMax', e.target.value)}
-                    className="w-20"
+                    className="w-20 bg-slate-800 border-slate-600"
                   />
                 </div>
               </div>
@@ -417,7 +417,7 @@ export function FilterPanel({
                     max="100"
                     value={filterState.riskScoreMin}
                     onChange={(e) => handleRiskScoreChange('riskScoreMin', e.target.value)}
-                    className="w-20"
+                    className="w-20 bg-slate-800 border-slate-600"
                   />
                   <span className="self-center text-muted-foreground">-</span>
                   <Input
@@ -427,7 +427,7 @@ export function FilterPanel({
                     max="100"
                     value={filterState.riskScoreMax}
                     onChange={(e) => handleRiskScoreChange('riskScoreMax', e.target.value)}
-                    className="w-20"
+                    className="w-20 bg-slate-800 border-slate-600"
                   />
                 </div>
               </div>
@@ -443,7 +443,7 @@ export function FilterPanel({
                     value={filterState.isLocked === null ? 'all' : filterState.isLocked ? 'true' : 'false'}
                     onValueChange={(value) => handleSecurityFilterChange('isLocked', value)}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-slate-800 border-slate-600">
                       <SelectValue placeholder="Tài khoản bị khóa" />
                     </SelectTrigger>
                     <SelectContent>
@@ -462,7 +462,7 @@ export function FilterPanel({
                   value={filterState.highRiskUsers === null ? 'all' : filterState.highRiskUsers ? 'true' : 'false'}
                   onValueChange={(value) => handleSecurityFilterChange('highRiskUsers', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-800 border-slate-600">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

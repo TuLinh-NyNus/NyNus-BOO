@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300" role="img" aria-label="CEO Team Member">
+  <defs>
+    <linearGradient id="ceo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#991b1b"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="300" rx="16" fill="url(#ceo)"/>
+  <text x="50%" y="40%" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="32" font-weight="700">CEO</text>
+  <text x="50%" y="60%" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Nguyễn Văn A</text>
+  <text x="50%" y="75%" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="400">Founder</text>
+</svg>

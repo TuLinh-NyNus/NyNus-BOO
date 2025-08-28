@@ -90,8 +90,8 @@ export class MockQuestionsService {
       feedback: q.feedback,
       difficulty: q.difficulty,
       questionCodeId: q.questionCodeId,
-      createdAt: q.createdAt.toISOString(),
-      updatedAt: q.updatedAt.toISOString()
+      createdAt: typeof q.createdAt === 'string' ? q.createdAt : (q.createdAt as Date).toISOString(),
+      updatedAt: typeof q.updatedAt === 'string' ? q.updatedAt : (q.updatedAt as Date).toISOString()
     }));
 
     // Apply filters
@@ -191,8 +191,8 @@ export class MockQuestionsService {
       feedback: enhancedQuestion.feedback,
       difficulty: enhancedQuestion.difficulty,
       questionCodeId: enhancedQuestion.questionCodeId,
-      createdAt: enhancedQuestion.createdAt.toISOString(),
-      updatedAt: enhancedQuestion.updatedAt.toISOString()
+      createdAt: typeof enhancedQuestion.createdAt === 'string' ? enhancedQuestion.createdAt : (enhancedQuestion.createdAt as Date).toISOString(),
+      updatedAt: typeof enhancedQuestion.updatedAt === 'string' ? enhancedQuestion.updatedAt : (enhancedQuestion.updatedAt as Date).toISOString()
     };
 
     return { data: question };
@@ -242,7 +242,7 @@ export class MockQuestionsService {
       feedback: payload.feedback || existingQuestion.feedback,
       difficulty: payload.difficulty || existingQuestion.difficulty,
       questionCodeId: payload.questionCodeId || existingQuestion.questionCodeId,
-      createdAt: existingQuestion.createdAt.toISOString(),
+      createdAt: typeof existingQuestion.createdAt === 'string' ? existingQuestion.createdAt : (existingQuestion.createdAt as Date).toISOString(),
       updatedAt: new Date().toISOString()
     };
 

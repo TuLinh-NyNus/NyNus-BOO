@@ -48,6 +48,18 @@ export type { ErrorFallbackProps } from './feedback/error-boundary';
 // Display Components (additional)
 export { LoadingSpinner } from './display/loading-spinner';
 
+// Animation Components
+export {
+  AnimatedCounter,
+  NumberCounter,
+  PercentageCounter,
+  CurrencyCounter,
+  DecimalCounter,
+  RatingCounter,
+  createCustomFormatter,
+  calculateOptimalDuration
+} from './animated-counter';
+
 // Overlay Components
 export { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './overlay/alert-dialog';
 export { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './overlay/dropdown-menu';

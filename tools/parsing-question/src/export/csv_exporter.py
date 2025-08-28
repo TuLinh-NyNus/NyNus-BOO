@@ -100,12 +100,12 @@ class CSVExporter:
         if not questions:
             # Create empty file with headers
             with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-                writer = csv.writer(csvfile)
+                writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
                 writer.writerow(self._get_merged_headers())
             return file_path
 
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self._get_merged_headers())
+            writer = csv.DictWriter(csvfile, fieldnames=self._get_merged_headers(), quoting=csv.QUOTE_ALL)
             writer.writeheader()
 
             for question in questions:
@@ -159,12 +159,12 @@ class CSVExporter:
         if not questions:
             # Create empty file with headers
             with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-                writer = csv.writer(csvfile)
+                writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
                 writer.writerow(self._get_question_headers())
             return file_path
-        
+
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self._get_question_headers())
+            writer = csv.DictWriter(csvfile, fieldnames=self._get_question_headers(), quoting=csv.QUOTE_ALL)
             writer.writeheader()
             
             for question in questions:
@@ -190,12 +190,12 @@ class CSVExporter:
         if not question_codes:
             # Create empty file with headers
             with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-                writer = csv.writer(csvfile)
+                writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
                 writer.writerow(self._get_question_code_headers())
             return file_path
-        
+
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self._get_question_code_headers())
+            writer = csv.DictWriter(csvfile, fieldnames=self._get_question_code_headers(), quoting=csv.QUOTE_ALL)
             writer.writeheader()
             
             for question_code in question_codes:
@@ -218,7 +218,7 @@ class CSVExporter:
         
         # Create empty file with headers (tags will be implemented later)
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self._get_question_tag_headers())
+            writer = csv.DictWriter(csvfile, fieldnames=self._get_question_tag_headers(), quoting=csv.QUOTE_ALL)
             writer.writeheader()
             
             for question_tag in question_tags:
@@ -290,12 +290,12 @@ class CSVExporter:
         if not questions:
             # Create empty file with headers
             with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-                writer = csv.writer(csvfile)
+                writer = csv.writer(csvfile, quoting=csv.QUOTE_ALL)
                 writer.writerow(self._get_merged_with_tags_headers())
             return file_path
 
         with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=self._get_merged_with_tags_headers())
+            writer = csv.DictWriter(csvfile, fieldnames=self._get_merged_with_tags_headers(), quoting=csv.QUOTE_ALL)
             writer.writeheader()
 
             for question in questions:

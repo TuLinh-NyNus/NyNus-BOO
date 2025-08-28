@@ -1,0 +1,98 @@
+/**
+ * Admin Layout Spacing
+ * CSS cho spacing và layout của admin interface
+ * 
+ * @author NyNus Team
+ * @version 1.0.0
+ */
+
+/* ===== ADMIN LAYOUT SPACING ===== */
+
+/* Main content area spacing */
+.admin-main-content {
+  @apply px-4 sm:px-6 lg:px-8 py-6;
+}
+
+/* Container spacing */
+.admin-container {
+  @apply max-w-7xl mx-auto;
+}
+
+/* Card spacing */
+.admin-card {
+  @apply p-6 space-y-4;
+}
+
+/* Section spacing */
+.admin-section {
+  @apply space-y-6;
+}
+
+/* Grid spacing */
+.admin-grid {
+  @apply grid gap-6;
+}
+
+/* Dashboard specific spacing */
+.admin-dashboard {
+  @apply space-y-8;
+}
+
+.admin-dashboard-header {
+  @apply mb-8;
+}
+
+.admin-dashboard-content {
+  @apply space-y-6;
+}
+
+/* Responsive spacing adjustments */
+@media (max-width: 640px) {
+  .admin-main-content {
+    @apply px-3 py-4;
+  }
+  
+  .admin-card {
+    @apply p-4 space-y-3;
+  }
+  
+  .admin-section {
+    @apply space-y-4;
+  }
+  
+  .admin-grid {
+    @apply gap-4;
+  }
+}
+
+/* Fix hydration issues */
+.admin-layout-override {
+  /* Ensure consistent rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent browser extension interference */
+.admin-layout-override * {
+  /* Reset any injected styles */
+  box-sizing: border-box;
+}
+
+/* Sidebar spacing */
+.admin-sidebar {
+  @apply p-4 space-y-2;
+}
+
+.admin-sidebar-section {
+  @apply space-y-1;
+}
+
+/* Header spacing */
+.admin-header {
+  @apply px-4 sm:px-6 py-4;
+}
+
+/* Breadcrumb spacing */
+.admin-breadcrumb {
+  @apply px-4 sm:px-6 py-2;
+}

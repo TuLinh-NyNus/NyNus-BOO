@@ -242,8 +242,8 @@ export default function InputAutoQuestionsPage() {
               Quay lại
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Nhập tự động</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold text-foreground">Nhập tự động</h1>
+              <p className="text-muted-foreground mt-1">
                 Upload file để import câu hỏi hàng loạt
               </p>
             </div>
@@ -282,10 +282,10 @@ export default function InputAutoQuestionsPage() {
               {!selectedFile ? (
                 <div>
                   <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     Chọn file để upload
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     Hỗ trợ file .txt, .tex, .csv, .json (tối đa 10MB)
                   </p>
                   <Button onClick={() => fileInputRef.current?.click()}>
@@ -295,10 +295,10 @@ export default function InputAutoQuestionsPage() {
               ) : (
                 <div>
                   <FileText className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     {selectedFile.name}
                   </h3>
-                  <p className="text-gray-600 mb-4">
+                  <p className="text-muted-foreground mb-4">
                     Kích thước: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                   <div className="flex gap-2 justify-center">
@@ -411,7 +411,7 @@ export default function InputAutoQuestionsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="max-w-md">
-                            <p className="font-medium text-gray-900 truncate">
+                            <p className="font-medium text-foreground truncate">
                               {question.content}
                             </p>
                             {question.source && (
@@ -474,7 +474,7 @@ export default function InputAutoQuestionsPage() {
               <div className="p-4 border rounded-lg">
                 <FileText className="h-8 w-8 text-blue-600 mb-2" />
                 <h3 className="font-medium mb-1">sample.txt</h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   File text với câu hỏi và đáp án
                 </p>
                 <Button variant="outline" size="sm" className="w-full">
@@ -486,7 +486,7 @@ export default function InputAutoQuestionsPage() {
               <div className="p-4 border rounded-lg">
                 <FileText className="h-8 w-8 text-green-600 mb-2" />
                 <h3 className="font-medium mb-1">sample.tex</h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   File LaTeX với cú pháp chuẩn
                 </p>
                 <Button variant="outline" size="sm" className="w-full">
@@ -498,7 +498,7 @@ export default function InputAutoQuestionsPage() {
               <div className="p-4 border rounded-lg">
                 <FileText className="h-8 w-8 text-yellow-600 mb-2" />
                 <h3 className="font-medium mb-1">sample.csv</h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   File CSV với cấu trúc bảng
                 </p>
                 <Button variant="outline" size="sm" className="w-full">
@@ -510,7 +510,7 @@ export default function InputAutoQuestionsPage() {
               <div className="p-4 border rounded-lg">
                 <FileText className="h-8 w-8 text-purple-600 mb-2" />
                 <h3 className="font-medium mb-1">sample.json</h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-muted-foreground mb-3">
                   File JSON với object structure
                 </p>
                 <Button variant="outline" size="sm" className="w-full">

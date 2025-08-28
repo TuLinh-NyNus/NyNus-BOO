@@ -207,36 +207,52 @@ def format_answers_display(text):
     return text.strip()
 
 def clean_raw_content_display(text):
-    """Clean raw content and solution for display - preserve LaTeX commands."""
-    if pd.isna(text) or text is None:
-        return "N/A"
+    """
+    DEPRECATED: Use TextCleaner.prepare_for_display() instead.
 
-    text = str(text)
+    Clean raw content and solution for display - preserve LaTeX commands.
+    This function is kept for backward compatibility but should be replaced.
+    """
+    # Import here to avoid circular imports
+    import sys
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    sys.path.insert(0, current_dir)
 
-    # Only basic cleaning for raw content - preserve all LaTeX commands
-    # Decode Unicode escape sequences safely
-    import codecs
-    import re
     try:
-        if '\\u' in text:
-            text = codecs.decode(text, 'unicode_escape')
-    except:
-        pass
+        from src.utils.text_cleaner import TextCleaner
+        return TextCleaner.prepare_for_display(text)
+    except ImportError:
+        # Fallback to old logic if import fails
+        if pd.isna(text) or text is None:
+            return "N/A"
 
-    # Only handle basic escape sequences, preserve LaTeX commands
-    basic_replacements = {
-        '\\n': '\n',
-        '\\t': '    ',
-        '\\\\': '\n',   # LaTeX line breaks to newlines
-    }
+        text = str(text)
 
-    for old, new in basic_replacements.items():
-        text = text.replace(old, new)
+        # Only basic cleaning for raw content - preserve all LaTeX commands
+        # Decode Unicode escape sequences safely
+        import codecs
+        import re
+        try:
+            if '\\u' in text:
+                text = codecs.decode(text, 'unicode_escape')
+        except:
+            pass
 
-    # Clean up multiple spaces only (preserve newlines)
-    text = re.sub(r' +', ' ', text)  # Multiple spaces to single
+        # Only handle basic escape sequences, preserve LaTeX commands
+        basic_replacements = {
+            '\\n': '\n',
+            '\\t': '    ',
+            '\\\\': '\n',   # LaTeX line breaks to newlines
+        }
 
-    return text.strip()
+        for old, new in basic_replacements.items():
+            text = text.replace(old, new)
+
+        # Clean up multiple spaces only (preserve newlines)
+        text = re.sub(r' +', ' ', text)  # Multiple spaces to single
+
+        return text.strip()
 
 def load_data():
     """Load data from CSV files."""
@@ -1364,14 +1380,15 @@ with col1:
             status_text.text(f"📊 Đang tạo CSV cho {total_rows:,} câu hỏi...")
             progress_bar.progress(50)
 
-            # Clean data for CSV export - remove excess newlines
+            # Clean data for CSV export - preserve literal \n but remove actual newlines
             csv_df = filtered_df.copy()
             text_columns = ['rawContent', 'content', 'source', 'solution', 'answers', 'correctAnswer']
 
             for col in text_columns:
                 if col in csv_df.columns:
-                    csv_df[col] = csv_df[col].astype(str).str.replace(r'\n+', ' ', regex=True)  # Replace multiple newlines with space
-                    csv_df[col] = csv_df[col].str.replace(r'\\n+', ' ', regex=True)  # Replace literal \n with space
+                    # Question Model đã convert newlines → \n literal rồi
+                    # KHÔNG cần convert thêm - chỉ clean whitespace
+                    csv_df[col] = csv_df[col].str.replace(r'[ ]+', ' ', regex=True)  # Multiple spaces to single
                     csv_df[col] = csv_df[col].str.strip()  # Remove leading/trailing whitespace
 
             # Fix CSV export with proper newline handling

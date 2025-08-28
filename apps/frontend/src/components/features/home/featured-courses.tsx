@@ -1,217 +1,289 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Clock, Users, Star, BookOpen, ArrowRight } from "lucide-react";
+import { BookOpen, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
-import { useAnalytics } from "@/lib/analytics";
-import { useState, useRef } from "react";
+import { useState } from "react";
 
-// Import mockdata and UI components
-import { homepageFeaturedCourses, getGradient, type FeaturedCourse } from "@/lib/mockdata";
-import { Skeleton } from "@/components/ui/skeleton";
+// Import components đã tách
+import CourseCardSkeleton from "./course-card/course-card-skeleton";
+import { homepageFeaturedCourses, type FeaturedCourse } from "@/lib/mockdata";
 import ScrollIndicator from "@/components/ui/scroll-indicator";
 
+// Type definitions
+type Palette = {
+  star: string;
+  starFill: string;
+  levelBg: string;
+  levelBorder: string;
+  levelText: string;
+  chipBg: string;
+  chipBorder: string;
+  chipText: string;
+  hoverShadow: string;
+};
+
+// Color theme helpers for per-card accents
+function getPalette(color?: string) {
+  const palette = {
+    orange: {
+      star: "text-amber-300",
+      starFill: "fill-amber-300",
+      levelBg: "bg-amber-500/15",
+      levelBorder: "border-amber-400/30",
+      levelText: "text-amber-300",
+      chipBg: "bg-amber-400/15",
+      chipBorder: "border-amber-400/25",
+      chipText: "text-amber-200",
+      hoverShadow: "hover:shadow-amber-300/20"
+    },
+    green: {
+      star: "text-emerald-300",
+      starFill: "fill-emerald-300",
+      levelBg: "bg-emerald-500/15",
+      levelBorder: "border-emerald-400/30",
+      levelText: "text-emerald-300",
+      chipBg: "bg-emerald-400/15",
+      chipBorder: "border-emerald-400/25",
+      chipText: "text-emerald-200",
+      hoverShadow: "hover:shadow-emerald-300/20"
+    },
+    indigo: {
+      star: "text-indigo-300",
+      starFill: "fill-indigo-300",
+      levelBg: "bg-indigo-500/15",
+      levelBorder: "border-indigo-400/30",
+      levelText: "text-indigo-300",
+      chipBg: "bg-indigo-400/15",
+      chipBorder: "border-indigo-400/25",
+      chipText: "text-indigo-200",
+      hoverShadow: "hover:shadow-indigo-300/20"
+    },
+    purple: {
+      star: "text-purple-300",
+      starFill: "fill-purple-300",
+      levelBg: "bg-purple-500/15",
+      levelBorder: "border-purple-400/30",
+      levelText: "text-purple-300",
+      chipBg: "bg-purple-400/15",
+      chipBorder: "border-purple-400/25",
+      chipText: "text-purple-200",
+      hoverShadow: "hover:shadow-purple-300/20"
+    },
+    blue: {
+      star: "text-blue-300",
+      starFill: "fill-blue-300",
+      levelBg: "bg-blue-500/15",
+      levelBorder: "border-blue-400/30",
+      levelText: "text-blue-300",
+      chipBg: "bg-blue-400/15",
+      chipBorder: "border-blue-400/25",
+      chipText: "text-blue-200",
+      hoverShadow: "hover:shadow-blue-300/20"
+    }
+  } as const;
+  return (palette as Record<string, Palette>)[color || "blue"] || palette.blue;
+}
+
+function getChipPalette(color?: string) {
+  switch (color) {
+    case "amber":
+      return { bg: "bg-amber-400/15", border: "border-amber-400/25", text: "text-amber-200" };
+    case "emerald":
+      return { bg: "bg-emerald-400/15", border: "border-emerald-400/25", text: "text-emerald-200" };
+    case "indigo":
+      return { bg: "bg-indigo-400/15", border: "border-indigo-400/25", text: "text-indigo-200" };
+    case "purple":
+      return { bg: "bg-purple-400/15", border: "border-purple-400/25", text: "text-purple-200" };
+    default:
+      return { bg: "bg-white/10", border: "border-white/20", text: "text-white/90" };
+  }
+}
+
+// Local CourseCard to avoid module resolution issues
 const CourseCard = ({ course }: { course: FeaturedCourse }) => {
-  const gradient = getGradient(course.color);
-  const analytics = useAnalytics();
-
+  const theme = getPalette((course as FeaturedCourse & { color?: string }).color);
   return (
-    <Link
-      href={`/courses/${course.id}`}
-      className="block relative h-full backdrop-blur-sm rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-      onClick={() => {
-        analytics.courseClick(course.id, course.title, 'featured_courses_section');
-      }}
-    >
-      {/* Background using semantic colors */}
-      <div className="absolute inset-0 bg-card border border-border transition-colors duration-300"></div>
-
-      <div className="relative">
-        <div className="h-40 bg-muted relative overflow-hidden transition-colors duration-300">
-          {/* Course Image */}
-          <Image
-            src={course.image}
-            alt={course.title}
-            width={400}
-            height={160}
-            priority={course.id === "1" || course.id === "2"} // Priority cho 2 courses đầu
-            className="object-cover w-full h-full"
-            onError={(e) => {
-              // Fallback to gradient placeholder if image fails to load
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-
-          {/* Fallback gradient overlay */}
-          <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30`}></div>
-
-          {/* Fallback icon - only show if image fails */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-              <BookOpen className="h-10 w-10 text-white" />
-            </div>
-          </div>
-
-          <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/10 backdrop-blur-sm px-2 py-1 rounded-full">
-            <Star className="h-3 w-3 text-yellow-400 fill-yellow-400" />
-            <span className="text-xs font-medium text-white">{course.rating}</span>
-          </div>
-
-          <div className="absolute top-3 left-3 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
-            <span className="text-xs font-medium text-white">{course.level}</span>
-          </div>
+    <div className={`relative h-full bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-sm rounded-2xl overflow-hidden border border-border/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-2xl ${theme.hoverShadow}`}>
+      <div className="relative h-40 overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={course.image} alt={course.title} className="h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+        <div className="absolute inset-0 bg-black/5" />
+        <div className={`absolute top-3 left-3 text-[10px] font-semibold px-2 py-1 rounded-full ${theme.levelBg} ${theme.levelBorder} ${theme.levelText} backdrop-blur-sm border`}>
+          {course.level}
         </div>
-
-        <div className="p-5">
-          <h3 className="font-semibold text-lg text-card-foreground mb-2 line-clamp-1 group-hover:text-primary transition-colors duration-300">{course.title}</h3>
-          <p className="text-muted-foreground text-sm mb-4 line-clamp-2 transition-colors duration-300">{course.description}</p>
-
-          <div className="flex items-center text-xs text-muted-foreground mb-5 transition-colors duration-300">
-            <div className="flex items-center mr-4">
-              <Users className="h-3 w-3 mr-1" />
-              <span>{course.students} học sinh</span>
-            </div>
-            <div className="flex items-center">
-              <Clock className="h-3 w-3 mr-1" />
-              <span>{course.duration} giờ</span>
-            </div>
-          </div>
-
-          <button
-            className="w-full py-2.5 text-center rounded-lg bg-gradient-to-r from-primary to-secondary text-primary-foreground text-sm font-medium hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent outer Link click
-              window.location.href = `/khoa-hoc/${course.id}`;
-            }}
-          >
-            Xem chi tiết
-          </button>
+        <div className={`absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full bg-black/40 ${theme.star} text-xs font-medium`}>
+          {/* simple star */}
+          <svg viewBox="0 0 24 24" width="14" height="14" className={theme.starFill}><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          {course.rating || 0}
         </div>
       </div>
-    </Link>
+      <div className="p-5 flex flex-col h-full">
+        <h3 className="text-white font-semibold text-base leading-tight mb-1 line-clamp-2">{course.title}</h3>
+        <p className="text-white/80 text-sm leading-relaxed mb-3 line-clamp-3">{course.description}</p>
+        {course.topics && course.topics.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {course.topics.slice(0, 3).map((topic, idx) => {
+              const chip = getChipPalette(topic.badgeColor);
+              return (
+                <span
+                  key={`${course.id}-topic-${idx}`}
+                  className={`px-2 py-1 rounded-md border text-[10px] font-medium ${chip.text} ${chip.bg} ${chip.border} hover:bg-white/12 transition-colors`}
+                >
+                  {topic.label}
+                </span>
+              );
+            })}
+          </div>
+        )}
+        <div className="flex items-center gap-4 text-xs text-white/80 mb-4">
+          <div className="flex items-center gap-1">
+            <span className="inline-block w-3.5 h-3.5 rounded-full bg-white/60" />
+            <span>{course.students ? course.students.toLocaleString() : '0'} học viên</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="inline-block w-3.5 h-3.5 rounded-full bg-white/60" />
+            <span>{course.duration || 0} giờ</span>
+          </div>
+        </div>
+        <div className="mt-auto">
+          <Link href={`/courses/${course.id}`} className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/25 text-white text-sm font-medium transition-colors">
+            Xem chi tiết
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 };
 
 const FeaturedCourses = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
   const [isLoading] = useState(false); // Mock loading state
   const [error] = useState(null); // Mock error state
 
-  const checkScrollable = () => {
-    if (containerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = containerRef.current;
-      setCanScrollLeft(scrollLeft > 0);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (containerRef.current) {
-      const scrollAmount = containerRef.current.clientWidth * 0.8;
-      const newScrollLeft = direction === 'left'
-        ? containerRef.current.scrollLeft - scrollAmount
-        : containerRef.current.scrollLeft + scrollAmount;
-
-      containerRef.current.scrollTo({
-        left: newScrollLeft,
-        behavior: 'smooth'
-      });
-
-      // Kiểm tra lại sau khi cuộn
-      setTimeout(checkScrollable, 300);
-    }
-  };
-
   return (
-    <section id="featured-courses-section" className="py-24 relative min-h-screen" style={{ backgroundColor: '#1F1F47' }}>
+    <section id="featured-courses-section" className="py-20 relative min-h-screen" style={{ backgroundColor: '#1F1F47' }}>
+      {/* Enhanced Background Pattern */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-5">
+          <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full blur-3xl"></div>
+          <div className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-br from-pink-400 to-orange-600 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-gradient-to-br from-green-400 to-blue-600 rounded-full blur-3xl"></div>
+        </div>
+      </div>
 
-
-      <div className="container px-4 mx-auto relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-          <div>
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-secondary/20 border border-secondary/30 text-secondary backdrop-blur-sm mb-4 transition-colors duration-300">
-              <BookOpen className="h-4 w-4 mr-2" /> Khóa học nổi bật
+      <div className="container px-4 mx-auto relative z-10 pt-10">
+        {/* Centered Header Section (synced with Features) */}
+        <div className="text-center max-w-3xl mx-auto mb-8">
+          {/* Enhanced Badge (new style) */}
+          <motion.div
+            className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 border border-gradient-to-r from-blue-400/40 via-purple-400/40 to-emerald-400/40 text-blue-300 backdrop-blur-sm mb-6 transition-all duration-500 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden group"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              background: `
+                linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 50%, rgba(16, 185, 129, 0.15) 100%),
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)
+              `
+            }}
+          >
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-30">
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(circle at 25% 25%, rgba(147, 197, 253, 0.4) 1px, transparent 1px),
+                    radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.4) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '20px 20px, 30px 30px',
+                  animation: 'float-subtle 8s ease-in-out infinite'
+                }}
+              />
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground transition-colors duration-300">
-              Học tập theo cấp độ
-            </h2>
-            <p className="text-muted-foreground max-w-xl transition-colors duration-300">
-              Lựa chọn khóa học phù hợp với trình độ và mục tiêu của bạn từ lớp 9 đến lớp 12
-            </p>
-          </div>
 
-          <div className="flex gap-2 mt-6 md:mt-0">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className="p-3 rounded-full bg-card border border-border hover:bg-muted text-foreground transition-all disabled:opacity-50 disabled:pointer-events-none"
-              aria-label="Trước"
-            >
-              <ChevronLeft className="h-5 w-5 text-foreground transition-colors duration-300" />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className="p-3 rounded-full bg-card border border-border hover:bg-muted text-foreground transition-all disabled:opacity-50 disabled:pointer-events-none"
-              aria-label="Sau"
-            >
-              <ChevronRight className="h-5 w-5 text-foreground transition-colors duration-300" />
-            </button>
-          </div>
+            {/* Icon with glow */}
+            <div className="relative z-10 mr-2">
+              <div className="relative">
+                <BookOpen className="h-5 w-5 text-blue-300" />
+                <div className="absolute inset-0 h-5 w-5 bg-blue-300 rounded-full opacity-20 blur-sm"></div>
+              </div>
+            </div>
+
+            <span className="font-semibold text-blue-300 text-base tracking-wide relative z-10">
+              Khóa học nổi bật
+            </span>
+
+            {/* Border glow */}
+            <div className="absolute inset-0 rounded-full border border-transparent bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            {/* Shine */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
+          </motion.div>
+          
+          {/* Title (synced with Features) */}
+          <h2
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-tight"
+          >
+            Học tập theo cấp độ
+          </h2>
+          
+          {/* Subtitle (synced with Features) */}
+          <p className="text-white/85 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+            Lựa chọn khóa học phù hợp với trình độ và mục tiêu của bạn từ lớp 9 đến lớp 12
+          </p>
         </div>
 
-        <div
-          ref={containerRef}
-          className="grid grid-flow-col auto-cols-[85%] sm:auto-cols-[60%] md:auto-cols-[45%] lg:auto-cols-[30%] gap-5 overflow-x-auto pb-8 hide-scrollbar snap-x"
-          onScroll={checkScrollable}
-        >
+        {/* Enhanced Grid Layout - 4 cards với kích thước lớn hơn */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {isLoading ? (
-            // Hiển thị skeleton khi đang tải dữ liệu - NyNus semantic colors
-            Array(5).fill(0).map((_, index) => (
-              <div key={index} className="snap-start h-full">
-                <div className="relative h-full backdrop-blur-sm rounded-2xl overflow-hidden">
-                  <div className="absolute inset-0 bg-card border border-border dark:bg-slate-800/70 dark:border-slate-700/50 transition-colors duration-300"></div>
-                  <div className="relative">
-                    <Skeleton className="h-40 w-full bg-muted dark:bg-slate-700/50 transition-colors duration-300" />
-                    <div className="p-5">
-                      <Skeleton className="h-6 w-3/4 bg-muted dark:bg-slate-700/50 mb-2 transition-colors duration-300" />
-                      <Skeleton className="h-4 w-full bg-muted dark:bg-slate-700/50 mb-2 transition-colors duration-300" />
-                      <Skeleton className="h-4 w-2/3 bg-muted dark:bg-slate-700/50 mb-4 transition-colors duration-300" />
-                      <Skeleton className="h-8 w-full bg-muted dark:bg-slate-700/50 mt-8 transition-colors duration-300" />
-                    </div>
-                  </div>
-                </div>
+            // Enhanced Skeleton Loading - Chỉ 4 skeleton
+            Array(4).fill(0).map((_, index) => (
+              <div key={index} className="h-full">
+                <CourseCardSkeleton />
               </div>
             ))
           ) : error ? (
-            // Hiển thị thông báo lỗi - NyNus semantic colors
-            <div className="col-span-full text-center py-10">
-              <p className="text-destructive dark:text-red-400 transition-colors duration-300">Không thể tải khóa học. Vui lòng thử lại sau.</p>
+            // Enhanced Error State
+            <div className="col-span-full text-center py-16">
+              <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/20 rounded-2xl p-8 max-w-md mx-auto">
+                <p className="text-red-400 text-lg font-medium">
+                  Không thể tải khóa học. Vui lòng thử lại sau.
+                </p>
+              </div>
             </div>
           ) : (
-            // Hiển thị danh sách khóa học
-            homepageFeaturedCourses.map((course: FeaturedCourse) => (
-              <div key={course.id} className="snap-start h-full">
+            // Enhanced Course List - Chỉ 4 courses
+            homepageFeaturedCourses.slice(0, 4).map((course: FeaturedCourse) => (
+              <div key={course.id} className="h-full">
                 <CourseCard course={course} />
               </div>
             ))
           )}
         </div>
 
+        {/* Enhanced Call to Action */}
         <div className="flex justify-center mt-10">
           <Link
-            href="/khoa-hoc"
-            className="inline-flex items-center text-foreground font-medium px-6 py-3 rounded-full bg-card border border-border hover:bg-muted transition-all duration-200"
+            href="/courses"
+            className="group inline-flex items-center text-white font-semibold px-8 py-4 rounded-2xl bg-gradient-to-r from-white/20 via-white/15 to-white/10 backdrop-blur-md border border-white/30 hover:from-white/30 hover:via-white/25 hover:to-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-white/25"
           >
-            Xem tất cả khóa học <ArrowRight className="h-4 w-4 ml-2" />
+            <span className="mr-3">Xem tất cả khóa học</span>
+            <ArrowRight className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         </div>
       </div>
 
-      {/* Scroll indicator */}
-      <ScrollIndicator targetSectionId="faq-section" />
+      {/* Enhanced Scroll Indicator */}
+      <ScrollIndicator targetSectionId="testimonials-section" />
+
+      {/* CSS Animations */}
+      <style jsx>{`
+        @keyframes float-subtle {
+          0%, 100% { transform: translateY(0px) scale(1); }
+          50% { transform: translateY(-2px) scale(1.02); }
+        }
+      `}</style>
     </section>
   );
 };

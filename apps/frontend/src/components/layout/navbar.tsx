@@ -74,13 +74,24 @@ const Navbar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
   // Responsive logic - hide items when screen gets smaller
   const [visibleItems, setVisibleItems] = useState(navItems);
   const [hiddenItems, setHiddenItems] = useState<typeof navItems>([]);
 
+  // Client-side mounting check để tránh hydration mismatch
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Chỉ chạy sau khi component đã mounted trên client
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     const handleResize = () => {
       const width = window.innerWidth;
 
@@ -109,13 +120,23 @@ const Navbar = () => {
       // Mobile responsive stays the same (handled by existing mobile menu)
     };
 
+    // Chạy resize check đầu tiên
     handleResize();
+
+    // Thêm event listener
     window.addEventListener('resize', handleResize);
+
+    // Cleanup
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [isMounted]);
 
   // Close more menu when clicking outside
   useEffect(() => {
+    // Chỉ chạy sau khi component đã mounted trên client
+    if (!isMounted || typeof document === 'undefined') {
+      return;
+    }
+
     const handleClickOutside = (event: MouseEvent) => {
       if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
         setShowMoreMenu(false);
@@ -124,7 +145,7 @@ const Navbar = () => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isMounted]);
 
   const handleLogin = () => {
     console.log("Login clicked");
@@ -150,10 +171,9 @@ const Navbar = () => {
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300"
+            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text bg-gradient-to-r from-[#AF6EA7] to-[#8A33FB] hover:from-[#B97BB0] hover:to-[#9540FC]"
             style={{
-              color: "#F13B93",
-              textShadow: "0 0 40px rgba(241, 59, 147, 0.3)",
+              textShadow: "0 0 40px rgba(138, 51, 251, 0.3)",
               fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
               fontWeight: 900,
               letterSpacing: "-0.02em",
@@ -164,13 +184,14 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden gap-4 md:flex items-center flex-shrink-0">
+          <div className="hidden gap-4 md:flex items-center flex-shrink-0" suppressHydrationWarning={true}>
             {visibleItems.map((item, index) => (
               <motion.div
                 key={item.href}
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                suppressHydrationWarning={true}
               >
                 <Link
                   href={item.href}

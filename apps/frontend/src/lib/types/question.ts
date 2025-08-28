@@ -141,7 +141,7 @@ export interface QuestionFilters {
 
   // Metadata filters
   creator?: string[];
-  source?: string[];
+  source?: string; // Changed from string[] to string for free input
   tags?: string[];
   subcount?: string;
 

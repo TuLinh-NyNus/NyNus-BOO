@@ -28,6 +28,9 @@
 /* Import Admin Dark Theme Enhancements */
 @import "../styles/admin-dark-theme.css";
 
+/* Import Admin Layout Spacing */
+@import "../styles/admin-layout-spacing.css";
+
 /*
  * Theme files now contain ONLY:
  * - Base color tokens (colors.css)

@@ -6,8 +6,19 @@ import { useEffect, useState } from "react";
 
 const ScrollToTop = () => {
   const [show, setShow] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Client-side mounting check để tránh hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
+    // Chỉ chạy sau khi component đã mounted trên client
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     const handleScroll = () => {
       setShow(window.scrollY > 500);
     };
@@ -19,14 +30,21 @@ const ScrollToTop = () => {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [isMounted]);
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    if (typeof window !== 'undefined') {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
   };
+
+  // Không render gì cho đến khi component mounted trên client
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <AnimatePresence>

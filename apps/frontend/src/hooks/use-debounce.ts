@@ -28,7 +28,7 @@ export function useDebounce<T>(value: T, delay: number): T {
  * Trì hoãn việc thực thi callback
  */
 
-export function useDebouncedCallback<T extends (...args: any[]) => any>(
+export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   callback: T,
   delay: number
 ): T {

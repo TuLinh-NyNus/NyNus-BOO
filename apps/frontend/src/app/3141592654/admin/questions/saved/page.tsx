@@ -53,6 +53,12 @@ export default function SavedQuestionsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Client-side mounting check để tránh hydration mismatch
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   /**
    * Load saved questions từ localStorage
@@ -81,18 +87,23 @@ export default function SavedQuestionsPage() {
    * Handle delete saved question
    */
   const handleDeleteSavedQuestion = async (questionId: string) => {
+    // Chỉ chạy trên client-side
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     try {
       // Remove from localStorage
       const savedData = localStorage.getItem('saved_questions');
       if (savedData) {
         const parsedData = JSON.parse(savedData);
         const updatedQuestions = parsedData.questions.filter((q: Question) => q.id !== questionId);
-        
+
         const newSavedData = {
           questions: updatedQuestions,
           lastUpdated: new Date().toISOString()
         };
-        
+
         localStorage.setItem('saved_questions', JSON.stringify(newSavedData));
         setSavedQuestions(updatedQuestions);
 
@@ -123,6 +134,11 @@ export default function SavedQuestionsPage() {
    * Handle clear all saved questions
    */
   const handleClearAllSaved = () => {
+    // Chỉ chạy trên client-side
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     try {
       localStorage.removeItem('saved_questions');
       setSavedQuestions([]);
@@ -144,11 +160,16 @@ export default function SavedQuestionsPage() {
    * Handle export saved questions
    */
   const handleExportSaved = () => {
+    // Chỉ chạy trên client-side
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
     try {
       const dataStr = JSON.stringify(savedQuestions, null, 2);
       const dataBlob = new Blob([dataStr], { type: 'application/json' });
       const url = URL.createObjectURL(dataBlob);
-      
+
       const link = document.createElement('a');
       link.href = url;
       link.download = `saved-questions-${new Date().toISOString().split('T')[0]}.json`;

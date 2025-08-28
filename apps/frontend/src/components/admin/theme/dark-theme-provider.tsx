@@ -27,7 +27,7 @@ export function DarkThemeProvider({ children, className = '' }: DarkThemeProvide
   }, []);
 
   return (
-    <div className={`dark admin-panel min-h-screen bg-background text-foreground ${className}`}>
+    <div className={`dark admin-panel h-full bg-background text-foreground ${className}`}>
       {children}
     </div>
   );

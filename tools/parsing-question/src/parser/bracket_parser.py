@@ -40,8 +40,13 @@ class BracketParser:
             
             # Handle comments - skip to end of line
             if latex_string[i] == '%':
+                # Add safety counter to prevent infinite loops
+                comment_start = i
                 while i < n and latex_string[i] != '\n':
                     i += 1
+                    # Safety check: if we've gone too far, break
+                    if i - comment_start > 10000:  # Max comment length
+                        break
                 continue
             
             # Handle opening braces
@@ -78,13 +83,22 @@ class BracketParser:
         i = start_pos + 1  # Start after opening brace
         n = len(latex_string)
         
+        # Add safety counter to prevent infinite loops
+        max_iterations = len(latex_string) * 2  # Reasonable upper bound
+        iteration_count = 0
+
         while i < n and bracket_level > 0:
+            # Safety check for infinite loops
+            iteration_count += 1
+            if iteration_count > max_iterations:
+                raise RuntimeError(f"BracketParser: Potential infinite loop detected at position {i}")
+
             # Handle escaped characters
             if latex_string[i] == '\\' and i + 1 < n:
                 content += latex_string[i:i+2]
                 i += 2
                 continue
-            
+
             # Handle comments
             if latex_string[i] == '%':
                 line_end = latex_string.find('\n', i)

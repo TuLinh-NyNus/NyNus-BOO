@@ -8,7 +8,7 @@
 
 // Main comprehensive filter component
 export { ComprehensiveQuestionFilters } from './comprehensive-question-filters';
-export { ComprehensiveQuestionFilters as ComprehensiveQuestionFiltersNew } from './comprehensive-question-filters-new';
+export { ComprehensiveQuestionFiltersNew } from './comprehensive-question-filters-new';
 
 // New filter system components
 export { BasicFiltersRow } from './basic-filters-row';

@@ -83,36 +83,35 @@ export function BasicFiltersRow({
   /**
    * Handle single filter change
    */
-  const handleFilterChange = (key: keyof QuestionFilters, value: any) => {
+  const handleFilterChange = React.useCallback((key: keyof QuestionFilters, value: unknown) => {
     onFiltersChange({ [key]: value });
-  };
+  }, [onFiltersChange]);
 
   /**
    * Handle array filter change (for multi-select)
    */
-  const handleArrayFilterChange = (key: keyof QuestionFilters, value: string) => {
-    const currentValues = (filters[key] as string[]) || [];
+  const handleArrayFilterChange = React.useCallback((key: keyof QuestionFilters, value: string) => {
     const newValues = value === 'all' ? [] : [value];
     onFiltersChange({ [key]: newValues });
-  };
+  }, [onFiltersChange]);
 
   /**
    * Get current value for single select
    */
-  const getSingleValue = (key: keyof QuestionFilters): string => {
+  const getSingleValue = React.useCallback((key: keyof QuestionFilters): string => {
     const value = filters[key];
     if (Array.isArray(value)) {
-      return value.length === 0 ? 'all' : value[0];
+      return value.length === 0 ? 'all' : String(value[0]);
     }
-    return value || 'all';
-  };
+    return String(value || 'all');
+  }, [filters]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+    <div className="bg-card/50 backdrop-blur-sm border border-border/60 rounded-lg p-4 shadow-sm admin-card">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-4 items-end">
         {/* 1. Subcount Search */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Subcount</Label>
+          <Label className="text-sm font-medium text-foreground">Subcount</Label>
           <Input
             placeholder="VD: TL.100022"
             value={filters.subcount || ''}
@@ -124,7 +123,7 @@ export function BasicFiltersRow({
 
         {/* 2. Lớp (Grade) */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Lớp</Label>
+          <Label className="text-sm font-medium text-foreground">Lớp</Label>
           <Select
             value={getSingleValue('grade')}
             onValueChange={(value) => handleArrayFilterChange('grade', value)}
@@ -146,7 +145,7 @@ export function BasicFiltersRow({
 
         {/* 3. Môn học (Subject) */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Môn học</Label>
+          <Label className="text-sm font-medium text-foreground">Môn học</Label>
           <Select
             value={getSingleValue('subject')}
             onValueChange={(value) => handleArrayFilterChange('subject', value)}
@@ -168,7 +167,7 @@ export function BasicFiltersRow({
 
         {/* 4. Chương (Chapter) */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Chương</Label>
+          <Label className="text-sm font-medium text-foreground">Chương</Label>
           <Select
             value={getSingleValue('chapter')}
             onValueChange={(value) => handleArrayFilterChange('chapter', value)}
@@ -190,7 +189,7 @@ export function BasicFiltersRow({
 
         {/* 5. Bài (Lesson) */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Bài</Label>
+          <Label className="text-sm font-medium text-foreground">Bài</Label>
           <Select
             value={getSingleValue('lesson')}
             onValueChange={(value) => handleArrayFilterChange('lesson', value)}
@@ -212,7 +211,7 @@ export function BasicFiltersRow({
 
         {/* 6. Mức độ (Level) */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Mức độ</Label>
+          <Label className="text-sm font-medium text-foreground">Mức độ</Label>
           <Select
             value={getSingleValue('level')}
             onValueChange={(value) => handleArrayFilterChange('level', value)}
@@ -234,7 +233,7 @@ export function BasicFiltersRow({
 
         {/* 7. Dạng (Format) */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Dạng</Label>
+          <Label className="text-sm font-medium text-foreground">Dạng</Label>
           <Select
             value={getSingleValue('format')}
             onValueChange={(value) => handleArrayFilterChange('format', value)}
@@ -256,7 +255,7 @@ export function BasicFiltersRow({
 
         {/* 8. Question Type */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700">Loại câu hỏi</Label>
+          <Label className="text-sm font-medium text-foreground">Loại câu hỏi</Label>
           <Select
             value={getSingleValue('type')}
             onValueChange={(value) => handleArrayFilterChange('type', value)}
@@ -278,7 +277,7 @@ export function BasicFiltersRow({
 
         {/* 9. Toggle Advanced Button */}
         <div className="space-y-2">
-          <Label className="text-sm font-medium text-gray-700 invisible">Toggle</Label>
+          <Label className="text-sm font-medium text-foreground invisible">Toggle</Label>
           <Button
             variant="outline"
             onClick={onToggleAdvanced}

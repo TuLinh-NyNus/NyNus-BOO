@@ -256,7 +256,7 @@ export function RealtimeDashboardMetrics({
 
   if (isLoading || !metrics) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <Card key={index} className="animate-pulse">
             <CardHeader className="space-y-0 pb-2">
@@ -284,7 +284,7 @@ export function RealtimeDashboardMetrics({
         </Badge>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <MetricCard
           title="Tổng người dùng"
           value={metrics.users.total}

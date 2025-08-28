@@ -29,6 +29,7 @@ export interface UseHorizontalScrollReturn {
   scrollState: HorizontalScrollState;
   scroll: (direction: 'left' | 'right') => void;
   checkScrollable: () => void;
+  scrollToIndex: (index: number) => void;
 }
 
 /**
@@ -64,14 +65,26 @@ export function useHorizontalScroll(
 
     const { scrollLeft, scrollWidth, clientWidth } = containerRef.current;
 
-    // Tính toán current index dựa trên scroll position
-    const itemWidth = clientWidth * 0.85; // Giả sử mỗi item chiếm 85% width
-    const currentIndex = Math.round(scrollLeft / itemWidth);
+    // Xác định bước scroll thực tế giữa các card bằng khoảng cách offsetLeft của 2 phần tử liên tiếp
+    let stepWidth = clientWidth * 0.85; // fallback an toàn
+    const children = Array.from(containerRef.current.children) as HTMLElement[];
+    if (children.length >= 2) {
+      const firstLeft = children[0].offsetLeft;
+      const secondLeft = children[1].offsetLeft;
+      const delta = secondLeft - firstLeft;
+      if (delta > 0) stepWidth = delta;
+    } else if (children.length === 1) {
+      // Khi chỉ có 1 item, step chính là chiều rộng của nó
+      stepWidth = children[0].getBoundingClientRect().width;
+    }
+
+    const currentIndex = Math.round(scrollLeft / stepWidth);
+    const maxScrollLeft = Math.max(0, scrollWidth - clientWidth);
 
     setScrollState(prev => ({
       ...prev,
       canScrollLeft: scrollLeft > 0,
-      canScrollRight: scrollLeft < scrollWidth - clientWidth - scrollThreshold,
+      canScrollRight: scrollLeft < maxScrollLeft - scrollThreshold,
       isScrolling: false,
       currentIndex: Math.max(0, currentIndex)
     }));
@@ -98,6 +111,35 @@ export function useHorizontalScroll(
     // Kiểm tra lại state sau khi scroll
     setTimeout(checkScrollable, scrollDelay);
   }, [scrollAmount, scrollDelay, checkScrollable]);
+
+  /**
+   * Cuộn tới item theo index dựa trên step thực tế của các card
+   */
+  const scrollToIndex = useCallback((index: number) => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+    const children = Array.from(container.children) as HTMLElement[];
+
+    // Ưu tiên dùng offsetLeft của chính phần tử mục tiêu nếu có
+    if (children[index]) {
+      container.scrollTo({ left: children[index].offsetLeft, behavior: 'smooth' });
+      setTimeout(checkScrollable, scrollDelay);
+      return;
+    }
+
+    // Fallback: tính theo stepWidth
+    let stepWidth = container.clientWidth * 0.85;
+    if (children.length >= 2) {
+      const delta = children[1].offsetLeft - children[0].offsetLeft;
+      if (delta > 0) stepWidth = delta;
+    } else if (children.length === 1) {
+      stepWidth = children[0].getBoundingClientRect().width;
+    }
+
+    const targetLeft = Math.max(0, Math.round(index) * stepWidth);
+    container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    setTimeout(checkScrollable, scrollDelay);
+  }, [checkScrollable, scrollDelay]);
 
   /**
    * Setup scroll event listener để update state
@@ -144,7 +186,8 @@ export function useHorizontalScroll(
     containerRef,
     scrollState,
     scroll,
-    checkScrollable
+    checkScrollable,
+    scrollToIndex
   };
 }
 

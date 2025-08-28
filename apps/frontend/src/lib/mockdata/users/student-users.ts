@@ -43,7 +43,7 @@ export const mockStudentUsers: AdminUser[] = [
     username: 'student_001',
     firstName: 'Nguyễn',
     lastName: 'Văn A',
-    avatar: '/avatars/student-001.jpg',
+    avatar: '/avatars/student-001.svg',
     bio: 'Học sinh lớp 12, đang ôn thi THPT Quốc gia',
     phone: '+84901234568',
     address: '456 Lê Lợi, Q1, TP.HCM',
