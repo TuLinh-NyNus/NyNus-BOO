@@ -187,12 +187,15 @@
   );
 }
 
-/* NyNus main background gradient for body - Light mode (default) */
+/* NyNus main background gradient for body */
 .nynus-gradient-bg {
-  background: var(--color-background);
+  /* Vì chỉ support dark mode, luôn dùng gradient tối */
+  background: linear-gradient(135deg, #0A0E1A 0%, #131B2B 50%, #0A0E1A 100%);
+  min-height: 100vh;
 }
 
-/* NyNus main background gradient for body - Dark mode */
+/* Dark mode gradient - giữ consistency */
 .dark .nynus-gradient-bg {
-  background: var(--color-background);
+  background: linear-gradient(135deg, #0A0E1A 0%, #131B2B 50%, #0A0E1A 100%);
+  min-height: 100vh;
 }

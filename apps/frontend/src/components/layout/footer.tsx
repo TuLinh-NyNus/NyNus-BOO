@@ -114,7 +114,7 @@ const Footer = () => {
   return (
     <footer 
       ref={footerRef}
-      className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out bg-background dark:bg-[#0A0E1A]"
+      className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out bg-[#0A0E1A]"
     >
       {/* Enhanced Background decorations */}
       <div className="absolute inset-0 -z-10">
@@ -232,7 +232,7 @@ const Footer = () => {
                 </div>
                 <motion.button
                   type="submit"
-                  className="px-6 py-3 bg-white text-gray-800 font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition-all duration-300 flex items-center justify-center gap-2 min-w-[120px]"
+                  className="px-6 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:from-violet-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-2 min-w-[120px]"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
