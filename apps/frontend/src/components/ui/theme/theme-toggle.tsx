@@ -14,6 +14,10 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
+  // Tạm thời ẩn theme toggle vì chưa có light mode
+  // TODO: Bỏ comment khi đã xây dựng xong light mode
+  return null;
+
   // Hiển thị fallback UI trong lúc chờ mount
   if (!mounted) {
     return (
