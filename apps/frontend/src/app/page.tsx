@@ -6,15 +6,15 @@ import { Hero, Features, FAQ, ProgressScrollIndicator } from "@/components/featu
 
 // Dynamic imports cho performance optimization
 const AILearning = dynamic(() => import('@/components/features/home/ai-learning'), {
-  loading: () => <div className="h-96 animate-pulse bg-gray-200 rounded-lg" />
+  loading: () => <div className="h-96 animate-pulse bg-slate-800 rounded-lg" />
 });
 
 const FeaturedCourses = dynamic(() => import('@/components/features/home/featured-courses'), {
-  loading: () => <div className="h-64 animate-pulse bg-gray-200 rounded-lg" />
+  loading: () => <div className="h-64 animate-pulse bg-slate-800 rounded-lg" />
 });
 
 const Testimonials = dynamic(() => import('@/components/features/home/testimonials'), {
-  loading: () => <div className="h-64 animate-pulse bg-gray-200 rounded-lg" />
+  loading: () => <div className="h-64 animate-pulse bg-slate-800 rounded-lg" />
 });
 
 export const metadata: Metadata = {
