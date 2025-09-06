@@ -114,8 +114,7 @@ const Footer = () => {
   return (
     <footer 
       ref={footerRef}
-      className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out"
-      style={{ backgroundColor: '#0A0E1A' }}
+      className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out bg-background dark:bg-[#0A0E1A]"
     >
       {/* Enhanced Background decorations */}
       <div className="absolute inset-0 -z-10">

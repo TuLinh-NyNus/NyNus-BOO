@@ -33,8 +33,9 @@ export function AppProviders({ children }: AppProvidersProps) {
     <QueryProvider>
       <ThemeProvider
         attribute="class"
-        defaultTheme="dark"
-        enableSystem={false}
+        defaultTheme="system"
+        enableSystem={true}
+        storageKey="nynus-theme"
         disableTransitionOnChange
       >
         <AuthProvider>

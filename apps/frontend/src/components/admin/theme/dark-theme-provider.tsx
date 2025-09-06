@@ -28,6 +28,7 @@ export function DarkThemeProvider({ children, className = '' }: DarkThemeProvide
 
 /**
  * Hook để kiểm tra dark theme
+ * CHỈ dùng để đọc trạng thái, không thay đổi
  */
 export function useDarkTheme() {
   const [isDark, setIsDark] = React.useState(false);
@@ -50,11 +51,4 @@ export function useDarkTheme() {
   }, []);
 
   return isDark;
-}
-
-/**
- * Utility function để toggle dark theme
- */
-export function toggleDarkTheme() {
-  document.documentElement.classList.toggle('dark');
 }

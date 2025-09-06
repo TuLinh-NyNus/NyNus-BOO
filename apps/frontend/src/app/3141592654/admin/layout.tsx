@@ -11,6 +11,7 @@ import { AdminSidebar } from '@/components/admin/sidebar';
 import { MockWebSocketProvider } from '@/components/admin/providers/mock-websocket-provider';
 import { AdminErrorBoundary } from '@/components/admin/providers/admin-error-boundary';
 import { AdminLayoutProvider } from '@/components/admin/providers/admin-layout-provider';
+import { DarkThemeProvider } from '@/components/admin/theme/dark-theme-provider';
 import { useHydrationFix } from '@/hooks/use-hydration-fix';
 
 /**
@@ -40,11 +41,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <AdminErrorBoundary>
       <MockWebSocketProvider>
         <AdminLayoutProvider>
-          {/* Admin layout với fixed positioning để override MainLayout */}
-          <div
-            className="admin-layout-override fixed inset-0 flex h-screen bg-background z-50"
-            suppressHydrationWarning={true}
-          >
+          <DarkThemeProvider>
+            {/* Admin layout với fixed positioning để override MainLayout */}
+            <div
+              className="admin-layout-override fixed inset-0 flex h-screen bg-background z-50"
+              suppressHydrationWarning={true}
+            >
             {/* Admin Sidebar */}
             <AdminSidebar />
 
@@ -64,6 +66,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </main>
             </div>
           </div>
+          </DarkThemeProvider>
         </AdminLayoutProvider>
       </MockWebSocketProvider>
     </AdminErrorBoundary>

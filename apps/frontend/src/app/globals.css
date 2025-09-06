@@ -80,80 +80,80 @@
   color: var(--color-muted-foreground);
 }
 
-/* Enhanced Dark Theme Utilities */
-.dark-card {
+/* Enhanced Dark Theme Utilities - Chỉ apply khi ở dark mode */
+.dark .dark-card {
   background-color: var(--color-card);
   border-color: var(--color-border);
   color: var(--color-card-foreground);
 }
 
-.dark-surface {
+.dark .dark-surface {
   background-color: var(--enhanced-dark-surface);
   color: var(--enhanced-dark-text);
 }
 
-.dark-surface-hover:hover {
+.dark .dark-surface-hover:hover {
   background-color: var(--enhanced-dark-surface-hover);
 }
 
-.dark-text-primary {
+.dark .dark-text-primary {
   color: var(--enhanced-dark-text);
 }
 
-.dark-text-muted {
+.dark .dark-text-muted {
   color: var(--enhanced-dark-text-muted);
 }
 
-.dark-border {
+.dark .dark-border {
   border-color: var(--enhanced-dark-border);
 }
 
-/* Badge utilities for dark theme */
-.badge-dark-default {
+/* Badge utilities for dark theme - Chỉ apply khi ở dark mode */
+.dark .badge-dark-default {
   background-color: var(--color-badge-default);
   color: var(--color-badge-default-foreground);
 }
 
-.badge-dark-secondary {
+.dark .badge-dark-secondary {
   background-color: var(--color-badge-secondary);
   color: var(--color-badge-secondary-foreground);
 }
 
-.badge-dark-success {
+.dark .badge-dark-success {
   background-color: var(--color-badge-success);
   color: var(--color-badge-success-foreground);
 }
 
-.badge-dark-warning {
+.dark .badge-dark-warning {
   background-color: var(--color-badge-warning);
   color: var(--color-badge-warning-foreground);
 }
 
-.badge-dark-error {
+.dark .badge-dark-error {
   background-color: var(--color-badge-error);
   color: var(--color-badge-error-foreground);
 }
 
-/* Table utilities for dark theme */
-.table-dark-header {
+/* Table utilities for dark theme - Chỉ apply khi ở dark mode */
+.dark .table-dark-header {
   background-color: var(--color-table-header);
   color: var(--color-table-header-foreground);
   border-color: var(--color-table-border);
 }
 
-.table-dark-row:hover {
+.dark .table-dark-row:hover {
   background-color: var(--color-table-row-hover);
 }
 
-/* Icon utilities for dark theme */
-.icon-dark-primary {
+/* Icon utilities for dark theme - Chỉ apply khi ở dark mode */
+.dark .icon-dark-primary {
   color: var(--color-icon-primary);
 }
 
-.icon-dark-secondary {
+.dark .icon-dark-secondary {
   color: var(--color-icon-secondary);
 }
 
-.icon-dark-accent {
+.dark .icon-dark-accent {
   color: var(--color-icon-accent);
 }
