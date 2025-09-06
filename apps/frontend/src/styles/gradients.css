@@ -114,19 +114,21 @@
   );
 }
 
-/* Text gradients */
+/* Text gradients - Thêm color: transparent để hỗ trợ Firefox */
 .dark .text-gradient-primary {
   background: linear-gradient(135deg, #3730a3, #7c3aed, #a855f7);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent; /* Thêm để Firefox hiển thị đúng */
+  -webkit-text-fill-color: transparent;
 }
 
 .dark .text-gradient-secondary {
   background: linear-gradient(135deg, #1e40af, #5b21b6, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent; /* Thêm để Firefox hiển thị đúng */
+  -webkit-text-fill-color: transparent;
 }
 
 /* Button gradients */

@@ -38,6 +38,15 @@
  * - Dark theme color mappings (dark.css)
  */
 
+/* Color scheme management - Quản lý color-scheme theo class thay vì inline style */
+:root {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
 /* Custom utilities for modern carousel */
 .scrollbar-hide {
   /* Firefox */

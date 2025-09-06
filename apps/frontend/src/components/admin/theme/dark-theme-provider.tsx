@@ -16,16 +16,9 @@ interface DarkThemeProviderProps {
 }
 
 export function DarkThemeProvider({ children, className = '' }: DarkThemeProviderProps) {
-  useEffect(() => {
-    // Tự động áp dụng dark theme cho admin panel
-    document.documentElement.classList.add('dark');
-    
-    // Cleanup khi component unmount
-    return () => {
-      // Không remove dark class vì có thể có component khác cần
-    };
-  }, []);
-
+  // Không còn thêm class dark vào documentElement
+  // Chỉ áp dụng dark theme locally cho admin panel thông qua wrapper div
+  
   return (
     <div className={`dark admin-panel h-full bg-background text-foreground ${className}`}>
       {children}

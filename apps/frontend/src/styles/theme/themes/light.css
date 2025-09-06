@@ -36,9 +36,10 @@
   --color-destructive: var(--color-primary-sienna);
   --color-destructive-foreground: var(--color-nynus-cream);
 
-  /* Border & Input Colors */
-  --color-border: color-mix(in srgb, var(--color-primary-terracotta) 20%, transparent);
-  --color-input: color-mix(in srgb, var(--color-primary-terracotta) 20%, transparent);
+  /* Border & Input Colors - Sửa để tránh sai khác giữa trình duyệt */
+  /* Thay transparent bằng background color để kết quả nhất quán */
+  --color-border: color-mix(in srgb, var(--color-primary-terracotta) 20%, var(--color-background));
+  --color-input: color-mix(in srgb, var(--color-primary-terracotta) 20%, var(--color-background));
   --color-ring: var(--color-primary-gold);
 
   /* Success, Warning, Error, Info */
