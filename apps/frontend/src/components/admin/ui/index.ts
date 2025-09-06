@@ -26,4 +26,4 @@ export {
 } from './enhanced-components';
 
 // Theme Provider
-export { DarkThemeProvider, useDarkTheme, toggleDarkTheme } from '../theme/dark-theme-provider';
+export { DarkThemeProvider, useDarkTheme } from '../theme/dark-theme-provider';
