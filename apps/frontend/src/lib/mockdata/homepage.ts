@@ -558,6 +558,6 @@ export const aiLearningData: AILearningData = {
   },
   ctaButton: {
     text: "Tìm hiểu thêm học tập cá nhân với AI",
-    href: "/ai-learning"
+    href: "/courses"
   }
 };

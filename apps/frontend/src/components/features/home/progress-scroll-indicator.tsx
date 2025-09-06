@@ -56,7 +56,7 @@ export default function ProgressScrollIndicator({
   if (!isVisible) return null;
 
   return (
-    <div className={`fixed bottom-8 right-8 z-50 ${className}`}>
+    <div className={`fixed bottom-8 md:bottom-16 right-8 z-50 ${className}`}>
       {/* Progress Circle - Outer ring */}
       <div className="relative w-13 h-13">
         <svg

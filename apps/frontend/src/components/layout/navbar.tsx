@@ -171,9 +171,12 @@ const Navbar = () => {
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text bg-gradient-to-r from-[#AF6EA7] to-[#8A33FB] hover:from-[#B97BB0] hover:to-[#9540FC]"
+            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text"
             style={{
-              textShadow: "0 0 40px rgba(138, 51, 251, 0.3)",
+              background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
+              backgroundClip: "text",
+              WebkitBackgroundClip: "text",
+              textShadow: "0 0 30px rgba(255, 184, 105, 0.4), 0 0 60px rgba(248, 97, 102, 0.3), 0 0 90px rgba(171, 110, 228, 0.2)",
               fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
               fontWeight: 900,
               letterSpacing: "-0.02em",
