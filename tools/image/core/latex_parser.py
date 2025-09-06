@@ -188,7 +188,8 @@ class LaTeXParser:
         # Xử lý TikZ trong câu hỏi
         for idx, (tikz_code, start, end) in enumerate(question.question_tikz, 1):
             image_name = question.get_image_name("QUES", idx if len(question.question_tikz) > 1 else 0)
-            image_path = f"images/{image_name}.{PATTERNS.get('IMAGE_FORMAT', 'webp')}"
+            from config import IMAGE_FORMAT
+            image_path = f"images/{image_name}.{IMAGE_FORMAT}"
             replacement = f"\\includegraphics[width=0.8\\textwidth]{{{image_path}}}"
             
             # Cập nhật vị trí với offset

@@ -46,7 +46,8 @@ PATTERNS = {
     'includegraphics': r'\\includegraphics(?:\[.*?\])?\{(.*?)\}',
     'loigiai': r'\\loigiai\{',
     'immini': r'\\immini(?:\[.*?\])?\{(.*?)\}\{(.*?)\}',
-    'center': r'\\begin\{center\}(.*?)\\end\{center\}'
+    'center': r'\\begin\{center\}(.*?)\\end\{center\}',
+    'IMAGE_FORMAT': 'webp'  # Thêm IMAGE_FORMAT vào PATTERNS để tránh lỗi import
 }
 
 # Cấu hình logging

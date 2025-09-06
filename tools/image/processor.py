@@ -187,9 +187,8 @@ class LaTeXImageProcessor:
             image_path = f"images/{image_name}.{IMAGE_FORMAT}"
             replacement = f"\\includegraphics[width=0.8\\textwidth]{{{image_path}}}"
             
-            # Escape special regex characters trong tikz_code
-            escaped_tikz = re.escape(tikz_code)
-            updated_content = re.sub(escaped_tikz, replacement, updated_content, count=1)
+            # Thay thế trực tiếp không dùng regex để tránh lỗi escape
+            updated_content = updated_content.replace(tikz_code, replacement, 1)
         
         # Xử lý existing images - cập nhật path
         all_images = question.question_images + question.solution_images
@@ -212,8 +211,7 @@ class LaTeXImageProcessor:
             new_path = f"images/{image_name}.{IMAGE_FORMAT}"
             new_cmd = f"\\includegraphics[width=0.8\\textwidth]{{{new_path}}}"
             
-            # Thay thế
-            escaped_cmd = re.escape(full_cmd)
-            updated_content = re.sub(escaped_cmd, new_cmd, updated_content, count=1)
+            # Thay thế trực tiếp không dùng regex
+            updated_content = updated_content.replace(full_cmd, new_cmd, 1)
         
         return updated_content

@@ -132,20 +132,20 @@ export function AdvancedSearchBar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={cn(
-        "bg-white/95 dark:bg-slate-800/95 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl p-6",
+        "bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-xl p-6",
         className
       )}
     >
       {/* Search Input */}
       <form onSubmit={handleSearch} className="mb-4">
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
           <Input
             type="text"
             placeholder="Tìm kiếm khóa học, bài giảng..."
             value={searchQuery}
             onChange={handleInputChange}
-            className="pl-12 pr-4 py-4 w-full text-lg border-0 bg-slate-50/50 dark:bg-slate-700/50 focus:ring-2 focus:ring-purple-500/20 rounded-xl"
+            className="pl-12 pr-4 py-4 w-full text-lg border-0 bg-white/10 text-white placeholder:text-white/60 focus:ring-2 focus:ring-white/30 focus:bg-white/15 rounded-xl transition-all duration-200"
           />
         </div>
       </form>
@@ -157,12 +157,12 @@ export function AdvancedSearchBar({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+              className="bg-white/20 border-white/40 text-white hover:bg-white/30 hover:border-white/60 backdrop-blur-[10px] transition-all duration-200"
             >
               <Filter className="w-4 h-4 mr-2" />
               Bộ lọc
               {getActiveFiltersCount() > 0 && (
-                <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs">
+                <Badge variant="secondary" className="ml-2 px-1.5 py-0.5 text-xs bg-white/90 text-purple-600">
                   {getActiveFiltersCount()}
                 </Badge>
               )}
@@ -254,7 +254,7 @@ export function AdvancedSearchBar({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700"
+              className="bg-white/20 border-white/40 text-white hover:bg-white/30 hover:border-white/60 backdrop-blur-[10px] transition-all duration-200"
             >
               <ArrowUpDown className="w-4 h-4 mr-2" />
               {getCurrentSortLabel()}
@@ -290,12 +290,12 @@ export function AdvancedSearchBar({
                   <Badge
                     key={`${category}-${value}`}
                     variant="secondary"
-                    className="text-xs px-2 py-1"
+                    className="text-xs px-2 py-1 bg-white/20 text-white border border-white/30 hover:bg-white/30"
                   >
                     {option.label}
                     <button
                       onClick={() => toggleFilter(category as keyof SearchFilters, value)}
-                      className="ml-1 hover:text-red-600"
+                      className="ml-1 hover:text-red-300 transition-colors"
                     >
                       <X className="w-3 h-3" />
                     </button>
