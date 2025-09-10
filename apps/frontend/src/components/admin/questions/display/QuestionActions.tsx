@@ -184,9 +184,9 @@ export function QuestionActions({
         variant="outline"
         size="sm"
         onClick={handleToggleBookmark}
-        className={`flex items-center gap-2 ${isBookmarked ? 'bg-yellow-50 border-yellow-300' : ''}`}
+        className={`flex items-center gap-2 ${isBookmarked ? 'bg-badge-warning/10 border-badge-warning' : ''}`}
       >
-        <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current text-yellow-600' : ''}`} />
+        <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current text-badge-warning-foreground' : ''}`} />
         <span className="hidden sm:inline">{isBookmarked ? 'Đã lưu' : 'Lưu'}</span>
       </Button>
 

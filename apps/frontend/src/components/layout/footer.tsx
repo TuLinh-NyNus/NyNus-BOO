@@ -98,12 +98,12 @@ const Footer = () => {
     return (
       <Link 
         href={href} 
-        className={`text-slate-300 hover:text-blue-400 transition-all duration-300 hover:translate-x-2 inline-block font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1B293D] rounded-md group relative pb-2 ${className}`}
+        className={`text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-2 inline-block font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md group relative pb-2 ${className}`}
       >
         <span className="relative">
           {text}
           <motion.span
-            className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-400 rounded-full group-hover:w-full transition-all duration-300 ease-out"
+            className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary rounded-full group-hover:w-full transition-all duration-300 ease-out"
             initial={false}
           />
         </span>
@@ -196,10 +196,10 @@ const Footer = () => {
                   Nhận thông tin mới nhất
                 </h3>
               </div>
-              <p className="text-slate-200 text-lg leading-relaxed mb-6">
+              <p className="text-foreground text-lg leading-relaxed mb-6">
                 Đăng ký nhận thông báo về các khóa học, đề thi và tính năng mới nhất.
               </p>
-              <div className="flex items-center gap-3 text-base text-slate-300">
+              <div className="flex items-center gap-3 text-base text-muted-foreground">
                 <motion.div
                   animate={{ scale: [1, 1.1, 1] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -215,7 +215,7 @@ const Footer = () => {
                   <input
                     type="email"
                     placeholder="Email của bạn"
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 text-white placeholder-slate-300 transition-all duration-300 backdrop-blur-sm"
+                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 text-foreground placeholder-muted-foreground transition-all duration-300 backdrop-blur-sm"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -261,7 +261,7 @@ const Footer = () => {
                 NyNus
               </motion.span>
             </Link>
-            <p className="text-slate-200 text-base leading-relaxed mb-6">
+            <p className="text-foreground text-base leading-relaxed mb-6">
               Nền tảng học toán thông minh với AI, giúp học sinh cải thiện kỹ năng và đạt kết quả cao trong các kỳ thi quan trọng.
             </p>
             
@@ -306,7 +306,7 @@ const Footer = () => {
                 >
                   <Link 
                     href={social.href} 
-                    className={`w-10 h-10 flex items-center justify-center rounded-full bg-white/10 ${social.hoverBg} text-slate-300 ${social.hoverText} transition-all duration-300 shadow-lg ${social.shadow} border border-white/20 hover:border-white/40`}
+                    className={`w-10 h-10 flex items-center justify-center rounded-full bg-white/10 ${social.hoverBg} text-muted-foreground ${social.hoverText} transition-all duration-300 shadow-lg ${social.shadow} border border-white/20 hover:border-white/40`}
                   >
                     <social.icon className="h-5 w-5" />
                   </Link>
@@ -318,12 +318,12 @@ const Footer = () => {
             <div className="relative">
               <motion.button
                 onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-                className="w-full flex items-center justify-between px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-slate-200 hover:border-blue-400 hover:bg-white/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400/30 backdrop-blur-sm"
+                className="w-full flex items-center justify-between px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-foreground hover:border-primary hover:bg-white/20 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary/30 backdrop-blur-sm"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-slate-400" />
+                  <Globe className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">
                     {languages.find(lang => lang.code === selectedLanguage)?.name || 'Tiếng Việt'}
                   </span>
@@ -332,7 +332,7 @@ const Footer = () => {
                   animate={{ rotate: isLanguageMenuOpen ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </motion.div>
               </motion.button>
 
@@ -349,8 +349,8 @@ const Footer = () => {
                       key={language.code}
                       className={`w-full text-left px-4 py-3 hover:bg-white/20 transition-all duration-200 ${
                         selectedLanguage === language.code 
-                          ? 'text-blue-400 bg-blue-500/20' 
-                          : 'text-slate-300 hover:text-slate-100'
+                          ? 'text-primary bg-primary/20' 
+                          : 'text-muted-foreground hover:text-foreground'
                       }`}
                       onClick={() => {
                         setSelectedLanguage(language.code);
@@ -368,7 +368,7 @@ const Footer = () => {
 
           {/* Links Column 1 */}
           <motion.div className="lg:ml-auto" variants={itemVariants}>
-            <h3 className="font-bold text-xl text-white mb-6">
+            <h3 className="font-bold text-xl text-foreground mb-6">
               Liên kết
             </h3>
             <ul className="space-y-4">
@@ -394,7 +394,7 @@ const Footer = () => {
 
           {/* Links Column 2 */}
           <motion.div variants={itemVariants}>
-            <h3 className="font-bold text-xl text-white mb-6">
+            <h3 className="font-bold text-xl text-foreground mb-6">
               Hỗ trợ
             </h3>
             <ul className="space-y-4">

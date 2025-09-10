@@ -83,7 +83,7 @@ export function DashboardHeader({
     }
 
     return (
-      <Badge variant="default" className="flex items-center gap-1 bg-green-100 text-green-800 hover:bg-green-100">
+      <Badge variant="default" className="flex items-center gap-1 bg-badge-success text-badge-success-foreground hover:bg-badge-success">
         <CheckCircle className="h-3 w-3" />
         Hoạt động
       </Badge>
@@ -103,37 +103,37 @@ export function DashboardHeader({
   };
 
   return (
-    <div className="flex items-center justify-between py-2 border-b border-white/10">
+    <div className="flex items-center justify-between py-2 border-b border-border">
       {/* Left section - Title and description */}
       <div className="flex items-center gap-6">
         <div>
-          <h1 className="text-xl font-bold text-white">
+          <h1 className="text-xl font-bold text-foreground">
             Dashboard Admin
           </h1>
-          <p className="text-sm text-white/70">
+          <p className="text-sm text-muted-foreground">
             Tổng quan hệ thống và thống kê hoạt động
           </p>
         </div>
 
         {/* Status info */}
-        <div className="flex items-center gap-4 text-sm text-white/70">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
           {/* Last Updated */}
           <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4 text-blue-300" />
+            <Clock className="h-4 w-4 text-primary" />
             <span>Cập nhật: {getLastUpdatedText()}</span>
           </div>
 
           {/* Refresh Count */}
           {refreshCount > 0 && (
             <div className="flex items-center gap-1">
-              <RefreshCw className="h-4 w-4 text-emerald-300" />
+              <RefreshCw className="h-4 w-4 text-emerald-500" />
               <span>Đã làm mới {refreshCount} lần</span>
             </div>
           )}
 
           {/* Error Message */}
           {error && (
-            <div className="flex items-center gap-1 text-red-300">
+            <div className="flex items-center gap-1 text-destructive">
               <AlertCircle className="h-4 w-4" />
               <span>{error}</span>
             </div>
@@ -152,7 +152,7 @@ export function DashboardHeader({
           size="sm"
           onClick={onRefresh}
           disabled={isLoading || isRefreshing}
-          className="flex items-center gap-2 border-white/20 text-white hover:bg-white/10"
+          className="flex items-center gap-2 border-border text-foreground hover:bg-accent"
         >
           <RefreshCw
             className={`h-4 w-4 ${(isLoading || isRefreshing) ? 'animate-spin' : ''}`}

@@ -314,14 +314,14 @@ export function ConfigurationEditor({ category, title, description }: Configurat
       {/* Configuration Items */}
       <div className="space-y-4">
         {configurations.map((config) => (
-          <Card key={config.id} className={config.hasChanges ? "border-orange-200 bg-orange-50/50" : ""}>
+          <Card key={config.id} className={config.hasChanges ? "border-badge-warning bg-badge-warning/10" : ""}>
             <CardContent className="p-4">
               <div className="flex items-start justify-between space-x-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
                     <Label className="font-medium">{config.configKey}</Label>
                     {config.hasChanges && (
-                      <Badge variant="outline" className="text-orange-600 border-orange-200">
+                      <Badge variant="outline" className="text-badge-warning-foreground border-badge-warning">
                         Đã thay đổi
                       </Badge>
                     )}

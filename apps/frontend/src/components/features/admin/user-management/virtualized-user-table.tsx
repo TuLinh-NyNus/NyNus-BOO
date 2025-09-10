@@ -79,11 +79,11 @@ interface VirtualizedUserTableProps {
  */
 function getRoleBadge(role: UserRole) {
   const roleConfig = {
-    [UserRole.ADMIN]: { label: "Admin", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" },
-    [UserRole.TEACHER]: { label: "Giáo viên", className: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400" },
-    [UserRole.TUTOR]: { label: "Gia sư", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" },
-    [UserRole.STUDENT]: { label: "Học viên", className: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400" },
-    [UserRole.GUEST]: { label: "Khách", className: "bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground" },
+    [UserRole.ADMIN]: { label: "Admin", className: "bg-destructive text-destructive-foreground" },
+    [UserRole.TEACHER]: { label: "Giáo viên", className: "bg-accent text-accent-foreground" },
+    [UserRole.TUTOR]: { label: "Gia sư", className: "bg-badge-success text-badge-success-foreground" },
+    [UserRole.STUDENT]: { label: "Học viên", className: "bg-primary text-primary-foreground" },
+    [UserRole.GUEST]: { label: "Khách", className: "bg-secondary text-secondary-foreground" },
   };
 
   const config = roleConfig[role] || roleConfig[UserRole.STUDENT];
@@ -96,9 +96,9 @@ function getRoleBadge(role: UserRole) {
  */
 function getStatusBadge(status: string) {
   const statusConfig = {
-    ACTIVE: { label: "Hoạt động", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", icon: Activity },
-    SUSPENDED: { label: "Tạm ngưng", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", icon: UserX },
-    PENDING_VERIFICATION: { label: "Chờ xác thực", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", icon: Shield },
+    ACTIVE: { label: "Hoạt động", className: "bg-badge-success text-badge-success-foreground", icon: Activity },
+    SUSPENDED: { label: "Tạm ngưng", className: "bg-destructive text-destructive-foreground", icon: UserX },
+    PENDING_VERIFICATION: { label: "Chờ xác thực", className: "bg-badge-warning text-badge-warning-foreground", icon: Shield },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ACTIVE;
@@ -198,7 +198,7 @@ export function VirtualizedUserTable({
       <div
         {...itemProps}
         className={`flex items-center gap-4 p-4 border-b hover:bg-muted/25 ${
-          isSelected ? 'bg-blue-50 border-blue-200' : ''
+          isSelected ? 'bg-primary/10 border-primary/20' : ''
         }`}
       >
         {/* Selection Checkbox */}
@@ -215,7 +215,7 @@ export function VirtualizedUserTable({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="font-medium truncate">{getUserDisplayName(user)}</span>
-            {user.emailVerified && <ShieldCheck className="h-4 w-4 text-green-500" />}
+            {user.emailVerified && <ShieldCheck className="h-4 w-4 text-badge-success-foreground" />}
           </div>
           <div className="text-sm text-muted-foreground truncate">{user.email}</div>
         </div>
@@ -282,7 +282,7 @@ export function VirtualizedUserTable({
               {onDeleteUser && (
                 <DropdownMenuItem
                   onClick={() => onDeleteUser(user)}
-                  className="text-red-600 dark:text-red-400"
+                  className="text-destructive"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Xóa user
@@ -317,7 +317,7 @@ export function VirtualizedUserTable({
       <div className={`border rounded-lg ${className}`}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
             <p className="text-muted-foreground">Đang tải users...</p>
           </div>
         </div>

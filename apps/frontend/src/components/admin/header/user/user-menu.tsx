@@ -117,8 +117,8 @@ export function UserMenu({
       .toUpperCase() || 'U';
 
     return (
-      <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-        <span className="text-sm font-medium text-white">
+      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+        <span className="text-sm font-medium text-primary-foreground">
           {initials}
         </span>
       </div>
@@ -132,8 +132,8 @@ export function UserMenu({
   const renderUserTrigger = () => {
     const triggerClasses = cn(
       'flex items-center space-x-2 p-2 rounded-lg',
-      'hover:bg-white/10 transition-colors duration-150',
-      'focus:outline-none focus:ring-2 focus:ring-blue-500',
+        'hover:bg-accent/10 transition-colors duration-150',
+        'focus:outline-none focus:ring-2 focus:ring-primary',
       variant === 'compact' ? 'space-x-1' : 'space-x-2'
     );
 
@@ -151,10 +151,10 @@ export function UserMenu({
         {/* User info (hidden on compact) */}
         {variant !== 'compact' && user && (
           <div className="hidden sm:block text-left">
-            <div className="text-sm font-medium text-white truncate max-w-24">
+            <div className="text-sm font-medium text-foreground truncate max-w-24">
               {user.name}
             </div>
-            <div className="text-xs text-white/70 truncate max-w-24">
+            <div className="text-xs text-muted-foreground truncate max-w-24">
               {user.role}
             </div>
           </div>
@@ -163,7 +163,7 @@ export function UserMenu({
         {/* Chevron icon */}
         <ChevronDown
           className={cn(
-            'w-4 h-4 text-white/70 transition-transform duration-150',
+            'w-4 h-4 text-muted-foreground transition-transform duration-150',
             isOpen && 'transform rotate-180'
           )}
         />
@@ -181,24 +181,24 @@ export function UserMenu({
     return (
       <div
         className={cn(
-          'absolute right-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200',
+          'absolute right-0 top-full mt-2 w-64 bg-background rounded-lg shadow-lg border border-border',
           'animate-in fade-in-0 zoom-in-95 duration-150',
           'z-50'
         )}
       >
         {/* User info header */}
         {user && (
-          <div className="px-4 py-3 border-b border-gray-100">
+          <div className="px-4 py-3 border-b border-border">
             <div className="flex items-center space-x-3">
               {renderUserAvatar()}
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">
+                <div className="text-sm font-medium text-foreground truncate">
                   {user.name}
                 </div>
-                <div className="text-xs text-gray-500 truncate">
+                <div className="text-xs text-muted-foreground truncate">
                   {user.email}
                 </div>
-                <div className="text-xs text-blue-600 font-medium">
+                <div className="text-xs text-primary font-medium">
                   {user.role}
                 </div>
               </div>
@@ -245,7 +245,7 @@ export function UserMenu({
         </div>
 
         {/* Logout section */}
-        <div className="border-t border-gray-100 py-2">
+        <div className="border-t border-border py-2">
           <UserMenuItem
             icon={LogOut}
             label="Đăng xuất"
@@ -260,7 +260,7 @@ export function UserMenu({
 
   if (!user) {
     return (
-      <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+      <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
     );
   }
 
@@ -291,24 +291,24 @@ function UserMenuItem({
 }) {
   const itemClasses = cn(
     'w-full flex items-center px-4 py-2 text-left',
-    'hover:bg-gray-50 transition-colors duration-150',
-    'focus:bg-gray-50 focus:outline-none',
-    variant === 'danger' && 'hover:bg-red-50 focus:bg-red-50'
+    'hover:bg-accent/10 transition-colors duration-150',
+    'focus:bg-accent/10 focus:outline-none',
+    variant === 'danger' && 'hover:bg-destructive/10 focus:bg-destructive/10'
   );
 
   const iconClasses = cn(
     'w-4 h-4 mr-3 flex-shrink-0',
-    variant === 'danger' ? 'text-red-500' : 'text-gray-400'
+    variant === 'danger' ? 'text-destructive' : 'text-muted-foreground'
   );
 
   const labelClasses = cn(
     'text-sm font-medium',
-    variant === 'danger' ? 'text-red-700' : 'text-gray-900'
+    variant === 'danger' ? 'text-destructive' : 'text-foreground'
   );
 
   const descriptionClasses = cn(
     'text-xs mt-0.5',
-    variant === 'danger' ? 'text-red-500' : 'text-gray-500'
+    variant === 'danger' ? 'text-destructive/80' : 'text-muted-foreground'
   );
 
   return (

@@ -22,10 +22,10 @@ const sizeClasses = {
 }
 
 const variantClasses = {
-  default: 'text-gray-600',
-  primary: 'text-blue-600',
-  secondary: 'text-gray-400',
-  muted: 'text-gray-300',
+  default: 'text-foreground',
+  primary: 'text-primary',
+  secondary: 'text-muted-foreground',
+  muted: 'text-muted-foreground/70',
 }
 
 export function LoadingSpinner({
@@ -60,7 +60,7 @@ export function LoadingSpinner({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
         {spinner}
       </div>
     )
@@ -76,14 +76,14 @@ export function FormLoadingSkeleton(): JSX.Element {
   return (
     <div className="space-y-4 animate-pulse">
       <div className="space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-4 bg-muted rounded w-1/4"></div>
+        <div className="h-10 bg-muted rounded"></div>
       </div>
       <div className="space-y-2">
-        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-4 bg-muted rounded w-1/3"></div>
+        <div className="h-10 bg-muted rounded"></div>
       </div>
-      <div className="h-10 bg-gray-200 rounded"></div>
+      <div className="h-10 bg-muted rounded"></div>
     </div>
   )
 }
@@ -147,12 +147,12 @@ export function NetworkStatus({
   return (
     <div className={cn('flex items-center gap-2 text-sm', className)}>
       {isOnline ? (
-        <Wifi className="h-4 w-4 text-green-500" />
+        <Wifi className="h-4 w-4 text-badge-success-foreground" />
       ) : (
-        <WifiOff className="h-4 w-4 text-red-500" />
+        <WifiOff className="h-4 w-4 text-destructive" />
       )}
       {showText && (
-        <span className={isOnline ? 'text-green-600' : 'text-red-600'}>
+        <span className={isOnline ? 'text-badge-success-foreground' : 'text-destructive'}>
           {isOnline ? 'Đã kết nối' : 'Mất kết nối'}
         </span>
       )}
@@ -181,7 +181,7 @@ export function LoadingOverlay({
       'fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center',
       className
     )}>
-      <div className="bg-white rounded-lg p-6 shadow-xl">
+      <div className="bg-background rounded-lg p-6 shadow-xl">
         <LoadingSpinner
           size="lg"
           text={text}

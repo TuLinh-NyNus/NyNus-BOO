@@ -27,7 +27,7 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6 }}
       className={cn(
-        "group relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 border border-slate-700/50 shadow-2xl",
+        "group relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-muted to-card border border-border shadow-2xl",
         className
       )}
     >
@@ -35,38 +35,38 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
       <div className="absolute inset-0 bg-[url('/images/grid.svg')] bg-center opacity-5" />
       
       {/* Glass effect overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-br from-background/5 to-transparent" />
 
       {/* Content */}
       <div className="relative p-8">
         {/* Course image/icon */}
         <div className="mb-6">
-          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
-            <BookOpen className="w-8 h-8 text-white" />
+          <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+            <BookOpen className="w-8 h-8 text-primary-foreground" />
           </div>
         </div>
 
         {/* Course title */}
-        <h3 className="text-2xl font-bold text-white mb-3 leading-tight">
+        <h3 className="text-2xl font-bold text-foreground mb-3 leading-tight">
           {course.title}
         </h3>
 
         {/* Course description */}
-        <p className="text-slate-300 text-sm mb-6 leading-relaxed line-clamp-3">
+        <p className="text-muted-foreground text-sm mb-6 leading-relaxed line-clamp-3">
           {course.description}
         </p>
 
         {/* Course stats */}
         <div className="space-y-3 mb-6">
-          <div className="flex items-center text-slate-400 text-sm">
+          <div className="flex items-center text-muted-foreground text-sm">
             <FileText className="w-4 h-4 mr-2" />
             <span>{course.totalLessons} bài học</span>
           </div>
-          <div className="flex items-center text-slate-400 text-sm">
+          <div className="flex items-center text-muted-foreground text-sm">
             <Video className="w-4 h-4 mr-2" />
             <span>Video, PDF, files</span>
             {course.featured && (
-              <span className="ml-auto bg-purple-500/20 text-purple-300 px-2 py-1 rounded-full text-xs font-medium">
+              <span className="ml-auto bg-accent/20 text-accent-foreground px-2 py-1 rounded-full text-xs font-medium">
                 PRO
               </span>
             )}
@@ -77,12 +77,12 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
         {showProgress && course.progress > 0 && (
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-slate-400 text-sm">Tiến độ</span>
-              <span className="text-white text-sm font-medium">{course.progress}%</span>
+              <span className="text-muted-foreground text-sm">Tiến độ</span>
+              <span className="text-foreground text-sm font-medium">{course.progress}%</span>
             </div>
             <Progress 
               value={course.progress} 
-              className="h-2 bg-slate-700"
+              className="h-2 bg-muted"
             />
           </div>
         )}
@@ -90,18 +90,18 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
         {/* Course metadata */}
         <div className="grid grid-cols-2 gap-4 mb-6">
           <div className="text-center">
-            <div className="flex items-center justify-center text-slate-400 mb-1">
+            <div className="flex items-center justify-center text-muted-foreground mb-1">
               <Users className="w-4 h-4 mr-1" />
             </div>
-            <div className="text-white text-sm font-medium">{course.students.toLocaleString()}</div>
-            <div className="text-slate-500 text-xs">học sinh</div>
+            <div className="text-foreground text-sm font-medium">{course.students.toLocaleString()}</div>
+            <div className="text-muted-foreground text-xs">học sinh</div>
           </div>
           <div className="text-center">
-            <div className="flex items-center justify-center text-slate-400 mb-1">
+            <div className="flex items-center justify-center text-muted-foreground mb-1">
               <Clock className="w-4 h-4 mr-1" />
             </div>
-            <div className="text-white text-sm font-medium">{course.duration}</div>
-            <div className="text-slate-500 text-xs">thời lượng</div>
+            <div className="text-foreground text-sm font-medium">{course.duration}</div>
+            <div className="text-muted-foreground text-xs">thời lượng</div>
           </div>
         </div>
 
@@ -113,12 +113,12 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
                 key={i}
                 className={`w-4 h-4 ${
                   i < Math.floor(course.rating)
-                    ? 'text-yellow-400 fill-current'
-                    : 'text-slate-600'
+                    ? 'text-badge-warning fill-current'
+                    : 'text-muted-foreground'
                 }`}
               />
             ))}
-            <span className="text-white text-sm font-medium ml-2">
+            <span className="text-foreground text-sm font-medium ml-2">
               {course.rating}
             </span>
           </div>
@@ -127,7 +127,7 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
         {/* Action buttons */}
         <div className="space-y-3">
           <Link href={course.href} className="block">
-            <Button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-medium py-3 rounded-xl transition-all duration-300 group-hover:shadow-lg group-hover:shadow-purple-500/25">
+            <Button className="w-full bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-primary-foreground font-medium py-3 rounded-xl transition-all duration-300 group-hover:shadow-lg group-hover:shadow-accent/25">
               <Play className="w-4 h-4 mr-2" />
               {course.progress > 0 ? 'Tiếp tục học' : 'Bắt đầu học'}
             </Button>
@@ -135,7 +135,7 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
           
           <Button 
             variant="outline" 
-            className="w-full border-slate-600 text-slate-300 hover:bg-slate-700/50 hover:text-white hover:border-slate-500 py-3 rounded-xl transition-all duration-300"
+            className="w-full border-border text-muted-foreground hover:bg-muted/50 hover:text-foreground hover:border-border py-3 rounded-xl transition-all duration-300"
           >
             Xem chi tiết
           </Button>
@@ -146,7 +146,7 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
           {course.tags.slice(0, 3).map((tag, index) => (
             <span
               key={index}
-              className="px-3 py-1 text-xs rounded-full bg-slate-700/50 text-slate-300 border border-slate-600/50"
+              className="px-3 py-1 text-xs rounded-full bg-muted/50 text-muted-foreground border border-border"
             >
               {tag}
             </span>
@@ -155,7 +155,7 @@ export function FeaturedCourseCard({ course, className, showProgress = true }: F
       </div>
 
       {/* Hover effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
     </motion.div>
   );
 }
@@ -171,26 +171,26 @@ export function CompactFeaturedCourseCard({ course, className }: Omit<FeaturedCo
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
       className={cn(
-        "group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-xl",
+        "group relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-muted border border-border shadow-xl",
         className
       )}
     >
       <div className="relative p-6">
         {/* Course icon */}
         <div className="flex items-center mb-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mr-4">
-            <BookOpen className="w-6 h-6 text-white" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center mr-4">
+            <BookOpen className="w-6 h-6 text-primary-foreground" />
           </div>
           <div className="flex-1">
-            <h4 className="text-lg font-semibold text-white line-clamp-1">
+            <h4 className="text-lg font-semibold text-foreground line-clamp-1">
               {course.title}
             </h4>
-            <p className="text-slate-400 text-sm">{course.instructor}</p>
+            <p className="text-muted-foreground text-sm">{course.instructor}</p>
           </div>
         </div>
 
         {/* Quick stats */}
-        <div className="flex items-center justify-between text-sm text-slate-400 mb-4">
+        <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
           <div className="flex items-center">
             <Users className="w-3 h-3 mr-1" />
             <span>{course.students.toLocaleString()}</span>

@@ -167,10 +167,10 @@ export default function AdminUsersPage() {
           <Card className="admin-unified-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Đang hoạt động</CardTitle>
-              <UserPlus className="h-4 w-4 text-green-600" />
+              <UserPlus className="h-4 w-4 text-badge-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.activeUsers}</div>
+              <div className="text-2xl font-bold text-badge-success">{stats.activeUsers}</div>
               <p className="text-xs text-muted-foreground">
                 {((stats.activeUsers / stats.totalUsers) * 100).toFixed(1)}% tổng số
               </p>
@@ -180,10 +180,10 @@ export default function AdminUsersPage() {
           <Card className="admin-unified-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Bị tạm ngưng</CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertCircle className="h-4 w-4 text-badge-error" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.suspendedUsers}</div>
+              <div className="text-2xl font-bold text-badge-error">{stats.suspendedUsers}</div>
               <p className="text-xs text-muted-foreground">
                 Cần xem xét
               </p>
@@ -193,10 +193,10 @@ export default function AdminUsersPage() {
           <Card className="admin-unified-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Chờ xác thực</CardTitle>
-              <RefreshCw className="h-4 w-4 text-yellow-600" />
+              <RefreshCw className="h-4 w-4 text-badge-warning" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.inactiveUsers}</div>
+              <div className="text-2xl font-bold text-badge-warning">{stats.inactiveUsers}</div>
               <p className="text-xs text-muted-foreground">
                 Cần xác thực email
               </p>

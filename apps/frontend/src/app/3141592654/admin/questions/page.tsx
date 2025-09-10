@@ -204,11 +204,11 @@ export default function AdminQuestionsPage() {
     };
 
     const typeColors = {
-      [QuestionType.MC]: 'bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800',
-      [QuestionType.TF]: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
-      [QuestionType.SA]: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
-      [QuestionType.ES]: 'bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800',
-      [QuestionType.MA]: 'bg-pink-50 text-pink-700 border border-pink-200 dark:bg-pink-950 dark:text-pink-300 dark:border-pink-800'
+      [QuestionType.MC]: 'bg-badge-default text-badge-default-foreground border border-border',
+      [QuestionType.TF]: 'bg-badge-success text-badge-success-foreground border border-border',
+      [QuestionType.SA]: 'bg-badge-warning text-badge-warning-foreground border border-border',
+      [QuestionType.ES]: 'bg-badge-secondary text-badge-secondary-foreground border border-border',
+      [QuestionType.MA]: 'bg-badge-secondary text-badge-secondary-foreground border border-border'
     };
 
     return (
@@ -232,10 +232,10 @@ export default function AdminQuestionsPage() {
     };
 
     const statusColors = {
-      [QuestionStatus.ACTIVE]: 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800',
-      [QuestionStatus.PENDING]: 'bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800',
+      [QuestionStatus.ACTIVE]: 'bg-badge-success text-badge-success-foreground border border-border',
+      [QuestionStatus.PENDING]: 'bg-badge-warning text-badge-warning-foreground border border-border',
       [QuestionStatus.INACTIVE]: 'bg-muted text-muted-foreground border border-border',
-      [QuestionStatus.ARCHIVED]: 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950 dark:text-red-300 dark:border-red-800'
+      [QuestionStatus.ARCHIVED]: 'bg-badge-error text-badge-error-foreground border border-border'
     };
 
     return (
@@ -247,13 +247,13 @@ export default function AdminQuestionsPage() {
 
   return (
     <ErrorBoundary>
-      <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
         <div className="container mx-auto p-6 space-y-6">
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Quản lý câu hỏi</h1>
-              <p className="text-slate-700 dark:text-slate-300 mt-1">
+              <h1 className="text-3xl font-bold text-foreground">Quản lý câu hỏi</h1>
+              <p className="text-muted-foreground mt-1">
                 Tổng cộng {totalQuestions} câu hỏi
               </p>
             </div>
@@ -307,10 +307,10 @@ export default function AdminQuestionsPage() {
 
         {/* Bulk actions */}
         {selectedIds.length > 0 && (
-          <Card className="border-blue-200 bg-blue-50/80 backdrop-blur-sm shadow-md dark:bg-blue-900/20 dark:border-blue-800/60">
+          <Card className="border-primary/20 bg-primary/10 backdrop-blur-sm shadow-md">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-900 dark:text-blue-200 font-medium">
+                <span className="text-sm text-foreground font-medium">
                   Đã chọn {selectedIds.length} câu hỏi
                 </span>
                 <div className="flex gap-2">
@@ -342,20 +342,20 @@ export default function AdminQuestionsPage() {
         )}
 
         {/* Questions table */}
-        <Card className="shadow-sm border-slate-200/60 bg-white/80 backdrop-blur-sm dark:bg-slate-800/80 dark:border-slate-700/60">
+        <Card className="shadow-sm border-border/60 bg-background/80 backdrop-blur-sm">
           <CardContent className="p-0">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-slate-700 dark:text-slate-300 font-medium">Đang tải...</span>
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-foreground font-medium">Đang tải...</span>
               </div>
             ) : questions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertTriangle className="h-12 w-12 text-slate-400 dark:text-slate-500 mb-4" />
-                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+                <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   Không có câu hỏi nào
                 </h3>
-                <p className="text-slate-700 dark:text-slate-300 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Không tìm thấy câu hỏi phù hợp với bộ lọc hiện tại
                 </p>
                 <Button onClick={handleCreateQuestion}>
@@ -367,7 +367,7 @@ export default function AdminQuestionsPage() {
               <>
                 {/* Container with fixed header like Users page */}
                 <div
-                  className="border rounded-lg overflow-hidden"
+                  className="border border-border rounded-lg overflow-hidden bg-background"
                   style={{
                     maxHeight: '75vh',
                     position: 'relative',
@@ -393,9 +393,9 @@ export default function AdminQuestionsPage() {
                               onCheckedChange={handleToggleSelectAll}
                             />
                           </TableHead>
-                          <TableHead className="w-16 text-center font-semibold">STT</TableHead>
-                          <TableHead className="font-semibold">Nội dung</TableHead>
-                          <TableHead className="font-semibold w-40 text-center">Trạng thái</TableHead>
+                          <TableHead className="w-16 text-center font-semibold text-foreground">STT</TableHead>
+                          <TableHead className="font-semibold text-foreground">Nội dung</TableHead>
+                          <TableHead className="font-semibold w-40 text-center text-foreground">Trạng thái</TableHead>
                           <TableHead className="w-12"></TableHead>
                         </TableRow>
                       </TableHeader>
@@ -404,23 +404,23 @@ export default function AdminQuestionsPage() {
                     <TableRow
                       key={question.id}
                       className={`
-                        ${index % 2 === 0 ? 'bg-slate-50/50 dark:bg-slate-900/50' : 'bg-white/50 dark:bg-slate-800/50'}
-                        hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors duration-150
+                        ${index % 2 === 0 ? 'bg-muted/30' : 'bg-background/50'}
+                        hover:bg-muted/50 transition-colors duration-150
                       `}
                     >
-                      <TableCell className="w-12">
+                      <TableCell className="w-12 py-4">
                         <Checkbox
                           checked={selectedIds.includes(question.id)}
                           onCheckedChange={() => handleToggleSelect(question.id)}
                         />
                       </TableCell>
                       {/* STT thực tế theo trang và filter */}
-                      <TableCell className="w-16 text-center text-sm text-muted-foreground">
+                      <TableCell className="w-16 text-center text-sm text-muted-foreground py-4">
                         {(currentPage - 1) * pageSize + index + 1}
                       </TableCell>
-                      <TableCell className="min-w-0">
-                        <div className="max-w-md">
-                          <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                      <TableCell className="min-w-0 py-4">
+                        <div className="max-w-2xl space-y-2">
+                          <p className="font-medium text-foreground whitespace-normal break-words leading-relaxed">
                             {question.content}
                           </p>
                           {question.tag.length > 0 && (
@@ -439,10 +439,10 @@ export default function AdminQuestionsPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="w-40 text-center">
+                      <TableCell className="w-40 text-center py-4">
                         {renderStatusBadge(question.status)}
                       </TableCell>
-                      <TableCell className="w-12">
+                      <TableCell className="w-12 py-4">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm">
@@ -457,7 +457,7 @@ export default function AdminQuestionsPage() {
                               Chỉnh sửa
                             </DropdownMenuItem>
                             <DropdownMenuItem 
-                              className="text-red-600"
+                              className="text-destructive"
                               onClick={() => handleBulkDelete()}
                             >
                               Xóa
@@ -479,7 +479,7 @@ export default function AdminQuestionsPage() {
         {/* Pagination */}
         {!isLoading && questions.length > 0 && (
           <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-muted-foreground">
               Hiển thị {(currentPage - 1) * pageSize + 1} - {Math.min(currentPage * pageSize, totalQuestions)} 
               trong tổng số {totalQuestions} câu hỏi
             </div>
@@ -492,9 +492,9 @@ export default function AdminQuestionsPage() {
               >
                 Trước
               </Button>
-              <span className="text-sm">
-                Trang {currentPage} / {Math.ceil(totalQuestions / pageSize)}
-              </span>
+                <span className="text-sm text-foreground">
+                  Trang {currentPage} / {Math.ceil(totalQuestions / pageSize)}
+                </span>
               <Button
                 variant="outline"
                 size="sm"

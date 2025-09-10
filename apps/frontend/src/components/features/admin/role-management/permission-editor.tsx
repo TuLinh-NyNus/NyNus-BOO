@@ -59,21 +59,21 @@ const USER_ROLE_LABELS: Record<UserRole, string> = {
  * Permission level colors
  */
 const PERMISSION_LEVEL_COLORS: Record<string, string> = {
-  read: "bg-blue-100 text-blue-800",
-  write: "bg-green-100 text-green-800",
-  delete: "bg-orange-100 text-orange-800",
-  admin: "bg-red-100 text-red-800",
+  read: "bg-primary text-primary-foreground",
+  write: "bg-badge-success text-badge-success-foreground",
+  delete: "bg-badge-warning text-badge-warning-foreground",
+  admin: "bg-destructive text-destructive-foreground",
 };
 
 /**
  * Permission category colors
  */
 const PERMISSION_CATEGORY_COLORS: Record<string, string> = {
-  user: "bg-purple-100 text-purple-800",
-  content: "bg-cyan-100 text-cyan-800",
-  system: "bg-yellow-100 text-yellow-800",
-  security: "bg-red-100 text-red-800",
-  admin: "bg-gray-100 text-gray-800",
+  user: "bg-accent text-accent-foreground",
+  content: "bg-primary text-primary-foreground",
+  system: "bg-badge-warning text-badge-warning-foreground",
+  security: "bg-destructive text-destructive-foreground",
+  admin: "bg-secondary text-secondary-foreground",
 };
 
 /**
@@ -271,7 +271,7 @@ export function PermissionEditor({
             >
               {isSaving ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2" />
                   Saving...
                 </>
               ) : (
@@ -355,7 +355,7 @@ export function PermissionEditor({
         {/* Permissions List */}
         {isLoading ? (
           <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
             <span className="ml-2">Đang tải permissions...</span>
           </div>
         ) : (
@@ -367,16 +367,16 @@ export function PermissionEditor({
                 <div
                   key={permission.id}
                   className={`flex items-center justify-between p-3 border rounded cursor-pointer transition-colors ${
-                    isEnabled ? 'bg-green-50 border-green-200' : 'hover:bg-muted/25'
+                    isEnabled ? 'bg-badge-success/10 border-badge-success/20' : 'hover:bg-muted/25'
                   }`}
                   onClick={() => handlePermissionToggle(permission)}
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex items-center">
                       {isEnabled ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        <CheckCircle className="h-5 w-5 text-badge-success-foreground" />
                       ) : (
-                        <div className="h-5 w-5 border-2 border-gray-300 rounded-full" />
+                        <div className="h-5 w-5 border-2 border-border rounded-full" />
                       )}
                     </div>
                     

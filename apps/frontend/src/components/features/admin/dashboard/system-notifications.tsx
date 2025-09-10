@@ -42,8 +42,8 @@ const mockSystemNotifications: SystemNotification[] = [
     priority: 'medium',
     isRead: false,
     icon: <Settings className="h-5 w-5" />,
-    iconBgColor: 'bg-blue-100/80 dark:bg-blue-500/20',
-    iconColor: 'text-blue-600 dark:text-blue-400'
+    iconBgColor: 'bg-primary/20',
+    iconColor: 'text-primary-foreground'
   },
   {
     id: 'notification-002',
@@ -54,8 +54,8 @@ const mockSystemNotifications: SystemNotification[] = [
     priority: 'high',
     isRead: false,
     icon: <Shield className="h-5 w-5" />,
-    iconBgColor: 'bg-red-100/80 dark:bg-red-500/20',
-    iconColor: 'text-red-600 dark:text-red-400'
+    iconBgColor: 'bg-destructive/20',
+    iconColor: 'text-destructive-foreground'
   },
   {
     id: 'notification-003',
@@ -66,8 +66,8 @@ const mockSystemNotifications: SystemNotification[] = [
     priority: 'low',
     isRead: true,
     icon: <Database className="h-5 w-5" />,
-    iconBgColor: 'bg-green-100/80 dark:bg-green-500/20',
-    iconColor: 'text-green-600 dark:text-green-400'
+    iconBgColor: 'bg-badge-success/20',
+    iconColor: 'text-badge-success-foreground'
   },
   {
     id: 'notification-004',
@@ -78,8 +78,8 @@ const mockSystemNotifications: SystemNotification[] = [
     priority: 'medium',
     isRead: false,
     icon: <Server className="h-5 w-5" />,
-    iconBgColor: 'bg-yellow-100/80 dark:bg-yellow-500/20',
-    iconColor: 'text-yellow-600 dark:text-yellow-400'
+    iconBgColor: 'bg-badge-warning/20',
+    iconColor: 'text-badge-warning-foreground'
   },
   {
     id: 'notification-005',
@@ -90,8 +90,8 @@ const mockSystemNotifications: SystemNotification[] = [
     priority: 'medium',
     isRead: true,
     icon: <Info className="h-5 w-5" />,
-    iconBgColor: 'bg-indigo-100/80 dark:bg-indigo-500/20',
-    iconColor: 'text-indigo-600 dark:text-indigo-400'
+    iconBgColor: 'bg-secondary/20',
+    iconColor: 'text-secondary-foreground'
   }
 ];
 
@@ -143,7 +143,7 @@ export function SystemNotifications() {
     <Card className="p-6 theme-bg theme-border border">
       <CardHeader className="px-0 pt-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+          <CardTitle className="text-lg font-semibold text-foreground">
             Thông báo hệ thống
           </CardTitle>
           {unreadCount > 0 && (
@@ -161,8 +161,8 @@ export function SystemNotifications() {
               key={notification.id} 
               className={`flex items-start gap-4 p-3 rounded-lg ${
                 notification.isRead
-                  ? 'bg-slate-100/50 dark:bg-slate-700/20'
-                  : 'bg-slate-100/80 dark:bg-slate-700/30 border-l-4 border-blue-500'
+                  ? 'bg-muted/30'
+                  : 'bg-muted/50 border-l-4 border-primary'
               }`}
             >
               {/* Icon container với màu nền động */}
@@ -177,8 +177,8 @@ export function SystemNotifications() {
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className={`text-sm font-medium ${
                     notification.isRead
-                      ? 'text-slate-600 dark:text-slate-400'
-                      : 'text-slate-800 dark:text-white'
+                      ? 'text-muted-foreground'
+                      : 'text-foreground'
                   }`}>
                     {notification.title}
                   </p>
@@ -190,18 +190,18 @@ export function SystemNotifications() {
                   </Badge>
                 </div>
                 
-                <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">
+                <p className="text-xs text-muted-foreground mb-2">
                   {notification.message}
                 </p>
 
                 <div className="flex items-center justify-between">
-                  <p className="text-xs text-slate-500 dark:text-slate-500">
+                  <p className="text-xs text-muted-foreground/70">
                     {notification.timestamp}
                   </p>
                   {!notification.isRead && (
                     <div className="flex items-center gap-1">
-                      <Bell className="h-3 w-3 text-blue-500" />
-                      <span className="text-xs text-blue-500">Chưa đọc</span>
+                      <Bell className="h-3 w-3 text-primary" />
+                      <span className="text-xs text-primary">Chưa đọc</span>
                     </div>
                   )}
                 </div>

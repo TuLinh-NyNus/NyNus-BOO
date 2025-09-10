@@ -89,11 +89,11 @@ const USER_ROLE_LABELS: Record<UserRole, string> = {
  * User role colors mapping
  */
 const USER_ROLE_COLORS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "bg-gray-100 text-gray-800",
-  [UserRole.STUDENT]: "bg-blue-100 text-blue-800",
-  [UserRole.TUTOR]: "bg-green-100 text-green-800",
-  [UserRole.TEACHER]: "bg-purple-100 text-purple-800",
-  [UserRole.ADMIN]: "bg-red-100 text-red-800",
+  [UserRole.GUEST]: "bg-secondary text-secondary-foreground",
+  [UserRole.STUDENT]: "bg-primary text-primary-foreground",
+  [UserRole.TUTOR]: "bg-badge-success text-badge-success-foreground",
+  [UserRole.TEACHER]: "bg-accent text-accent-foreground",
+  [UserRole.ADMIN]: "bg-destructive text-destructive-foreground",
 };
 
 /**
@@ -167,13 +167,13 @@ export function UserDetailModal({
   const getStatusBadgeColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
-        return "bg-green-100 text-green-800";
+        return "bg-badge-success text-badge-success-foreground";
       case 'suspended':
-        return "bg-red-100 text-red-800";
+        return "bg-destructive text-destructive-foreground";
       case 'pending_verification':
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-badge-warning text-badge-warning-foreground";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-secondary text-secondary-foreground";
     }
   };
 
@@ -230,9 +230,9 @@ export function UserDetailModal({
                     {user.status}
                   </Badge>
                   {user.emailVerified ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <CheckCircle className="h-4 w-4 text-badge-success-foreground" />
                   ) : (
-                    <XCircle className="h-4 w-4 text-red-500" />
+                    <XCircle className="h-4 w-4 text-destructive" />
                   )}
                 </div>
               </div>
@@ -256,15 +256,15 @@ export function UserDetailModal({
         {/* User Quick Info */}
         <div className="grid grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/25">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{user.activeSessionsCount}</div>
+            <div className="text-2xl font-bold text-primary">{user.activeSessionsCount}</div>
             <div className="text-xs text-muted-foreground">Active Sessions</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{user.totalResourceAccess}</div>
+            <div className="text-2xl font-bold text-badge-success-foreground">{user.totalResourceAccess}</div>
             <div className="text-xs text-muted-foreground">Resource Access</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{user.riskScore || 0}</div>
+            <div className="text-2xl font-bold text-badge-warning-foreground">{user.riskScore || 0}</div>
             <div className="text-xs text-muted-foreground">Risk Score</div>
           </div>
           <div className="text-center">

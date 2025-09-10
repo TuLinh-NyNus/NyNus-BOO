@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -8,7 +8,6 @@ import {
   Trash2, 
   Eye,
   Download,
-  Loader2,
   AlertTriangle,
   Plus
 } from 'lucide-react';
@@ -37,8 +36,8 @@ import {
   QuestionType, 
   QuestionDifficulty
 } from '@/lib/types/question';
-import { MockQuestionsService } from '@/lib/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
+import { useSavedQuestions } from '@/hooks/useLocalStorage';
 
 /**
  * Saved Questions Page
@@ -48,71 +47,34 @@ export default function SavedQuestionsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // State management cho saved questions
-  const [savedQuestions, setSavedQuestions] = useState<Question[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Sử dụng custom hook để quản lý saved questions
+  const {
+    questions: savedQuestions,
+    removeQuestion,
+    clearAll,
+    exportToFile
+  } = useSavedQuestions();
+
+  // State cho selected question modal
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Client-side mounting check để tránh hydration mismatch
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  /**
-   * Load saved questions từ localStorage
-   */
-  const loadSavedQuestions = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await MockQuestionsService.getSavedQuestions();
-      setSavedQuestions(response.data);
-    } catch (error) {
-      console.error('Lỗi khi tải câu hỏi đã lưu:', error);
-      setError('Không thể tải câu hỏi đã lưu');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load saved questions khi component mount
-  useEffect(() => {
-    loadSavedQuestions();
-  }, []);
 
   /**
    * Handle delete saved question
    */
-  const handleDeleteSavedQuestion = async (questionId: string) => {
-    // Chỉ chạy trên client-side
-    if (!isMounted || typeof window === 'undefined') {
-      return;
-    }
-
+  const handleDeleteSavedQuestion = (questionId: string) => {
     try {
-      // Remove from localStorage
-      const savedData = localStorage.getItem('saved_questions');
-      if (savedData) {
-        const parsedData = JSON.parse(savedData);
-        const updatedQuestions = parsedData.questions.filter((q: Question) => q.id !== questionId);
-
-        const newSavedData = {
-          questions: updatedQuestions,
-          lastUpdated: new Date().toISOString()
-        };
-
-        localStorage.setItem('saved_questions', JSON.stringify(newSavedData));
-        setSavedQuestions(updatedQuestions);
-
-        toast({
-          title: 'Thành công',
-          description: 'Đã xóa câu hỏi khỏi danh sách lưu',
-          variant: 'success'
-        });
+      removeQuestion(questionId);
+      
+      // Close modal if deleting selected question
+      if (selectedQuestion?.id === questionId) {
+        setSelectedQuestion(null);
       }
+      
+      toast({
+        title: 'Thành công',
+        description: 'Đã xóa câu hỏi khỏi danh sách lưu',
+        variant: 'success'
+      });
     } catch (error) {
       console.error('Lỗi khi xóa câu hỏi:', error);
       toast({
@@ -134,14 +96,10 @@ export default function SavedQuestionsPage() {
    * Handle clear all saved questions
    */
   const handleClearAllSaved = () => {
-    // Chỉ chạy trên client-side
-    if (!isMounted || typeof window === 'undefined') {
-      return;
-    }
-
     try {
-      localStorage.removeItem('saved_questions');
-      setSavedQuestions([]);
+      clearAll();
+      setSelectedQuestion(null);
+      
       toast({
         title: 'Thành công',
         description: 'Đã xóa tất cả câu hỏi đã lưu',
@@ -160,30 +118,15 @@ export default function SavedQuestionsPage() {
    * Handle export saved questions
    */
   const handleExportSaved = () => {
-    // Chỉ chạy trên client-side
-    if (!isMounted || typeof window === 'undefined') {
-      return;
-    }
-
-    try {
-      const dataStr = JSON.stringify(savedQuestions, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `saved-questions-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
+    const success = exportToFile();
+    
+    if (success) {
       toast({
         title: 'Thành công',
         description: 'Đã xuất file câu hỏi đã lưu',
         variant: 'success'
       });
-    } catch {
+    } else {
       toast({
         title: 'Lỗi',
         description: 'Không thể xuất file',
@@ -278,23 +221,7 @@ export default function SavedQuestionsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Đang tải...</span>
-              </div>
-            ) : error ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Lỗi khi tải dữ liệu
-                </h3>
-                <p className="text-gray-600 mb-4">{error}</p>
-                <Button onClick={loadSavedQuestions}>
-                  Thử lại
-                </Button>
-              </div>
-            ) : savedQuestions.length === 0 ? (
+            {savedQuestions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Bookmark className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -325,8 +252,8 @@ export default function SavedQuestionsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {savedQuestions.map((question) => (
-                      <TableRow key={question.id}>
+                    {(savedQuestions as Question[]).map((question) => (
+                      <TableRow key={(question as Question).id}>
                         <TableCell>
                           <div className="max-w-md">
                             <p className="font-medium text-gray-900 truncate">
@@ -358,7 +285,7 @@ export default function SavedQuestionsPage() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
-                            {question.tag.slice(0, 2).map((tag, index) => (
+                            {(question as Question).tag.slice(0, 2).map((tag: string, index: number) => (
                               <Badge key={index} variant="outline" className="text-xs">
                                 {tag}
                               </Badge>

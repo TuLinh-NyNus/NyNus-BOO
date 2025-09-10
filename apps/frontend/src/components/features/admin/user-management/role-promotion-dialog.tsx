@@ -40,11 +40,11 @@ const USER_ROLE_LABELS: Record<UserRole, string> = {
  * User role colors mapping
  */
 const USER_ROLE_COLORS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "bg-gray-100 text-gray-800",
-  [UserRole.STUDENT]: "bg-blue-100 text-blue-800",
-  [UserRole.TUTOR]: "bg-green-100 text-green-800",
-  [UserRole.TEACHER]: "bg-purple-100 text-purple-800",
-  [UserRole.ADMIN]: "bg-red-100 text-red-800",
+  [UserRole.GUEST]: "bg-secondary text-secondary-foreground",
+  [UserRole.STUDENT]: "bg-primary text-primary-foreground",
+  [UserRole.TUTOR]: "bg-badge-success text-badge-success-foreground",
+  [UserRole.TEACHER]: "bg-accent text-accent-foreground",
+  [UserRole.ADMIN]: "bg-destructive text-destructive-foreground",
 };
 
 /**
@@ -330,10 +330,10 @@ export function RolePromotionDialog({
                         {targetRole === role && user && (
                           <>
                             {getPromotionType(user.role, role) === 'promotion' && (
-                              <ArrowUp className="h-3 w-3 text-green-500" />
+                              <ArrowUp className="h-3 w-3 text-badge-success-foreground" />
                             )}
                             {getPromotionType(user.role, role) === 'demotion' && (
-                              <ArrowDown className="h-3 w-3 text-red-500" />
+                              <ArrowDown className="h-3 w-3 text-destructive" />
                             )}
                           </>
                         )}

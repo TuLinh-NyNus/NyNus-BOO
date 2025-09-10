@@ -55,13 +55,13 @@ export function QuestionCard({
    */
   const getTypeStyles = (type: QuestionType) => {
     const styles = {
-      [QuestionType.MC]: 'border-l-blue-500 bg-blue-50/30',
-      [QuestionType.TF]: 'border-l-green-500 bg-green-50/30',
-      [QuestionType.SA]: 'border-l-orange-500 bg-orange-50/30',
-      [QuestionType.ES]: 'border-l-purple-500 bg-purple-50/30',
-      [QuestionType.MA]: 'border-l-pink-500 bg-pink-50/30'
+      [QuestionType.MC]: 'border-l-primary bg-primary/10',
+      [QuestionType.TF]: 'border-l-badge-success bg-badge-success/10',
+      [QuestionType.SA]: 'border-l-badge-warning bg-badge-warning/10',
+      [QuestionType.ES]: 'border-l-accent bg-accent/10',
+      [QuestionType.MA]: 'border-l-secondary bg-secondary/10'
     };
-    return styles[type] || 'border-l-gray-500 bg-gray-50/30';
+    return styles[type] || 'border-l-muted-foreground bg-muted/30';
   };
 
   /**
@@ -82,14 +82,14 @@ export function QuestionCard({
    * Get difficulty config
    */
   const getDifficultyConfig = (difficulty?: QuestionDifficulty) => {
-    if (!difficulty) return { label: 'Chưa xác định', color: 'bg-gray-500' };
+    if (!difficulty) return { label: 'Chưa xác định', color: 'bg-secondary' };
     
     const configs = {
-      [QuestionDifficulty.EASY]: { label: 'Dễ', color: 'bg-green-500' },
-      [QuestionDifficulty.MEDIUM]: { label: 'Trung bình', color: 'bg-yellow-500' },
-      [QuestionDifficulty.HARD]: { label: 'Khó', color: 'bg-red-500' }
+      [QuestionDifficulty.EASY]: { label: 'Dễ', color: 'bg-badge-success' },
+      [QuestionDifficulty.MEDIUM]: { label: 'Trung bình', color: 'bg-badge-warning' },
+      [QuestionDifficulty.HARD]: { label: 'Khó', color: 'bg-destructive' }
     };
-    return configs[difficulty] || { label: difficulty, color: 'bg-gray-500' };
+    return configs[difficulty] || { label: difficulty, color: 'bg-secondary' };
   };
 
   /**
@@ -160,7 +160,7 @@ export function QuestionCard({
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <BarChart3 className="h-3 w-3" />
-                    <Badge className={`text-white text-xs ${difficultyConfig.color}`}>
+                  <Badge className={`text-primary-foreground text-xs ${difficultyConfig.color}`}>
                       {difficultyConfig.label}
                     </Badge>
                   </div>
@@ -208,7 +208,7 @@ export function QuestionCard({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
-                  <Badge className={`text-white ${difficultyConfig.color}`}>
+                  <Badge className={`text-primary-foreground ${difficultyConfig.color}`}>
                     {difficultyConfig.label}
                   </Badge>
                 </div>

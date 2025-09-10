@@ -74,11 +74,11 @@ export function QuestionBasicInfo({
             placeholder="Nhập nội dung câu hỏi..."
             value={content}
             onChange={(e) => onContentChange(e.target.value)}
-            className={errors.content ? "border-red-500" : ""}
+            className={errors.content ? "border-destructive" : ""}
             rows={4}
           />
           {errors.content && (
-            <p className="text-sm text-red-500">{errors.content}</p>
+            <p className="text-sm text-destructive">{errors.content}</p>
           )}
         </div>
 

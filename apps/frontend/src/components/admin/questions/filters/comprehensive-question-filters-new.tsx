@@ -170,18 +170,18 @@ function FilterSummary({ filters, onReset, isLoading }: FilterSummaryProps) {
   if (activeFiltersCount === 0) return null;
 
   return (
-    <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+    <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-lg px-4 py-3">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-blue-900">
+        <span className="text-sm font-medium text-foreground">
           Đang áp dụng {activeFiltersCount} bộ lọc
         </span>
         {filters.keyword && (
-          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+          <span className="text-xs bg-primary/20 text-primary-foreground px-2 py-1 rounded">
             Tìm kiếm: &quot;{filters.keyword}&quot;
           </span>
         )}
         {filters.subcount && (
-          <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+          <span className="text-xs bg-primary/20 text-primary-foreground px-2 py-1 rounded">
             Subcount: {filters.subcount}
           </span>
         )}
@@ -190,8 +190,7 @@ function FilterSummary({ filters, onReset, isLoading }: FilterSummaryProps) {
       <button
         onClick={onReset}
         disabled={isLoading}
-        className="text-sm text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
-      >
+        className="text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50">
         Xóa tất cả
       </button>
     </div>

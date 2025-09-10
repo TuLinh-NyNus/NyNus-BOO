@@ -142,7 +142,7 @@ function HelpCategory({ category, index }: { category: typeof helpCategories[0],
         <div className={`w-12 h-12 bg-gradient-to-br ${category.gradient} rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10`}>
           <category.icon className={`w-6 h-6 ${category.iconColor}`} />
         </div>
-        <h3 className="text-2xl font-bold text-white">{category.title}</h3>
+        <h3 className="text-2xl font-bold text-foreground">{category.title}</h3>
       </div>
       
       <div className="space-y-3">
@@ -154,15 +154,15 @@ function HelpCategory({ category, index }: { category: typeof helpCategories[0],
           >
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                <h4 className="text-white font-medium group-hover:text-blue-300 transition-colors">
+                <h4 className="text-foreground font-medium group-hover:text-primary transition-colors">
                   {article.title}
                 </h4>
                 <div className="flex items-center gap-2 mt-1">
-                  <Clock className="h-3 w-3 text-slate-400" />
-                  <span className="text-xs text-slate-400">{article.duration}</span>
+                  <Clock className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">{article.duration}</span>
                 </div>
               </div>
-              <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-blue-300 transition-colors" />
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
           </Link>
         ))}

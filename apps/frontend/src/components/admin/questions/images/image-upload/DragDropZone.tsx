@@ -102,9 +102,9 @@ export function DragDropZone({
     <div
       className={cn(
         'relative border-2 border-dashed rounded-lg transition-all duration-200',
-        'hover:border-blue-400 hover:bg-blue-50/50',
-        'focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20',
-        isDragOver && 'border-blue-500 bg-blue-50 scale-[1.02]',
+        'hover:border-primary hover:bg-primary/5',
+        'focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20',
+        isDragOver && 'border-primary bg-primary/10 scale-[1.02]',
         isUploading && 'opacity-50 cursor-not-allowed',
         !isUploading && 'cursor-pointer',
         className
@@ -128,13 +128,13 @@ export function DragDropZone({
       
       {/* Drag overlay */}
       {isDragOver && (
-        <div className="absolute inset-0 bg-blue-500/10 border-2 border-blue-500 rounded-lg flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-primary/10 border-2 border-primary rounded-lg flex items-center justify-center z-10">
           <div className="text-center">
-            <Upload className="h-12 w-12 mx-auto mb-2 text-blue-600" />
-            <p className="text-lg font-medium text-blue-700">
+            <Upload className="h-12 w-12 mx-auto mb-2 text-primary" />
+            <p className="text-lg font-medium text-foreground">
               Thả files vào đây
             </p>
-            <p className="text-sm text-blue-600">
+            <p className="text-sm text-muted-foreground">
               Tối đa {maxFiles} files
             </p>
           </div>
@@ -145,18 +145,18 @@ export function DragDropZone({
       {children || (
         <div className="p-8 text-center">
           <div className="mb-4">
-            <FileImage className="h-16 w-16 mx-auto text-gray-400" />
+            <FileImage className="h-16 w-16 mx-auto text-muted-foreground" />
           </div>
           
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-foreground mb-2">
             {isUploading ? 'Đang upload...' : 'Upload hình ảnh'}
           </h3>
           
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             Kéo thả files vào đây hoặc click để chọn
           </p>
           
-          <div className="space-y-2 text-sm text-gray-500">
+          <div className="space-y-2 text-sm text-muted-foreground">
             <p>Hỗ trợ: PNG, JPG, WebP, SVG</p>
             <p>Tối đa: {maxFiles} files, 10MB mỗi file</p>
           </div>
@@ -179,10 +179,10 @@ export function DragDropZone({
       
       {/* Upload progress indicator */}
       {isUploading && (
-        <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-lg">
+        <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-sm text-gray-600">Đang upload...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-foreground">Đang upload...</p>
           </div>
         </div>
       )}

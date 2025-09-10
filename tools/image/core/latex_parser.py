@@ -34,7 +34,16 @@ class Question:
     def get_image_name(self, image_type: str = "QUES", image_index: int = 0) -> str:
         """Tạo tên file hình ảnh theo quy tắc"""
         if self.subcount:
-            base_name = self.subcount.replace('.', '')
+            # Import config để check option preserve dot
+            try:
+                from config.settings import PRESERVE_DOT_IN_SUBCOUNT
+                if PRESERVE_DOT_IN_SUBCOUNT:
+                    base_name = self.subcount  # Giữ nguyên dấu chấm: TL.123456
+                else:
+                    base_name = self.subcount.replace('.', '')  # Bỏ dấu chấm: TL123456
+            except ImportError:
+                # Fallback nếu không import được
+                base_name = self.subcount.replace('.', '')
         else:
             base_name = f"{self.filename}_cau{self.index}"
         

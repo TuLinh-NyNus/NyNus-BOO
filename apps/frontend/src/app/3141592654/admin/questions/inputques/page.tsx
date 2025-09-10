@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, FileText, Play, Save, Eye, Loader2, Copy } from 'lucide-react';
+import { ArrowLeft, FileText, Save, Eye, Loader2, Copy } from 'lucide-react';
 
 import {
   Button,
@@ -10,8 +10,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Textarea,
-  Label,
   Alert,
   AlertDescription,
   Badge,
@@ -22,6 +20,9 @@ import {
 } from '@/components/ui';
 import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
+
+// Import LaTeXEditor component
+import { LaTeXEditor } from '@/components/admin/questions/forms/latex-editor';
 
 import {
   Question,
@@ -46,6 +47,7 @@ export default function InputLatexQuestionsPage() {
   const [parsedQuestion, setParsedQuestion] = useState<Partial<Question> | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Sample LaTeX template
   const sampleLatex = `\\begin{ex}%[Nguồn: "Sách giáo khoa Toán 12"]%[2P5VN]
@@ -247,7 +249,7 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LaTeX Input */}
+          {/* LaTeX Input using LaTeXEditor component */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -255,28 +257,35 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                   <FileText className="h-5 w-5" />
                   Nhập LaTeX
                 </CardTitle>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleCopySample}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Sao chép mẫu
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleCopySample}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Sao chép mẫu
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreview(!showPreview)}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    {showPreview ? 'Ẩn Preview' : 'Hiện Preview'}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="latexInput">Nội dung LaTeX</Label>
-                <Textarea
-                  id="latexInput"
-                  placeholder="Nhập nội dung LaTeX..."
-                  value={latexContent}
-                  onChange={(e) => setLatexContent(e.target.value)}
-                  rows={12}
-                  className="mt-1 font-mono text-sm"
-                />
-              </div>
+              {/* Use LaTeXEditor component */}
+              <LaTeXEditor
+                value={latexContent}
+                onChange={setLatexContent}
+                showPreview={showPreview}
+                height="400px"
+                placeholder="Nhập nội dung LaTeX..."
+              />
 
               <div className="flex gap-2">
                 <Button 
@@ -287,9 +296,9 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   ) : (
-                    <Play className="h-4 w-4 mr-2" />
+                    <FileText className="h-4 w-4 mr-2" />
                   )}
-                  Phân tích LaTeX
+                  Phân tích & Tạo câu hỏi
                 </Button>
                 <Button
                   variant="outline"
@@ -299,21 +308,6 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                   <Copy className="h-4 w-4" />
                 </Button>
               </div>
-
-              {/* LaTeX syntax help */}
-              <Alert>
-                <FileText className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>Cú pháp LaTeX:</strong>
-                  <ul className="list-disc list-inside mt-2 text-sm space-y-1">
-                    <li><code>\begin{'{ex}'}</code> - Bắt đầu câu hỏi</li>
-                    <li><code>\choice</code> - Danh sách đáp án</li>
-                    <li><code>\True</code> - Đáp án đúng</li>
-                    <li><code>\loigiai{'{...}'}</code> - Lời giải</li>
-                    <li><code>\end{'{ex}'}</code> - Kết thúc câu hỏi</li>
-                  </ul>
-                </AlertDescription>
-              </Alert>
             </CardContent>
           </Card>
 

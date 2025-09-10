@@ -18,7 +18,7 @@ export function BreadcrumbSeparator({
   className,
   children
 }: BreadcrumbSeparatorProps) {
-  const defaultClasses = 'flex items-center justify-center text-gray-400 mx-1';
+  const defaultClasses = 'flex items-center justify-center text-muted-foreground mx-1';
   
   return (
     <span 
@@ -141,7 +141,7 @@ export function AnimatedSeparator({
   return (
     <BreadcrumbSeparator 
       className={cn(
-        'transition-all duration-200 hover:text-gray-600 hover:scale-110',
+        'transition-all duration-200 hover:text-foreground hover:scale-110',
         className
       )}
     >

@@ -136,14 +136,14 @@ function SupportCategory({ category, index }: { category: typeof supportCategori
           <category.icon className={`w-6 h-6 ${category.iconColor}`} />
         </div>
         <div className="flex-1">
-          <h3 className="text-xl font-bold text-white">{category.title}</h3>
-          <p className="text-slate-300">{category.description}</p>
+          <h3 className="text-xl font-bold text-foreground">{category.title}</h3>
+          <p className="text-muted-foreground">{category.description}</p>
         </div>
         <motion.div
           animate={{ rotate: isExpanded ? 180 : 0 }}
           transition={{ duration: 0.3 }}
         >
-          <ArrowRight className="h-5 w-5 text-slate-400 transform rotate-90" />
+          <ArrowRight className="h-5 w-5 text-muted-foreground transform rotate-90" />
         </motion.div>
       </div>
 
@@ -159,7 +159,7 @@ function SupportCategory({ category, index }: { category: typeof supportCategori
             <div className="pt-4 border-t border-white/10">
               <ul className="space-y-2">
                 {category.items.map((item, itemIndex) => (
-                  <li key={itemIndex} className="flex items-center gap-2 text-slate-300">
+                  <li key={itemIndex} className="flex items-center gap-2 text-muted-foreground">
                     <CheckCircle className="h-4 w-4 text-green-400 flex-shrink-0" />
                     <span>{item}</span>
                   </li>

@@ -176,8 +176,8 @@ export function StatCard({
               className={cn(
                 "text-xs font-medium transition-all duration-300",
                 trend.isPositive
-                  ? "bg-green-500/15 text-green-600 border-green-500/20 dark:bg-green-500/25 dark:text-green-400 dark:border-green-400/30"
-                  : "bg-red-500/15 text-red-600 border-red-500/20 dark:bg-red-500/25 dark:text-red-400 dark:border-red-400/30"
+                  ? "bg-badge-success text-badge-success-foreground border-badge-success"
+                  : "bg-badge-destructive text-badge-destructive-foreground border-badge-destructive"
               )}
             >
               {trend.isPositive ? '+' : ''}{trend.value} {trend.label}

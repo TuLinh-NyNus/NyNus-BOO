@@ -84,7 +84,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
       {/* Header với period selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <h2 className="text-2xl font-bold text-foreground">
             📊 Analytics Dashboard
           </h2>
           <p className="text-muted-foreground">

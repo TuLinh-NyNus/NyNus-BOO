@@ -53,28 +53,27 @@ class FileManager:
     
     def create_output_structure(self, tex_file: Path) -> Tuple[Path, Path]:
         """
-        Tạo cấu trúc thư mục output cho file .tex
+        Tạo thư mục images cùng thư mục với file .tex
         
         Args:
             tex_file: File .tex đang xử lý
             
         Returns:
-            Tuple (output_dir, images_dir)
+            Tuple (tex_file.parent, images_dir)
         """
         try:
-            # Tạo thư mục cùng tên với file .tex
-            output_dir = tex_file.parent / tex_file.stem
+            # Thư mục của file .tex là output_dir
+            output_dir = tex_file.parent
             images_dir = output_dir / "images"
             
-            # Tạo thư mục
-            output_dir.mkdir(exist_ok=True)
+            # Chỉ tạo thư mục images
             images_dir.mkdir(exist_ok=True)
             
-            logger.info(f"Đã tạo thư mục output: {output_dir}")
+            logger.info(f"Đã tạo thư mục images: {images_dir}")
             return output_dir, images_dir
             
         except Exception as e:
-            logger.error(f"Lỗi khi tạo cấu trúc output: {str(e)}")
+            logger.error(f"Lỗi khi tạo thư mục images: {str(e)}")
             raise
     
     def save_processed_tex(self, content: str, output_path: Path) -> bool:

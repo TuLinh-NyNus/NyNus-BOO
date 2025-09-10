@@ -88,7 +88,7 @@ export function AdminBreadcrumb({
 
     return (
       <BreadcrumbSeparator key={`sep-${index}`}>
-        <ChevronRight className="h-4 w-4 text-gray-400" />
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </BreadcrumbSeparator>
     );
   };

@@ -88,31 +88,31 @@ export default function AdminDashboardPage() {
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="w-2 h-2 bg-badge-success rounded-full" />
                   <span className="text-sm font-medium">API Server</span>
                 </div>
-                <span className="text-xs text-green-600">Hoạt động</span>
+                <span className="text-xs text-badge-success-foreground">Hoạt động</span>
               </div>
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="w-2 h-2 bg-badge-success rounded-full" />
                   <span className="text-sm font-medium">Database</span>
                 </div>
-                <span className="text-xs text-green-600">Hoạt động</span>
+                <span className="text-xs text-badge-success-foreground">Hoạt động</span>
               </div>
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+                  <div className="w-2 h-2 bg-badge-warning rounded-full" />
                   <span className="text-sm font-medium">Redis Cache</span>
                 </div>
-                <span className="text-xs text-yellow-600">Chậm</span>
+                <span className="text-xs text-badge-warning-foreground">Chậm</span>
               </div>
               <div className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <div className="w-2 h-2 bg-badge-success rounded-full" />
                   <span className="text-sm font-medium">File Storage</span>
                 </div>
-                <span className="text-xs text-green-600">Hoạt động</span>
+                <span className="text-xs text-badge-success-foreground">Hoạt động</span>
               </div>
             </div>
           </CardContent>

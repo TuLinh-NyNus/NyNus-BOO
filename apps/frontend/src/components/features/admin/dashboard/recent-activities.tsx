@@ -30,8 +30,8 @@ const mockRecentActivities: RecentActivity[] = [
     description: 'Nguyễn Văn An đã tạo tài khoản mới',
     timestamp: '2 phút trước',
     icon: <Users className="h-5 w-5" />,
-    iconBgColor: 'bg-purple-100/80 dark:bg-purple-500/20',
-    iconColor: 'text-purple-600 dark:text-purple-400'
+    iconBgColor: 'bg-accent/20',
+    iconColor: 'text-accent-foreground'
   },
   {
     id: 'activity-002',
@@ -40,8 +40,8 @@ const mockRecentActivities: RecentActivity[] = [
     description: 'Trần Thị Bình đã hoàn thành "Toán học lớp 12"',
     timestamp: '5 phút trước',
     icon: <GraduationCap className="h-5 w-5" />,
-    iconBgColor: 'bg-green-100/80 dark:bg-green-500/20',
-    iconColor: 'text-green-600 dark:text-green-400'
+    iconBgColor: 'bg-badge-success/20',
+    iconColor: 'text-badge-success-foreground'
   },
   {
     id: 'activity-003',
@@ -50,8 +50,8 @@ const mockRecentActivities: RecentActivity[] = [
     description: 'GV. Lê Văn Cường đã thêm 5 câu hỏi Vật lý',
     timestamp: '10 phút trước',
     icon: <FileText className="h-5 w-5" />,
-    iconBgColor: 'bg-blue-100/80 dark:bg-blue-500/20',
-    iconColor: 'text-blue-600 dark:text-blue-400'
+    iconBgColor: 'bg-primary/20',
+    iconColor: 'text-primary-foreground'
   },
   {
     id: 'activity-004',
@@ -60,8 +60,8 @@ const mockRecentActivities: RecentActivity[] = [
     description: 'Phạm Minh Đức đã đăng câu hỏi về Hóa học',
     timestamp: '15 phút trước',
     icon: <MessageSquare className="h-5 w-5" />,
-    iconBgColor: 'bg-orange-100/80 dark:bg-orange-500/20',
-    iconColor: 'text-orange-600 dark:text-orange-400'
+    iconBgColor: 'bg-badge-warning/20',
+    iconColor: 'text-badge-warning-foreground'
   },
   {
     id: 'activity-005',
@@ -70,8 +70,8 @@ const mockRecentActivities: RecentActivity[] = [
     description: 'Võ Thị Lan đã nộp bài kiểm tra Tiếng Anh',
     timestamp: '20 phút trước',
     icon: <BookOpen className="h-5 w-5" />,
-    iconBgColor: 'bg-indigo-100/80 dark:bg-indigo-500/20',
-    iconColor: 'text-indigo-600 dark:text-indigo-400'
+    iconBgColor: 'bg-secondary/20',
+    iconColor: 'text-secondary-foreground'
   }
 ];
 
@@ -83,7 +83,7 @@ export function RecentActivities() {
   return (
     <Card className="p-6 theme-bg theme-border border">
       <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-lg font-semibold text-slate-800 dark:text-white">
+        <CardTitle className="text-lg font-semibold text-foreground">
           Hoạt động gần đây
         </CardTitle>
       </CardHeader>
@@ -93,7 +93,7 @@ export function RecentActivities() {
           {mockRecentActivities.map((activity) => (
             <div
               key={activity.id}
-              className="flex items-center gap-4 p-3 rounded-lg bg-slate-100/80 dark:bg-slate-700/30"
+              className="flex items-center gap-4 p-3 rounded-lg bg-muted/50"
             >
               {/* Icon container với màu nền động */}
               <div className={`h-10 w-10 rounded-full ${activity.iconBgColor} flex items-center justify-center`}>
@@ -104,13 +104,13 @@ export function RecentActivities() {
               
               {/* Nội dung hoạt động */}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-slate-800 dark:text-white truncate">
+                <p className="text-sm font-medium text-foreground truncate">
                   {activity.title}
                 </p>
-                <p className="text-xs text-slate-600 dark:text-slate-400 truncate">
+                <p className="text-xs text-muted-foreground truncate">
                   {activity.description}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                <p className="text-xs text-muted-foreground/70 mt-1">
                   {activity.timestamp}
                 </p>
               </div>

@@ -75,27 +75,27 @@ export function StatusBadge({
       [QuestionStatus.ACTIVE]: {
         label: 'Hoạt động',
         color: 'green',
-        bgColor: 'bg-green-100',
-        textColor: 'text-green-700',
-        borderColor: 'border-green-300',
+        bgColor: 'bg-badge-success',
+        textColor: 'text-badge-success-foreground',
+        borderColor: 'border-border',
         icon: CheckCircle,
         description: 'Câu hỏi đang được sử dụng và có thể xuất hiện trong đề thi'
       },
       [QuestionStatus.PENDING]: {
         label: 'Chờ duyệt',
         color: 'yellow',
-        bgColor: 'bg-yellow-100',
-        textColor: 'text-yellow-700',
-        borderColor: 'border-yellow-300',
+        bgColor: 'bg-badge-warning',
+        textColor: 'text-badge-warning-foreground',
+        borderColor: 'border-border',
         icon: Clock,
         description: 'Câu hỏi đang chờ được duyệt bởi quản trị viên'
       },
       [QuestionStatus.INACTIVE]: {
         label: 'Không hoạt động',
         color: 'red',
-        bgColor: 'bg-red-100',
-        textColor: 'text-red-700',
-        borderColor: 'border-red-300',
+        bgColor: 'bg-badge-error',
+        textColor: 'text-badge-error-foreground',
+        borderColor: 'border-border',
         icon: EyeOff,
         description: 'Câu hỏi tạm thời không được sử dụng'
       },

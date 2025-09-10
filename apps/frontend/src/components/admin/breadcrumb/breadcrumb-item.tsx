@@ -53,10 +53,10 @@ export function BreadcrumbItemComponent({
     const baseClasses = 'transition-colors duration-150';
     
     const stateClasses = {
-      active: 'text-gray-900 font-medium cursor-default',
-      disabled: 'text-gray-400 cursor-not-allowed',
-      clickable: 'text-gray-600 hover:text-gray-900 cursor-pointer',
-      default: 'text-gray-600'
+      active: 'text-foreground font-medium cursor-default',
+      disabled: 'text-muted-foreground cursor-not-allowed',
+      clickable: 'text-muted-foreground hover:text-foreground cursor-pointer',
+      default: 'text-muted-foreground'
     };
 
     let stateClass = stateClasses.default;

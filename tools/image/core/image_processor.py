@@ -23,10 +23,10 @@ class ImageProcessor:
                              output_name: str,
                              base_dir: Path = None) -> Optional[Path]:
         """
-        Copy và rename hình ảnh có sẵn
+        Copy và rename hình ảnh có sẵn từ bất kỳ folder nào
         
         Args:
-            source_path: Đường dẫn gốc của hình
+            source_path: Đường dẫn gốc của hình (có thể relative hoặc absolute)
             output_name: Tên file output (không có extension)
             base_dir: Thư mục gốc để resolve relative path
             
@@ -34,15 +34,12 @@ class ImageProcessor:
             Path đến file hình ảnh mới hoặc None nếu lỗi
         """
         try:
-            # Resolve đường dẫn
-            if base_dir:
-                source_file = base_dir / source_path
-            else:
-                source_file = Path(source_path)
+            # Smart path resolution
+            source_file = self._resolve_image_path(source_path, base_dir)
             
             # Kiểm tra file tồn tại
-            if not source_file.exists():
-                logger.warning(f"File không tồn tại: {source_file}")
+            if not source_file or not source_file.exists():
+                logger.warning(f"File không tồn tại: {source_path} (resolved: {source_file})")
                 return None
             
             # Đường dẫn output
@@ -125,3 +122,52 @@ class ImageProcessor:
             results.append(output_path)
         
         return results
+    
+    def _resolve_image_path(self, source_path: str, base_dir: Path = None) -> Optional[Path]:
+        """Smart resolution cho image paths từ nhiều nguồn khác nhau"""
+        # Loại bỏ khoảng trắng và quotes
+        clean_path = source_path.strip().strip('"\'')
+        
+        # Nếu đã là absolute path và tồn tại
+        abs_path = Path(clean_path)
+        if abs_path.is_absolute() and abs_path.exists():
+            return abs_path
+        
+        # Thử relative từ base_dir
+        if base_dir:
+            relative_path = base_dir / clean_path
+            if relative_path.exists():
+                return relative_path
+        
+        # Thử tìm trong các thư mục phổ biến
+        if base_dir:
+            common_dirs = [
+                base_dir / "images",
+                base_dir / "Pictures", 
+                base_dir / "figures",
+                base_dir / "img",
+                base_dir.parent / "images",
+                base_dir.parent / "Pictures"
+            ]
+            
+            for search_dir in common_dirs:
+                if search_dir.exists():
+                    # Thử exact filename
+                    candidate = search_dir / Path(clean_path).name
+                    if candidate.exists():
+                        logger.info(f"Tìm thấy hình: {candidate}")
+                        return candidate
+                    
+                    # Thử full relative path trong search_dir
+                    candidate = search_dir / clean_path
+                    if candidate.exists():
+                        logger.info(f"Tìm thấy hình: {candidate}")
+                        return candidate
+        
+        # Cuối cùng thử current working directory
+        cwd_path = Path.cwd() / clean_path
+        if cwd_path.exists():
+            return cwd_path
+        
+        logger.warning(f"Không tìm thấy hình: {clean_path}")
+        return None

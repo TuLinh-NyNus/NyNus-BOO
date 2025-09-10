@@ -132,7 +132,7 @@ export function AdminSidebar({
     }
 
     return (
-      <div className="border-t border-gray-200 pt-4">
+        <div className="border-t border-border pt-4">
         {bottomNavState.items.map((item) => (
           <NavItem
             key={item.id}

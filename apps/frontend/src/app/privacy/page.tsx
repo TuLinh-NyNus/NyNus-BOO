@@ -168,12 +168,12 @@ function PrivacySection({ section, index }: { section: typeof privacyData[0], in
         <div className={`w-12 h-12 bg-gradient-to-br ${section.gradient} rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10`}>
           <section.icon className={`w-6 h-6 ${section.iconColor}`} />
         </div>
-        <h2 className="text-2xl md:text-3xl font-bold text-white">{section.title}</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground">{section.title}</h2>
       </div>
       
       <div className="space-y-4">
         {section.content.map((paragraph, pIndex) => (
-          <p key={pIndex} className="text-slate-300 leading-relaxed">
+          <p key={pIndex} className="text-muted-foreground leading-relaxed">
             {paragraph}
           </p>
         ))}

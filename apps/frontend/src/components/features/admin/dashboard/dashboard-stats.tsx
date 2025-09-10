@@ -92,7 +92,7 @@ export function DashboardStats() {
     <div className="space-y-6">
       {/* Thống kê người dùng tổng quan */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-blue-400 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">
           👥 Thống kê người dùng
         </h3>
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -134,7 +134,7 @@ export function DashboardStats() {
 
       {/* Thống kê nội dung hệ thống */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-pink-400 to-orange-600 dark:from-pink-400 dark:to-orange-400 bg-clip-text text-transparent">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">
           📚 Thống kê nội dung
         </h3>
         <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

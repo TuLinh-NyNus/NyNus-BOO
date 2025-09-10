@@ -56,21 +56,21 @@ interface FilterState {
  * Role options cho select dropdown
  */
 const ROLE_OPTIONS = [
-  { value: UserRole.GUEST, label: 'Khách', color: 'bg-gray-100 text-gray-800' },
-  { value: UserRole.STUDENT, label: 'Học sinh', color: 'bg-green-100 text-green-800' },
-  { value: UserRole.TUTOR, label: 'Gia sư', color: 'bg-purple-100 text-purple-800' },
-  { value: UserRole.TEACHER, label: 'Giáo viên', color: 'bg-blue-100 text-blue-800' },
-  { value: UserRole.ADMIN, label: 'Quản trị viên', color: 'bg-red-100 text-red-800' },
+  { value: UserRole.GUEST, label: 'Khách', color: 'bg-secondary text-secondary-foreground' },
+  { value: UserRole.STUDENT, label: 'Học sinh', color: 'bg-badge-success text-badge-success-foreground' },
+  { value: UserRole.TUTOR, label: 'Gia sư', color: 'bg-accent text-accent-foreground' },
+  { value: UserRole.TEACHER, label: 'Giáo viên', color: 'bg-primary text-primary-foreground' },
+  { value: UserRole.ADMIN, label: 'Quản trị viên', color: 'bg-destructive text-destructive-foreground' },
 ];
 
 /**
  * Status options cho select dropdown
  */
 const STATUS_OPTIONS = [
-  { value: UserStatus.ACTIVE, label: 'Hoạt động', color: 'bg-green-100 text-green-800' },
-  { value: UserStatus.INACTIVE, label: 'Không hoạt động', color: 'bg-gray-100 text-gray-800' },
-  { value: UserStatus.SUSPENDED, label: 'Tạm ngưng', color: 'bg-red-100 text-red-800' },
-  { value: UserStatus.PENDING_VERIFICATION, label: 'Chờ xác thực', color: 'bg-yellow-100 text-yellow-800' },
+  { value: UserStatus.ACTIVE, label: 'Hoạt động', color: 'bg-badge-success text-badge-success-foreground' },
+  { value: UserStatus.INACTIVE, label: 'Không hoạt động', color: 'bg-secondary text-secondary-foreground' },
+  { value: UserStatus.SUSPENDED, label: 'Tạm ngưng', color: 'bg-destructive text-destructive-foreground' },
+  { value: UserStatus.PENDING_VERIFICATION, label: 'Chờ xác thực', color: 'bg-badge-warning text-badge-warning-foreground' },
 ];
 
 /**
@@ -313,7 +313,7 @@ export function FilterPanel({
             placeholder="Tìm kiếm theo tên, email, username..."
             value={filterState.search}
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="pl-10 bg-slate-800 border-slate-600"
+            className="pl-10"
           />
           {isSearching && (
             <RefreshCw className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
@@ -366,7 +366,7 @@ export function FilterPanel({
                   value={filterState.emailVerified === null ? 'all' : filterState.emailVerified ? 'verified' : 'unverified'}
                   onValueChange={handleEmailVerifiedChange}
                 >
-                  <SelectTrigger className="bg-slate-800 border-slate-600">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -388,7 +388,7 @@ export function FilterPanel({
                     max="9"
                     value={filterState.levelMin}
                     onChange={(e) => handleLevelChange('levelMin', e.target.value)}
-                    className="w-20 bg-slate-800 border-slate-600"
+                    className="w-20"
                   />
                   <span className="self-center text-muted-foreground">-</span>
                   <Input
@@ -398,7 +398,7 @@ export function FilterPanel({
                     max="9"
                     value={filterState.levelMax}
                     onChange={(e) => handleLevelChange('levelMax', e.target.value)}
-                    className="w-20 bg-slate-800 border-slate-600"
+                    className="w-20"
                   />
                 </div>
               </div>
@@ -417,7 +417,7 @@ export function FilterPanel({
                     max="100"
                     value={filterState.riskScoreMin}
                     onChange={(e) => handleRiskScoreChange('riskScoreMin', e.target.value)}
-                    className="w-20 bg-slate-800 border-slate-600"
+                    className="w-20"
                   />
                   <span className="self-center text-muted-foreground">-</span>
                   <Input
@@ -427,7 +427,7 @@ export function FilterPanel({
                     max="100"
                     value={filterState.riskScoreMax}
                     onChange={(e) => handleRiskScoreChange('riskScoreMax', e.target.value)}
-                    className="w-20 bg-slate-800 border-slate-600"
+                    className="w-20"
                   />
                 </div>
               </div>
@@ -443,7 +443,7 @@ export function FilterPanel({
                     value={filterState.isLocked === null ? 'all' : filterState.isLocked ? 'true' : 'false'}
                     onValueChange={(value) => handleSecurityFilterChange('isLocked', value)}
                   >
-                    <SelectTrigger className="bg-slate-800 border-slate-600">
+                    <SelectTrigger>
                       <SelectValue placeholder="Tài khoản bị khóa" />
                     </SelectTrigger>
                     <SelectContent>
@@ -462,7 +462,7 @@ export function FilterPanel({
                   value={filterState.highRiskUsers === null ? 'all' : filterState.highRiskUsers ? 'true' : 'false'}
                   onValueChange={(value) => handleSecurityFilterChange('highRiskUsers', value)}
                 >
-                  <SelectTrigger className="bg-slate-800 border-slate-600">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

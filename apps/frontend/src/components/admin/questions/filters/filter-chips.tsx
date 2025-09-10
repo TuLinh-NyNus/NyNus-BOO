@@ -213,7 +213,7 @@ export function FilterChips({
     const categories = {
       all: {
         title: 'Bộ lọc đang áp dụng',
-        color: 'bg-blue-50 border-blue-200',
+        color: 'bg-primary/10 border-primary/20',
         chips: [] as JSX.Element[]
       }
     };

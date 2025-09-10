@@ -10,4 +10,24 @@ echo.
 echo Nhấn Ctrl+C để dừng server
 echo.
 
-streamlit run app.py --server.port 8501 --server.headless true
+:: Tìm Python command
+set PYTHON_CMD=python
+python --version >nul 2>&1
+if errorlevel 1 (
+    py --version >nul 2>&1
+    if errorlevel 1 (
+        if exist "C:\Python313\python.exe" (
+            set PYTHON_CMD=C:\Python313\python.exe
+        ) else if exist "C:\Python312\python.exe" (
+            set PYTHON_CMD=C:\Python312\python.exe
+        ) else (
+            echo ❌ Không tìm thấy Python! Vui lòng chạy setup.bat trước
+            pause
+            exit /b 1
+        )
+    ) else (
+        set PYTHON_CMD=py
+    )
+)
+
+%PYTHON_CMD% -m streamlit run app.py --server.port 8501 --server.headless true

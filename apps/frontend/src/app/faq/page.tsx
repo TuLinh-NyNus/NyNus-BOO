@@ -116,12 +116,12 @@ function FAQItem({ question, answer, gradient }: { question: string; answer: str
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-white/5 transition-all duration-300"
       >
-        <span className="font-semibold text-white text-lg">{question}</span>
+        <span className="font-semibold text-foreground text-lg">{question}</span>
         <motion.div
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.3 }}
         >
-          <ChevronDown className="h-5 w-5 text-slate-300" />
+          <ChevronDown className="h-5 w-5 text-muted-foreground" />
         </motion.div>
       </button>
       
@@ -135,7 +135,7 @@ function FAQItem({ question, answer, gradient }: { question: string; answer: str
             className="overflow-hidden"
           >
             <div className="px-6 pb-5 pt-0">
-              <p className="text-slate-300 leading-relaxed">{answer}</p>
+              <p className="text-muted-foreground leading-relaxed">{answer}</p>
             </div>
           </motion.div>
         )}
@@ -190,7 +190,7 @@ export default function FAQPage() {
               Câu hỏi thường gặp
             </motion.h1>
             <motion.p 
-              className="text-xl md:text-2xl text-slate-300 mb-12 leading-relaxed"
+              className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}

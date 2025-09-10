@@ -126,16 +126,16 @@ const QUESTION_TYPES = [
 ];
 
 const DIFFICULTY_LEVELS = [
-  { value: QuestionDifficulty.EASY, label: "Dễ", color: "bg-green-100 text-green-800" },
-  { value: QuestionDifficulty.MEDIUM, label: "Trung bình", color: "bg-yellow-100 text-yellow-800" },
-  { value: QuestionDifficulty.HARD, label: "Khó", color: "bg-red-100 text-red-800" }
+  { value: QuestionDifficulty.EASY, label: "Dễ", color: "bg-badge-success text-badge-success-foreground" },
+  { value: QuestionDifficulty.MEDIUM, label: "Trung bình", color: "bg-badge-warning text-badge-warning-foreground" },
+  { value: QuestionDifficulty.HARD, label: "Khó", color: "bg-badge-error text-badge-error-foreground" }
 ];
 
 const STATUS_OPTIONS = [
-  { value: QuestionStatus.PENDING, label: "Bản nháp", color: "bg-yellow-100 text-yellow-800" },
-  { value: QuestionStatus.ACTIVE, label: "Hoạt động", color: "bg-green-100 text-green-800" },
-  { value: QuestionStatus.INACTIVE, label: "Không hoạt động", color: "bg-gray-100 text-gray-800" },
-  { value: QuestionStatus.ARCHIVED, label: "Lưu trữ", color: "bg-red-100 text-red-800" }
+  { value: QuestionStatus.PENDING, label: "Bản nháp", color: "bg-badge-warning text-badge-warning-foreground" },
+  { value: QuestionStatus.ACTIVE, label: "Hoạt động", color: "bg-badge-success text-badge-success-foreground" },
+  { value: QuestionStatus.INACTIVE, label: "Không hoạt động", color: "bg-muted text-muted-foreground" },
+  { value: QuestionStatus.ARCHIVED, label: "Lưu trữ", color: "bg-badge-error text-badge-error-foreground" }
 ];
 
 // ===== MAIN COMPONENT =====

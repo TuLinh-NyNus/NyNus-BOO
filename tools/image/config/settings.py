@@ -19,6 +19,18 @@ IMAGE_FORMAT = "webp"  # Format output (png, webp, jpg)
 IMAGE_DPI = 300  # DPI cho convert PDF sang hình
 IMAGE_QUALITY = 95  # Chất lượng hình ảnh (1-100)
 
+# Cấu hình batch processing và tối ưu hóa
+BATCH_SIZE = 100  # Số câu hỏi mỗi batch cho file lớn
+MAX_WORKERS = min(4, (os.cpu_count() or 1) + 1)  # Số thread cho ThreadPoolExecutor
+LARGE_FILE_THRESHOLD = 10000  # Ngưỡng số câu hỏi để dùng streaming processor
+MEMORY_WARNING_THRESHOLD = 85  # Ngưỡng cảnh báo memory usage (%)
+MEMORY_CRITICAL_THRESHOLD = 90  # Ngưỡng critical memory usage (%) 
+PROGRESS_UPDATE_INTERVAL = 5  # Cập nhật progress bar mỗi X giây
+
+# Cấu hình đặt tên hình ảnh
+PRESERVE_DOT_IN_SUBCOUNT = True  # True: TL.123456-QUES.webp, False: TL123456-QUES.webp
+# 🔍 Đã đặt thành True để giữ dấu chấm trong subcount
+
 # Header LaTeX mặc định cho compile TikZ
 LATEX_HEADER = r"""
 \documentclass[12pt,border=2mm]{standalone}
@@ -62,6 +74,5 @@ STREAMLIT_CONFIG = {
     'initial_sidebar_state': 'expanded'
 }
 
-# Tạo các thư mục nếu chưa tồn tại
-for dir_path in [TEMP_DIR, OUTPUT_DIR, IMAGES_DIR]:
-    dir_path.mkdir(parents=True, exist_ok=True)
+# Tạo thư mục tạm nếu chưa tồn tại (không auto-create output/images)
+TEMP_DIR.mkdir(parents=True, exist_ok=True)

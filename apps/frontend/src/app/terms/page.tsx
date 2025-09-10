@@ -133,12 +133,12 @@ function TermSection({ section, index }: { section: typeof termsData[0], index: 
         <div className={`w-12 h-12 bg-gradient-to-br ${section.gradient} rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10`}>
           <section.icon className={`w-6 h-6 ${section.iconColor}`} />
         </div>
-        <h2 className="text-2xl md:text-3xl font-bold text-white">{section.title}</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-foreground">{section.title}</h2>
       </div>
       
       <div className="space-y-4">
         {section.content.map((paragraph, pIndex) => (
-          <p key={pIndex} className="text-slate-300 leading-relaxed">
+          <p key={pIndex} className="text-muted-foreground leading-relaxed">
             {paragraph}
           </p>
         ))}
@@ -177,7 +177,7 @@ export default function TermsPage() {
               Điều khoản sử dụng
             </motion.h1>
             <motion.p 
-              className="text-xl md:text-2xl text-slate-300 mb-12 leading-relaxed"
+              className="text-xl md:text-2xl text-muted-foreground mb-12 leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}

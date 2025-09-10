@@ -84,4 +84,4 @@ echo.
 echo Nhấn Ctrl+C để dừng server
 echo.
 
-streamlit run app.py
+%PYTHON_CMD% -m streamlit run app.py

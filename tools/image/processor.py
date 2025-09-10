@@ -25,13 +25,58 @@ class LaTeXImageProcessor:
             'errors': 0,
             'questions': []
         }
+        
+    def process_file_inplace(self, tex_file_path: str, update_original: bool = True) -> Dict:
+        """
+        Xử lý file .tex và cập nhật file gốc nếu cần
+        
+        Args:
+            tex_file_path: Đường dẫn file .tex
+            update_original: Có cập nhật file gốc hay không
+            
+        Returns:
+            Dictionary chứa kết quả xử lý
+        """
+        tex_file = Path(tex_file_path)
+        
+        # Backup file gốc trước khi xử lý
+        backup_path = None
+        if update_original:
+            backup_path = self.file_manager.backup_file(tex_file)
+            if backup_path:
+                logger.info(f"Đã backup file gốc: {backup_path}")
+        
+        # Gọi process_file để xử lý
+        results = self.process_file(tex_file_path, create_backup=False)
+        
+        # Thêm thông tin backup vào results
+        if backup_path:
+            results['backup_path'] = str(backup_path)
+        
+        # Nếu yêu cầu cập nhật file gốc và có processed content
+        if update_original and 'processed_content' in results and 'error' not in results:
+            try:
+                # Cập nhật file gốc với processed content
+                with open(tex_file, 'w', encoding='utf-8') as f:
+                    f.write(results['processed_content'])
+                
+                logger.info(f"Đã cập nhật file gốc: {tex_file}")
+                results['original_updated'] = True
+                results['processed_file'] = str(tex_file)
+                
+            except Exception as e:
+                logger.error(f"Lỗi khi cập nhật file gốc: {str(e)}")
+                results['update_error'] = str(e)
+        
+        return results
     
-    def process_file(self, tex_file_path: str) -> Dict:
+    def process_file(self, tex_file_path: str, create_backup: bool = True) -> Dict:
         """
         Xử lý một file .tex
         
         Args:
             tex_file_path: Đường dẫn file .tex
+            create_backup: Có tạo backup hay không
             
         Returns:
             Dictionary chứa kết quả xử lý
@@ -43,9 +88,11 @@ class LaTeXImageProcessor:
             return {'error': 'File không tồn tại'}
         
         try:
-            # Backup file gốc
-            backup_path = self.file_manager.backup_file(tex_file)
-            logger.info(f"Đã backup file gốc: {backup_path}")
+            # Backup file gốc nếu cần
+            backup_path = None
+            if create_backup:
+                backup_path = self.file_manager.backup_file(tex_file)
+                logger.info(f"Đã backup file gốc: {backup_path}")
             
             # Tạo cấu trúc output
             output_dir, images_dir = self.file_manager.create_output_structure(tex_file)
@@ -57,6 +104,7 @@ class LaTeXImageProcessor:
             # Đọc nội dung file gốc
             with open(tex_file, 'r', encoding='utf-8') as f:
                 full_content = f.read()
+            original_content = full_content  # Lưu bản gốc để so sánh
             
             # Xử lý từng câu hỏi
             for question in questions:
@@ -66,19 +114,31 @@ class LaTeXImageProcessor:
                 # Cập nhật nội dung file
                 full_content = self._update_content(full_content, question, images_dir)
             
-            # Lưu file đã xử lý
-            output_tex = output_dir / tex_file.name
-            self.file_manager.save_processed_tex(full_content, output_tex)
+            # Kiểm tra xem có thay đổi hay không
+            if full_content != original_content:
+                logger.info("File có thay đổi, sẵn sàng để cập nhật")
+                self.results['file_updated'] = True
+                self.results['processed_content'] = full_content
+            else:
+                logger.info("File không có thay đổi, giữ nguyên nội dung gốc")
+                self.results['file_updated'] = False
+                self.results['processed_content'] = full_content  # Vẫn trả về content
             
             # Tạo báo cáo
             report_path = output_dir / "report.txt"
             self.file_manager.create_report(self.results, report_path)
             
-            # Dọn dẹp temp
+            # Dọc dẹp temp
             self.file_manager.cleanup_temp_files(TEMP_DIR)
             
+            # Thêm thông tin backup nếu có
+            if backup_path:
+                self.results['backup_path'] = str(backup_path)
+            
             self.results['output_dir'] = str(output_dir)
-            self.results['processed_file'] = str(output_tex)
+            self.results['processed_file'] = str(tex_file)
+            self.results['images_dir'] = str(images_dir)
+            self.results['report_file'] = str(report_path)
             
             return self.results
             
@@ -193,25 +253,60 @@ class LaTeXImageProcessor:
         # Xử lý existing images - cập nhật path
         all_images = question.question_images + question.solution_images
         
-        for idx, (full_cmd, old_path, _, _) in enumerate(all_images, 1):
-            # Xác định loại (QUES hay SOL) dựa vào vị trí
-            if (full_cmd, old_path, _, _) in question.question_images:
-                img_type = "QUES"
-                img_idx = question.question_images.index((full_cmd, old_path, _, _)) + 1
+        # Xử lý question images - preserve original formatting
+        for idx, (full_cmd, old_path, _, _) in enumerate(question.question_images, 1):
+            if len(question.question_images) > 1:
+                image_name = question.get_image_name("QUES", idx)
             else:
-                img_type = "SOL"
-                img_idx = question.solution_images.index((full_cmd, old_path, _, _)) + 1
-            
-            # Tạo tên mới
-            if len(question.question_images if img_type == "QUES" else question.solution_images) > 1:
-                image_name = question.get_image_name(img_type, img_idx)
-            else:
-                image_name = question.get_image_name(img_type, 0)
+                image_name = question.get_image_name("QUES", 0)
             
             new_path = f"images/{image_name}.{IMAGE_FORMAT}"
-            new_cmd = f"\\includegraphics[width=0.8\\textwidth]{{{new_path}}}"
+            
+            # Preserve original formatting nếu có
+            new_cmd = self._preserve_includegraphics_formatting(full_cmd, old_path, new_path)
+            
+            # Thay thế trực tiếp không dùng regex
+            updated_content = updated_content.replace(full_cmd, new_cmd, 1)
+        
+        # Xử lý solution images - preserve original formatting
+        for idx, (full_cmd, old_path, _, _) in enumerate(question.solution_images, 1):
+            if len(question.solution_images) > 1:
+                image_name = question.get_image_name("SOL", idx)
+            else:
+                image_name = question.get_image_name("SOL", 0)
+            
+            new_path = f"images/{image_name}.{IMAGE_FORMAT}"
+            
+            # Preserve original formatting nếu có
+            new_cmd = self._preserve_includegraphics_formatting(full_cmd, old_path, new_path)
             
             # Thay thế trực tiếp không dùng regex
             updated_content = updated_content.replace(full_cmd, new_cmd, 1)
         
         return updated_content
+    
+    def _preserve_includegraphics_formatting(self, full_cmd: str, old_path: str, new_path: str) -> str:
+        """Bảo toàn format gốc của \\includegraphics command"""
+        try:
+            # Thử thay thế chỉ path trong command gốc
+            if old_path in full_cmd:
+                return full_cmd.replace(old_path, new_path)
+            
+            # Nếu không tìm thấy exact path, thử tìm pattern
+            import re
+            # Tìm pattern \\includegraphics[...]{path}
+            pattern = r'(\\includegraphics(?:\[.*?\])?\{)([^}]+)(\})'
+            match = re.search(pattern, full_cmd)
+            
+            if match:
+                prefix = match.group(1)  # \\includegraphics[...]{  
+                suffix = match.group(3)  # }
+                return f"{prefix}{new_path}{suffix}"
+            
+            # Fallback: tạo command mới với default formatting
+            return f"\\includegraphics[width=0.8\\textwidth]{{{new_path}}}"
+            
+        except Exception as e:
+            logger.warning(f"Không thể preserve formatting: {str(e)}")
+            # Fallback đơn giản
+            return f"\\includegraphics[width=0.8\\textwidth]{{{new_path}}}"
