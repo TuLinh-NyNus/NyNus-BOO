@@ -1,0 +1,261 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// QuestionDetail message for filter responses
+message QuestionDetail {
+  string id = 1;
+  string raw_content = 2;
+  string content = 3;
+  string subcount = 4;
+  string type = 5;
+  string source = 6;
+  string answers = 7;
+  string correct_answer = 8;
+  string solution = 9;
+  repeated string tags = 10;
+  int32 usage_count = 11;
+  string creator = 12;
+  string status = 13;
+  int32 feedback = 14;
+  string difficulty = 15;
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
+  string question_code_id = 18;
+}
+
+// QuestionFilterService handles advanced question filtering operations
+service QuestionFilterService {
+  // ListQuestionsByFilter lists questions with comprehensive filtering
+  rpc ListQuestionsByFilter(ListQuestionsByFilterRequest) returns (ListQuestionsByFilterResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/questions/filter"
+      body: "*"
+    };
+  }
+
+  // SearchQuestions performs full-text search with filters
+  rpc SearchQuestions(SearchQuestionsRequest) returns (SearchQuestionsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/questions/search"
+      body: "*"
+    };
+  }
+
+  // GetQuestionsByQuestionCode gets questions by QuestionCode components
+  rpc GetQuestionsByQuestionCode(GetQuestionsByQuestionCodeRequest) returns (GetQuestionsByQuestionCodeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/questions/by-code"
+      body: "*"
+    };
+  }
+}
+
+// ========================================
+// QUESTION FILTERING SYSTEM
+// ========================================
+
+// QuestionCode Filter Components
+message QuestionCodeFilter {
+  repeated string grades = 1;    // 0,1,2 (10th, 11th, 12th grade)
+  repeated string subjects = 2;  // D,E,H,M,P,S (Probability, English, Chemistry, Math, Physics, Science)
+  repeated string chapters = 3;  // 1,2,3,4,5... (Chapter numbers)
+  repeated string levels = 4;    // N,H,V,C,T,M (Recognition, Understanding, Application, High Application, VIP, Note)
+  repeated string lessons = 5;   // 1,2,3,A,B,C... (Lesson identifiers)
+  repeated string forms = 6;     // 1,2,3... (Form numbers, only for ID6 format)
+  bool include_id5 = 7;          // Include ID5 format questions (default: true)
+  bool include_id6 = 8;          // Include ID6 format questions (default: true)
+}
+
+// Metadata Filters
+message MetadataFilter {
+  repeated string types = 1;           // MC, TF, SA, ES, MA
+  repeated string statuses = 2;        // ACTIVE, PENDING, INACTIVE, ARCHIVED
+  repeated string difficulties = 3;    // EASY, MEDIUM, HARD
+  repeated string creators = 4;        // Filter by creator usernames
+  repeated string tags = 5;            // Filter by tags (OR logic)
+  bool require_all_tags = 6;           // If true, use AND logic for tags
+  string subcount_pattern = 7;         // Pattern matching for subcount field
+  int32 min_usage_count = 8;           // Minimum usage count
+  int32 max_usage_count = 9;           // Maximum usage count
+  int32 min_feedback = 10;             // Minimum feedback score
+  int32 max_feedback = 11;             // Maximum feedback score
+}
+
+// Date Range Filter
+message DateRangeFilter {
+  google.protobuf.Timestamp created_after = 1;   // Created after this date
+  google.protobuf.Timestamp created_before = 2;  // Created before this date
+  google.protobuf.Timestamp updated_after = 3;   // Updated after this date
+  google.protobuf.Timestamp updated_before = 4;  // Updated before this date
+}
+
+// Boolean Content Filters
+message ContentFilter {
+  bool has_images = 1;        // Filter questions with/without images
+  bool has_solution = 2;      // Filter questions with/without solution
+  bool has_answers = 3;       // Filter questions with/without answers
+  bool has_feedback = 4;      // Filter questions with/without feedback
+  bool has_tags = 5;          // Filter questions with/without tags
+  string content_search = 6;  // Full-text search in content
+  string solution_search = 7; // Full-text search in solution
+}
+
+// Sorting Options
+enum SortField {
+  SORT_FIELD_UNSPECIFIED = 0;
+  SORT_FIELD_CREATED_AT = 1;
+  SORT_FIELD_UPDATED_AT = 2;
+  SORT_FIELD_USAGE_COUNT = 3;
+  SORT_FIELD_FEEDBACK = 4;
+  SORT_FIELD_DIFFICULTY = 5;
+  SORT_FIELD_QUESTION_CODE = 6;
+  SORT_FIELD_TYPE = 7;
+  SORT_FIELD_STATUS = 8;
+}
+
+enum SortOrder {
+  SORT_ORDER_UNSPECIFIED = 0;
+  SORT_ORDER_ASC = 1;
+  SORT_ORDER_DESC = 2;
+}
+
+message SortOptions {
+  SortField field = 1;
+  SortOrder order = 2;
+}
+
+// Pagination for Filter Results
+message FilterPagination {
+  int32 page = 1;           // Page number (1-based)
+  int32 limit = 2;          // Items per page (max 100)
+  repeated SortOptions sort = 3; // Multiple sort criteria
+}
+
+// ========================================
+// FILTER API MESSAGES
+// ========================================
+
+// ListQuestionsByFilter - Comprehensive filtering
+message ListQuestionsByFilterRequest {
+  QuestionCodeFilter question_code_filter = 1;
+  MetadataFilter metadata_filter = 2;
+  DateRangeFilter date_filter = 3;
+  ContentFilter content_filter = 4;
+  FilterPagination pagination = 5;
+}
+
+message ListQuestionsByFilterResponse {
+  repeated QuestionDetail questions = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  int32 total_pages = 5;
+  FilterSummary filter_summary = 6;
+}
+
+// SearchQuestions - Full-text search with filters
+message SearchQuestionsRequest {
+  string query = 1;                           // Search query
+  repeated string search_fields = 2;          // Fields to search: content, solution, tags
+  QuestionCodeFilter question_code_filter = 3;
+  MetadataFilter metadata_filter = 4;
+  DateRangeFilter date_filter = 5;
+  FilterPagination pagination = 6;
+  bool highlight_matches = 7;                 // Return highlighted search matches
+}
+
+message SearchQuestionsResponse {
+  repeated QuestionSearchResult questions = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  int32 total_pages = 5;
+  string query = 6;
+  repeated string search_fields = 7;
+}
+
+// GetQuestionsByQuestionCode - Filter by QuestionCode components
+message GetQuestionsByQuestionCodeRequest {
+  QuestionCodeFilter question_code_filter = 1;
+  MetadataFilter metadata_filter = 2;
+  FilterPagination pagination = 3;
+  bool include_question_code_info = 4;        // Include parsed QuestionCode information
+}
+
+message GetQuestionsByQuestionCodeResponse {
+  repeated QuestionWithCodeInfo questions = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 limit = 4;
+  int32 total_pages = 5;
+  repeated QuestionCodeSummary question_code_summary = 6;
+}
+
+// ========================================
+// SUPPORTING MESSAGES
+// ========================================
+
+// Filter Summary for analytics
+message FilterSummary {
+  int32 total_questions = 1;
+  map<string, int32> by_type = 2;           // Count by question type
+  map<string, int32> by_status = 3;         // Count by status
+  map<string, int32> by_difficulty = 4;     // Count by difficulty
+  map<string, int32> by_grade = 5;          // Count by grade
+  map<string, int32> by_subject = 6;        // Count by subject
+  map<string, int32> by_creator = 7;        // Count by creator
+  int32 with_images = 8;                    // Count with images
+  int32 with_solution = 9;                  // Count with solution
+  int32 with_feedback = 10;                 // Count with feedback
+}
+
+// Question with search highlights
+message QuestionSearchResult {
+  QuestionDetail question = 1;
+  repeated SearchHighlight highlights = 2;
+  float relevance_score = 3;
+}
+
+// Search highlight information
+message SearchHighlight {
+  string field = 1;           // Field name where match was found
+  string snippet = 2;         // Text snippet with highlights
+  repeated int32 positions = 3; // Character positions of matches
+}
+
+// Question with QuestionCode information
+message QuestionWithCodeInfo {
+  QuestionDetail question = 1;
+  QuestionCodeInfo question_code_info = 2;
+}
+
+// QuestionCode information
+message QuestionCodeInfo {
+  string code = 1;
+  string format = 2;          // ID5 or ID6
+  string grade = 3;           // Human-readable grade
+  string subject = 4;         // Human-readable subject
+  string chapter = 5;
+  string level = 6;           // Human-readable level
+  string lesson = 7;
+  string form = 8;
+  string folder_path = 9;     // Google Drive folder path
+  bool is_id6 = 10;
+}
+
+// QuestionCode summary for analytics
+message QuestionCodeSummary {
+  string grade = 1;
+  string subject = 2;
+  string chapter = 3;
+  string level = 4;
+  int32 question_count = 5;
+  repeated string available_lessons = 6;
+  repeated string available_forms = 7;
+}

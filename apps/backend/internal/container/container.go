@@ -8,6 +8,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
 	question_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question"
+	question_filter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
 	user_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/user"
 )
 
@@ -21,16 +22,18 @@ type Container struct {
 	AnswerRepo *repository.AnswerRepository
 
 	// Services
-	AuthMgmt     *auth_mgmt.AuthMgmt
-	UserMgmt     *user_mgmt.UserMgmt
-	QuestionMgmt *question_mgmt.QuestionMgmt
+	AuthMgmt           *auth_mgmt.AuthMgmt
+	UserMgmt           *user_mgmt.UserMgmt
+	QuestionMgmt       *question_mgmt.QuestionMgmt
+	QuestionFilterMgmt *question_filter_mgmt.QuestionFilterMgmt
 
 	// Middleware
 	AuthInterceptor *middleware.AuthInterceptor
 
 	// gRPC Services
-	UserGRPCService     *grpc.UserServiceServer
-	QuestionGRPCService *grpc.QuestionServiceServer
+	UserGRPCService           *grpc.UserServiceServer
+	QuestionGRPCService       *grpc.QuestionServiceServer
+	QuestionFilterGRPCService *grpc.QuestionFilterServiceServer
 
 	// Configuration
 	JWTSecret string
@@ -68,6 +71,9 @@ func (c *Container) initServices() {
 
 	// Initialize QuestionMgmt with database connection
 	c.QuestionMgmt = question_mgmt.NewQuestionMgmt(c.DB)
+
+	// Initialize QuestionFilterMgmt with database connection
+	c.QuestionFilterMgmt = question_filter_mgmt.NewQuestionFilterMgmt(c.DB)
 }
 
 // initMiddleware initializes all middleware dependencies
@@ -79,6 +85,7 @@ func (c *Container) initMiddleware() {
 func (c *Container) initGRPCServices() {
 	c.UserGRPCService = grpc.NewUserServiceServer(c.UserMgmt, c.AuthMgmt)
 	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionMgmt)
+	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.QuestionFilterMgmt)
 }
 
 // GetUserRepository returns the user repository
@@ -106,6 +113,11 @@ func (c *Container) GetQuestionMgmt() *question_mgmt.QuestionMgmt {
 	return c.QuestionMgmt
 }
 
+// GetQuestionFilterMgmt returns the question filter management service
+func (c *Container) GetQuestionFilterMgmt() *question_filter_mgmt.QuestionFilterMgmt {
+	return c.QuestionFilterMgmt
+}
+
 // GetAuthInterceptor returns the auth interceptor
 func (c *Container) GetAuthInterceptor() *middleware.AuthInterceptor {
 	return c.AuthInterceptor
@@ -119,6 +131,11 @@ func (c *Container) GetUserGRPCService() *grpc.UserServiceServer {
 // GetQuestionGRPCService returns the question gRPC service
 func (c *Container) GetQuestionGRPCService() *grpc.QuestionServiceServer {
 	return c.QuestionGRPCService
+}
+
+// GetQuestionFilterGRPCService returns the question filter gRPC service
+func (c *Container) GetQuestionFilterGRPCService() *grpc.QuestionFilterServiceServer {
+	return c.QuestionFilterGRPCService
 }
 
 // Cleanup performs cleanup operations

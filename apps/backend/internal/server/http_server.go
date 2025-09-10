@@ -54,6 +54,12 @@ func (s *HTTPServer) setupGateway(ctx context.Context) (*runtime.ServeMux, error
 		return nil, fmt.Errorf("failed to register question service handler: %w", err)
 	}
 
+	// Register QuestionFilter service
+	err = v1.RegisterQuestionFilterServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register question filter service handler: %w", err)
+	}
+
 	// Register User service
 	err = v1.RegisterUserServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, opts)
 	if err != nil {
