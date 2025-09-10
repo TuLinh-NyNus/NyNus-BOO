@@ -1,0 +1,192 @@
+/*
+ * NyNus Global Styles - Optimized v2.0
+ * CSS Layers Architecture: base → components → utilities
+ * 
+ * Layer order (highest to lowest precedence):
+ * - utilities: Helper classes and overrides
+ * - components: Component-specific styling
+ * - base: Base styles, tokens, and themes
+ */
+
+/* Import Tailwind CSS base */
+@import "tailwindcss";
+
+/* Enable animate-* utilities for Tailwind v4 */
+@plugin "tailwindcss-animate";
+
+/* ===== BASE LAYER ===== */
+/* Base styles, design tokens, and theme mappings */
+@layer base {
+  /* Import optimized color tokens */
+  @import "../styles/theme/tokens/optimized-colors.css";
+  
+  /* Import theme mappings */
+  @import "../styles/theme/themes/optimized-light.css";
+  @import "../styles/theme/themes/optimized-dark.css";
+  
+  /* Base styles */
+  :root {
+    color-scheme: light;
+  }
+  
+  .dark {
+    color-scheme: dark;
+  }
+  
+  /* Base utility classes */
+  .scrollbar-hide {
+    /* Firefox */
+    scrollbar-width: none;
+    /* Safari and Chrome */
+    -ms-overflow-style: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ===== COMPONENTS LAYER ===== */
+/* Component-specific styling and themes */
+@layer components {
+  /* Enhanced Gradient System */
+  @import "../styles/gradients-optimized.css";
+  
+  /* Admin Component Styles (split from large file) */
+  @import "../styles/components/admin-components.css";
+  @import "../styles/components/admin-tables.css";
+  @import "../styles/components/admin-forms.css";
+  
+  /* Hero Component Styles */
+  @import "../styles/components/hero-components.css";
+  
+  /* Layout Spacing */
+  @import "../styles/admin-layout-spacing.css";
+}
+
+/* ===== UTILITIES LAYER ===== */
+/* Utility classes and overrides */
+@layer utilities {
+  /* Theme-aware utilities */
+  .theme-bg {
+    background-color: var(--color-background) !important;
+  }
+  
+  .theme-fg {
+    color: var(--color-foreground) !important;
+  }
+  
+  .theme-border {
+    border-color: var(--color-border) !important;
+  }
+  
+  .theme-surface {
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+  }
+  
+  .theme-surface-hover:hover {
+    background-color: var(--color-surface-hover);
+  }
+  
+  /* Dark mode utilities - only apply in dark mode */
+  .dark .dark-surface {
+    background-color: var(--color-surface);
+    color: var(--color-foreground);
+  }
+  
+  .dark .dark-text-primary {
+    color: var(--color-foreground);
+  }
+  
+  .dark .dark-text-muted {
+    color: var(--color-text-muted);
+  }
+  
+  .dark .dark-border {
+    border-color: var(--color-border);
+  }
+  
+  /* Badge utilities using semantic colors */
+  .badge-default {
+    background-color: var(--color-badge-default);
+    color: var(--color-badge-default-foreground);
+  }
+  
+  .badge-secondary {
+    background-color: var(--color-badge-secondary);
+    color: var(--color-badge-secondary-foreground);
+  }
+  
+  .badge-success {
+    background-color: var(--color-badge-success);
+    color: var(--color-badge-success-foreground);
+  }
+  
+  .badge-warning {
+    background-color: var(--color-badge-warning);
+    color: var(--color-badge-warning-foreground);
+  }
+  
+  .badge-error {
+    background-color: var(--color-badge-error);
+    color: var(--color-badge-error-foreground);
+  }
+  
+  /* Table utilities using semantic colors */
+  .table-header {
+    background-color: var(--color-table-header);
+    color: var(--color-table-header-foreground);
+    border-color: var(--color-table-border);
+  }
+  
+  .table-row:hover {
+    background-color: var(--color-table-row-hover);
+  }
+  
+  /* Icon utilities using semantic colors */
+  .icon-primary {
+    color: var(--color-icon-primary);
+  }
+  
+  .icon-secondary {
+    color: var(--color-icon-secondary);
+  }
+  
+  .icon-accent {
+    color: var(--color-icon-accent);
+  }
+  
+  /* Theme toggle utilities */
+  [data-theme-toggle-disabled="true"] [data-theme-toggle] {
+    display: none !important;
+  }
+  
+  /* Admin unified background utilities */
+  .admin-unified-bg {
+    background-color: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-foreground) !important;
+  }
+  
+  /* Glass effects */
+  .glass-effect {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .dark .glass-effect-dark {
+    background: rgba(11, 20, 38, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+  }
+}
+
+/* ===== BACKWARDS COMPATIBILITY ===== */
+/* Legacy support - these will be deprecated */
+.nynus-gradient-bg {
+  background: linear-gradient(135deg, var(--color-background) 0%, var(--color-surface) 50%, var(--color-background) 100%);
+  min-height: 100vh;
+}

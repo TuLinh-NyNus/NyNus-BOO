@@ -1,0 +1,183 @@
+/*
+ * NyNus Optimized Gradient System v2.0
+ * Enhanced gradients for both light and dark modes
+ * Uses semantic color tokens for consistency
+ */
+
+/* ===== DARK MODE GRADIENTS ===== */
+.dark .gradient-primary {
+  background: linear-gradient(135deg, var(--color-dark-navy) 0%, var(--color-dark-surface) 25%, var(--color-dark-surface-hover) 50%, var(--color-indigo) 75%, var(--color-purple) 100%);
+}
+
+.dark .gradient-secondary {
+  background: linear-gradient(135deg, var(--color-purple) 0%, var(--color-indigo) 25%, var(--color-blue) 50%, var(--color-pink) 75%, var(--color-purple) 100%);
+}
+
+.dark .gradient-hero {
+  background: linear-gradient(135deg,
+    var(--color-deep-purple) 0%,
+    var(--color-indigo) 15%,
+    var(--color-purple) 30%,
+    var(--color-blue) 45%,
+    var(--color-pink) 60%,
+    var(--color-hero-pink) 75%,
+    var(--color-hero-light-pink) 90%,
+    var(--color-pink) 100%
+  );
+}
+
+/* ===== LIGHT MODE GRADIENTS ===== */
+.gradient-primary-light,
+:root .gradient-primary {
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-dusty-rose) 50%, var(--color-terracotta) 100%);
+}
+
+.gradient-secondary-light,
+:root .gradient-secondary {
+  background: linear-gradient(135deg, var(--color-terracotta) 0%, var(--color-taupe) 50%, var(--color-gold) 100%);
+}
+
+.gradient-hero-light,
+:root .gradient-hero {
+  background: linear-gradient(135deg,
+    var(--color-gold) 0%,
+    var(--color-dusty-rose) 25%,
+    var(--color-terracotta) 50%,
+    var(--color-taupe) 75%,
+    var(--color-gold) 100%
+  );
+}
+
+/* ===== ANIMATED GRADIENTS ===== */
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.gradient-animated {
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
+}
+
+.dark .gradient-animated {
+  background: linear-gradient(-45deg,
+    var(--color-dark-navy), var(--color-dark-surface), var(--color-indigo), var(--color-purple),
+    var(--color-blue), var(--color-pink), var(--color-hero-pink), var(--color-hero-light-pink)
+  );
+}
+
+:root .gradient-animated {
+  background: linear-gradient(-45deg,
+    var(--color-cream), var(--color-jade), var(--color-gold), var(--color-dusty-rose),
+    var(--color-terracotta), var(--color-taupe), var(--color-gold), var(--color-dusty-rose)
+  );
+}
+
+/* ===== TEXT GRADIENTS ===== */
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .text-gradient-primary {
+  background: linear-gradient(135deg, var(--color-indigo), var(--color-purple), var(--color-pink));
+}
+
+/* ===== BUTTON GRADIENTS ===== */
+.btn-gradient-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-primary:hover {
+  background: linear-gradient(135deg, var(--color-accent), var(--color-secondary));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.dark .btn-gradient-primary:hover {
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+}
+
+/* ===== CARD GRADIENTS ===== */
+.gradient-card {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-primary) 10%, transparent) 0%,
+    color-mix(in srgb, var(--color-accent) 5%, transparent) 50%,
+    color-mix(in srgb, var(--color-secondary) 10%, transparent) 100%
+  );
+}
+
+/* ===== OVERLAY GRADIENTS ===== */
+.gradient-overlay {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-background) 80%, transparent) 0%,
+    color-mix(in srgb, var(--color-surface) 60%, transparent) 25%,
+    color-mix(in srgb, var(--color-surface-hover) 40%, transparent) 50%,
+    color-mix(in srgb, var(--color-primary) 60%, transparent) 75%,
+    color-mix(in srgb, var(--color-accent) 80%, transparent) 100%
+  );
+}
+
+/* ===== GLASS EFFECTS WITH GRADIENTS ===== */
+.glass-gradient {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--color-surface) 60%, transparent) 0%,
+    color-mix(in srgb, var(--color-surface-hover) 40%, transparent) 100%
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
+}
+
+/* ===== RESPONSIVE GRADIENT ADJUSTMENTS ===== */
+@media (max-width: 768px) {
+  .gradient-hero,
+  .gradient-primary,
+  .gradient-secondary {
+    background-size: 200% 200%;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+.gradient-text {
+  background: var(--hero-bg-gradient, linear-gradient(135deg, var(--color-primary), var(--color-accent)));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-border {
+  border-image: linear-gradient(135deg, var(--color-primary), var(--color-accent)) 1;
+}
+
+/* ===== SECTION-SPECIFIC GRADIENTS ===== */
+.hero-gradient {
+  background: var(--hero-bg-gradient);
+}
+
+.features-gradient {
+  background: linear-gradient(135deg,
+    var(--color-background) 0%,
+    var(--color-surface) 50%,
+    var(--color-surface-hover) 100%
+  );
+}
+
+.admin-gradient {
+  background: linear-gradient(135deg,
+    var(--color-background) 0%,
+    color-mix(in srgb, var(--admin-primary, var(--color-primary)) 5%, var(--color-surface)) 100%
+  );
+}

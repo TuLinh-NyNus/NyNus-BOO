@@ -30,7 +30,7 @@ const CONFIG = {
     'node_modules/.cache/turbopack'
   ],
   logFile: '.next/cache/cache-manager.log',
-  enableLogging: true
+  enableLogging: !process.env.QUIET_MODE
 };
 
 // ===== CACHE MANAGER CLASS =====
@@ -57,7 +57,9 @@ class CacheManager {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] ${message}`;
     
-    console.log(logMessage);
+    if (!process.env.QUIET_MODE) {
+      console.log(logMessage);
+    }
     
     if (CONFIG.enableLogging) {
       fs.appendFileSync(CONFIG.logFile, logMessage + '\n');

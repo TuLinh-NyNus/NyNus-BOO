@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 import Footer from '@/components/layout/footer';
 import Navbar from '@/components/layout/navbar';
 import FloatingCTA from '@/components/layout/floating-cta';
+import { PageErrorBoundary, ComponentErrorBoundary } from '@/components/common/error-boundaries';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -18,18 +19,28 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Suspense fallback={null}>
-        {!isAdminPage && <Navbar />}
-        <main className="flex-1">
-          {children}
-        </main>
-        {!isAdminPage && (
-          <>
-            <Footer />
-            <FloatingCTA />
-          </>
-        )}
-      </Suspense>
+      <PageErrorBoundary>
+        <Suspense fallback={null}>
+          {!isAdminPage && (
+            <ComponentErrorBoundary componentName="Navbar">
+              <Navbar />
+            </ComponentErrorBoundary>
+          )}
+          <main className="flex-1">
+            {children}
+          </main>
+          {!isAdminPage && (
+            <>
+              <ComponentErrorBoundary componentName="Footer">
+                <Footer />
+              </ComponentErrorBoundary>
+              <ComponentErrorBoundary componentName="FloatingCTA">
+                <FloatingCTA />
+              </ComponentErrorBoundary>
+            </>
+          )}
+        </Suspense>
+      </PageErrorBoundary>
     </div>
   );
 }

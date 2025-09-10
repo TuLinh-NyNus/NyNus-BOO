@@ -1,0 +1,118 @@
+/*
+ * NyNus Dark Theme - Optimized v2.0
+ * Maps semantic tokens to dark color values
+ * Uses optimized base tokens for consistency
+ */
+
+.dark {
+  /* ===== SEMANTIC MAPPINGS FOR DARK THEME ===== */
+  
+  /* Base semantic colors */
+  --color-background: var(--color-dark-navy);
+  --color-foreground: var(--color-dark-text);
+  --color-surface: var(--color-dark-surface);
+  --color-surface-hover: var(--color-dark-surface-hover);
+  --color-border: var(--color-dark-border);
+  --color-text-muted: var(--color-dark-text-muted);
+
+  /* Interactive colors - using hero/brand colors for dark mode */
+  --color-primary: var(--color-indigo);
+  --color-primary-foreground: var(--color-dark-navy);
+  --color-secondary: var(--color-dark-surface-hover);
+  --color-secondary-foreground: var(--color-dark-text);
+  --color-accent: var(--color-dark-surface-hover);
+  --color-accent-foreground: var(--color-dark-text);
+
+  /* Component semantic colors */
+  --color-card: var(--color-dark-surface);
+  --color-card-foreground: var(--color-dark-text);
+  --color-popover: var(--color-dark-surface);
+  --color-popover-foreground: var(--color-dark-text);
+  --color-muted: var(--color-dark-surface-muted);
+  --color-muted-foreground: var(--color-dark-text-muted);
+  --color-input: var(--color-dark-surface);
+  --color-ring: var(--color-indigo);
+
+  /* State colors - enhanced for dark mode */
+  --color-destructive: var(--color-pink);
+  --color-destructive-foreground: var(--color-dark-navy);
+
+  /* System state colors - enhanced for dark theme */
+  --color-success: var(--color-success-light);
+  --color-success-foreground: var(--color-dark-navy);
+  --color-warning: var(--color-warning-light);
+  --color-warning-foreground: var(--color-dark-navy);
+  --color-error: var(--color-pink);
+  --color-error-foreground: var(--color-dark-navy);
+  --color-info: var(--color-blue);
+  --color-info-foreground: var(--color-dark-navy);
+
+  /* Component-specific tokens for dark theme */
+  --color-badge-default: var(--color-indigo);
+  --color-badge-default-foreground: var(--color-dark-navy);
+  --color-badge-secondary: var(--color-dark-surface-hover);
+  --color-badge-secondary-foreground: var(--color-dark-text);
+  --color-badge-success: var(--color-success-light);
+  --color-badge-success-foreground: var(--color-dark-navy);
+  --color-badge-warning: var(--color-warning-light);
+  --color-badge-warning-foreground: var(--color-dark-navy);
+  --color-badge-error: var(--color-pink);
+  --color-badge-error-foreground: var(--color-dark-navy);
+
+  /* Table tokens for dark theme */
+  --color-table-header: var(--color-dark-surface-hover);
+  --color-table-header-foreground: var(--color-dark-text);
+  --color-table-row-hover: var(--color-dark-surface-muted);
+  --color-table-border: var(--color-dark-border);
+
+  /* Icon tokens for dark theme */
+  --color-icon-primary: var(--color-dark-text);
+  --color-icon-secondary: var(--color-dark-text-muted);
+  --color-icon-accent: var(--color-indigo);
+
+  /* ===== HERO CONTEXT OVERRIDES ===== */
+  /* Map hero semantic colors to base tokens */
+  --hero-bg-dark: var(--color-dark-navy);
+  --hero-bg-surface: var(--color-dark-surface);
+  --hero-bg-surface-hover: var(--color-dark-surface-hover);
+  --hero-border-primary: var(--color-dark-border);
+  --hero-text-primary: var(--color-dark-text);
+  --hero-text-secondary: var(--color-dark-text-muted);
+
+  /* ===== ADMIN CONTEXT OVERRIDES ===== */
+  /* Admin-specific color mappings for dark theme */
+  --admin-bg-primary: var(--color-dark-navy);
+  --admin-bg-secondary: var(--color-dark-surface);
+  --admin-bg-tertiary: var(--color-dark-surface-hover);
+  --admin-text-primary: var(--color-dark-text);
+  --admin-text-secondary: var(--color-dark-text-muted);
+  --admin-border: var(--color-dark-border);
+
+  /* Admin component colors using semantic system */
+  --admin-accent: var(--admin-primary);
+  --admin-accent-hover: var(--admin-primary-dark);
+}
+
+/* ===== ADMIN SCOPED STYLES ===== */
+/* Apply admin colors only within admin context */
+.dark .admin-panel {
+  /* Admin-specific overrides */
+  --color-primary: var(--admin-primary);
+  --color-primary-foreground: var(--color-white);
+  --color-accent: var(--admin-primary);
+  --color-accent-foreground: var(--color-white);
+  
+  /* Admin state colors */
+  --color-success: var(--admin-success);
+  --color-warning: var(--admin-warning);
+  --color-destructive: var(--admin-danger);
+  --color-info: var(--admin-info);
+}
+
+/* ===== HERO SCOPED STYLES ===== */
+/* Apply hero colors only within hero context */
+.dark .hero-section {
+  --color-primary: var(--hero-primary);
+  --color-secondary: var(--hero-secondary);
+  --color-accent: var(--hero-accent-primary);
+}

@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000",
+    "dev": "cross-env QUIET_MODE=true DISABLE_DEV_LOGS=true next dev -p 3000",
+    "dev:verbose": "next dev -p 3000",
     "dev:fast": "next dev -p 3000 --turbo",
     "dev:debug": "cross-env NODE_OPTIONS=--inspect next dev -p 3000",
     "dev:analyze": "cross-env ANALYZE=true next dev -p 3000",
@@ -132,6 +133,7 @@
     "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.17",
     "concurrently": "^9.2.0",
+    "cross-env": "^10.0.0",
     "cypress": "^13.0.0",
     "eslint": "^9.32.0",
     "eslint-config-next": "15.4.5",

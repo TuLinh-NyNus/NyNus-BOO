@@ -1,0 +1,97 @@
+/*
+ * NyNus Light Theme - Optimized v2.0
+ * Maps semantic tokens to light color values
+ * Uses optimized base tokens for consistency
+ * Enhanced with improved gradients and contrast
+ */
+
+:root {
+  /* ===== SEMANTIC MAPPINGS FOR LIGHT THEME ===== */
+  
+  /* Base semantic colors */
+  --color-background: var(--color-cream);
+  --color-foreground: var(--color-light-navy);
+  --color-surface: var(--color-jade);
+  --color-surface-hover: var(--color-silver);
+  --color-border: color-mix(in srgb, var(--color-medium-gray) 25%, var(--color-cream));
+  --color-text-muted: var(--color-medium-gray);
+
+  /* Interactive colors - using earth tones */
+  --color-primary: var(--color-gold);
+  --color-primary-foreground: var(--color-light-navy);
+  --color-secondary: var(--color-terracotta);
+  --color-secondary-foreground: var(--color-cream);
+  --color-accent: var(--color-dusty-rose);
+  --color-accent-foreground: var(--color-light-navy);
+
+  /* Component semantic colors */
+  --color-card: var(--color-jade);
+  --color-card-foreground: var(--color-light-navy);
+  --color-popover: var(--color-silver);
+  --color-popover-foreground: var(--color-light-navy);
+  --color-muted: var(--color-silver);
+  --color-muted-foreground: var(--color-medium-gray);
+  --color-input: color-mix(in srgb, var(--color-medium-gray) 15%, var(--color-cream));
+  --color-ring: var(--color-gold);
+
+  /* State colors */
+  --color-destructive: var(--color-taupe);
+  --color-destructive-foreground: var(--color-cream);
+
+  /* System state colors */
+  --color-success: var(--color-success);
+  --color-success-foreground: var(--color-white);
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: var(--color-white);
+  --color-error: var(--color-error);
+  --color-error-foreground: var(--color-white);
+  --color-info: var(--color-info);
+  --color-info-foreground: var(--color-white);
+
+  /* Component-specific tokens for light theme */
+  --color-badge-default: var(--color-gold);
+  --color-badge-default-foreground: var(--color-light-navy);
+  --color-badge-secondary: var(--color-terracotta);
+  --color-badge-secondary-foreground: var(--color-cream);
+  --color-badge-success: var(--color-success);
+  --color-badge-success-foreground: var(--color-white);
+  --color-badge-warning: var(--color-warning);
+  --color-badge-warning-foreground: var(--color-white);
+  --color-badge-error: var(--color-error);
+  --color-badge-error-foreground: var(--color-white);
+
+  /* Table tokens for light theme */
+  --color-table-header: var(--color-silver);
+  --color-table-header-foreground: var(--color-light-navy);
+  --color-table-row-hover: var(--color-jade);
+  --color-table-border: color-mix(in srgb, var(--color-medium-gray) 25%, var(--color-cream));
+
+  /* Icon tokens for light theme */
+  --color-icon-primary: var(--color-light-navy);
+  --color-icon-secondary: var(--color-medium-gray);
+  --color-icon-accent: var(--color-dusty-rose);
+}
+
+/* ===== ADMIN SCOPED STYLES FOR LIGHT THEME ===== */
+/* Apply admin colors only within admin context in light mode */
+.admin-panel {
+  /* Light theme admin overrides */
+  --color-primary: var(--admin-primary);
+  --color-primary-foreground: var(--color-white);
+  --color-accent: var(--admin-primary);
+  --color-accent-foreground: var(--color-white);
+  
+  /* Admin state colors for light theme */
+  --color-success: var(--admin-success);
+  --color-warning: var(--admin-warning);
+  --color-destructive: var(--admin-danger);
+  --color-info: var(--admin-info);
+}
+
+/* ===== HERO SCOPED STYLES FOR LIGHT THEME ===== */
+/* Apply hero colors only within hero context in light mode */
+.hero-section {
+  --color-primary: var(--hero-primary);
+  --color-secondary: var(--hero-secondary);
+  --color-accent: var(--hero-accent-primary);
+}

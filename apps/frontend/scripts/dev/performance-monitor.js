@@ -18,7 +18,7 @@ const { performance } = require('perf_hooks');
 const CONFIG = {
   logFile: path.join(__dirname, '../../.next/cache/performance.log'),
   metricsFile: path.join(__dirname, '../../.next/cache/metrics.json'),
-  enableLogging: true,
+  enableLogging: !process.env.QUIET_MODE,
   enableMetrics: true,
   targets: {
     devServerStartup: 10000, // 10 seconds
@@ -90,7 +90,9 @@ class PerformanceMonitor {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] ${message}`;
     
-    console.log(logMessage);
+    if (!process.env.QUIET_MODE) {
+      console.log(logMessage);
+    }
     
     if (CONFIG.enableLogging) {
       fs.appendFileSync(CONFIG.logFile, logMessage + '\n');

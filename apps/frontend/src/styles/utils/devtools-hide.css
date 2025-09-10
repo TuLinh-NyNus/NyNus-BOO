@@ -1,0 +1,74 @@
+/*
+ * DevTools Hiding Utilities
+ * Optimized selectors for hiding development tools in production
+ * Only loaded when necessary to reduce bundle size
+ */
+
+/* ===== TANSTACK QUERY DEVTOOLS HIDING ===== */
+/* Target specific devtools with data attributes for better performance */
+[data-admin-panel] .tsqd-parent-container,
+[data-admin-panel] .tsqd-transitions-container,
+[data-admin-panel] .tsqd-open-btn-container,
+[data-admin-panel] .tsqd-open-btn,
+[data-admin-panel] .tsqd-main-panel,
+[data-admin-panel] .tsqd-devtools-panel,
+[data-admin-panel] .tsqd-devtools {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -9999 !important;
+}
+
+/* Specific DevTools IDs */
+#__REACT_QUERY_DEVTOOLS__,
+[data-admin-panel] #__REACT_QUERY_DEVTOOLS__ {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* ===== NEXT.JS DEVTOOLS ===== */
+[data-admin-panel] button[class*="nextjs-portal"],
+[data-admin-panel] div[class*="nextjs-portal"] {
+  display: none !important;
+}
+
+/* ===== BROWSER EXTENSION CLEANUP ===== */
+/* Only apply within admin context to reduce scope */
+[data-admin-panel] [class*="tsqd"],
+[data-admin-panel] [class*="tanstack"],
+[data-admin-panel] [class*="devtools"],
+[data-admin-panel] [class*="react-query-devtools"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* ===== PRODUCTION ONLY STYLES ===== */
+/* These styles only apply in production builds */
+@media (prefers-reduced-motion: no-preference) {
+  /* Optimize animations for production */
+  [data-admin-panel] * {
+    transition-duration: 0.15s !important;
+  }
+}
+
+/* ===== SELECTIVE HIDING BASED ON ENV ===== */
+/* Use CSS custom properties to control visibility */
+:root {
+  --devtools-display: none;
+}
+
+.development {
+  --devtools-display: block;
+}
+
+.production {
+  --devtools-display: none;
+}

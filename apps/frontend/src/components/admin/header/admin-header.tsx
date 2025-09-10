@@ -13,7 +13,7 @@ import { UserMenu } from './user/user-menu';
 import { NotificationDropdown } from './notifications/notification-dropdown';
 import { AdminBreadcrumb } from '@/components/admin/breadcrumb';
 import { cn } from '@/lib/utils';
-import { ThemeToggle } from '@/components/admin/theme/theme-toggle';
+import { UnifiedThemeToggle } from '@/components/ui/theme/unified-theme-toggle';
 
 /**
  * Admin Header Component
@@ -137,7 +137,7 @@ export function AdminHeader({
     return (
       <div className="flex items-center space-x-2">
         {/* Theme Toggle */}
-        <ThemeToggle variant="ghost" size="md" />
+        <UnifiedThemeToggle variant="ghost" size="md" />
 
         {/* Notifications */}
         {showNotifications && (
