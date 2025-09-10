@@ -18,21 +18,21 @@ interface FAQItemProps {
 const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
   return (
     <motion.div 
-      className="group rounded-2xl overflow-hidden backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl border border-white/10 bg-white/5 hover:bg-white/10"
+      className="group rounded-2xl overflow-hidden backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl border border-border bg-card/50 hover:bg-card"
       whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
     >
       <button
         className={`w-full p-5 md:p-6 flex items-center justify-between text-left font-semibold transition-all duration-300 ${
           isOpen 
-            ? "bg-white/10 text-white" 
-            : "bg-transparent text-slate-200 hover:bg-white/5"
+            ? "bg-muted/50 text-foreground" 
+            : "bg-transparent text-foreground/80 hover:bg-muted/30"
         }`}
         onClick={toggleOpen}
       >
         <div className="flex items-center">
           <div className="relative mr-3">
-            <HelpCircle className={`h-5 w-5 ${isOpen ? "text-blue-300" : "text-slate-400"}`} />
+            <HelpCircle className={`h-5 w-5 ${isOpen ? "text-blue-300" : "text-foreground/60"}`} />
             {isOpen && (
               <motion.div
                 className="absolute inset-0 h-5 w-5 bg-blue-300 rounded-full opacity-30 blur-md"
@@ -48,7 +48,7 @@ const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.3 }}
         >
-          <ChevronDown className="h-5 w-5 text-slate-400" />
+          <ChevronDown className="h-5 w-5 text-foreground/60" />
         </motion.div>
       </button>
       
@@ -58,7 +58,7 @@ const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="px-5 md:px-6 pb-5 md:pb-6 text-slate-300/90 leading-relaxed text-sm md:text-base"
+          className="px-5 md:px-6 pb-5 md:pb-6 text-foreground/80 leading-relaxed text-sm md:text-base"
         >
           {answer}
         </motion.div>
@@ -79,7 +79,7 @@ const FAQ = () => {
 
   return (
     <>
-      <section id="faq-section" className="py-16 md:py-20 lg:py-24 relative min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden">
+      <section id="faq-section" className="py-16 md:py-20 lg:py-24 relative min-h-screen bg-background overflow-hidden">
         {/* Background Pattern Overlay */}
         <div 
           className="absolute inset-0 opacity-5"
@@ -125,7 +125,7 @@ const FAQ = () => {
             <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
               Câu hỏi thường gặp
             </h2>
-            <p className="text-base md:text-lg lg:text-xl text-slate-300/80 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8">
+            <p className="text-base md:text-lg lg:text-xl text-foreground/80 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8">
               Những thắc mắc phổ biến về nền tảng học tập NyNus
             </p>
           </motion.div>
@@ -176,7 +176,7 @@ const FAQ = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <p className="text-slate-300/70 text-sm md:text-base lg:text-lg mb-3 md:mb-4 transition-colors duration-300">
+            <p className="text-foreground/70 text-sm md:text-base lg:text-lg mb-3 md:mb-4 transition-colors duration-300">
               Không tìm thấy câu trả lời bạn cần?
             </p>
             

@@ -61,8 +61,7 @@ const AILearning = () => {
   return (
     <section
       id="ai-learning-section"
-      className="relative h-[1080px] overflow-hidden" // Tăng height để chứa ScrollIndicator
-      style={{ backgroundColor: '#1F1F47' }}
+      className="relative h-[1080px] overflow-hidden bg-background" // Tăng height để chứa ScrollIndicator
     >
       <div className="container px-4 mx-auto relative z-10 h-full flex flex-col mt-25">
 
@@ -124,7 +123,7 @@ const AILearning = () => {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400">
               {aiLearningData.title}
             </h2>
-            <p className="text-slate-300 text-sm max-w-2xl mx-auto leading-relaxed">
+            <p className="text-foreground/80 text-sm max-w-2xl mx-auto leading-relaxed">
               {aiLearningData.subtitle}
             </p>
           </div>
@@ -152,16 +151,16 @@ const AILearning = () => {
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                     className="group"
                   >
-                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 hover:bg-white/10 hover:border-blue-400/30 hover:shadow-xl hover:shadow-blue-400/10 transition-all duration-300">
+                    <div className="bg-card/50 backdrop-blur-md border border-border rounded-lg p-4 hover:bg-card hover:border-blue-400/30 hover:shadow-xl hover:shadow-blue-400/10 transition-all duration-300">
                       <div className="flex items-start gap-3">
                         <div className={`p-2 rounded-md bg-gradient-to-br ${accentColors[index]} flex items-center justify-center transition-all duration-300`}>
                           {IconComponent && <IconComponent className="h-4 w-4" />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-sm text-white mb-1 group-hover:text-blue-300 transition-colors duration-300">
+                          <h3 className="font-semibold text-sm text-foreground mb-1 group-hover:text-blue-300 transition-colors duration-300">
                             {feature.title}
                           </h3>
-                          <p className="text-slate-300 text-xs leading-relaxed">
+                          <p className="text-foreground/80 text-xs leading-relaxed">
                             {feature.description}
                           </p>
                         </div>
@@ -192,12 +191,12 @@ const AILearning = () => {
                 {/* TOP ROW - Two Progress Charts Side by Side */}
                 <div className="grid grid-cols-2 gap-6">
                   {/* Chart 1: Tiến độ học tập - Bar Chart */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 shadow-xl">
+                  <div className="bg-card/50 backdrop-blur-md border border-border rounded-lg p-4 shadow-xl">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-400/20 to-blue-500/20 text-blue-400 flex items-center justify-center">
                         <TrendingUp className="h-3 w-3" />
                       </div>
-                      <h4 className="font-semibold text-white text-sm">Tiến độ học tập</h4>
+                      <h4 className="font-semibold text-foreground text-sm">Tiến độ học tập</h4>
                     </div>
 
                     {/* Bar Chart Container */}
@@ -209,7 +208,7 @@ const AILearning = () => {
                             {/* Single progress bar with gradient */}
                             <div className="relative w-full max-w-[40px] mx-auto">
                               {/* Background bar */}
-                              <div className="w-full bg-white/10 rounded-lg" style={{ height: '120px' }} />
+                              <div className="w-full bg-muted/50 rounded-lg" style={{ height: '120px' }} />
                               {/* Progress bar with gradient */}
                               <div
                                 className="absolute bottom-0 w-full bg-gradient-to-t from-blue-500 to-blue-300 rounded-lg transition-all duration-500 hover:from-blue-400 hover:to-blue-200"
@@ -226,7 +225,7 @@ const AILearning = () => {
                     </div>
 
                     {/* Labels */}
-                    <div className="mt-2 flex justify-between text-xs text-slate-300">
+                    <div className="mt-2 flex justify-between text-xs text-foreground/70">
                       {learningProgressData.map((point, index) => (
                         <span key={index} className="text-center flex-1 truncate">
                           {point.label}
@@ -236,12 +235,12 @@ const AILearning = () => {
                   </div>
 
                   {/* Chart 2: Tiến bộ thực tế - Line Chart */}
-                  <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-4 shadow-xl">
+                  <div className="bg-card/50 backdrop-blur-md border border-border rounded-lg p-4 shadow-xl">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-400/20 to-emerald-500/20 text-emerald-400 flex items-center justify-center">
                         <TrendingUp className="h-3 w-3" />
                       </div>
-                      <h4 className="font-semibold text-white text-sm">Tiến bộ thực tế</h4>
+                      <h4 className="font-semibold text-foreground text-sm">Tiến bộ thực tế</h4>
                     </div>
 
                     {/* Line Chart Container */}
@@ -251,13 +250,13 @@ const AILearning = () => {
                         {/* Horizontal grid lines */}
                         <div className="absolute inset-0 flex flex-col justify-between">
                           {[...Array(5)].map((_, i) => (
-                            <div key={i} className="h-px bg-white/10" />
+                            <div key={i} className="h-px bg-border" />
                           ))}
                         </div>
                         {/* Vertical grid lines */}
                         <div className="absolute inset-0 flex justify-between">
                           {realProgressData.map((_, i) => (
-                            <div key={i} className="w-px bg-white/10 h-full" />
+                            <div key={i} className="w-px bg-border h-full" />
                           ))}
                         </div>
                       </div>
@@ -316,7 +315,7 @@ const AILearning = () => {
                         {realProgressData.map((point, index) => (
                           <div
                             key={index}
-                            className="absolute text-xs font-semibold text-emerald-300 bg-slate-800/80 px-1 py-0.5 rounded"
+                            className="absolute text-xs font-semibold text-emerald-300 bg-card/80 px-1 py-0.5 rounded"
                             style={{
                               left: `${(index / (realProgressData.length - 1)) * 100}%`,
                               top: `${100 - point.value}%`,
@@ -330,7 +329,7 @@ const AILearning = () => {
                     </div>
 
                     {/* Labels */}
-                    <div className="mt-2 flex justify-between text-xs text-slate-300">
+                    <div className="mt-2 flex justify-between text-xs text-foreground/70">
                       {realProgressData.map((point, index) => (
                         <span key={index} className="text-center flex-1 truncate">
                           {point.label}
@@ -343,20 +342,20 @@ const AILearning = () => {
                 {/* BOTTOM ROW - New Achievements + Progress Overview */}
                 <div className="grid grid-cols-3 gap-6">
                   {/* New Achievements - Left side */}
-                  <div className="col-span-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-3 shadow-xl">
+                  <div className="col-span-1 bg-card/50 backdrop-blur-md border border-border rounded-lg p-3 shadow-xl">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-400/20 to-amber-500/20 text-amber-400 flex items-center justify-center">
                         <Award className="h-3 w-3" />
                       </div>
-                      <h4 className="font-semibold text-white text-sm">Thành tích mới</h4>
+                      <h4 className="font-semibold text-foreground text-sm">Thành tích mới</h4>
                     </div>
 
                     <div className="space-y-2">
                       {newAchievements.map((achievement, index) => (
-                        <div key={index} className="bg-white/5 rounded-md p-2 border border-white/10">
+                        <div key={index} className="bg-muted/50 rounded-md p-2 border border-border">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-lg">{achievement.icon}</span>
-                            <span className="text-xs text-slate-300 flex-1 truncate">{achievement.title}</span>
+                            <span className="text-xs text-foreground/80 flex-1 truncate">{achievement.title}</span>
                           </div>
                           <div className="text-xs text-amber-400 font-medium">+{achievement.points} điểm</div>
                         </div>
@@ -365,12 +364,12 @@ const AILearning = () => {
                   </div>
 
                   {/* Progress Overview - Right side (2/3 width) */}
-                  <div className="col-span-2 bg-white/5 backdrop-blur-md border border-white/10 rounded-lg p-3 shadow-xl">
+                  <div className="col-span-2 bg-card/50 backdrop-blur-md border border-border rounded-lg p-3 shadow-xl">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-400/20 to-emerald-500/20 text-emerald-400 flex items-center justify-center">
                         <BookOpen className="h-3 w-3" />
                       </div>
-                      <h4 className="font-semibold text-white text-base">Tổng quan chương trình</h4>
+                      <h4 className="font-semibold text-foreground text-base">Tổng quan chương trình</h4>
                     </div>
 
                     <div className="grid grid-cols-4 gap-2">
@@ -383,7 +382,7 @@ const AILearning = () => {
                           }`}>
                             {chapter.current}/{chapter.target}
                           </div>
-                          <div className="text-sm text-slate-300 truncate">{chapter.label}</div>
+                          <div className="text-sm text-foreground/70 truncate">{chapter.label}</div>
                         </div>
                       ))}
                     </div>

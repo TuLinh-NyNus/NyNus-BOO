@@ -120,8 +120,8 @@ const CourseCard = ({ course }: { course: FeaturedCourse }) => {
         </div>
       </div>
       <div className="p-5 flex flex-col h-full">
-        <h3 className="text-white font-semibold text-base leading-tight mb-1 line-clamp-2">{course.title}</h3>
-        <p className="text-white/80 text-sm leading-relaxed mb-3 line-clamp-3">{course.description}</p>
+        <h3 className="text-foreground font-semibold text-base leading-tight mb-1 line-clamp-2">{course.title}</h3>
+        <p className="text-foreground/80 text-sm leading-relaxed mb-3 line-clamp-3">{course.description}</p>
         {course.topics && course.topics.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
             {course.topics.slice(0, 3).map((topic, idx) => {
@@ -137,7 +137,7 @@ const CourseCard = ({ course }: { course: FeaturedCourse }) => {
             })}
           </div>
         )}
-        <div className="flex items-center gap-4 text-xs text-white/80 mb-4">
+        <div className="flex items-center gap-4 text-xs text-foreground/80 mb-4">
           <div className="flex items-center gap-1">
             <span className="inline-block w-3.5 h-3.5 rounded-full bg-white/60" />
             <span>{course.students ? course.students.toLocaleString() : '0'} học viên</span>
@@ -148,7 +148,7 @@ const CourseCard = ({ course }: { course: FeaturedCourse }) => {
           </div>
         </div>
         <div className="mt-auto">
-          <Link href={`/courses/${course.id}`} className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/25 text-white text-sm font-medium transition-colors">
+          <Link href={`/courses/${course.id}`} className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-muted/50 hover:bg-muted border border-border text-foreground text-sm font-medium transition-colors">
             Xem chi tiết
           </Link>
         </div>
@@ -162,7 +162,7 @@ const FeaturedCourses = () => {
   const [error] = useState(null); // Mock error state
 
   return (
-    <section id="featured-courses-section" className="py-20 relative min-h-screen" style={{ backgroundColor: '#1F1F47' }}>
+    <section id="featured-courses-section" className="py-20 relative min-h-screen bg-background">
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full opacity-5">

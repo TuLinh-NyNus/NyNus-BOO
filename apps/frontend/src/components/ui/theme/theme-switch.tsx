@@ -25,7 +25,7 @@ const ThemeSwitch = () => {
   return (
     <motion.button
       onClick={toggleTheme}
-      className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-200/70 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-300/50 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 hover:bg-slate-300/70 dark:hover:bg-slate-700/70 transition-colors"
+      className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/70 backdrop-blur-sm border border-border text-foreground/80 hover:bg-muted hover:text-foreground transition-colors"
       whileTap={{ scale: 0.9 }}
       whileHover={{ scale: 1.05 }}
       aria-label={theme === "dark" ? "Chuyển sang chế độ sáng" : "Chuyển sang chế độ tối"}

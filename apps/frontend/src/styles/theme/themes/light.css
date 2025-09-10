@@ -1,46 +1,46 @@
 /*
- * NyNus Light Theme - ONLY COLORS
- * Semantic color mappings for light mode using NyNus earth tones
+ * NyNus Light Theme - EARTH TONES PALETTE
+ * Semantic color mappings for light mode using warm, natural earth tones
+ * Inspired by nature: sage greens, golden yellows, terracotta oranges, and taupe browns
  */
 
 @theme {
-  /* Base Semantic Colors - Light Theme */
-  --color-background: var(--color-nynus-cream);
-  --color-foreground: var(--color-nynus-dark);
+  /* Base Semantic Colors - Light Theme với Earth Tones */
+  --color-background: var(--color-nynus-cream);     /* #FDFCF7 - Very light cream background */
+  --color-foreground: var(--color-nynus-dark);      /* #1A1A2E - Very dark navy text */
 
-  /* Card Colors */
-  --color-card: var(--color-nynus-jade);
-  --color-card-foreground: var(--color-nynus-dark);
+  /* Card Colors - Light sage cho cards */
+  --color-card: var(--color-nynus-jade);            /* #E8E4A6 - Light sage cards */
+  --color-card-foreground: var(--color-nynus-dark); /* #5D5B71 - Dark olive text on cards */
 
   /* Popover Colors */
-  --color-popover: var(--color-nynus-silver);
+  --color-popover: var(--color-nynus-silver);       /* #F0EFE3 - Subtle silver-beige */
   --color-popover-foreground: var(--color-nynus-dark);
 
-  /* Primary Colors */
-  --color-primary: var(--color-primary-gold);
+  /* Primary Colors - Golden yellow làm primary */
+  --color-primary: var(--color-primary-gold);       /* #F5D547 - Vibrant golden yellow */
   --color-primary-foreground: var(--color-nynus-dark);
 
-  /* Secondary Colors */
-  --color-secondary: var(--color-primary-terracotta);
+  /* Secondary Colors - Terracotta orange */
+  --color-secondary: var(--color-primary-terracotta); /* #D09758 - Warm terracotta */
   --color-secondary-foreground: var(--color-nynus-cream);
 
   /* Muted Colors */
   --color-muted: var(--color-nynus-silver);
-  --color-muted-foreground: var(--color-nynus-medium);
+  --color-muted-foreground: var(--color-nynus-muted);  /* #4A5568 - Medium gray for better readability */
 
-  /* Accent Colors */
-  --color-accent: var(--color-primary-pink);
+  /* Accent Colors - Dusty rose accent */
+  --color-accent: var(--color-primary-pink);        /* #E8A2B0 - Soft dusty rose */
   --color-accent-foreground: var(--color-nynus-dark);
 
-  /* Destructive Colors */
-  --color-destructive: var(--color-primary-sienna);
+  /* Destructive Colors - Taupe brown cho destructive */
+  --color-destructive: var(--color-primary-sienna);    /* #A38772 - Rich taupe brown */
   --color-destructive-foreground: var(--color-nynus-cream);
 
-  /* Border & Input Colors - Sửa để tránh sai khác giữa trình duyệt */
-  /* Thay transparent bằng background color để kết quả nhất quán */
-  --color-border: color-mix(in srgb, var(--color-primary-terracotta) 20%, var(--color-background));
-  --color-input: color-mix(in srgb, var(--color-primary-terracotta) 20%, var(--color-background));
-  --color-ring: var(--color-primary-gold);
+  /* Border & Input Colors - Earth tones harmony */
+  --color-border: color-mix(in srgb, var(--color-nynus-medium) 25%, var(--color-background));
+  --color-input: color-mix(in srgb, var(--color-nynus-medium) 15%, var(--color-background));
+  --color-ring: var(--color-primary-gold);             /* #F5D547 - Golden focus ring */
 
   /* Success, Warning, Error, Info */
   --color-success: var(--color-success);

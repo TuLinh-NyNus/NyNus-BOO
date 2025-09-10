@@ -11,6 +11,7 @@ import { getCoursesByCategory } from "@/lib/mockdata";
 import { MockTutorial, MockCourse } from "@/lib/mockdata/courses-types";
 import { useTutorials } from "@/hooks/use-tutorials";
 import { Button } from "@/components/ui/form/button";
+import { ThemeForcer } from "@/components/ui/theme";
 
 // Helper function to map tutorials to courses by category
 function getTutorialsForCourse(course: MockCourse, allTutorials: MockTutorial[]): MockTutorial[] {
@@ -58,9 +59,10 @@ export default function CoursesPage() {
   };
 
   return (
-    <div className="min-h-screen relative">
-      {/* Mathematical Background for entire page */}
-      <MathBackground />
+    <ThemeForcer forceTheme="dark" disableToggle>
+      <div className="min-h-screen relative">
+        {/* Mathematical Background for entire page */}
+        <MathBackground />
 
       {/* Hero Section */}
       <div className="relative z-10">
@@ -156,6 +158,7 @@ export default function CoursesPage() {
       </div>
 
       {/* Features Section Removed - Component not available */}
-    </div>
+      </div>
+    </ThemeForcer>
   );
 }

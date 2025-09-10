@@ -21,6 +21,7 @@
 @import "../styles/theme/admin-color-scheme.css";
 @import "../styles/theme/themes/light.css";
 @import "../styles/theme/themes/dark.css";
+@import "../styles/theme/hero-theme.css"; /* Hero-inspired theme colors */
 
 /* Import Enhanced Gradient System */
 @import "../styles/gradients.css";
@@ -156,4 +157,9 @@
 
 .dark .icon-dark-accent {
   color: var(--color-icon-accent);
+}
+
+/* Theme Toggle Utilities - Ẩn theme toggle khi disabled */
+[data-theme-toggle-disabled="true"] [data-theme-toggle] {
+  display: none !important;
 }

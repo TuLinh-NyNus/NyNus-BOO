@@ -219,7 +219,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
                 </span>
                 {getTrendIcon(feature.stats.trend)}
               </div>
-              <p className="text-xs text-white/80">{feature.stats.label}</p>
+              <p className="text-xs text-foreground/80">{feature.stats.label}</p>
             </motion.div>
           )}
         </div>
@@ -228,14 +228,14 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
         <div className="flex-grow">
           {/* Enhanced typography with accessibility */}
           <h3
-            className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white group-hover:text-white/95 transition-colors duration-300 leading-tight"
+            className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-foreground group-hover:text-foreground/95 transition-colors duration-300 leading-tight"
             id={`feature-${feature.id}-title`}
           >
             {feature.title}
           </h3>
 
           <p
-            className="text-white/90 mb-4 sm:mb-5 transition-colors duration-300 leading-relaxed text-sm sm:text-base"
+            className="text-foreground/90 mb-4 sm:mb-5 transition-colors duration-300 leading-relaxed text-sm sm:text-base"
             id={`feature-${feature.id}-description`}
           >
             {feature.description}
@@ -246,7 +246,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
             {feature.highlights.map((highlight, idx) => (
               <motion.span
                 key={idx}
-                className="px-2 py-1 text-xs bg-white/15 text-white/95 rounded-full"
+                className="px-2 py-1 text-xs bg-muted/50 text-foreground/95 rounded-full"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.05 }}
@@ -271,7 +271,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
                   category: 'feature_engagement'
                 });
               }}
-              className="text-xs text-white/80 hover:text-white/95 transition-colors duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2 p-2 rounded-lg"
+              className="text-xs text-foreground/80 hover:text-foreground/95 transition-colors duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2 p-2 rounded-lg"
             >
               Chi tiết
             </button>
@@ -279,7 +279,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
 
           <Link
             href={feature.cta.href}
-            className={`inline-flex items-center text-sm font-medium ${scheme.icon} hover:${scheme.icon}/80 transition-all duration-300 group/link px-4 py-3 min-h-[44px] rounded-full bg-white/5 hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none`}
+            className={`inline-flex items-center text-sm font-medium ${scheme.icon} hover:${scheme.icon}/80 transition-all duration-300 group/link px-4 py-3 min-h-[44px] rounded-full bg-muted/50 hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none`}
             aria-label={`${feature.cta.text} - ${feature.title}`}
             onClick={() => {
               // Track feature CTA click
@@ -311,14 +311,14 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="mt-4 pt-4 border-t border-white/10"
+              className="mt-4 pt-4 border-t border-border"
             >
-              <h4 className="text-sm font-medium text-white/95 mb-2">Lợi ích chính:</h4>
+              <h4 className="text-sm font-medium text-foreground/95 mb-2">Lợi ích chính:</h4>
               <ul className="space-y-1">
                 {feature.benefits.map((benefit, idx) => (
                   <motion.li
                     key={idx}
-                    className="flex items-center gap-2 text-xs text-white/85"
+                    className="flex items-center gap-2 text-xs text-foreground/85"
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.05 }}
@@ -415,12 +415,12 @@ const Features = () => {
   return (
     <section
       id="features-section"
-      className="py-20 lg:py-32 relative min-h-screen bg-[#1F1F47] overflow-hidden"
+      className="py-20 lg:py-32 relative min-h-screen bg-background overflow-hidden"
       aria-labelledby="features-title"
       role="main"
     >
       {/* Neural Network Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1F1F47] to-[#252560] opacity-40"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-background to-muted opacity-40"></div>
       <NeuralNetworkBackground
         className="opacity-45"
         nodeCount={150}
@@ -442,7 +442,7 @@ const Features = () => {
           >
             {/* Enhanced badge */}
             <motion.div
-              className="inline-flex items-center px-6 py-3 rounded-full bg-white/5 border border-white/10 text-white/90 mb-6 transition-all duration-300"
+              className="inline-flex items-center px-6 py-3 rounded-full bg-muted/50 border border-border text-foreground/90 mb-6 transition-all duration-300"
               whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
             >
               <Info className="h-4 w-4 mr-2 text-blue-400" />
@@ -458,7 +458,7 @@ const Features = () => {
             </h2>
 
             {/* Enhanced subtitle */}
-            <p className="text-white/85 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+            <p className="text-foreground/85 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
               {featuresData.subtitle}
             </p>
           </motion.div>
@@ -484,11 +484,11 @@ const Features = () => {
                     category: 'navigation'
                   });
                 }}
-                className={`group p-3 rounded-full bg-white/5 border border-white/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none hover:bg-white/15 hover:border-white/30 opacity-80 hover:opacity-100`}
+                className={`group p-3 rounded-full bg-muted/50 border border-border transition-all duration-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none hover:bg-muted hover:border-border opacity-80 hover:opacity-100`}
                 aria-label="Cuộn sang trái"
                 type="button"
               >
-                <ChevronLeft className="h-5 w-5 text-white transition-transform duration-300 group-hover:-translate-x-0.5" />
+                <ChevronLeft className="h-5 w-5 text-foreground transition-transform duration-300 group-hover:-translate-x-0.5" />
               </button>
             </div>
 
@@ -503,11 +503,11 @@ const Features = () => {
                     category: 'navigation'
                   });
                 }}
-                className={`group p-3 rounded-full bg-white/5 border border-white/10 transition-all duration-300 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#1F1F47] focus-visible:outline-none hover:bg-white/15 hover:border-white/30 opacity-80 hover:opacity-100`}
+                className={`group p-3 rounded-full bg-muted/50 border border-border transition-all duration-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none hover:bg-muted hover:border-border opacity-80 hover:opacity-100`}
                 aria-label="Cuộn sang phải"
                 type="button"
               >
-                <ChevronRight className="h-5 w-5 text-white transition-transform duration-300 group-hover:translate-x-0.5" />
+                <ChevronRight className="h-5 w-5 text-foreground transition-transform duration-300 group-hover:translate-x-0.5" />
               </button>
             </div>
 

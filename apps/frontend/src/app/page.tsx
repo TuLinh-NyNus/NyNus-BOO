@@ -3,18 +3,19 @@ import dynamic from 'next/dynamic';
 
 // Import home components từ index files
 import { Hero, Features, FAQ, ProgressScrollIndicator } from "@/components/features/home";
+import { HeroForcer } from "@/components/ui/theme";
 
 // Dynamic imports cho performance optimization
 const AILearning = dynamic(() => import('@/components/features/home/ai-learning'), {
-  loading: () => <div className="h-96 animate-pulse bg-slate-800 rounded-lg" />
+  loading: () => <div className="h-96 animate-pulse bg-muted rounded-lg" />
 });
 
 const FeaturedCourses = dynamic(() => import('@/components/features/home/featured-courses'), {
-  loading: () => <div className="h-64 animate-pulse bg-slate-800 rounded-lg" />
+  loading: () => <div className="h-64 animate-pulse bg-muted rounded-lg" />
 });
 
 const Testimonials = dynamic(() => import('@/components/features/home/testimonials'), {
-  loading: () => <div className="h-64 animate-pulse bg-slate-800 rounded-lg" />
+  loading: () => <div className="h-64 animate-pulse bg-muted rounded-lg" />
 });
 
 export const metadata: Metadata = {
@@ -25,7 +26,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <div>
-      <Hero />
+      <HeroForcer>
+        <Hero />
+      </HeroForcer>
       <Features />
       <AILearning />
       <FeaturedCourses />

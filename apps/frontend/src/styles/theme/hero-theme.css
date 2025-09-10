@@ -1,0 +1,140 @@
+/*
+ * Hero-inspired Dark Theme
+ * Màu sắc mặc định được lấy từ Hero component
+ * Tạo một theme thống nhất với giao diện hero section
+ */
+
+/* Root và Dark mode đều sử dụng màu sắc từ Hero */
+:root,
+.dark {
+  /* Hero Gradient Colors as Primary Palette */
+  --hero-primary: #4417DB;        /* Deep purple - màu chính */
+  --hero-secondary: #E57885;      /* Pink - màu phụ */
+  --hero-tertiary: #F18582;       /* Light pink - màu thứ ba */
+  
+  /* Hero Accent Colors */
+  --hero-accent-primary: #6366F1;    /* Indigo - accent chính */
+  --hero-accent-secondary: #8B5CF6;  /* Purple - accent phụ */
+  --hero-accent-blue: #3B82F6;       /* Blue - accent xanh */
+  --hero-accent-pink: #EC4899;       /* Pink - accent hồng */
+  
+  /* Background Gradients */
+  --hero-bg-gradient: linear-gradient(to bottom, #4417DB, #E57885, #F18582);
+  --hero-bg-dark: #0B1426;           /* Deep navy-black base */
+  --hero-bg-surface: #162338;        /* Navy-slate surface color */
+  --hero-bg-surface-hover: #1E2A42;  /* Navy hover state */
+  
+  /* Text Colors */
+  --hero-text-primary: #FFFFFF;      /* Pure white primary text */
+  --hero-text-secondary: #B0C4DE;    /* Light steel blue secondary text */
+  --hero-text-muted: #8FA6CC;        /* Darker steel blue for muted text */
+  
+  /* Border Colors */
+  --hero-border-primary: #2A3441;    /* Navy primary border */
+  --hero-border-secondary: #1E2A42;  /* Navy secondary border */
+  --hero-border-light: rgba(255, 255, 255, 0.1); /* Light border */
+  
+  /* Wave Colors */
+  --hero-wave-1: rgba(65, 23, 219, 0.4);   /* Purple wave */
+  --hero-wave-2: rgba(65, 23, 219, 0.3);   /* Purple wave lighter */
+  --hero-wave-3: rgba(229, 120, 133, 0.4); /* Pink wave */
+  --hero-wave-4: rgba(229, 120, 133, 0.2); /* Pink wave lighter */
+  --hero-wave-5: rgba(241, 133, 130, 0.3); /* Light pink wave */
+}
+
+/* Override dark theme với Hero colors */
+.dark {
+  /* Override enhanced dark theme với Hero colors */
+  --enhanced-dark-bg: var(--hero-bg-dark);
+  --enhanced-dark-surface: var(--hero-bg-surface);
+  --enhanced-dark-surface-hover: var(--hero-bg-surface-hover);
+  --enhanced-dark-border: var(--hero-border-primary);
+  --enhanced-dark-text: var(--hero-text-primary);
+  --enhanced-dark-text-muted: var(--hero-text-secondary);
+  --enhanced-dark-accent: var(--hero-accent-primary);
+  --enhanced-dark-accent-hover: var(--hero-accent-secondary);
+  --enhanced-dark-error: var(--hero-accent-pink);
+  --enhanced-dark-info: var(--hero-accent-blue);
+}
+
+/* Utility classes cho Hero theme */
+.hero-gradient {
+  background: var(--hero-bg-gradient);
+}
+
+.hero-gradient-reverse {
+  background: linear-gradient(to top, #4417DB, #E57885, #F18582);
+}
+
+.hero-gradient-horizontal {
+  background: linear-gradient(to right, #4417DB, #E57885, #F18582);
+}
+
+.hero-surface {
+  background-color: var(--hero-bg-surface);
+  color: var(--hero-text-primary);
+}
+
+.hero-surface-hover:hover {
+  background-color: var(--hero-bg-surface-hover);
+}
+
+.hero-text-gradient {
+  background: linear-gradient(135deg, var(--hero-accent-primary), var(--hero-accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-border {
+  border-color: var(--hero-border-primary);
+}
+
+/* Button styles với Hero theme */
+.hero-button-primary {
+  background: linear-gradient(135deg, var(--hero-accent-primary), var(--hero-accent-secondary));
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.hero-button-primary:hover {
+  background: linear-gradient(135deg, var(--hero-accent-secondary), var(--hero-accent-pink));
+  transform: scale(1.05);
+}
+
+.hero-button-secondary {
+  background: var(--hero-bg-surface);
+  color: var(--hero-text-primary);
+  border: 1px solid var(--hero-border-primary);
+}
+
+.hero-button-secondary:hover {
+  background: var(--hero-bg-surface-hover);
+  border-color: var(--hero-accent-primary);
+}
+
+/* Card styles với Hero theme */
+.hero-card {
+  background: var(--hero-bg-surface);
+  border: 1px solid var(--hero-border-primary);
+  color: var(--hero-text-primary);
+}
+
+.hero-card-hover:hover {
+  background: var(--hero-bg-surface-hover);
+  border-color: var(--hero-accent-primary);
+  box-shadow: 0 10px 30px rgba(68, 23, 219, 0.2);
+}
+
+/* Glass effect với Hero theme */
+.hero-glass {
+  background: rgba(42, 23, 84, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-glass-light {
+  background: rgba(99, 102, 241, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}

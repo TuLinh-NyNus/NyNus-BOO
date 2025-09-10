@@ -14,9 +14,7 @@ export function ThemeToggle() {
     setMounted(true);
   }, []);
 
-  // Tạm thời ẩn theme toggle vì chưa có light mode
-  // TODO: Bỏ comment khi đã xây dựng xong light mode
-  return null;
+  // Theme toggle đã được kích hoạt với light mode support
 
   // Hiển thị fallback UI trong lúc chờ mount
   if (!mounted) {
@@ -24,7 +22,7 @@ export function ThemeToggle() {
       <Button
         variant="ghost"
         size="icon"
-        className="relative h-9 w-9 text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+        className="relative h-11 w-11 text-foreground/80 hover:text-foreground hover:bg-muted transition-colors"
       >
         <div className="h-5 w-5" /> {/* Empty placeholder */}
       </Button>
@@ -36,7 +34,9 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="relative h-9 w-9 text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+      className="relative h-11 w-11 text-foreground/80 hover:text-foreground hover:bg-muted transition-colors"
+      aria-label={theme === "light" ? "Chuyển sang chế độ tối" : "Chuyển sang chế độ sáng"}
+      data-theme-toggle
     >
       <motion.div
         initial={false}
@@ -48,7 +48,7 @@ export function ThemeToggle() {
         className="absolute"
       >
         <svg
-          className="h-5 w-5 text-white/90"
+          className="h-5 w-5 text-foreground/80"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -69,7 +69,7 @@ export function ThemeToggle() {
         className="absolute"
       >
         <svg
-          className="h-5 w-5 text-white/90"
+          className="h-5 w-5 text-foreground/80"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
