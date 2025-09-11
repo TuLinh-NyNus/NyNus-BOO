@@ -345,3 +345,26 @@ debug_test.*
 *test*.tex
 *demo*.tex
 GOC-*.tex
+
+# =============================================================================
+# DEVELOPMENT TOOLS & AUGMENTATION
+# =============================================================================
+
+# Augment AI tools
+.augment/
+.augmentignore
+
+# Playwright MCP tools
+.playwright-mcp/
+
+# Test directories
+test/
+tests/
+*test*/
+*tests*/
+
+# Temporary directories và files
+temp/
+temporary/
+*temp*/
+*temporary*/
