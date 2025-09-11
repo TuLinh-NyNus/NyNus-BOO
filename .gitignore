@@ -363,6 +363,22 @@ tests/
 *test*/
 *tests*/
 
+# Test files
+*.test.js
+*.test.ts
+*.test.tsx
+*.spec.js
+*.spec.ts
+*.spec.tsx
+test-*.js
+test-*.ts
+*-test.js
+*-test.ts
+*-testing.js
+*-testing.ts
+**/*testing*.ts
+**/*testing*.js
+
 # Temporary directories và files
 temp/
 temporary/
