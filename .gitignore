@@ -50,9 +50,9 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Package lock files (keep package-lock.json, ignore others)
+# Package lock files - chỉ giữ pnpm-lock.yaml theo rule PNPM
 yarn.lock
-pnpm-lock.yaml
+package-lock.json
 .pnpm-store/
 
 # =============================================================================
@@ -283,3 +283,65 @@ docs/generated/
 .DS_Store
 .Spotlight-V100
 .Trashes
+
+# =============================================================================
+# LATEX & DOCUMENT FILES
+# =============================================================================
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.out
+*.idx
+*.ilg
+*.ind
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
+
+# =============================================================================
+# ADDITIONAL DEVELOPMENT FILES
+# =============================================================================
+
+# Python cache (for tools)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Go test cache
+*.test
+*.prof
+
+# VSCode workspace files
+*.code-workspace
+
+# JetBrains IDEs additional
+*.ipr
+*.iws
+.idea_modules/
+
+# Additional temporary files
+*~
+*.swp
+*.swo
+*.tmp
+.temp*
+temp_*
+
+# Testing files từ tools
+test_output/
+debug_test.*
+*test*.tex
+*demo*.tex
+GOC-*.tex

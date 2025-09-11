@@ -1,113 +1,28 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# =============================================================================
+# PARSING QUESTION TOOL SPECIFIC GITIGNORE
+# Các Python patterns chung đã có trong root .gitignore
+# File này chỉ chứa những rules specific cho question parsing tool
+# =============================================================================
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Output files
+# Tool-specific output files
 test_output/
 output/
+parsed_questions/
+processed_data/
+
+# Generated data files
 *.csv
+*.json
+!config.json
+!schema.json
+
+# Tool specific docs (giữ các file README quan trọng)
 *.md
 !README.md
 !IMPLEMENTATION_SUMMARY.md
+!CHANGELOG.md
 
-# Temporary files
-debug_test.py
-temp_*
-*.tmp
+# Parser specific temp files
+parser_cache/
+.parsing_temp/
+question_temp/
