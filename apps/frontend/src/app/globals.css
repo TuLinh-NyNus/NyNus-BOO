@@ -16,23 +16,14 @@
 @plugin "tailwindcss-animate";
 
 
-/* Import Optimized Color System */
-@import "../styles/theme/tokens/colors.css";
-@import "../styles/theme/admin-color-scheme.css";
-@import "../styles/theme/palettes/pastel-light.css";
-@import "../styles/theme/themes/light.css";
-@import "../styles/theme/themes/optimized-dark.css";
-@import "../styles/theme/hero-theme.css"; /* Hero-inspired theme colors */
-@import "../styles/theme/sections-dark-overrides.css"; /* Enhanced contrast for non-hero sections */
+/* Import Consolidated Theme System v3.0 - Simplified from 10+ files to 3 */
+@import "../styles/theme/theme-tokens.css";   /* Base colors + semantic tokens */
+@import "../styles/theme/theme-light.css";    /* Complete light mode */
+@import "../styles/theme/theme-dark.css";     /* Complete dark mode */
 
-/* Import Enhanced Gradient System */
-@import "../styles/gradients.css";
-
-/* Import Admin Dark Theme Enhancements */
-@import "../styles/admin-dark-theme.css";
-
-/* Import Admin Layout Spacing */
-@import "../styles/admin-layout-spacing.css";
+/* Import Supporting Systems */
+@import "../styles/gradients.css";            /* Gradient utilities */
+@import "../styles/admin-layout-spacing.css"; /* Admin layout spacing */
 
 /*
  * Theme files now contain ONLY:

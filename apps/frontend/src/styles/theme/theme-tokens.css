@@ -1,0 +1,157 @@
+/*
+ * NyNus Theme Tokens - Consolidated Design System v3.0
+ * All base colors and semantic tokens in one file
+ * 
+ * Structure:
+ * 1. Base Color Tokens - Raw color values
+ * 2. Semantic Token Mappings - Purpose-based mappings
+ * 3. Component-specific tokens
+ * 4. Context-specific overrides (Admin, Hero)
+ */
+
+@theme {
+  /* ===== BASE COLOR TOKENS ===== */
+  
+  /* Neutrals */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  
+  /* Light theme base colors - Pure Light Version with Pastel Palette */
+  --color-light-bg: #FDFDFD;        /* Pure light background */
+  --color-light-surface: #F9DDD2;   /* Light surface/card - Hồng đào nhạt */
+  --color-light-muted: #FBCFD0;     /* Light muted backgrounds - Hồng pastel */
+  --color-light-secondary-bg: #F6EADE; /* Secondary background - Beige kem */
+  --color-light-navy: #1A1A2E;      /* Dark text for light mode */
+  --color-light-gray: #2D3748;      /* Secondary text */
+  --color-medium-gray: #4A5568;     /* Muted text */
+  
+  /* Dark theme base colors */
+  --color-dark-bg: #0B1426;         /* Deep navy-black background */
+  --color-dark-surface: #162338;    /* Dark surface/card */
+  --color-dark-surface-hover: #1E2A42; /* Dark hover states */
+  --color-dark-surface-muted: #13203A; /* Dark muted surfaces */
+  --color-dark-border: #2A3441;     /* Dark borders */
+  --color-dark-text: #FFFFFF;       /* Pure white text */
+  --color-dark-text-muted: #B0C4DE; /* Light steel blue muted text */
+  
+  /* Brand accent colors - Pastel Palette */
+  --color-pastel-rose: #E8A0A4;     /* Primary - Dusty rose pastel */
+  --color-pastel-lilac: #E6C6D1;    /* Secondary - Lilac pastel */
+  --color-pastel-mauve: #CEC0D2;    /* Accent - Mauve pastel */
+  --color-pastel-peach: #F9DDD2;    /* Surface - Peach pastel */
+  --color-pastel-pink: #FBCFD0;     /* Muted - Pink pastel */
+  --color-pastel-beige: #F6EADE;    /* Background - Beige pastel */
+  --color-taupe: #A38772;           /* Destructive taupe (giữ nguyên) */
+  
+  /* Hero gradient colors */
+  --color-deep-purple: #4417DB;     /* Hero gradient start */
+  --color-hero-pink: #E57885;       /* Hero gradient middle */
+  --color-hero-light-pink: #F18582; /* Hero gradient end */
+  
+  /* Interactive accent colors */
+  --color-indigo: #6366F1;          /* Primary interactive */
+  --color-purple: #8B5CF6;          /* Secondary interactive */
+  --color-blue: #3B82F6;            /* Info blue */
+  --color-pink: #EC4899;            /* Error pink */
+  
+  /* Admin colors */
+  --color-admin-purple: #A259FF;
+  --color-admin-purple-dark: #32197D;
+  --color-admin-blue: #5B88B9;
+  --color-admin-orange: #FDAD00;
+  --color-admin-red: #FD5653;
+  
+  /* System state colors */
+  --color-success: #10B981;
+  --color-success-light: #48BB78;
+  --color-warning: #F59E0B;
+  --color-warning-light: #ED8936;
+  --color-error: #EF4444;
+  --color-error-light: #FD5653;
+  --color-info: #3B82F6;
+  --color-info-light: #5B88B9;
+  
+  /* ===== SEMANTIC TOKEN MAPPINGS ===== */
+  /* Default to light theme - will be overridden by theme files */
+  
+  /* Base semantic colors */
+  --color-background: var(--color-light-bg);
+  --color-foreground: var(--color-light-navy);
+  --color-surface: var(--color-light-surface);
+  --color-surface-hover: var(--color-light-muted);
+  --color-border: color-mix(in srgb, var(--color-medium-gray) 20%, var(--color-light-bg));
+  --color-text-muted: var(--color-medium-gray);
+  
+  /* Interactive colors - Pastel Theme */
+  --color-primary: var(--color-pastel-rose);
+  --color-primary-foreground: var(--color-light-navy);
+  --color-secondary: var(--color-pastel-lilac);
+  --color-secondary-foreground: var(--color-light-navy);
+  --color-accent: var(--color-pastel-mauve);
+  --color-accent-foreground: var(--color-light-navy);
+  
+  /* Component semantic colors */
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-foreground);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-foreground);
+  --color-muted: var(--color-surface-hover);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-input: color-mix(in srgb, var(--color-medium-gray) 12%, var(--color-light-bg));
+  --color-ring: var(--color-primary);
+  
+  /* State colors */
+  --color-destructive: var(--color-taupe);
+  --color-destructive-foreground: var(--color-white);
+  
+  /* ===== COMPONENT-SPECIFIC TOKENS ===== */
+  
+  /* Badge tokens */
+  --color-badge-default: var(--color-primary);
+  --color-badge-default-foreground: var(--color-primary-foreground);
+  --color-badge-secondary: var(--color-secondary);
+  --color-badge-secondary-foreground: var(--color-secondary-foreground);
+  --color-badge-success: var(--color-success);
+  --color-badge-success-foreground: var(--color-white);
+  --color-badge-warning: var(--color-warning);
+  --color-badge-warning-foreground: var(--color-white);
+  --color-badge-error: var(--color-error);
+  --color-badge-error-foreground: var(--color-white);
+  
+  /* Table tokens */
+  --color-table-header: var(--color-surface-hover);
+  --color-table-header-foreground: var(--color-foreground);
+  --color-table-row-hover: var(--color-surface);
+  --color-table-border: var(--color-border);
+  
+  /* Icon tokens */
+  --color-icon-primary: var(--color-foreground);
+  --color-icon-secondary: var(--color-text-muted);
+  --color-icon-accent: var(--color-accent);
+  
+  /* ===== CONTEXT-SPECIFIC OVERRIDES ===== */
+  
+  /* Hero context */
+  --hero-primary: var(--color-deep-purple);
+  --hero-secondary: var(--color-hero-pink);
+  --hero-tertiary: var(--color-hero-light-pink);
+  --hero-accent-primary: var(--color-indigo);
+  --hero-accent-secondary: var(--color-purple);
+  --hero-accent-blue: var(--color-blue);
+  --hero-accent-pink: var(--color-pink);
+  
+  /* Hero gradients */
+  --hero-bg-gradient: linear-gradient(to bottom, var(--color-deep-purple), var(--color-hero-pink), var(--color-hero-light-pink));
+  --hero-wave-purple: rgba(68, 23, 219, 0.4);
+  --hero-wave-pink: rgba(229, 120, 133, 0.4);
+  --hero-wave-light: rgba(241, 133, 130, 0.3);
+  
+  /* Admin context */
+  --admin-primary: var(--color-admin-purple);
+  --admin-primary-dark: var(--color-admin-purple-dark);
+  --admin-secondary: var(--color-admin-blue);
+  --admin-warning: var(--color-admin-orange);
+  --admin-danger: var(--color-admin-red);
+  --admin-success: var(--color-success-light);
+  --admin-info: var(--color-info-light);
+}

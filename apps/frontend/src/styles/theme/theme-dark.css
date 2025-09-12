@@ -1,0 +1,366 @@
+/*
+ * NyNus Dark Theme - Consolidated v3.0
+ * Complete dark mode theme with navy palette, admin overrides, and enhanced styling
+ * 
+ * Features:
+ * - Navy-based color palette with indigo/cyan accents
+ * - Admin panel purple theme integration
+ * - Enhanced component styling and utilities
+ * - DevTools hiding for clean admin experience
+ */
+
+/* ===== DARK MODE BASE THEME ===== */
+
+.dark {
+  /* ===== GRADIENT TOKENS FOR THEMED BACKGROUNDS ===== */
+  /* Replaces hardcoded hex values in hero sections */
+  --gradient-1: 223 25% 10%;   /* #0B1320 - Deep navy base */
+  --gradient-2: 223 28% 12%;   /* #0D1628 - Navy surface 1 */
+  --gradient-3: 223 26% 16%;   /* #141D2E - Navy surface 2 */
+  --gradient-overlay: 223 24% 20%; /* #1A2436 - Navy surface 3 */
+  
+  /* ===== SEMANTIC MAPPINGS FOR DARK THEME ===== */
+  
+  /* Base semantic colors - Enhanced navy palette */
+  --color-background: hsl(223 25% 10%);     /* #0B1320 - Deep navy */
+  --color-foreground: hsl(220 14% 96%);     /* #E6EAF2 - Light text */
+  --color-surface: hsl(223 28% 12%);        /* #0D1628 - Surface 1 */
+  --color-surface-hover: hsl(223 24% 22%);  /* #1E2940 - Hover state */
+  --color-border: hsl(221 27% 23%);         /* #26324A - Borders */
+  --color-text-muted: hsl(220 15% 65%);     /* #9AA4B2 - Muted text */
+
+  /* Interactive colors - Enhanced indigo/cyan palette */
+  --color-primary: hsl(243 75% 59%);         /* #6366F1 - Indigo 500 */
+  --color-primary-foreground: hsl(0 0% 100%); /* White text */
+  --color-secondary: hsl(188 85% 60%);       /* #22D3EE - Cyan 400-500 */
+  --color-secondary-foreground: hsl(210 60% 8%); /* Dark text */
+  --color-accent: hsl(267 84% 68%);          /* #A78BFA - Purple 300 */
+  --color-accent-foreground: hsl(225 14% 10%); /* Dark text */
+
+  /* Component semantic colors */
+  --color-card: hsl(223 28% 12%);            /* Surface 1 */
+  --color-card-foreground: hsl(220 14% 96%); /* Light text */
+  --color-popover: hsl(223 28% 12%);         /* Surface 1 */
+  --color-popover-foreground: hsl(220 14% 96%); /* Light text */
+  --color-muted: hsl(224 24% 18%);           /* #1A2336 - Muted surface */
+  --color-muted-foreground: hsl(220 15% 65%); /* Muted text */
+  --color-input: hsl(221 27% 23%);           /* Same as border */
+  --color-ring: hsl(243 75% 59%);            /* Primary indigo */
+
+  /* State colors - enhanced for dark mode */
+  --color-destructive: hsl(0 84% 60%);       /* #EF4444 - Red 500 */
+  --color-destructive-foreground: hsl(0 0% 100%); /* White text */
+
+  /* System state colors - enhanced for dark theme */
+  --color-success: hsl(142 76% 36%);         /* #10B981 - Green 500 */
+  --color-success-foreground: hsl(140 44% 10%); /* #06291F - Dark green */
+  --color-warning: hsl(38 92% 50%);          /* #F59E0B - Yellow 500 */
+  --color-warning-foreground: hsl(35 91% 8%); /* #1F1405 - Dark yellow */
+  --color-error: hsl(0 84% 60%);             /* #EF4444 - Red 500 */
+  --color-error-foreground: hsl(0 0% 100%);  /* White text */
+  --color-info: hsl(217 91% 60%);            /* #3B82F6 - Blue 500 */
+  --color-info-foreground: hsl(0 0% 100%);   /* White text */
+
+  /* Component-specific tokens for dark theme */
+  --color-badge-default: hsl(243 75% 59%);
+  --color-badge-default-foreground: hsl(0 0% 100%);
+  --color-badge-secondary: hsl(223 24% 22%);
+  --color-badge-secondary-foreground: hsl(220 14% 96%);
+  --color-badge-success: hsl(142 76% 36%);
+  --color-badge-success-foreground: hsl(140 44% 10%);
+  --color-badge-warning: hsl(38 92% 50%);
+  --color-badge-warning-foreground: hsl(35 91% 8%);
+  --color-badge-error: hsl(0 84% 60%);
+  --color-badge-error-foreground: hsl(0 0% 100%);
+
+  /* Table tokens for dark theme */
+  --color-table-header: hsl(223 24% 22%);
+  --color-table-header-foreground: hsl(220 14% 96%);
+  --color-table-row-hover: hsl(224 24% 18%);
+  --color-table-border: hsl(221 27% 23%);
+
+  /* Icon tokens for dark theme */
+  --color-icon-primary: hsl(220 14% 96%);
+  --color-icon-secondary: hsl(220 15% 65%);
+  --color-icon-accent: hsl(243 75% 59%);
+
+  /* ===== HERO CONTEXT OVERRIDES ===== */
+  /* Map hero semantic colors to base tokens */
+  --hero-bg-dark: var(--color-dark-bg);
+  --hero-bg-surface: var(--color-dark-surface);
+  --hero-bg-surface-hover: var(--color-dark-surface-hover);
+  --hero-border-primary: var(--color-dark-border);
+  --hero-text-primary: var(--color-dark-text);
+  --hero-text-secondary: var(--color-dark-text-muted);
+
+  /* ===== ADMIN CONTEXT OVERRIDES ===== */
+  /* Admin-specific color mappings for dark theme */
+  --admin-bg-primary: var(--color-dark-bg);
+  --admin-bg-secondary: var(--color-dark-surface);
+  --admin-bg-tertiary: var(--color-dark-surface-hover);
+  --admin-text-primary: var(--color-dark-text);
+  --admin-text-secondary: var(--color-dark-text-muted);
+  --admin-border: var(--color-dark-border);
+
+  /* Admin component colors using semantic system */
+  --admin-accent: var(--admin-primary);
+  --admin-accent-hover: var(--admin-primary-dark);
+}
+
+/* ===== ADMIN SCOPED STYLES ===== */
+/* Apply admin colors only within admin context */
+.dark .admin-panel {
+  /* Ensure high contrast for admin interface */
+  --admin-text-primary: #F7FAFC;
+  --admin-text-secondary: #E2E8F0;
+  --admin-text-muted: #A0AEC0;
+  --admin-bg-primary: #0A0E1A;
+  --admin-bg-secondary: #131B2B;
+  --admin-bg-tertiary: #2D3748;
+  --admin-border: #4A5568;
+  /* NEW COLOR SCHEME - Purple theme */
+  --admin-accent: #A259FF;
+  --admin-accent-hover: #32197D;
+
+  /* Admin-specific overrides */
+  --color-primary: var(--admin-primary);
+  --color-primary-foreground: var(--color-white);
+  --color-accent: var(--admin-primary);
+  --color-accent-foreground: var(--color-white);
+  
+  /* Admin state colors */
+  --color-success: var(--admin-success);
+  --color-warning: var(--admin-warning);
+  --color-destructive: var(--admin-danger);
+  --color-info: var(--admin-info);
+}
+
+/* ===== HERO SCOPED STYLES ===== */
+/* Apply hero colors only within hero context */
+.dark .hero-section {
+  --color-primary: var(--hero-primary);
+  --color-secondary: var(--hero-secondary);
+  --color-accent: var(--hero-accent-primary);
+}
+
+/* ===== ENHANCED COMPONENT STYLING ===== */
+
+/* Enhanced Card styling for admin */
+.dark .admin-card {
+  background-color: var(--admin-bg-secondary);
+  border-color: var(--admin-border);
+  color: var(--admin-text-primary);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+.dark .admin-card:hover {
+  background-color: var(--admin-bg-tertiary);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced Button styling for admin */
+.dark .admin-button-primary {
+  background-color: var(--admin-accent);
+  color: var(--admin-bg-primary);
+  border: 1px solid var(--admin-accent);
+}
+
+.dark .admin-button-primary:hover {
+  background-color: var(--admin-accent-hover);
+  border-color: var(--admin-accent-hover);
+}
+
+.dark .admin-button-secondary {
+  background-color: var(--admin-bg-tertiary);
+  color: var(--admin-text-primary);
+  border: 1px solid var(--admin-border);
+}
+
+.dark .admin-button-secondary:hover {
+  background-color: var(--admin-bg-secondary);
+  border-color: var(--admin-text-muted);
+}
+
+/* Enhanced Badge styling for admin */
+.dark .admin-badge-default {
+  background-color: var(--admin-accent);
+  color: var(--admin-bg-primary);
+  border: 1px solid var(--admin-accent);
+}
+
+.dark .admin-badge-success {
+  background-color: #48BB78;
+  color: var(--admin-bg-primary);
+  border: 1px solid #48BB78;
+}
+
+.dark .admin-badge-warning {
+  background-color: #FDAD00;
+  color: var(--admin-bg-primary);
+  border: 1px solid #FDAD00;
+}
+
+.dark .admin-badge-error {
+  background-color: #FD5653;
+  color: var(--admin-bg-primary);
+  border: 1px solid #FD5653;
+}
+
+.dark .admin-badge-secondary {
+  background-color: var(--admin-bg-tertiary);
+  color: var(--admin-text-primary);
+  border: 1px solid var(--admin-border);
+}
+
+/* Enhanced Table styling for admin */
+.dark .admin-table {
+  background-color: var(--admin-bg-secondary);
+  border-color: var(--admin-border);
+}
+
+.dark .admin-table-header {
+  background-color: var(--admin-bg-tertiary);
+  color: var(--admin-text-primary);
+  border-bottom: 2px solid var(--admin-border);
+}
+
+.dark .admin-table-row {
+  border-bottom: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+}
+
+.dark .admin-table-row:hover {
+  background-color: var(--admin-bg-tertiary);
+}
+
+.dark .admin-table-cell {
+  color: var(--admin-text-primary);
+  padding: 12px 16px;
+}
+
+/* Enhanced Input styling for admin */
+.dark .admin-input {
+  background-color: var(--admin-bg-tertiary);
+  border-color: var(--admin-border);
+  color: var(--admin-text-primary);
+}
+
+.dark .admin-input:focus {
+  border-color: var(--admin-accent);
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+}
+
+.dark .admin-input::placeholder {
+  color: var(--admin-text-muted);
+}
+
+/* Enhanced Scrollbar styling for admin */
+.dark .admin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-border) var(--admin-bg-secondary);
+}
+
+.dark .admin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark .admin-scrollbar::-webkit-scrollbar-track {
+  background: var(--admin-bg-secondary);
+  border-radius: 4px;
+}
+
+.dark .admin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--admin-border);
+  border-radius: 4px;
+}
+
+.dark .admin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-text-muted);
+}
+
+/* ===== DEVTOOLS HIDING ===== */
+/* Hide TanStack Query DevTools and other dev tools in admin */
+
+.tsqd-parent-container,
+.tsqd-transitions-container,
+.tsqd-open-btn-container,
+.tsqd-open-btn,
+.tsqd-main-panel,
+.tsqd-devtools-panel,
+.tsqd-devtools {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  z-index: -9999 !important;
+}
+
+/* Hide any element with DevTools-related classes */
+[class*="tsqd"],
+[class*="tanstack"],
+[class*="devtools"],
+[class*="react-query-devtools"],
+[data-testid*="devtools"],
+[id*="devtools"],
+[id*="tanstack"],
+[id*="tsqd"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Force hide React Query DevTools specifically */
+#__REACT_QUERY_DEVTOOLS__ {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* ===== ADMIN LAYOUT PROTECTION ===== */
+/* Ensure admin content is never blocked by overlays */
+.admin-panel {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-panel main {
+  /* Ensure main content area has proper bottom padding */
+  padding-bottom: 2rem !important;
+  /* Prevent any fixed positioned elements from overlapping */
+  position: relative;
+  z-index: 2;
+}
+
+/* ===== ADMIN UNIFIED BACKGROUND UTILITIES ===== */
+/* Utility classes for consistent admin styling */
+
+.admin-unified-bg {
+  background-color: var(--admin-bg-secondary) !important;
+  border-color: var(--admin-border) !important;
+}
+
+.dark .admin-unified-bg {
+  background-color: var(--admin-bg-secondary) !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}
+
+/* Remove gradient backgrounds for admin cards */
+.admin-unified-card {
+  background: var(--admin-bg-secondary) !important;
+  background-image: none !important;
+  border-color: var(--admin-border) !important;
+}
+
+.dark .admin-unified-card {
+  background: var(--admin-bg-secondary) !important;
+  background-image: none !important;
+  border-color: var(--admin-border) !important;
+  color: var(--admin-text-primary) !important;
+}

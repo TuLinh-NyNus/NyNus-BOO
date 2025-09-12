@@ -298,7 +298,7 @@ const Navbar = () => {
           {/* Right side actions */}
           <div className="flex items-center gap-3 flex-shrink-0">
             {/* Theme Toggle */}
-            <ThemeToggle />
+            <ThemeToggle isScrolled={isScrolled} />
 
             {/* Enhanced Search Button */}
             <div className="relative">

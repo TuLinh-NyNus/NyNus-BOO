@@ -1,0 +1,131 @@
+/*
+ * NyNus Light Theme - Consolidated v3.0
+ * Complete light mode theme including pure light colors and admin overrides
+ * 
+ * Features:
+ * - Pure white background (#FDFDFD)
+ * - Light cards and surfaces 
+ * - Earth tone accents (gold, terracotta, dusty rose)
+ * - Admin panel color overrides
+ */
+
+/* ===== LIGHT MODE BASE THEME ===== */
+/* Apply to all light mode contexts */
+
+:root {
+  /* Base semantic color overrides for light mode */
+  --color-background: var(--color-light-bg);
+  --color-foreground: var(--color-light-navy);
+  --color-surface: var(--color-light-surface);
+  --color-surface-hover: var(--color-light-muted);
+  
+  /* Interactive colors - Pastel Theme */
+  --color-primary: var(--color-pastel-rose);
+  --color-primary-foreground: var(--color-light-navy);
+  --color-secondary: var(--color-pastel-lilac);
+  --color-secondary-foreground: var(--color-light-navy);
+  --color-accent: var(--color-pastel-mauve);
+  --color-accent-foreground: var(--color-light-navy);
+  
+  /* Component colors - Pastel Surfaces */
+  --color-card: var(--color-light-surface);           /* #F9DDD2 - Hồng đào nhạt */
+  --color-card-foreground: var(--color-light-navy);
+  --color-popover: var(--color-light-secondary-bg);   /* #F6EADE - Beige kem */
+  --color-popover-foreground: var(--color-light-navy);
+  --color-muted: var(--color-light-muted);            /* #FBCFD0 - Hồng pastel */
+  --color-muted-foreground: var(--color-medium-gray);
+  
+  /* Input and border colors */
+  --color-border: color-mix(in srgb, var(--color-medium-gray) 20%, var(--color-light-bg));
+  --color-input: color-mix(in srgb, var(--color-medium-gray) 12%, var(--color-light-bg));
+  --color-ring: var(--color-pastel-rose);
+  
+  /* State colors */
+  --color-destructive: var(--color-taupe);
+  --color-destructive-foreground: var(--color-white);
+  --color-success: var(--color-success);
+  --color-success-foreground: var(--color-white);
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: var(--color-white);
+  --color-error: var(--color-error);
+  --color-error-foreground: var(--color-white);
+  --color-info: var(--color-info);
+  --color-info-foreground: var(--color-white);
+}
+
+/* ===== ADMIN PANEL LIGHT MODE OVERRIDES ===== */
+/* Apply admin colors only within admin context in light mode */
+
+.admin-panel {
+  /* Primary admin colors - Purple theme */
+  --color-primary: var(--admin-primary);
+  --color-primary-foreground: var(--color-white);
+  --color-accent: var(--admin-primary);
+  --color-accent-foreground: var(--color-white);
+  
+  /* Admin state colors for light theme */
+  --color-success: var(--admin-success);
+  --color-warning: var(--admin-warning);
+  --color-destructive: var(--admin-danger);
+  --color-info: var(--admin-secondary);
+  
+  /* Admin component overrides */
+  --color-ring: var(--admin-primary);
+}
+
+/* ===== HERO SECTION LIGHT MODE OVERRIDES ===== */
+/* Apply hero colors only within hero context in light mode */
+
+.hero-section {
+  --color-primary: var(--hero-primary);
+  --color-secondary: var(--hero-secondary);
+  --color-accent: var(--hero-accent-primary);
+}
+
+/* ===== ADMIN UTILITY CLASSES ===== */
+/* Admin-specific utility classes for light mode */
+
+/* Primary Color Utilities */
+.admin-text-primary { color: var(--admin-primary); }
+.admin-bg-primary { background-color: var(--admin-primary); }
+.admin-border-primary { border-color: var(--admin-primary); }
+
+.admin-text-primary-dark { color: var(--admin-primary-dark); }
+.admin-bg-primary-dark { background-color: var(--admin-primary-dark); }
+.admin-border-primary-dark { border-color: var(--admin-primary-dark); }
+
+/* Secondary Color Utilities */
+.admin-text-secondary { color: var(--admin-secondary); }
+.admin-bg-secondary { background-color: var(--admin-secondary); }
+.admin-border-secondary { border-color: var(--admin-secondary); }
+
+/* Warning Color Utilities */
+.admin-text-warning { color: var(--admin-warning); }
+.admin-bg-warning { background-color: var(--admin-warning); }
+.admin-border-warning { border-color: var(--admin-warning); }
+
+/* Danger Color Utilities */
+.admin-text-danger { color: var(--admin-danger); }
+.admin-bg-danger { background-color: var(--admin-danger); }
+.admin-border-danger { border-color: var(--admin-danger); }
+
+/* Success Color Utilities */
+.admin-text-success { color: var(--admin-success); }
+.admin-bg-success { background-color: var(--admin-success); }
+.admin-border-success { border-color: var(--admin-success); }
+
+/* ===== HOVER & FOCUS UTILITIES ===== */
+
+.admin-hover-primary:hover { color: var(--admin-primary-dark); }
+.admin-hover-bg-primary:hover { background-color: var(--admin-primary-dark); }
+.admin-hover-border-primary:hover { border-color: var(--admin-primary-dark); }
+
+.admin-focus-primary:focus { 
+  border-color: var(--admin-primary);
+  box-shadow: 0 0 0 2px rgba(162, 89, 255, 0.2);
+}
+
+.admin-focus-ring-primary:focus {
+  --tw-ring-color: var(--admin-primary);
+  --tw-ring-opacity: 0.2;
+}

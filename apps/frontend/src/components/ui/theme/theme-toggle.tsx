@@ -5,7 +5,11 @@ import { useTheme } from "next-themes";
 import * as React from "react";
 import { Button } from "@/components/ui";
 
-export function ThemeToggle() {
+interface ThemeToggleProps {
+  isScrolled?: boolean;
+}
+
+export function ThemeToggle({ isScrolled = true }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -22,7 +26,11 @@ export function ThemeToggle() {
       <Button
         variant="ghost"
         size="icon"
-        className="relative h-11 w-11 text-foreground/80 hover:text-foreground hover:bg-muted transition-colors"
+        className={`relative h-11 w-11 transition-all duration-300 ${
+          isScrolled
+            ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+            : 'text-white/90 hover:text-white hover:bg-white/10'
+        }`}
       >
         <div className="h-5 w-5" /> {/* Empty placeholder */}
       </Button>
@@ -34,7 +42,11 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="relative h-11 w-11 text-foreground/80 hover:text-foreground hover:bg-muted transition-colors"
+      className={`relative h-11 w-11 transition-all duration-300 ${
+        isScrolled
+          ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+          : 'text-white/90 hover:text-white hover:bg-white/10'
+      }`}
       aria-label={theme === "light" ? "Chuyển sang chế độ tối" : "Chuyển sang chế độ sáng"}
       data-theme-toggle
     >
@@ -48,7 +60,7 @@ export function ThemeToggle() {
         className="absolute"
       >
         <svg
-          className="h-5 w-5 text-foreground/80"
+          className="h-5 w-5"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -69,7 +81,7 @@ export function ThemeToggle() {
         className="absolute"
       >
         <svg
-          className="h-5 w-5 text-foreground/80"
+          className="h-5 w-5"
           fill="currentColor"
           viewBox="0 0 20 20"
         >
