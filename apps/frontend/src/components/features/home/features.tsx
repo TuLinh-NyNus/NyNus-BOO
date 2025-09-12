@@ -271,7 +271,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
                   category: 'feature_engagement'
                 });
               }}
-              className="text-xs text-foreground/80 hover:text-foreground/95 transition-colors duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2 p-2 rounded-lg"
+              className="text-xs text-foreground/80 hover:text-foreground/95 underline underline-offset-4 decoration-1 transition-colors duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2 p-2 rounded-lg"
             >
               Chi tiết
             </button>
@@ -452,13 +452,13 @@ const Features = () => {
             {/* Enhanced title with better gradient */}
             <h2
               id="features-title"
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-tight"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-relaxed py-2"
             >
               {featuresData.title}
             </h2>
 
             {/* Enhanced subtitle */}
-            <p className="text-foreground/85 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+            <p className="text-foreground/95 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
               {featuresData.subtitle}
             </p>
           </motion.div>

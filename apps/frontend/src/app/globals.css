@@ -16,12 +16,14 @@
 @plugin "tailwindcss-animate";
 
 
-/* Import ONLY Color Definitions */
+/* Import Optimized Color System */
 @import "../styles/theme/tokens/colors.css";
 @import "../styles/theme/admin-color-scheme.css";
+@import "../styles/theme/palettes/pastel-light.css";
 @import "../styles/theme/themes/light.css";
-@import "../styles/theme/themes/dark.css";
+@import "../styles/theme/themes/optimized-dark.css";
 @import "../styles/theme/hero-theme.css"; /* Hero-inspired theme colors */
+@import "../styles/theme/sections-dark-overrides.css"; /* Enhanced contrast for non-hero sections */
 
 /* Import Enhanced Gradient System */
 @import "../styles/gradients.css";
@@ -162,4 +164,33 @@
 /* Theme Toggle Utilities - Ẩn theme toggle khi disabled */
 [data-theme-toggle-disabled="true"] [data-theme-toggle] {
   display: none !important;
+}
+
+/* Gradient Utilities - Replace hardcoded hex backgrounds */
+.gradient-bg-1 {
+  background: hsl(var(--gradient-1));
+}
+
+.gradient-bg-2 {
+  background: hsl(var(--gradient-2));
+}
+
+.gradient-bg-3 {
+  background: hsl(var(--gradient-3));
+}
+
+.gradient-hero {
+  background: linear-gradient(to bottom right, 
+    hsl(var(--gradient-1)), 
+    hsl(var(--gradient-2)), 
+    hsl(var(--gradient-3))
+  );
+}
+
+.gradient-overlay {
+  background: linear-gradient(to top right, 
+    hsl(var(--gradient-1) / 0.1), 
+    hsl(var(--gradient-2) / 0.05), 
+    hsl(var(--gradient-3) / 0.1)
+  );
 }

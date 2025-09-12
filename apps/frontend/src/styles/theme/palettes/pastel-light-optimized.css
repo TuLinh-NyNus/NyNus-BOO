@@ -1,0 +1,16 @@
+/*
+ * NyNus Palette - Light Pastel (Optimized track)
+ * Overrides base tokens in optimized-colors.css for light mode.
+ */
+
+:root {
+  /* Background and surfaces */
+  --color-cream: #F6EADE;         /* Background */
+  --color-jade: #F9DDD2;          /* Card / Surface */
+  --color-silver: #FBCFD0;        /* Popover / Muted */
+
+  /* Accents */
+  --color-gold: #E8A0A4;          /* Primary (pastel rose) */
+  --color-terracotta: #E6C6D1;    /* Secondary (pastel lilac) */
+  --color-dusty-rose: #CEC0D2;    /* Accent (pastel mauve) */
+}

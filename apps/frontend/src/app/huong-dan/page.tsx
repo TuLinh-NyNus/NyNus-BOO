@@ -139,9 +139,9 @@ const tips = [
 
 export default function GuidePage() {
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#0A0E1A' }}>
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative py-20 px-4 bg-gradient-to-br from-primary/10 via-[#0A0E1A] to-secondary/10">
+      <section className="relative py-20 px-4 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
@@ -204,7 +204,7 @@ export default function GuidePage() {
       </section>
 
       {/* Features & Tips */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#0A0E1A' }}>
+      <section className="py-20 px-4 bg-background">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Tính năng chính & Mẹo sử dụng</h2>
@@ -241,7 +241,7 @@ export default function GuidePage() {
       </section>
 
       {/* Tips & Best Practices */}
-      <section className="py-20 px-4" style={{ backgroundColor: '#0A0E1A' }}>
+      <section className="py-20 px-4 bg-background">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">Mẹo & Thực hành tốt nhất</h2>
@@ -360,7 +360,7 @@ export default function GuidePage() {
       </section>
 
       {/* Support Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-primary/10 via-[#0A0E1A] to-secondary/10">
+      <section className="py-20 px-4 bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl font-bold text-foreground mb-4">
             Cần hỗ trợ thêm?

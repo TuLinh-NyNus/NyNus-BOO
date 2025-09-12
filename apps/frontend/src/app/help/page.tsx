@@ -176,9 +176,9 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Enhanced Background with Multiple Gradients */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1F1F47] via-[#252560] to-[#2D2B69]"></div>
-      <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-purple-500/5 to-pink-500/10"></div>
+      {/* Enhanced Background with Theme Gradients */}
+      <div className="absolute inset-0 gradient-hero"></div>
+      <div className="absolute inset-0 gradient-overlay"></div>
       
       {/* Animated Background Elements */}
       <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>

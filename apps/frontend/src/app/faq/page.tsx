@@ -163,9 +163,9 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background with #0A0E1A */}
-      <div className="absolute inset-0" style={{ backgroundColor: '#0A0E1A' }}></div>
-      <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 via-purple-500/3 to-pink-500/5"></div>
+      {/* Background with theme gradient */}
+      <div className="absolute inset-0 gradient-hero"></div>
+      <div className="absolute inset-0 gradient-overlay"></div>
       
       {/* Animated Background Elements */}
       <div className="absolute top-20 left-20 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>

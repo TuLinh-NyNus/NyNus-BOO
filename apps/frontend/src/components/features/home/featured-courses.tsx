@@ -88,15 +88,15 @@ function getPalette(color?: string) {
 function getChipPalette(color?: string) {
   switch (color) {
     case "amber":
-      return { bg: "bg-amber-400/15", border: "border-amber-400/25", text: "text-amber-200" };
+      return { bg: "bg-amber-400/15", border: "border-amber-400/25", text: "text-amber-300" };
     case "emerald":
-      return { bg: "bg-emerald-400/15", border: "border-emerald-400/25", text: "text-emerald-200" };
+      return { bg: "bg-emerald-400/15", border: "border-emerald-400/25", text: "text-emerald-300" };
     case "indigo":
-      return { bg: "bg-indigo-400/15", border: "border-indigo-400/25", text: "text-indigo-200" };
+      return { bg: "bg-indigo-400/15", border: "border-indigo-400/25", text: "text-indigo-300" };
     case "purple":
-      return { bg: "bg-purple-400/15", border: "border-purple-400/25", text: "text-purple-200" };
+      return { bg: "bg-purple-400/15", border: "border-purple-400/25", text: "text-purple-300" };
     default:
-      return { bg: "bg-white/10", border: "border-white/20", text: "text-white/90" };
+      return { bg: "bg-white/10", border: "border-white/20", text: "text-foreground/95" };
   }
 }
 
@@ -216,13 +216,13 @@ const FeaturedCourses = () => {
           
           {/* Title (synced with Features) */}
           <h2
-            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-tight"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 leading-relaxed py-2"
           >
             Học tập theo cấp độ
           </h2>
           
           {/* Subtitle (synced with Features) */}
-          <p className="text-white/85 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+          <p className="text-foreground/95 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
             Lựa chọn khóa học phù hợp với trình độ và mục tiêu của bạn từ lớp 9 đến lớp 12
           </p>
         </div>

@@ -122,7 +122,7 @@ const FAQ = () => {
             </motion.div>
 
             {/* Enhanced Typography */}
-            <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
+            <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent leading-relaxed py-1">
               Câu hỏi thường gặp
             </h2>
             <p className="text-base md:text-lg lg:text-xl text-foreground/80 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8">

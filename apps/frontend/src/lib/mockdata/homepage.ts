@@ -486,7 +486,7 @@ export const aiLearningData: AILearningData = {
     icon: "Sparkles",
     text: "Công nghệ AI tiên tiến"
   },
-  title: "Học tập cá nhân hóa với AI",
+  title: "Học tập cá nhân hóa",
   subtitle: "Công nghệ AI giúp đánh giá năng lực, gợi ý lộ trình học tập tối ưu dựa trên điểm mạnh và điểm yếu của từng học sinh.",
   features: [
     {

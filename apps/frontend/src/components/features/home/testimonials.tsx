@@ -150,12 +150,30 @@ const Testimonials = () => {
           </motion.div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             Học viên nói gì về{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            <span 
+              className="text-transparent bg-clip-text font-black tracking-tight"
+              style={{
+                background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                textShadow: "0 0 30px rgba(255, 184, 105, 0.4), 0 0 60px rgba(248, 97, 102, 0.3), 0 0 90px rgba(171, 110, 228, 0.2)"
+              }}
+            >
               NyNus
             </span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Hơn {testimonialsStats.totalStudents.toLocaleString()} học viên đã trải nghiệm và đạt được kết quả tích cực với NyNus
+            Hơn {testimonialsStats.totalStudents.toLocaleString()} học viên đã trải nghiệm và đạt được kết quả tích cực với{" "}
+            <span 
+              className="text-transparent bg-clip-text font-bold tracking-tight"
+              style={{
+                background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text"
+              }}
+            >
+              NyNus
+            </span>
           </p>
         </motion.div>
 
@@ -172,7 +190,17 @@ const Testimonials = () => {
               Tâm sự từ học viên
             </h3>
             <p className="text-muted-foreground text-base">
-              Lắng nghe trực tiếp từ học viên về trải nghiệm học tập với NyNus
+              Lắng nghe trực tiếp từ học viên về trải nghiệm học tập với{" "}
+              <span 
+                className="text-transparent bg-clip-text font-semibold tracking-tight"
+                style={{
+                  background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text"
+                }}
+              >
+                NyNus
+              </span>
             </p>
           </div>
 

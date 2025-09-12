@@ -94,14 +94,26 @@ const Footer = () => {
   };
 
   // Enhanced Link component với improved underline effect
-  const EnhancedLink = ({ href, text, className = "" }: { href: string; text: string; className?: string }) => {
+  const EnhancedLink = ({ href, text, highlight, className = "" }: { href: string; text: string; highlight?: string; className?: string }) => {
     return (
       <Link 
         href={href} 
         className={`text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-2 inline-block font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md group relative pb-2 ${className}`}
       >
         <span className="relative">
-          {text}
+          {text}{highlight && " "}
+          {highlight && (
+            <span 
+              className="text-transparent bg-clip-text font-semibold tracking-tight"
+              style={{
+                background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text"
+              }}
+            >
+              {highlight}
+            </span>
+          )}
           <motion.span
             className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary rounded-full group-hover:w-full transition-all duration-300 ease-out"
             initial={false}
@@ -114,7 +126,7 @@ const Footer = () => {
   return (
     <footer 
       ref={footerRef}
-      className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out bg-[#0A0E1A]"
+      className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out bg-background"
     >
       {/* Enhanced Background decorations */}
       <div className="absolute inset-0 -z-10">
@@ -255,7 +267,15 @@ const Footer = () => {
           <motion.div variants={itemVariants}>
             <Link href="/" className="text-3xl font-bold mb-6 inline-block group">
               <motion.span 
-                className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-400 transition-all duration-300"
+                className="text-transparent bg-clip-text font-black tracking-tight transition-all duration-300"
+                style={{
+                  background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text",
+                  textShadow: "0 0 30px rgba(255, 184, 105, 0.4), 0 0 60px rgba(248, 97, 102, 0.3), 0 0 90px rgba(171, 110, 228, 0.2)",
+                  fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
+                  letterSpacing: "-0.02em"
+                }}
                 whileHover={{ scale: 1.05 }}
               >
                 NyNus
@@ -373,10 +393,10 @@ const Footer = () => {
             </h3>
             <ul className="space-y-4">
               {[
-                { href: "/about", text: "Về NyNus" },
+                { href: "/about", text: "Về", highlight: "NyNus" },
                 { href: "/courses", text: "Khóa học" },
                 { href: "/practice", text: "Luyện tập" },
-                { href: "/question", text: "Câu hỏi" },
+                { href: "/questions", text: "Câu hỏi" },
                 { href: "/careers", text: "Tuyển dụng" }
               ].map((link, index) => (
                 <motion.li 
@@ -386,7 +406,7 @@ const Footer = () => {
                   transition={{ delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <EnhancedLink href={link.href} text={link.text} />
+                  <EnhancedLink href={link.href} text={link.text} highlight={link.highlight} />
                 </motion.li>
               ))}
             </ul>
@@ -472,13 +492,24 @@ const Footer = () => {
         >
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-slate-400 text-base font-medium">
-              © {currentYear} NyNus. Tất cả quyền được bảo lưu.
+              © {currentYear}{" "}
+              <span 
+                className="text-transparent bg-clip-text font-semibold tracking-tight"
+                style={{
+                  background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
+                  backgroundClip: "text",
+                  WebkitBackgroundClip: "text"
+                }}
+              >
+                NyNus
+              </span>
+              . Tất cả quyền được bảo lưu.
             </div>
             <div className="flex flex-wrap gap-6 text-base">
               {[
                 { href: "/terms", text: "Điều khoản sử dụng" },
                 { href: "/privacy", text: "Chính sách bảo mật" },
-                { href: "/contact", text: "Liên hệ" },
+                { href: "/lien-he", text: "Liên hệ" },
                 { href: "/help", text: "Trợ giúp" }
               ].map((link, index) => (
                 <motion.div

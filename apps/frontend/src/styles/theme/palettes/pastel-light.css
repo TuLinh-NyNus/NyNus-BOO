@@ -1,0 +1,20 @@
+/*
+ * NyNus Palette - Light Pastel (from attached image)
+ * Purpose: Override base color tokens used by light theme mapping.
+ * Scope: :root only (light mode). Dark mode remains controlled by .dark rules.
+ */
+
+:root {
+  /* Background and surfaces */
+  --color-nynus-cream: #F6EADE;   /* Background */
+  --color-nynus-jade: #F9DDD2;    /* Card / Surface */
+  --color-nynus-silver: #FBCFD0;  /* Popover / Muted */
+
+  /* Accents (repurposing existing primary tokens for light theme) */
+  --color-primary-gold: #E8A0A4;       /* Primary (pastel rose) */
+  --color-primary-terracotta: #E6C6D1; /* Secondary (pastel lilac) */
+  --color-primary-pink: #CEC0D2;       /* Accent (pastel mauve) */
+
+  /* Keep text/neutral tokens from tokens/colors.css for readability */
+  /* --color-nynus-dark, --color-nynus-medium, --color-nynus-muted remain as-is */
+}

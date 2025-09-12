@@ -75,6 +75,7 @@ const Navbar = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
   // Responsive logic - hide items when screen gets smaller
@@ -85,6 +86,32 @@ const Navbar = () => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Scroll listener để detect khi qua hero section
+  useEffect(() => {
+    if (!isMounted || typeof window === 'undefined') {
+      return;
+    }
+
+    const handleScroll = () => {
+      const heroSection = document.getElementById('hero-section');
+      if (heroSection) {
+        const heroRect = heroSection.getBoundingClientRect();
+        // Chuyển sang solid khi scroll qua 50% hero section
+        const scrollThreshold = heroRect.height * 0.5;
+        setIsScrolled(window.scrollY > scrollThreshold);
+      } else {
+        // Fallback nếu không tìm thấy hero section
+        setIsScrolled(window.scrollY > 100);
+      }
+    };
+
+    // Check initial state
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMounted]);
 
   useEffect(() => {
     // Chỉ chạy sau khi component đã mounted trên client
@@ -164,7 +191,11 @@ const Navbar = () => {
   return (
     <>
       <header
-        className="fixed top-0 z-50 w-full bg-background/80 backdrop-blur-md border-b border-border"
+        className={`fixed top-0 z-50 w-full transition-all duration-300 ${
+          isScrolled
+            ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-sm'
+            : 'bg-transparent backdrop-blur-sm border-b border-transparent'
+        }`}
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
         <nav className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 min-w-0">
@@ -200,10 +231,14 @@ const Navbar = () => {
                   href={item.href}
                   className={`text-sm font-semibold tracking-wide transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md px-2 py-1 ${
                     pathname === item.href
-                      ? "text-foreground font-bold"
+                      ? isScrolled
+                        ? "text-foreground font-bold"
+                        : "text-white font-bold drop-shadow-lg"
                       : item.isHighlight
                       ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                      : "text-foreground/80 hover:text-foreground"
+                      : isScrolled
+                      ? "text-foreground/80 hover:text-foreground"
+                      : "text-white/90 hover:text-white drop-shadow-md"
                   } font-sans`}
                   style={{
                     textShadow: item.isHighlight ? "0 0 20px rgba(168, 85, 247, 0.2)" : "0 0 10px rgba(0, 0, 0, 0.3)",
@@ -222,7 +257,11 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-11 w-11 text-foreground/80 hover:text-foreground hover:bg-muted"
+                  className={`h-11 w-11 transition-all duration-300 ${
+                    isScrolled
+                      ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                      : 'text-white/90 hover:text-white hover:bg-white/10'
+                  }`}
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
                 >
                   <MoreHorizontal className="h-5 w-5" />
@@ -263,7 +302,11 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-11 w-11 text-foreground/80 hover:text-foreground hover:bg-muted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className={`relative h-11 w-11 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                  isScrolled
+                    ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                    : 'text-white/90 hover:text-white hover:bg-white/10'
+                }`}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 aria-label="Mở tìm kiếm"
               >
@@ -282,7 +325,11 @@ const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-11 w-11 rounded-full">
-                      <div className="h-11 w-11 rounded-full bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80 flex items-center justify-center transition-colors">
+                      <div className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                        isScrolled
+                          ? 'bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80'
+                          : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
+                      }`}>
                         <User className="h-5 w-5" />
                       </div>
                     </Button>
@@ -322,7 +369,11 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-11 w-11 bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80 transition-colors rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className={`h-11 w-11 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                    isScrolled
+                      ? 'bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80'
+                      : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
+                  }`}
                   onClick={() => setIsAuthModalOpen(true)}
                   aria-label="Tài khoản người dùng"
                 >
@@ -335,7 +386,11 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden text-foreground/80 hover:text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className={`md:hidden transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                isScrolled
+                  ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                  : 'text-white/90 hover:text-white hover:bg-white/10'
+              }`}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Menu điều hướng"
             >
@@ -359,7 +414,11 @@ const Navbar = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-border bg-card/80 backdrop-blur-md"
+              className={`md:hidden border-t transition-all duration-300 ${
+                isScrolled
+                  ? 'border-border bg-card/95 backdrop-blur-md'
+                  : 'border-white/20 bg-black/20 backdrop-blur-md'
+              }`}
             >
               <div className="container mx-auto px-4 py-4">
                 <div className="flex flex-col space-y-4">

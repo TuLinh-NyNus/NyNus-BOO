@@ -20,6 +20,9 @@
   /* Import optimized color tokens */
   @import "../styles/theme/tokens/optimized-colors.css";
   
+  /* Override with pastel light palette for optimized track */
+  @import "../styles/theme/palettes/pastel-light-optimized.css";
+  
   /* Import theme mappings */
   @import "../styles/theme/themes/optimized-light.css";
   @import "../styles/theme/themes/optimized-dark.css";
