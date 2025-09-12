@@ -21,31 +21,31 @@
   
   /* ===== SEMANTIC MAPPINGS FOR DARK THEME ===== */
   
-  /* Base semantic colors - Enhanced navy palette */
-  --color-background: hsl(223 25% 10%);     /* #0B1320 - Deep navy */
-  --color-foreground: hsl(220 14% 96%);     /* #E6EAF2 - Light text */
-  --color-surface: hsl(223 28% 12%);        /* #0D1628 - Surface 1 */
-  --color-surface-hover: hsl(223 24% 22%);  /* #1E2940 - Hover state */
-  --color-border: hsl(221 27% 23%);         /* #26324A - Borders */
-  --color-text-muted: hsl(220 15% 65%);     /* #9AA4B2 - Muted text */
+  /* Base semantic colors - Enhanced navy palette with improved contrast */
+  --color-background: hsl(223 25% 8%);      /* #0A1018 - Deeper navy for better contrast */
+  --color-foreground: hsl(220 14% 98%);     /* #F8F9FA - Brighter text (WCAG AA) */
+  --color-surface: hsl(223 28% 11%);        /* #0C1424 - Surface 1 */
+  --color-surface-hover: hsl(223 24% 20%);  /* #1A2436 - Hover state */
+  --color-border: hsl(221 27% 28%);         /* #323F5A - Brighter borders for visibility */
+  --color-text-muted: hsl(220 15% 72%);     /* #AAB4C2 - Brighter muted text (WCAG AA) */
 
-  /* Interactive colors - Enhanced indigo/cyan palette */
-  --color-primary: hsl(243 75% 59%);         /* #6366F1 - Indigo 500 */
+  /* Interactive colors - Enhanced indigo/cyan palette with better contrast */
+  --color-primary: hsl(243 75% 65%);         /* #7C7FFB - Brighter Indigo for contrast */
   --color-primary-foreground: hsl(0 0% 100%); /* White text */
-  --color-secondary: hsl(188 85% 60%);       /* #22D3EE - Cyan 400-500 */
-  --color-secondary-foreground: hsl(210 60% 8%); /* Dark text */
-  --color-accent: hsl(267 84% 68%);          /* #A78BFA - Purple 300 */
-  --color-accent-foreground: hsl(225 14% 10%); /* Dark text */
+  --color-secondary: hsl(188 85% 65%);       /* #33D7F0 - Brighter Cyan */
+  --color-secondary-foreground: hsl(223 25% 8%); /* Dark text matching bg */
+  --color-accent: hsl(267 84% 72%);          /* #B19BFC - Brighter Purple */
+  --color-accent-foreground: hsl(0 0% 100%); /* White text for better contrast */
 
-  /* Component semantic colors */
-  --color-card: hsl(223 28% 12%);            /* Surface 1 */
-  --color-card-foreground: hsl(220 14% 96%); /* Light text */
-  --color-popover: hsl(223 28% 12%);         /* Surface 1 */
-  --color-popover-foreground: hsl(220 14% 96%); /* Light text */
-  --color-muted: hsl(224 24% 18%);           /* #1A2336 - Muted surface */
-  --color-muted-foreground: hsl(220 15% 65%); /* Muted text */
-  --color-input: hsl(221 27% 23%);           /* Same as border */
-  --color-ring: hsl(243 75% 59%);            /* Primary indigo */
+  /* Component semantic colors with improved contrast */
+  --color-card: hsl(223 28% 11%);            /* Slightly darker Surface 1 */
+  --color-card-foreground: hsl(220 14% 98%); /* Brighter text */
+  --color-popover: hsl(223 28% 13%);         /* Slightly lighter than card */
+  --color-popover-foreground: hsl(220 14% 98%); /* Brighter text */
+  --color-muted: hsl(224 24% 16%);           /* #161E30 - Darker muted surface */
+  --color-muted-foreground: hsl(220 15% 72%); /* Brighter muted text (WCAG AA) */
+  --color-input: hsl(221 27% 28%);           /* Brighter border for input visibility */
+  --color-ring: hsl(243 75% 65%);            /* Brighter primary for focus ring */
 
   /* State colors - enhanced for dark mode */
   --color-destructive: hsl(0 84% 60%);       /* #EF4444 - Red 500 */

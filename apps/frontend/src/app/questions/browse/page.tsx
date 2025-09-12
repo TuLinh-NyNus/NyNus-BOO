@@ -157,7 +157,7 @@ export default function QuestionsBrowsePage() {
       <QuestionsHeader
         title="Duyệt câu hỏi"
         description="Tìm kiếm và lọc câu hỏi theo chủ đề, độ khó và loại câu hỏi"
-        showBreadcrumbs={true}
+        showBreadcrumbs={false}  // Breadcrumb already shown in layout
         showBackButton={true}
         backButtonHref={QUESTION_ROUTES.LANDING}
         backButtonLabel="Quay lại"

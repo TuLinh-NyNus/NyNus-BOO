@@ -16,6 +16,7 @@ interface AuthActions {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
+  forgotPassword: (email: string) => Promise<void>;
 }
 
 // Separate contexts để prevent unnecessary re-renders
@@ -112,7 +113,19 @@ function InternalAuthProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    return { login, loginWithGoogle, logout, updateUser };
+    const forgotPassword = async (email: string): Promise<void> => {
+      try {
+        setIsLoading(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!email || !email.includes('@')) {
+          throw new Error('Email không hợp lệ');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    return { login, loginWithGoogle, logout, updateUser, forgotPassword };
   }, [session]); // ESLint: only depend on session
 
   // Mount detection để hydration safety

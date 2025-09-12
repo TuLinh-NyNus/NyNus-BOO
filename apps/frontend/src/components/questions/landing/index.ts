@@ -58,6 +58,15 @@ export {
   default as DefaultStatsDisplay
 } from './stats-display';
 
+// Question Type Cards Grid
+export {
+  QuestionTypeCardsGrid,
+  CompactQuestionTypeCardsGrid,
+  FeaturedQuestionTypeCardsGrid,
+  SimpleQuestionTypeCardsGrid,
+  default as DefaultQuestionTypeCardsGrid
+} from './question-type-cards-grid';
+
 // ===== TYPE EXPORTS =====
 
 // Component props types
@@ -84,3 +93,7 @@ export type {
 export type {
   StatsDisplayProps
 } from './stats-display';
+
+export type {
+  QuestionTypeCardsGridProps
+} from './question-type-cards-grid';

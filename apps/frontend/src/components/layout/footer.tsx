@@ -127,6 +127,7 @@ const Footer = () => {
     <footer 
       ref={footerRef}
       className="relative pt-20 pb-8 overflow-hidden transition-all duration-500 ease-out bg-background"
+      style={{ position: 'relative' }} // Fix for motion-utils scroll offset calculation
     >
       {/* Enhanced Background decorations */}
       <div className="absolute inset-0 -z-10">

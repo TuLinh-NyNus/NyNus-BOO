@@ -259,8 +259,16 @@ export function PublicQuestionCard({
                 maxLength={250}
                 expandable={true}
                 safeMode={true}
-                onError={(errors) => console.warn('LaTeX rendering errors:', errors)}
-                onRenderComplete={(result) => console.log('LaTeX render complete:', result)}
+                onError={(errors) => {
+                  if (process.env.NODE_ENV !== 'production') {
+                    console.warn('LaTeX rendering errors:', errors);
+                  }
+                }}
+                onRenderComplete={(result) => {
+                  if (process.env.NODE_ENV !== 'production') {
+                    console.log('LaTeX render complete:', result);
+                  }
+                }}
               />
             </div>
             
@@ -329,19 +337,25 @@ export function PublicQuestionCard({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   onClick={handleShare}
+                  aria-label="Chia sẻ câu hỏi"
+                  title="Chia sẻ câu hỏi"
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only">Chia sẻ</span>
                 </Button>
                 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                   onClick={handleBookmark}
+                  aria-label="Lưu câu hỏi"
+                  title="Lưu câu hỏi"
                 >
-                  <Bookmark className="h-4 w-4" />
+                  <Bookmark className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only">Lưu</span>
                 </Button>
               </div>
             </div>
@@ -393,7 +407,11 @@ export function PublicQuestionCard({
                   maxLength={120}
                   safeMode={true}
                   expandable={false}
-                  onError={(errors) => console.warn('LaTeX rendering errors:', errors)}
+                  onError={(errors) => {
+                    if (process.env.NODE_ENV !== 'production') {
+                      console.warn('LaTeX rendering errors:', errors);
+                    }
+                  }}
                 />
               </div>
               
@@ -433,28 +451,37 @@ export function PublicQuestionCard({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 onClick={handleView}
+                aria-label="Xem chi tiết câu hỏi"
+                title="Xem chi tiết"
               >
-                <Eye className="h-4 w-4" />
+                <Eye className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Xem</span>
               </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 onClick={handleShare}
+                aria-label="Chia sẻ câu hỏi"
+                title="Chia sẻ"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Chia sẻ</span>
               </Button>
               
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 p-0 focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 onClick={handleBookmark}
+                aria-label="Lưu câu hỏi"
+                title="Lưu"
               >
-                <Bookmark className="h-4 w-4" />
+                <Bookmark className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Lưu</span>
               </Button>
             </div>
           )}

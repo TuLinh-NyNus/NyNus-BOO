@@ -376,7 +376,14 @@ export const PublicQuestionFiltersComponent: React.FC<PublicQuestionFiltersProps
                 size="sm"
                 onClick={() => handleArrayFilterChange(key, option.value)}
                 disabled={isLoading}
-                className="w-full justify-start h-8"
+                className={cn(
+                  "w-full justify-start h-8",
+                  "focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                  "transition-all duration-200"
+                )}
+                aria-label={`${isSelected ? 'Bỏ chọn' : 'Chọn'} ${option.label}`}
+                role="checkbox"
+                aria-checked={isSelected}
               >
                 {option.label}
               </Button>

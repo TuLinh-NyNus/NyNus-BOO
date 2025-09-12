@@ -270,7 +270,7 @@ export default async function QuestionDetailPage({ params }: QuestionDetailPageP
       <QuestionsHeader
         title={`Câu hỏi ${resolvedParams.id}`}
         description={question.title}
-        showBreadcrumbs={true}
+        showBreadcrumbs={false}  // Breadcrumb already shown in layout
         showBackButton={true}
         backButtonHref={QUESTION_ROUTES.BROWSE}
         backButtonLabel="Quay lại danh sách"

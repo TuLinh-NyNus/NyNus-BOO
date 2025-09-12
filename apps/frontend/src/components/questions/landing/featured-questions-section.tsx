@@ -172,7 +172,7 @@ export function FeaturedQuestionsSection({
       <div className="featured-questions-loading">
         <div className="flex items-center justify-center gap-2 text-muted-foreground mb-8">
           <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Đang tải câu hỏi nổi bật...</span>
+          <span className="animate-pulse">Đang tải câu hỏi nổi bật...</span>
         </div>
         
         <div className={getGridClasses()}>

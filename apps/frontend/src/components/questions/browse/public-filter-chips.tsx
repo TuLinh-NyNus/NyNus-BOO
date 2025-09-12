@@ -283,11 +283,14 @@ export const PublicFilterChips: React.FC<PublicFilterChipsProps> = ({
             onClick={() => handleRemoveChip(chip)}
             className={cn(
               "hover:bg-transparent text-current hover:text-current/80",
+              "focus:ring-2 focus:ring-primary focus:ring-offset-1",
               compact ? "h-3 w-3 p-0" : "h-4 w-4 p-0"
             )}
             aria-label={`Xóa bộ lọc ${chip.label}`}
+            title={`Xóa bộ lọc ${chip.label}`}
           >
-            <X className={compact ? "h-2 w-2" : "h-3 w-3"} />
+            <X className={compact ? "h-2 w-2" : "h-3 w-3"} aria-hidden="true" />
+            <span className="sr-only">Xóa</span>
           </Button>
         </Badge>
       ))}

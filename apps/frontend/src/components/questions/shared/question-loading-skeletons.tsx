@@ -57,7 +57,11 @@ function CompactQuestionSkeleton({
   className = "" 
 }: Pick<PublicQuestionLoadingProps, 'showActions' | 'className'>) {
   return (
-    <Card className={cn("public-question-skeleton-compact", className)}>
+    <Card className={cn(
+      "public-question-skeleton-compact",
+      "transition-all duration-300 ease-in-out",
+      className
+    )}>
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0 space-y-2">

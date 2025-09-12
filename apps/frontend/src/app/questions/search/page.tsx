@@ -11,10 +11,11 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Search, ArrowLeft, Clock, TrendingUp } from 'lucide-react';
+import { Search, Clock, TrendingUp } from 'lucide-react';
 import { Suspense } from 'react';
 
 import { QUESTION_ROUTES, QUESTION_DYNAMIC_ROUTES } from '@/lib/question-paths';
+import { QuestionsHeader } from '@/components/questions/layout';
 
 // ===== MOCK DATA =====
 
@@ -106,48 +107,18 @@ function SearchResults() {
 
   return (
     <div className="questions-search-page">
-      {/* Page Header */}
-      <section className="page-header py-8 border-b">
-        <div>
-          {/* Breadcrumb */}
-          <nav className="breadcrumb mb-4">
-            <div className="flex items-center text-sm text-muted-foreground">
-              <Link href="/" className="hover:text-foreground transition-colors">
-                Trang chủ
-              </Link>
-              <span className="mx-2">/</span>
-              <Link href={QUESTION_ROUTES.LANDING} className="hover:text-foreground transition-colors">
-                Ngân hàng câu hỏi
-              </Link>
-              <span className="mx-2">/</span>
-              <span className="text-foreground">Tìm kiếm</span>
-            </div>
-          </nav>
-          
-          {/* Page Title */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-                Kết quả tìm kiếm
-              </h1>
-              {query && (
-                <p className="text-lg text-muted-foreground">
-                  Kết quả cho: <span className="font-medium text-foreground">&ldquo;{query}&rdquo;</span>
-                </p>
-              )}
-            </div>
-            
-            {/* Back Button */}
-            <Link
-              href={QUESTION_ROUTES.BROWSE}
-              className="inline-flex items-center px-4 py-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại duyệt
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Page Header with QuestionsHeader */}
+      <QuestionsHeader
+        title="Kết quả tìm kiếm"
+        description={query ? `Kết quả cho: "${query}"` : 'Tìm kiếm câu hỏi trong ngân hàng'}
+        showBreadcrumbs={false}  // Breadcrumb already shown in layout
+        showBackButton={true}
+        backButtonHref={QUESTION_ROUTES.BROWSE}
+        backButtonLabel="Quay lại duyệt"
+        variant="default"
+        size="md"
+        className="border-b"
+      />
 
       {/* Search Bar Section */}
       <section className="search-section py-6 bg-muted/30">

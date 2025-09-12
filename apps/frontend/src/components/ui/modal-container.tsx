@@ -35,9 +35,9 @@ export function ModalContainer() {
           <DialogContent
             className={`
               ${modal.size === 'sm' ? 'max-w-sm' : ''}
-              ${modal.size === 'md' ? 'max-w-md' : ''}
-              ${modal.size === 'lg' ? 'max-w-lg' : ''}
-              ${modal.size === 'xl' ? 'max-w-xl' : ''}
+              ${modal.size === 'md' ? 'max-w-lg' : ''}
+              ${modal.size === 'lg' ? 'max-w-xl' : ''}
+              ${modal.size === 'xl' ? 'max-w-2xl' : ''}
               ${modal.size === 'full' ? 'max-w-full h-full' : ''}
               ${modal.className || ''}
             `}

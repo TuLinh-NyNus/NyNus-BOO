@@ -17,6 +17,7 @@ interface AuthContextType {
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (userData: Partial<User>) => void;
+  forgotPassword: (email: string) => Promise<void>;
 }
 
 // Tạo Context
@@ -169,6 +170,22 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  // Forgot password (mock)
+  const forgotPassword = async (email: string): Promise<void> => {
+    try {
+      setIsLoading(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // In real impl: call backend to send reset email
+      if (!email || !email.includes('@')) {
+        throw new Error('Email không hợp lệ');
+      }
+      // Success: no state change needed
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Update user function
   const updateUser = (userData: Partial<User>): void => {
     if (user) {
@@ -192,7 +209,8 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
     login,
     loginWithGoogle,
     logout,
-    updateUser
+    updateUser,
+    forgotPassword,
   };
 
   return (

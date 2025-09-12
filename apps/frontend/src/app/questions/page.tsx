@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { Search, Filter } from 'lucide-react';
 
 import { QUESTION_ROUTES } from '@/lib/question-paths';
-import { HeroSearchBar, QuickFilterButtons, CategoryCardsGrid, FeaturedQuestionsSection, StatsDisplay } from '@/components/questions/landing';
+import { HeroSearchBar, QuickFilterButtons, QuestionTypeCardsGrid, FeaturedQuestionsSection, StatsDisplay } from '@/components/questions/landing';
 
 // ===== METADATA =====
 
@@ -106,9 +106,9 @@ export default function QuestionsLandingPage() {
         </div>
       </section>
 
-      {/* Categories Section */}
-      <section className="categories-section py-16">
-        <CategoryCardsGrid
+      {/* Question Types Section */}
+      <section className="question-types-section py-16">
+        <QuestionTypeCardsGrid
           showHeader={true}
           showStats={true}
           staggerAnimation={true}
