@@ -77,9 +77,9 @@ func (a *App) initDatabase() error {
 	}
 
 	// Seed default data
-	if err := a.seedDefaultData(); err != nil {
-		return fmt.Errorf("failed to seed default data: %w", err)
-	}
+	// if err := a.seedDefaultData(); err != nil {
+	// 	return fmt.Errorf("failed to seed default data: %w", err)
+	// }
 
 	return nil
 }
@@ -94,6 +94,7 @@ func (a *App) initGRPCServer() error {
 	// Register services
 	v1.RegisterUserServiceServer(a.grpcServer, a.container.GetUserGRPCService())
 	v1.RegisterQuestionServiceServer(a.grpcServer, a.container.GetQuestionGRPCService())
+	v1.RegisterQuestionFilterServiceServer(a.grpcServer, a.container.GetQuestionFilterGRPCService())
 
 	// Enable reflection for grpcurl
 	reflection.Register(a.grpcServer)
@@ -139,6 +140,7 @@ func (a *App) logStartupInfo() {
 	log.Println("🌐 gRPC Services:")
 	log.Println("   - UserService (Login, Register, GetUser, ListUsers)")
 	log.Println("   - QuestionService (CreateQuestion, GetQuestion, ListQuestions, ImportQuestions)")
+	log.Println("   - QuestionFilterService (ListQuestionsByFilter, SearchQuestions, GetQuestionsByQuestionCode)")
 	log.Println("🔐 Security:")
 	log.Println("   - JWT Authentication enabled")
 	log.Println("   - Role-based authorization (student, teacher, admin)")
@@ -186,7 +188,7 @@ func (a *App) GetConfig() *config.Config {
 // runMigrations runs database migrations on startup
 func (a *App) runMigrations() error {
 	// Get migrations directory path (relative to project root)
-	migrationsDir := filepath.Join("packages", "database", "migrations")
+	migrationsDir := filepath.Join("..", "..", "packages", "database", "migrations")
 
 	// Create migrator
 	migrator := migration.NewMigrator(a.db, migrationsDir)

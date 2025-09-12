@@ -1,0 +1,839 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1/question_filter.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "QuestionFilterService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/questions/by-code": {
+      "post": {
+        "summary": "GetQuestionsByQuestionCode gets questions by QuestionCode components",
+        "operationId": "QuestionFilterService_GetQuestionsByQuestionCode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetQuestionsByQuestionCodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetQuestionsByQuestionCodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QuestionFilterService"
+        ]
+      }
+    },
+    "/api/v1/questions/filter": {
+      "post": {
+        "summary": "ListQuestionsByFilter lists questions with comprehensive filtering",
+        "operationId": "QuestionFilterService_ListQuestionsByFilter",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListQuestionsByFilterResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ListQuestionsByFilterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QuestionFilterService"
+        ]
+      }
+    },
+    "/api/v1/questions/search": {
+      "post": {
+        "summary": "SearchQuestions performs full-text search with filters",
+        "operationId": "QuestionFilterService_SearchQuestions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SearchQuestionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SearchQuestionsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "QuestionFilterService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ContentFilter": {
+      "type": "object",
+      "properties": {
+        "hasImages": {
+          "type": "boolean",
+          "title": "Filter questions with/without images"
+        },
+        "hasSolution": {
+          "type": "boolean",
+          "title": "Filter questions with/without solution"
+        },
+        "hasAnswers": {
+          "type": "boolean",
+          "title": "Filter questions with/without answers"
+        },
+        "hasFeedback": {
+          "type": "boolean",
+          "title": "Filter questions with/without feedback"
+        },
+        "hasTags": {
+          "type": "boolean",
+          "title": "Filter questions with/without tags"
+        },
+        "contentSearch": {
+          "type": "string",
+          "title": "Full-text search in content"
+        },
+        "solutionSearch": {
+          "type": "string",
+          "title": "Full-text search in solution"
+        }
+      },
+      "title": "Boolean Content Filters"
+    },
+    "v1DateRangeFilter": {
+      "type": "object",
+      "properties": {
+        "createdAfter": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Created after this date"
+        },
+        "createdBefore": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Created before this date"
+        },
+        "updatedAfter": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Updated after this date"
+        },
+        "updatedBefore": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Updated before this date"
+        }
+      },
+      "title": "Date Range Filter"
+    },
+    "v1FilterPagination": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Page number (1-based)"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Items per page (max 100)"
+        },
+        "sort": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SortOptions"
+          },
+          "title": "Multiple sort criteria"
+        }
+      },
+      "title": "Pagination for Filter Results"
+    },
+    "v1FilterSummary": {
+      "type": "object",
+      "properties": {
+        "totalQuestions": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "byType": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Count by question type"
+        },
+        "byStatus": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Count by status"
+        },
+        "byDifficulty": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Count by difficulty"
+        },
+        "byGrade": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Count by grade"
+        },
+        "bySubject": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Count by subject"
+        },
+        "byCreator": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Count by creator"
+        },
+        "withImages": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Count with images"
+        },
+        "withSolution": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Count with solution"
+        },
+        "withFeedback": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Count with feedback"
+        }
+      },
+      "title": "Filter Summary for analytics"
+    },
+    "v1GetQuestionsByQuestionCodeRequest": {
+      "type": "object",
+      "properties": {
+        "questionCodeFilter": {
+          "$ref": "#/definitions/v1QuestionCodeFilter"
+        },
+        "metadataFilter": {
+          "$ref": "#/definitions/v1MetadataFilter"
+        },
+        "pagination": {
+          "$ref": "#/definitions/v1FilterPagination"
+        },
+        "includeQuestionCodeInfo": {
+          "type": "boolean",
+          "title": "Include parsed QuestionCode information"
+        }
+      },
+      "title": "GetQuestionsByQuestionCode - Filter by QuestionCode components"
+    },
+    "v1GetQuestionsByQuestionCodeResponse": {
+      "type": "object",
+      "properties": {
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1QuestionWithCodeInfo"
+          }
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "questionCodeSummary": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1QuestionCodeSummary"
+          }
+        }
+      }
+    },
+    "v1ListQuestionsByFilterRequest": {
+      "type": "object",
+      "properties": {
+        "questionCodeFilter": {
+          "$ref": "#/definitions/v1QuestionCodeFilter"
+        },
+        "metadataFilter": {
+          "$ref": "#/definitions/v1MetadataFilter"
+        },
+        "dateFilter": {
+          "$ref": "#/definitions/v1DateRangeFilter"
+        },
+        "contentFilter": {
+          "$ref": "#/definitions/v1ContentFilter"
+        },
+        "pagination": {
+          "$ref": "#/definitions/v1FilterPagination"
+        }
+      },
+      "title": "ListQuestionsByFilter - Comprehensive filtering"
+    },
+    "v1ListQuestionsByFilterResponse": {
+      "type": "object",
+      "properties": {
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1QuestionDetail"
+          }
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "filterSummary": {
+          "$ref": "#/definitions/v1FilterSummary"
+        }
+      }
+    },
+    "v1MetadataFilter": {
+      "type": "object",
+      "properties": {
+        "types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "MC, TF, SA, ES, MA"
+        },
+        "statuses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "ACTIVE, PENDING, INACTIVE, ARCHIVED"
+        },
+        "difficulties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "EASY, MEDIUM, HARD"
+        },
+        "creators": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Filter by creator usernames"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Filter by tags (OR logic)"
+        },
+        "requireAllTags": {
+          "type": "boolean",
+          "title": "If true, use AND logic for tags"
+        },
+        "subcountPattern": {
+          "type": "string",
+          "title": "Pattern matching for subcount field"
+        },
+        "minUsageCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Minimum usage count"
+        },
+        "maxUsageCount": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Maximum usage count"
+        },
+        "minFeedback": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Minimum feedback score"
+        },
+        "maxFeedback": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Maximum feedback score"
+        }
+      },
+      "title": "Metadata Filters"
+    },
+    "v1QuestionCodeFilter": {
+      "type": "object",
+      "properties": {
+        "grades": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "0,1,2 (10th, 11th, 12th grade)"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "P,L,H,T,S (Math, Physics, Chemistry, English, Biology)"
+        },
+        "chapters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "1,2,3,4,5... (Chapter numbers)"
+        },
+        "levels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "N,H,V,C,T,M (Recognition, Understanding, Application, High Application, VIP, Note)"
+        },
+        "lessons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "1,2,3,A,B,C... (Lesson identifiers)"
+        },
+        "forms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "1,2,3... (Form numbers, only for ID6 format)"
+        },
+        "includeId5": {
+          "type": "boolean",
+          "title": "Include ID5 format questions (default: true)"
+        },
+        "includeId6": {
+          "type": "boolean",
+          "title": "Include ID6 format questions (default: true)"
+        }
+      },
+      "title": "QuestionCode Filter Components"
+    },
+    "v1QuestionCodeInfo": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string",
+          "title": "ID5 or ID6"
+        },
+        "grade": {
+          "type": "string",
+          "title": "Human-readable grade"
+        },
+        "subject": {
+          "type": "string",
+          "title": "Human-readable subject"
+        },
+        "chapter": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string",
+          "title": "Human-readable level"
+        },
+        "lesson": {
+          "type": "string"
+        },
+        "form": {
+          "type": "string"
+        },
+        "folderPath": {
+          "type": "string",
+          "title": "Google Drive folder path"
+        },
+        "isId6": {
+          "type": "boolean"
+        }
+      },
+      "title": "QuestionCode information"
+    },
+    "v1QuestionCodeSummary": {
+      "type": "object",
+      "properties": {
+        "grade": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "chapter": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        },
+        "questionCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "availableLessons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "availableForms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "QuestionCode summary for analytics"
+    },
+    "v1QuestionDetail": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "rawContent": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "subcount": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "answers": {
+          "type": "string"
+        },
+        "correctAnswer": {
+          "type": "string"
+        },
+        "solution": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "usageCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "creator": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "feedback": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "difficulty": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "questionCodeId": {
+          "type": "string"
+        }
+      },
+      "title": "QuestionDetail message for filter responses"
+    },
+    "v1QuestionSearchResult": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "$ref": "#/definitions/v1QuestionDetail"
+        },
+        "highlights": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SearchHighlight"
+          }
+        },
+        "relevanceScore": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "title": "Question with search highlights"
+    },
+    "v1QuestionWithCodeInfo": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "$ref": "#/definitions/v1QuestionDetail"
+        },
+        "questionCodeInfo": {
+          "$ref": "#/definitions/v1QuestionCodeInfo"
+        }
+      },
+      "title": "Question with QuestionCode information"
+    },
+    "v1SearchHighlight": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "title": "Field name where match was found"
+        },
+        "snippet": {
+          "type": "string",
+          "title": "Text snippet with highlights"
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "Character positions of matches"
+        }
+      },
+      "title": "Search highlight information"
+    },
+    "v1SearchQuestionsRequest": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "title": "Search query"
+        },
+        "searchFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields to search: content, solution, tags"
+        },
+        "questionCodeFilter": {
+          "$ref": "#/definitions/v1QuestionCodeFilter"
+        },
+        "metadataFilter": {
+          "$ref": "#/definitions/v1MetadataFilter"
+        },
+        "dateFilter": {
+          "$ref": "#/definitions/v1DateRangeFilter"
+        },
+        "pagination": {
+          "$ref": "#/definitions/v1FilterPagination"
+        },
+        "highlightMatches": {
+          "type": "boolean",
+          "title": "Return highlighted search matches"
+        }
+      },
+      "title": "SearchQuestions - Full-text search with filters"
+    },
+    "v1SearchQuestionsResponse": {
+      "type": "object",
+      "properties": {
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1QuestionSearchResult"
+          }
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "query": {
+          "type": "string"
+        },
+        "searchFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1SortField": {
+      "type": "string",
+      "enum": [
+        "SORT_FIELD_UNSPECIFIED",
+        "SORT_FIELD_CREATED_AT",
+        "SORT_FIELD_UPDATED_AT",
+        "SORT_FIELD_USAGE_COUNT",
+        "SORT_FIELD_FEEDBACK",
+        "SORT_FIELD_DIFFICULTY",
+        "SORT_FIELD_QUESTION_CODE",
+        "SORT_FIELD_TYPE",
+        "SORT_FIELD_STATUS"
+      ],
+      "default": "SORT_FIELD_UNSPECIFIED",
+      "title": "Sorting Options"
+    },
+    "v1SortOptions": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "$ref": "#/definitions/v1SortField"
+        },
+        "order": {
+          "$ref": "#/definitions/v1SortOrder"
+        }
+      }
+    },
+    "v1SortOrder": {
+      "type": "string",
+      "enum": [
+        "SORT_ORDER_UNSPECIFIED",
+        "SORT_ORDER_ASC",
+        "SORT_ORDER_DESC"
+      ],
+      "default": "SORT_ORDER_UNSPECIFIED"
+    }
+  }
+}

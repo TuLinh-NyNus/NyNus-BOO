@@ -11,6 +11,17 @@ import (
 	"go.uber.org/multierr"
 )
 
+// QuestionRepositoryInterface defines the interface for question repository operations
+type QuestionRepositoryInterface interface {
+	Create(ctx context.Context, db database.QueryExecer, question *entity.Question) error
+	GetByID(ctx context.Context, db database.QueryExecer, id string) (entity.Question, error)
+	GetByQuestionCode(ctx context.Context, db database.QueryExecer, questionCodeID string) ([]entity.Question, error)
+	Update(ctx context.Context, db database.QueryExecer, question *entity.Question) error
+	Delete(ctx context.Context, db database.QueryExecer, id string) error
+	GetByIDForUpdate(ctx context.Context, db database.QueryExecer, id string) (entity.Question, error)
+	GetQuestionsByPaging(db database.QueryExecer, offset int, limit int) (total int, questions []entity.Question, err error)
+}
+
 // QuestionRepository handles question data access following payment system pattern
 type QuestionRepository struct{}
 

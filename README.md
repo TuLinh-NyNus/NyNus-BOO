@@ -78,25 +78,59 @@ docker-compose ps
 ### 4. Manual Setup (Development)
 ```bash
 # 1. Start database
-cd tools/docker && docker-compose up -d postgres
+make db-up
 
-# 2. Generate proto files
-make proto
+# 2. Start backend
+make run-backend
 
-# 3. Start backend
-cd apps/backend
-go mod download
-go build -o bin/grpc-server cmd/main.go
-./bin/grpc-server
+# 3. Verify setup
+curl http://localhost:8080/health
 
-# 4. Start frontend (new terminal)
+# 4. Start frontend (optional)
 cd apps/frontend
 npm install
 npm run dev
+```
 
-# 5. Start gRPC-Web proxy (new terminal)
-cd apps/frontend
-npm run proxy
+## 📚 Documentation
+
+- **[Development Setup](docs/DEVELOPMENT_SETUP.md)** - Complete development environment setup
+- **[API Testing Guide](docs/API_TESTING_GUIDE.md)** - How to test all APIs with examples
+- **[CSV Import Format](docs/question_import_csv_format.md)** - Question import format specification
+- **[Example Test Script](docs/examples/test_apis_example.py)** - Python script for API testing
+
+## 🧪 Quick API Testing
+
+### 1. Login and Get Token
+```bash
+TOKEN=$(curl -s -X POST "http://localhost:8080/api/v1/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@exambank.com", "password": "admin123"}' | jq -r '.accessToken')
+```
+
+### 2. Import Sample Data (2,795 questions)
+```bash
+CSV_BASE64=$(base64 -w 0 docs/question_new_fixed.csv)
+curl -X POST "http://localhost:8080/api/v1/questions/import" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d "{\"csv_data_base64\": \"$CSV_BASE64\", \"upsert_mode\": false}"
+```
+
+### 3. Test Filter API
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/questions/filter" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"question_code_filter": {"grades": ["0"]}, "pagination": {"page": 1, "limit": 5}}' | jq '.'
+```
+
+### 4. Test Search API
+```bash
+curl -s -X POST "http://localhost:8080/api/v1/questions/search" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "xác suất", "pagination": {"page": 1, "limit": 3}}' | jq '.'
 ```
 
 ### 5. Access Application
@@ -147,7 +181,7 @@ exam-bank-system/
 
 ```bash
 Admin:    admin@exambank.com    / password123
-Teacher:  teacher@exambank.com  / password123  
+Teacher:  teacher@exambank.com  / password123
 Student:  student@exambank.com  / password123
 ```
 
