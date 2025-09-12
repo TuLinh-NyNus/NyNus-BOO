@@ -85,7 +85,32 @@ class LaTeXParser:
             raise
     
     def _find_ex_blocks(self, content: str) -> List[str]:
-        """Tìm tất cả các block \\begin{ex}...\\end{ex}"""
+        """Tìm tất cả các block \\begin{ex}...\\end{ex} sử dụng regex
+        
+        Regex approach hiệu quả hơn cho file lớn và tránh các bug trong stack-based parsing.
+        """
+        blocks = []
+        
+        try:
+            # Sử dụng regex để tìm tất cả các ex blocks
+            pattern = r'\\begin\{ex\}.*?\\end\{ex\}'
+            matches = re.finditer(pattern, content, re.DOTALL)
+            
+            for match in matches:
+                blocks.append(match.group())
+            
+            logger.info(f"Regex parser found {len(blocks)} ex blocks")
+            return blocks
+            
+        except Exception as e:
+            logger.error(f"Regex parsing failed: {e}")
+            logger.info("Falling back to original stack-based parser...")
+            
+            # Fallback to original method if regex fails
+            return self._find_ex_blocks_fallback(content)
+    
+    def _find_ex_blocks_fallback(self, content: str) -> List[str]:
+        """Original stack-based parser as fallback"""
         blocks = []
         stack = []
         current_block = []
@@ -117,6 +142,7 @@ class LaTeXParser:
                     if env_match and stack and stack[-1] == env_match.group(1):
                         stack.pop()
         
+        logger.info(f"Fallback parser found {len(blocks)} ex blocks")
         return blocks
     
     def _extract_images(self, question: Question):

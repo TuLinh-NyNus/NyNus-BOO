@@ -19,9 +19,16 @@ import json
 # ===============================
 
 def _process_multiple_files(selected_files: list, parallel_mode: bool = False) -> dict:
-    """Xử lý nhiều files với progress tracking"""
+    """Xử lý nhiều files với enhanced error handling và progress tracking"""
     
     st.markdown("### 📊 Tiến trình xử lý nhiều files")
+    
+    # Tùy chọn sử dụng enhanced processor
+    use_enhanced_processor = st.checkbox(
+        "🛡️ Sử dụng Enhanced Processor (không dừng khi gặp lỗi)", 
+        value=True,
+        help="Enhanced processor sẽ tiếp tục xử lý ngay cả khi gặp lỗi, timeout, hoặc memory issues"
+    )
     
     # Tạo overall progress UI
     overall_progress = st.progress(0)
@@ -63,8 +70,13 @@ def _process_multiple_files(selected_files: list, parallel_mode: bool = False) -
     }
     
     try:
-        # Process files based on mode
-        if parallel_mode:
+        # Process files based on mode and processor choice
+        if use_enhanced_processor:
+            # Use enhanced processor with better resilience
+            st.info("🛡️ **Enhanced Processor** - Xử lý an toàn với error recovery")
+            overall_results = _process_files_with_enhanced_processor(selected_files, overall_results,
+                                                                   overall_progress, overall_status, status_container)
+        elif parallel_mode:
             # Parallel processing (advanced)
             st.info("⚡ **Chế độ song song** - Xử lý nhiều files cùng lúc")
             overall_results = _process_files_parallel(selected_files, overall_results, 
@@ -136,11 +148,19 @@ def _process_multiple_files(selected_files: list, parallel_mode: bool = False) -
 
 def _process_files_sequential(selected_files: list, overall_results: dict, 
                             overall_progress, overall_status, status_container) -> dict:
-    """Xử lý files lần lượt"""
+    """Xử lý files lần lượt với enhanced error handling và resource management"""
     import time
+    import gc
+    import traceback
+    from concurrent.futures import ThreadPoolExecutor, TimeoutError
+    
+    successful_files = []
+    failed_files = []
     
     for idx, file_info in enumerate(selected_files):
+        # Check for stop signal
         if st.session_state.get('stop_multiple_processing', False):
+            st.warning(f"⏹️ Đã dừng xử lý tại file {idx+1}/{len(selected_files)}")
             break
         
         # Update overall progress
@@ -152,53 +172,127 @@ def _process_files_sequential(selected_files: list, overall_results: dict,
         with status_container:
             st.info(f"📄 Đang xử lý: **{file_info['name']}** ({file_info.get('question_count', 0):,} câu hỏi)")
         
+        # Enhanced processing with timeout and error handling
+        file_result = _process_single_file_with_timeout(file_info, status_container)
+        
+        # Update results based on status
+        if file_result.get('status') == 'success':
+            # Update overall stats
+            overall_results['total_tikz_compiled'] += file_result.get('tikz_compiled', 0)
+            overall_results['total_images_processed'] += file_result.get('images_processed', 0)
+            overall_results['total_errors'] += file_result.get('errors', 0)
+            overall_results['completed_files'] += 1
+            successful_files.append(file_info['name'])
+            
+            with status_container:
+                st.success(f"✅ Hoàn thành: {file_info['name']} - TikZ: {file_result.get('tikz_compiled', 0)}, Images: {file_result.get('images_processed', 0)}")
+        
+        elif file_result.get('status') == 'timeout':
+            overall_results['total_errors'] += 1
+            failed_files.append(f"{file_info['name']} (timeout)")
+            with status_container:
+                st.error(f"⏰ Timeout: {file_info['name']} - Xử lý quá lâu, đã bỏ qua")
+        
+        else:
+            overall_results['total_errors'] += 1
+            failed_files.append(f"{file_info['name']} (error)")
+            with status_container:
+                st.error(f"❌ Lỗi: {file_info['name']} - {file_result.get('error', 'Unknown error')}")
+        
+        # Add to file results
+        file_result['file_name'] = file_info['name']
+        overall_results['file_results'].append(file_result)
+        
+        # Memory cleanup after each file
+        gc.collect()
+        
+        # Small delay to prevent overwhelming the system
+        time.sleep(0.1)
+    
+    # Final progress update with summary
+    overall_progress.progress(1.0)
+    summary = f"✅ Hoàn thành: {overall_results['completed_files']}/{len(selected_files)} files"
+    if failed_files:
+        summary += f" | ❌ Lỗi: {len(failed_files)} files"
+    overall_status.text(summary)
+    
+    # Display detailed summary
+    with status_container:
+        if successful_files:
+            st.success(f"✅ **Thành công ({len(successful_files)} files):** {', '.join(successful_files[:5])}{'...' if len(successful_files) > 5 else ''}")
+        if failed_files:
+            st.error(f"❌ **Thất bại ({len(failed_files)} files):** {', '.join(failed_files[:5])}{'...' if len(failed_files) > 5 else ''}")
+    
+    return overall_results
+
+
+def _process_single_file_with_timeout(file_info: dict, status_container, timeout_minutes: int = 30) -> dict:
+    """Xử lý một file với timeout protection và enhanced error handling"""
+    import concurrent.futures
+    import traceback
+    
+    def _safe_process_file():
+        """Wrapper function để xử lý file an toàn"""
         try:
             # Determine processing method based on file size
             if file_info.get('question_count', 0) >= 10000:
                 # Large file - use streaming processor
-                streaming_processor = StreamingLaTeXProcessor()
-                file_result = streaming_processor.process_large_file(file_info['path'])
+                from core.streaming_processor import StreamingLaTeXProcessor
+                processor = StreamingLaTeXProcessor()
+                return processor.process_large_file(file_info['path'])
             else:
                 # Normal file - use standard processor
                 processor = LaTeXImageProcessor()
-                file_result = processor.process_file_inplace(file_info['path'], update_original=True)
-            
-            if 'error' not in file_result:
-                # Update overall stats
-                overall_results['total_tikz_compiled'] += file_result.get('tikz_compiled', 0)
-                overall_results['total_images_processed'] += file_result.get('images_processed', 0)
-                overall_results['total_errors'] += file_result.get('errors', 0)
-                overall_results['completed_files'] += 1
+                return processor.process_file_inplace(file_info['path'], update_original=True)
                 
+        except Exception as e:
+            # Detailed error logging
+            error_details = {
+                'error': str(e),
+                'error_type': type(e).__name__,
+                'traceback': traceback.format_exc(),
+                'file_path': file_info['path'],
+                'status': 'error'
+            }
+            return error_details
+    
+    # Run with timeout
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        try:
+            # Submit task with timeout
+            future = executor.submit(_safe_process_file)
+            file_result = future.result(timeout=timeout_minutes * 60)  # Convert to seconds
+            
+            # Check if result contains error
+            if 'error' not in file_result:
                 file_result['status'] = 'success'
-                with status_container:
-                    st.success(f"✅ Hoàn thành: {file_info['name']} - TikZ: {file_result.get('tikz_compiled', 0)}, Images: {file_result.get('images_processed', 0)}")
+                return file_result
             else:
                 file_result['status'] = 'error'
-                overall_results['total_errors'] += 1
-                with status_container:
-                    st.error(f"❌ Lỗi: {file_info['name']} - {file_result['error']}")
-            
-            file_result['file_name'] = file_info['name']
-            overall_results['file_results'].append(file_result)
+                return file_result
+                
+        except concurrent.futures.TimeoutError:
+            # File processing timed out
+            return {
+                'status': 'timeout',
+                'error': f'File processing timed out after {timeout_minutes} minutes',
+                'file_name': file_info['name'],
+                'tikz_compiled': 0,
+                'images_processed': 0,
+                'errors': 1
+            }
             
         except Exception as e:
-            error_result = {
-                'file_name': file_info['name'],
+            # Unexpected error
+            return {
                 'status': 'error',
-                'error': str(e)
+                'error': f'Unexpected error: {str(e)}',
+                'error_type': type(e).__name__,
+                'file_name': file_info['name'],
+                'tikz_compiled': 0,
+                'images_processed': 0,
+                'errors': 1
             }
-            overall_results['file_results'].append(error_result)
-            overall_results['total_errors'] += 1
-            
-            with status_container:
-                st.error(f"❌ Exception: {file_info['name']} - {str(e)}")
-    
-    # Final progress update
-    overall_progress.progress(1.0)
-    overall_status.text(f"✅ Hoàn thành xử lý {overall_results['completed_files']}/{len(selected_files)} files")
-    
-    return overall_results
 
 
 def _process_files_parallel(selected_files: list, overall_results: dict,
@@ -270,6 +364,81 @@ def _process_files_parallel(selected_files: list, overall_results: dict,
                 
                 with status_container:
                     st.error(f"❌ Exception: {file_info['name']} - {str(e)}")
+    
+    return overall_results
+
+
+def _process_files_with_enhanced_processor(selected_files: list, overall_results: dict,
+                                         overall_progress, overall_status, status_container) -> dict:
+    """Xử lý files với Enhanced Processor cho error resilience tối đa"""
+    from core.enhanced_processor import EnhancedLaTeXProcessor
+    import time
+    
+    # Khởi tạo enhanced processor
+    processor = EnhancedLaTeXProcessor(
+        max_memory_mb=1500,  # 1.5GB memory threshold
+        cleanup_temp=True
+    )
+    
+    # Callback function để cập nhật progress
+    def progress_callback(current_idx, total_files, current_file):
+        if st.session_state.get('stop_multiple_processing', False):
+            return  # Stop signal
+            
+        progress = current_idx / total_files
+        overall_progress.progress(progress)
+        overall_status.text(f"📊 Xử lý file {current_idx+1}/{total_files}: {current_file}")
+        
+        with status_container:
+            st.info(f"🛡️ Đang xử lý: **{current_file}** ({current_idx+1}/{total_files})")
+    
+    # Xử lý batch với enhanced processor
+    try:
+        enhanced_results = processor.process_files_batch(
+            file_list=selected_files,
+            callback=progress_callback,
+            timeout_per_file=30,  # 30 minutes per file
+            continue_on_error=True
+        )
+        
+        # Chuyển đổi kết quả về format cần thiết
+        overall_results['total_tikz_compiled'] = enhanced_results['total_tikz_compiled']
+        overall_results['total_images_processed'] = enhanced_results['total_images_processed']
+        overall_results['total_errors'] = enhanced_results['total_errors']
+        overall_results['completed_files'] = enhanced_results['successful_files']
+        overall_results['file_results'] = enhanced_results['file_results']
+        
+        # Hiển thị kết quả chi tiết
+        with status_container:
+            if enhanced_results['successful_files'] > 0:
+                st.success(
+                    f"✅ **Thành công:** {enhanced_results['successful_files']}/{enhanced_results['total_files']} files "
+                    f"- TikZ: {enhanced_results['total_tikz_compiled']}, Images: {enhanced_results['total_images_processed']}"
+                )
+            
+            if enhanced_results['failed_files'] > 0:
+                st.error(
+                    f"❌ **Thất bại:** {enhanced_results['failed_files']} files - "
+                    f"Errors: {enhanced_results['total_errors']}"
+                )
+            
+            # Hiển thị processing errors nếu có
+            if enhanced_results.get('processing_errors'):
+                with st.expander("🔍 Xem chi tiết lỗi xử lý"):
+                    for error in enhanced_results['processing_errors']:
+                        st.error(f"**{error['file']}:** {error['error']}")
+        
+        # Lấy summary từ processor
+        summary = processor.get_processing_summary()
+        
+        # Log thông tin để debug
+        st.info(f"📊 **Tóm tắt Enhanced Processing:**")
+        st.info(f"  • Thành công: {summary['processed_files']} files")
+        st.info(f"  • Thất bại: {summary['failed_files']} files")
+        
+    except Exception as e:
+        st.error(f"❌ Lỗi trong Enhanced Processor: {str(e)}")
+        overall_results['error'] = f"Enhanced Processor error: {str(e)}"
     
     return overall_results
 

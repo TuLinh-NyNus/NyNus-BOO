@@ -3,10 +3,15 @@ Module xử lý hình ảnh có sẵn (copy và rename)
 """
 import shutil
 import logging
+import time
 from pathlib import Path
 from typing import Optional, List
 from PIL import Image
 from config import IMAGE_FORMAT, IMAGE_QUALITY
+from utils.file_operations import (
+    safe_copy_file, safe_move_file, safe_remove_file, 
+    retry_on_file_lock, wait_for_file_unlock, is_file_locked
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +54,13 @@ class ImageProcessor:
             if self._needs_conversion(source_file):
                 return self._convert_image(source_file, output_file)
             else:
-                # Copy trực tiếp
-                shutil.copy2(source_file, output_file)
-                logger.info(f"Đã copy: {source_file.name} -> {output_file.name}")
-                return output_file
+                # Copy trực tiếp với safe operation
+                if safe_copy_file(source_file, output_file, preserve_metadata=True):
+                    logger.info(f"Đã copy: {source_file.name} -> {output_file.name}")
+                    return output_file
+                else:
+                    logger.error(f"Không thể copy file: {source_file} -> {output_file}")
+                    return None
                 
         except Exception as e:
             logger.error(f"Lỗi khi xử lý hình {source_path}: {str(e)}")
@@ -64,8 +72,18 @@ class ImageProcessor:
         return source_ext != IMAGE_FORMAT.lower()
     
     def _convert_image(self, source_file: Path, output_file: Path) -> Optional[Path]:
-        """Convert hình sang format mong muốn"""
+        """Convert hình sang format mong muốn với safe operations"""
         try:
+            # Đợi một chút trước khi xử lý để tránh file contention
+            time.sleep(0.1)
+            
+            # Kiểm tra xem file có đang bị lock không
+            if is_file_locked(source_file):
+                logger.warning(f"File đang bị lock, chờ giải phóng: {source_file}")
+                if not wait_for_file_unlock(source_file, max_wait=3.0):
+                    logger.error(f"File vẫn bị lock sau khi chờ: {source_file}")
+                    return None
+            
             # Mở hình với Pillow
             image = Image.open(source_file)
             
@@ -78,7 +96,26 @@ class ImageProcessor:
                 background.paste(image, mask=image.split()[-1] if 'A' in image.mode else None)
                 image = background
             
-            # Lưu với format mới
+            # Lưu với format mới sử dụng safe operation
+            return self._safe_save_image(image, output_file, source_file.name)
+            
+        except Exception as e:
+            logger.error(f"Lỗi khi convert hình {source_file}: {str(e)}")
+            return None
+    
+    @retry_on_file_lock(max_retries=3, base_delay=0.2)
+    def _safe_save_image(self, image: Image.Image, output_file: Path, source_name: str) -> Optional[Path]:
+        """An toàn lưu hình với retry mechanism"""
+        try:
+            # Đảm bảo thư mục tồn tại
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Xóa file cũ nếu tồn tại
+            if output_file.exists():
+                safe_remove_file(output_file)
+                time.sleep(0.05)  # Chờ một chút sau khi xóa
+            
+            # Chuẩn bị save arguments
             save_kwargs = {}
             if IMAGE_FORMAT == 'webp':
                 save_kwargs = {'quality': IMAGE_QUALITY, 'lossless': False}
@@ -87,20 +124,27 @@ class ImageProcessor:
             elif IMAGE_FORMAT == 'png':
                 save_kwargs = {'optimize': True}
             
+            # Lưu hình
             image.save(output_file, IMAGE_FORMAT.upper(), **save_kwargs)
-            logger.info(f"Đã convert: {source_file.name} -> {output_file.name}")
-            return output_file
             
+            # Kiểm tra file đã được lưu thành công
+            if output_file.exists() and output_file.stat().st_size > 0:
+                logger.info(f"Đã convert: {source_name} -> {output_file.name}")
+                return output_file
+            else:
+                logger.error(f"File không được lưu thành công: {output_file}")
+                return None
+                
         except Exception as e:
-            logger.error(f"Lỗi khi convert hình: {str(e)}")
-            return None
+            logger.error(f"Lỗi khi lưu hình: {str(e)}")
+            raise e  # Re-raise để retry mechanism hoạt động
     
     def batch_process(self, 
                      image_paths: List[tuple], 
                      base_name: str,
                      base_dir: Path = None) -> List[Path]:
         """
-        Xử lý nhiều hình cùng lúc
+        Xử lý nhiều hình cùng lúc với delay để tránh file contention
         
         Args:
             image_paths: List các tuple (source_path, image_type)
@@ -113,6 +157,10 @@ class ImageProcessor:
         results = []
         
         for idx, (source_path, img_type) in enumerate(image_paths, 1):
+            # Thêm delay giữa các file để tránh Windows file locking
+            if idx > 1:
+                time.sleep(0.05)  # 50ms delay giữa các operations
+            
             if len(image_paths) > 1:
                 output_name = f"{base_name}-{img_type}-{idx}"
             else:

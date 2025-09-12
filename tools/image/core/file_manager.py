@@ -6,6 +6,9 @@ import logging
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, List, Tuple
+from utils.file_operations import (
+    safe_copy_file, safe_move_file, safe_write_file, safe_remove_file
+)
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +45,13 @@ class FileManager:
                 backup_name = f"GOC-{timestamp}-{filepath.name}"
                 backup_path = filepath.parent / backup_name
             
-            # Copy file
-            shutil.copy2(filepath, backup_path)
-            logger.info(f"Đã backup: {filepath.name} -> {backup_name}")
-            return backup_path
+            # Copy file với safe operation
+            if safe_copy_file(filepath, backup_path, preserve_metadata=True):
+                logger.info(f"Đã backup: {filepath.name} -> {backup_name}")
+                return backup_path
+            else:
+                logger.error(f"Không thể backup file: {filepath}")
+                return None
             
         except Exception as e:
             logger.error(f"Lỗi khi backup file {filepath}: {str(e)}")
@@ -87,16 +93,7 @@ class FileManager:
         Returns:
             True nếu thành công
         """
-        try:
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            
-            logger.info(f"Đã lưu file: {output_path}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Lỗi khi lưu file {output_path}: {str(e)}")
-            return False
+        return safe_write_file(output_path, content, encoding='utf-8')
     
     def move_image_to_output(self, source: Path, dest_dir: Path, new_name: str) -> Optional[Path]:
         """
@@ -117,10 +114,13 @@ class FileManager:
             
             dest_path = dest_dir / new_name
             
-            # Di chuyển file
-            shutil.move(str(source), str(dest_path))
-            logger.info(f"Đã di chuyển: {source.name} -> {dest_path}")
-            return dest_path
+            # Di chuyển file với safe operation
+            if safe_move_file(source, dest_path):
+                logger.info(f"Đã di chuyển: {source.name} -> {dest_path}")
+                return dest_path
+            else:
+                logger.error(f"Không thể di chuyển file: {source} -> {dest_path}")
+                return None
             
         except Exception as e:
             logger.error(f"Lỗi khi di chuyển file: {str(e)}")
@@ -135,10 +135,12 @@ class FileManager:
         """
         try:
             if temp_dir.exists():
+                cleaned_count = 0
                 for file in temp_dir.iterdir():
                     if file.is_file():
-                        file.unlink()
-                logger.info(f"Đã dọn dẹp thư mục tạm: {temp_dir}")
+                        if safe_remove_file(file):
+                            cleaned_count += 1
+                logger.info(f"Đã dọn dẹp {cleaned_count} files trong thư mục tạm: {temp_dir}")
                 
         except Exception as e:
             logger.warning(f"Không thể dọn dẹp thư mục tạm: {str(e)}")
@@ -181,12 +183,14 @@ class FileManager:
                     if q.get('errors'):
                         report.append(f"  - Lỗi: {q['errors']}")
             
-            # Lưu báo cáo
-            with open(output_path, 'w', encoding='utf-8') as f:
-                f.write('\n'.join(report))
-            
-            logger.info(f"Đã tạo báo cáo: {output_path}")
-            return True
+            # Lưu báo cáo với safe operation
+            report_content = '\n'.join(report)
+            if safe_write_file(output_path, report_content, encoding='utf-8'):
+                logger.info(f"Đã tạo báo cáo: {output_path}")
+                return True
+            else:
+                logger.error(f"Không thể lưu báo cáo: {output_path}")
+                return False
             
         except Exception as e:
             logger.error(f"Lỗi khi tạo báo cáo: {str(e)}")

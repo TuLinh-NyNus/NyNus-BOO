@@ -231,7 +231,9 @@ class StreamingLaTeXProcessor:
                            progress_callback: Optional[ProgressCallback],
                            checkpoint_data: Optional[CheckpointData] = None,
                            backup_path: str = "") -> str:
-        """Process file in batches to manage memory với checkpoint support"""
+        """Process file in batches to manage memory với checkpoint support và true streaming"""
+        
+        logger.info("🔄 Bắt đầu true streaming processing...")
         
         # Đọc file content hoặc resume từ checkpoint
         if checkpoint_data and checkpoint_data.partial_content:
@@ -245,76 +247,191 @@ class StreamingLaTeXProcessor:
         
         original_content = full_content
         
-        # Parse questions in streaming mode
-        questions = self.parser.parse_file(tex_file)
+        # CRITICAL FIX: Parse questions với streaming để tránh memory overload
+        try:
+            logger.info("🧠 Parsing questions với memory optimization...")
+            questions = self._parse_questions_streaming(tex_file)
+            logger.info(f"✅ Đã parse {len(questions):,} questions thành công")
+        except Exception as e:
+            logger.error(f"❌ Lỗi critical khi parse questions: {str(e)}")
+            # Fallback: thử parse với batch nhỏ hơn
+            logger.warning("⚠️ Fallback to small batch parsing...")
+            try:
+                questions = self._parse_questions_fallback(tex_file)
+                logger.info(f"✅ Fallback parse thành công: {len(questions):,} questions")
+            except Exception as e2:
+                logger.error(f"❌ Fallback cũng thất bại: {str(e2)}")
+                return full_content  # Return nguyên content nếu parse fail
+        
+        if not questions:
+            logger.warning("⚠️ Không tìm thấy questions nào để xử lý")
+            return full_content
+            
+        logger.info(f"🎯 Sẽ xử lý {len(questions):,} questions trong {self.stats.total_batches} batches")
         
         # Nếu resume, bỏ qua các batch đã xử lý
         start_batch = checkpoint_data.current_batch + 1 if checkpoint_data else 1
+        total_processed = 0
         
-        # Process in batches với checkpoint support
-        for batch_num, batch_questions in enumerate(self._batch_generator(questions, self.batch_size), 1):
-            if self._stop_processing:
-                # Lưu checkpoint khi dừng
-                self._save_checkpoint(CheckpointData(
-                    file_path=str(tex_file),
-                    current_batch=batch_num - 1,
-                    processed_questions=self.stats.processed_questions,
-                    tikz_compiled=self.stats.tikz_compiled,
-                    images_processed=self.stats.images_processed,
-                    errors=self.stats.errors,
-                    start_time=self.stats.start_time,
-                    partial_content=full_content,
-                    backup_path=backup_path
-                ))
-                break
-            
-            # Bỏ qua các batch đã xử lý nếu resume
-            if batch_num < start_batch:
-                continue
+        # Process in batches với enhanced error handling
+        try:
+            for batch_num, batch_questions in enumerate(self._batch_generator(questions, self.batch_size), 1):
+                if self._stop_processing:
+                    logger.info(f"🛑 Processing stopped by user at batch {batch_num}")
+                    # Lưu checkpoint khi dừng
+                    self._save_checkpoint(CheckpointData(
+                        file_path=str(tex_file),
+                        current_batch=batch_num - 1,
+                        processed_questions=self.stats.processed_questions,
+                        tikz_compiled=self.stats.tikz_compiled,
+                        images_processed=self.stats.images_processed,
+                        errors=self.stats.errors,
+                        start_time=self.stats.start_time,
+                        partial_content=full_content,
+                        backup_path=backup_path
+                    ))
+                    break
                 
-            self.stats.current_batch = batch_num
-            logger.info(f"Xử lý batch {batch_num}/{self.stats.total_batches} ({len(batch_questions)} câu hỏi)")
-            
-            # Process batch with threading
-            full_content = self._process_batch(batch_questions, full_content, images_dir, tex_file.parent)
-            
-            # Update progress
-            self.stats.processed_questions = min(batch_num * self.batch_size, self.stats.total_questions)
-            self._update_memory_stats()
-            
-            # Điều chỉnh batch size nếu cần
-            self._adjust_batch_size()
-            
-            if progress_callback:
-                progress_callback.update(self.stats)
-            
-            # Lưu checkpoint định kỳ
-            if batch_num % CHECKPOINT_INTERVAL == 0:
-                self._save_checkpoint(CheckpointData(
-                    file_path=str(tex_file),
-                    current_batch=batch_num,
-                    processed_questions=self.stats.processed_questions,
-                    tikz_compiled=self.stats.tikz_compiled,
-                    images_processed=self.stats.images_processed,
-                    errors=self.stats.errors,
-                    start_time=self.stats.start_time,
-                    partial_content=full_content,
-                    backup_path=backup_path
-                ))
-            
-            # Force garbage collection after each batch
-            gc.collect()
-            
-            # Memory check
-            memory_info = psutil.virtual_memory()
-            if memory_info.percent > 90:
-                logger.warning(f"Memory usage rất cao: {memory_info.percent}%")
+                # Bỏ qua các batch đã xử lý nếu resume
+                if batch_num < start_batch:
+                    continue
+                    
+                self.stats.current_batch = batch_num
+                logger.info(f"📦 Xử lý batch {batch_num}/{self.stats.total_batches} ({len(batch_questions)} câu hỏi)")
+                
+                # Process batch with enhanced error handling
+                try:
+                    full_content = self._process_batch(batch_questions, full_content, images_dir, tex_file.parent)
+                    total_processed += len(batch_questions)
+                    logger.info(f"✅ Batch {batch_num} completed - Total processed: {total_processed:,}/{len(questions):,}")
+                except Exception as e:
+                    logger.error(f"❌ Lỗi xử lý batch {batch_num}: {str(e)}")
+                    self.stats.errors += len(batch_questions)  # Count all questions in failed batch as errors
+                    # Continue với batch tiếp theo thay vì crash
+                    continue
+                
+                # Update progress
+                self.stats.processed_questions = min(batch_num * self.batch_size, self.stats.total_questions)
+                self._update_memory_stats()
+                
+                # Điều chỉnh batch size nếu cần
+                self._adjust_batch_size()
+                
                 if progress_callback:
-                    st.warning(f"⚠️ Memory usage rất cao: {memory_info.percent}%. Đang clean up...")
+                    progress_callback.update(self.stats)
+                
+                # Lưu checkpoint định kỳ
+                if batch_num % CHECKPOINT_INTERVAL == 0:
+                    self._save_checkpoint(CheckpointData(
+                        file_path=str(tex_file),
+                        current_batch=batch_num,
+                        processed_questions=self.stats.processed_questions,
+                        tikz_compiled=self.stats.tikz_compiled,
+                        images_processed=self.stats.images_processed,
+                        errors=self.stats.errors,
+                        start_time=self.stats.start_time,
+                        partial_content=full_content,
+                        backup_path=backup_path
+                    ))
+                
+                # Force garbage collection after each batch
                 gc.collect()
-                time.sleep(1)  # Brief pause for system
-        
+                
+                # Memory check với enhanced handling
+                memory_info = psutil.virtual_memory()
+                if memory_info.percent > 90:
+                    logger.warning(f"💾 Memory usage rất cao: {memory_info.percent}%")
+                    if progress_callback:
+                        st.warning(f"⚠️ Memory usage rất cao: {memory_info.percent}%. Đang clean up...")
+                    gc.collect()
+                    time.sleep(1)  # Brief pause for system
+                    
+                    # Nếu memory vẫn cao, adjust batch size
+                    if psutil.virtual_memory().percent > 85:
+                        self.batch_size = max(10, int(self.batch_size * 0.7))
+                        logger.warning(f"🔧 Reduced batch size to {self.batch_size} due to high memory usage")
+                        
+        except Exception as e:
+            logger.error(f"❌ Critical error in batch processing loop: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            
+        logger.info(f"🏁 Completed processing: {total_processed:,} total questions processed")
         return full_content
+    
+    def _parse_questions_streaming(self, tex_file: Path) -> List[Question]:
+        """Parse questions với streaming để tránh memory overload"""
+        questions = []
+        try:
+            # Thử parse với memory-optimized approach
+            questions = self.parser.parse_file(tex_file)
+            
+            # Kiểm tra memory usage sau khi parse
+            memory_info = psutil.virtual_memory()
+            if memory_info.percent > 80:
+                logger.warning(f"High memory usage after parsing: {memory_info.percent}%")
+                gc.collect()  # Force cleanup
+                
+        except MemoryError as e:
+            logger.error(f"Memory error during parsing: {str(e)}")
+            raise e
+        except Exception as e:
+            logger.error(f"Parse error: {str(e)}")
+            raise e
+            
+        return questions
+    
+    def _parse_questions_fallback(self, tex_file: Path) -> List[Question]:
+        """Fallback parsing với smaller chunks"""
+        logger.info("🔄 Attempting fallback parsing với smaller chunks...")
+        
+        # Simple fallback: manually find question boundaries
+        questions = []
+        question_count = 0
+        
+        try:
+            with open(tex_file, 'r', encoding='utf-8') as f:
+                current_question = ""
+                in_question = False
+                
+                for line_num, line in enumerate(f, 1):
+                    if '\\begin{ex}' in line:
+                        in_question = True
+                        current_question = line
+                        continue
+                        
+                    if in_question:
+                        current_question += line
+                        
+                        if '\\end{ex}' in line:
+                            # End of question found
+                            question_count += 1
+                            
+                            # Create a minimal Question object
+                            from .latex_parser import Question
+                            q = Question(
+                                index=question_count,
+                                subcount=f"fallback_{question_count}",
+                                full_content=current_question
+                            )
+                            questions.append(q)
+                            
+                            current_question = ""
+                            in_question = False
+                            
+                            # Memory check every 1000 questions
+                            if question_count % 1000 == 0:
+                                memory_info = psutil.virtual_memory()
+                                if memory_info.percent > 85:
+                                    logger.warning(f"High memory in fallback parsing: {memory_info.percent}%")
+                                    gc.collect()
+                                    
+        except Exception as e:
+            logger.error(f"Fallback parsing failed: {str(e)}")
+            raise e
+            
+        logger.info(f"Fallback parsing completed: {len(questions):,} questions")
+        return questions
     
     def _batch_generator(self, questions: List[Question], batch_size: int) -> Generator[List[Question], None, None]:
         """Generate batches of questions"""

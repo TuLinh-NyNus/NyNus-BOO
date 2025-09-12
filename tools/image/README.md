@@ -12,6 +12,10 @@ Tool xử lý hình ảnh trong file LaTeX - Chuyển đổi TikZ thành hình �
 - ✅ **Giao diện Streamlit** thân thiện, dễ sử dụng
 - ✅ **Chọn folder và scan files** - Duyệt toàn bộ thư mục để tìm file .tex
 - ✅ **Xử lý nhiều files** - Chọn và xử lý đồng loạt
+- ✅ **Enhanced Processor** - Xử lý resilient, không dừng khi gặp lỗi
+- ✅ **Error Recovery & Timeout Protection** - Tự động bỏ qua file lỗi và tiếp tục
+- ✅ **Windows File Locking Fix** - Giải quyết lỗi WinError 32 với retry mechanism
+- ✅ **Memory Management** - Tự động cleanup memory và resources
 - ✅ **Chế độ streaming** cho file cực lớn (>300k câu hỏi)
 - ✅ **Checkpoint & Resume** - tự động lưu tiến trình và tiếp tục khi gian đoạn
 - ✅ **Adaptive Performance** - tự động tối ưu theo RAM và CPU
@@ -95,6 +99,22 @@ Truy cập: http://localhost:8501
    - Xem danh sách tất cả file .tex tìm được
    - Chọn các files cần xử lý
 3. **Thêm vào danh sách xử lý** và bắt đầu xử lý
+
+#### Cách 3: Sử dụng Enhanced Processor (🛡️ Không dừng khi gặp lỗi)
+1. **Kích hoạt Enhanced Processor** - Tích checkbox để sử dụng chế độ nâng cao
+2. **Xử lý an toàn:**
+   - Tự động bỏ qua files gặp lỗi và tiếp tục xử lý
+   - Timeout protection (30 phút/file)
+   - Memory cleanup sau mỗi file
+   - Chi tiết lỗi đầy đủ cho debug
+3. **Kết quả đáng tin cậy** - Đảm bảo xử lý hết tất cả files có thể
+
+#### 🚪 Windows File Locking Fix
+Tool đã được cập nhật để giải quyết lỗi **WinError 32** phổ biến trên Windows:
+- **Retry mechanism** - Tự động retry khi gặp file locking
+- **Exponential backoff** - Tang dần thời gian chờ giữa các lần thử
+- **Smart delays** - Thêm delay giữa các file operations
+- **File handle management** - Đảm bảo close file handles đúng cách
 
 #### Kết quả cuối cùng:
 - File .tex đã xử lý
