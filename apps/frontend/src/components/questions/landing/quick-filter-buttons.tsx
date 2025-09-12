@@ -10,13 +10,11 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Filter, BookOpen, Zap, Target, TrendingUp } from 'lucide-react';
+import { Filter, BookOpen, GraduationCap, Calculator, Triangle, BarChart, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { usePublicQuestionFiltersStore } from '@/lib/stores/public';
 import { QUESTION_ROUTES } from '@/lib/question-paths';
-import { QuestionDifficulty } from '@/lib/types/public';
-import { QUESTION_CATEGORIES, CATEGORY_MAPPING } from '@/lib/constants/categories';
 
 // ===== TYPES =====
 
@@ -26,8 +24,8 @@ import { QUESTION_CATEGORIES, CATEGORY_MAPPING } from '@/lib/constants/categorie
  */
 export interface QuickFilterButtonsProps {
   onFilterSelect?: (filterType: string, value: string) => void;
-  showCategories?: boolean;
-  showDifficulties?: boolean;
+  showGrades?: boolean;
+  showSubjects?: boolean;
   maxButtons?: number;
   layout?: 'horizontal' | 'grid';
   className?: string;
@@ -49,46 +47,104 @@ interface FilterButton {
 // ===== CONSTANTS =====
 
 /**
- * Category Filter Buttons
- * Generated từ shared category constants
+ * Grade Filter Buttons
+ * Lớp học với CSS variables - tự động responsive cho dark/light mode
  */
-const CATEGORY_FILTERS: FilterButton[] = QUESTION_CATEGORIES.map(category => ({
-  id: category.id,
-  label: category.title,
-  value: CATEGORY_MAPPING[category.id],
-  icon: category.icon,
-  color: `${category.color} hover:${category.color.replace('bg-', 'bg-').replace('-500', '-600')} text-white`,
-  description: category.description
-}));
+const GRADE_FILTERS: FilterButton[] = [
+  {
+    id: 'grade-6',
+    label: 'Lớp 6',
+    value: 'grade-6',
+    icon: GraduationCap,
+    color: 'filter-grade-1',
+    description: 'Câu hỏi dành cho học sinh lớp 6'
+  },
+  {
+    id: 'grade-7',
+    label: 'Lớp 7',
+    value: 'grade-7',
+    icon: GraduationCap,
+    color: 'filter-grade-2',
+    description: 'Câu hỏi dành cho học sinh lớp 7'
+  },
+  {
+    id: 'grade-8',
+    label: 'Lớp 8',
+    value: 'grade-8',
+    icon: GraduationCap,
+    color: 'filter-grade-3',
+    description: 'Câu hỏi dành cho học sinh lớp 8'
+  },
+  {
+    id: 'grade-9',
+    label: 'Lớp 9',
+    value: 'grade-9',
+    icon: GraduationCap,
+    color: 'filter-grade-4',
+    description: 'Câu hỏi dành cho học sinh lớp 9'
+  },
+  {
+    id: 'grade-10',
+    label: 'Lớp 10',
+    value: 'grade-10',
+    icon: GraduationCap,
+    color: 'filter-grade-5',
+    description: 'Câu hỏi dành cho học sinh lớp 10'
+  },
+  {
+    id: 'grade-11',
+    label: 'Lớp 11',
+    value: 'grade-11',
+    icon: GraduationCap,
+    color: 'filter-grade-6',
+    description: 'Câu hỏi dành cho học sinh lớp 11'
+  },
+  {
+    id: 'grade-12',
+    label: 'Lớp 12',
+    value: 'grade-12',
+    icon: GraduationCap,
+    color: 'filter-grade-7',
+    description: 'Câu hỏi dành cho học sinh lớp 12'
+  }
+];
 
 /**
- * Difficulty Filter Buttons
- * Predefined difficulty filters
+ * Subject Filter Buttons
+ * Chủ đề môn học với CSS variables - tự động responsive cho dark/light mode
  */
-const DIFFICULTY_FILTERS: FilterButton[] = [
+const SUBJECT_FILTERS: FilterButton[] = [
   {
-    id: 'easy',
-    label: 'Dễ',
-    value: QuestionDifficulty.EASY,
-    icon: Zap,
-    color: 'bg-green-100 hover:bg-green-200 text-green-700 border border-green-300',
-    description: 'Câu hỏi cơ bản'
+    id: 'algebra-analysis',
+    label: 'Đại số & Giải tích',
+    value: 'algebra-analysis',
+    icon: Calculator,
+    color: 'filter-subject-algebra',
+    description: 'Đại số, hàm số, giới hạn, đạo hàm, tích phân'
   },
   {
-    id: 'medium',
-    label: 'Trung bình',
-    value: QuestionDifficulty.MEDIUM,
-    icon: Target,
-    color: 'bg-yellow-100 hover:bg-yellow-200 text-yellow-700 border border-yellow-300',
-    description: 'Câu hỏi vừa phải'
+    id: 'geometry',
+    label: 'Hình học',
+    value: 'geometry',
+    icon: Triangle,
+    color: 'filter-subject-geometry',
+    description: 'Hình học phẳng, hình học không gian, lượng giác'
   },
   {
-    id: 'hard',
-    label: 'Khó',
-    value: QuestionDifficulty.HARD,
-    icon: TrendingUp,
-    color: 'bg-red-100 hover:bg-red-200 text-red-700 border border-red-300',
-    description: 'Câu hỏi nâng cao'
+    id: 'probability-statistics',
+    label: 'Xác suất và thống kê',
+    value: 'probability-statistics',
+    icon: BarChart,
+    color: 'filter-subject-statistics',
+    description: 'Xác suất, thống kê, tổ hợp'
+  },
+  {
+    id: 'gifted-students',
+    label: 'Học sinh giỏi',
+    value: 'gifted-students',
+    icon: Trophy,
+    color: 'filter-subject-gifted',
+    description: 'Câu hỏi nâng cao, olympic toán'
   }
 ];
 
@@ -96,22 +152,23 @@ const DIFFICULTY_FILTERS: FilterButton[] = [
 
 /**
  * Quick Filter Buttons Component
- * Display quick filter buttons cho categories và difficulties
+ * Display quick filter buttons cho grades và subjects
  * 
  * Features:
- * - Category filter buttons (Đại số, Hình học, Giải tích, Xác suất)
- * - Difficulty filter buttons (Dễ, Trung bình, Khó)
+ * - Grade filter buttons (Lớp 6-12)
+ * - Subject filter buttons (Đại số & Giải tích, Hình học, Xác suất và thống kê, Học sinh giỏi)
  * - Integration với PublicQuestionFiltersStore
  * - Navigation to browse page với filters applied
- * - Responsive grid layout
+ * - Responsive grid layout với 2 sections
+ * - Dark/Light mode support với optimized colors
  * - Hover effects và animations
  */
 export function QuickFilterButtons({
   onFilterSelect,
-  showCategories = true,
-  showDifficulties = true,
-  maxButtons = 8,
-  layout = 'grid',
+  showGrades = true,
+  showSubjects = true,
+  maxButtons: _maxButtons = 11,
+  layout: _layout = 'grid',
   className
 }: QuickFilterButtonsProps) {
   // ===== HOOKS =====
@@ -119,68 +176,60 @@ export function QuickFilterButtons({
   const router = useRouter();
   
   // Store actions
-  const toggleCategory = usePublicQuestionFiltersStore(state => state.toggleCategory);
-  const toggleDifficulty = usePublicQuestionFiltersStore(state => state.toggleDifficulty);
   const resetFilters = usePublicQuestionFiltersStore(state => state.resetFilters);
   
   // ===== HANDLERS =====
   
   /**
-   * Handle category filter click
-   * Apply category filter và navigate to browse page
+   * Handle grade filter click
+   * Apply grade filter và navigate to browse page
    */
-  const handleCategoryClick = (category: string) => {
+  const handleGradeClick = (grade: string) => {
     // Reset filters trước khi apply new filter
     resetFilters();
     
-    // Apply category filter
-    toggleCategory(category);
-    
     // Call callback if provided
-    onFilterSelect?.('category', category);
+    onFilterSelect?.('grade', grade);
     
-    // Navigate to browse page
-    router.push(QUESTION_ROUTES.BROWSE);
+    // Navigate to browse page with grade filter
+    router.push(`${QUESTION_ROUTES.BROWSE}?grade=${grade}`);
   };
   
   /**
-   * Handle difficulty filter click
-   * Apply difficulty filter và navigate to browse page
+   * Handle subject filter click
+   * Apply subject filter và navigate to browse page
    */
-  const handleDifficultyClick = (difficulty: QuestionDifficulty) => {
+  const handleSubjectClick = (subject: string) => {
     // Reset filters trước khi apply new filter
     resetFilters();
     
-    // Apply difficulty filter
-    toggleDifficulty(difficulty);
-    
     // Call callback if provided
-    onFilterSelect?.('difficulty', difficulty);
+    onFilterSelect?.('subject', subject);
     
-    // Navigate to browse page
-    router.push(QUESTION_ROUTES.BROWSE);
+    // Navigate to browse page with subject filter
+    router.push(`${QUESTION_ROUTES.BROWSE}?subject=${subject}`);
   };
   
   // ===== RENDER HELPERS =====
   
   /**
-   * Render category filter buttons
-   * Display category filter buttons
+   * Render grade filter buttons
+   * Display grade filter buttons (Lớp 6-12)
    */
-  const renderCategoryButtons = () => {
-    if (!showCategories) return null;
+  const renderGradeButtons = () => {
+    if (!showGrades) return null;
     
-    return CATEGORY_FILTERS.map((filter) => {
+    return GRADE_FILTERS.map((filter) => {
       const Icon = filter.icon;
       
       return (
         <button
           key={filter.id}
-          onClick={() => handleCategoryClick(filter.value)}
+          onClick={() => handleGradeClick(filter.value)}
           className={cn(
-            'group relative p-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg',
-            filter.color,
-            'flex flex-col items-center gap-2 min-h-[100px]'
+            'group relative p-3 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg',
+            'flex flex-col items-center gap-2 min-h-[90px]',
+            `filter-button-${filter.color}`
           )}
           title={filter.description}
         >
@@ -188,75 +237,60 @@ export function QuickFilterButtons({
           <Icon className="h-6 w-6 group-hover:scale-110 transition-transform" />
           
           {/* Label */}
-          <span className="text-sm font-medium text-center">
+          <span className="text-sm font-semibold text-center">
             {filter.label}
           </span>
           
           {/* Hover Effect */}
-          <div className="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-white/10 dark:bg-black/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
       );
     });
   };
   
   /**
-   * Render difficulty filter buttons
-   * Display difficulty filter buttons
+   * Render subject filter buttons
+   * Display subject filter buttons (Chủ đề môn học)
    */
-  const renderDifficultyButtons = () => {
-    if (!showDifficulties) return null;
+  const renderSubjectButtons = () => {
+    if (!showSubjects) return null;
     
-    return DIFFICULTY_FILTERS.map((filter) => {
+    return SUBJECT_FILTERS.map((filter) => {
       const Icon = filter.icon;
       
       return (
         <button
           key={filter.id}
-          onClick={() => handleDifficultyClick(filter.value as QuestionDifficulty)}
+          onClick={() => handleSubjectClick(filter.value)}
           className={cn(
             'group relative p-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-lg',
-            filter.color,
-            'flex flex-col items-center gap-2 min-h-[100px]'
+            'flex flex-col items-center gap-2 min-h-[100px]',
+            `filter-button-${filter.color}`
           )}
           title={filter.description}
         >
           {/* Icon */}
-          <Icon className="h-6 w-6 group-hover:scale-110 transition-transform" />
+          <Icon className="h-7 w-7 group-hover:scale-110 transition-transform" />
           
           {/* Label */}
-          <span className="text-sm font-medium text-center">
+          <span className="text-base font-semibold text-center">
             {filter.label}
           </span>
           
           {/* Hover Effect */}
-          <div className="absolute inset-0 bg-black/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="absolute inset-0 bg-white/10 dark:bg-black/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
         </button>
       );
     });
-  };
-  
-  /**
-   * Get layout classes
-   * Generate CSS classes cho layout
-   */
-  const getLayoutClasses = () => {
-    if (layout === 'horizontal') {
-      return 'flex flex-wrap gap-3 justify-center';
-    }
-    
-    // Grid layout (default)
-    return 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3';
   };
   
   // ===== MAIN RENDER =====
   
-  // Combine all buttons
-  const allButtons = [
-    ...(showCategories ? CATEGORY_FILTERS : []),
-    ...(showDifficulties ? DIFFICULTY_FILTERS : [])
-  ].slice(0, maxButtons);
+  // Check if we have any filters to show
+  const hasGrades = showGrades && GRADE_FILTERS.length > 0;
+  const hasSubjects = showSubjects && SUBJECT_FILTERS.length > 0;
   
-  if (allButtons.length === 0) return null;
+  if (!hasGrades && !hasSubjects) return null;
   
   return (
     <div className={cn('quick-filter-buttons w-full', className)}>
@@ -267,15 +301,33 @@ export function QuickFilterButtons({
           Lọc nhanh theo chủ đề
         </h3>
         <p className="text-sm text-muted-foreground">
-          Chọn chủ đề hoặc độ khó để tìm câu hỏi phù hợp
+          Chọn lớp học hoặc chủ đề để tìm câu hỏi phù hợp
         </p>
       </div>
       
-      {/* Filter Buttons */}
-      <div className={getLayoutClasses()}>
-        {renderCategoryButtons()}
-        {renderDifficultyButtons()}
-      </div>
+      {/* Grade Filters Section */}
+      {hasGrades && (
+        <div className="mb-8">
+          <h4 className="text-sm font-medium text-muted-foreground mb-3 text-center">
+            Lọc theo lớp học
+          </h4>
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+            {renderGradeButtons()}
+          </div>
+        </div>
+      )}
+      
+      {/* Subject Filters Section */}
+      {hasSubjects && (
+        <div className="mb-8">
+          <h4 className="text-sm font-medium text-muted-foreground mb-3 text-center">
+            Lọc theo chủ đề
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            {renderSubjectButtons()}
+          </div>
+        </div>
+      )}
       
       {/* Browse All Button */}
       <div className="text-center mt-6">
@@ -295,43 +347,43 @@ export function QuickFilterButtons({
 
 /**
  * Compact Quick Filter Buttons
- * Compact version với fewer buttons
+ * Compact version với fewer buttons - chỉ hiện thị subjects
  */
-export function CompactQuickFilterButtons(props: Omit<QuickFilterButtonsProps, 'maxButtons' | 'layout'>) {
+export function CompactQuickFilterButtons(props: Omit<QuickFilterButtonsProps, 'maxButtons' | 'showGrades'>) {
   return (
     <QuickFilterButtons
       {...props}
+      showGrades={false}
       maxButtons={4}
-      layout="horizontal"
       className={cn('compact-quick-filter-buttons', props.className)}
     />
   );
 }
 
 /**
- * Category Only Quick Filter Buttons
- * Only show category filters
+ * Grade Only Quick Filter Buttons
+ * Only show grade filters (Lớp học)
  */
-export function CategoryQuickFilterButtons(props: Omit<QuickFilterButtonsProps, 'showDifficulties'>) {
+export function GradeQuickFilterButtons(props: Omit<QuickFilterButtonsProps, 'showSubjects'>) {
   return (
     <QuickFilterButtons
       {...props}
-      showDifficulties={false}
-      className={cn('category-quick-filter-buttons', props.className)}
+      showSubjects={false}
+      className={cn('grade-quick-filter-buttons', props.className)}
     />
   );
 }
 
 /**
- * Difficulty Only Quick Filter Buttons
- * Only show difficulty filters
+ * Subject Only Quick Filter Buttons
+ * Only show subject filters (Chủ đề)
  */
-export function DifficultyQuickFilterButtons(props: Omit<QuickFilterButtonsProps, 'showCategories'>) {
+export function SubjectQuickFilterButtons(props: Omit<QuickFilterButtonsProps, 'showGrades'>) {
   return (
     <QuickFilterButtons
       {...props}
-      showCategories={false}
-      className={cn('difficulty-quick-filter-buttons', props.className)}
+      showGrades={false}
+      className={cn('subject-quick-filter-buttons', props.className)}
     />
   );
 }

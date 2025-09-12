@@ -185,3 +185,96 @@
     hsl(var(--gradient-3) / 0.1)
   );
 }
+
+/* ===== QUICKFILTER BUTTON STYLES ===== */
+/* Grade filter buttons - Progressive styling */
+.filter-button-filter-grade-1 {
+  background: var(--filter-grade-1-bg);
+  color: var(--filter-grade-1-text);
+  border-color: var(--filter-grade-1-border);
+}
+
+.filter-button-filter-grade-2 {
+  background: var(--filter-grade-2-bg);
+  color: var(--filter-grade-2-text);
+  border-color: var(--filter-grade-2-border);
+}
+
+.filter-button-filter-grade-3 {
+  background: var(--filter-grade-3-bg);
+  color: var(--filter-grade-3-text);
+  border-color: var(--filter-grade-3-border);
+}
+
+.filter-button-filter-grade-4 {
+  background: var(--filter-grade-4-bg);
+  color: var(--filter-grade-4-text);
+  border-color: var(--filter-grade-4-border);
+}
+
+.filter-button-filter-grade-5 {
+  background: var(--filter-grade-5-bg);
+  color: var(--filter-grade-5-text);
+  border-color: var(--filter-grade-5-border);
+}
+
+.filter-button-filter-grade-6 {
+  background: var(--filter-grade-6-bg);
+  color: var(--filter-grade-6-text);
+  border-color: var(--filter-grade-6-border);
+}
+
+.filter-button-filter-grade-7 {
+  background: var(--filter-grade-7-bg);
+  color: var(--filter-grade-7-text);
+  border-color: var(--filter-grade-7-border);
+}
+
+/* Subject filter buttons - Semantic styling */
+.filter-button-filter-subject-algebra {
+  background: var(--filter-subject-algebra-bg);
+  color: var(--filter-subject-algebra-text);
+  border-color: var(--filter-subject-algebra-border);
+}
+
+.filter-button-filter-subject-geometry {
+  background: var(--filter-subject-geometry-bg);
+  color: var(--filter-subject-geometry-text);
+  border-color: var(--filter-subject-geometry-border);
+}
+
+.filter-button-filter-subject-statistics {
+  background: var(--filter-subject-statistics-bg);
+  color: var(--filter-subject-statistics-text);
+  border-color: var(--filter-subject-statistics-border);
+}
+
+.filter-button-filter-subject-gifted {
+  background: var(--filter-subject-gifted-bg);
+  color: var(--filter-subject-gifted-text);
+  border-color: var(--filter-subject-gifted-border);
+}
+
+/* Hover effects for all filter buttons */
+.filter-button-filter-grade-1:hover,
+.filter-button-filter-grade-2:hover,
+.filter-button-filter-grade-3:hover,
+.filter-button-filter-grade-4:hover,
+.filter-button-filter-grade-5:hover,
+.filter-button-filter-grade-6:hover,
+.filter-button-filter-grade-7:hover {
+  filter: brightness(0.95) saturate(1.1);
+}
+
+.filter-button-filter-subject-algebra:hover,
+.filter-button-filter-subject-geometry:hover,
+.filter-button-filter-subject-statistics:hover,
+.filter-button-filter-subject-gifted:hover {
+  filter: brightness(0.95) saturate(1.1);
+}
+
+/* Add border to all filter buttons */
+[class^="filter-button-"] {
+  border-width: 1px;
+  border-style: solid;
+}

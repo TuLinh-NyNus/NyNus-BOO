@@ -22,7 +22,7 @@
   /* ===== SEMANTIC MAPPINGS FOR DARK THEME ===== */
   
   /* Base semantic colors - Enhanced navy palette with improved contrast */
-  --color-background: hsl(223 25% 8%);      /* #0A1018 - Deeper navy for better contrast */
+  --color-background: var(--color-dark-bg);      /* Unified dark background #0F1422 */
   --color-foreground: hsl(220 14% 98%);     /* #F8F9FA - Brighter text (WCAG AA) */
   --color-surface: hsl(223 28% 11%);        /* #0C1424 - Surface 1 */
   --color-surface-hover: hsl(223 24% 20%);  /* #1A2436 - Hover state */
@@ -105,6 +105,53 @@
   /* Admin component colors using semantic system */
   --admin-accent: var(--admin-primary);
   --admin-accent-hover: var(--admin-primary-dark);
+  
+/* ===== QUICKFILTER BUTTONS DARK THEME ===== */
+/* Grade buttons - Turbopack-inspired gradients: Beautiful diagonal gradients with Cyan → Teal → Blue → Indigo → Purple → Violet → Pink */
+--filter-grade-1-bg: linear-gradient(135deg, #134E4A, #0F766E, #06B6D4);     /* Cyan gradient */
+--filter-grade-1-text: #E6FFFA;   /* Cyan 50 - Very light cyan */
+--filter-grade-1-border: #155E75; /* Cyan 800 */
+
+--filter-grade-2-bg: linear-gradient(135deg, #115E59, #0D9488, #14B8A6);     /* Teal gradient */
+--filter-grade-2-text: #F0FDFA;   /* Teal 50 - Very light teal */
+--filter-grade-2-border: #0F766E; /* Teal 700 */
+
+--filter-grade-3-bg: linear-gradient(135deg, #1E40AF, #2563EB, #3B82F6);     /* Blue gradient */
+--filter-grade-3-text: #EFF6FF;   /* Blue 50 - Very light blue */
+--filter-grade-3-border: #1D4ED8; /* Blue 700 */
+
+--filter-grade-4-bg: linear-gradient(135deg, #3730A3, #4F46E5, #6366F1);     /* Indigo gradient */
+--filter-grade-4-text: #EEF2FF;   /* Indigo 50 - Very light indigo */
+--filter-grade-4-border: #4338CA; /* Indigo 700 */
+
+--filter-grade-5-bg: linear-gradient(135deg, #5B21B6, #7C3AED, #8B5CF6);     /* Violet gradient */
+--filter-grade-5-text: #F5F3FF;   /* Violet 50 - Very light violet */
+--filter-grade-5-border: #6D28D9; /* Violet 700 */
+
+--filter-grade-6-bg: linear-gradient(135deg, #86198F, #C026D3, #D946EF);     /* Fuchsia gradient */
+--filter-grade-6-text: #FDF4FF;   /* Fuchsia 50 - Very light fuchsia */
+--filter-grade-6-border: #A21CAF; /* Fuchsia 700 */
+
+--filter-grade-7-bg: linear-gradient(135deg, #9D174D, #DB2777, #EC4899);     /* Pink gradient */
+--filter-grade-7-text: #FDF2F8;   /* Pink 50 - Very light pink */
+--filter-grade-7-border: #BE185D; /* Pink 700 */
+
+/* Subject buttons - Turbopack gradient variants with dynamic effects */
+--filter-subject-algebra-bg: linear-gradient(135deg, #1E3A8A, #3B82F6, #60A5FA);     /* Blue Turbopack gradient */
+--filter-subject-algebra-text: #EFF6FF;   /* Blue 50 - Very light blue */
+--filter-subject-algebra-border: #1E40AF; /* Blue 800 */
+
+--filter-subject-geometry-bg: linear-gradient(135deg, #0F766E, #06B6D4, #22D3EE);     /* Cyan/Teal Turbopack gradient */
+--filter-subject-geometry-text: #E6FFFA;   /* Cyan 50 - Very light cyan */
+--filter-subject-geometry-border: #134E4A; /* Teal 800 */
+
+--filter-subject-statistics-bg: linear-gradient(135deg, #6D28D9, #8B5CF6, #A78BFA);     /* Purple Turbopack gradient */
+--filter-subject-statistics-text: #F5F3FF;   /* Violet 50 - Very light violet */
+--filter-subject-statistics-border: #5B21B6; /* Violet 800 */
+
+--filter-subject-gifted-bg: linear-gradient(135deg, #BE185D, #EC4899, #F472B6);     /* Pink Turbopack gradient */
+--filter-subject-gifted-text: #FDF2F8;   /* Pink 50 - Very light pink */
+--filter-subject-gifted-border: #9D174D; /* Pink 800 */
 }
 
 /* ===== ADMIN SCOPED STYLES ===== */

@@ -92,7 +92,7 @@ export default function QuestionsLayout({ children }: QuestionsLayoutProps) {
       <div className="questions-section min-h-screen bg-background">
         {/* Questions Header với breadcrumbs */}
         <QuestionsHeader
-          showBreadcrumbs={true}
+          showBreadcrumbs={false}
           showSearchBar={false}
           variant="default"
           size="md"

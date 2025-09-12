@@ -65,8 +65,14 @@ export function useBrowserExtensionCleanup() {
       root.querySelectorAll('*').forEach(cleanElement);
     };
 
-    // Thực hiện initial cleanup
-    walkAndClean(document.documentElement);
+    // Thực hiện immediate cleanup để tránh hydration mismatch
+    const immediateCleanup = () => walkAndClean(document.documentElement);
+    
+    // Chạy cleanup ngay lập tức
+    immediateCleanup();
+    
+    // Chạy lại sau 0ms để đảm bảo
+    const timeoutId = setTimeout(immediateCleanup, 0);
 
     // Setup MutationObserver cho dynamic changes
     const observer = new MutationObserver((mutations) => {
@@ -103,6 +109,7 @@ export function useBrowserExtensionCleanup() {
 
     // Cleanup function
     return () => {
+      clearTimeout(timeoutId);
       observer.disconnect();
     };
   }, []); // Empty deps array - chỉ chạy once sau mount

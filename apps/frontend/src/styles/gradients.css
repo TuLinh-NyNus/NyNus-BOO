@@ -196,6 +196,7 @@
 
 /* Dark mode gradient - giữ consistency */
 .dark .nynus-gradient-bg {
-  background: linear-gradient(135deg, #0A0E1A 0%, #131B2B 50%, #0A0E1A 100%);
+  /* Unified plain background for dark mode */
+  background: var(--color-dark-bg);
   min-height: 100vh;
 }

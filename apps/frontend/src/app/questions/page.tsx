@@ -56,10 +56,7 @@ export default function QuestionsLandingPage() {
   return (
     <div className="questions-landing-page">
       {/* Hero Section */}
-      <section className="hero-section py-20 bg-gradient-to-br from-primary/10 via-background to-secondary/10 relative overflow-hidden">
-        {/* Background Decoration */}
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5" />
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-primary/5 to-transparent" />
+      <section className="hero-section py-20">
 
         <div className="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Title */}
@@ -87,9 +84,9 @@ export default function QuestionsLandingPage() {
           {/* Quick Filter Buttons */}
           <div className="mb-12">
             <QuickFilterButtons
-              showCategories={true}
-              showDifficulties={true}
-              maxButtons={7}
+              showGrades={true}
+              showSubjects={true}
+              maxButtons={11}
               layout="grid"
             />
           </div>

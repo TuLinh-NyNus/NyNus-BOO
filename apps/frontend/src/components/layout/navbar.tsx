@@ -188,15 +188,30 @@ const Navbar = () => {
     console.log("Logout clicked");
   };
 
+  // Check if we're on homepage or courses page to make navbar fully transparent
+  const isHomepage = pathname === '/';
+  const isCoursesPage = pathname === '/courses';
+  const shouldBeTransparent = (isHomepage && !isScrolled) || isCoursesPage;
+
   return (
     <>
       <header
         className={`fixed top-0 z-50 w-full transition-all duration-300 ${
           isScrolled
             ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-sm'
+            : shouldBeTransparent
+            ? 'border-b border-transparent'
             : 'bg-transparent backdrop-blur-sm border-b border-transparent'
         }`}
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        style={{ 
+          paddingTop: 'env(safe-area-inset-top)',
+          ...(shouldBeTransparent ? {
+            backgroundColor: 'transparent',
+            background: 'transparent',
+            backdropFilter: 'none',
+            WebkitBackdropFilter: 'none'
+          } : {})
+        }}
       >
         <nav className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 min-w-0">
           {/* Logo */}

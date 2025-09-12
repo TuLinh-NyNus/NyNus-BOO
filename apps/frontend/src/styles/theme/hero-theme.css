@@ -20,7 +20,7 @@
   
   /* Background Gradients */
   --hero-bg-gradient: linear-gradient(to bottom, #4417DB, #E57885, #F18582);
-  --hero-bg-dark: #0B1426;           /* Deep navy-black base */
+  --hero-bg-dark: #0F1422;           /* Unified dark background base */
   --hero-bg-surface: #162338;        /* Navy-slate surface color */
   --hero-bg-surface-hover: #1E2A42;  /* Navy hover state */
   

@@ -26,7 +26,7 @@
   --color-medium-gray: #4A5568;     /* Muted text */
   
   /* Dark theme base colors */
-  --color-dark-bg: #0B1426;         /* Deep navy-black background */
+  --color-dark-bg: #0F1422;         /* Unified dark background (requested) */
   --color-dark-surface: #162338;    /* Dark surface/card */
   --color-dark-surface-hover: #1E2A42; /* Dark hover states */
   --color-dark-surface-muted: #13203A; /* Dark muted surfaces */
@@ -154,4 +154,51 @@
   --admin-danger: var(--color-admin-red);
   --admin-success: var(--color-success-light);
   --admin-info: var(--color-info-light);
+  
+/* ===== QUICKFILTER BUTTONS TOKENS ===== */
+/* Grade buttons - Turbopack-inspired palette: Cyan → Teal → Blue → Indigo → Purple → Violet → Pink */
+--filter-grade-1-bg: #ECFEFF;    /* Cyan 50 - Light */
+--filter-grade-1-text: #164E63;  /* Cyan 900 */
+--filter-grade-1-border: #67E8F9; /* Cyan 300 */
+
+--filter-grade-2-bg: #CCFBF1;    /* Teal 100 */
+--filter-grade-2-text: #115E59;  /* Teal 800 */
+--filter-grade-2-border: #2DD4BF; /* Teal 400 */
+
+--filter-grade-3-bg: #DBEAFE;    /* Blue 100 */
+--filter-grade-3-text: #1E40AF;  /* Blue 800 */
+--filter-grade-3-border: #60A5FA; /* Blue 400 */
+
+--filter-grade-4-bg: #E0E7FF;    /* Indigo 100 */
+--filter-grade-4-text: #3730A3;  /* Indigo 800 */
+--filter-grade-4-border: #818CF8; /* Indigo 400 */
+
+--filter-grade-5-bg: #EDE9FE;    /* Violet 100 */
+--filter-grade-5-text: #5B21B6;  /* Violet 800 */
+--filter-grade-5-border: #A78BFA; /* Violet 400 */
+
+--filter-grade-6-bg: #FAE8FF;    /* Fuchsia 100 */
+--filter-grade-6-text: #86198F;  /* Fuchsia 800 */
+--filter-grade-6-border: #E879F9; /* Fuchsia 400 */
+
+--filter-grade-7-bg: #FCE7F3;    /* Pink 100 */
+--filter-grade-7-text: #9D174D;  /* Pink 800 */
+--filter-grade-7-border: #F472B6; /* Pink 400 */
+
+/* Subject buttons - Turbopack-inspired colors */
+--filter-subject-algebra-bg: #0070F3;     /* Turbopack Blue */
+--filter-subject-algebra-text: #FFFFFF;   /* White */
+--filter-subject-algebra-border: #1E40AF; /* Blue 800 */
+
+--filter-subject-geometry-bg: #00D8FF;     /* Turbopack Cyan */
+--filter-subject-geometry-text: #164E63;   /* Cyan 900 */
+--filter-subject-geometry-border: #0099CC; /* Darker Cyan */
+
+--filter-subject-statistics-bg: #7C3AED;     /* Turbopack Purple */
+--filter-subject-statistics-text: #FFFFFF;   /* White */
+--filter-subject-statistics-border: #5B21B6; /* Violet 800 */
+
+--filter-subject-gifted-bg: #F472B6;     /* Turbopack Pink */
+--filter-subject-gifted-text: #FFFFFF;   /* White */
+--filter-subject-gifted-border: #9D174D; /* Pink 800 */
 }

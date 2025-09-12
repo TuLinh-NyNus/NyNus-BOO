@@ -19,8 +19,8 @@ export {
 export {
   QuickFilterButtons,
   CompactQuickFilterButtons,
-  CategoryQuickFilterButtons,
-  DifficultyQuickFilterButtons,
+  GradeQuickFilterButtons,
+  SubjectQuickFilterButtons,
   default as DefaultQuickFilterButtons
 } from './quick-filter-buttons';
 

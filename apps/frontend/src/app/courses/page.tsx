@@ -71,9 +71,6 @@ export default function CoursesPage() {
 
       {/* Main Content */}
       <div className="relative z-10">
-        {/* Background overlay for content area - smooth transition */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-slate-900/90" />
-
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
           {/* Advanced Search Bar */}
           <div className="mb-8 -mt-8">
