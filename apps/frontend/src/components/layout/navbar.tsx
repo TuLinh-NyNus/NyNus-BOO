@@ -202,7 +202,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text"
+            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text py-1"
             style={{
               background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
               backgroundClip: "text",
@@ -211,7 +211,10 @@ const Navbar = () => {
               fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
               fontWeight: 900,
               letterSpacing: "-0.02em",
-              borderRadius: "0.5rem"
+              borderRadius: "0.5rem",
+              lineHeight: "1.3",
+              paddingTop: "0.25rem",
+              paddingBottom: "0.25rem"
             }}
           >
             NyNus

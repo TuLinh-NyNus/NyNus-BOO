@@ -274,7 +274,10 @@ const Footer = () => {
                   WebkitBackgroundClip: "text",
                   textShadow: "0 0 30px rgba(255, 184, 105, 0.4), 0 0 60px rgba(248, 97, 102, 0.3), 0 0 90px rgba(171, 110, 228, 0.2)",
                   fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
-                  letterSpacing: "-0.02em"
+                  letterSpacing: "-0.02em",
+                  lineHeight: "1.3",
+                  paddingTop: "0.25rem",
+                  paddingBottom: "0.25rem"
                 }}
                 whileHover={{ scale: 1.05 }}
               >
