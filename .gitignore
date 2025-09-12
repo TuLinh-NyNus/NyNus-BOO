@@ -357,6 +357,12 @@ GOC-*.tex
 # Playwright MCP tools
 .playwright-mcp/
 
+# Machine Learning checkpoints and pickle files
+*.pkl
+*.pickle
+checkpoints/
+models/
+
 # Test directories
 test/
 tests/
