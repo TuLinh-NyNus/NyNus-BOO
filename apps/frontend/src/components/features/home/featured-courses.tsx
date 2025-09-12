@@ -8,7 +8,6 @@ import { useState } from "react";
 // Import components đã tách
 import CourseCardSkeleton from "./course-card/course-card-skeleton";
 import { homepageFeaturedCourses, type FeaturedCourse } from "@/lib/mockdata";
-import ScrollIndicator from "@/components/ui/scroll-indicator";
 
 // Type definitions
 type Palette = {
@@ -267,8 +266,6 @@ const FeaturedCourses = () => {
         </div>
       </div>
 
-      {/* Enhanced Scroll Indicator */}
-      <ScrollIndicator targetSectionId="testimonials-section" />
 
       {/* CSS Animations */}
       <style jsx>{`

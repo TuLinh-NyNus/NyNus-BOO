@@ -20,15 +20,17 @@ def setup_logger(name: str = None, log_file: Path = None) -> logging.Logger:
     logger = logging.getLogger(name or __name__)
     logger.setLevel(getattr(logging, LOG_LEVEL, logging.INFO))
     
-    # Console handler
-    console_handler = logging.StreamHandler(sys.stdout)
-    console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-    logger.addHandler(console_handler)
+    # Chỉ add handler nếu chưa có để tránh nhân bản
+    if not logger.handlers:
+        # Console handler
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+        logger.addHandler(console_handler)
     
-    # File handler nếu có
-    if log_file:
-        file_handler = logging.FileHandler(log_file, encoding='utf-8')
-        file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-        logger.addHandler(file_handler)
+        # File handler nếu có
+        if log_file:
+            file_handler = logging.FileHandler(log_file, encoding='utf-8')
+            file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
+            logger.addHandler(file_handler)
     
     return logger

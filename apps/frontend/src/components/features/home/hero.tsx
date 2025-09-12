@@ -13,7 +13,6 @@ import { useAnalytics } from "@/lib/analytics";
 
 // Import mockdata
 import { heroData } from "@/lib/mockdata";
-import ScrollIndicator from "@/components/ui/scroll-indicator";
 
 const Hero = () => {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
@@ -918,11 +917,6 @@ const Hero = () => {
           )}
         </div>
 
-        {/* Scroll indicator */}
-        <ScrollIndicator
-          targetSectionId="features-section"
-          style={{ bottom: '-160px' }}
-        />
 
       </div>
 

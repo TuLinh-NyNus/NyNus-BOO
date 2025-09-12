@@ -421,6 +421,30 @@ def pick_tex_files(initial_dir: str | None) -> list:
         st.error(f"Không mở được hộp thoại duyệt file: {e}")
         return []
 
+def pick_folder(initial_dir: str | None) -> str:
+    """Mở hộp thoại hệ điều hành để chọn thư mục và trả về đường dẫn tuyệt đối"""
+    try:
+        # Chỉ hoạt động tốt khi chạy cục bộ
+        import tkinter as tk
+        from tkinter import filedialog
+        init_dir = initial_dir if initial_dir and Path(initial_dir).exists() else str(Path.home())
+        root = tk.Tk()
+        root.withdraw()
+        # Đưa dialog lên trên cùng để dễ thấy
+        try:
+            root.attributes('-topmost', True)
+        except Exception:
+            pass
+        folder_path = filedialog.askdirectory(
+            initialdir=init_dir,
+            title='Chọn thư mục chứa file LaTeX'
+        )
+        root.destroy()
+        return folder_path if folder_path else ""
+    except Exception as e:
+        st.error(f"Không mở được hộp thoại chọn thư mục: {e}")
+        return ""
+
 # ===============================
 # STREAMLIT UI SETUP
 # ===============================
@@ -530,27 +554,127 @@ with tab1:
     st.markdown("#### 🗂️ Duyệt file")
     st.caption(f"Thư mục mặc định: {state.get('last_dir') or str(Path.home())}")
 
-    if st.button("📁 Chọn file .tex", type="secondary", use_container_width=True):
-        picks = pick_tex_files(state.get('last_dir'))
-        if picks:
-            st.session_state['selected_paths_widget'] = list(picks)
-            # Cập nhật last_dir theo file đầu tiên được chọn
-            st.session_state['persist_state']['last_dir'] = str(Path(picks[0]).parent)
-            save_persisted_state(st.session_state['persist_state'])
-            st.success(f"✅ Đã chọn {len(picks)} file(s)")
-        else:
-            st.info("Không có file nào được chọn")
+    # Tạo 2 columns cho 2 loại chọn
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("📁 Chọn file .tex", type="secondary", use_container_width=True):
+            picks = pick_tex_files(state.get('last_dir'))
+            if picks:
+                st.session_state['selected_paths_widget'] = list(picks)
+                # Cập nhật last_dir theo file đầu tiên được chọn
+                st.session_state['persist_state']['last_dir'] = str(Path(picks[0]).parent)
+                save_persisted_state(st.session_state['persist_state'])
+                st.success(f"✅ Đã chọn {len(picks)} file(s)")
+            else:
+                st.info("Không có file nào được chọn")
+    
+    with col2:
+        if st.button("📂 Chọn folder để scan", type="secondary", use_container_width=True):
+            folder_path = pick_folder(state.get('last_dir'))
+            if folder_path:
+                st.session_state['selected_folder'] = folder_path
+                # Cập nhật last_dir
+                st.session_state['persist_state']['last_dir'] = folder_path
+                save_persisted_state(st.session_state['persist_state'])
+                st.success(f"✅ Đã chọn folder: {Path(folder_path).name}")
+            else:
+                st.info("Không có folder nào được chọn")
+    
+    # Phần scan folder
+    if 'selected_folder' in st.session_state and st.session_state['selected_folder']:
+        folder_path = st.session_state['selected_folder']
+        st.markdown("#### 📂 Scan files từ folder")
+        st.info(f"📁 Folder: `{folder_path}`")
+        
+        # Tùy chọn scan
+        scan_recursive = st.checkbox("🔄 Scan đệ quy (bao gồm thư mục con)", value=True)
+        
+        col_scan1, col_scan2 = st.columns([1, 1])
+        
+        with col_scan1:
+            if st.button("🔍 Scan files .tex", type="primary", use_container_width=True):
+                with st.spinner("Đang scan files..."):
+                    scanned_files = scan_tex_files(folder_path, recursive=scan_recursive)
+                    if scanned_files:
+                        st.session_state['scanned_files'] = scanned_files
+                        st.success(f"✅ Tìm thấy {len(scanned_files)} file(s) .tex")
+                    else:
+                        st.warning("⚠️ Không tìm thấy file .tex nào")
+        
+        with col_scan2:
+            if st.button("🗑️ Xóa folder đã chọn", type="secondary", use_container_width=True):
+                if 'selected_folder' in st.session_state:
+                    del st.session_state['selected_folder']
+                if 'scanned_files' in st.session_state:
+                    del st.session_state['scanned_files']
+                st.rerun()
+        
+        # Hiển thị kết quả scan
+        if 'scanned_files' in st.session_state and st.session_state['scanned_files']:
+            scanned_files = st.session_state['scanned_files']
+            st.markdown(f"##### 📋 Danh sách files được tìm thấy ({len(scanned_files)} files)")
+            
+            # Tùy chọn chọn tất cả
+            select_all = st.checkbox("☑️ Chọn tất cả files", value=True)
+            
+            selected_from_scan = []
+            
+            # Hiển thị danh sách với checkbox
+            for idx, file_path in enumerate(scanned_files):
+                file_obj = Path(file_path)
+                rel_path = file_obj.relative_to(Path(folder_path)) if file_obj.is_absolute() else file_obj
+                
+                is_selected = select_all
+                if not select_all:
+                    is_selected = st.checkbox(
+                        f"📄 {file_obj.name}", 
+                        value=False,
+                        key=f"scan_file_{idx}",
+                        help=f"Đường dẫn: {rel_path}"
+                    )
+                else:
+                    st.checkbox(
+                        f"📄 {file_obj.name}", 
+                        value=True,
+                        key=f"scan_file_{idx}",
+                        help=f"Đường dẫn: {rel_path}"
+                    )
+                
+                if is_selected:
+                    selected_from_scan.append(file_path)
+            
+            # Button để thêm files đã chọn vào danh sách xử lý
+            if selected_from_scan:
+                st.info(f"📊 Đã chọn: {len(selected_from_scan)} file(s) từ scan")
+                
+                col_add1, col_add2, col_add3 = st.columns([1, 2, 1])
+                with col_add2:
+                    if st.button("➕ Thêm files đã chọn vào danh sách xử lý", type="primary", use_container_width=True):
+                        # Thêm vào selected_paths_widget
+                        current_selection = st.session_state.get('selected_paths_widget', [])
+                        # Loại bỏ trùng lặp
+                        new_files = [f for f in selected_from_scan if f not in current_selection]
+                        st.session_state['selected_paths_widget'] = current_selection + new_files
+                        st.success(f"✅ Đã thêm {len(new_files)} file(s) mới vào danh sách xử lý")
+                        if len(selected_from_scan) - len(new_files) > 0:
+                            st.info(f"ℹ️ {len(selected_from_scan) - len(new_files)} file(s) đã có trong danh sách")
 
-    # Biên dịch selected_files từ selected_paths
+    # Biên dịch selected_files từ selected_paths và thêm thông tin source
     selected_files = []
     for p in st.session_state.get('selected_paths_widget', state.get('selected_paths', [])):
         f = Path(p)
         if f.exists() and f.suffix == '.tex':
+            # Xác định source của file
+            source = 'browse'  # Mặc định là browse
+            if 'scanned_files' in st.session_state and str(p) in st.session_state['scanned_files']:
+                source = 'folder_scan'
+            
             selected_files.append({
                 'name': f.name,
                 'path': str(f),
                 'size': f.stat().st_size,
-                'source': 'browse'
+                'source': source
             })
 
     # Hiển thị danh sách file đã chọn
@@ -566,7 +690,8 @@ with tab1:
 
                 with col1:
                     st.text(f"Path: {file_info['path']}")
-                    st.text("Source: Duyệt file")
+                    source_text = "Duyệt file" if file_info['source'] == 'browse' else "Scan folder"
+                    st.text(f"Source: {source_text}")
 
                 with col2:
                     # Preview button

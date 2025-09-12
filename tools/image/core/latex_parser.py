@@ -61,6 +61,9 @@ class LaTeXParser:
     def parse_file(self, filepath: str) -> List[Question]:
         """Parse file .tex và trả về danh sách câu hỏi"""
         try:
+            # Reset questions list để tránh tích lũy state
+            self.questions = []
+            
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
             

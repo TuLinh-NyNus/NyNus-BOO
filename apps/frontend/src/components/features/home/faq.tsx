@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronDown, HelpCircle, MessageCircle } from "lucide-react";
-import ScrollIndicator from "@/components/ui/scroll-indicator";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
@@ -66,8 +65,6 @@ const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
     </motion.div>
   );
 };
-
-// ScrollIndicator Component
 
 
 const FAQ = () => {
@@ -192,8 +189,6 @@ const FAQ = () => {
           </motion.div>
         </div>
 
-        {/* ScrollIndicator Component */}
-        <ScrollIndicator />
 
         {/* Enhanced CSS Animations */}
         <style jsx>{`

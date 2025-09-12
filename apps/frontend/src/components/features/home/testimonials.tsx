@@ -8,8 +8,6 @@ import useEmblaCarousel from 'embla-carousel-react';
 // Import mockdata và components
 import { testimonialsData, testimonialsStats, videoTestimonials } from "@/lib/mockdata/testimonials";
 import { TestimonialAvatar, VideoTestimonial, VideoModal } from "@/components/ui/display";
-import { ScrollIndicators } from "@/components/ui/navigation/scroll-indicators";
-import ScrollIndicator from "@/components/ui/scroll-indicator";
 
 // Component chính
 const Testimonials = () => {
@@ -20,7 +18,7 @@ const Testimonials = () => {
      videoUrl: string;
    } | null>(null);
    const [isVisible, setIsVisible] = useState(false);
-   const [currentVideoSlide, setCurrentVideoSlide] = useState(0);
+  const [_currentVideoSlide, setCurrentVideoSlide] = useState(0);
 
   // Embla for video section
   const [emblaVideoRef, emblaVideoApi] = useEmblaCarousel({ loop: true, align: 'center' });
@@ -55,7 +53,7 @@ const Testimonials = () => {
 
   // Embla cho text testimonials (logic giống Features)
   const [emblaTextRef, emblaTextApi] = useEmblaCarousel({ loop: true, align: 'start' });
-  const [currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [_currentTextIndex, setCurrentTextIndex] = useState(0);
   useEffect(() => {
     if (!emblaTextApi) return;
     const onSelect = () => setCurrentTextIndex(emblaTextApi.selectedScrollSnap());
@@ -232,22 +230,6 @@ const Testimonials = () => {
               </div>
             </div>
 
-            {/* Scroll indicators */}
-            <motion.div
-              className="flex justify-center mt-8"
-              initial={{ opacity: 0, y: 10 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              <ScrollIndicators
-                totalItems={videoTestimonials.length}
-                currentIndex={currentVideoSlide}
-                visibleItems={1}
-                variant="minimal"
-                color="primary"
-                className=""
-              />
-            </motion.div>
           </div>
         </motion.div>
 
@@ -402,23 +384,6 @@ const Testimonials = () => {
                ))}
               </div>
             </div>
-
-            {/* Scroll indicators */}
-            <motion.div
-              className="flex justify-center mt-8"
-              initial={{ opacity: 0, y: 10 }}
-              animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-            >
-              <ScrollIndicators
-                totalItems={testimonialsData.length}
-                currentIndex={Math.max(0, Math.min(currentTextIndex, testimonialsData.length - 1))}
-                visibleItems={1}
-                variant="minimal"
-                color="primary"
-                className=""
-              />
-            </motion.div>
           </div>
         </motion.div>
 
@@ -500,10 +465,6 @@ const Testimonials = () => {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
-      <div className="relative h-20 flex items-center justify-center">
-        <ScrollIndicator targetSectionId="faq-section" />
-      </div>
 
       {/* Video Modal */}
       <VideoModal

@@ -9,8 +9,27 @@
   --color-jade: #F9DDD2;          /* Card / Surface */
   --color-silver: #FBCFD0;        /* Popover / Muted */
 
+  /* Light-only aliases for optimized track */
+  --light-bg: var(--color-cream);
+  --light-foreground: var(--color-light-navy);
+  --light-surface: var(--color-jade);
+  --light-popover: var(--color-silver);
+  --light-muted-bg: var(--color-silver);
+  --light-muted-foreground: var(--color-medium-gray);
+
   /* Accents */
   --color-gold: #E8A0A4;          /* Primary (pastel rose) */
   --color-terracotta: #E6C6D1;    /* Secondary (pastel lilac) */
   --color-dusty-rose: #CEC0D2;    /* Accent (pastel mauve) */
+
+  --light-primary: var(--color-gold);
+  --light-primary-foreground: var(--light-foreground);
+  --light-secondary: var(--color-terracotta);
+  --light-secondary-foreground: var(--color-cream);
+  --light-accent: var(--color-dusty-rose);
+  --light-accent-foreground: var(--light-foreground);
+
+  --light-border: color-mix(in srgb, var(--color-medium-gray) 25%, var(--light-bg));
+  --light-input: color-mix(in srgb, var(--color-medium-gray) 15%, var(--light-bg));
+  --light-ring: var(--light-primary);
 }

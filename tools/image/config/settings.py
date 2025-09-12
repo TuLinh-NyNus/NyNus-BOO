@@ -18,6 +18,7 @@ LATEX_TIMEOUT = 30  # Timeout cho compile (giây)
 IMAGE_FORMAT = "webp"  # Format output (png, webp, jpg)
 IMAGE_DPI = 300  # DPI cho convert PDF sang hình
 IMAGE_QUALITY = 95  # Chất lượng hình ảnh (1-100)
+INCLUDEGRAPHICS_WIDTH = "0.8\\textwidth"  # Độ rộng mặc định cho \includegraphics
 
 # Cấu hình batch processing và tối ưu hóa
 BATCH_SIZE = 100  # Số câu hỏi mỗi batch cho file lớn
@@ -27,6 +28,20 @@ MEMORY_WARNING_THRESHOLD = 85  # Ngưỡng cảnh báo memory usage (%)
 MEMORY_CRITICAL_THRESHOLD = 90  # Ngưỡng critical memory usage (%) 
 PROGRESS_UPDATE_INTERVAL = 5  # Cập nhật progress bar mỗi X giây
 
+# Cấu hình checkpoint system
+CHECKPOINT_ENABLED = True  # Bật/tắt chế độ checkpoint
+CHECKPOINT_INTERVAL = 10  # Lưu checkpoint mỗi X batch
+CHECKPOINT_DIR = BASE_DIR / "checkpoints"  # Thư mục lưu checkpoint
+AUTO_RESUME = True  # Tự động resume từ checkpoint cuối
+
+# Tối ưu hiệu suất cho file cực lớn
+ADAPTIVE_BATCH_SIZE = True  # Tự động điều chỉnh batch size theo memory
+MIN_BATCH_SIZE = 50  # Batch size tối thiểu
+MAX_BATCH_SIZE = 500  # Batch size tối đa
+TIKZ_COMPILE_TIMEOUT = 10  # Timeout cho mỗi TikZ compile (giây)
+PRELOAD_IMAGES = False  # Preload images vào memory (chỉ dùng khi RAM lớn)
+CONCURRENT_IMAGE_PROCESSING = True  # Xử lý ảnh song song
+
 # Cấu hình đặt tên hình ảnh
 PRESERVE_DOT_IN_SUBCOUNT = True  # True: TL.123456-QUES.webp, False: TL123456-QUES.webp
 # 🔍 Đã đặt thành True để giữ dấu chấm trong subcount
@@ -34,7 +49,7 @@ PRESERVE_DOT_IN_SUBCOUNT = True  # True: TL.123456-QUES.webp, False: TL123456-QU
 # Header LaTeX mặc định cho compile TikZ
 LATEX_HEADER = r"""
 \documentclass[12pt,border=2mm]{standalone}
-\usepackage{amsmath,amssymb,makecell,physics,mathrsfs,graphics,yhmath}
+\usepackage{amsmath,amssymb,makecell,physics,mathrsfs,graphicx,graphics,yhmath}
 \usepackage{tikz,tikz-3dplot,tkz-euclide,tkz-tab,pgfplots,esvect}
 \usepackage[utf8]{vietnam}
 \usetikzlibrary{shapes.geometric,shadings,calc,patterns.meta,arrows,intersections,angles,backgrounds,quotes,shadows,decorations.text,matrix}
@@ -74,5 +89,6 @@ STREAMLIT_CONFIG = {
     'initial_sidebar_state': 'expanded'
 }
 
-# Tạo thư mục tạm nếu chưa tồn tại (không auto-create output/images)
+# Tạo các thư mục cần thiết nếu chưa tồn tại
 TEMP_DIR.mkdir(parents=True, exist_ok=True)
+CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)

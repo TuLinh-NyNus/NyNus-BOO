@@ -8,13 +8,11 @@ import { useState, useCallback, useRef, useEffect } from "react";
 
 // Import mockdata
 import { featuresData, type FeatureItem } from "@/lib/mockdata";
-import ScrollIndicator from "@/components/ui/scroll-indicator";
 import { useAnalytics } from "@/lib/analytics";
 
 // Embla Carousel (loop)
 import useEmblaCarousel from 'embla-carousel-react';
 
-import { ScrollIndicators } from "@/components/ui/navigation/scroll-indicators";
 import NeuralNetworkBackground from "@/components/ui/neural-network-background";
 
 interface FeatureCardProps {
@@ -352,12 +350,12 @@ const Features = () => {
 
   // Embla setup (loop)
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [_selectedIndex, _setSelectedIndex] = useState(0);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
+    _setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi, _setSelectedIndex]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -545,24 +543,11 @@ const Features = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.3, delay: 0.05 }}
           >
-            <ScrollIndicators
-              totalItems={featuresData.features.length}
-              currentIndex={Math.max(0, Math.min(selectedIndex, featuresData.features.length - 1))}
-              visibleItems={1}
-              variant="minimal"
-              color="white"
-              onIndicatorClick={(index) => emblaApi?.scrollTo(index)}
-              className=""
-            />
           </motion.div>
         </div>
 
       </div>
 
-      {/* Scroll indicator */}
-      <div className="-mt-20">
-        <ScrollIndicator targetSectionId="ai-learning-section" />
-      </div>
     </section>
   );
 };

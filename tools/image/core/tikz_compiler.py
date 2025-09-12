@@ -7,7 +7,7 @@ import tempfile
 import logging
 from pathlib import Path
 from typing import Optional, Tuple
-from PIL import Image
+from PIL import Image, ImageChops
 from pdf2image import convert_from_path
 from config import (
     LATEX_HEADER, LATEX_FOOTER, LATEX_COMPILER,
@@ -145,24 +145,47 @@ class TikZCompiler:
             return None
     
     def _crop_whitespace(self, image: Image.Image) -> Image.Image:
-        """Cắt bỏ khoảng trắng xung quanh hình"""
+        """Cắt bỏ khoảng trắng xung quanh hình với thuật toán robust"""
         try:
-            # Convert to RGBA if not already
-            if image.mode != 'RGBA':
-                image = image.convert('RGBA')
-            
-            # Get the bounding box
-            bbox = image.getbbox()
+            # Phương pháp 1: Sử dụng ImageChops.difference với background trắng
+            if image.mode == 'RGBA':
+                # Tạo background trắng
+                background = Image.new('RGBA', image.size, (255, 255, 255, 255))
+                diff = ImageChops.difference(image, background)
+                # Chuyển sang grayscale để tìm bbox
+                diff = diff.convert('L')
+                bbox = diff.getbbox()
+            else:
+                # Convert sang RGB nếu cần
+                if image.mode != 'RGB':
+                    image = image.convert('RGB')
+                # Tạo background trắng
+                background = Image.new('RGB', image.size, (255, 255, 255))
+                diff = ImageChops.difference(image, background)
+                # Chuyển sang grayscale để tìm bbox
+                diff = diff.convert('L')
+                bbox = diff.getbbox()
             
             if bbox:
-                # Add small padding
-                padding = 10
+                # Add configurable padding
+                padding = 10  # Có thể thêm vào config sau
                 x1, y1, x2, y2 = bbox
                 x1 = max(0, x1 - padding)
                 y1 = max(0, y1 - padding)
                 x2 = min(image.width, x2 + padding)
                 y2 = min(image.height, y2 + padding)
                 
+                return image.crop((x1, y1, x2, y2))
+            
+            # Nếu không tìm thấy bbox, thử phương pháp fallback
+            bbox = image.getbbox()
+            if bbox:
+                padding = 10
+                x1, y1, x2, y2 = bbox
+                x1 = max(0, x1 - padding)
+                y1 = max(0, y1 - padding)
+                x2 = min(image.width, x2 + padding)
+                y2 = min(image.height, y2 + padding)
                 return image.crop((x1, y1, x2, y2))
             
             return image

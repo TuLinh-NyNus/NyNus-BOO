@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 from core import LaTeXParser, TikZCompiler, ImageProcessor, FileManager, Question
 from utils.logger import setup_logger
-from config import IMAGE_FORMAT, TEMP_DIR
+from config import IMAGE_FORMAT, TEMP_DIR, INCLUDEGRAPHICS_WIDTH
 
 logger = setup_logger(__name__)
 
@@ -220,16 +220,19 @@ class LaTeXImageProcessor:
         return result
     
     def _update_content(self, full_content: str, question: Question, images_dir: Path) -> str:
-        """Cập nhật nội dung file với đường dẫn hình mới"""
-        updated_content = full_content
-        
+        """Cập nhật nội dung file với đường dẫn hình mới - giới hạn vùng replace"""
         # Tìm vị trí câu hỏi trong full content
         question_start = full_content.find(question.content)
         if question_start == -1:
             logger.warning(f"Không tìm thấy câu hỏi {question.index} trong file")
-            return updated_content
+            return full_content
         
-        # Xử lý TikZ codes - thay thế bằng \includegraphics
+        question_end = question_start + len(question.content)
+        
+        # Tháo tác trên nội dung câu hỏi riêng biệt
+        question_content = question.content
+        
+        # Xử lý TikZ codes - thay thế bằng \includegraphics trong vùng câu hỏi
         all_tikz = []
         
         # TikZ trong câu hỏi
@@ -242,17 +245,15 @@ class LaTeXImageProcessor:
             image_name = question.get_image_name("SOL", idx if len(question.solution_tikz) > 1 else 0)
             all_tikz.append((tikz_code, image_name))
         
-        # Thay thế TikZ codes
+        # Thay thế TikZ codes trong vùng câu hỏi
         for tikz_code, image_name in all_tikz:
             image_path = f"images/{image_name}.{IMAGE_FORMAT}"
-            replacement = f"\\includegraphics[width=0.8\\textwidth]{{{image_path}}}"
+            replacement = f"\\includegraphics[width={INCLUDEGRAPHICS_WIDTH}]{{{image_path}}}"
             
-            # Thay thế trực tiếp không dùng regex để tránh lỗi escape
-            updated_content = updated_content.replace(tikz_code, replacement, 1)
+            # Thay thế trong question_content thay vì toàn file
+            question_content = question_content.replace(tikz_code, replacement, 1)
         
-        # Xử lý existing images - cập nhật path
-        all_images = question.question_images + question.solution_images
-        
+        # Xử lý existing images - cập nhật path trong vùng câu hỏi
         # Xử lý question images - preserve original formatting
         for idx, (full_cmd, old_path, _, _) in enumerate(question.question_images, 1):
             if len(question.question_images) > 1:
@@ -265,8 +266,8 @@ class LaTeXImageProcessor:
             # Preserve original formatting nếu có
             new_cmd = self._preserve_includegraphics_formatting(full_cmd, old_path, new_path)
             
-            # Thay thế trực tiếp không dùng regex
-            updated_content = updated_content.replace(full_cmd, new_cmd, 1)
+            # Thay thế trong question_content thay vì toàn file
+            question_content = question_content.replace(full_cmd, new_cmd, 1)
         
         # Xử lý solution images - preserve original formatting
         for idx, (full_cmd, old_path, _, _) in enumerate(question.solution_images, 1):
@@ -280,8 +281,15 @@ class LaTeXImageProcessor:
             # Preserve original formatting nếu có
             new_cmd = self._preserve_includegraphics_formatting(full_cmd, old_path, new_path)
             
-            # Thay thế trực tiếp không dùng regex
-            updated_content = updated_content.replace(full_cmd, new_cmd, 1)
+            # Thay thế trong question_content thay vì toàn file
+            question_content = question_content.replace(full_cmd, new_cmd, 1)
+        
+        # Ghép lại full content với nội dung câu hỏi đã cập nhật
+        updated_content = (
+            full_content[:question_start] + 
+            question_content + 
+            full_content[question_end:]
+        )
         
         return updated_content
     
@@ -304,9 +312,9 @@ class LaTeXImageProcessor:
                 return f"{prefix}{new_path}{suffix}"
             
             # Fallback: tạo command mới với default formatting
-            return f"\\includegraphics[width=0.8\\textwidth]{{{new_path}}}"
+            return f"\\includegraphics[width={INCLUDEGRAPHICS_WIDTH}]{{{new_path}}}"
             
         except Exception as e:
             logger.warning(f"Không thể preserve formatting: {str(e)}")
             # Fallback đơn giản
-            return f"\\includegraphics[width=0.8\\textwidth]{{{new_path}}}"
+            return f"\\includegraphics[width={INCLUDEGRAPHICS_WIDTH}]{{{new_path}}}"

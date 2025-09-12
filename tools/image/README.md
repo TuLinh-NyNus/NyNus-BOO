@@ -2,14 +2,19 @@
 
 Tool xử lý hình ảnh trong file LaTeX - Chuyển đổi TikZ thành hình ảnh và tổ chức lại hình ảnh theo chuẩn.
 
-## 🎯 Tính năng chính
+## 🎆 Tính năng chính
 
-- ✅ **Parse file LaTeX** để tìm các câu hỏi trong `\begin{ex}...\end{ex}`
+- ✅ **Parse file LaTeX** để tìm các câu hỏi trong `\\begin{ex}...\\end{ex}`
 - ✅ **Compile TikZ** thành hình ảnh WEBP chất lượng cao
 - ✅ **Xử lý hình có sẵn**: Copy và rename theo subcount
 - ✅ **Backup tự động** file gốc với prefix `GOC-`
 - ✅ **Báo cáo chi tiết** về quá trình xử lý
 - ✅ **Giao diện Streamlit** thân thiện, dễ sử dụng
+- ✅ **Chọn folder và scan files** - Duyệt toàn bộ thư mục để tìm file .tex
+- ✅ **Xử lý nhiều files** - Chọn và xử lý đồng loạt
+- ✅ **Chế độ streaming** cho file cực lớn (>300k câu hỏi)
+- ✅ **Checkpoint & Resume** - tự động lưu tiến trình và tiếp tục khi gian đoạn
+- ✅ **Adaptive Performance** - tự động tối ưu theo RAM và CPU
 
 ## 📋 Yêu cầu hệ thống
 
@@ -74,17 +79,45 @@ Truy cập: http://localhost:8501
 
 ### Quy trình xử lý
 
-1. **Upload file .tex** qua giao diện web
+#### Cách 1: Chọn file lẻ
+1. **Chọn file .tex** qua giao diện web
 2. **Tool sẽ tự động:**
    - Backup file gốc (GOC-filename.tex)
    - Parse để tìm các câu hỏi
    - Compile TikZ thành hình ảnh
    - Copy và rename hình có sẵn
    - Cập nhật path trong file .tex
-3. **Download kết quả:**
-   - File .tex đã xử lý
-   - Thư mục images/ với hình đã convert
-   - Báo cáo xử lý (report.txt)
+
+#### Cách 2: Chọn folder để scan nhiều file
+1. **Chọn folder** chứa các file .tex
+2. **Scan và chọn files** muốn xử lý
+   - Chọn scan đệ quy hoặc chỉ trong thư mục hiện tại
+   - Xem danh sách tất cả file .tex tìm được
+   - Chọn các files cần xử lý
+3. **Thêm vào danh sách xử lý** và bắt đầu xử lý
+
+#### Kết quả cuối cùng:
+- File .tex đã xử lý
+- Thư mục images/ với hình đã convert
+- Báo cáo xử lý (report.txt)
+
+## 🔄 Chế độ Checkpoint & Resume
+
+Đối với file cực lớn (>10,000 câu hỏi), tool sẽ tự động:
+
+- **Lưu checkpoint** mỗi 10 batch (có thể config)
+- **Tự động resume** khi khởi động lại
+- **Adaptive batch size** dựa trên memory usage
+- **Concurrent processing** cho TikZ và images
+- **Memory monitoring** và cảnh báo
+
+### Cấu hình tối ưu:
+```python
+CHECKPOINT_ENABLED = True
+CHECKPOINT_INTERVAL = 10
+ADAPTIVE_BATCH_SIZE = True
+CONCURRENT_IMAGE_PROCESSING = True
+```
 
 ## 📝 Quy tắc đặt tên hình ảnh
 
@@ -127,24 +160,40 @@ tools/image/
 ├── run-image.bat      # Khởi động nhanh (Windows)
 ├── requirements.txt   # Python dependencies
 ├── config/
-│   └── settings.py    # Cấu hình hệ thống
+│   └── settings.py    # Cấu hình hệ thống và performance
 ├── core/              # Core modules
 │   ├── latex_parser.py
 │   ├── tikz_compiler.py
 │   ├── image_processor.py
+│   ├── streaming_processor.py  # Xử lý file lớn
 │   └── file_manager.py
 ├── utils/             # Utilities
 │   └── logger.py
 ├── temp/              # Thư mục tạm
-└── output/            # Output mặc định
+├── checkpoints/       # Checkpoint cho resume
+└── docs/              # Tài liệu
+    └── LARGE_FILE_PROCESSING.md
+
+# Output structure (tạo cạnh file .tex):
+my-file.tex
+my-file/
+├── images/            # Hình ảnh đã xử lý
+└── report.txt        # Báo cáo xử lý
 ```
 
-## ⚠️ Lưu ý
+## ⚠️ Lưu ý quan trọng
 
+### Đối với file thường (<10K câu):
 - File gốc luôn được backup trước khi xử lý
 - Nếu compile TikZ thất bại, code TikZ được giữ nguyên trong file
 - Hình ảnh output mặc định là WEBP 95% quality
-- Cần đủ RAM để xử lý file lớn (khuyến nghị 4GB+)
+
+### Đối với file cực lớn (>300K câu):
+- **RAM khuyến nghị**: 16GB+ cho hiệu suất tốt nhất
+- **CPU khuyến nghị**: 8 cores+ cho xử lý song song
+- **Disk space**: ít nhất 20GB free cho temp files
+- **Thời gian xử lý**: có thể mất 10-20 giờ
+- **Checkpoint tự động**: có thể dừng và tiếp tục bất cứ lúc nào
 
 ## 🐛 Xử lý lỗi thường gặp
 

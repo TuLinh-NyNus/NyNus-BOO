@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 
 // Import mockdata
 import { aiLearningData } from "@/lib/mockdata";
-import ScrollIndicator from "@/components/ui/scroll-indicator";
 
 // Import new interactive components
 // import { InteractiveChart } from "@/components/ui/display";
@@ -410,10 +409,6 @@ const AILearning = () => {
 
 
 
-      {/* Scroll indicator */}
-      <div className="absolute bottom-26 left-1/2 transform -translate-x-1/2 z-20">
-        <ScrollIndicator targetSectionId="featured-courses-section" />
-      </div>
 
       {/* CSS Animations */}
       <style jsx>{`

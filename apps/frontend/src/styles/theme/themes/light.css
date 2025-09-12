@@ -6,41 +6,41 @@
 
 @theme {
   /* Base Semantic Colors - Light Theme với Earth Tones */
-  --color-background: var(--color-nynus-cream);     /* #FDFCF7 - Very light cream background */
-  --color-foreground: var(--color-nynus-dark);      /* #1A1A2E - Very dark navy text */
+  --color-background: var(--light-bg);
+  --color-foreground: var(--light-foreground);
 
   /* Card Colors - Light sage cho cards */
-  --color-card: var(--color-nynus-jade);            /* #E8E4A6 - Light sage cards */
-  --color-card-foreground: var(--color-nynus-dark); /* #5D5B71 - Dark olive text on cards */
+  --color-card: var(--light-surface);
+  --color-card-foreground: var(--light-foreground);
 
   /* Popover Colors */
-  --color-popover: var(--color-nynus-silver);       /* #F0EFE3 - Subtle silver-beige */
-  --color-popover-foreground: var(--color-nynus-dark);
+  --color-popover: var(--light-popover);
+  --color-popover-foreground: var(--light-foreground);
 
   /* Primary Colors - Golden yellow làm primary */
-  --color-primary: var(--color-primary-gold);       /* #F5D547 - Vibrant golden yellow */
-  --color-primary-foreground: var(--color-nynus-dark);
+  --color-primary: var(--light-primary);
+  --color-primary-foreground: var(--light-primary-foreground);
 
   /* Secondary Colors - Terracotta orange */
-  --color-secondary: var(--color-primary-terracotta); /* #D09758 - Warm terracotta */
-  --color-secondary-foreground: var(--color-nynus-cream);
+  --color-secondary: var(--light-secondary);
+  --color-secondary-foreground: var(--light-secondary-foreground);
 
   /* Muted Colors */
-  --color-muted: var(--color-nynus-silver);
-  --color-muted-foreground: var(--color-nynus-muted);  /* #4A5568 - Medium gray for better readability */
+  --color-muted: var(--light-muted-bg);
+  --color-muted-foreground: var(--light-muted-foreground);
 
   /* Accent Colors - Dusty rose accent */
-  --color-accent: var(--color-primary-pink);        /* #E8A2B0 - Soft dusty rose */
-  --color-accent-foreground: var(--color-nynus-dark);
+  --color-accent: var(--light-accent);
+  --color-accent-foreground: var(--light-accent-foreground);
 
   /* Destructive Colors - Taupe brown cho destructive */
   --color-destructive: var(--color-primary-sienna);    /* #A38772 - Rich taupe brown */
   --color-destructive-foreground: var(--color-nynus-cream);
 
   /* Border & Input Colors - Earth tones harmony */
-  --color-border: color-mix(in srgb, var(--color-nynus-medium) 25%, var(--color-background));
-  --color-input: color-mix(in srgb, var(--color-nynus-medium) 15%, var(--color-background));
-  --color-ring: var(--color-primary-gold);             /* #F5D547 - Golden focus ring */
+  --color-border: var(--light-border);
+  --color-input: var(--light-input);
+  --color-ring: var(--light-ring);
 
   /* Success, Warning, Error, Info */
   --color-success: var(--color-success);

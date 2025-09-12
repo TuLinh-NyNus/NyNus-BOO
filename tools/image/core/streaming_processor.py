@@ -5,10 +5,12 @@ import gc
 import time
 import psutil
 import threading
+import json
+import pickle
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List, Optional, Generator, Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from queue import Queue
 import streamlit as st
 
@@ -17,7 +19,10 @@ from .tikz_compiler import TikZCompiler
 from .image_processor import ImageProcessor
 from .file_manager import FileManager
 from utils.logger import setup_logger
-from config.settings import IMAGE_FORMAT, TEMP_DIR, BATCH_SIZE, MAX_WORKERS
+from config.settings import (IMAGE_FORMAT, TEMP_DIR, BATCH_SIZE, MAX_WORKERS, INCLUDEGRAPHICS_WIDTH,
+                           CHECKPOINT_ENABLED, CHECKPOINT_INTERVAL, CHECKPOINT_DIR, AUTO_RESUME,
+                           ADAPTIVE_BATCH_SIZE, MIN_BATCH_SIZE, MAX_BATCH_SIZE, TIKZ_COMPILE_TIMEOUT,
+                           CONCURRENT_IMAGE_PROCESSING)
 
 logger = setup_logger(__name__)
 
@@ -35,6 +40,21 @@ class ProcessingStats:
     start_time: float = 0
     estimated_remaining: float = 0
     memory_usage_mb: float = 0
+
+
+@dataclass
+class CheckpointData:
+    """Data structure for checkpoint system"""
+    file_path: str
+    current_batch: int
+    processed_questions: int
+    tikz_compiled: int
+    images_processed: int
+    errors: int
+    start_time: float
+    partial_content: str  # Nội dung đã xử lý tới batch hiện tại
+    backup_path: str = ""
+    timestamp: float = 0
     
 
 class ProgressCallback:
@@ -76,6 +96,7 @@ class StreamingLaTeXProcessor:
     """Optimized processor for large LaTeX files"""
     
     def __init__(self, batch_size: int = BATCH_SIZE, max_workers: int = MAX_WORKERS):
+        self.initial_batch_size = batch_size
         self.batch_size = batch_size
         self.max_workers = max_workers
         self.parser = LaTeXParser()
@@ -83,6 +104,7 @@ class StreamingLaTeXProcessor:
         self.file_manager = FileManager()
         self.stats = ProcessingStats()
         self._stop_processing = False
+        self._last_memory_usage = 0
         
     def process_large_file(self, tex_file_path: str, progress_callback: Optional[ProgressCallback] = None) -> Dict:
         """
@@ -102,9 +124,30 @@ class StreamingLaTeXProcessor:
             return {'error': 'File không tồn tại'}
         
         try:
-            # Initialize
-            self.stats = ProcessingStats()
-            self.stats.start_time = time.time()
+            # Kiểm tra checkpoint hiện có
+            checkpoint_data = None
+            if AUTO_RESUME:
+                checkpoint_data = self._load_checkpoint(tex_file_path)
+            
+            # Initialize stats
+            if checkpoint_data:
+                # Resume từ checkpoint
+                self.stats = ProcessingStats(
+                    processed_questions=checkpoint_data.processed_questions,
+                    tikz_compiled=checkpoint_data.tikz_compiled,
+                    images_processed=checkpoint_data.images_processed,
+                    errors=checkpoint_data.errors,
+                    current_batch=checkpoint_data.current_batch,
+                    start_time=checkpoint_data.start_time
+                )
+                logger.info(f"Resume từ checkpoint: batch {checkpoint_data.current_batch}")
+                if progress_callback:
+                    st.info(f"🔄 Resume từ checkpoint: batch {checkpoint_data.current_batch}")
+            else:
+                # Bắt đầu mới
+                self.stats = ProcessingStats()
+                self.stats.start_time = time.time()
+            
             self._stop_processing = False
             
             # Check available memory
@@ -114,9 +157,11 @@ class StreamingLaTeXProcessor:
                 if progress_callback:
                     st.warning(f"⚠️ Memory usage cao: {memory_info.percent}%. Tiến trình có thể chậm.")
             
-            # Backup file
-            backup_path = self.file_manager.backup_file(tex_file)
-            logger.info(f"Đã backup: {backup_path}")
+            # Backup file (nếu chưa có từ checkpoint)
+            backup_path = checkpoint_data.backup_path if checkpoint_data else None
+            if not backup_path:
+                backup_path = self.file_manager.backup_file(tex_file)
+                logger.info(f"Đã backup: {backup_path}")
             
             # Create output structure
             output_dir, images_dir = self.file_manager.create_output_structure(tex_file)
@@ -128,9 +173,9 @@ class StreamingLaTeXProcessor:
             
             logger.info(f"Tìm thấy {self.stats.total_questions:,} câu hỏi, sẽ xử lý {self.stats.total_batches} batch")
             
-            # Process in batches
+            # Process in batches với checkpoint support
             processed_content = self._process_in_batches(
-                tex_file, images_dir, progress_callback
+                tex_file, images_dir, progress_callback, checkpoint_data, str(backup_path)
             )
             
             if self._stop_processing:
@@ -146,6 +191,7 @@ class StreamingLaTeXProcessor:
             
             # Cleanup
             self.file_manager.cleanup_temp_files(TEMP_DIR)
+            self._cleanup_checkpoint(tex_file_path)  # Dọc dẹp checkpoint khi hoàn thành
             gc.collect()  # Force garbage collection
             
             return {
@@ -182,22 +228,49 @@ class StreamingLaTeXProcessor:
         return count
     
     def _process_in_batches(self, tex_file: Path, images_dir: Path, 
-                           progress_callback: Optional[ProgressCallback]) -> str:
-        """Process file in batches to manage memory"""
+                           progress_callback: Optional[ProgressCallback],
+                           checkpoint_data: Optional[CheckpointData] = None,
+                           backup_path: str = "") -> str:
+        """Process file in batches to manage memory với checkpoint support"""
         
-        # Read file content
-        with open(tex_file, 'r', encoding='utf-8') as f:
-            full_content = f.read()
+        # Đọc file content hoặc resume từ checkpoint
+        if checkpoint_data and checkpoint_data.partial_content:
+            # Resume: sử dụng partial content từ checkpoint
+            full_content = checkpoint_data.partial_content
+            logger.info("Sử dụng partial content từ checkpoint")
+        else:
+            # Bắt đầu mới: đọc toàn bộ file
+            with open(tex_file, 'r', encoding='utf-8') as f:
+                full_content = f.read()
         
         original_content = full_content
         
         # Parse questions in streaming mode
         questions = self.parser.parse_file(tex_file)
         
-        # Process in batches
+        # Nếu resume, bỏ qua các batch đã xử lý
+        start_batch = checkpoint_data.current_batch + 1 if checkpoint_data else 1
+        
+        # Process in batches với checkpoint support
         for batch_num, batch_questions in enumerate(self._batch_generator(questions, self.batch_size), 1):
             if self._stop_processing:
+                # Lưu checkpoint khi dừng
+                self._save_checkpoint(CheckpointData(
+                    file_path=str(tex_file),
+                    current_batch=batch_num - 1,
+                    processed_questions=self.stats.processed_questions,
+                    tikz_compiled=self.stats.tikz_compiled,
+                    images_processed=self.stats.images_processed,
+                    errors=self.stats.errors,
+                    start_time=self.stats.start_time,
+                    partial_content=full_content,
+                    backup_path=backup_path
+                ))
                 break
+            
+            # Bỏ qua các batch đã xử lý nếu resume
+            if batch_num < start_batch:
+                continue
                 
             self.stats.current_batch = batch_num
             logger.info(f"Xử lý batch {batch_num}/{self.stats.total_batches} ({len(batch_questions)} câu hỏi)")
@@ -209,8 +282,25 @@ class StreamingLaTeXProcessor:
             self.stats.processed_questions = min(batch_num * self.batch_size, self.stats.total_questions)
             self._update_memory_stats()
             
+            # Điều chỉnh batch size nếu cần
+            self._adjust_batch_size()
+            
             if progress_callback:
                 progress_callback.update(self.stats)
+            
+            # Lưu checkpoint định kỳ
+            if batch_num % CHECKPOINT_INTERVAL == 0:
+                self._save_checkpoint(CheckpointData(
+                    file_path=str(tex_file),
+                    current_batch=batch_num,
+                    processed_questions=self.stats.processed_questions,
+                    tikz_compiled=self.stats.tikz_compiled,
+                    images_processed=self.stats.images_processed,
+                    errors=self.stats.errors,
+                    start_time=self.stats.start_time,
+                    partial_content=full_content,
+                    backup_path=backup_path
+                ))
             
             # Force garbage collection after each batch
             gc.collect()
@@ -262,7 +352,7 @@ class StreamingLaTeXProcessor:
                     break
                     
                 try:
-                    result = future.result(timeout=30)  # 30 second timeout per TikZ
+                    result = future.result(timeout=TIKZ_COMPILE_TIMEOUT)  # Configurable timeout per TikZ
                     if result:
                         self.stats.tikz_compiled += 1
                     else:
@@ -272,40 +362,78 @@ class StreamingLaTeXProcessor:
                     self.stats.errors += 1
                     logger.error(f"TikZ task error: {str(e)}")
         
-        # Process existing images (non-threaded for file I/O safety)
+        # Process existing images - có thể dùng concurrent nếu được bật
         image_processor = ImageProcessor(images_dir)
         
-        for question in questions:
-            if self._stop_processing:
-                break
+        if CONCURRENT_IMAGE_PROCESSING:
+            # Concurrent image processing
+            with ThreadPoolExecutor(max_workers=min(2, self.max_workers)) as img_executor:
+                image_futures = []
                 
-            # Update content with processed images
-            content = self._update_question_content(content, question, images_dir)
-            
-            # Process existing images
-            if question.question_images:
-                for idx, (_, img_path, _, _) in enumerate(question.question_images, 1):
-                    try:
+                for question in questions:
+                    if self._stop_processing:
+                        break
+                    
+                    # Update content with processed images
+                    content = self._update_question_content(content, question, images_dir)
+                    
+                    # Submit image processing tasks
+                    for idx, (_, img_path, _, _) in enumerate(question.question_images, 1):
                         image_name = question.get_image_name("QUES", idx if len(question.question_images) > 1 else 0)
-                        if image_processor.process_existing_image(img_path, image_name, base_dir):
-                            self.stats.images_processed += 1
-                        else:
-                            self.stats.errors += 1
-                    except Exception as e:
-                        self.stats.errors += 1
-                        logger.error(f"Image processing error: {str(e)}")
-            
-            if question.solution_images:
-                for idx, (_, img_path, _, _) in enumerate(question.solution_images, 1):
-                    try:
+                        future = img_executor.submit(image_processor.process_existing_image, img_path, image_name, base_dir)
+                        image_futures.append(('ques', future))
+                    
+                    for idx, (_, img_path, _, _) in enumerate(question.solution_images, 1):
                         image_name = question.get_image_name("SOL", idx if len(question.solution_images) > 1 else 0)
-                        if image_processor.process_existing_image(img_path, image_name, base_dir):
+                        future = img_executor.submit(image_processor.process_existing_image, img_path, image_name, base_dir)
+                        image_futures.append(('sol', future))
+                
+                # Process completed image tasks
+                for img_type, future in image_futures:
+                    if self._stop_processing:
+                        break
+                    try:
+                        result = future.result(timeout=5)  # 5 second timeout per image
+                        if result:
                             self.stats.images_processed += 1
                         else:
                             self.stats.errors += 1
                     except Exception as e:
                         self.stats.errors += 1
-                        logger.error(f"Image processing error: {str(e)}")
+                        logger.error(f"Concurrent image processing error: {str(e)}")
+        else:
+            # Sequential image processing (original)
+            for question in questions:
+                if self._stop_processing:
+                    break
+                    
+                # Update content with processed images
+                content = self._update_question_content(content, question, images_dir)
+                
+                # Process existing images
+                if question.question_images:
+                    for idx, (_, img_path, _, _) in enumerate(question.question_images, 1):
+                        try:
+                            image_name = question.get_image_name("QUES", idx if len(question.question_images) > 1 else 0)
+                            if image_processor.process_existing_image(img_path, image_name, base_dir):
+                                self.stats.images_processed += 1
+                            else:
+                                self.stats.errors += 1
+                        except Exception as e:
+                            self.stats.errors += 1
+                            logger.error(f"Image processing error: {str(e)}")
+                
+                if question.solution_images:
+                    for idx, (_, img_path, _, _) in enumerate(question.solution_images, 1):
+                        try:
+                            image_name = question.get_image_name("SOL", idx if len(question.solution_images) > 1 else 0)
+                            if image_processor.process_existing_image(img_path, image_name, base_dir):
+                                self.stats.images_processed += 1
+                            else:
+                                self.stats.errors += 1
+                        except Exception as e:
+                            self.stats.errors += 1
+                            logger.error(f"Image processing error: {str(e)}")
         
         return content
     
@@ -332,7 +460,7 @@ class StreamingLaTeXProcessor:
             for idx, (tikz_code, start_pos, end_pos) in enumerate(question.question_tikz, 1):
                 image_name = question.get_image_name("QUES", idx if len(question.question_tikz) > 1 else 0)
                 image_path = f"images/{image_name}.{IMAGE_FORMAT}"
-                include_command = f"\\includegraphics[width=\\textwidth]{{{image_path}}}"
+                include_command = f"\\includegraphics[width={INCLUDEGRAPHICS_WIDTH}]{{{image_path}}}"
                 
                 # Replace TikZ block with include command
                 content = content.replace(tikz_code, include_command, 1)
@@ -341,7 +469,7 @@ class StreamingLaTeXProcessor:
             for idx, (tikz_code, start_pos, end_pos) in enumerate(question.solution_tikz, 1):
                 image_name = question.get_image_name("SOL", idx if len(question.solution_tikz) > 1 else 0)
                 image_path = f"images/{image_name}.{IMAGE_FORMAT}"
-                include_command = f"\\includegraphics[width=\\textwidth]{{{image_path}}}"
+                include_command = f"\\includegraphics[width={INCLUDEGRAPHICS_WIDTH}]{{{image_path}}}"
                 
                 content = content.replace(tikz_code, include_command, 1)
         
@@ -351,6 +479,27 @@ class StreamingLaTeXProcessor:
         """Update memory usage statistics"""
         process = psutil.Process()
         self.stats.memory_usage_mb = process.memory_info().rss / (1024 * 1024)
+        self._last_memory_usage = psutil.virtual_memory().percent
+    
+    def _adjust_batch_size(self):
+        """Tự động điều chỉnh batch size dựa trên memory usage"""
+        if not ADAPTIVE_BATCH_SIZE:
+            return
+        
+        memory_percent = psutil.virtual_memory().percent
+        
+        if memory_percent > 85:
+            # Memory cao - giảm batch size
+            new_size = max(MIN_BATCH_SIZE, int(self.batch_size * 0.8))
+            if new_size != self.batch_size:
+                logger.info(f"Giảm batch size: {self.batch_size} -> {new_size} (Memory: {memory_percent:.1f}%)")
+                self.batch_size = new_size
+        elif memory_percent < 60 and self.batch_size < self.initial_batch_size:
+            # Memory thấp - tăng batch size
+            new_size = min(MAX_BATCH_SIZE, int(self.batch_size * 1.2))
+            if new_size != self.batch_size:
+                logger.info(f"Tăng batch size: {self.batch_size} -> {new_size} (Memory: {memory_percent:.1f}%)")
+                self.batch_size = new_size
     
     def _create_detailed_report(self, report_path: Path):
         """Create detailed processing report"""
@@ -389,6 +538,58 @@ class StreamingLaTeXProcessor:
             
         except Exception as e:
             logger.error(f"Lỗi khi tạo báo cáo: {str(e)}")
+    
+    def _get_checkpoint_path(self, file_path: str) -> Path:
+        """Lấy đường dẫn checkpoint cho file"""
+        file_name = Path(file_path).stem
+        return CHECKPOINT_DIR / f"{file_name}_checkpoint.pkl"
+    
+    def _save_checkpoint(self, checkpoint_data: CheckpointData):
+        """Lưu checkpoint"""
+        if not CHECKPOINT_ENABLED:
+            return
+        
+        try:
+            checkpoint_path = self._get_checkpoint_path(checkpoint_data.file_path)
+            checkpoint_data.timestamp = time.time()
+            
+            with open(checkpoint_path, 'wb') as f:
+                pickle.dump(checkpoint_data, f)
+            
+            logger.info(f"Đã lưu checkpoint: batch {checkpoint_data.current_batch}")
+            
+        except Exception as e:
+            logger.error(f"Lỗi khi lưu checkpoint: {str(e)}")
+    
+    def _load_checkpoint(self, file_path: str) -> Optional[CheckpointData]:
+        """Tải checkpoint"""
+        if not CHECKPOINT_ENABLED:
+            return None
+        
+        try:
+            checkpoint_path = self._get_checkpoint_path(file_path)
+            if not checkpoint_path.exists():
+                return None
+            
+            with open(checkpoint_path, 'rb') as f:
+                checkpoint_data = pickle.load(f)
+            
+            logger.info(f"Tìm thấy checkpoint: batch {checkpoint_data.current_batch}")
+            return checkpoint_data
+            
+        except Exception as e:
+            logger.error(f"Lỗi khi tải checkpoint: {str(e)}")
+            return None
+    
+    def _cleanup_checkpoint(self, file_path: str):
+        """Dọc dẹp checkpoint sau khi hoàn thành"""
+        try:
+            checkpoint_path = self._get_checkpoint_path(file_path)
+            if checkpoint_path.exists():
+                checkpoint_path.unlink()
+                logger.info("Đã dọc dẹp checkpoint")
+        except Exception as e:
+            logger.warning(f"Không thể dọc dẹp checkpoint: {str(e)}")
     
     def stop_processing(self):
         """Stop the processing gracefully"""

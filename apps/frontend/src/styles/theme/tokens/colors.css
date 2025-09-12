@@ -70,4 +70,25 @@
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   --color-info: #3B82F6;
+
+  /* ===== Light Mode Alias Tokens (defaults) ===== */
+  /* These provide a stable interface for light-only palettes.
+     Palettes can override these in :root without touching dark theme. */
+  --light-bg: var(--color-nynus-cream);
+  --light-foreground: var(--color-nynus-dark);
+  --light-surface: var(--color-nynus-jade);
+  --light-popover: var(--color-nynus-silver);
+  --light-muted-bg: var(--color-nynus-silver);
+  --light-muted-foreground: var(--color-nynus-muted);
+  --light-primary: var(--color-primary-gold);
+  --light-primary-foreground: var(--color-nynus-dark);
+  --light-secondary: var(--color-primary-terracotta);
+  --light-secondary-foreground: var(--color-nynus-cream);
+  --light-accent: var(--color-primary-pink);
+  --light-accent-foreground: var(--color-nynus-dark);
+  /* Derived tokens (borders/inputs/ring) keep previous behavior by default */
+  --light-border: color-mix(in srgb, var(--color-nynus-medium) 25%, var(--light-bg));
+  --light-input: color-mix(in srgb, var(--color-nynus-medium) 15%, var(--light-bg));
+  --light-ring: var(--light-primary);
+  --light-table-header: var(--light-muted-bg);
 }
