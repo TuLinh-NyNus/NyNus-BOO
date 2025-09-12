@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals-optimized.css";
+import "./globals.css";
 import { AppProviders } from "@/providers/app-providers";
 import { MainLayout } from "@/components/layout";
 import { defaultThemePreloader } from "@/lib/theme-preloader";

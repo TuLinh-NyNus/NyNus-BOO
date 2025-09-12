@@ -16,7 +16,7 @@ export const devLogger = {
   /**
    * Log thông tin chỉ trong development và không phải quiet mode
    */
-  info: (...args: any[]) => {
+  info: (...args: unknown[]) => {
     if (isDevelopment && !isQuietMode && !disableDevLogs) {
       console.info('[DEV]', ...args);
     }
@@ -25,7 +25,7 @@ export const devLogger = {
   /**
    * Log warning - luôn hiển thị trừ khi QUIET_MODE
    */
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]) => {
     if (!isQuietMode) {
       console.warn('[WARN]', ...args);
     }
@@ -34,14 +34,14 @@ export const devLogger = {
   /**
    * Log error - luôn hiển thị
    */
-  error: (...args: any[]) => {
+  error: (...args: unknown[]) => {
     console.error('[ERROR]', ...args);
   },
 
   /**
    * Debug log - chỉ trong development và verbose mode
    */
-  debug: (...args: any[]) => {
+  debug: (...args: unknown[]) => {
     if (isDevelopment && !isQuietMode && !disableDevLogs && process.env.DEBUG) {
       console.debug('[DEBUG]', ...args);
     }
@@ -50,7 +50,7 @@ export const devLogger = {
   /**
    * Performance log - chỉ khi không quiet mode
    */
-  perf: (...args: any[]) => {
+  perf: (...args: unknown[]) => {
     if (isDevelopment && !isQuietMode) {
       console.log('[PERF]', ...args);
     }
@@ -58,7 +58,7 @@ export const devLogger = {
 };
 
 // Wrapper function để replace console.log trong components
-export const conditionalLog = (...args: any[]) => {
+export const conditionalLog = (...args: unknown[]) => {
   if (isDevelopment && !isQuietMode && !disableDevLogs) {
     console.log(...args);
   }
