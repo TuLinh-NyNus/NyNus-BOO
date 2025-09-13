@@ -74,7 +74,6 @@ export function QuestionsHeader({
     const baseClasses = [
       'questions-header',
       'bg-background',
-      'border-b border-border',
       'transition-all duration-300 ease-in-out'
     ];
 

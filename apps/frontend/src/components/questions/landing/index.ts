@@ -3,8 +3,9 @@
  * Barrel exports cho questions landing components
  * 
  * @author NyNus Development Team
- * @version 1.0.0
+ * @version 2.0.0
  * @created 2025-01-18
+ * @updated 2025-01-19 - Added enhanced components
  */
 
 // ===== HERO COMPONENTS =====
@@ -21,17 +22,35 @@ export {
   default as DefaultCombinedSearchBar
 } from './combined-search-bar';
 
+// Enhanced Search Bar (Improved UX)
+export {
+  EnhancedSearchBar,
+  default as DefaultEnhancedSearchBar
+} from './enhanced-search-bar';
+
 // Issues Spotlight
 export {
   IssuesSpotlight,
   default as DefaultIssuesSpotlight
 } from './issues-spotlight';
 
+// Enhanced Issues Spotlight (Gradient Design)
+export {
+  EnhancedIssuesSpotlight,
+  default as DefaultEnhancedIssuesSpotlight
+} from './enhanced-issues-spotlight';
+
 // Classification Chips
 export {
   ClassificationChips,
   default as DefaultClassificationChips
 } from './classification-chips';
+
+// Enhanced Classification Chips (Grouped & Multi-select)
+export {
+  EnhancedClassificationChips,
+  default as DefaultEnhancedClassificationChips
+} from './enhanced-classification-chips';
 
 // Quick Filter Buttons
 export {
@@ -84,6 +103,32 @@ export {
   SimpleQuestionTypeCardsGrid,
   default as DefaultQuestionTypeCardsGrid
 } from './question-type-cards-grid';
+
+// Enhanced Question Type Filter (Live Filter Buttons)
+export {
+  EnhancedQuestionTypeFilter,
+  default as DefaultEnhancedQuestionTypeFilter
+} from './enhanced-question-type-filter';
+
+// Unified Filter Section (Combined Filters)
+export {
+  UnifiedFilterSection,
+  default as DefaultUnifiedFilterSection
+} from './unified-filter-section';
+
+// Mobile Filter Sheet (Bottom Sheet)
+export {
+  MobileFilterSheet,
+  default as DefaultMobileFilterSheet
+} from './mobile-filter-sheet';
+
+// Decorative Elements
+export {
+  DecorativeElements,
+  QuestionCardDecoration,
+  MathBackground,
+  default as DefaultDecorativeElements
+} from './decorative-elements';
 
 // ===== TYPE EXPORTS =====
 

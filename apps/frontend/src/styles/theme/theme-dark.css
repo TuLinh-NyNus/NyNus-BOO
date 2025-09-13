@@ -152,6 +152,14 @@
 --filter-subject-gifted-bg: linear-gradient(135deg, #BE185D, #EC4899, #F472B6);     /* Pink Turbopack gradient */
 --filter-subject-gifted-text: #FDF2F8;   /* Pink 50 - Very light pink */
 --filter-subject-gifted-border: #9D174D; /* Pink 800 */
+
+/* Logo colors for dark theme - More vibrant for dark backgrounds */
+--logo-gradient-start: #FFB869;    /* Keep original orange */
+--logo-gradient-middle: #F86166;   /* Keep original coral */
+--logo-gradient-end: #AB6EE4;      /* Keep original purple */
+--logo-shadow-1: rgba(255, 184, 105, 0.4);
+--logo-shadow-2: rgba(248, 97, 102, 0.3);
+--logo-shadow-3: rgba(171, 110, 228, 0.2);
 }
 
 /* ===== ADMIN SCOPED STYLES ===== */

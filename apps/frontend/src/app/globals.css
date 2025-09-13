@@ -35,10 +35,12 @@
 /* Color scheme management - Quản lý color-scheme theo class thay vì inline style */
 :root {
   color-scheme: light;
+  --background-rgb: 255, 255, 255;
 }
 
 .dark {
   color-scheme: dark;
+  --background-rgb: 15, 20, 34;
 }
 
 /* Custom utilities for modern carousel */
@@ -51,6 +53,27 @@
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Animation utilities */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-20px) rotate(5deg); }
+  75% { transform: translateY(10px) rotate(-5deg); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-15px) rotate(-5deg); }
+  66% { transform: translateY(15px) rotate(5deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 8s ease-in-out infinite;
 }
 
 /* Custom CSS classes for theme-aware components */
@@ -277,4 +300,14 @@
 [class^="filter-button-"] {
   border-width: 1px;
   border-style: solid;
+}
+
+/* Logo gradient text - Dynamic theme-aware */
+.logo-gradient-text {
+  background: var(--logo-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: 0 0 30px var(--logo-shadow-1), 
+               0 0 60px var(--logo-shadow-2), 
+               0 0 90px var(--logo-shadow-3);
 }

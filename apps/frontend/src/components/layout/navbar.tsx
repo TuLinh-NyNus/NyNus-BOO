@@ -75,7 +75,7 @@ const Navbar = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollOpacity, setScrollOpacity] = useState(0);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
   // Responsive logic - hide items when screen gets smaller
@@ -87,23 +87,22 @@ const Navbar = () => {
     setIsMounted(true);
   }, []);
 
-  // Scroll listener để detect khi qua hero section
+  // Enhanced scroll listener với smooth opacity transition
   useEffect(() => {
     if (!isMounted || typeof window === 'undefined') {
       return;
     }
 
     const handleScroll = () => {
-      const heroSection = document.getElementById('hero-section');
-      if (heroSection) {
-        const heroRect = heroSection.getBoundingClientRect();
-        // Chuyển sang solid khi scroll qua 50% hero section
-        const scrollThreshold = heroRect.height * 0.5;
-        setIsScrolled(window.scrollY > scrollThreshold);
-      } else {
-        // Fallback nếu không tìm thấy hero section
-        setIsScrolled(window.scrollY > 100);
-      }
+      const scrollY = window.scrollY;
+      
+      // Tính toán opacity dựa trên scroll position
+      // 0px = completely transparent
+      // 200px = fully opaque
+      const maxScroll = 200;
+      const opacity = Math.min(scrollY / maxScroll, 1);
+      
+      setScrollOpacity(opacity);
     };
 
     // Check initial state
@@ -188,41 +187,33 @@ const Navbar = () => {
     console.log("Logout clicked");
   };
 
-  // Check if we're on homepage or courses page to make navbar fully transparent
-  const isHomepage = pathname === '/';
-  const isCoursesPage = pathname === '/courses';
-  const shouldBeTransparent = (isHomepage && !isScrolled) || isCoursesPage;
+  // Calculate dynamic background based on scroll position
+  const navbarBackground = scrollOpacity === 0 
+    ? 'transparent' 
+    : `rgba(var(--background-rgb, 15, 20, 34), ${scrollOpacity * 0.95})`;
+  
+  const navbarBackdropBlur = scrollOpacity > 0.1 ? `blur(${scrollOpacity * 12}px)` : 'none';
 
   return (
     <>
       <header
-        className={`fixed top-0 z-50 w-full transition-all duration-300 ${
-          isScrolled
-            ? 'bg-background/95 backdrop-blur-md border-b border-border shadow-sm'
-            : shouldBeTransparent
-            ? 'border-b border-transparent'
-            : 'bg-transparent backdrop-blur-sm border-b border-transparent'
-        }`}
+        className="fixed top-0 z-50 w-full transition-all duration-500 ease-out"
         style={{ 
           paddingTop: 'env(safe-area-inset-top)',
-          ...(shouldBeTransparent ? {
-            backgroundColor: 'transparent',
-            background: 'transparent',
-            backdropFilter: 'none',
-            WebkitBackdropFilter: 'none'
-          } : {})
+          backgroundColor: navbarBackground,
+          backdropFilter: navbarBackdropBlur,
+          WebkitBackdropFilter: navbarBackdropBlur,
+          boxShadow: scrollOpacity > 0.5 
+            ? `0 1px 3px rgba(0, 0, 0, ${scrollOpacity * 0.1})` 
+            : 'none'
         }}
       >
         <nav className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8 min-w-0">
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text py-1"
+            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text py-1 logo-gradient-text"
             style={{
-              background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
-              backgroundClip: "text",
-              WebkitBackgroundClip: "text",
-              textShadow: "0 0 30px rgba(255, 184, 105, 0.4), 0 0 60px rgba(248, 97, 102, 0.3), 0 0 90px rgba(171, 110, 228, 0.2)",
               fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
               fontWeight: 900,
               letterSpacing: "-0.02em",
@@ -249,17 +240,21 @@ const Navbar = () => {
                   href={item.href}
                   className={`text-sm font-semibold tracking-wide transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md px-2 py-1 ${
                     pathname === item.href
-                      ? isScrolled
+                      ? scrollOpacity > 0.5
                         ? "text-foreground font-bold"
                         : "text-white font-bold drop-shadow-lg"
                       : item.isHighlight
                       ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                      : isScrolled
+                      : scrollOpacity > 0.5
                       ? "text-foreground/80 hover:text-foreground"
                       : "text-white/90 hover:text-white drop-shadow-md"
                   } font-sans`}
                   style={{
-                    textShadow: item.isHighlight ? "0 0 20px rgba(168, 85, 247, 0.2)" : "0 0 10px rgba(0, 0, 0, 0.3)",
+                    textShadow: item.isHighlight 
+                      ? "0 0 20px rgba(168, 85, 247, 0.2)" 
+                      : scrollOpacity < 0.5 
+                        ? "0 0 10px rgba(0, 0, 0, 0.5)" 
+                        : "none",
                     letterSpacing: "0.05em"
                   }}
                   aria-current={pathname === item.href ? 'page' : undefined}
@@ -276,7 +271,7 @@ const Navbar = () => {
                   variant="ghost"
                   size="icon"
                   className={`h-11 w-11 transition-all duration-300 ${
-                    isScrolled
+                    scrollOpacity > 0.5
                       ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
                       : 'text-white/90 hover:text-white hover:bg-white/10'
                   }`}
@@ -313,7 +308,7 @@ const Navbar = () => {
           {/* Right side actions */}
           <div className="flex items-center gap-3 flex-shrink-0">
             {/* Theme Toggle */}
-            <ThemeToggle isScrolled={isScrolled} />
+            <ThemeToggle isScrolled={scrollOpacity > 0.5} />
 
             {/* Enhanced Search Button */}
             <div className="relative">
@@ -321,7 +316,7 @@ const Navbar = () => {
                 variant="ghost"
                 size="icon"
                 className={`relative h-11 w-11 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                  isScrolled
+                  scrollOpacity > 0.5
                     ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
                     : 'text-white/90 hover:text-white hover:bg-white/10'
                 }`}
@@ -344,7 +339,7 @@ const Navbar = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-11 w-11 rounded-full">
                       <div className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        isScrolled
+                        scrollOpacity > 0.5
                           ? 'bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80'
                           : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
                       }`}>
@@ -388,7 +383,7 @@ const Navbar = () => {
                   variant="ghost"
                   size="icon"
                   className={`h-11 w-11 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                    isScrolled
+                    scrollOpacity > 0.5
                       ? 'bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80'
                       : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
                   }`}
@@ -405,7 +400,7 @@ const Navbar = () => {
               variant="ghost"
               size="icon"
               className={`md:hidden transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                isScrolled
+                scrollOpacity > 0.5
                   ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
                   : 'text-white/90 hover:text-white hover:bg-white/10'
               }`}
@@ -433,7 +428,7 @@ const Navbar = () => {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className={`md:hidden border-t transition-all duration-300 ${
-                isScrolled
+                scrollOpacity > 0.5
                   ? 'border-border bg-card/95 backdrop-blur-md'
                   : 'border-white/20 bg-black/20 backdrop-blur-md'
               }`}

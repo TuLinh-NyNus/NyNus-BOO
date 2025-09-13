@@ -129,3 +129,14 @@
   --tw-ring-color: var(--admin-primary);
   --tw-ring-opacity: 0.2;
 }
+
+/* ===== LOGO COLORS FOR LIGHT THEME ===== */
+/* Softer pastel colors for light backgrounds */
+:root {
+  --logo-gradient-start: #F9A8D4;    /* Pastel pink */
+  --logo-gradient-middle: #FDA4AF;   /* Pastel coral */
+  --logo-gradient-end: #C084FC;      /* Pastel purple */
+  --logo-shadow-1: rgba(249, 168, 212, 0.3);
+  --logo-shadow-2: rgba(253, 164, 175, 0.25);
+  --logo-shadow-3: rgba(192, 132, 252, 0.15);
+}

@@ -146,6 +146,17 @@
   --hero-wave-pink: rgba(229, 120, 133, 0.4);
   --hero-wave-light: rgba(241, 133, 130, 0.3);
   
+  /* Logo gradient colors - Used in navbar and branding */
+  --logo-gradient-start: #FFB869;    /* Orange */
+  --logo-gradient-middle: #F86166;   /* Coral */
+  --logo-gradient-end: #AB6EE4;      /* Purple */
+  --logo-gradient: linear-gradient(135deg, var(--logo-gradient-start) 0%, var(--logo-gradient-middle) 50%, var(--logo-gradient-end) 100%);
+  
+  /* Logo shadow colors */
+  --logo-shadow-1: rgba(255, 184, 105, 0.4);
+  --logo-shadow-2: rgba(248, 97, 102, 0.3);
+  --logo-shadow-3: rgba(171, 110, 228, 0.2);
+  
   /* Admin context */
   --admin-primary: var(--color-admin-purple);
   --admin-primary-dark: var(--color-admin-purple-dark);
