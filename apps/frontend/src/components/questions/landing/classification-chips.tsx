@@ -61,7 +61,7 @@ export function ClassificationChips({ className }: ClassificationChipsProps) {
         <button
           key={chip.key}
           onClick={chip.onClick}
-          className={cn('rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm hover:opacity-90 transition-colors', chip.colorClass)}
+          className={cn('rounded-full border px-3 py-1.5 text-xs font-medium shadow-sm hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-ring))] dark:border-[hsl(var(--color-border))]', chip.colorClass)}
         >
           {chip.label}
         </button>

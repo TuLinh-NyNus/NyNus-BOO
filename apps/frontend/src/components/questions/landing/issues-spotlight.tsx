@@ -88,21 +88,21 @@ export function IssuesSpotlight({ className }: IssuesSpotlightProps) {
         <button
           key={issue.key}
           onClick={issue.onClick}
-          className="group flex items-start gap-3 rounded-xl border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40"
+          className="group flex items-start gap-3 rounded-xl border bg-card p-4 text-left shadow-sm transition-colors hover:bg-muted/40 dark:bg-[hsl(var(--color-card))] dark:border-[hsl(var(--color-border))] hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[hsl(var(--color-ring))]"
         >
-          <div className="rounded-md bg-primary/10 p-2 text-primary">
+          <div className="rounded-md bg-primary/10 p-2 text-primary dark:bg-[hsl(var(--color-primary))]/15 dark:text-[hsl(var(--color-primary))]">
             {issue.icon}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold">{issue.title}</h3>
+              <h3 className="text-sm font-semibold text-foreground dark:text-[hsl(var(--color-foreground))]">{issue.title}</h3>
               {typeof issue.count === 'number' && (
-                <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-[hsl(var(--color-warning))]/20 dark:text-[hsl(var(--color-warning))]">
                   {issue.count}
                 </span>
               )}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">{issue.description}</p>
+            <p className="mt-1 text-xs text-muted-foreground dark:text-[hsl(var(--color-text-muted))]">{issue.description}</p>
           </div>
         </button>
       ))}
