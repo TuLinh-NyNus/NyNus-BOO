@@ -12,6 +12,9 @@
 /* ===== DARK MODE BASE THEME ===== */
 
 .dark {
+  /* ===== QUESTIONS PAGE DARK MODE OVERRIDES ===== */
+  /* Force dark background for questions page in dark mode */
+  --questions-bg: var(--color-dark-bg);
   /* ===== GRADIENT TOKENS FOR THEMED BACKGROUNDS ===== */
   /* Replaces hardcoded hex values in hero sections */
   --gradient-1: 223 25% 10%;   /* #0B1320 - Deep navy base */
@@ -390,6 +393,23 @@
   /* Prevent any fixed positioned elements from overlapping */
   position: relative;
   z-index: 2;
+}
+
+/* ===== QUESTIONS PAGE DARK MODE OVERRIDES ===== */
+/* Force dark background for questions page in dark mode */
+.dark .questions-section {
+  background-color: var(--color-dark-bg) !important;
+  background: var(--color-dark-bg) !important;
+}
+
+.dark .questions-section.bg-background {
+  background-color: var(--color-dark-bg) !important;
+  background: var(--color-dark-bg) !important;
+}
+
+.dark body .questions-section {
+  background-color: var(--color-dark-bg) !important;
+  background: var(--color-dark-bg) !important;
 }
 
 /* ===== ADMIN UNIFIED BACKGROUND UTILITIES ===== */

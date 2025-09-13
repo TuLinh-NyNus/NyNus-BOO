@@ -78,7 +78,7 @@ export default function EnhancedQuestionsClient() {
     <div className="min-h-screen relative">
       {/* Separated Math Background Layer */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Base color layer */}
+        {/* Base color layer - Updated with pastel pink palette */}
         <div className="absolute inset-0 bg-gradient-to-b from-[var(--color-light-bg)] via-[var(--color-light-secondary-bg)] to-[var(--color-light-surface)] dark:from-[hsl(223_25%_12%)] dark:via-[hsl(223_25%_11%)] dark:to-[hsl(223_25%_13%)]" />
         
         {/* Grid Pattern */}

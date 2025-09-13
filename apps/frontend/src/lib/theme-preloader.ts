@@ -129,7 +129,7 @@ export class ThemePreloader {
  */
 export const defaultThemePreloader = new ThemePreloader({
   storageKey: 'nynus-theme',
-  defaultTheme: 'dark',
+  defaultTheme: 'light',
   enableSystem: true,
 });
 

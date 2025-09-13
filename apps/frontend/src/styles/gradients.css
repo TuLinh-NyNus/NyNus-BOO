@@ -189,9 +189,15 @@
 
 /* NyNus main background gradient for body */
 .nynus-gradient-bg {
-  /* Vì chỉ support dark mode, luôn dùng gradient tối */
-  background: linear-gradient(135deg, #0A0E1A 0%, #131B2B 50%, #0A0E1A 100%);
+  /* Light mode - sử dụng màu hồng trắng nhạt từ palette pastel */
+  background: #FDF2F8 !important; /* Force very light pink background */
   min-height: 100vh;
+}
+
+/* Force light background for body element */
+body.nynus-gradient-bg {
+  background: #FDF2F8 !important;
+  background-color: #FDF2F8 !important;
 }
 
 /* Dark mode gradient - giữ consistency */

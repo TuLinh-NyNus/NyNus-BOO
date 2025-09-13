@@ -38,9 +38,19 @@
   --background-rgb: 255, 255, 255;
 }
 
+/* Force light background for body in light mode */
+body {
+  background-color: #FDF2F8 !important;
+}
+
 .dark {
   color-scheme: dark;
   --background-rgb: 15, 20, 34;
+}
+
+/* Force dark background for body in dark mode */
+.dark body {
+  background-color: var(--color-dark-bg) !important;
 }
 
 /* Custom utilities for modern carousel */

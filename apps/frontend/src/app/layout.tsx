@@ -34,7 +34,6 @@ export default function RootLayout({
       </head>
       <body
         className={`${inter.variable} font-sans antialiased nynus-gradient-bg text-foreground`}
-        style={{ backgroundColor: '#0F1422' }}
         suppressHydrationWarning
       >
         <AppProviders>

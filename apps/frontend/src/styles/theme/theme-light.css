@@ -19,6 +19,15 @@
   --color-surface: var(--color-light-surface);
   --color-surface-hover: var(--color-light-muted);
   
+  /* Force light background for body */
+  --color-background: #FDF2F8 !important;
+  
+  /* Light mode gradient tokens */
+  --gradient-1: 330 100% 98%;   /* #FDF2F8 - Very light pink */
+  --gradient-2: 330 100% 96%;   /* #F9DDD2 - Peach pastel */
+  --gradient-3: 330 100% 94%;   /* #F6EADE - Beige pastel */
+  --gradient-overlay: 330 100% 92%; /* #FBCFD0 - Pink pastel */
+  
   /* Interactive colors - Pastel Theme */
   --color-primary: var(--color-pastel-rose);
   --color-primary-foreground: var(--color-light-navy);
@@ -27,12 +36,12 @@
   --color-accent: var(--color-pastel-mauve);
   --color-accent-foreground: var(--color-light-navy);
   
-  /* Component colors - Pastel Surfaces */
-  --color-card: var(--color-light-surface);           /* #F9DDD2 - Hồng đào nhạt */
+  /* Component colors - Light Pink White Surfaces */
+  --color-card: var(--color-light-surface);           /* #F6EADE - Beige pastel */
   --color-card-foreground: var(--color-light-navy);
-  --color-popover: var(--color-light-secondary-bg);   /* #F6EADE - Beige kem */
+  --color-popover: var(--color-light-secondary-bg);   /* #FBCFD0 - Pink pastel */
   --color-popover-foreground: var(--color-light-navy);
-  --color-muted: var(--color-light-muted);            /* #FBCFD0 - Hồng pastel */
+  --color-muted: var(--color-light-muted);            /* #F9DDD2 - Peach pastel */
   --color-muted-foreground: var(--color-medium-gray);
   
   /* Input and border colors */
@@ -139,4 +148,22 @@
   --logo-shadow-1: rgba(249, 168, 212, 0.3);
   --logo-shadow-2: rgba(253, 164, 175, 0.25);
   --logo-shadow-3: rgba(192, 132, 252, 0.15);
+}
+
+/* ===== QUESTIONS PAGE LIGHT MODE OVERRIDES ===== */
+/* Force light background for questions page */
+.questions-section {
+  background-color: #FDF2F8 !important;
+  background: #FDF2F8 !important;
+}
+
+.questions-section.bg-background {
+  background-color: #FDF2F8 !important;
+  background: #FDF2F8 !important;
+}
+
+/* Force light background for questions page body */
+body .questions-section {
+  background-color: #FDF2F8 !important;
+  background: #FDF2F8 !important;
 }

@@ -16,11 +16,11 @@
   --color-white: #FFFFFF;
   --color-black: #000000;
   
-  /* Light theme base colors - Pure Light Version with Pastel Palette */
-  --color-light-bg: #FDFDFD;        /* Pure light background */
-  --color-light-surface: #F9DDD2;   /* Light surface/card - Hồng đào nhạt */
-  --color-light-muted: #FBCFD0;     /* Light muted backgrounds - Hồng pastel */
-  --color-light-secondary-bg: #F6EADE; /* Secondary background - Beige kem */
+  /* Light theme base colors - Light Pink White Palette from User Request */
+  --color-light-bg: #FDF2F8;        /* Very light pink background - Primary background */
+  --color-light-surface: #F6EADE;   /* Light surface/card - Beige pastel */
+  --color-light-muted: #F9DDD2;     /* Light muted backgrounds - Peach pastel */
+  --color-light-secondary-bg: #FBCFD0; /* Secondary background - Pink pastel */
   --color-light-navy: #1A1A2E;      /* Dark text for light mode */
   --color-light-gray: #2D3748;      /* Secondary text */
   --color-medium-gray: #4A5568;     /* Muted text */
@@ -34,7 +34,7 @@
   --color-dark-text: #FFFFFF;       /* Pure white text */
   --color-dark-text-muted: #B0C4DE; /* Light steel blue muted text */
   
-  /* Brand accent colors - Pastel Palette */
+  /* Brand accent colors - Light Pink White Palette */
   --color-pastel-rose: #E8A0A4;     /* Primary - Dusty rose pastel */
   --color-pastel-lilac: #E6C6D1;    /* Secondary - Lilac pastel */
   --color-pastel-mauve: #CEC0D2;    /* Accent - Mauve pastel */
