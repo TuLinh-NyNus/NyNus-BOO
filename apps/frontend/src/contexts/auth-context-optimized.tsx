@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 import { type User, mockAdminUser } from '../lib/mockdata/auth';
+import { AuthService, getAuthErrorMessage } from '@/lib/services/api/auth.api';
 
 // 🔥 KEY OPTIMIZATION: Split Context thành State và Actions
 interface AuthState {
@@ -41,21 +42,36 @@ function InternalAuthProvider({ children }: { children: ReactNode }) {
     const login = async (email: string, password: string): Promise<void> => {
       setIsLoading(true);
       try {
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        if (email === 'admin@nynus.edu.vn' && password === 'admin123') {
-          const userData = { ...mockAdminUser, lastLoginAt: new Date() };
-
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
-            localStorage.setItem('nynus-auth-token', 'mock-jwt-token-admin');
+        // Kiểm tra flag mock
+        const useMock = process.env.NEXT_PUBLIC_USE_MOCK === 'true';
+        
+        if (useMock) {
+          // Mock login logic (fallback)
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          if (email === 'admin@nynus.edu.vn' && password === 'admin123') {
+            const userData = { ...mockAdminUser, lastLoginAt: new Date() };
+            
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
+              localStorage.setItem('nynus-auth-token', 'mock-jwt-token-admin');
+            }
+            
+            setUser(userData);
+          } else {
+            throw new Error('Thông tin đăng nhập không chính xác');
           }
-
-          setUser(userData);
         } else {
-          throw new Error('Thông tin đăng nhập không chính xác');
+          // Real API login
+          const result = await AuthService.login({ email, password });
+          
+          // AuthService đã lưu token vào localStorage, giờ set user
+          setUser(result.user);
         }
+      } catch (error) {
+        // Handle errors with better messaging
+        const errorMessage = getAuthErrorMessage(error);
+        throw new Error(errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -85,11 +101,9 @@ function InternalAuthProvider({ children }: { children: ReactNode }) {
           await nextAuthSignOut({ callbackUrl: '/', redirect: false });
         }
 
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('nynus-auth-user');
-          localStorage.removeItem('nynus-auth-token');
-        }
-
+        // Dùng AuthService để clear auth data
+        AuthService.clearAuth();
+        
         setUser(null);
       } catch (error) {
         console.error('Logout error:', error);
@@ -157,27 +171,20 @@ function InternalAuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        if (typeof window !== 'undefined') {
-          const savedUser = localStorage.getItem('nynus-auth-user');
-          const authToken = localStorage.getItem('nynus-auth-token');
-
-          if (savedUser && authToken) {
-            try {
-              const parsedUser = JSON.parse(savedUser);
-              if (mounted) setUser(parsedUser);
-            } catch (parseError) {
-              console.error('Error parsing saved user data:', parseError);
-              localStorage.removeItem('nynus-auth-user');
-              localStorage.removeItem('nynus-auth-token');
-            }
-          }
+        // Dùng AuthService để kiểm tra auth state
+        const storedUser = AuthService.getStoredUser();
+        const token = AuthService.getToken();
+        
+        if (storedUser && token && AuthService.isTokenValid(token)) {
+          if (mounted) setUser(storedUser);
+        } else if (token && !AuthService.isTokenValid(token)) {
+          // Token invalid, clear auth
+          console.warn('Invalid token detected, clearing auth');
+          AuthService.clearAuth();
         }
       } catch (error) {
         console.error('Error checking auth status:', error);
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('nynus-auth-user');
-          localStorage.removeItem('nynus-auth-token');
-        }
+        AuthService.clearAuth();
       } finally {
         if (mounted) setIsLoading(false);
       }

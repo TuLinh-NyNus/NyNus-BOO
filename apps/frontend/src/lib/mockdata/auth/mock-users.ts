@@ -9,7 +9,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'instructor' | 'student';
+  role: 'admin' | 'teacher' | 'student';
   avatar?: string;
   isActive: boolean;
   lastLoginAt?: Date;

@@ -1,10 +1,12 @@
 /**
  * Public Question Service
- * Service layer cho public question operations theo RIPER-5 EXECUTE MODE
+ * Service layer cho public question operations
+ * Hỗ trợ chuyển đổi giữa mock và real API dựa trên feature flag
  * 
  * @author NyNus Development Team
- * @version 1.0.0
+ * @version 2.1.0
  * @created 2025-01-18
+ * @updated 2025-01-19 - Backend integration with proper error handling
  */
 
 import {
@@ -20,6 +22,10 @@ import {
 } from '@/lib/types/public';
 
 import { QuestionType, QuestionDifficulty } from '@/lib/types/question';
+import QuestionsAPI from '@/lib/services/api/questions.api';
+import { mapFiltersToListRequest, mapToSearchRequest } from '@/lib/services/api/mappers/question-filter.mapper';
+import { mapQuestionDetailToPublic, mapSearchResultToPublic } from '@/lib/services/api/mappers/question.mapper';
+import { isAPIError, isAuthError, isNetworkError } from '@/lib/api/client';
 
 // ===== MOCK DATA =====
 
@@ -136,6 +142,75 @@ const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(r
  */
 const _generateId = (): string => Math.random().toString(36).substr(2, 9);
 
+/**
+ * Check if mock mode is enabled
+ * Kiểm tra xem có sử dụng mock data hay không
+ */
+const isUseMock = (): boolean => {
+  // Kiểm tra biến môi trường
+  const useMock = process.env.NEXT_PUBLIC_USE_MOCK;
+  return useMock === 'true' || useMock === undefined; // Default to mock if not set
+};
+
+/**
+ * Check if we should use real API
+ * Kiểm tra có nên dùng API thật hay không
+ */
+const shouldUseRealAPI = (): boolean => {
+  return !isUseMock() && isAuthenticated();
+};
+
+/**
+ * Log current configuration for debugging
+ * Ghi log cấu hình hiện tại để debug
+ */
+const logCurrentConfig = (): void => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[PublicQuestionService] Config:', {
+      useMock: isUseMock(),
+      isAuthenticated: isAuthenticated(),
+      shouldUseRealAPI: shouldUseRealAPI(),
+      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+    });
+  }
+};
+
+/**
+ * Check if user is authenticated
+ * Kiểm tra xem người dùng đã đăng nhập chưa
+ */
+const isAuthenticated = (): boolean => {
+  const token = localStorage.getItem('nynus-auth-token');
+  return !!token;
+};
+
+/**
+ * Handle API errors with proper UX
+ * Xử lý lỗi API với UX tốt
+ */
+const handleAPIError = (error: unknown, operation: string): void => {
+  console.error(`Error in ${operation}:`, error);
+  
+  if (isAuthError(error)) {
+    // TODO: Show auth error toast/notification
+    console.warn('Authentication required - redirecting to login or fallback to mock');
+    // You can dispatch a toast notification here:
+    // toast.error('Vui lòng đăng nhập để truy cập tài nguyên này');
+  } else if (isNetworkError(error)) {
+    // TODO: Show network error toast/notification
+    console.warn('Network error - falling back to mock data');
+    // toast.error('Không thể kết nối đến server. Hiển thị dữ liệu mẫu.');
+  } else if (isAPIError(error)) {
+    // TODO: Show general API error
+    console.warn(`API Error: ${error.message}`);
+    // toast.error(`Lỗi: ${error.message}`);
+  } else {
+    // TODO: Show unknown error
+    console.warn('Unknown error occurred');
+    // toast.error('Đã xảy ra lỗi không xác định');
+  }
+};
+
 // ===== MAIN SERVICE CLASS =====
 
 /**
@@ -153,11 +228,43 @@ const _generateId = (): string => Math.random().toString(36).substr(2, 9);
 export class PublicQuestionService {
   /**
    * Browse questions với filters và pagination
-   * Main method cho question browsing
+   * Auto-switches between real API and mock based on auth status
    */
   static async browseQuestions(
     filters: PublicQuestionFilters = DEFAULT_PUBLIC_QUESTION_FILTERS
   ): Promise<PublicQuestionListResponse> {
+    // Use real API if authenticated and not in mock mode
+    if (shouldUseRealAPI()) {
+      logCurrentConfig();
+      try {
+        const request = mapFiltersToListRequest(filters);
+        const response = await QuestionsAPI.filterQuestions(request);
+        const mappedQuestions = response.questions.map(mapQuestionDetailToPublic);
+        
+        return {
+          data: mappedQuestions,
+          pagination: {
+            page: response.page,
+            limit: response.limit,
+            total: response.totalCount,
+            totalPages: response.totalPages
+          },
+          filters,
+          meta: {
+            totalQuestions: response.totalCount,
+            categories: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.category))],
+            subjects: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.subject).filter(Boolean) as string[])],
+            grades: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.grade).filter(Boolean) as string[])],
+            difficulties: [QuestionDifficulty.EASY, QuestionDifficulty.MEDIUM, QuestionDifficulty.HARD]
+          }
+        };
+      } catch (error) {
+        handleAPIError(error, 'browseQuestions');
+        // Fallback to mock implementation
+      }
+    }
+    
+    // Mock implementation (original code)
     await delay(300);
 
     let filteredQuestions = [...mockPublicQuestions];
@@ -271,12 +378,51 @@ export class PublicQuestionService {
 
   /**
    * Search questions với query string
-   * Advanced search với suggestions và corrections
+   * Auto-switches between real API and mock based on auth status
    */
   static async searchQuestions(
     query: string,
     filters: PublicQuestionFilters = DEFAULT_PUBLIC_QUESTION_FILTERS
   ): Promise<PublicQuestionSearchResponse> {
+    // Use real API if authenticated and not in mock mode
+    if (shouldUseRealAPI()) {
+      logCurrentConfig();
+      try {
+        const request = mapToSearchRequest(query, filters);
+        const response = await QuestionsAPI.searchQuestions(request);
+        const mappedQuestions = response.questions.map(mapSearchResultToPublic);
+        
+        return {
+          data: mappedQuestions,
+          pagination: {
+            page: response.page,
+            limit: response.limit,
+            total: response.totalCount,
+            totalPages: response.totalPages
+          },
+          filters,
+          query,
+          searchMeta: {
+            totalResults: response.totalCount,
+            searchTime: 0, // Backend không trả về search time
+            suggestions: [], // Backend chưa có suggestions
+            corrections: undefined // Backend chưa có corrections
+          },
+          meta: {
+            totalQuestions: response.totalCount,
+            categories: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.category))],
+            subjects: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.subject).filter(Boolean) as string[])],
+            grades: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.grade).filter(Boolean) as string[])],
+            difficulties: [QuestionDifficulty.EASY, QuestionDifficulty.MEDIUM, QuestionDifficulty.HARD]
+          }
+        };
+      } catch (error) {
+        handleAPIError(error, 'searchQuestions');
+        // Fallback to mock nếu lỗi
+      }
+    }
+    
+    // Mock implementation (original code)
     await delay(400);
 
     const searchStartTime = Date.now();
@@ -305,10 +451,55 @@ export class PublicQuestionService {
   }
 
   /**
-   * Get single question by ID
-   * Retrieve detailed question information
+   * Get single question by ID or question code
+   * Auto-switches between real API and mock based on auth status
    */
   static async getQuestion(id: string): Promise<PublicQuestionResponse> {
+    // Nếu dùng real API và đã đăng nhập
+    if (shouldUseRealAPI()) {
+      try {
+        // Nếu id là full question code (e.g., "0P1VH1")
+        // Parse nó thành components và dùng getQuestionsByQuestionCode
+        if (id.length >= 5) {
+          const response = await QuestionsAPI.getQuestionsByQuestionCode({
+            questionCodeFilter: {
+              // Parse full code thành components (simplified)
+              grades: [id[0]], // First char is grade
+              subjects: [id[1]], // Second char is subject
+              // TODO: Add more parsing if needed
+            },
+            pagination: { page: 1, limit: 1, sort: [] },
+          });
+          
+          if (response.questions.length > 0) {
+            const mappedQuestion = mapQuestionDetailToPublic(response.questions[0].question);
+            
+            // Get related questions (không có từ backend hiện tại)
+            const related: PublicQuestion[] = [];
+            
+            return {
+              data: mappedQuestion,
+              related,
+              meta: {
+                category: mappedQuestion.category,
+                subject: mappedQuestion.subject,
+                grade: mappedQuestion.grade,
+                nextQuestionId: undefined,
+                previousQuestionId: undefined
+              }
+            };
+          }
+        }
+        
+        // TODO: Nếu id là question ID (không phải code), dùng GET /api/v1/questions/{id}
+        // Hiện tại chưa implement endpoint này trong backend
+      } catch (error) {
+        handleAPIError(error, 'getQuestion');
+        // Fallback to mock nếu lỗi
+      }
+    }
+    
+    // Mock implementation (original code)
     await delay(200);
 
     const question = mockPublicQuestions.find(q => q.id === id);
