@@ -12,7 +12,7 @@ import Link from 'next/link';
 import { Search, Filter } from 'lucide-react';
 
 import { QUESTION_ROUTES } from '@/lib/question-paths';
-import { HeroSearchBar, QuickFilterButtons, QuestionTypeCardsGrid, FeaturedQuestionsSection, StatsDisplay } from '@/components/questions/landing';
+import { CombinedSearchBar, IssuesSpotlight, ClassificationChips, QuestionTypeCardsGrid } from '@/components/questions/landing';
 
 // ===== METADATA =====
 
@@ -55,98 +55,61 @@ export const metadata: Metadata = {
 export default function QuestionsLandingPage() {
   return (
     <div className="questions-landing-page">
-      {/* Hero Section */}
-      <section className="hero-section py-20">
-
-        <div className="relative z-10 text-center max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Hero Title */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6">
+      {/* Hero Section - Tối giản, tập trung Search + Spotlight + Chips */}
+      <section className="hero-section py-14">
+        <div className="relative z-10 mx-auto max-w-6xl px-4 text-center sm:px-6 lg:px-8">
+          {/* Hero Title ngắn gọn */}
+          <h1 className="mb-3 text-4xl font-bold text-foreground md:text-5xl">
             Ngân hàng câu hỏi
-            <span className="block text-primary mt-2">Toán học</span>
           </h1>
-
-          {/* Hero Description */}
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Khám phá hàng nghìn câu hỏi toán học được phân loại theo chủ đề và độ khó.
-            Học tập hiệu quả với sự hỗ trợ của AI.
+          <p className="mx-auto mb-6 max-w-2xl text-base text-muted-foreground md:text-lg">
+            Đơn giản, rõ ràng. Tìm nhanh theo văn bản hoặc subcount, lọc theo nhu cầu.
           </p>
 
-          {/* Hero Search Bar */}
-          <div className="mb-12">
-            <HeroSearchBar
-              placeholder="Tìm kiếm câu hỏi toán học..."
-              showSuggestions={true}
-              showRecentSearches={true}
-              autoFocus={false}
-            />
+          {/* Combined Search Bar (Text/Subcount) */}
+          <div className="mb-6">
+            <CombinedSearchBar />
           </div>
 
-          {/* Quick Filter Buttons */}
-          <div className="mb-12">
-            <QuickFilterButtons
-              showGrades={true}
-              showSubjects={true}
-              maxButtons={11}
-              layout="grid"
-            />
+          {/* Issues Spotlight: nêu bật vấn đề cần quan tâm */}
+          <div className="mb-6">
+            <IssuesSpotlight />
           </div>
-          
-          {/* Dynamic Stats */}
-          <StatsDisplay
-            variant="default"
-            layout="grid"
-            showIcons={true}
-            showAnimations={true}
-            staggerAnimation={true}
-            animationDuration={1500}
-          />
+
+          {/* Classification Chips: nhóm chip phân loại rõ ràng */}
+          <div className="mb-4">
+            <ClassificationChips />
+          </div>
         </div>
       </section>
 
-      {/* Question Types Section */}
-      <section className="question-types-section py-16">
+      {/* Loại câu hỏi (giữ lại nhưng gọn) */}
+      <section className="question-types-section py-10">
         <QuestionTypeCardsGrid
           showHeader={true}
-          showStats={true}
-          staggerAnimation={true}
+          showStats={false}
+          staggerAnimation={false}
           columns={4}
           variant="default"
         />
       </section>
 
-      {/* Featured Questions Section */}
-      <section className="featured-section py-16 bg-muted/30">
-        <FeaturedQuestionsSection
-          limit={5}
-          showHeader={true}
-          showViewAllButton={true}
-          staggerAnimation={true}
-          variant="default"
-        />
-      </section>
-
-      {/* CTA Section */}
-      <section className="cta-section py-16">
+      {/* CTA đơn giản */}
+      <section className="cta-section py-10">
         <div className="text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Sẵn sàng bắt đầu học tập?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            Khám phá hàng nghìn câu hỏi và nâng cao kỹ năng toán học của bạn
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link
               href={QUESTION_ROUTES.BROWSE}
-              className="inline-flex items-center px-8 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+              className="inline-flex items-center rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              <Filter className="h-5 w-5 mr-2" />
+              <Filter className="mr-2 h-5 w-5" />
               Duyệt theo chủ đề
             </Link>
             <Link
               href={QUESTION_ROUTES.SEARCH}
-              className="inline-flex items-center px-8 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
+              className="inline-flex items-center rounded-lg bg-secondary px-6 py-3 font-medium text-secondary-foreground transition-colors hover:bg-secondary/90"
             >
-              <Search className="h-5 w-5 mr-2" />
+              <Search className="mr-2 h-5 w-5" />
               Tìm kiếm nâng cao
             </Link>
           </div>

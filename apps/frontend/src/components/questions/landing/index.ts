@@ -15,6 +15,24 @@ export {
   default as DefaultHeroSearchBar
 } from './hero-search-bar';
 
+// Combined Search Bar (Text/Subcount)
+export {
+  CombinedSearchBar,
+  default as DefaultCombinedSearchBar
+} from './combined-search-bar';
+
+// Issues Spotlight
+export {
+  IssuesSpotlight,
+  default as DefaultIssuesSpotlight
+} from './issues-spotlight';
+
+// Classification Chips
+export {
+  ClassificationChips,
+  default as DefaultClassificationChips
+} from './classification-chips';
+
 // Quick Filter Buttons
 export {
   QuickFilterButtons,
