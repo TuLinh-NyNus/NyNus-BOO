@@ -22,8 +22,8 @@ import { UnifiedFilterSection } from './unified-filter-section';
 interface MobileFilterSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  onApplyFilters: (filters: any) => void;
-  initialFilters?: any;
+  onApplyFilters: (filters: { types: string[]; chips: string[] }) => void;
+  initialFilters?: { types: string[]; chips: string[] };
 }
 
 export function MobileFilterSheet({

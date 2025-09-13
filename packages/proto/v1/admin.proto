@@ -1,0 +1,220 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+import "google/api/annotations.proto";
+import "v1/user.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Admin user management
+message ListUsersFilter {
+  common.UserRole role = 1;
+  common.UserStatus status = 2;
+  int32 level = 3;
+  bool email_verified = 4;
+  string search_query = 5;  // Search in email, username, name
+}
+
+message AdminListUsersRequest {
+  common.PaginationRequest pagination = 1;
+  ListUsersFilter filter = 2;
+}
+
+message AdminListUsersResponse {
+  common.Response response = 1;
+  repeated User users = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+message UpdateUserRoleRequest {
+  string user_id = 1;
+  common.UserRole new_role = 2;
+  int32 level = 3;  // Required for STUDENT, TUTOR, TEACHER
+}
+
+message UpdateUserRoleResponse {
+  common.Response response = 1;
+  User updated_user = 2;
+}
+
+message UpdateUserLevelRequest {
+  string user_id = 1;
+  int32 new_level = 2;  // 1-9
+}
+
+message UpdateUserLevelResponse {
+  common.Response response = 1;
+  User updated_user = 2;
+}
+
+message UpdateUserStatusRequest {
+  string user_id = 1;
+  common.UserStatus new_status = 2;
+  string reason = 3;  // Reason for status change
+}
+
+message UpdateUserStatusResponse {
+  common.Response response = 1;
+  User updated_user = 2;
+}
+
+// Audit logs
+message AuditLog {
+  string id = 1;
+  string user_id = 2;
+  string user_email = 3;
+  string action = 4;
+  string resource = 5;
+  string resource_id = 6;
+  string old_values = 7;  // JSON string
+  string new_values = 8;  // JSON string
+  string ip_address = 9;
+  string user_agent = 10;
+  bool success = 11;
+  string error_message = 12;
+  string created_at = 13;
+}
+
+message GetAuditLogsRequest {
+  common.PaginationRequest pagination = 1;
+  string user_id = 2;
+  string action = 3;
+  string resource = 4;
+  string start_date = 5;  // ISO format
+  string end_date = 6;    // ISO format
+}
+
+message GetAuditLogsResponse {
+  common.Response response = 1;
+  repeated AuditLog logs = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// Resource access monitoring
+message ResourceAccess {
+  string id = 1;
+  string user_id = 2;
+  string user_email = 3;
+  string resource_type = 4;
+  string resource_id = 5;
+  string action = 6;
+  string ip_address = 7;
+  bool is_valid_access = 8;
+  int32 risk_score = 9;
+  string created_at = 10;
+}
+
+message GetResourceAccessRequest {
+  common.PaginationRequest pagination = 1;
+  string user_id = 2;
+  string resource_type = 3;
+  string resource_id = 4;
+  int32 min_risk_score = 5;
+  string start_date = 6;
+  string end_date = 7;
+}
+
+message GetResourceAccessResponse {
+  common.Response response = 1;
+  repeated ResourceAccess accesses = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// Security alerts
+message SecurityAlert {
+  string user_id = 1;
+  string alert_type = 2;  // CONCURRENT_SESSIONS, HIGH_RISK_ACCESS, etc.
+  string message = 3;
+  string details = 4;  // JSON string with additional data
+}
+
+message GetSecurityAlertsRequest {
+  common.PaginationRequest pagination = 1;
+  string user_id = 2;
+  string alert_type = 3;
+  bool unresolved_only = 4;
+}
+
+message GetSecurityAlertsResponse {
+  common.Response response = 1;
+  repeated SecurityAlert alerts = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// Statistics
+message SystemStats {
+  int32 total_users = 1;
+  int32 active_users = 2;
+  int32 total_sessions = 3;
+  int32 active_sessions = 4;
+  map<string, int32> users_by_role = 5;
+  map<string, int32> users_by_status = 6;
+  int32 suspicious_activities = 7;
+}
+
+message GetSystemStatsRequest {
+  // Empty - returns current stats
+}
+
+message GetSystemStatsResponse {
+  common.Response response = 1;
+  SystemStats stats = 2;
+}
+
+// Admin service
+service AdminService {
+  // User management
+  rpc ListUsers(AdminListUsersRequest) returns (AdminListUsersResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/users"
+    };
+  }
+
+  rpc UpdateUserRole(UpdateUserRoleRequest) returns (UpdateUserRoleResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{user_id}/role"
+      body: "*"
+    };
+  }
+
+  rpc UpdateUserLevel(UpdateUserLevelRequest) returns (UpdateUserLevelResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{user_id}/level"
+      body: "*"
+    };
+  }
+
+  rpc UpdateUserStatus(UpdateUserStatusRequest) returns (UpdateUserStatusResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/users/{user_id}/status"
+      body: "*"
+    };
+  }
+
+  // Audit & Monitoring
+  rpc GetAuditLogs(GetAuditLogsRequest) returns (GetAuditLogsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/audit-logs"
+    };
+  }
+
+  rpc GetResourceAccess(GetResourceAccessRequest) returns (GetResourceAccessResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/resource-access"
+    };
+  }
+
+  rpc GetSecurityAlerts(GetSecurityAlertsRequest) returns (GetSecurityAlertsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/security-alerts"
+    };
+  }
+
+  rpc GetSystemStats(GetSystemStatsRequest) returns (GetSystemStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/stats"
+    };
+  }
+}

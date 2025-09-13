@@ -129,7 +129,7 @@ const AILearning = () => {
         </div>
 
         {/* MAIN CONTENT SECTION - Căn chỉnh từ trên xuống để tránh bị dịch lên */}
-        <div className="flex-1 py-4" style={{ marginTop: '92px' }}>
+        <div className="flex-1 py-4" style={{ marginTop: '140px' }}>
           <div className="grid grid-cols-3 gap-8 items-start w-full max-h-[884px]">
 
             {/* LEFT COLUMN - 1/3 width - AI Features + CTA */}

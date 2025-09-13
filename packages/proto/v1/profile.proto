@@ -1,0 +1,190 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+import "google/api/annotations.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Profile messages
+message UserProfile {
+  string id = 1;
+  string email = 2;
+  string username = 3;
+  string first_name = 4;
+  string last_name = 5;
+  string avatar = 6;
+  string bio = 7;
+  string phone = 8;
+  string address = 9;
+  string school = 10;
+  string date_of_birth = 11;  // Format: YYYY-MM-DD
+  string gender = 12;
+  common.UserRole role = 13;
+  int32 level = 14;
+  common.UserStatus status = 15;
+  bool email_verified = 16;
+  string created_at = 17;
+  string updated_at = 18;
+}
+
+message GetProfileRequest {
+  string user_id = 1;  // Empty for current user
+}
+
+message GetProfileResponse {
+  common.Response response = 1;
+  UserProfile profile = 2;
+}
+
+message UpdateProfileRequest {
+  string username = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string avatar = 4;
+  string bio = 5;
+  string phone = 6;
+  string address = 7;
+  string school = 8;
+  string date_of_birth = 9;
+  string gender = 10;
+}
+
+message UpdateProfileResponse {
+  common.Response response = 1;
+  UserProfile profile = 2;
+}
+
+// Session management
+message UserSession {
+  string id = 1;
+  string user_id = 2;
+  string session_token = 3;
+  string ip_address = 4;
+  string user_agent = 5;
+  string device_fingerprint = 6;
+  string location = 7;
+  bool is_active = 8;
+  string last_activity = 9;
+  string expires_at = 10;
+  string created_at = 11;
+}
+
+message GetSessionsRequest {
+  // Empty - returns current user's sessions
+}
+
+message GetSessionsResponse {
+  common.Response response = 1;
+  repeated UserSession sessions = 2;
+  int32 active_count = 3;
+  int32 max_allowed = 4;
+}
+
+message TerminateSessionRequest {
+  string session_id = 1;
+}
+
+message TerminateSessionResponse {
+  common.Response response = 1;
+  bool terminated = 2;
+}
+
+message TerminateAllSessionsRequest {
+  bool except_current = 1;  // Keep current session active
+}
+
+message TerminateAllSessionsResponse {
+  common.Response response = 1;
+  int32 terminated_count = 2;
+}
+
+// User preferences
+message UserPreferences {
+  // Notifications
+  bool email_notifications = 1;
+  bool push_notifications = 2;
+  bool sms_notifications = 3;
+  
+  // Learning
+  bool auto_play_videos = 4;
+  string default_video_quality = 5;  // 480p, 720p, 1080p
+  float playback_speed = 6;
+  
+  // Privacy
+  string profile_visibility = 7;  // PUBLIC, FRIENDS, PRIVATE
+  bool show_online_status = 8;
+  bool allow_direct_messages = 9;
+  
+  // Localization
+  string timezone = 10;
+  string language = 11;
+  string date_format = 12;
+}
+
+message GetPreferencesRequest {
+  // Empty - returns current user's preferences
+}
+
+message GetPreferencesResponse {
+  common.Response response = 1;
+  UserPreferences preferences = 2;
+}
+
+message UpdatePreferencesRequest {
+  UserPreferences preferences = 1;
+}
+
+message UpdatePreferencesResponse {
+  common.Response response = 1;
+  UserPreferences preferences = 2;
+}
+
+// Profile service
+service ProfileService {
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile"
+    };
+  }
+
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/profile"
+      body: "*"
+    };
+  }
+
+  rpc GetSessions(GetSessionsRequest) returns (GetSessionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile/sessions"
+    };
+  }
+
+  rpc TerminateSession(TerminateSessionRequest) returns (TerminateSessionResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/profile/sessions/{session_id}"
+    };
+  }
+
+  rpc TerminateAllSessions(TerminateAllSessionsRequest) returns (TerminateAllSessionsResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/profile/sessions/terminate-all"
+      body: "*"
+    };
+  }
+
+  rpc GetPreferences(GetPreferencesRequest) returns (GetPreferencesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile/preferences"
+    };
+  }
+
+  rpc UpdatePreferences(UpdatePreferencesRequest) returns (UpdatePreferencesResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/profile/preferences"
+      body: "*"
+    };
+  }
+}

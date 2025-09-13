@@ -31,9 +31,19 @@ message PaginationResponse {
 // Common enums
 enum UserRole {
   USER_ROLE_UNSPECIFIED = 0;
-  USER_ROLE_STUDENT = 1;
-  USER_ROLE_TEACHER = 2;
-  USER_ROLE_ADMIN = 3;
+  USER_ROLE_GUEST = 1;      // NEW: Guest users
+  USER_ROLE_STUDENT = 2;    // Changed from 1
+  USER_ROLE_TUTOR = 3;      // NEW: Tutor role
+  USER_ROLE_TEACHER = 4;    // Changed from 2
+  USER_ROLE_ADMIN = 5;      // Changed from 3
+}
+
+// User account status
+enum UserStatus {
+  USER_STATUS_UNSPECIFIED = 0;
+  USER_STATUS_ACTIVE = 1;
+  USER_STATUS_INACTIVE = 2;
+  USER_STATUS_SUSPENDED = 3;
 }
 
 enum QuestionType {

@@ -2,12 +2,42 @@
 
 ## 📊 Tổng Quan Tiến Độ
 - **Thiết kế**: Đã hoàn thành (AUTH_COMPLETE_GUIDE.md)
-- **Hiện trạng**: Hệ thống auth cơ bản (email/password + JWT)
-- **Mục tiêu**: Nâng cấp lên hệ thống auth đầy đủ theo thiết kế
+- **Hiện trạng**: 
+  - ✅ Backend: Auth cơ bản (email/password + JWT)
+  - ✅ Frontend: NextAuth với Google OAuth setup
+  - ❌ Chỉ có 3 roles (thiếu GUEST, TUTOR)
+  - ❌ Chưa có OAuth backend, session management
+  - ❌ Chưa có các tables mới theo thiết kế
+- **Mục tiêu**: Nâng cấp lên hệ thống auth đầy đủ 5 roles + Google OAuth + Session management
 
 ---
 
-## 🔴 PHẦN 1: BACKEND & DATABASE
+## 🔴 PHASE 1: CORE DATABASE & BACKEND (Ưu tiên cao nhất)
+
+### ⚡ **Pre-requisites** ⏱️ 30 phút
+- [x] **Update .env.example với các biến mới**
+  ```env
+  # Google OAuth
+  GOOGLE_CLIENT_ID=your_client_id
+  GOOGLE_CLIENT_SECRET=your_client_secret
+  GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google
+  
+  # JWT Secrets  
+  JWT_ACCESS_SECRET=your_access_secret
+  JWT_REFRESH_SECRET=your_refresh_secret
+  
+  # Session Config
+  SESSION_SECRET=your_session_secret
+  MAX_CONCURRENT_SESSIONS=3
+  SESSION_EXPIRE_HOURS=720
+  
+  # Security
+  BCRYPT_COST=10
+  MAX_LOGIN_ATTEMPTS=5
+  LOCK_DURATION_MINUTES=30
+  ```
+- [x] **Copy .env.example to .env và điền values**
+- [ ] **Verify database connection** (Docker chưa chạy)
 
 ### 1️⃣ **Database Schema Updates** ⏱️ 2-3 giờ
 
@@ -169,36 +199,118 @@
   ```
 
 #### I. Migration Files
-- [ ] **Tạo migration file 004_enhanced_auth_system.up.sql**
-  - [ ] Thêm role hierarchy function
-  - [ ] Thêm level validation triggers
-  - [ ] Thêm role-level constraints
-- [ ] **Tạo migration file 004_enhanced_auth_system.down.sql**
-- [ ] **Run migrations để update database**
+- [x] **Tạo migration file 000004_enhanced_auth_system.up.sql**
+  - [x] Copy template từ docs/migration-example-enhanced-auth.sql
+  - [x] Update users table với các fields mới
+  - [x] Tạo 7 tables mới (oauth_accounts, user_sessions, etc.)
+  - [x] Thêm role hierarchy function validate_user_role_level()
+  - [x] Thêm indexes cho performance
+  - [x] Thêm triggers cho updated_at
+- [x] **Tạo migration file 000004_enhanced_auth_system.down.sql**
+  - [x] Drop các tables mới theo thứ tự ngược lại
+  - [x] Revert users table về trạng thái cũ
+  - [x] Drop functions và triggers
+- [ ] **Test migrations locally**
+  ```bash
+  # Up migration
+  migrate -path packages/database/migrations -database "postgresql://..." up
+  
+  # Verify schema
+  psql -d exam_bank_system -c "\dt"
+  
+  # Test rollback
+  migrate -path packages/database/migrations -database "postgresql://..." down 1
+  ```
+- [x] **Tạo seed data script** (optional)
+  - [x] Test script test_migration.sql đã bao gồm test data
+  - [x] Users với các roles khác nhau
+  - [x] Test OAuth accounts
+  - [x] Sample sessions
 
-### 2️⃣ **Backend Services & Proto Definitions** ⏱️ 3-4 giờ
+### 2️⃣ **Proto Definitions Updates** ⏱️ 1 giờ
 
-#### Proto Files Updates
-- [ ] **Update packages/proto/v1/user.proto**
-  - [ ] Add GoogleLoginRequest/Response messages
-  - [ ] Add RefreshTokenRequest/Response messages
-  - [ ] Add role enum with 5 values
-  - [ ] Add level field (1-9) to User message
-- [ ] **Create packages/proto/v1/profile.proto**
-  - [ ] Define ProfileService
-  - [ ] Add session management messages
-  - [ ] Add preferences messages
-- [ ] **Create packages/proto/v1/admin.proto**
-  - [ ] Define AdminService
-  - [ ] Add user management messages
-  - [ ] Add audit log messages
+#### A. Update Common Proto
+- [x] **Update packages/proto/common/common.proto**
+  - [x] Update UserRole enum:
+    ```proto
+    enum UserRole {
+      USER_ROLE_UNSPECIFIED = 0;
+      USER_ROLE_GUEST = 1;      // NEW
+      USER_ROLE_STUDENT = 2;    // was 1
+      USER_ROLE_TUTOR = 3;      // NEW
+      USER_ROLE_TEACHER = 4;    // was 2
+      USER_ROLE_ADMIN = 5;      // was 3
+    }
+    ```
+  - [x] Add UserStatus enum:
+    ```proto
+    enum UserStatus {
+      USER_STATUS_UNSPECIFIED = 0;
+      USER_STATUS_ACTIVE = 1;
+      USER_STATUS_INACTIVE = 2;
+      USER_STATUS_SUSPENDED = 3;
+    }
+    ```
+
+#### B. Update User Proto
+- [x] **Update packages/proto/v1/user.proto**
+  - [x] Add to User message:
+    ```proto
+    int32 level = 7;              // 1-9 for STUDENT/TUTOR/TEACHER
+    string username = 8;          // unique username
+    string avatar = 9;            // avatar URL
+    common.UserStatus status = 10;
+    bool email_verified = 11;
+    string google_id = 12;        // for OAuth
+    ```
+  - [x] Add OAuth messages:
+    ```proto
+    message GoogleLoginRequest {
+      string id_token = 1;        // Google ID token
+    }
+    
+    message RefreshTokenRequest {
+      string refresh_token = 1;
+    }
+    
+    message RefreshTokenResponse {
+      common.Response response = 1;
+      string access_token = 2;
+      string refresh_token = 3;
+    }
+    ```
+
+#### C. Create New Proto Files
+- [x] **Create packages/proto/v1/profile.proto**
+  - [x] Define ProfileService
+  - [x] Session management messages
+  - [x] Preferences messages
+- [x] **Create packages/proto/v1/admin.proto**
+  - [x] Define AdminService
+  - [x] User management messages
+  - [x] Audit log messages
+
+#### D. Generate Proto Code
+- [ ] **Run proto generation**
+  ```bash
+  make proto-gen
+  ```
+- [ ] **Verify generated files**
+  - [ ] Check Go files in apps/backend/pkg/proto/
+  - [ ] Check TypeScript files in packages/proto/generated/
+
+### 3️⃣ **Backend Services Implementation** ⏱️ 3-4 giờ
 
 #### A. OAuth Service (Mới)
-- [ ] **Tạo internal/service/domain_service/oauth/oauth.go**
-  - [ ] Google OAuth configuration
-  - [ ] OAuth flow handlers
-  - [ ] Token exchange logic
-  - [ ] Profile sync from Google
+- [ ] **Tạo apps/backend/internal/service/domain_service/oauth/oauth.go**
+  - [ ] Google OAuth client setup
+  - [ ] Verify Google ID token
+  - [ ] Create/link user from Google profile
+  - [ ] Handle existing email conflicts
+- [ ] **Tạo apps/backend/internal/service/domain_service/oauth/google_client.go**
+  - [ ] Google API client wrapper
+  - [ ] Token validation
+  - [ ] Profile fetching
 
 #### B. Enhanced Auth Service
 - [ ] **Update internal/service/domain_service/auth/auth.go**
@@ -234,7 +346,7 @@
   - [ ] Get user notifications
   - [ ] Auto-expire old notifications
 
-### 3️⃣ **Repository Layer** ⏱️ 2 giờ
+### 4️⃣ **Repository Layer** ⏱️ 2 giờ
 
 #### A. Enhanced User Repository
 - [ ] **Update internal/repository/user.go**
@@ -252,7 +364,7 @@
 - [ ] **Tạo internal/repository/user_preference.go**
 - [ ] **Tạo internal/repository/audit_log.go**
 
-### 4️⃣ **gRPC Service Methods** ⏱️ 2 giờ
+### 5️⃣ **gRPC Service Methods** ⏱️ 2 giờ
 
 #### A. Enhanced UserService Methods
 - [ ] **GoogleLogin** - Handle Google OAuth authentication
@@ -328,7 +440,7 @@
   rpc GetResourceAccess(GetResourceAccessRequest) returns (GetResourceAccessResponse);
   ```
 
-### 5️⃣ **gRPC Interceptors & Guards** ⏱️ 1 giờ
+### 6️⃣ **gRPC Interceptors & Guards** ⏱️ 1 giờ
 
 - [ ] **Update auth_interceptor.go**
   - [ ] Add OAuth token validation
@@ -348,36 +460,46 @@
   - [ ] AuditLogInterceptor
   - [ ] RoleLevelInterceptor (check role + level permissions)
 
-### 6️⃣ **Configuration & Environment** ⏱️ 30 phút
+### 7️⃣ **Testing & Verification** ⏱️ 1 giờ
 
-- [ ] **Update .env.example**
-  ```env
-  GOOGLE_CLIENT_ID=
-  GOOGLE_CLIENT_SECRET=
-  GOOGLE_REDIRECT_URI=
-  JWT_ACCESS_SECRET=
-  JWT_REFRESH_SECRET=
-  SESSION_SECRET=
-  MAX_CONCURRENT_SESSIONS=3
-  ```
+- [ ] **Unit Tests**
+  - [ ] Auth service tests
+  - [ ] OAuth service tests
+  - [ ] Session service tests
+  - [ ] Repository tests
 
-- [ ] **Update config/config.go**
-  - [ ] Add OAuth config structure
-  - [ ] Add session config
-  - [ ] Add security config
+- [ ] **Integration Tests**
+  - [ ] Full OAuth flow test
+  - [ ] Session limit test (3 devices)
+  - [ ] Role-level validation test
+  - [ ] Resource protection test
+
+- [ ] **Manual Testing Checklist**
+  - [ ] Google login flow
+  - [ ] Email/password fallback
+  - [ ] Session management (3 devices)
+  - [ ] Role permissions
+  - [ ] Profile update
 
 ---
 
-## 🔵 PHẦN 2: FRONTEND
+## 🔵 PHASE 2: FRONTEND INTEGRATION
 
-### 1️⃣ **Authentication UI** ⏱️ 2 giờ
+### 1️⃣ **Google OAuth Integration** ⏱️ 2 giờ 🔴
 
-#### A. Login Page Enhancement
-- [ ] **Update login page với Google OAuth**
-  - [ ] Add "Đăng nhập bằng Google" button
-  - [ ] Style OAuth buttons properly
-  - [ ] Handle OAuth callbacks
-  - [ ] Show loading states
+#### A. Backend Integration
+- [ ] **Update auth flow để gọi backend**
+  - [ ] Modify NextAuth callback để gọi backend GoogleLogin
+  - [ ] Sync Google profile với backend user
+  - [ ] Store backend JWT token
+  - [ ] Handle refresh tokens
+
+#### B. Login Page Enhancement  
+- [ ] **Update login page UI**
+  - [ ] "Đăng nhập bằng Google" button (primary)
+  - [ ] Email/password form (secondary)
+  - [ ] Loading states
+  - [ ] Error handling
 
 #### B. Registration Flow
 - [ ] **Create enhanced registration page**
@@ -497,47 +619,106 @@
 
 ---
 
-## 📊 TỔNG KẾT CÔNG VIỆC
+## 🟢 PHASE 3: SECURITY & MONITORING
 
-### Backend & Database
-- **Tổng cộng**: ~40 tasks chính (bao gồm gRPC methods)
-- **Thời gian ước tính**: 12-14 giờ
-- **Độ ưu tiên**: 
-  - 🔴 Critical: Database schema với 5 roles + levels, OAuth, Sessions, gRPC services
-  - 🟡 Important: Resource protection, Audit logs, Role hierarchy logic
-  - 🟢 Nice-to-have: Notifications, Advanced preferences
+### 1️⃣ **Resource Protection** ⏱️ 2 giờ
 
-### Frontend
-- **Tổng cộng**: ~40 tasks chính
-- **Thời gian ước tính**: 10-12 giờ
-- **Độ ưu tiên**:
-  - 🔴 Critical: Google OAuth UI, Session management, gRPC-Web integration
-  - 🟡 Important: Profile, Settings, Admin dashboard, Role/Level display
-  - 🟢 Nice-to-have: Notifications, Advanced analytics
+- [ ] **Implement Resource Access Tracking**
+  - [ ] Log every PDF view/download
+  - [ ] Track video streaming
+  - [ ] Monitor exam attempts
+  - [ ] Calculate simple risk scores
 
-### Tổng thời gian dự kiến: **20-24 giờ**
+- [ ] **Anti-Piracy Logic**
+  - [ ] Detect rapid downloads
+  - [ ] Flag suspicious IP patterns
+  - [ ] Auto-block high risk users
+  - [ ] Send security alerts
+
+### 2️⃣ **Admin Features** ⏱️ 2 giờ
+
+- [ ] **Admin Dashboard Pages**
+  - [ ] User management (5 roles + levels)
+  - [ ] Security monitoring
+  - [ ] Resource access logs
+  - [ ] Audit trail viewer
+
+- [ ] **Admin Actions**
+  - [ ] Update user role/level
+  - [ ] Suspend/activate users
+  - [ ] View user sessions
+  - [ ] Export reports
 
 ---
 
-## 🚀 ROADMAP TRIỂN KHAI
+## 📊 TỔNG KẾT CÔNG VIỆC
 
-### Phase 1: Core Auth (Tuần 1)
-1. Database migrations
-2. Google OAuth backend
-3. Session management
-4. Basic frontend integration
+### Phase 1: Core Backend & Database
+- **Tổng cộng**: ~45 tasks chính
+- **Thời gian ước tính**: 10-12 giờ
+- **Độ ưu tiên**: 
+  - 🔴 **MUST HAVE**: Database migration, Proto updates, OAuth service, Session management
+  - 🟡 **SHOULD HAVE**: All repositories, gRPC methods, Interceptors
+  - 🟢 **NICE TO HAVE**: Advanced preferences, Notifications
 
-### Phase 2: Security (Tuần 2)
-1. Resource protection
-2. Risk scoring
-3. Audit logging
-4. Admin monitoring
+### Phase 2: Frontend Integration  
+- **Tổng cộng**: ~35 tasks chính
+- **Thời gian ước tính**: 8-10 giờ
+- **Độ ưu tiên**:
+  - 🔴 **MUST HAVE**: Google OAuth integration, Auth state management
+  - 🟡 **SHOULD HAVE**: Profile UI, Session UI, Role guards
+  - 🟢 **NICE TO HAVE**: Preferences, Notifications UI
 
-### Phase 3: Enhancement (Tuần 3)
-1. User preferences
-2. Notifications
-3. Advanced UI
-4. Testing & optimization
+### Phase 3: Security & Monitoring
+- **Tổng cộng**: ~20 tasks
+- **Thời gian ước tính**: 4-5 giờ
+- **Độ ưu tiên**:
+  - 🟡 **SHOULD HAVE**: Resource protection, Basic admin UI
+  - 🟢 **NICE TO HAVE**: Advanced analytics, Reports
+
+### Tổng thời gian dự kiến: **22-27 giờ**
+
+---
+
+## 🚀 ROADMAP TRIỂN KHAI (Updated)
+
+### 📅 Phase 1: Core Auth Backend (3-4 ngày)
+**Ngày 1-2: Database & Proto**
+1. ✅ Environment setup (.env files)
+2. ✅ Database migration (enhanced schema)
+3. ✅ Proto definitions update
+4. ✅ Generate proto code
+
+**Ngày 3-4: Backend Services**
+1. ✅ OAuth service (Google login)
+2. ✅ Session management (3 devices)
+3. ✅ Enhanced auth service
+4. ✅ Repository layer
+5. ✅ gRPC endpoints
+
+### 📅 Phase 2: Frontend Integration (2-3 ngày)
+**Ngày 5-6: Core Integration**
+1. ✅ Connect NextAuth → Backend OAuth
+2. ✅ Auth state management
+3. ✅ Protected routes
+4. ✅ Session UI
+
+**Ngày 7: UI Components**
+1. ✅ Profile management
+2. ✅ User preferences
+3. ✅ Role/Level display
+
+### 📅 Phase 3: Security & Polish (2 ngày)
+**Ngày 8: Security**
+1. ✅ Resource protection
+2. ✅ Anti-piracy logic
+3. ✅ Admin dashboard
+
+**Ngày 9: Testing & Docs**
+1. ✅ End-to-end testing
+2. ✅ Performance optimization
+3. ✅ Documentation
+4. ✅ Deployment prep
 
 ---
 
@@ -545,21 +726,41 @@
 
 Mỗi task được coi là hoàn thành khi:
 1. ✅ Code implemented & working
-2. ✅ Database migrations run successfully
-3. ✅ API endpoints tested
-4. ✅ Frontend integrated
-5. ✅ No console errors
-6. ✅ Type-safe (TypeScript/Go)
-7. ✅ Documented in code
+2. ✅ Database migrations run successfully  
+3. ✅ API endpoints tested (manual hoặc unit test)
+4. ✅ Frontend integrated & functional
+5. ✅ No console errors or warnings
+6. ✅ Type-safe (TypeScript/Go) - pnpm type-check pass
+7. ✅ Linting pass - pnpm lint
+8. ✅ Documented in code (comments cho complex logic)
+9. ✅ Error handling implemented
+10. ✅ Loading states & user feedback
 
 ---
 
-## 📝 GHI CHÚ
+## 📝 GHI CHÚ QUAN TRỌNG
 
-- Ưu tiên Google OAuth và session management trước
-- Resource protection có thể implement từng phần
-- Notifications và preferences có thể để sau
-- Admin features phát triển song song
-- Testing cần được thực hiện liên tục
+### 🎯 Top Priorities (làm trước)
+1. **Database migration** - Nền tảng cho tất cả
+2. **Proto updates** - Cần cho gRPC services  
+3. **Google OAuth backend** - Core feature
+4. **Session management** - Security requirement
 
-**Cập nhật lần cuối**: 13/09/2025
+### ⚡ Quick Wins (dễ làm, impact cao)
+- Update proto enums (30 phút)
+- Environment setup (30 phút)
+- Basic OAuth flow (2 giờ)
+
+### 🔧 Technical Notes
+- Use existing migration example as template
+- Test với Google OAuth playground first
+- Session tokens dùng crypto-random, không JWT
+- Risk scores tính đơn giản: tần suất + IP changes
+
+### ⚠️ Common Pitfalls
+- Đừng quên rollback migration file
+- Test 3-device limit kỹ càng
+- Handle email conflicts (Google vs existing)
+- Proto enum values không được đổi số
+
+**Cập nhật lần cuối**: 13/09/2025 - Reorganized với phases và priorities

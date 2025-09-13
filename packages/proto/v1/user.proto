@@ -16,6 +16,12 @@ message User {
   string last_name = 4;
   common.UserRole role = 5;
   bool is_active = 6;
+  int32 level = 7;              // 1-9 for STUDENT/TUTOR/TEACHER
+  string username = 8;          // unique username
+  string avatar = 9;            // avatar URL
+  common.UserStatus status = 10;
+  bool email_verified = 11;
+  string google_id = 12;        // for OAuth
 }
 
 // Authentication
@@ -40,6 +46,53 @@ message RegisterRequest {
 message RegisterResponse {
   common.Response response = 1;
   User user = 2;
+}
+
+// OAuth Authentication
+message GoogleLoginRequest {
+  string id_token = 1;        // Google ID token from frontend
+}
+
+// Refresh Token
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  common.Response response = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+  int32 expires_in = 4;       // seconds until expiry
+}
+
+// Email Verification
+message VerifyEmailRequest {
+  string token = 1;
+}
+
+message VerifyEmailResponse {
+  common.Response response = 1;
+  bool verified = 2;
+}
+
+// Password Reset
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  common.Response response = 1;
+  string message = 2;
+}
+
+message ResetPasswordRequest {
+  string token = 1;
+  string new_password = 2;
+}
+
+message ResetPasswordResponse {
+  common.Response response = 1;
+  bool success = 2;
 }
 
 // User management
@@ -76,6 +129,41 @@ service UserService {
   rpc Login(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
       post: "/api/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  rpc GoogleLogin(GoogleLoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/google"
+      body: "*"
+    };
+  }
+
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/refresh"
+      body: "*"
+    };
+  }
+
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/verify-email"
+      body: "*"
+    };
+  }
+
+  rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/forgot-password"
+      body: "*"
+    };
+  }
+
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/reset-password"
       body: "*"
     };
   }

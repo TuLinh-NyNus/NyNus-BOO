@@ -95,10 +95,10 @@ export function EnhancedSearchBar({
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium',
-                'bg-gradient-to-r from-[hsl(243_75%_65%)] to-[hsl(267_84%_72%)]',
+                'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-secondary)]',
                 'text-white shadow-sm',
                 'hover:shadow-md transition-all duration-200',
-                'focus:outline-none focus:ring-2 focus:ring-[hsl(243_75%_65%)] focus:ring-offset-2'
+                'focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2'
               )}
               aria-label="Chọn chế độ tìm kiếm"
               aria-expanded={isDropdownOpen}
@@ -129,7 +129,7 @@ export function EnhancedSearchBar({
                     'w-full px-3 py-2 text-left text-sm',
                     'hover:bg-muted dark:hover:bg-[hsl(224_24%_18%)]',
                     'transition-colors',
-                    mode === 'text' && 'bg-primary/10 dark:bg-[hsl(243_75%_65%)]/20 text-primary dark:text-[hsl(243_75%_65%)]'
+                    mode === 'text' && 'bg-primary/10 dark:bg-[var(--color-primary)]/20 text-primary dark:text-[var(--color-primary)]'
                   )}
                 >
                   Tìm theo văn bản
@@ -144,7 +144,7 @@ export function EnhancedSearchBar({
                     'w-full px-3 py-2 text-left text-sm',
                     'hover:bg-muted dark:hover:bg-[hsl(224_24%_18%)]',
                     'transition-colors',
-                    mode === 'topic' && 'bg-primary/10 dark:bg-[hsl(243_75%_65%)]/20 text-primary dark:text-[hsl(243_75%_65%)]'
+                    mode === 'topic' && 'bg-primary/10 dark:bg-[var(--color-primary)]/20 text-primary dark:text-[var(--color-primary)]'
                   )}
                 >
                   Tìm theo ID
@@ -163,14 +163,14 @@ export function EnhancedSearchBar({
               'rounded-2xl border-2',
               'bg-white dark:bg-[hsl(223_28%_11%)]',
               'border-border dark:border-[hsl(221_27%_28%)]',
-              'text-foreground dark:text-[hsl(220_14%_98%)]',
-              'placeholder:text-muted-foreground/70 dark:placeholder:text-[hsl(220_15%_72%)]/70',
+              'text-foreground',
+              'placeholder:text-muted-foreground/70',
               'shadow-sm',
               'transition-all duration-200',
-              'focus:border-[hsl(243_75%_65%)] dark:focus:border-[hsl(243_75%_65%)]',
-              'focus:ring-4 focus:ring-[hsl(243_75%_65%)]/20',
+              'focus:border-[var(--color-primary)]',
+              'focus:ring-4 focus:ring-[var(--color-primary)]/20',
               'focus:shadow-lg',
-              'group-hover:border-[hsl(243_75%_65%)]/50'
+              'group-hover:border-[var(--color-primary)]/50'
             )}
             aria-label="Nhập nội dung tìm kiếm"
           />
@@ -186,7 +186,7 @@ export function EnhancedSearchBar({
                 'text-muted-foreground hover:text-foreground',
                 'hover:bg-muted dark:hover:bg-[hsl(224_24%_18%)]',
                 'transition-colors',
-                'focus:outline-none focus:ring-2 focus:ring-[hsl(243_75%_65%)]'
+                'focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]'
               )}
               aria-label="Xóa nội dung tìm kiếm"
             >
@@ -200,12 +200,12 @@ export function EnhancedSearchBar({
             className={cn(
               'absolute right-2 top-1/2 -translate-y-1/2',
               'px-5 py-2.5 rounded-xl',
-              'bg-gradient-to-r from-[hsl(243_75%_65%)] to-[hsl(188_85%_65%)]',
+              'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-accent)]',
               'text-white font-medium',
               'shadow-md hover:shadow-lg',
               'transition-all duration-200',
               'hover:scale-105',
-              'focus:outline-none focus:ring-4 focus:ring-[hsl(243_75%_65%)]/30',
+              'focus:outline-none focus:ring-4 focus:ring-[var(--color-primary)]/30',
               'disabled:opacity-50 disabled:cursor-not-allowed',
               'inline-flex items-center gap-2'
             )}
@@ -226,7 +226,7 @@ export function EnhancedSearchBar({
 
       {/* Helper Text & Advanced Search Link */}
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground/80 dark:text-[hsl(220_15%_72%)]/80">
+        <span className="text-xs text-muted-foreground/80">
           {mode === 'text' 
             ? 'Mẹo: Dùng dấu ngoặc kép "..." để tìm chính xác'
             : 'Mẹo: Dùng * thay cho bất kỳ ký tự nào (wildcard)'
@@ -236,10 +236,10 @@ export function EnhancedSearchBar({
           type="button"
           onClick={() => router.push('/questions/search?advanced=true')}
           className={cn(
-            'text-[hsl(243_75%_65%)] hover:text-[hsl(243_75%_75%)]',
+            'text-[var(--color-primary)] hover:text-[var(--color-primary)]/80',
             'underline-offset-2 hover:underline',
             'transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-[hsl(243_75%_65%)]/50 rounded px-1'
+            'focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 rounded px-1'
           )}
         >
           Tìm kiếm nâng cao →

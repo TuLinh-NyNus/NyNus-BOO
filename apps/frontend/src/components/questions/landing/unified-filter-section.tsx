@@ -18,14 +18,14 @@ import { useState } from 'react';
 import { Filter, X, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { EnhancedClassificationChips } from './enhanced-classification-chips';
+// import { EnhancedClassificationChips } from './enhanced-classification-chips';
 import { EnhancedQuestionTypeFilter } from './enhanced-question-type-filter';
 
 type FilterTab = 'all' | 'type' | 'classification';
 
 interface UnifiedFilterSectionProps {
   className?: string;
-  onFiltersChange?: (filters: any) => void;
+  onFiltersChange?: (filters: { types: string[]; chips: string[] }) => void;
 }
 
 export function UnifiedFilterSection({ 
