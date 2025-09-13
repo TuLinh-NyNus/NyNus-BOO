@@ -17,18 +17,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// import Link from 'next/link'; // TEMPORARILY HIDDEN
-import { Search, /* Filter, */ ArrowUp } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Filter, ArrowUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// import { QUESTION_ROUTES } from '@/lib/question-paths'; // TEMPORARILY HIDDEN
+import { QUESTION_ROUTES } from '@/lib/question-paths';
 import {
   EnhancedSearchBar,
-  // EnhancedIssuesSpotlight, // TEMPORARILY HIDDEN
-  // UnifiedFilterSection, // TEMPORARILY HIDDEN
-  // MobileFilterSheet, // TEMPORARILY HIDDEN
-  // DecorativeElements, // TEMPORARILY HIDDEN
-  // MathBackground // TEMPORARILY HIDDEN
+  EnhancedIssuesSpotlight,
+  EnhancedClassificationChips,
+  EnhancedQuestionTypeFilter
 } from '@/components/questions/landing';
 
 /**
@@ -37,13 +35,10 @@ import {
 export default function EnhancedQuestionsClient() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  // Filter states - TEMPORARILY DISABLED
-  // const [selectedFilters, setSelectedFilters] = useState<{
-  //   types: string[];
-  //   chips: string[];
-  // }>({ types: [], chips: [] });
-  // const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
-  // const [isMobile, setIsMobile] = useState(false);
+  const [selectedFilters, setSelectedFilters] = useState<{
+    types: string[];
+    chips: string[];
+  }>({ types: [], chips: [] });
 
   // Handle scroll for sticky header
   useEffect(() => {
@@ -56,118 +51,16 @@ export default function EnhancedQuestionsClient() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Detect mobile screen size - TEMPORARILY DISABLED
-  // useEffect(() => {
-  //   const checkMobile = () => {
-  //     setIsMobile(window.innerWidth < 768);
-  //   };
-
-  //   checkMobile();
-  //   window.addEventListener('resize', checkMobile);
-  //   return () => window.removeEventListener('resize', checkMobile);
-  // }, []);
-
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // const hasActiveFilters = selectedFilters.types.length > 0; // || selectedFilters.chips.length > 0;
+  const hasActiveFilters = selectedFilters.types.length > 0 || selectedFilters.chips.length > 0;
 
   return (
-    <div className="min-h-screen bg-background dark:bg-[hsl(223_25%_10%)] relative overflow-hidden">
-      {/* Full Page Math Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        {/* Base color layer */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(243_75%_95%)] via-[hsl(220_20%_97%)] to-[hsl(188_85%_95%)] dark:from-[hsl(223_25%_12%)] dark:via-[hsl(223_25%_11%)] dark:to-[hsl(223_25%_13%)]" />
-        
-        {/* Grid Pattern */}
-        <svg
-          className="absolute inset-0 w-full h-full opacity-[0.03] dark:opacity-[0.05]"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <pattern
-              id="grid-pattern"
-              x="0"
-              y="0"
-              width="40"
-              height="40"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M 40 0 L 0 0 0 40"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1"
-              />
-            </pattern>
-            <pattern
-              id="dot-pattern"
-              x="0"
-              y="0"
-              width="20"
-              height="20"
-              patternUnits="userSpaceOnUse"
-            >
-              <circle
-                cx="1"
-                cy="1"
-                r="1"
-                fill="currentColor"
-                fillOpacity="0.5"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid-pattern)" />
-          <rect width="100%" height="100%" fill="url(#dot-pattern)" opacity="0.3" />
-        </svg>
-
-        {/* Base gradient - Full coverage */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[hsl(243_75%_65%)]/5 via-[hsl(267_84%_72%)]/3 to-[hsl(188_85%_65%)]/5" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-[hsl(188_85%_65%)]/4 via-[hsl(243_75%_65%)]/2 to-[hsl(267_84%_72%)]/4" />
-        
-        {/* Animated gradient orbs - More coverage */}
-        <div className="absolute inset-0">
-          <div className="absolute top-0 -left-40 w-[600px] h-[600px] bg-[hsl(243_75%_65%)]/6 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute top-20 right-0 w-[500px] h-[500px] bg-[hsl(188_85%_65%)]/6 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute -bottom-20 left-1/3 w-[450px] h-[450px] bg-[hsl(267_84%_72%)]/6 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-          <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-[hsl(243_75%_65%)]/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }} />
-          <div className="absolute bottom-1/3 right-1/2 w-[500px] h-[500px] bg-[hsl(188_85%_65%)]/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2.5s' }} />
-          {/* Center coverage orbs */}
-          <div className="absolute top-1/3 left-1/3 w-[600px] h-[600px] bg-[hsl(267_84%_72%)]/4 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '3s' }} />
-          <div className="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 w-[700px] h-[700px] bg-[hsl(243_75%_65%)]/3 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
-        </div>
-        
-        {/* Floating math symbols pattern across entire page */}
-        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.06]">
-          <div className="absolute top-10 left-20 text-4xl font-light text-[hsl(243_75%_65%)] animate-float">∑</div>
-          <div className="absolute top-32 right-40 text-3xl font-light text-[hsl(188_85%_65%)] animate-float-delayed">∫</div>
-          <div className="absolute bottom-40 left-1/4 text-4xl font-light text-[hsl(267_84%_72%)] animate-float">π</div>
-          <div className="absolute bottom-20 right-1/3 text-5xl font-light text-[hsl(243_75%_65%)] animate-float-delayed">√</div>
-          <div className="absolute top-1/3 left-1/2 text-5xl font-light text-[hsl(188_85%_65%)] animate-float">∮</div>
-          <div className="absolute top-2/3 right-20 text-4xl font-light text-[hsl(267_84%_72%)] animate-float-delayed">∇</div>
-          <div className="absolute bottom-1/4 left-10 text-5xl font-light text-[hsl(243_75%_65%)] animate-float">∂</div>
-          <div className="absolute top-1/2 left-1/3 text-3xl font-light text-[hsl(188_85%_65%)] animate-float-delayed">θ</div>
-          <div className="absolute bottom-1/2 right-1/2 text-4xl font-light text-[hsl(267_84%_72%)] animate-float">λ</div>
-          <div className="absolute top-3/4 left-3/4 text-5xl font-light text-[hsl(243_75%_65%)] animate-float-delayed">∞</div>
-          <div className="absolute top-20 left-2/3 text-3xl font-light text-[hsl(267_84%_72%)] animate-float">Σ</div>
-          <div className="absolute bottom-1/3 left-1/3 text-4xl font-light text-[hsl(188_85%_65%)] animate-float-delayed">Δ</div>
-        </div>
-        
-        {/* Decorative Circles */}
-        <div className="absolute top-1/4 right-1/4 w-64 h-64">
-          <div className="absolute inset-0 rounded-full border border-[hsl(243_75%_65%)]/5 animate-pulse" />
-          <div className="absolute inset-4 rounded-full border border-[hsl(243_75%_65%)]/3 animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <div className="absolute inset-8 rounded-full border border-[hsl(243_75%_65%)]/2 animate-pulse" style={{ animationDelay: '1s' }} />
-        </div>
-        <div className="absolute bottom-1/3 left-1/5 w-48 h-48">
-          <div className="absolute inset-0 rounded-full border border-[hsl(188_85%_65%)]/5 animate-pulse" />
-          <div className="absolute inset-3 rounded-full border border-[hsl(188_85%_65%)]/3 animate-pulse" style={{ animationDelay: '0.8s' }} />
-        </div>
-      </div>
-
-      {/* Sticky Filter Summary Bar - TEMPORARILY HIDDEN */}
-      {/* {isScrolled && hasActiveFilters && (
+    <div className="min-h-screen bg-background dark:bg-[hsl(223_25%_10%)]">
+      {/* Sticky Filter Summary Bar */}
+      {isScrolled && hasActiveFilters && (
         <div className={cn(
           'fixed top-16 left-0 right-0 z-30',
           'bg-white/98 dark:bg-[hsl(223_28%_11%)]/98',
@@ -181,21 +74,28 @@ export default function EnhancedQuestionsClient() {
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-[hsl(243_75%_65%)]" />
               <span className="text-sm font-medium">
-                Bộ lọc đang áp dụng: {selectedFilters.types.length}
+                Bộ lọc đang áp dụng: {selectedFilters.types.length + selectedFilters.chips.length}
               </span>
             </div>
             <button
-              // onClick={() => setSelectedFilters({ types: [], chips: [] })}
+              onClick={() => setSelectedFilters({ types: [], chips: [] })}
               className="text-xs font-medium text-[hsl(243_75%_65%)] hover:text-[hsl(243_75%_75%)]"
             >
               Xóa tất cả
             </button>
           </div>
         </div>
-      )} */}
+      )}
 
-      {/* Hero Section */}
-      <section className="relative">
+      {/* Hero Section với Gradient Background */}
+      <section className="relative overflow-hidden">
+        {/* Gradient Background Pattern - TEMPORARILY DISABLED */}
+        {/* <div className="absolute inset-0 bg-gradient-to-br from-[hsl(243_75%_65%)]/5 via-transparent to-[hsl(188_85%_65%)]/5" />
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 20% 20%, hsl(243 75% 65% / 0.08) 0%, transparent 50%),
+                           radial-gradient(circle at 80% 80%, hsl(188 85% 65% / 0.08) 0%, transparent 50%),
+                           radial-gradient(circle at 40% 60%, hsl(267 84% 72% / 0.05) 0%, transparent 50%)`,
+        }} /> */}
 
         <div className="relative z-10 pt-16 pb-12">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -219,47 +119,40 @@ export default function EnhancedQuestionsClient() {
               <EnhancedSearchBar />
             </div>
 
-            {/* Issues Spotlight - TEMPORARILY HIDDEN */}
-            {/* <div className="mb-10">
+            {/* Issues Spotlight */}
+            <div className="mb-10">
               <EnhancedIssuesSpotlight />
-            </div> */}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Unified Filter Section - TEMPORARILY HIDDEN */}
-      {/* {!isMobile && (
-        <section className="relative py-12 bg-gradient-to-b from-transparent via-muted/20 to-transparent dark:from-transparent dark:via-[hsl(223_28%_12%)]/30 dark:to-transparent">
-          <DecorativeElements variant="section" className="opacity-50" />
-          <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <UnifiedFilterSection 
-              // onFiltersChange={(filters) => setSelectedFilters(filters)}
-            />
-          </div>
-        </section>
-      )} */}
+      {/* Classification Section */}
+      <section className="py-10 bg-muted/30 dark:bg-[hsl(223_28%_12%)]/50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <EnhancedClassificationChips 
+            allowMultiSelect={true}
+            showGroupLabels={true}
+          />
+        </div>
+      </section>
 
-      {/* Mobile Filter Hint - TEMPORARILY HIDDEN */}
-      {/* {isMobile && (
-        <section className="py-8">
-          <div className="max-w-6xl mx-auto px-4">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground dark:text-[hsl(220_15%_72%)] mb-4">
-                Sử dụng nút lọc để tìm kiếm theo tiêu chí
-              </p>
-              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Filter className="h-3 w-3" />
-                <span>Nhấn vào nút lọc phía dưới</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      )} */}
+      {/* Question Types Filter Section */}
+      <section className="py-10">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <EnhancedQuestionTypeFilter
+            showHeader={true}
+            allowMultiple={true}
+            onSelectionChange={(types) => 
+              setSelectedFilters(prev => ({ ...prev, types }))
+            }
+          />
+        </div>
+      </section>
 
-      {/* CTA Section với gradient buttons - TEMPORARILY HIDDEN */}
-      {/* <section className="relative py-12 bg-gradient-to-b from-transparent to-muted/30 dark:to-[hsl(223_28%_12%)]/30 overflow-hidden">
-        <MathBackground className="opacity-30" />
-        <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+      {/* CTA Section với gradient buttons */}
+      <section className="py-12 bg-gradient-to-b from-transparent to-muted/30 dark:to-[hsl(223_28%_12%)]/30">
+        <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-2xl font-bold mb-4 text-foreground dark:text-[hsl(220_14%_98%)]">
             Bắt đầu khám phá ngay
           </h2>
@@ -303,42 +196,14 @@ export default function EnhancedQuestionsClient() {
             </Link>
           </div>
         </div>
-      </section> */}
-
-      {/* Mobile Filter Button - TEMPORARILY HIDDEN */}
-      {/* {isMobile && (
-        <button
-          // onClick={() => setIsMobileFilterOpen(true)}
-          className={cn(
-            'fixed bottom-8 left-8 z-40',
-            'px-6 py-3 rounded-full',
-            'bg-gradient-to-r from-[hsl(243_75%_65%)] to-[hsl(267_84%_72%)]',
-            'text-white font-medium',
-            'shadow-lg hover:shadow-xl',
-            'transition-all duration-300',
-            'hover:scale-110',
-            'focus:outline-none focus:ring-4 focus:ring-[hsl(243_75%_65%)]/30',
-            'flex items-center gap-2'
-          )}
-          aria-label="Mở bộ lọc"
-        >
-          <Filter className="h-5 w-5" />
-          <span>Bộ lọc</span>
-          {hasActiveFilters && (
-            <span className="ml-1 px-2 py-0.5 bg-white/20 rounded-full text-xs font-bold">
-              {selectedFilters.types.length}
-            </span>
-          )}
-        </button>
-      )} */}
+      </section>
 
       {/* Scroll to Top Button */}
       {showScrollTop && (
         <button
           onClick={scrollToTop}
           className={cn(
-            'fixed bottom-8 z-50',
-            'right-8',
+            'fixed bottom-8 right-8 z-50',
             'p-3 rounded-full',
             'bg-gradient-to-r from-[hsl(243_75%_65%)] to-[hsl(188_85%_65%)]',
             'text-white',
@@ -352,16 +217,6 @@ export default function EnhancedQuestionsClient() {
           <ArrowUp className="h-5 w-5" />
         </button>
       )}
-
-      {/* Mobile Filter Sheet - TEMPORARILY HIDDEN */}
-      {/* {isMobile && (
-        <MobileFilterSheet
-          isOpen={isMobileFilterOpen}
-          // onClose={() => setIsMobileFilterOpen(false)}
-          // onApplyFilters={(filters) => setSelectedFilters(filters)}
-          initialFilters={selectedFilters}
-        />
-      )} */}
     </div>
   );
 }

@@ -166,3 +166,4 @@ export function MathBackground({ className }: { className?: string }) {
 }
 
 export default DecorativeElements;
+
