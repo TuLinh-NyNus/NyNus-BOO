@@ -3,7 +3,6 @@ syntax = "proto3";
 package v1;
 
 import "common/common.proto";
-import "google/api/annotations.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
@@ -152,83 +151,27 @@ message UpdateUserResponse {
 
 // User service
 service UserService {
-  rpc Login(LoginRequest) returns (LoginResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/auth/login"
-      body: "*"
-    };
-  }
+  rpc Login(LoginRequest) returns (LoginResponse);
 
-  rpc GoogleLogin(GoogleLoginRequest) returns (LoginResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/auth/google"
-      body: "*"
-    };
-  }
+  rpc GoogleLogin(GoogleLoginRequest) returns (LoginResponse);
 
-  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/auth/refresh"
-      body: "*"
-    };
-  }
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
 
-  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/auth/verify-email"
-      body: "*"
-    };
-  }
+  rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
 
-  rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/auth/forgot-password"
-      body: "*"
-    };
-  }
+  rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse);
 
-  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/auth/reset-password"
-      body: "*"
-    };
-  }
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse);
 
-  rpc Register(RegisterRequest) returns (RegisterResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/auth/register"
-      body: "*"
-    };
-  }
+  rpc Register(RegisterRequest) returns (RegisterResponse);
 
-  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/users/{id}"
-    };
-  }
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
 
-  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/users"
-    };
-  }
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
 
-  rpc GetStudentList(GetStudentListRequest) returns (GetStudentListResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/users/students"
-    };
-  }
+  rpc GetStudentList(GetStudentListRequest) returns (GetStudentListResponse);
 
-  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetUserResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/users/me"
-    };
-  }
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetUserResponse);
 
-  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/users/{id}"
-      body: "*"
-    };
-  }
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
 }

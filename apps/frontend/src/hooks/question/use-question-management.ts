@@ -142,6 +142,49 @@ export function useQuestionManagement(
     setState(prev => ({ ...prev, ...updates }));
   }, []);
   
+  // ===== LIST OPERATIONS (declare before used by CRUD callbacks) =====
+  
+  const loadQuestions = useCallback(async (request?: ListQuestionsRequest) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const pagination: PaginationRequest = {
+        page: state.currentPage,
+        limit: state.pageSize,
+        sort_by: 'created_at',
+        sort_order: 'desc',
+        ...request?.pagination,
+      };
+      
+      const response = await QuestionService.listQuestions({
+        ...request,
+        pagination,
+      });
+      
+      if (response.success) {
+        updateState({
+          questions: response.questions.map(q => ({
+            ...q,
+            tags: q.tag,
+            answers: '', // Add missing fields for QuestionDetail
+            correct_answer: '', 
+          })) as QuestionDetail[],
+          totalCount: response.pagination?.total_count || 0,
+          totalPages: response.pagination?.total_pages || 1,
+          currentPage: response.pagination?.page || 1,
+        });
+      } else {
+        throw new Error(response.message || 'Failed to load questions');
+      }
+    } catch (error) {
+      console.error('Load questions error:', error);
+      setError((error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [state.currentPage, state.pageSize, setLoading, setError, updateState]);
+  
   // ===== CRUD OPERATIONS =====
   
   const createQuestion = useCallback(async (data: CreateQuestionRequest) => {
@@ -237,47 +280,7 @@ export function useQuestionManagement(
   }, [updateState, loadQuestions, setError]);
   
   // ===== LIST OPERATIONS =====
-  
-  const loadQuestions = useCallback(async (request?: ListQuestionsRequest) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const pagination: PaginationRequest = {
-        page: state.currentPage,
-        limit: state.pageSize,
-        sort_by: 'created_at',
-        sort_order: 'desc',
-        ...request?.pagination,
-      };
-      
-      const response = await QuestionService.listQuestions({
-        ...request,
-        pagination,
-      });
-      
-      if (response.success) {
-        updateState({
-          questions: response.questions.map(q => ({
-            ...q,
-            tags: q.tag,
-            answers: '', // Add missing fields for QuestionDetail
-            correct_answer: '', 
-          })) as QuestionDetail[],
-          totalCount: response.pagination?.total_count || 0,
-          totalPages: response.pagination?.total_pages || 1,
-          currentPage: response.pagination?.page || 1,
-        });
-      } else {
-        throw new Error(response.message || 'Failed to load questions');
-      }
-    } catch (error) {
-      console.error('Load questions error:', error);
-      setError((error as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }, [state.currentPage, state.pageSize, setLoading, setError, updateState]);
+  // (moved earlier above CRUD section to avoid use-before-declare issues)
   
   const refreshQuestions = useCallback(async () => {
     try {

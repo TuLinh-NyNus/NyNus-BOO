@@ -6,7 +6,8 @@
  * @version 1.0.0
  */
 
-import { apiGet, apiPut } from '@/lib/api/client';
+// Refactored to use gRPC-Web AdminService
+import { AdminService } from '@/services/grpc/admin.service';
 
 // ===== TYPES =====
 
@@ -247,15 +248,9 @@ export interface GetSystemStatsResponse extends APIResponse {
 /**
  * Build query string from object
  */
-function buildQueryString(params: Record<string, unknown> | object): string {
+function _buildQueryString(_params: Record<string, unknown> | object): string {
+  // retained for compatibility; not used after gRPC refactor
   const searchParams = new URLSearchParams();
-  
-  Object.entries(params as Record<string, unknown>).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      searchParams.append(key, String(value));
-    }
-  });
-  
   const queryString = searchParams.toString();
   return queryString ? `?${queryString}` : '';
 }
@@ -269,99 +264,380 @@ export async function listUsers(
   filter?: ListUsersFilter,
   pagination?: PaginationRequest
 ): Promise<ListUsersResponse> {
-  const queryParams = {
-    ...pagination,
-    ...filter,
-  };
-  
-  const queryString = buildQueryString(queryParams);
-  const response = await apiGet<ListUsersResponse>(`/api/v1/admin/users${queryString}`);
-  
-  return response;
+  // Build gRPC request
+  const req = new (await import('@/generated/v1/admin_pb')).AdminListUsersRequest();
+  if (pagination) {
+    const pg = req.getPagination?.();
+    pg?.setPage?.(pagination.page ?? 1);
+    pg?.setLimit?.(pagination.limit ?? 20);
+    if (pagination.sort_by) pg?.setSortBy?.(pagination.sort_by);
+    if (pagination.sort_order) pg?.setSortOrder?.(pagination.sort_order);
+  }
+  if (filter) {
+    const f = req.getFilter?.();
+    if (filter.role) {
+      // Map string role to common.UserRole enum value (fallback to STUDENT)
+      const roleEnum = (await import('@/generated/common/common_pb')).UserRole;
+      const roleMap: Record<string, number> = {
+        GUEST: roleEnum.USER_ROLE_GUEST,
+        STUDENT: roleEnum.USER_ROLE_STUDENT,
+        TUTOR: roleEnum.USER_ROLE_TUTOR,
+        TEACHER: roleEnum.USER_ROLE_TEACHER,
+        ADMIN: roleEnum.USER_ROLE_ADMIN,
+      };
+      f?.setRole?.(roleMap[filter.role] ?? roleEnum.USER_ROLE_STUDENT);
+    }
+    if (filter.status) {
+      const statusEnum = (await import('@/generated/common/common_pb')).UserStatus;
+      const statusMap: Record<string, number> = {
+        ACTIVE: statusEnum.USER_STATUS_ACTIVE,
+        INACTIVE: statusEnum.USER_STATUS_INACTIVE,
+        SUSPENDED: statusEnum.USER_STATUS_SUSPENDED,
+      };
+      f?.setStatus?.(statusMap[filter.status] ?? statusEnum.USER_STATUS_ACTIVE);
+    }
+    if (typeof filter.level === 'number') f?.setLevel?.(filter.level);
+    if (typeof filter.email_verified === 'boolean') f?.setEmailVerified?.(filter.email_verified);
+    if (filter.search_query) f?.setSearchQuery?.(filter.search_query);
+  }
+
+  const res = await AdminService.listUsers(req);
+  // Map response to current shape
+  const users = (res.getUsersList?.() || []).map((u: unknown) => {
+    const user = u as {
+      getId?: () => string;
+      getEmail?: () => string;
+      getUsername?: () => string;
+      getFirstName?: () => string;
+      getLastName?: () => string;
+      getRole?: () => number;
+      getLevel?: () => number;
+      getStatus?: () => number;
+      getEmailVerified?: () => boolean;
+      getCreatedAt?: () => string;
+      getUpdatedAt?: () => string;
+      getLastLoginAt?: () => string;
+      getLoginCount?: () => number;
+    };
+    return {
+      id: user.getId?.() ?? '',
+      email: user.getEmail?.() ?? '',
+      username: user.getUsername?.() ?? undefined,
+      name: `${user.getFirstName?.() ?? ''} ${user.getLastName?.() ?? ''}`.trim() || undefined,
+      role: (user.getRole?.() ?? 2) === 5 ? 'ADMIN' : (user.getRole?.() ?? 2) === 4 ? 'TEACHER' : (user.getRole?.() ?? 2) === 3 ? 'TUTOR' : 'STUDENT',
+      level: user.getLevel?.(),
+      status: (user.getStatus?.() ?? 1) === 1 ? 'ACTIVE' : (user.getStatus?.() ?? 1) === 2 ? 'INACTIVE' : 'SUSPENDED',
+      email_verified: user.getEmailVerified?.(),
+      created_at: user.getCreatedAt?.() ?? '',
+      updated_at: user.getUpdatedAt?.() ?? '',
+      last_login_at: user.getLastLoginAt?.() ?? undefined,
+      login_count: user.getLoginCount?.() ?? undefined,
+    } as User;
+  }) as User[];
+
+  const pg = res.getPagination?.();
+  return {
+    users,
+    pagination: {
+      page: pg?.getPage?.() ?? (pagination?.page ?? 1),
+      limit: pg?.getLimit?.() ?? (pagination?.limit ?? 20),
+      total_count: pg?.getTotalCount?.() ?? users.length,
+      total_pages: pg?.getTotalPages?.() ?? 1,
+    },
+    success: true,
+  } as ListUsersResponse;
 }
 
 /**
  * Update user role
  */
 export async function updateUserRole(request: UpdateUserRoleRequest): Promise<UserUpdateResponse> {
-  const { user_id, ...body } = request;
-  
-  const response = await apiPut<UserUpdateResponse>(
-    `/api/v1/admin/users/${user_id}/role`,
-    body
-  );
-  
-  return response;
+  const { user_id, new_role, level } = request;
+  const { UpdateUserRoleRequest } = await import('@/generated/v1/admin_pb');
+  const req = new UpdateUserRoleRequest();
+  req.setUserId(user_id);
+  const roleEnum = (await import('@/generated/common/common_pb')).UserRole;
+  const roleMap: Record<UserRole, number> = {
+    GUEST: roleEnum.USER_ROLE_GUEST,
+    STUDENT: roleEnum.USER_ROLE_STUDENT,
+    TUTOR: roleEnum.USER_ROLE_TUTOR,
+    TEACHER: roleEnum.USER_ROLE_TEACHER,
+    ADMIN: roleEnum.USER_ROLE_ADMIN,
+  };
+  req.setNewRole(roleMap[new_role]);
+  if (typeof level === 'number') req.setLevel(level);
+
+  const res = await AdminService.updateUserRole(req);
+  const u = res.getUpdatedUser?.();
+  return {
+    updated_user: u ? {
+      id: u.getId?.() ?? '',
+      email: u.getEmail?.() ?? '',
+      role: ((value: number) => value === 5 ? 'ADMIN' : value === 4 ? 'TEACHER' : value === 3 ? 'TUTOR' : 'STUDENT')(u.getRole?.() ?? 2),
+      level: u.getLevel?.(),
+      status: 'ACTIVE',
+      created_at: '',
+      updated_at: '',
+    } as User : (undefined as unknown as User),
+    success: true,
+  } as UserUpdateResponse;
 }
 
 /**
  * Update user level
  */
 export async function updateUserLevel(request: UpdateUserLevelRequest): Promise<UserUpdateResponse> {
-  const { user_id, ...body } = request;
-  
-  const response = await apiPut<UserUpdateResponse>(
-    `/api/v1/admin/users/${user_id}/level`,
-    body
-  );
-  
-  return response;
+  const { UpdateUserLevelRequest } = await import('@/generated/v1/admin_pb');
+  const req = new UpdateUserLevelRequest();
+  req.setUserId(request.user_id);
+  req.setNewLevel(request.new_level);
+  const res = await AdminService.updateUserLevel(req);
+  const u = res.getUpdatedUser?.();
+  return {
+    updated_user: u ? {
+      id: u.getId?.() ?? '',
+      email: u.getEmail?.() ?? '',
+      role: ((value: number) => value === 5 ? 'ADMIN' : value === 4 ? 'TEACHER' : value === 3 ? 'TUTOR' : 'STUDENT')(u.getRole?.() ?? 2),
+      level: u.getLevel?.(),
+      status: 'ACTIVE',
+      created_at: '',
+      updated_at: '',
+    } as User : (undefined as unknown as User),
+    success: true,
+  } as UserUpdateResponse;
 }
 
 /**
  * Update user status
  */
 export async function updateUserStatus(request: UpdateUserStatusRequest): Promise<UserUpdateResponse> {
-  const { user_id, ...body } = request;
-  
-  const response = await apiPut<UserUpdateResponse>(
-    `/api/v1/admin/users/${user_id}/status`,
-    body
-  );
-  
-  return response;
+  const { UpdateUserStatusRequest } = await import('@/generated/v1/admin_pb');
+  const req = new UpdateUserStatusRequest();
+  req.setUserId(request.user_id);
+  const statusEnum = (await import('@/generated/common/common_pb')).UserStatus;
+  const statusMap: Record<UserStatus, number> = {
+    ACTIVE: statusEnum.USER_STATUS_ACTIVE,
+    INACTIVE: statusEnum.USER_STATUS_INACTIVE,
+    SUSPENDED: statusEnum.USER_STATUS_SUSPENDED,
+  };
+  req.setNewStatus(statusMap[request.new_status]);
+  if (request.reason) req.setReason(request.reason);
+  const res = await AdminService.updateUserStatus(req);
+  const u = res.getUpdatedUser?.();
+  return {
+    updated_user: u ? {
+      id: u.getId?.() ?? '',
+      email: u.getEmail?.() ?? '',
+      role: ((value: number) => value === 5 ? 'ADMIN' : value === 4 ? 'TEACHER' : value === 3 ? 'TUTOR' : 'STUDENT')(u.getRole?.() ?? 2),
+      level: u.getLevel?.(),
+      status: request.new_status,
+      created_at: '',
+      updated_at: '',
+    } as User : (undefined as unknown as User),
+    success: true,
+  } as UserUpdateResponse;
 }
 
 /**
  * Get audit logs
  */
 export async function getAuditLogs(request?: GetAuditLogsRequest): Promise<GetAuditLogsResponse> {
-  const queryString = request ? buildQueryString(request) : '';
-  
-  const response = await apiGet<GetAuditLogsResponse>(`/api/v1/admin/audit-logs${queryString}`);
-  
-  return response;
+  const { GetAuditLogsRequest } = await import('@/generated/v1/admin_pb');
+  const req = new GetAuditLogsRequest();
+  if (request) {
+    const pg = req.getPagination?.();
+    if (pg) {
+      if (request.page) pg.setPage(request.page);
+      if (request.limit) pg.setLimit(request.limit);
+      if (request.sort_by) pg.setSortBy(request.sort_by);
+      if (request.sort_order) pg.setSortOrder(request.sort_order);
+    }
+    if (request.user_id) req.setUserId(request.user_id);
+    if (request.action) req.setAction(request.action);
+    if (request.resource) req.setResource(request.resource);
+    if (request.start_date) req.setStartDate(request.start_date);
+    if (request.end_date) req.setEndDate(request.end_date);
+  }
+  const res = await AdminService.getAuditLogs(req);
+  const logs = (res.getLogsList?.() || []).map((l: unknown) => {
+    const log = l as {
+      getId?: () => string;
+      getUserId?: () => string;
+      getUserEmail?: () => string;
+      getAction?: () => string;
+      getResource?: () => string;
+      getResourceId?: () => string;
+      getOldValues?: () => string;
+      getNewValues?: () => string;
+      getIpAddress?: () => string;
+      getUserAgent?: () => string;
+      getSuccess?: () => boolean;
+      getErrorMessage?: () => string;
+      getCreatedAt?: () => string;
+    };
+    return {
+      id: log.getId?.() ?? '',
+      user_id: log.getUserId?.() ?? undefined,
+      user_email: log.getUserEmail?.() ?? undefined,
+      action: log.getAction?.() ?? '',
+      resource: log.getResource?.() ?? '',
+      resource_id: log.getResourceId?.() ?? undefined,
+      old_values: log.getOldValues?.() ?? undefined,
+      new_values: log.getNewValues?.() ?? undefined,
+      ip_address: log.getIpAddress?.() ?? undefined,
+      user_agent: log.getUserAgent?.() ?? undefined,
+      success: !!log.getSuccess?.(),
+      error_message: log.getErrorMessage?.() ?? undefined,
+      created_at: log.getCreatedAt?.() ?? '',
+    };
+  });
+  const pg = res.getPagination?.();
+  return {
+    logs,
+    pagination: {
+      page: pg?.getPage?.() ?? (request?.page ?? 1),
+      limit: pg?.getLimit?.() ?? (request?.limit ?? 20),
+      total_count: pg?.getTotalCount?.() ?? logs.length,
+      total_pages: pg?.getTotalPages?.() ?? 1,
+    },
+    success: true,
+  } as GetAuditLogsResponse;
 }
 
 /**
  * Get resource access logs
  */
 export async function getResourceAccess(request?: GetResourceAccessRequest): Promise<GetResourceAccessResponse> {
-  const queryString = request ? buildQueryString(request) : '';
-  
-  const response = await apiGet<GetResourceAccessResponse>(`/api/v1/admin/resource-access${queryString}`);
-  
-  return response;
+  const { GetResourceAccessRequest } = await import('@/generated/v1/admin_pb');
+  const req = new GetResourceAccessRequest();
+  if (request) {
+    const pg = req.getPagination?.();
+    if (pg) {
+      if (request.page) pg.setPage(request.page);
+      if (request.limit) pg.setLimit(request.limit);
+      if (request.sort_by) pg.setSortBy(request.sort_by);
+      if (request.sort_order) pg.setSortOrder(request.sort_order);
+    }
+    if (request.user_id) req.setUserId(request.user_id);
+    if (request.resource_type) req.setResourceType(request.resource_type);
+    if (request.resource_id) req.setResourceId(request.resource_id);
+    if (typeof request.min_risk_score === 'number') req.setMinRiskScore(request.min_risk_score);
+    if (request.start_date) req.setStartDate(request.start_date);
+    if (request.end_date) req.setEndDate(request.end_date);
+  }
+  const res = await AdminService.getResourceAccess(req);
+  const accesses = (res.getAccessesList?.() || []).map((a: unknown) => {
+    const acc = a as {
+      getId?: () => string;
+      getUserId?: () => string;
+      getUserEmail?: () => string;
+      getResourceType?: () => string;
+      getResourceId?: () => string;
+      getAction?: () => string;
+      getIpAddress?: () => string;
+      getIsValidAccess?: () => boolean;
+      getRiskScore?: () => number;
+      getCreatedAt?: () => string;
+    };
+    return {
+      id: acc.getId?.() ?? '',
+      user_id: acc.getUserId?.() ?? '',
+      user_email: acc.getUserEmail?.() ?? undefined,
+      resource_type: acc.getResourceType?.() ?? '',
+      resource_id: acc.getResourceId?.() ?? '',
+      action: acc.getAction?.() ?? '',
+      ip_address: acc.getIpAddress?.() ?? '',
+      is_valid_access: !!acc.getIsValidAccess?.(),
+      risk_score: acc.getRiskScore?.() ?? 0,
+      created_at: acc.getCreatedAt?.() ?? '',
+    };
+  });
+  const pg = res.getPagination?.();
+  return {
+    accesses,
+    pagination: {
+      page: pg?.getPage?.() ?? (request?.page ?? 1),
+      limit: pg?.getLimit?.() ?? (request?.limit ?? 20),
+      total_count: pg?.getTotalCount?.() ?? accesses.length,
+      total_pages: pg?.getTotalPages?.() ?? 1,
+    },
+    success: true,
+  } as GetResourceAccessResponse;
 }
 
 /**
  * Get security alerts
  */
 export async function getSecurityAlerts(request?: GetSecurityAlertsRequest): Promise<GetSecurityAlertsResponse> {
-  const queryString = request ? buildQueryString(request) : '';
-  
-  const response = await apiGet<GetSecurityAlertsResponse>(`/api/v1/admin/security-alerts${queryString}`);
-  
-  return response;
+  const { GetSecurityAlertsRequest } = await import('@/generated/v1/admin_pb');
+  const req = new GetSecurityAlertsRequest();
+  if (request) {
+    const pg = req.getPagination?.();
+    if (pg) {
+      if (request.page) pg.setPage(request.page);
+      if (request.limit) pg.setLimit(request.limit);
+      if (request.sort_by) pg.setSortBy(request.sort_by);
+      if (request.sort_order) pg.setSortOrder(request.sort_order);
+    }
+    if (request.user_id) req.setUserId(request.user_id);
+    if (request.alert_type) req.setAlertType(request.alert_type);
+    if (typeof request.unresolved_only === 'boolean') req.setUnresolvedOnly(request.unresolved_only);
+  }
+  const res = await AdminService.getSecurityAlerts(req);
+  const alerts = (res.getAlertsList?.() || []).map((a: unknown) => {
+    const al = a as {
+      getUserId?: () => string;
+      getAlertType?: () => string;
+      getMessage?: () => string;
+      getDetails?: () => string;
+    };
+    return {
+      user_id: al.getUserId?.() ?? '',
+      alert_type: al.getAlertType?.() ?? '',
+      message: al.getMessage?.() ?? '',
+      details: al.getDetails?.() ?? undefined,
+      created_at: '',
+    };
+  });
+  const pg = res.getPagination?.();
+  return {
+    alerts,
+    pagination: {
+      page: pg?.getPage?.() ?? (request?.page ?? 1),
+      limit: pg?.getLimit?.() ?? (request?.limit ?? 20),
+      total_count: pg?.getTotalCount?.() ?? alerts.length,
+      total_pages: pg?.getTotalPages?.() ?? 1,
+    },
+    success: true,
+  } as GetSecurityAlertsResponse;
 }
 
 /**
  * Get system statistics
  */
 export async function getSystemStats(): Promise<GetSystemStatsResponse> {
-  const response = await apiGet<GetSystemStatsResponse>('/api/v1/admin/stats');
-  
-  return response;
+  const { GetSystemStatsRequest } = await import('@/generated/v1/admin_pb');
+  const res = await AdminService.getSystemStats(new GetSystemStatsRequest());
+  const s = res.getStats?.();
+  return {
+    stats: s ? {
+      total_users: s.getTotalUsers?.() ?? 0,
+      active_users: s.getActiveUsers?.() ?? 0,
+      total_sessions: s.getTotalSessions?.() ?? 0,
+      active_sessions: s.getActiveSessions?.() ?? 0,
+      users_by_role: s.getUsersByRoleMap?.()?.toObject() as Record<string, number> ?? {},
+      users_by_status: s.getUsersByStatusMap?.()?.toObject() as Record<string, number> ?? {},
+      suspicious_activities: s.getSuspiciousActivities?.() ?? 0,
+    } : {
+      total_users: 0,
+      active_users: 0,
+      total_sessions: 0,
+      active_sessions: 0,
+      users_by_role: {},
+      users_by_status: {},
+      suspicious_activities: 0,
+    }
+  } as GetSystemStatsResponse;
 }
 
 // ===== CONVENIENCE FUNCTIONS =====

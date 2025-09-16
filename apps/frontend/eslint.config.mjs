@@ -38,6 +38,23 @@ const eslintConfig = [
         }
       ]
     }
+  },
+  // Turn off strict rules for generated outputs anyway
+  {
+    files: ["src/generated/**/*.{js,ts,d.ts}"],
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+    }
+  },
+  // Allow ambient declarations to use any where necessary
+  {
+    files: ["src/types/**/*.d.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off"
+    }
   }
 ];
 

@@ -1,14 +1,10 @@
 import { useState } from 'react';
-
-interface NewsletterResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    email: string;
-    subscribedAt?: string;
-    status?: string;
-  };
-}
+import { 
+  isGrpcError, 
+  getGrpcErrorMessage, 
+  logGrpcError 
+} from '@/lib/grpc/errors';
+import { NewsletterService } from '@/services/grpc/newsletter.service';
 
 interface UseNewsletterReturn {
   email: string;
@@ -53,19 +49,8 @@ export const useNewsletter = (): UseNewsletterReturn => {
         });
       }
 
-      const response = await fetch('/api/newsletter/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data: NewsletterResponse = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Có lỗi xảy ra khi đăng ký');
-      }
+      // Use gRPC Newsletter Service instead of REST API
+      await NewsletterService.subscribe({ email });
 
       // Success
       setIsSubscribed(true);
@@ -85,7 +70,16 @@ export const useNewsletter = (): UseNewsletterReturn => {
       }, 5000);
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Có lỗi xảy ra khi đăng ký';
+      let errorMessage = 'Có lỗi xảy ra khi đăng ký';
+      
+      // Handle gRPC errors properly
+      if (isGrpcError(err)) {
+        logGrpcError(err, 'Newsletter');
+        errorMessage = getGrpcErrorMessage(err);
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      
       setError(errorMessage);
       
       // Analytics tracking for error

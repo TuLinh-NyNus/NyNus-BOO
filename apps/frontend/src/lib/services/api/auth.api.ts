@@ -7,8 +7,26 @@
  * @version 1.0.0
  */
 
-import { apiPost, isAPIError } from '@/lib/api/client';
-import type { APIError } from '@/lib/api/client';
+import { 
+  isGrpcError, 
+  getGrpcErrorMessage, 
+  logGrpcError
+} from '@/lib/grpc/errors';
+import { AuthService as GrpcAuthService, AuthHelpers } from '@/services/grpc/auth.service';
+import type { LoginResponse as PbLoginResponse, RegisterResponse as PbRegisterResponse, User as PbUser } from '@/generated/v1/user_pb';
+
+// Temporary type for backward compatibility
+interface APIError {
+  status: number;
+  statusText: string;
+  message: string;
+}
+
+// Backward compatibility check
+function isAPIError(error: unknown): error is APIError {
+  return typeof error === 'object' && error !== null && 
+    'status' in error && 'statusText' in error && 'message' in error;
+}
 
 // ===== TYPES =====
 
@@ -80,13 +98,6 @@ export enum AuthErrorCode {
 const AUTH_TOKEN_KEY = 'nynus-auth-token';
 const AUTH_USER_KEY = 'nynus-auth-user';
 
-/**
- * API endpoints
- */
-const AUTH_ENDPOINTS = {
-  LOGIN: '/api/v1/auth/login',
-  REGISTER: '/api/v1/auth/register',
-} as const;
 
 // ===== UTILITY FUNCTIONS =====
 
@@ -122,6 +133,101 @@ function isValidEmail(email: string): boolean {
 function isValidPassword(password: string): boolean {
   // Tối thiểu 6 ký tự
   return password.length >= 6;
+}
+
+// ===== gRPC MAPPERS =====
+
+type FrontendRole = 'student' | 'teacher' | 'admin';
+
+type ProtoUserLike = {
+  getId: () => string;
+  getEmail: () => string;
+  getFirstName?: () => string;
+  getLastName?: () => string;
+  getName?: () => string;
+  getRole?: () => unknown;
+  getIsActive?: () => boolean;
+  getCreatedAt?: () => string;
+  getUpdatedAt?: () => string;
+};
+
+function mapProtoRoleToFrontend(role: unknown): FrontendRole {
+  if (typeof role === 'string') {
+    const r = role.toUpperCase();
+    if (r.includes('ADMIN')) return 'admin';
+    if (r.includes('TEACH')) return 'teacher';
+    if (r.includes('STUDENT')) return 'student';
+  }
+  if (typeof role === 'number') {
+    // Guess common mapping: 1-STUDENT, 2-TEACHER, 3-ADMIN
+    if (role === 3) return 'admin';
+    if (role === 2) return 'teacher';
+    return 'student';
+  }
+  return 'student';
+}
+
+function mapGrpcUserToBackendUser(grpcUser: PbUser | undefined): BackendUser {
+  if (!grpcUser) {
+    return {
+      id: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+      role: 'student',
+      isActive: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  const like = grpcUser as unknown as ProtoUserLike;
+  const id = like.getId();
+  const email = like.getEmail();
+  // Some builds have first_name/last_name, others have name
+  const name = like.getName ? like.getName() : undefined;
+  const firstName = like.getFirstName ? like.getFirstName() : (name ? String(name).split(' ')[0] : '');
+  const lastName = like.getLastName ? like.getLastName() : (name ? String(name).split(' ').slice(1).join(' ') : '');
+  const role = mapProtoRoleToFrontend(like.getRole ? like.getRole() : undefined);
+  const isActive = like.getIsActive ? !!like.getIsActive() : true;
+  const createdAt = like.getCreatedAt ? like.getCreatedAt() : new Date().toISOString();
+  const updatedAt = like.getUpdatedAt ? like.getUpdatedAt() : new Date().toISOString();
+  return {
+    id: String(id),
+    email: String(email),
+    firstName: String(firstName || ''),
+    lastName: String(lastName || ''),
+    role,
+    isActive,
+    createdAt: String(createdAt),
+    updatedAt: String(updatedAt),
+  };
+}
+
+function mapGrpcErrorToFrontendError(err: unknown): { status: number; statusText: string; message: string } {
+  logGrpcError(err, 'AuthService');
+  
+  const message = getGrpcErrorMessage(err);
+  let status = 500;
+  let statusText = 'gRPC Error';
+
+  if (isGrpcError(err)) {
+    switch (err.code) {
+      case 3: // INVALID_ARGUMENT
+        status = 422; statusText = 'Unprocessable Entity'; break;
+      case 5: // NOT_FOUND
+        status = 404; statusText = 'Not Found'; break;
+      case 7: // PERMISSION_DENIED
+        status = 403; statusText = 'Forbidden'; break;
+      case 6: // ALREADY_EXISTS
+        status = 409; statusText = 'Conflict'; break;
+      case 16: // UNAUTHENTICATED
+        status = 401; statusText = 'Unauthorized'; break;
+      default:
+        status = 500; statusText = 'Internal Server Error'; break;
+    }
+  }
+
+  return { status, statusText, message };
 }
 
 // ===== MAIN AUTH SERVICE =====
@@ -163,50 +269,56 @@ export class AuthService {
     }
 
     try {
-      // Gọi API login (skip auth vì chưa có token)
-      const response = await apiPost<LoginResponse>(
-        AUTH_ENDPOINTS.LOGIN,
-        payload,
-        { skipAuth: true }
-      );
+      // gRPC-Web login
+const resp = await GrpcAuthService.login(payload.email, payload.password);
+      const accessToken = (resp as PbLoginResponse).getAccessToken();
+      const refreshToken = (resp as PbLoginResponse).getRefreshToken();
 
-      // Lưu token vào localStorage
+      // Save tokens using shared helper
       if (typeof window !== 'undefined') {
-        localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+        AuthHelpers.saveTokens(accessToken, refreshToken);
       }
 
-      // Convert user format
-      const user = mapBackendUserToFrontend(response.user);
+      // Map gRPC user to backend user shape then to frontend
+const grpcUser = (resp as PbLoginResponse).getUser();
+      const backendUser: BackendUser = grpcUser
+        ? mapGrpcUserToBackendUser(grpcUser)
+        : {
+            id: '',
+            email: payload.email,
+            firstName: '',
+            lastName: '',
+            role: 'student',
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
 
+      // Persist for backward compatibility with existing consumers
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(backendUser));
+      }
+
+      const user = mapBackendUserToFrontend(backendUser);
       return {
-        token: response.accessToken,
+        token: accessToken,
         user,
       };
 
     } catch (error) {
-      // Handle specific auth errors
-      if (isAPIError(error)) {
-        // Customize error messages
-        if (error.status === 401) {
-          throw {
-            ...error,
-            message: 'Email hoặc mật khẩu không chính xác'
-          };
-        } else if (error.status === 403) {
-          throw {
-            ...error,
-            message: 'Tài khoản đã bị vô hiệu hóa'
-          };
-        } else if (error.status === 404) {
-          throw {
-            ...error,
-            message: 'Không tìm thấy tài khoản với email này'
-          };
-        }
+      const mappedError = mapGrpcErrorToFrontendError(error);
+      
+      // Customize messages for specific error types
+      if (mappedError.status === 401) {
+        mappedError.message = 'Email hoặc mật khẩu không chính xác';
+      } else if (mappedError.status === 403) {
+        mappedError.message = 'Tài khoản đã bị vô hiệu hóa';
+      } else if (mappedError.status === 404) {
+        mappedError.message = 'Không tìm thấy tài khoản với email này';
       }
       
-      throw error;
+      throw mappedError;
     }
   }
 
@@ -243,33 +355,44 @@ export class AuthService {
     }
 
     try {
-      // Gọi API register (skip auth vì chưa có token)
-      const response = await apiPost<RegisterResponse>(
-        AUTH_ENDPOINTS.REGISTER,
-        payload,
-        { skipAuth: true }
+      // gRPC-Web register
+      const fullName = `${payload.firstName} ${payload.lastName || ''}`.trim();
+const resp = await GrpcAuthService.register(
+        payload.email,
+        payload.password,
+        fullName,
+        1, // ROLE_STUDENT (default)
+        3  // LEVEL_HIGH (default)
       );
 
-      // Convert user format
-      const user = mapBackendUserToFrontend(response.user);
+      const grpcUser = (resp as PbRegisterResponse).getUser();
+      const backendUser: BackendUser = grpcUser
+        ? mapGrpcUserToBackendUser(grpcUser)
+        : {
+            id: '',
+            email: payload.email,
+            firstName: payload.firstName,
+            lastName: payload.lastName || '',
+            role: 'student',
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
 
       return {
-        message: response.message,
-        user,
+        message: 'Đăng ký thành công',
+        user: mapBackendUserToFrontend(backendUser),
       };
 
     } catch (error) {
-      // Handle specific register errors
-      if (isAPIError(error)) {
-        if (error.status === 409) {
-          throw {
-            ...error,
-            message: 'Email đã được sử dụng'
-          };
-        }
+      const mappedError = mapGrpcErrorToFrontendError(error);
+      
+      // Customize messages for specific error types
+      if (mappedError.status === 409) {
+        mappedError.message = 'Email đã được sử dụng';
       }
       
-      throw error;
+      throw mappedError;
     }
   }
 

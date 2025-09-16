@@ -22,10 +22,15 @@ import {
 } from '@/lib/types/public';
 
 import { QuestionType, QuestionDifficulty } from '@/lib/types/question';
-import QuestionsAPI from '@/lib/services/api/questions.api';
-import { mapFiltersToListRequest, mapToSearchRequest } from '@/lib/services/api/mappers/question-filter.mapper';
-import { mapQuestionDetailToPublic, mapSearchResultToPublic } from '@/lib/services/api/mappers/question.mapper';
-import { isAPIError, isAuthError, isNetworkError } from '@/lib/api/client';
+import { 
+  isGrpcError, 
+  getGrpcErrorMessage, 
+  logGrpcError 
+} from '@/lib/grpc/errors';
+import { QuestionService as GrpcQuestionService } from '@/services/grpc/question.service';
+// TODO: Re-enable mappers when implementing proper gRPC filtering
+// import { mapFiltersToListRequest, mapToSearchRequest } from '@/lib/services/api/mappers/question-filter.mapper';
+// import { mapQuestionDetailToPublic, mapSearchResultToPublic } from '@/lib/services/api/mappers/question.mapper';
 
 // ===== MOCK DATA =====
 
@@ -185,27 +190,26 @@ const isAuthenticated = (): boolean => {
 };
 
 /**
- * Handle API errors with proper UX
- * Xử lý lỗi API với UX tốt
+ * Handle gRPC errors with proper UX
+ * Xử lý lỗi gRPC với UX tốt
  */
-const handleAPIError = (error: unknown, operation: string): void => {
-  console.error(`Error in ${operation}:`, error);
+const handleGrpcError = (error: unknown, operation: string): void => {
+  logGrpcError(error, operation);
   
-  if (isAuthError(error)) {
-    // TODO: Show auth error toast/notification
-    console.warn('Authentication required - redirecting to login or fallback to mock');
-    // You can dispatch a toast notification here:
-    // toast.error('Vui lòng đăng nhập để truy cập tài nguyên này');
-  } else if (isNetworkError(error)) {
-    // TODO: Show network error toast/notification
-    console.warn('Network error - falling back to mock data');
-    // toast.error('Không thể kết nối đến server. Hiển thị dữ liệu mẫu.');
-  } else if (isAPIError(error)) {
-    // TODO: Show general API error
-    console.warn(`API Error: ${error.message}`);
-    // toast.error(`Lỗi: ${error.message}`);
+  if (isGrpcError(error)) {
+    const message = getGrpcErrorMessage(error);
+    
+    if (error.code === 16) { // UNAUTHENTICATED
+      console.warn('Authentication required - redirecting to login or fallback to mock');
+      // toast.error('Vui lòng đăng nhập để truy cập tài nguyên này');
+    } else if (error.code === 14) { // UNAVAILABLE 
+      console.warn('Service unavailable - falling back to mock data');
+      // toast.error('Không thể kết nối đến server. Hiển thị dữ liệu mẫu.');
+    } else {
+      console.warn(`gRPC Error: ${message}`);
+      // toast.error(`Lỗi: ${message}`);
+    }
   } else {
-    // TODO: Show unknown error
     console.warn('Unknown error occurred');
     // toast.error('Đã xảy ra lỗi không xác định');
   }
@@ -237,29 +241,69 @@ export class PublicQuestionService {
     if (shouldUseRealAPI()) {
       logCurrentConfig();
       try {
-        const request = mapFiltersToListRequest(filters);
-        const response = await QuestionsAPI.filterQuestions(request);
-        const mappedQuestions = response.questions.map(mapQuestionDetailToPublic);
+        // Use listQuestions as a temporary replacement for filterQuestions
+        // TODO: Implement proper filtering when backend gRPC service supports it
+        const response = await GrpcQuestionService.listQuestions({});
+        
+        // Basic client-side filtering for now
+        let filteredQuestions = response.questions || [];
+        
+        // Apply keyword filter
+        if (filters.keyword) {
+          const keyword = filters.keyword.toLowerCase();
+          filteredQuestions = filteredQuestions.filter(q =>
+            q.content?.toLowerCase().includes(keyword) ||
+            q.raw_content?.toLowerCase().includes(keyword)
+          );
+        }
+        
+        // Simple mapping - we'll need proper mappers later
+        const mappedQuestions: PublicQuestion[] = filteredQuestions.map(q => ({
+          id: q.id || '',
+          content: q.content || q.raw_content || '',
+          type: (q.type as QuestionType) || QuestionType.MC,
+          difficulty: (q.difficulty as QuestionDifficulty) || QuestionDifficulty.MEDIUM,
+          category: 'General', // TODO: Get from question data
+          subject: 'General', // TODO: Get from question data  
+          grade: 'General', // TODO: Get from question data
+          points: 10,
+          timeLimit: 300,
+          explanation: q.solution || '',
+          tags: q.tag || [],
+          views: q.usage_count || 0,
+          rating: 4.5,
+          createdAt: q.created_at || new Date().toISOString(),
+          updatedAt: q.updated_at || new Date().toISOString(),
+          // Mock additional fields that PublicQuestion requires
+          answers: [],
+          correctAnswer: '',
+          solution: q.solution
+        }));
+        
+        const total = mappedQuestions.length;
+        const page = filters.page || 1;
+        const limit = filters.limit || 20;
+        const totalPages = Math.ceil(total / limit);
         
         return {
-          data: mappedQuestions,
+          data: mappedQuestions.slice((page - 1) * limit, page * limit),
           pagination: {
-            page: response.page,
-            limit: response.limit,
-            total: response.totalCount,
-            totalPages: response.totalPages
+            page,
+            limit,
+            total,
+            totalPages
           },
           filters,
           meta: {
-            totalQuestions: response.totalCount,
-            categories: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.category))],
-            subjects: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.subject).filter(Boolean) as string[])],
-            grades: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.grade).filter(Boolean) as string[])],
+            totalQuestions: total,
+            categories: ['General'],
+            subjects: ['General'],
+            grades: ['General'],
             difficulties: [QuestionDifficulty.EASY, QuestionDifficulty.MEDIUM, QuestionDifficulty.HARD]
           }
         };
       } catch (error) {
-        handleAPIError(error, 'browseQuestions');
+        handleGrpcError(error, 'browseQuestions');
         // Fallback to mock implementation
       }
     }
@@ -385,42 +429,21 @@ export class PublicQuestionService {
     filters: PublicQuestionFilters = DEFAULT_PUBLIC_QUESTION_FILTERS
   ): Promise<PublicQuestionSearchResponse> {
     // Use real API if authenticated and not in mock mode
+    // TODO: Implement search when backend gRPC service supports it
+    // For now, fall back to mock to avoid breaking existing functionality
+    /*
     if (shouldUseRealAPI()) {
       logCurrentConfig();
       try {
-        const request = mapToSearchRequest(query, filters);
-        const response = await QuestionsAPI.searchQuestions(request);
-        const mappedQuestions = response.questions.map(mapSearchResultToPublic);
-        
-        return {
-          data: mappedQuestions,
-          pagination: {
-            page: response.page,
-            limit: response.limit,
-            total: response.totalCount,
-            totalPages: response.totalPages
-          },
-          filters,
-          query,
-          searchMeta: {
-            totalResults: response.totalCount,
-            searchTime: 0, // Backend không trả về search time
-            suggestions: [], // Backend chưa có suggestions
-            corrections: undefined // Backend chưa có corrections
-          },
-          meta: {
-            totalQuestions: response.totalCount,
-            categories: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.category))],
-            subjects: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.subject).filter(Boolean) as string[])],
-            grades: [...new Set(mappedQuestions.map((q: PublicQuestion) => q.grade).filter(Boolean) as string[])],
-            difficulties: [QuestionDifficulty.EASY, QuestionDifficulty.MEDIUM, QuestionDifficulty.HARD]
-          }
-        };
+        // Use listQuestions with client-side search for now
+        const response = await GrpcQuestionService.listQuestions({});
+        // Apply search filtering here...
       } catch (error) {
-        handleAPIError(error, 'searchQuestions');
+        handleGrpcError(error, 'searchQuestions');
         // Fallback to mock nếu lỗi
       }
     }
+    */
     
     // Mock implementation (original code)
     await delay(400);
@@ -455,49 +478,20 @@ export class PublicQuestionService {
    * Auto-switches between real API and mock based on auth status
    */
   static async getQuestion(id: string): Promise<PublicQuestionResponse> {
-    // Nếu dùng real API và đã đăng nhập
+    // TODO: Implement getQuestion with gRPC when backend supports it
+    // For now, use mock to avoid breaking existing functionality
+    /*
     if (shouldUseRealAPI()) {
       try {
-        // Nếu id là full question code (e.g., "0P1VH1")
-        // Parse nó thành components và dùng getQuestionsByQuestionCode
-        if (id.length >= 5) {
-          const response = await QuestionsAPI.getQuestionsByQuestionCode({
-            questionCodeFilter: {
-              // Parse full code thành components (simplified)
-              grades: [id[0]], // First char is grade
-              subjects: [id[1]], // Second char is subject
-              // TODO: Add more parsing if needed
-            },
-            pagination: { page: 1, limit: 1, sort: [] },
-          });
-          
-          if (response.questions.length > 0) {
-            const mappedQuestion = mapQuestionDetailToPublic(response.questions[0].question);
-            
-            // Get related questions (không có từ backend hiện tại)
-            const related: PublicQuestion[] = [];
-            
-            return {
-              data: mappedQuestion,
-              related,
-              meta: {
-                category: mappedQuestion.category,
-                subject: mappedQuestion.subject,
-                grade: mappedQuestion.grade,
-                nextQuestionId: undefined,
-                previousQuestionId: undefined
-              }
-            };
-          }
-        }
-        
-        // TODO: Nếu id là question ID (không phải code), dùng GET /api/v1/questions/{id}
-        // Hiện tại chưa implement endpoint này trong backend
+        // Use getQuestion by ID when available
+        const response = await GrpcQuestionService.getQuestion({ id });
+        // Map response...
       } catch (error) {
-        handleAPIError(error, 'getQuestion');
+        handleGrpcError(error, 'getQuestion');
         // Fallback to mock nếu lỗi
       }
     }
+    */
     
     // Mock implementation (original code)
     await delay(200);

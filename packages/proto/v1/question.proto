@@ -3,7 +3,6 @@ syntax = "proto3";
 package v1;
 
 import "common/common.proto";
-import "google/api/annotations.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
@@ -189,42 +188,15 @@ message ImportQuestionsResponse {
 
 // Question service
 service QuestionService {
-  rpc CreateQuestion(CreateQuestionRequest) returns (CreateQuestionResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/questions"
-      body: "*"
-    };
-  }
+  rpc CreateQuestion(CreateQuestionRequest) returns (CreateQuestionResponse);
 
-  rpc GetQuestion(GetQuestionRequest) returns (GetQuestionResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/questions/{id}"
-    };
-  }
+  rpc GetQuestion(GetQuestionRequest) returns (GetQuestionResponse);
   
-  rpc UpdateQuestion(UpdateQuestionRequest) returns (UpdateQuestionResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/questions/{id}"
-      body: "*"
-    };
-  }
+  rpc UpdateQuestion(UpdateQuestionRequest) returns (UpdateQuestionResponse);
   
-  rpc DeleteQuestion(DeleteQuestionRequest) returns (DeleteQuestionResponse) {
-    option (google.api.http) = {
-      delete: "/api/v1/questions/{id}"
-    };
-  }
+  rpc DeleteQuestion(DeleteQuestionRequest) returns (DeleteQuestionResponse);
 
-  rpc ListQuestions(ListQuestionsRequest) returns (ListQuestionsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/questions"
-    };
-  }
+  rpc ListQuestions(ListQuestionsRequest) returns (ListQuestionsResponse);
 
-  rpc ImportQuestions(ImportQuestionsRequest) returns (ImportQuestionsResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/questions/import"
-      body: "*"
-    };
-  }
+  rpc ImportQuestions(ImportQuestionsRequest) returns (ImportQuestionsResponse);
 }

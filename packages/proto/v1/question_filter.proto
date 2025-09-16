@@ -3,7 +3,6 @@ syntax = "proto3";
 package v1;
 
 import "google/protobuf/timestamp.proto";
-import "google/api/annotations.proto";
 import "common/common.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
@@ -33,28 +32,13 @@ message QuestionDetail {
 // QuestionFilterService handles advanced question filtering operations
 service QuestionFilterService {
   // ListQuestionsByFilter lists questions with comprehensive filtering
-  rpc ListQuestionsByFilter(ListQuestionsByFilterRequest) returns (ListQuestionsByFilterResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/questions/filter"
-      body: "*"
-    };
-  }
+  rpc ListQuestionsByFilter(ListQuestionsByFilterRequest) returns (ListQuestionsByFilterResponse);
 
   // SearchQuestions performs full-text search with filters
-  rpc SearchQuestions(SearchQuestionsRequest) returns (SearchQuestionsResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/questions/search"
-      body: "*"
-    };
-  }
+  rpc SearchQuestions(SearchQuestionsRequest) returns (SearchQuestionsResponse);
 
   // GetQuestionsByQuestionCode gets questions by QuestionCode components
-  rpc GetQuestionsByQuestionCode(GetQuestionsByQuestionCodeRequest) returns (GetQuestionsByQuestionCodeResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/questions/by-code"
-      body: "*"
-    };
-  }
+  rpc GetQuestionsByQuestionCode(GetQuestionsByQuestionCodeRequest) returns (GetQuestionsByQuestionCodeResponse);
 }
 
 // ========================================

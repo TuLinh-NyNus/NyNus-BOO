@@ -3,7 +3,7 @@
 ## 📊 Tổng Quan Tiến Độ (Cập nhật: 15/09/2025)
 
 ### 🎯 Tiến độ tổng thể:
-- **Phase 1 (Backend)**: ~95% ✅ (User Repo, OAuth config, gRPC-Gateway hoàn thành)
+- **Phase 1 (Backend)**: ~95% ✅ (User Repo, OAuth config, gRPC Services hoàn thành)
 - **Phase 2 (Frontend)**: ~90% ✅ (Tất cả pages, components, middleware đã hoàn thành)
 - **Phase 3 (Security)**: ~40% ⚠️ (Backend security đã có, frontend cơ bản)
 - **Tổng cộng**: ~85-90%
@@ -42,7 +42,7 @@
   # Google OAuth
   GOOGLE_CLIENT_ID=your_client_id
   GOOGLE_CLIENT_SECRET=your_client_secret
-  GOOGLE_REDIRECT_URI=http://localhost:3000/api/auth/callback/google
+  GOOGLE_REDIRECT_URI=http://localhost:3000/auth/callback/google
   
   # JWT Secrets  
   JWT_ACCESS_SECRET=your_access_secret
@@ -328,7 +328,7 @@
 - [x] **Tạo apps/backend/internal/service/domain_service/oauth/google_client.go** ✅ ĐÃ HOÀN THÀNH
   - [x] Google API client wrapper với full implementation
   - [x] Token validation sử dụng Google idtoken package
-  - [x] Profile fetching từ Google userinfo endpoint
+  - [x] Profile fetching từ Google API via gRPC
   - [x] Exchange code for token
   - [x] Refresh token functionality
   - [x] GetAuthURL và ValidateState methods
@@ -495,7 +495,7 @@
   - [x] Add OAuth token validation support
   - [x] Add session validation support
   - [x] Add user level to context
-  - [x] Add public endpoints for OAuth and password reset
+  - [x] Add public RPCs for OAuth and password reset
   - [x] Enhanced constructor with dependencies
   - [x] GetUserLevelFromContext function added
   - [x] Role-level authorization integrated with RoleLevelInterceptor:
@@ -518,11 +518,11 @@
     - [x] Resource access helper methods
   - [x] RateLimitInterceptor - Prevent API abuse
     - [x] Per-user and per-IP limiting
-    - [x] Different limits for different endpoints
+    - [x] Different limits for different RPCs
     - [x] Automatic cleanup of expired limiters
     - [x] Admin reset capability
   - [x] AuditLogInterceptor - Log important operations
-    - [x] Configurable audit rules per endpoint
+    - [x] Configurable audit rules per RPC
     - [x] Request/response logging (with sanitization)
     - [x] Async logging to avoid blocking
     - [x] Success/failure tracking
@@ -559,13 +559,13 @@
 - [x] **Email Verification Flow** ✅ (14/09/2025)
   - [x] Create email_verification_tokens table
   - [x] Email service implementation
-  - [x] VerifyEmail endpoint
+  - [x] VerifyEmail RPC
   - [x] SendVerificationEmail logic
   - [x] HTML email templates
 
 - [x] **Password Reset Flow** ✅ (14/09/2025)
-  - [x] ForgotPassword endpoint
-  - [x] ResetPassword endpoint
+  - [x] ForgotPassword RPC
+  - [x] ResetPassword RPC
   - [x] Password reset token generation
   - [x] Email notification
 
@@ -866,7 +866,7 @@
 Mỗi task được coi là hoàn thành khi:
 1. ✅ Code implemented & working
 2. ✅ Database migrations run successfully  
-3. ✅ API endpoints tested (manual hoặc unit test)
+3. ✅ gRPC methods tested (manual hoặc unit test)
 4. ✅ Frontend integrated & functional
 5. ✅ No console errors or warnings
 6. ✅ Type-safe (TypeScript/Go) - pnpm type-check pass
@@ -920,7 +920,7 @@ Mỗi task được coi là hoàn thành khi:
 - ✅ Scripts generate proto cho TypeScript/JavaScript
 - ✅ **Email Verification Flow đã implement (14/09/2025)**
   - Email service với HTML templates
-  - VerifyEmail, ForgotPassword, ResetPassword endpoints
+  - VerifyEmail, ForgotPassword, ResetPassword RPCs
   - Email verification tokens table
 - ✅ **Account Locking Mechanism đã implement (14/09/2025)**
   - Login attempts tracking table
@@ -977,7 +977,7 @@ Mỗi task được coi là hoàn thành khi:
 - ⏳ **Service Registration** - Cần wire up trong app.go
 - ❌ **Frontend Integration** - Chưa làm
 - ❌ **gRPC-Web Client** - Chưa tạo
-- ❌ **JWT Authentication cho Question endpoints** - Chưa setup
+- ❌ **JWT Authentication cho Question RPCs** - Chưa setup
 - ❌ **Database Migration cho Question tables** - Chưa tạo
 - ❌ **Testing** - Chưa viết tests
 

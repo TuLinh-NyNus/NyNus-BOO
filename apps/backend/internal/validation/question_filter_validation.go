@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
@@ -187,27 +188,41 @@ func (v *QuestionFilterValidator) validateQuestionCodeFilter(filter *v1.Question
 
 // validateMetadataFilter validates metadata filter parameters
 func (v *QuestionFilterValidator) validateMetadataFilter(filter *v1.MetadataFilter) error {
-	// Validate types
-	validTypes := map[string]bool{"MC": true, "TF": true, "SA": true, "ES": true, "MA": true}
+	// Validate types (enums)
+	validTypes := map[common.QuestionType]bool{
+		common.QuestionType_QUESTION_TYPE_MULTIPLE_CHOICE: true,
+		common.QuestionType_QUESTION_TYPE_TRUE_FALSE:       true,
+		common.QuestionType_QUESTION_TYPE_SHORT_ANSWER:     true,
+		common.QuestionType_QUESTION_TYPE_ESSAY:            true,
+	}
 	for _, qType := range filter.Types {
 		if !validTypes[qType] {
-			return fmt.Errorf("invalid question type: %s (must be MC, TF, SA, ES, or MA)", qType)
+			return fmt.Errorf("invalid question type: %v", qType)
 		}
 	}
 
-	// Validate statuses
-	validStatuses := map[string]bool{"ACTIVE": true, "PENDING": true, "INACTIVE": true, "ARCHIVED": true}
+	// Validate statuses (enums)
+	validStatuses := map[common.QuestionStatus]bool{
+		common.QuestionStatus_QUESTION_STATUS_ACTIVE:    true,
+		common.QuestionStatus_QUESTION_STATUS_PENDING:   true,
+		common.QuestionStatus_QUESTION_STATUS_INACTIVE:  true,
+		common.QuestionStatus_QUESTION_STATUS_ARCHIVED:  true,
+	}
 	for _, status := range filter.Statuses {
 		if !validStatuses[status] {
-			return fmt.Errorf("invalid status: %s (must be ACTIVE, PENDING, INACTIVE, or ARCHIVED)", status)
+			return fmt.Errorf("invalid status: %v", status)
 		}
 	}
 
-	// Validate difficulties
-	validDifficulties := map[string]bool{"EASY": true, "MEDIUM": true, "HARD": true}
+	// Validate difficulties (enums)
+	validDifficulties := map[common.DifficultyLevel]bool{
+		common.DifficultyLevel_DIFFICULTY_LEVEL_EASY:   true,
+		common.DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM: true,
+		common.DifficultyLevel_DIFFICULTY_LEVEL_HARD:   true,
+	}
 	for _, difficulty := range filter.Difficulties {
 		if !validDifficulties[difficulty] {
-			return fmt.Errorf("invalid difficulty: %s (must be EASY, MEDIUM, or HARD)", difficulty)
+			return fmt.Errorf("invalid difficulty: %v", difficulty)
 		}
 	}
 

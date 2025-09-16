@@ -3,7 +3,6 @@ syntax = "proto3";
 package v1;
 
 import "common/common.proto";
-import "google/api/annotations.proto";
 import "v1/user.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
@@ -166,55 +165,20 @@ message GetSystemStatsResponse {
 // Admin service
 service AdminService {
   // User management
-  rpc ListUsers(AdminListUsersRequest) returns (AdminListUsersResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/admin/users"
-    };
-  }
+  rpc ListUsers(AdminListUsersRequest) returns (AdminListUsersResponse);
 
-  rpc UpdateUserRole(UpdateUserRoleRequest) returns (UpdateUserRoleResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/admin/users/{user_id}/role"
-      body: "*"
-    };
-  }
+  rpc UpdateUserRole(UpdateUserRoleRequest) returns (UpdateUserRoleResponse);
 
-  rpc UpdateUserLevel(UpdateUserLevelRequest) returns (UpdateUserLevelResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/admin/users/{user_id}/level"
-      body: "*"
-    };
-  }
+  rpc UpdateUserLevel(UpdateUserLevelRequest) returns (UpdateUserLevelResponse);
 
-  rpc UpdateUserStatus(UpdateUserStatusRequest) returns (UpdateUserStatusResponse) {
-    option (google.api.http) = {
-      put: "/api/v1/admin/users/{user_id}/status"
-      body: "*"
-    };
-  }
+  rpc UpdateUserStatus(UpdateUserStatusRequest) returns (UpdateUserStatusResponse);
 
   // Audit & Monitoring
-  rpc GetAuditLogs(GetAuditLogsRequest) returns (GetAuditLogsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/admin/audit-logs"
-    };
-  }
+  rpc GetAuditLogs(GetAuditLogsRequest) returns (GetAuditLogsResponse);
 
-  rpc GetResourceAccess(GetResourceAccessRequest) returns (GetResourceAccessResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/admin/resource-access"
-    };
-  }
+  rpc GetResourceAccess(GetResourceAccessRequest) returns (GetResourceAccessResponse);
 
-  rpc GetSecurityAlerts(GetSecurityAlertsRequest) returns (GetSecurityAlertsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/admin/security-alerts"
-    };
-  }
+  rpc GetSecurityAlerts(GetSecurityAlertsRequest) returns (GetSecurityAlertsResponse);
 
-  rpc GetSystemStats(GetSystemStatsRequest) returns (GetSystemStatsResponse) {
-    option (google.api.http) = {
-      get: "/api/v1/admin/stats"
-    };
-  }
+  rpc GetSystemStats(GetSystemStatsRequest) returns (GetSystemStatsResponse);
 }
