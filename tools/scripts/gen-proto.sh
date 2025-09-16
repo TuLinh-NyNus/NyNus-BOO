@@ -37,7 +37,10 @@ protoc \
     --openapiv2_out=docs/api \
     packages/proto/common/common.proto \
     packages/proto/v1/user.proto \
+    packages/proto/v1/profile.proto \
+    packages/proto/v1/admin.proto \
     packages/proto/v1/question.proto \
+    packages/proto/v1/question_filter.proto \
     packages/proto/v1/exam.proto
 
 print_success "Go code generated"
@@ -52,7 +55,10 @@ if command -v protoc-gen-grpc-web &> /dev/null; then
         --grpc-web_out=import_style=commonjs,mode=grpcwebtext:apps/frontend/src/generated \
         packages/proto/common/common.proto \
         packages/proto/v1/user.proto \
+        packages/proto/v1/profile.proto \
+        packages/proto/v1/admin.proto \
         packages/proto/v1/question.proto \
+        packages/proto/v1/question_filter.proto \
         packages/proto/v1/exam.proto
     print_success "TypeScript/JavaScript gRPC-Web code generated"
 else

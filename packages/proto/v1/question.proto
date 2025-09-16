@@ -7,37 +7,97 @@ import "google/api/annotations.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
-// Answer message
+// Answer message - for structured answers
 message Answer {
   string id = 1;
-  string text = 2;
+  string content = 2;        // Changed from text to content to match frontend
   bool is_correct = 3;
+  string explanation = 4;    // Added explanation field
 }
 
-// Question message
+// Question message - matches database schema
 message Question {
   string id = 1;
-  string text = 2;
-  common.QuestionType type = 3;
-  common.DifficultyLevel difficulty = 4;
-  repeated Answer answers = 5;
-  string explanation = 6;
-  repeated string tags = 7;
-  int32 points = 8;
-  string created_by = 9;
-  string created_at = 10;
-  string updated_at = 11;
+  string raw_content = 2;              // LaTeX gốc từ user
+  string content = 3;                  // Nội dung đã xử lý (cleaned)
+  string subcount = 4;                 // [XX.N] format
+  common.QuestionType type = 5;        // MC, TF, SA, ES, MA
+  string source = 6;                   // Nguồn câu hỏi
+  
+  // Structured answers for MC/TF or JSON string for complex types
+  oneof answer_data {
+    AnswerList structured_answers = 7;  // For MC/TF questions
+    string json_answers = 8;            // For complex answer formats (JSONB in DB)
+  }
+  
+  oneof correct_answer_data {
+    CorrectAnswer structured_correct = 9;  // For MC/TF/SA
+    string json_correct_answer = 10;       // For complex formats (JSONB in DB)
+  }
+  
+  string solution = 11;                // Lời giải chi tiết
+  repeated string tag = 12;            // Tags cho câu hỏi
+  int32 usage_count = 13;              // Số lần sử dụng
+  string creator = 14;                 // Người tạo
+  common.QuestionStatus status = 15;   // ACTIVE, PENDING, INACTIVE, ARCHIVED
+  int32 feedback = 16;                 // Điểm feedback
+  common.DifficultyLevel difficulty = 17; // EASY, MEDIUM, HARD
+  string question_code_id = 18;        // FK to QuestionCode
+  string created_at = 19;
+  string updated_at = 20;
+}
+
+// Wrapper for multiple answers
+message AnswerList {
+  repeated Answer answers = 1;
+}
+
+// Correct answer structure
+message CorrectAnswer {
+  oneof answer_type {
+    SingleAnswer single = 1;    // For MC
+    MultipleAnswers multiple = 2; // For TF
+    TextAnswer text = 3;        // For SA
+  }
+}
+
+message SingleAnswer {
+  string answer_id = 1;
+}
+
+message MultipleAnswers {
+  repeated string answer_ids = 1;
+}
+
+message TextAnswer {
+  string text = 1;
 }
 
 // Question management
 message CreateQuestionRequest {
-  string text = 1;
-  common.QuestionType type = 2;
-  common.DifficultyLevel difficulty = 3;
-  repeated Answer answers = 4;
-  string explanation = 5;
-  repeated string tags = 6;
-  int32 points = 7;
+  string raw_content = 1;      // LaTeX gốc từ user
+  string content = 2;           // Nội dung đã xử lý
+  string subcount = 3;          // [XX.N] format
+  common.QuestionType type = 4; // MC, TF, SA, ES, MA
+  string source = 5;            // Nguồn câu hỏi
+  
+  // Flexible answer format
+  oneof answer_data {
+    AnswerList structured_answers = 6;  // For MC/TF questions
+    string json_answers = 7;            // For complex answer formats
+  }
+  
+  oneof correct_answer_data {
+    CorrectAnswer structured_correct = 8;  // For MC/TF/SA
+    string json_correct_answer = 9;        // For complex formats
+  }
+  
+  string solution = 10;           // Lời giải chi tiết
+  repeated string tag = 11;       // Tags cho câu hỏi
+  string question_code_id = 12;   // QuestionCode ID
+  common.QuestionStatus status = 13;    // ACTIVE, PENDING, INACTIVE, ARCHIVED
+  common.DifficultyLevel difficulty = 14; // EASY, MEDIUM, HARD
+  string creator = 15;            // Creator username
 }
 
 message CreateQuestionResponse {
@@ -62,6 +122,46 @@ message ListQuestionsResponse {
   common.Response response = 1;
   repeated Question questions = 2;
   common.PaginationResponse pagination = 3;
+}
+
+// Update question
+message UpdateQuestionRequest {
+  string id = 1;
+  string raw_content = 2;
+  string content = 3;
+  string subcount = 4;
+  common.QuestionType type = 5;
+  string source = 6;
+  
+  oneof answer_data {
+    AnswerList structured_answers = 7;
+    string json_answers = 8;
+  }
+  
+  oneof correct_answer_data {
+    CorrectAnswer structured_correct = 9;
+    string json_correct_answer = 10;
+  }
+  
+  string solution = 11;
+  repeated string tag = 12;
+  string question_code_id = 13;
+  common.QuestionStatus status = 14;
+  common.DifficultyLevel difficulty = 15;
+}
+
+message UpdateQuestionResponse {
+  common.Response response = 1;
+  Question question = 2;
+}
+
+// Delete question
+message DeleteQuestionRequest {
+  string id = 1;
+}
+
+message DeleteQuestionResponse {
+  common.Response response = 1;
 }
 
 // Import questions
@@ -99,6 +199,19 @@ service QuestionService {
   rpc GetQuestion(GetQuestionRequest) returns (GetQuestionResponse) {
     option (google.api.http) = {
       get: "/api/v1/questions/{id}"
+    };
+  }
+  
+  rpc UpdateQuestion(UpdateQuestionRequest) returns (UpdateQuestionResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/questions/{id}"
+      body: "*"
+    };
+  }
+  
+  rpc DeleteQuestion(DeleteQuestionRequest) returns (DeleteQuestionResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/questions/{id}"
     };
   }
 

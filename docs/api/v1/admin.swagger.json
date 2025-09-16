@@ -1,0 +1,964 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1/admin.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "AdminService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/admin/audit-logs": {
+      "get": {
+        "summary": "Audit \u0026 Monitoring",
+        "operationId": "AdminService_GetAuditLogs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetAuditLogsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.sortOrder",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "action",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "resource",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "description": "ISO format",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endDate",
+            "description": "ISO format",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AdminService"
+        ]
+      }
+    },
+    "/api/v1/admin/resource-access": {
+      "get": {
+        "operationId": "AdminService_GetResourceAccess",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetResourceAccessResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.sortOrder",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "resourceType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "resourceId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "minRiskScore",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AdminService"
+        ]
+      }
+    },
+    "/api/v1/admin/security-alerts": {
+      "get": {
+        "operationId": "AdminService_GetSecurityAlerts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetSecurityAlertsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.sortOrder",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "alertType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "unresolvedOnly",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "AdminService"
+        ]
+      }
+    },
+    "/api/v1/admin/stats": {
+      "get": {
+        "operationId": "AdminService_GetSystemStats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetSystemStatsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "AdminService"
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "summary": "User management",
+        "operationId": "AdminService_ListUsers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AdminListUsersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "pagination.page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.limit",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pagination.sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pagination.sortOrder",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.role",
+            "description": " - USER_ROLE_GUEST: NEW: Guest users\n - USER_ROLE_STUDENT: Changed from 1\n - USER_ROLE_TUTOR: NEW: Tutor role\n - USER_ROLE_TEACHER: Changed from 2\n - USER_ROLE_ADMIN: Changed from 3",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "USER_ROLE_UNSPECIFIED",
+              "USER_ROLE_GUEST",
+              "USER_ROLE_STUDENT",
+              "USER_ROLE_TUTOR",
+              "USER_ROLE_TEACHER",
+              "USER_ROLE_ADMIN"
+            ],
+            "default": "USER_ROLE_UNSPECIFIED"
+          },
+          {
+            "name": "filter.status",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "USER_STATUS_UNSPECIFIED",
+              "USER_STATUS_ACTIVE",
+              "USER_STATUS_INACTIVE",
+              "USER_STATUS_SUSPENDED"
+            ],
+            "default": "USER_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "filter.level",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.emailVerified",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "filter.searchQuery",
+            "description": "Search in email, username, name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AdminService"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{userId}/level": {
+      "put": {
+        "operationId": "AdminService_UpdateUserLevel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateUserLevelResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "newLevel": {
+                  "type": "integer",
+                  "format": "int32",
+                  "title": "1-9"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "AdminService"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{userId}/role": {
+      "put": {
+        "operationId": "AdminService_UpdateUserRole",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateUserRoleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "newRole": {
+                  "$ref": "#/definitions/commonUserRole"
+                },
+                "level": {
+                  "type": "integer",
+                  "format": "int32",
+                  "title": "Required for STUDENT, TUTOR, TEACHER"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "AdminService"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{userId}/status": {
+      "put": {
+        "operationId": "AdminService_UpdateUserStatus",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateUserStatusResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "newStatus": {
+                  "$ref": "#/definitions/commonUserStatus"
+                },
+                "reason": {
+                  "type": "string",
+                  "title": "Reason for status change"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "AdminService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "commonPaginationRequest": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "sortBy": {
+          "type": "string"
+        },
+        "sortOrder": {
+          "type": "string"
+        }
+      },
+      "title": "Pagination"
+    },
+    "commonPaginationResponse": {
+      "type": "object",
+      "properties": {
+        "page": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalPages": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "commonResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Common response wrapper"
+    },
+    "commonUserRole": {
+      "type": "string",
+      "enum": [
+        "USER_ROLE_UNSPECIFIED",
+        "USER_ROLE_GUEST",
+        "USER_ROLE_STUDENT",
+        "USER_ROLE_TUTOR",
+        "USER_ROLE_TEACHER",
+        "USER_ROLE_ADMIN"
+      ],
+      "default": "USER_ROLE_UNSPECIFIED",
+      "description": "- USER_ROLE_GUEST: NEW: Guest users\n - USER_ROLE_STUDENT: Changed from 1\n - USER_ROLE_TUTOR: NEW: Tutor role\n - USER_ROLE_TEACHER: Changed from 2\n - USER_ROLE_ADMIN: Changed from 3",
+      "title": "Common enums"
+    },
+    "commonUserStatus": {
+      "type": "string",
+      "enum": [
+        "USER_STATUS_UNSPECIFIED",
+        "USER_STATUS_ACTIVE",
+        "USER_STATUS_INACTIVE",
+        "USER_STATUS_SUSPENDED"
+      ],
+      "default": "USER_STATUS_UNSPECIFIED",
+      "title": "User account status"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1AdminListUsersResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1User"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/commonPaginationResponse"
+        }
+      }
+    },
+    "v1AuditLog": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "userEmail": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "resource": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "oldValues": {
+          "type": "string",
+          "title": "JSON string"
+        },
+        "newValues": {
+          "type": "string",
+          "title": "JSON string"
+        },
+        "ipAddress": {
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "success": {
+          "type": "boolean"
+        },
+        "errorMessage": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "title": "Audit logs"
+    },
+    "v1GetAuditLogsResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "logs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AuditLog"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/commonPaginationResponse"
+        }
+      }
+    },
+    "v1GetResourceAccessResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "accesses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ResourceAccess"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/commonPaginationResponse"
+        }
+      }
+    },
+    "v1GetSecurityAlertsResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "alerts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SecurityAlert"
+          }
+        },
+        "pagination": {
+          "$ref": "#/definitions/commonPaginationResponse"
+        }
+      }
+    },
+    "v1GetSystemStatsResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "stats": {
+          "$ref": "#/definitions/v1SystemStats"
+        }
+      }
+    },
+    "v1ListUsersFilter": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "$ref": "#/definitions/commonUserRole"
+        },
+        "status": {
+          "$ref": "#/definitions/commonUserStatus"
+        },
+        "level": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        },
+        "searchQuery": {
+          "type": "string",
+          "title": "Search in email, username, name"
+        }
+      },
+      "title": "Admin user management"
+    },
+    "v1ResourceAccess": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "userEmail": {
+          "type": "string"
+        },
+        "resourceType": {
+          "type": "string"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "action": {
+          "type": "string"
+        },
+        "ipAddress": {
+          "type": "string"
+        },
+        "isValidAccess": {
+          "type": "boolean"
+        },
+        "riskScore": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "title": "Resource access monitoring"
+    },
+    "v1SecurityAlert": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "alertType": {
+          "type": "string",
+          "description": "CONCURRENT_SESSIONS, HIGH_RISK_ACCESS, etc."
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "string",
+          "title": "JSON string with additional data"
+        }
+      },
+      "title": "Security alerts"
+    },
+    "v1SystemStats": {
+      "type": "object",
+      "properties": {
+        "totalUsers": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "activeUsers": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "totalSessions": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "activeSessions": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "usersByRole": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "usersByStatus": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "suspiciousActivities": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "title": "Statistics"
+    },
+    "v1UpdateUserLevelResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "updatedUser": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    },
+    "v1UpdateUserRoleResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "updatedUser": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    },
+    "v1UpdateUserStatusResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "updatedUser": {
+          "$ref": "#/definitions/v1User"
+        }
+      }
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/commonUserRole"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "level": {
+          "type": "integer",
+          "format": "int32",
+          "title": "1-9 for STUDENT/TUTOR/TEACHER"
+        },
+        "username": {
+          "type": "string",
+          "title": "unique username"
+        },
+        "avatar": {
+          "type": "string",
+          "title": "avatar URL"
+        },
+        "status": {
+          "$ref": "#/definitions/commonUserStatus"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        },
+        "googleId": {
+          "type": "string",
+          "title": "for OAuth"
+        }
+      },
+      "title": "User message"
+    }
+  }
+}

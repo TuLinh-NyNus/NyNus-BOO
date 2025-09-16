@@ -34,6 +34,7 @@ message LoginResponse {
   common.Response response = 1;
   string access_token = 2;
   User user = 3;
+  string refresh_token = 4;  // JWT refresh token for token rotation
 }
 
 message RegisterRequest {
@@ -124,6 +125,31 @@ message GetStudentListResponse {
   common.PaginationResponse pagination = 2;
 }
 
+// Current user operations
+message GetCurrentUserRequest {
+  // Empty - gets current authenticated user
+}
+
+// Update user operations
+message UpdateUserRequest {
+  string id = 1;              // User ID to update
+  string first_name = 2;
+  string last_name = 3;
+  string username = 4;
+  string avatar = 5;
+  string bio = 6;
+  string phone = 7;
+  string address = 8;
+  string school = 9;
+  string date_of_birth = 10;
+  string gender = 11;
+}
+
+message UpdateUserResponse {
+  common.Response response = 1;
+  User user = 2;
+}
+
 // User service
 service UserService {
   rpc Login(LoginRequest) returns (LoginResponse) {
@@ -190,6 +216,19 @@ service UserService {
   rpc GetStudentList(GetStudentListRequest) returns (GetStudentListResponse) {
     option (google.api.http) = {
       get: "/api/v1/users/students"
+    };
+  }
+
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/users/me"
+    };
+  }
+
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/users/{id}"
+      body: "*"
     };
   }
 }

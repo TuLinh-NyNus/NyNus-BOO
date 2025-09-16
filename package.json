@@ -2,5 +2,8 @@
 	"dependencies": {
 		"gsap": "^3.13.0",
 		"keen-slider": "^6.8.6"
+	},
+	"devDependencies": {
+		"ts-protoc-gen": "^0.15.0"
 	}
 }

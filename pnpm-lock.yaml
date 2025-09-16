@@ -14,8 +14,15 @@ importers:
       keen-slider:
         specifier: ^6.8.6
         version: 6.8.6
+    devDependencies:
+      ts-protoc-gen:
+        specifier: ^0.15.0
+        version: 0.15.0
 
 packages:
+
+  google-protobuf@3.21.4:
+    resolution: {integrity: sha512-MnG7N936zcKTco4Jd2PX2U96Kf9PxygAPKBug+74LHzmHXmceN16MmRcdgZv+DGef/S9YvQAfRsNCn4cjf9yyQ==}
 
   gsap@3.13.0:
     resolution: {integrity: sha512-QL7MJ2WMjm1PHWsoFrAQH/J8wUeqZvMtHO58qdekHpCfhvhSL4gSiz6vJf5EeMP0LOn3ZCprL2ki/gjED8ghVw==}
@@ -23,8 +30,18 @@ packages:
   keen-slider@6.8.6:
     resolution: {integrity: sha512-dcEQ7GDBpCjUQA8XZeWh3oBBLLmyn8aoeIQFGL/NTVkoEOsmlnXqA4QykUm/SncolAZYGsEk/PfUhLZ7mwMM2w==}
 
+  ts-protoc-gen@0.15.0:
+    resolution: {integrity: sha512-TycnzEyrdVDlATJ3bWFTtra3SCiEP0W0vySXReAuEygXCUr1j2uaVyL0DhzjwuUdQoW5oXPwk6oZWeA0955V+g==}
+    hasBin: true
+
 snapshots:
+
+  google-protobuf@3.21.4: {}
 
   gsap@3.13.0: {}
 
   keen-slider@6.8.6: {}
+
+  ts-protoc-gen@0.15.0:
+    dependencies:
+      google-protobuf: 3.21.4

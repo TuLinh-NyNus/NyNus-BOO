@@ -8,8 +8,10 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: UserRole;
+  role: UserRole | string;
+  level?: string;
   avatar?: string;
+  emailVerified?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

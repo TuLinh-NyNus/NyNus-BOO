@@ -665,8 +665,8 @@ GUEST → STUDENT (Level 1) → ... → STUDENT (Level 9) → TUTOR (Level 1) �
 - Go OAuth Strategy implementation
 - Users Service với session management
 - Auth Service với JWT token handling
-- HTTP Handlers và DTOs
-- Middleware và Guards
+- gRPC services và protobuf messages (JWT truyền qua gRPC metadata)
+- gRPC interceptors và Guards
 
 ### 🎨 [Frontend Implementation + Code](./Frontend%20Implementation%20+%20Code.md)
 - Zustand auth store
@@ -818,17 +818,17 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 - **UsersService**: User CRUD, session management, profile updates
 - **ResourceProtectionService**: Access validation, risk calculation, user blocking
 
-#### **Middleware System**
-**Authentication Middleware:**
-- JWTAuthMiddleware: Protect routes với JWT validation
-- OAuthMiddleware: Google OAuth flow handling
-- ResourceAccessMiddleware: Resource protection
-- SessionLimitMiddleware: Session limits enforcement
+#### **Interceptors System (gRPC)**
+**Authentication Interceptors:**
+- JWTAuthInterceptor: Protect RPCs với JWT validation (Authorization: Bearer trong gRPC metadata)
+- OAuthInterceptor: Google OAuth flow handling (callback vẫn dùng HTTP tối thiểu)
+- ResourceAccessInterceptor: Resource protection
+- SessionLimitInterceptor: Session limits enforcement
 
 **Usage Pattern:**
-- HTTP routes are protected by combining multiple middleware
+- gRPC methods được bảo vệ bởi interceptor chain
 - Auto-validation of JWT, enrollment, and session validity
-- Middleware chain: Logging → CORS → Auth → Business Logic
+- Interceptor chain: Logging → RateLimit → Auth → Role → Business Logic
 
 ### **Frontend Architecture**
 
@@ -862,10 +862,10 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 3. **Seeding**: Create sample data for testing
 
 ### **Phase 2: Backend Implementation (2-3 giờ)**
-1. **Google OAuth**: Setup OAuth flow và HTTP endpoints
-2. **Services**: Implement Auth, Users, ResourceProtection services
-3. **Middleware**: Create authentication và authorization middleware
-4. **Handlers**: Build HTTP API endpoints với proper validation
+1. **Google OAuth**: Setup OAuth flow (HTTP redirect/callback tối thiểu), expose gRPC auth methods
+2. **Services**: Implement Auth, Users, ResourceProtection gRPC services
+3. **Interceptors**: Create authentication và authorization gRPC interceptors
+4. **RPCs**: Build gRPC API methods với proper validation
 
 ### **Phase 3: Frontend Implementation (1-2 giờ)**
 1. **Auth Store**: Setup Zustand store với persistence

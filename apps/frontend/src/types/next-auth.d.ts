@@ -12,6 +12,9 @@ declare module "next-auth" {
   interface Session {
     accessToken?: string;
     provider?: string;
+    googleAccessToken?: string;
+    backendAccessToken?: string;
+    backendRefreshToken?: string;
     user: {
       id: string;
     } & DefaultSession["user"];
@@ -31,5 +34,8 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     accessToken?: string;
     provider?: string;
+    googleAccessToken?: string;
+    backendAccessToken?: string;
+    backendRefreshToken?: string;
   }
 }

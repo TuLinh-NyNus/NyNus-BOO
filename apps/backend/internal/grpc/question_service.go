@@ -6,7 +6,7 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	question_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question"
+	question "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_mgmt"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
@@ -15,14 +15,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// QuestionServiceServer implements the QuestionService gRPC interface
+// QuestionServiceServer implements the QuestionService gRPC server
 type QuestionServiceServer struct {
 	v1.UnimplementedQuestionServiceServer
-	questionMgmt *question_mgmt.QuestionMgmt
+	questionMgmt *question.QuestionMgmt
 }
 
-// NewQuestionServiceServer creates a new question service server
-func NewQuestionServiceServer(questionMgmt *question_mgmt.QuestionMgmt) *QuestionServiceServer {
+// NewQuestionServiceServer creates a new QuestionServiceServer
+func NewQuestionServiceServer(questionMgmt *question.QuestionMgmt) *QuestionServiceServer {
 	return &QuestionServiceServer{
 		questionMgmt: questionMgmt,
 	}
@@ -163,7 +163,7 @@ func (s *QuestionServiceServer) ImportQuestions(ctx context.Context, req *v1.Imp
 	}
 
 	// Convert proto request to service request
-	serviceReq := &question_mgmt.ImportQuestionsRequest{
+	serviceReq := &question.ImportQuestionsRequest{
 		CsvDataBase64: req.GetCsvDataBase64(),
 		UpsertMode:    req.GetUpsertMode(),
 	}
@@ -209,12 +209,60 @@ func (s *QuestionServiceServer) ImportQuestions(ctx context.Context, req *v1.Imp
 // convertQuestionToProto converts a Question entity to proto
 func convertQuestionToProto(question *entity.Question) *v1.Question {
 	return &v1.Question{
-		Id:          util.PgTextToString(question.ID),
-		Text:        util.PgTextToString(question.Content),
-		Type:        common.QuestionType_QUESTION_TYPE_MULTIPLE_CHOICE, // Default, should be mapped properly
-		Difficulty:  common.DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM,    // Default, should be mapped properly
-		Explanation: util.PgTextToString(question.Solution),
-		CreatedAt:   question.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:   question.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
+		Id:             util.PgTextToString(question.ID),
+		RawContent:     util.PgTextToString(question.RawContent),
+		Content:        util.PgTextToString(question.Content),
+		Subcount:       util.PgTextToString(question.Subcount),
+		Type:           convertQuestionType(util.PgTextToString(question.Type)),
+		Source:         util.PgTextToString(question.Source),
+		Solution:       util.PgTextToString(question.Solution),
+		Status:         convertQuestionStatus(util.PgTextToString(question.Status)),
+		Difficulty:     convertDifficulty(util.PgTextToString(question.Difficulty)),
+		QuestionCodeId: util.PgTextToString(question.QuestionCodeID),
+		CreatedAt:      question.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
+		UpdatedAt:      question.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
+	}
+}
+
+func convertQuestionType(t string) common.QuestionType {
+	switch strings.ToUpper(t) {
+	case "MC":
+		return common.QuestionType_QUESTION_TYPE_MULTIPLE_CHOICE
+	case "TF":
+		return common.QuestionType_QUESTION_TYPE_TRUE_FALSE
+	case "SA":
+		return common.QuestionType_QUESTION_TYPE_SHORT_ANSWER
+	case "ES":
+		return common.QuestionType_QUESTION_TYPE_ESSAY
+	default:
+		return common.QuestionType_QUESTION_TYPE_UNSPECIFIED
+	}
+}
+
+func convertDifficulty(d string) common.DifficultyLevel {
+	switch strings.ToUpper(d) {
+	case "EASY":
+		return common.DifficultyLevel_DIFFICULTY_LEVEL_EASY
+	case "MEDIUM":
+		return common.DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM
+	case "HARD":
+		return common.DifficultyLevel_DIFFICULTY_LEVEL_HARD
+	default:
+		return common.DifficultyLevel_DIFFICULTY_LEVEL_UNSPECIFIED
+	}
+}
+
+func convertQuestionStatus(s string) common.QuestionStatus {
+	switch strings.ToUpper(s) {
+	case "ACTIVE":
+		return common.QuestionStatus_QUESTION_STATUS_ACTIVE
+	case "PENDING":
+		return common.QuestionStatus_QUESTION_STATUS_PENDING
+	case "INACTIVE":
+		return common.QuestionStatus_QUESTION_STATUS_INACTIVE
+	case "ARCHIVED":
+		return common.QuestionStatus_QUESTION_STATUS_ARCHIVED
+	default:
+		return common.QuestionStatus_QUESTION_STATUS_UNSPECIFIED
 	}
 }

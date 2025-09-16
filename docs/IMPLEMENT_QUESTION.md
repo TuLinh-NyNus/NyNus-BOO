@@ -317,12 +317,19 @@ enum FeedbackType {
 
 ### 1. Tạo Database Schema
 ```bash
-# Tạo database schema với Prisma
-pnpx prisma migrate dev --name init-question-system
+# Database sử dụng Raw SQL + migrations (giống phần Auth)
+# Đặt các file .sql trong packages/database/migrations
 
-# Generate Prisma client
-pnpx prisma generate
+# Option A: dùng migrator nội bộ (Go) nếu đã tích hợp
+# ví dụ: go run ./apps/backend/cmd/migrate
+
+# Option B: dùng psql để chạy tuần tự các migration
+psql $DATABASE_URL -f packages/database/migrations/000001_initial_schema.up.sql
+psql $DATABASE_URL -f packages/database/migrations/000002_question_bank_system.up.sql
+psql $DATABASE_URL -f packages/database/migrations/000004_enhanced_auth_system.up.sql
 ```
+
+Ghi chú: Tất cả tham chiếu đến Prisma trong tài liệu này đã được thay thế bằng Raw SQL migrations. Transport giữa FE và BE là gRPC/gRPC‑Web (REST chỉ để compatibility qua grpc‑gateway, không dùng trực tiếp ở FE).
 
 ### 2. Google Drive API Setup
 ```bash
@@ -633,11 +640,13 @@ Priority order:
 5. Không có 4 cái trên → ES
 ```
 
-#### B. Question Management API
-- **CRUD Operations**: Create, Read, Update, Delete câu hỏi
-- **Bulk Import**: Import hàng loạt từ LaTeX files
-- **Filtering System**: Lọc theo grade, subject, chapter, level
-- **Search Engine**: Full-text search trong content
+#### B. Question Management gRPC API
+- Services:
+  - QuestionService: CreateQuestion, GetQuestion, ListQuestions, ImportQuestions
+  - QuestionFilterService: ListQuestionsByFilter, SearchQuestions, GetQuestionsByQuestionCode
+- Transport:
+  - Backend exposes gRPC, frontend communicates via gRPC‑Web (xem docs/GRPC_WEB_SETUP.md)
+  - google.api.http annotations (nếu có trong .proto) chỉ phục vụ gateway compatibility; REST không phải kênh chính
 
 #### C. Media Processing
 - **Image Extraction**: Trích xuất hình ảnh từ LaTeX

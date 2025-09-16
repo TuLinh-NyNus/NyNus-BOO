@@ -93,6 +93,7 @@ message TerminateSessionResponse {
 
 message TerminateAllSessionsRequest {
   bool except_current = 1;  // Keep current session active
+  bool keep_current = 2;    // Alternative name for except_current
 }
 
 message TerminateAllSessionsResponse {
@@ -121,6 +122,25 @@ message UserPreferences {
   string timezone = 10;
   string language = 11;
   string date_format = 12;
+  
+  // UI Preferences
+  string time_format = 13;      // 12h or 24h
+  string theme = 14;             // light, dark, auto
+  string font_size = 15;         // small, medium, large
+  bool high_contrast = 16;      // Accessibility
+  bool reduced_motion = 17;     // Accessibility
+  bool screen_reader_mode = 18; // Accessibility
+  
+  // Features
+  bool keyboard_shortcuts = 19;
+  bool two_factor_enabled = 20;
+  
+  // Email Settings
+  bool login_alerts = 21;
+  bool marketing_emails = 22;
+  bool product_updates = 23;
+  bool security_alerts = 24;
+  bool weekly_digest = 25;
 }
 
 message GetPreferencesRequest {

@@ -492,7 +492,7 @@
           "items": {
             "type": "string"
           },
-          "title": "P,L,H,T,S (Math, Physics, Chemistry, English, Biology)"
+          "title": "D,E,H,M,P,S (Probability, English, Chemistry, Math, Physics, Science)"
         },
         "chapters": {
           "type": "array",

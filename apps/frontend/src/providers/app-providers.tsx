@@ -4,7 +4,7 @@ import React from 'react';
 
 import { ReactNode } from 'react';
 import { ThemeProvider } from 'next-themes';
-import { AuthProvider } from '@/contexts/auth-context';
+import { AuthProvider } from '@/contexts/auth-context-grpc';
 import { NotificationProvider } from '@/contexts/notification-context';
 import { ModalProvider } from '@/contexts/modal-context';
 import { QueryProvider } from './query-provider';

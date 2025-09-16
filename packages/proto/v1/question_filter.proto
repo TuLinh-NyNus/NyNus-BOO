@@ -4,6 +4,7 @@ package v1;
 
 import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
+import "common/common.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
@@ -13,7 +14,7 @@ message QuestionDetail {
   string raw_content = 2;
   string content = 3;
   string subcount = 4;
-  string type = 5;
+  common.QuestionType type = 5;
   string source = 6;
   string answers = 7;
   string correct_answer = 8;
@@ -21,9 +22,9 @@ message QuestionDetail {
   repeated string tags = 10;
   int32 usage_count = 11;
   string creator = 12;
-  string status = 13;
+  common.QuestionStatus status = 13;
   int32 feedback = 14;
-  string difficulty = 15;
+  common.DifficultyLevel difficulty = 15;
   google.protobuf.Timestamp created_at = 16;
   google.protobuf.Timestamp updated_at = 17;
   string question_code_id = 18;
@@ -74,9 +75,9 @@ message QuestionCodeFilter {
 
 // Metadata Filters
 message MetadataFilter {
-  repeated string types = 1;           // MC, TF, SA, ES, MA
-  repeated string statuses = 2;        // ACTIVE, PENDING, INACTIVE, ARCHIVED
-  repeated string difficulties = 3;    // EASY, MEDIUM, HARD
+  repeated common.QuestionType types = 1;           // MC, TF, SA, ES, MA
+  repeated common.QuestionStatus statuses = 2;       // ACTIVE, PENDING, INACTIVE, ARCHIVED
+  repeated common.DifficultyLevel difficulties = 3;  // EASY, MEDIUM, HARD
   repeated string creators = 4;        // Filter by creator usernames
   repeated string tags = 5;            // Filter by tags (OR logic)
   bool require_all_tags = 6;           // If true, use AND logic for tags

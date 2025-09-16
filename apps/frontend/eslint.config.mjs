@@ -1,3 +1,4 @@
+
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
@@ -12,6 +13,21 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    ignores: [
+      // Generated files
+      "src/generated/**/*",
+      "**/*.pb.js",
+      "**/*.pb.d.ts",
+      // Node modules
+      "**/node_modules/**",
+      // Build output
+      ".next/**",
+      "out/**",
+      "dist/**",
+      // Coverage
+      "coverage/**",
+      ".nyc_output/**",
+    ],
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",

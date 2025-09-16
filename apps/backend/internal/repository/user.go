@@ -141,6 +141,162 @@ func (r *UserRepository) GetByEmail(email string, db database.QueryExecer) (*ent
 	return &user, nil
 }
 
+// GetByGoogleID retrieves a user by Google ID
+func (r *UserRepository) GetByGoogleID(googleID string, db database.QueryExecer) (*entity.User, error) {
+	ctx := context.Background()
+	span, ctx := util.StartSpan(ctx, "UserRepository.GetByGoogleID")
+	defer span.Finish()
+
+	template := &entity.User{}
+	rows, err := database.SelectByField(ctx, template, "google_id", googleID, db.QueryContext)
+	if err != nil {
+		span.FinishWithError(err)
+		return nil, fmt.Errorf("failed to query user by google_id: %w", err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		err := fmt.Errorf("user not found")
+		span.FinishWithError(err)
+		return nil, err
+	}
+
+	var user entity.User
+	_, values := user.FieldMap()
+	if err := rows.Scan(values...); err != nil {
+		span.FinishWithError(err)
+		return nil, fmt.Errorf("failed to scan user: %w", err)
+	}
+
+	return &user, nil
+}
+
+// GetByUsername retrieves a user by username
+func (r *UserRepository) GetByUsername(username string, db database.QueryExecer) (*entity.User, error) {
+	ctx := context.Background()
+	span, ctx := util.StartSpan(ctx, "UserRepository.GetByUsername")
+	defer span.Finish()
+
+	template := &entity.User{}
+	rows, err := database.SelectByField(ctx, template, "username", username, db.QueryContext)
+	if err != nil {
+		span.FinishWithError(err)
+		return nil, fmt.Errorf("failed to query user by username: %w", err)
+	}
+	defer rows.Close()
+
+	if !rows.Next() {
+		err := fmt.Errorf("user not found")
+		span.FinishWithError(err)
+		return nil, err
+	}
+
+	var user entity.User
+	_, values := user.FieldMap()
+	if err := rows.Scan(values...); err != nil {
+		span.FinishWithError(err)
+		return nil, fmt.Errorf("failed to scan user: %w", err)
+	}
+
+	return &user, nil
+}
+
+// UpdateLastLogin updates the last login timestamp and IP
+func (r *UserRepository) UpdateLastLogin(ctx context.Context, db database.QueryExecer, userID string, ipAddress string) error {
+	span, ctx := util.StartSpan(ctx, "UserRepository.UpdateLastLogin")
+	defer span.Finish()
+
+	query := `UPDATE users SET last_login_at = $1, last_login_ip = $2, updated_at = $3 WHERE id = $4`
+	
+	_, err := db.ExecContext(ctx, query, time.Now(), ipAddress, time.Now(), userID)
+	if err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("failed to update last login: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateGoogleID updates the Google ID for a user
+func (r *UserRepository) UpdateGoogleID(ctx context.Context, db database.QueryExecer, userID string, googleID string) error {
+	span, ctx := util.StartSpan(ctx, "UserRepository.UpdateGoogleID")
+	defer span.Finish()
+
+	query := `UPDATE users SET google_id = $1, updated_at = $2 WHERE id = $3`
+	
+	_, err := db.ExecContext(ctx, query, googleID, time.Now(), userID)
+	if err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("failed to update google_id: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateAvatar updates the avatar URL for a user
+func (r *UserRepository) UpdateAvatar(ctx context.Context, db database.QueryExecer, userID string, avatar string) error {
+	span, ctx := util.StartSpan(ctx, "UserRepository.UpdateAvatar")
+	defer span.Finish()
+
+	query := `UPDATE users SET avatar = $1, updated_at = $2 WHERE id = $3`
+	
+	_, err := db.ExecContext(ctx, query, avatar, time.Now(), userID)
+	if err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("failed to update avatar: %w", err)
+	}
+
+	return nil
+}
+
+// IncrementLoginAttempts increments the login attempts counter
+func (r *UserRepository) IncrementLoginAttempts(ctx context.Context, db database.QueryExecer, userID string) error {
+	span, ctx := util.StartSpan(ctx, "UserRepository.IncrementLoginAttempts")
+	defer span.Finish()
+
+	query := `UPDATE users SET login_attempts = login_attempts + 1, updated_at = $1 WHERE id = $2`
+	
+	_, err := db.ExecContext(ctx, query, time.Now(), userID)
+	if err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("failed to increment login attempts: %w", err)
+	}
+
+	return nil
+}
+
+// ResetLoginAttempts resets the login attempts counter to 0
+func (r *UserRepository) ResetLoginAttempts(ctx context.Context, db database.QueryExecer, userID string) error {
+	span, ctx := util.StartSpan(ctx, "UserRepository.ResetLoginAttempts")
+	defer span.Finish()
+
+	query := `UPDATE users SET login_attempts = 0, updated_at = $1 WHERE id = $2`
+	
+	_, err := db.ExecContext(ctx, query, time.Now(), userID)
+	if err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("failed to reset login attempts: %w", err)
+	}
+
+	return nil
+}
+
+// LockAccount locks a user account until specified time
+func (r *UserRepository) LockAccount(ctx context.Context, db database.QueryExecer, userID string, until time.Time) error {
+	span, ctx := util.StartSpan(ctx, "UserRepository.LockAccount")
+	defer span.Finish()
+
+	query := `UPDATE users SET locked_until = $1, updated_at = $2 WHERE id = $3`
+	
+	_, err := db.ExecContext(ctx, query, until, time.Now(), userID)
+	if err != nil {
+		span.FinishWithError(err)
+		return fmt.Errorf("failed to lock account: %w", err)
+	}
+
+	return nil
+}
+
 // Update updates an existing user
 func (r *UserRepository) Update(ctx context.Context, db database.QueryExecer, user *entity.User) error {
 	span, ctx := util.StartSpan(ctx, "UserRepository.Update")

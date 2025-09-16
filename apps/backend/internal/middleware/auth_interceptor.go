@@ -5,7 +5,9 @@ import (
 	"strings"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/constant"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -20,14 +22,18 @@ const (
 	userIDKey    contextKey = "user_id"
 	userEmailKey contextKey = "user_email"
 	userRoleKey  contextKey = "user_role"
+	userLevelKey contextKey = "user_level"
 )
 
 // Public endpoints that don't require authentication
 var ignoreAuthEndpoints = []string{
 	"/v1.UserService/Login",
 	"/v1.UserService/Register",
+	"/v1.UserService/GoogleLogin",
+	"/v1.UserService/RefreshToken",
+	"/v1.UserService/ForgotPassword",
+	"/v1.UserService/VerifyEmail",
 	"/grpc.health.v1.Health/Check",
-	"/v1.QuestionService/ImportQuestions", // Temporarily disable auth for testing
 }
 
 // Role-based access control (RBAC) configuration
@@ -43,6 +49,12 @@ var rbacDecider = map[string][]string{
 	"/v1.QuestionService/DeleteQuestion": {constant.RoleAdmin, constant.RoleTeacher},
 	"/v1.QuestionService/GetQuestion":    {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
 	"/v1.QuestionService/ListQuestions":  {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	"/v1.QuestionService/ImportQuestions": {constant.RoleAdmin, constant.RoleTeacher},
+
+	// Question Filter Service APIs
+	"/v1.QuestionFilterService/ListQuestionsByFilter": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	"/v1.QuestionFilterService/SearchQuestions":       {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	"/v1.QuestionFilterService/GetQuestionsByQuestionCode": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
 
 	// Exam Management APIs
 	"/v1.ExamService/CreateExam": {constant.RoleAdmin, constant.RoleTeacher},
@@ -59,11 +71,19 @@ var rbacDecider = map[string][]string{
 
 type AuthInterceptor struct {
 	authService     *auth_mgmt.AuthMgmt
+	sessionService  *session.SessionService
+	userRepo        repository.IUserRepository
 	publicMethods   map[string]bool
 	roleBasedAccess map[string][]string
+	enableOAuth     bool
+	enableSession   bool
 }
 
-func NewAuthInterceptor(authService *auth_mgmt.AuthMgmt) *AuthInterceptor {
+func NewAuthInterceptor(
+	authService *auth_mgmt.AuthMgmt,
+	sessionService *session.SessionService,
+	userRepo repository.IUserRepository,
+) *AuthInterceptor {
 	// Convert slice to map for faster lookup
 	publicMethods := make(map[string]bool)
 	for _, endpoint := range ignoreAuthEndpoints {
@@ -72,8 +92,12 @@ func NewAuthInterceptor(authService *auth_mgmt.AuthMgmt) *AuthInterceptor {
 
 	return &AuthInterceptor{
 		authService:     authService,
+		sessionService:  sessionService,
+		userRepo:        userRepo,
 		publicMethods:   publicMethods,
 		roleBasedAccess: rbacDecider,
+		enableOAuth:     true,
+		enableSession:   true,
 	}
 }
 
@@ -134,10 +158,19 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 			}
 		}
 
+		// Get user level from database if needed
+		var userLevel int
+		if interceptor.userRepo != nil {
+			if user, err := interceptor.userRepo.GetByID(ctx, claims.UserID); err == nil {
+				userLevel = user.Level
+			}
+		}
+
 		// Add user info to context
 		ctx = context.WithValue(ctx, userIDKey, claims.UserID)
 		ctx = context.WithValue(ctx, userEmailKey, claims.Email)
 		ctx = context.WithValue(ctx, userRoleKey, claims.Role)
+		ctx = context.WithValue(ctx, userLevelKey, userLevel)
 
 		return handler(ctx, req)
 	}
@@ -168,4 +201,13 @@ func GetUserRoleFromContext(ctx context.Context) (string, error) {
 		return "", status.Errorf(codes.Internal, "user role not found in context")
 	}
 	return role, nil
+}
+
+// GetUserLevelFromContext extracts user level from context
+func GetUserLevelFromContext(ctx context.Context) (int, error) {
+	level, ok := ctx.Value(userLevelKey).(int)
+	if !ok {
+		return 0, status.Errorf(codes.Internal, "user level not found in context")
+	}
+	return level, nil
 }

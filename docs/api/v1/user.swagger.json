@@ -16,6 +16,70 @@
     "application/json"
   ],
   "paths": {
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "operationId": "UserService_ForgotPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ForgotPasswordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ForgotPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/api/v1/auth/google": {
+      "post": {
+        "operationId": "UserService_GoogleLogin",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LoginResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GoogleLoginRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "operationId": "UserService_Login",
@@ -48,6 +112,38 @@
         ]
       }
     },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "UserService_RefreshToken",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RefreshTokenResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RefreshTokenRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "operationId": "UserService_Register",
@@ -72,6 +168,70 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1RegisterRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "operationId": "UserService_ResetPassword",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ResetPasswordResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ResetPasswordRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserService"
+        ]
+      }
+    },
+    "/api/v1/auth/verify-email": {
+      "post": {
+        "operationId": "UserService_VerifyEmail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1VerifyEmailResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1VerifyEmailRequest"
             }
           }
         ],
@@ -275,12 +435,26 @@
       "type": "string",
       "enum": [
         "USER_ROLE_UNSPECIFIED",
+        "USER_ROLE_GUEST",
         "USER_ROLE_STUDENT",
+        "USER_ROLE_TUTOR",
         "USER_ROLE_TEACHER",
         "USER_ROLE_ADMIN"
       ],
       "default": "USER_ROLE_UNSPECIFIED",
+      "description": "- USER_ROLE_GUEST: NEW: Guest users\n - USER_ROLE_STUDENT: Changed from 1\n - USER_ROLE_TUTOR: NEW: Tutor role\n - USER_ROLE_TEACHER: Changed from 2\n - USER_ROLE_ADMIN: Changed from 3",
       "title": "Common enums"
+    },
+    "commonUserStatus": {
+      "type": "string",
+      "enum": [
+        "USER_STATUS_UNSPECIFIED",
+        "USER_STATUS_ACTIVE",
+        "USER_STATUS_INACTIVE",
+        "USER_STATUS_SUSPENDED"
+      ],
+      "default": "USER_STATUS_UNSPECIFIED",
+      "title": "User account status"
     },
     "protobufAny": {
       "type": "object",
@@ -310,6 +484,26 @@
         }
       }
     },
+    "v1ForgotPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string"
+        }
+      },
+      "title": "Password Reset"
+    },
+    "v1ForgotPasswordResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetStudentListResponse": {
       "type": "object",
       "properties": {
@@ -335,6 +529,16 @@
           "$ref": "#/definitions/v1User"
         }
       }
+    },
+    "v1GoogleLoginRequest": {
+      "type": "object",
+      "properties": {
+        "idToken": {
+          "type": "string",
+          "title": "Google ID token from frontend"
+        }
+      },
+      "title": "OAuth Authentication"
     },
     "v1ListUsersResponse": {
       "type": "object",
@@ -380,6 +584,34 @@
         }
       }
     },
+    "v1RefreshTokenRequest": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
+        }
+      },
+      "title": "Refresh Token"
+    },
+    "v1RefreshTokenResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "accessToken": {
+          "type": "string"
+        },
+        "refreshToken": {
+          "type": "string"
+        },
+        "expiresIn": {
+          "type": "integer",
+          "format": "int32",
+          "title": "seconds until expiry"
+        }
+      }
+    },
     "v1RegisterRequest": {
       "type": "object",
       "properties": {
@@ -408,6 +640,28 @@
         }
       }
     },
+    "v1ResetPasswordRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        },
+        "newPassword": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ResetPasswordResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
     "v1User": {
       "type": "object",
       "properties": {
@@ -428,9 +682,52 @@
         },
         "isActive": {
           "type": "boolean"
+        },
+        "level": {
+          "type": "integer",
+          "format": "int32",
+          "title": "1-9 for STUDENT/TUTOR/TEACHER"
+        },
+        "username": {
+          "type": "string",
+          "title": "unique username"
+        },
+        "avatar": {
+          "type": "string",
+          "title": "avatar URL"
+        },
+        "status": {
+          "$ref": "#/definitions/commonUserStatus"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        },
+        "googleId": {
+          "type": "string",
+          "title": "for OAuth"
         }
       },
       "title": "User message"
+    },
+    "v1VerifyEmailRequest": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      },
+      "title": "Email Verification"
+    },
+    "v1VerifyEmailResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
     }
   }
 }

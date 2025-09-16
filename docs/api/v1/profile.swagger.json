@@ -1,0 +1,582 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "v1/profile.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "ProfileService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/profile": {
+      "get": {
+        "operationId": "ProfileService_GetProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "userId",
+            "description": "Empty for current user",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      },
+      "put": {
+        "operationId": "ProfileService_UpdateProfile",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdateProfileResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UpdateProfileRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/api/v1/profile/preferences": {
+      "get": {
+        "operationId": "ProfileService_GetPreferences",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPreferencesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ProfileService"
+        ]
+      },
+      "put": {
+        "operationId": "ProfileService_UpdatePreferences",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UpdatePreferencesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1UpdatePreferencesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/api/v1/profile/sessions": {
+      "get": {
+        "operationId": "ProfileService_GetSessions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetSessionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/api/v1/profile/sessions/terminate-all": {
+      "post": {
+        "operationId": "ProfileService_TerminateAllSessions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TerminateAllSessionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1TerminateAllSessionsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    },
+    "/api/v1/profile/sessions/{sessionId}": {
+      "delete": {
+        "operationId": "ProfileService_TerminateSession",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1TerminateSessionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ProfileService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "commonResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "title": "Common response wrapper"
+    },
+    "commonUserRole": {
+      "type": "string",
+      "enum": [
+        "USER_ROLE_UNSPECIFIED",
+        "USER_ROLE_GUEST",
+        "USER_ROLE_STUDENT",
+        "USER_ROLE_TUTOR",
+        "USER_ROLE_TEACHER",
+        "USER_ROLE_ADMIN"
+      ],
+      "default": "USER_ROLE_UNSPECIFIED",
+      "description": "- USER_ROLE_GUEST: NEW: Guest users\n - USER_ROLE_STUDENT: Changed from 1\n - USER_ROLE_TUTOR: NEW: Tutor role\n - USER_ROLE_TEACHER: Changed from 2\n - USER_ROLE_ADMIN: Changed from 3",
+      "title": "Common enums"
+    },
+    "commonUserStatus": {
+      "type": "string",
+      "enum": [
+        "USER_STATUS_UNSPECIFIED",
+        "USER_STATUS_ACTIVE",
+        "USER_STATUS_INACTIVE",
+        "USER_STATUS_SUSPENDED"
+      ],
+      "default": "USER_STATUS_UNSPECIFIED",
+      "title": "User account status"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1GetPreferencesResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "preferences": {
+          "$ref": "#/definitions/v1UserPreferences"
+        }
+      }
+    },
+    "v1GetProfileResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "profile": {
+          "$ref": "#/definitions/v1UserProfile"
+        }
+      }
+    },
+    "v1GetSessionsResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "sessions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1UserSession"
+          }
+        },
+        "activeCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "maxAllowed": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1TerminateAllSessionsRequest": {
+      "type": "object",
+      "properties": {
+        "exceptCurrent": {
+          "type": "boolean",
+          "title": "Keep current session active"
+        }
+      }
+    },
+    "v1TerminateAllSessionsResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "terminatedCount": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1TerminateSessionResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "terminated": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1UpdatePreferencesRequest": {
+      "type": "object",
+      "properties": {
+        "preferences": {
+          "$ref": "#/definitions/v1UserPreferences"
+        }
+      }
+    },
+    "v1UpdatePreferencesResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "preferences": {
+          "$ref": "#/definitions/v1UserPreferences"
+        }
+      }
+    },
+    "v1UpdateProfileRequest": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "school": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        }
+      }
+    },
+    "v1UpdateProfileResponse": {
+      "type": "object",
+      "properties": {
+        "response": {
+          "$ref": "#/definitions/commonResponse"
+        },
+        "profile": {
+          "$ref": "#/definitions/v1UserProfile"
+        }
+      }
+    },
+    "v1UserPreferences": {
+      "type": "object",
+      "properties": {
+        "emailNotifications": {
+          "type": "boolean",
+          "title": "Notifications"
+        },
+        "pushNotifications": {
+          "type": "boolean"
+        },
+        "smsNotifications": {
+          "type": "boolean"
+        },
+        "autoPlayVideos": {
+          "type": "boolean",
+          "title": "Learning"
+        },
+        "defaultVideoQuality": {
+          "type": "string",
+          "title": "480p, 720p, 1080p"
+        },
+        "playbackSpeed": {
+          "type": "number",
+          "format": "float"
+        },
+        "profileVisibility": {
+          "type": "string",
+          "description": "PUBLIC, FRIENDS, PRIVATE",
+          "title": "Privacy"
+        },
+        "showOnlineStatus": {
+          "type": "boolean"
+        },
+        "allowDirectMessages": {
+          "type": "boolean"
+        },
+        "timezone": {
+          "type": "string",
+          "title": "Localization"
+        },
+        "language": {
+          "type": "string"
+        },
+        "dateFormat": {
+          "type": "string"
+        }
+      },
+      "title": "User preferences"
+    },
+    "v1UserProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "firstName": {
+          "type": "string"
+        },
+        "lastName": {
+          "type": "string"
+        },
+        "avatar": {
+          "type": "string"
+        },
+        "bio": {
+          "type": "string"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "school": {
+          "type": "string"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "title": "Format: YYYY-MM-DD"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/definitions/commonUserRole"
+        },
+        "level": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "$ref": "#/definitions/commonUserStatus"
+        },
+        "emailVerified": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "title": "Profile messages"
+    },
+    "v1UserSession": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "sessionToken": {
+          "type": "string"
+        },
+        "ipAddress": {
+          "type": "string"
+        },
+        "userAgent": {
+          "type": "string"
+        },
+        "deviceFingerprint": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "isActive": {
+          "type": "boolean"
+        },
+        "lastActivity": {
+          "type": "string"
+        },
+        "expiresAt": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        }
+      },
+      "title": "Session management"
+    }
+  }
+}

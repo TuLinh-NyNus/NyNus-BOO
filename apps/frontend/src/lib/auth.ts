@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import type { NextAuthConfig } from "next-auth";
+import { AuthService } from "@/services/grpc/auth.service";
 
 // Cấu hình NextAuth cho NyNus
 export const authConfig: NextAuthConfig = {
@@ -28,17 +29,46 @@ export const authConfig: NextAuthConfig = {
   callbacks: {
     async signIn({ user: _user, account, profile: _profile }) {
       // Kiểm tra xem user có được phép đăng nhập không
-      if (account?.provider === "google") {
-        // Có thể thêm logic kiểm tra email domain, whitelist, etc.
-        return true;
+      if (account?.provider === "google" && account.id_token) {
+        try {
+          // Exchange Google ID token với backend để lấy JWT token của hệ thống
+          const response = await AuthService.googleLogin(account.id_token);
+          
+          if (response && response.getAccessToken()) {
+            // Store backend tokens in account for later use in jwt callback
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (account as any).backendAccessToken = response.getAccessToken();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (account as any).backendRefreshToken = response.getRefreshToken();
+            
+            console.log('Google login successful with backend');
+            return true;
+          } else {
+            console.error('Backend rejected Google login');
+            return false;
+          }
+        } catch (error) {
+          console.error('Google login failed:', error);
+          return false;
+        }
       }
-      return false;
+      return true; // Allow other providers for now
     },
     async jwt({ token, account, user }) {
       // Lưu thông tin bổ sung vào JWT token
       if (account && user) {
-        token.accessToken = account.access_token;
+        // Lưu Google tokens (có thể cần để refresh)
+        token.googleAccessToken = account.access_token;
         token.provider = account.provider;
+        
+        // Lưu backend tokens
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((account as any).backendAccessToken) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          token.backendAccessToken = (account as any).backendAccessToken as string;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          token.backendRefreshToken = (account as any).backendRefreshToken as string;
+        }
       }
       return token;
     },
@@ -46,8 +76,12 @@ export const authConfig: NextAuthConfig = {
       // Gửi thông tin từ token về client
       if (token) {
         session.user.id = token.sub!;
-        session.accessToken = token.accessToken as string;
+        session.googleAccessToken = token.googleAccessToken as string;
         session.provider = token.provider as string;
+        
+        // Add backend tokens to session
+        session.backendAccessToken = token.backendAccessToken as string;
+        session.backendRefreshToken = token.backendRefreshToken as string;
       }
       return session;
     },

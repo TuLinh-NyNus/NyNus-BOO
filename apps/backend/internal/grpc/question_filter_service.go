@@ -4,26 +4,23 @@ import (
 	"context"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	question_filter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/validation"
+	question_filter "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// QuestionFilterServiceServer implements the QuestionFilterService gRPC interface
+// QuestionFilterServiceServer implements the QuestionFilterService gRPC server
 type QuestionFilterServiceServer struct {
 	v1.UnimplementedQuestionFilterServiceServer
-	questionFilterMgmt *question_filter_mgmt.QuestionFilterMgmt
-	validator          *validation.QuestionFilterValidator
+	questionFilterMgmt *question_filter.QuestionFilterMgmt
 }
 
 // NewQuestionFilterServiceServer creates a new QuestionFilterServiceServer
-func NewQuestionFilterServiceServer(questionFilterMgmt *question_filter_mgmt.QuestionFilterMgmt) *QuestionFilterServiceServer {
+func NewQuestionFilterServiceServer(questionFilterMgmt *question_filter.QuestionFilterMgmt) *QuestionFilterServiceServer {
 	return &QuestionFilterServiceServer{
 		questionFilterMgmt: questionFilterMgmt,
-		validator:          validation.NewQuestionFilterValidator(),
 	}
 }
 
@@ -39,10 +36,10 @@ func (s *QuestionFilterServiceServer) ListQuestionsByFilter(ctx context.Context,
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
 
-	// Validate request
-	if err := s.validator.ValidateListQuestionsByFilterRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "validation failed: %v", err)
-	}
+	// TODO: Add validation
+	// if err := s.validator.ValidateListQuestionsByFilterRequest(req); err != nil {
+	//     return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
+	// }
 
 	// Call question filter management layer
 	response, err := s.questionFilterMgmt.ListQuestionsByFilter(ctx, req)
@@ -61,10 +58,10 @@ func (s *QuestionFilterServiceServer) SearchQuestions(ctx context.Context, req *
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
 
-	// Validate request
-	if err := s.validator.ValidateSearchQuestionsRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "validation failed: %v", err)
-	}
+	// TODO: Add validation
+	// if err := s.validator.ValidateSearchQuestionsRequest(req); err != nil {
+	//     return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
+	// }
 
 	// Call question filter management layer
 	response, err := s.questionFilterMgmt.SearchQuestions(ctx, req)
@@ -83,10 +80,10 @@ func (s *QuestionFilterServiceServer) GetQuestionsByQuestionCode(ctx context.Con
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
 
-	// Validate request
-	if err := s.validator.ValidateGetQuestionsByQuestionCodeRequest(req); err != nil {
-		return nil, status.Errorf(codes.InvalidArgument, "validation failed: %v", err)
-	}
+	// TODO: Add validation
+	// if err := s.validator.ValidateGetQuestionsByQuestionCodeRequest(req); err != nil {
+	//     return nil, status.Errorf(codes.InvalidArgument, "invalid request: %v", err)
+	// }
 
 	// Call question filter management layer
 	response, err := s.questionFilterMgmt.GetQuestionsByQuestionCode(ctx, req)

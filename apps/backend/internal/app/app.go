@@ -86,15 +86,31 @@ func (a *App) initDatabase() error {
 
 // initGRPCServer initializes the gRPC server with all services and interceptors
 func (a *App) initGRPCServer() error {
-	// Create gRPC server with interceptors
+	// Get all interceptors in the correct order:
+	// 1. Rate Limit (first to prevent abuse)
+	// 2. Auth (authenticate user)
+	// 3. Session (validate session)
+	// 4. Role Level (authorize based on role/level)
+	// 5. Audit Log (log after authorization)
+	interceptors := a.container.GetAllInterceptors()
+	
+	// Create gRPC server with chained interceptors
 	a.grpcServer = grpcServer.NewServer(
-		grpcServer.UnaryInterceptor(a.container.GetAuthInterceptor().Unary()),
+		grpcServer.ChainUnaryInterceptor(
+			interceptors.RateLimit.Unary(),
+			interceptors.Auth.Unary(),
+			interceptors.Session.Unary(),
+			interceptors.RoleLevel.Unary(),
+			interceptors.AuditLog.Unary(),
+		),
 	)
 
 	// Register services
 	v1.RegisterUserServiceServer(a.grpcServer, a.container.GetUserGRPCService())
 	v1.RegisterQuestionServiceServer(a.grpcServer, a.container.GetQuestionGRPCService())
 	v1.RegisterQuestionFilterServiceServer(a.grpcServer, a.container.GetQuestionFilterGRPCService())
+	v1.RegisterProfileServiceServer(a.grpcServer, a.container.GetProfileGRPCService())
+	v1.RegisterAdminServiceServer(a.grpcServer, a.container.GetAdminGRPCService())
 
 	// Enable reflection for grpcurl
 	reflection.Register(a.grpcServer)
