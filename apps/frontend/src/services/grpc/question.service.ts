@@ -1,32 +1,11 @@
 /**
  * Question Service Client (gRPC-Web)
  * ======================
- * Replace HTTP calls with gRPC-Web generated stubs
+ * Uses gRPC-Web generated stubs for question management
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type {
-  CreateQuestionRequest as CreateQuestionRequestDTO,
-  CreateQuestionResponse as CreateQuestionResponseDTO,
-  GetQuestionRequest as GetQuestionRequestDTO,
-  GetQuestionResponse as GetQuestionResponseDTO,
-  UpdateQuestionRequest as UpdateQuestionRequestDTO,
-  UpdateQuestionResponse as UpdateQuestionResponseDTO,
-  DeleteQuestionRequest as DeleteQuestionRequestDTO,
-  DeleteQuestionResponse as DeleteQuestionResponseDTO,
-  ListQuestionsRequest as ListQuestionsRequestDTO,
-  ListQuestionsResponse as ListQuestionsResponseDTO,
-  ImportQuestionsRequest as ImportQuestionsRequestDTO,
-  ImportQuestionsResponse as ImportQuestionsResponseDTO,
-} from '@/types/question.types';
-
-// TODO: Re-enable when protobuf files are generated
-// import { GRPC_WEB_HOST, getAuthMetadata } from './client';
-
-// Generated protobuf messages and client
-// TODO: Temporarily disabled due to missing question_pb.js file
-// These imports need proper protobuf generation to work
-/*
+import { QuestionServiceClient } from '@/generated/v1/QuestionServiceClientPb';
 import {
   CreateQuestionRequest,
   CreateQuestionResponse,
@@ -46,12 +25,10 @@ import {
   SingleAnswer,
   MultipleAnswers,
   TextAnswer,
+  Question,
 } from '@/generated/v1/question_pb';
-import { QuestionServiceClient } from '@/generated/v1/question_pb_service';
-*/
-// Pagination struct is included within v1 responses; common may not export TS impl here
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { PaginationRequest as PbPaginationRequest } from '@/generated/common/common_pb';
+import { PaginationRequest } from '@/generated/common/common_pb';
+import { RpcError } from 'grpc-web';
 
 // TODO: Temporarily disabled - need proper protobuf generation
 /*
@@ -178,71 +155,346 @@ function toUpdateReq(dto: UpdateQuestionRequestDTO): UpdateQuestionRequest {
 
 */
 
-// Temporary stub implementation for QuestionService
+// gRPC client configuration
+const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+const questionServiceClient = new QuestionServiceClient(GRPC_ENDPOINT);
+
+// Helper to get auth metadata
+function getAuthMetadata(): { [key: string]: string } {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('nynus-auth-token');
+    if (token) {
+      return { 'authorization': `Bearer ${token}` };
+    }
+  }
+  return {};
+}
+
+// Handle gRPC errors
+function handleGrpcError(error: RpcError): string {
+  console.error('gRPC Error:', error);
+  switch (error.code) {
+    case 3: return error.message || 'Invalid input provided';
+    case 7: return 'Permission denied';
+    case 14: return 'Service temporarily unavailable';
+    case 16: return 'Authentication required';
+    default: return error.message || 'An unexpected error occurred';
+  }
+}
+
+// Map Answer to protobuf
+function mapAnswerToPb(a: any): Answer {
+  const answer = new Answer();
+  answer.setId(a.id);
+  answer.setContent(a.content);
+  answer.setIsCorrect(!!a.is_correct);
+  if (a.explanation) answer.setExplanation(a.explanation);
+  return answer;
+}
+
+// Map CorrectAnswer to protobuf
+function mapCorrectToPb(c: any): CorrectAnswer | undefined {
+  if (!c) return undefined;
+  const correct = new CorrectAnswer();
+  if (c.single) {
+    const single = new SingleAnswer();
+    single.setAnswerId(c.single.answer_id);
+    correct.setSingle(single);
+  }
+  if (c.multiple) {
+    const multiple = new MultipleAnswers();
+    multiple.setAnswerIdsList(c.multiple.answer_ids);
+    correct.setMultiple(multiple);
+  }
+  if (c.text) {
+    const text = new TextAnswer();
+    text.setText(c.text.text);
+    correct.setText(text);
+  }
+  return correct;
+}
+
+// Map Question from protobuf
+function mapQuestionFromPb(q: Question): any {
+  const result: any = {
+    id: q.getId(),
+    raw_content: q.getRawContent(),
+    content: q.getContent(),
+    subcount: q.getSubcount(),
+    type: q.getType(),
+    source: q.getSource(),
+    solution: q.getSolution(),
+    tag: q.getTagList(),
+    usage_count: q.getUsageCount(),
+    creator: q.getCreator(),
+    status: q.getStatus(),
+    feedback: q.getFeedback(),
+    difficulty: q.getDifficulty(),
+    question_code_id: q.getQuestionCodeId(),
+    created_at: q.getCreatedAt(),
+    updated_at: q.getUpdatedAt(),
+  };
+
+  const structuredAnswers = q.getStructuredAnswers();
+  if (structuredAnswers) {
+    result.structured_answers = structuredAnswers.getAnswersList().map((a: Answer) => ({
+      id: a.getId(),
+      content: a.getContent(),
+      is_correct: a.getIsCorrect(),
+      explanation: a.getExplanation() || undefined,
+    }));
+  }
+
+  const jsonAnswers = q.getJsonAnswers();
+  if (jsonAnswers) {
+    result.json_answers = jsonAnswers;
+  }
+
+  const structuredCorrect = q.getStructuredCorrect();
+  if (structuredCorrect) {
+    const correct: any = {};
+    const single = structuredCorrect.getSingle();
+    const multiple = structuredCorrect.getMultiple();
+    const text = structuredCorrect.getText();
+    
+    if (single) correct.single = { answer_id: single.getAnswerId() };
+    if (multiple) correct.multiple = { answer_ids: multiple.getAnswerIdsList() };
+    if (text) correct.text = { text: text.getText() };
+    result.structured_correct = correct;
+  }
+
+  const jsonCorrect = q.getJsonCorrectAnswer();
+  if (jsonCorrect) {
+    result.json_correct_answer = jsonCorrect;
+  }
+
+  return result;
+}
+
 export class QuestionService {
-  static async createQuestion(_dto: CreateQuestionRequestDTO): Promise<CreateQuestionResponseDTO> {
-    // TODO: Implement with proper gRPC when protobuf files are generated
-    console.warn('QuestionService.createQuestion is stubbed - need protobuf generation');
-    return Promise.resolve({
-      success: false,
-      message: 'Service temporarily unavailable',
-      errors: ['Protobuf files not generated'],
-      question: undefined
-    });
+  static async createQuestion(dto: any): Promise<any> {
+    try {
+      const request = new CreateQuestionRequest();
+      request.setRawContent(dto.raw_content);
+      request.setContent(dto.content);
+      request.setSubcount(dto.subcount);
+      request.setType(dto.type);
+      request.setSource(dto.source);
+      
+      if (dto.structured_answers && dto.structured_answers.length > 0) {
+        const answerList = new AnswerList();
+        answerList.setAnswersList(dto.structured_answers.map(mapAnswerToPb));
+        request.setStructuredAnswers(answerList);
+      }
+      
+      if (dto.json_answers) {
+        request.setJsonAnswers(dto.json_answers);
+      }
+      
+      const correct = mapCorrectToPb(dto.structured_correct);
+      if (correct) {
+        request.setStructuredCorrect(correct);
+      }
+      
+      if (dto.json_correct_answer) {
+        request.setJsonCorrectAnswer(dto.json_correct_answer);
+      }
+      
+      if (dto.solution) request.setSolution(dto.solution);
+      if (dto.tag) request.setTagList(dto.tag);
+      request.setQuestionCodeId(dto.question_code_id || '');
+      request.setStatus(dto.status || 0);
+      request.setDifficulty(dto.difficulty || 0);
+      request.setCreator(dto.creator || '');
+
+      const response = await questionServiceClient.createQuestion(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        question: responseObj.question ? mapQuestionFromPb(response.getQuestion()!) : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        question: undefined
+      };
+    }
   }
 
-  static async getQuestion(_dto: GetQuestionRequestDTO): Promise<GetQuestionResponseDTO> {
-    console.warn('QuestionService.getQuestion is stubbed - need protobuf generation');
-    return Promise.resolve({
-      success: false,
-      message: 'Service temporarily unavailable',
-      errors: ['Protobuf files not generated'],
-      question: undefined
-    });
+  static async getQuestion(dto: any): Promise<any> {
+    try {
+      const request = new GetQuestionRequest();
+      request.setId(dto.id);
+
+      const response = await questionServiceClient.getQuestion(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        question: responseObj.question ? mapQuestionFromPb(response.getQuestion()!) : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        question: undefined
+      };
+    }
   }
 
-  static async updateQuestion(_dto: UpdateQuestionRequestDTO): Promise<UpdateQuestionResponseDTO> {
-    console.warn('QuestionService.updateQuestion is stubbed - need protobuf generation');
-    return Promise.resolve({
-      success: false,
-      message: 'Service temporarily unavailable',
-      errors: ['Protobuf files not generated'],
-      question: undefined
-    });
+  static async updateQuestion(dto: any): Promise<any> {
+    try {
+      const request = new UpdateQuestionRequest();
+      request.setId(dto.id);
+      request.setRawContent(dto.raw_content);
+      request.setContent(dto.content);
+      request.setSubcount(dto.subcount);
+      request.setType(dto.type);
+      request.setSource(dto.source);
+      
+      if (dto.structured_answers && dto.structured_answers.length > 0) {
+        const answerList = new AnswerList();
+        answerList.setAnswersList(dto.structured_answers.map(mapAnswerToPb));
+        request.setStructuredAnswers(answerList);
+      }
+      
+      if (dto.json_answers) {
+        request.setJsonAnswers(dto.json_answers);
+      }
+      
+      const correct = mapCorrectToPb(dto.structured_correct);
+      if (correct) {
+        request.setStructuredCorrect(correct);
+      }
+      
+      if (dto.json_correct_answer) {
+        request.setJsonCorrectAnswer(dto.json_correct_answer);
+      }
+      
+      if (dto.solution) request.setSolution(dto.solution);
+      if (dto.tag) request.setTagList(dto.tag);
+      request.setQuestionCodeId(dto.question_code_id || '');
+      request.setStatus(dto.status || 0);
+      request.setDifficulty(dto.difficulty || 0);
+
+      const response = await questionServiceClient.updateQuestion(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        question: responseObj.question ? mapQuestionFromPb(response.getQuestion()!) : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        question: undefined
+      };
+    }
   }
 
-  static async deleteQuestion(_dto: DeleteQuestionRequestDTO): Promise<DeleteQuestionResponseDTO> {
-    console.warn('QuestionService.deleteQuestion is stubbed - need protobuf generation');
-    return Promise.resolve({
-      success: false,
-      message: 'Service temporarily unavailable',
-      errors: ['Protobuf files not generated']
-    });
+  static async deleteQuestion(dto: any): Promise<any> {
+    try {
+      const request = new DeleteQuestionRequest();
+      request.setId(dto.id);
+
+      const response = await questionServiceClient.deleteQuestion(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || []
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage]
+      };
+    }
   }
 
-  static async listQuestions(_dto: ListQuestionsRequestDTO = {}): Promise<ListQuestionsResponseDTO> {
-    console.warn('QuestionService.listQuestions is stubbed - need protobuf generation');
-    return Promise.resolve({
-      success: false,
-      message: 'Service temporarily unavailable',
-      errors: ['Protobuf files not generated'],
-      questions: [],
-      pagination: undefined
-    });
+  static async listQuestions(dto: any = {}): Promise<any> {
+    try {
+      const request = new ListQuestionsRequest();
+      
+      if (dto.pagination) {
+        const pagination = new PaginationRequest();
+        pagination.setPage(dto.pagination.page || 1);
+        pagination.setLimit(dto.pagination.limit || 10);
+        request.setPagination(pagination);
+      }
+
+      const response = await questionServiceClient.listQuestions(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        questions: response.getQuestionsList().map(mapQuestionFromPb),
+        pagination: responseObj.pagination
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        questions: [],
+        pagination: undefined
+      };
+    }
   }
 
-  static async importQuestions(_dto: ImportQuestionsRequestDTO): Promise<ImportQuestionsResponseDTO> {
-    console.warn('QuestionService.importQuestions is stubbed - need protobuf generation');
-    return Promise.resolve({
-      success: false,
-      message: 'Service temporarily unavailable',
-      total_processed: 0,
-      created_count: 0,
-      updated_count: 0,
-      error_count: 0,
-      errors: [],
-      summary: 'Protobuf files not generated'
-    } as any);
+  static async importQuestions(dto: any): Promise<any> {
+    try {
+      const request = new ImportQuestionsRequest();
+      request.setCsvDataBase64(dto.csv_data_base64);
+      request.setUpsertMode(dto.upsert_mode || false);
+
+      const response = await questionServiceClient.importQuestions(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        total_processed: responseObj.totalProcessed || 0,
+        created_count: responseObj.createdCount || 0,
+        updated_count: responseObj.updatedCount || 0,
+        error_count: responseObj.errorCount || 0,
+        errors: responseObj.errorsList || [],
+        summary: responseObj.summary || ''
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        total_processed: 0,
+        created_count: 0,
+        updated_count: 0,
+        error_count: 0,
+        errors: [errorMessage],
+        summary: errorMessage
+      };
+    }
   }
 }
 

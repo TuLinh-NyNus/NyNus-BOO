@@ -1,116 +1,228 @@
 /**
- * Contact Service (gRPC-Mock)
+ * Contact Service gRPC Client
  * Service for handling contact form submissions
- * TODO: Replace with actual gRPC service when backend implements it
  * 
  * @author NyNus Team
- * @version 1.0.0
+ * @version 2.0.0
  */
 
-import { 
-  isGrpcError, 
-  getGrpcErrorMessage, 
-  logGrpcError 
-} from '@/lib/grpc/errors';
+import { ContactServiceClient } from '@/generated/v1/ContactServiceClientPb';
+import {
+  ContactFormRequest,
+  ContactFormResponse,
+  ListContactsRequest,
+  ListContactsResponse,
+  GetContactRequest,
+  GetContactResponse,
+  UpdateContactStatusRequest,
+  UpdateContactStatusResponse,
+  DeleteContactRequest,
+  DeleteContactResponse,
+  ContactSubmission,
+} from '@/generated/v1/contact_pb';
+import { PaginationRequest } from '@/generated/common/common_pb';
+import { RpcError } from 'grpc-web';
 
-// ===== TYPES =====
+// gRPC client configuration
+const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+const contactServiceClient = new ContactServiceClient(GRPC_ENDPOINT);
 
-export interface ContactFormRequest {
-  name: string;
-  email: string;
-  subject: string;
-  message: string;
+// Helper to get auth metadata
+function getAuthMetadata(): { [key: string]: string } {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('nynus-auth-token');
+    if (token) {
+      return { 'authorization': `Bearer ${token}` };
+    }
+  }
+  return {};
 }
 
-export interface ContactFormResponse {
-  success: boolean;
-  message: string;
-  data?: {
-    name: string;
-    email: string;
-    subject: string;
-    submissionId: string;
+// Handle gRPC errors
+function handleGrpcError(error: RpcError): string {
+  console.error('gRPC Error:', error);
+  switch (error.code) {
+    case 3: return error.message || 'Invalid input provided';
+    case 7: return 'Permission denied';
+    case 14: return 'Service temporarily unavailable';
+    case 16: return 'Authentication required';
+    default: return error.message || 'An unexpected error occurred';
+  }
+}
+
+// Map ContactSubmission from protobuf
+function mapContactFromPb(contact: ContactSubmission): any {
+  return {
+    id: contact.getId(),
+    name: contact.getName(),
+    email: contact.getEmail(),
+    subject: contact.getSubject(),
+    message: contact.getMessage(),
+    phone: contact.getPhone(),
+    status: contact.getStatus(),
+    submission_id: contact.getSubmissionId(),
+    created_at: contact.getCreatedAt()?.toDate(),
+    updated_at: contact.getUpdatedAt()?.toDate(),
   };
 }
 
-// ===== SERVICE IMPLEMENTATION =====
-
 export class ContactService {
   /**
-   * Submit contact form (Mock implementation)
-   * TODO: Replace with actual gRPC call when backend is ready
+   * Submit contact form
    */
-  static async submitContactForm(request: ContactFormRequest): Promise<ContactFormResponse> {
-    // Validate required fields
-    if (!request.name || !request.email || !request.subject || !request.message) {
-      const error = new Error('Tất cả các trường là bắt buộc') as Error & { code: number };
-      error.code = 3; // INVALID_ARGUMENT
-      throw error;
+  static async submitContactForm(data: any): Promise<any> {
+    try {
+      const request = new ContactFormRequest();
+      request.setName(data.name);
+      request.setEmail(data.email);
+      request.setSubject(data.subject);
+      request.setMessage(data.message);
+      if (data.phone) request.setPhone(data.phone);
+
+      // No auth metadata needed for public endpoint
+      const response = await contactServiceClient.submitContactForm(request, {});
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        submission: responseObj.submission ? mapContactFromPb(response.getSubmission()!) : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        submission: undefined
+      };
     }
+  }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(request.email)) {
-      const error = new Error('Email không hợp lệ') as Error & { code: number };
-      error.code = 3; // INVALID_ARGUMENT
-      throw error;
-    }
-
-    // Validate message length
-    if (request.message.length < 10) {
-      const error = new Error('Nội dung tin nhắn phải có ít nhất 10 ký tự') as Error & { code: number };
-      error.code = 3; // INVALID_ARGUMENT
-      throw error;
-    }
-
-    // Simulate gRPC call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Simulate some error cases for testing
-    if (request.email.includes('test@error.com')) {
-      const error = new Error('Server đang bảo trì, vui lòng thử lại sau') as Error & { code: number };
-      error.code = 14; // UNAVAILABLE
-      throw error;
-    }
-
-    // Mock successful submission
-    const submissionId = `contact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    // Log the contact form submission (in real implementation, this would be sent to backend)
-    console.log('Contact form submission:', {
-      ...request,
-      submissionId,
-      timestamp: new Date().toISOString()
-    });
-
-    return {
-      success: true,
-      message: 'Gửi tin nhắn thành công! Chúng tôi sẽ phản hồi trong thời gian sớm nhất.',
-      data: {
-        name: request.name,
-        email: request.email,
-        subject: request.subject,
-        submissionId
+  /**
+   * List contact submissions (Admin)
+   */
+  static async listContacts(req: any = {}): Promise<any> {
+    try {
+      const request = new ListContactsRequest();
+      
+      // Set pagination
+      if (req.pagination) {
+        const pagination = new PaginationRequest();
+        pagination.setPage(req.pagination.page || 1);
+        pagination.setLimit(req.pagination.limit || 20);
+        request.setPagination(pagination);
       }
-    };
-  }
-}
+      
+      // Set filters
+      if (req.status) request.setStatus(req.status);
+      if (req.search) request.setSearch(req.search);
 
-// ===== ERROR HANDLING HELPER =====
-
-/**
- * Handle Contact service errors with proper gRPC error handling
- */
-export function handleContactError(error: unknown, operation: string): never {
-  logGrpcError(error, `ContactService.${operation}`);
-  
-  let errorMessage = 'Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại sau.';
-  
-  if (isGrpcError(error)) {
-    errorMessage = getGrpcErrorMessage(error);
-  } else if (error instanceof Error) {
-    errorMessage = error.message;
+      const response = await contactServiceClient.listContacts(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        submissions: response.getSubmissionsList().map(mapContactFromPb),
+        pagination: responseObj.pagination,
+        total_unread: responseObj.totalUnread
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        submissions: [],
+        pagination: undefined,
+        total_unread: 0
+      };
+    }
   }
-  
-  throw new Error(errorMessage);
+
+  /**
+   * Get single contact submission (Admin)
+   */
+  static async getContact(id: string): Promise<any> {
+    try {
+      const request = new GetContactRequest();
+      request.setId(id);
+
+      const response = await contactServiceClient.getContact(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        submission: responseObj.submission ? mapContactFromPb(response.getSubmission()!) : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        submission: undefined
+      };
+    }
+  }
+
+  /**
+   * Update contact status (Admin)
+   */
+  static async updateContactStatus(id: string, status: string): Promise<any> {
+    try {
+      const request = new UpdateContactStatusRequest();
+      request.setId(id);
+      request.setStatus(status);
+
+      const response = await contactServiceClient.updateContactStatus(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        submission: responseObj.submission ? mapContactFromPb(response.getSubmission()!) : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        submission: undefined
+      };
+    }
+  }
+
+  /**
+   * Delete contact submission (Admin)
+   */
+  static async deleteContact(id: string): Promise<any> {
+    try {
+      const request = new DeleteContactRequest();
+      request.setId(id);
+
+      const response = await contactServiceClient.deleteContact(request, getAuthMetadata());
+      const responseObj = response.toObject();
+      
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || []
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage]
+      };
+    }
+  }
 }

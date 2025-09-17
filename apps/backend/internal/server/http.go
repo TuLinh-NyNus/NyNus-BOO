@@ -158,6 +158,21 @@ func (s *HTTPServer) registerServices(ctx context.Context, endpoint string, opts
 		return fmt.Errorf("failed to register QuestionFilterService: %w", err)
 	}
 
+	// Register ContactService
+	if err := v1.RegisterContactServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+		return fmt.Errorf("failed to register ContactService: %w", err)
+	}
+
+	// Register NewsletterService
+	if err := v1.RegisterNewsletterServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+		return fmt.Errorf("failed to register NewsletterService: %w", err)
+	}
+
+	// Register ExamService (when available)
+	// if err := v1.RegisterExamServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+	//     return fmt.Errorf("failed to register ExamService: %w", err)
+	// }
+
 	return nil
 }
 
