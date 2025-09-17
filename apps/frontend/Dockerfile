@@ -11,7 +11,7 @@ WORKDIR /app
 COPY apps/frontend/package.json apps/frontend/pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY apps/frontend .

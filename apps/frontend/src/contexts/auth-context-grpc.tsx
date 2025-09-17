@@ -4,7 +4,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useRouter } from 'next/navigation';
 import { signIn, signOut as nextAuthSignOut, useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
-import { AuthService, AuthHelpers } from '@/services/grpc/auth.service';
+import { AuthService } from '@/services/grpc/auth.service';
+import { AuthHelpers } from '@/services/grpc/auth.service';
 import type { User } from '@/lib/types/user';
 
 /**

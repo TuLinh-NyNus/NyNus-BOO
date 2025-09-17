@@ -13,6 +13,8 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/oauth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
 	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
+	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/contact"
+	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/newsletter"
 	question_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_mgmt"
 	question_filter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
 	user_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/user"
@@ -36,12 +38,16 @@ type Container struct {
 	AuditLogRepo         repository.AuditLogRepository
 	QuestionRepo         interfaces.QuestionRepository
 	QuestionCodeRepo     interfaces.QuestionCodeRepository
+	ContactRepo          *repository.ContactRepository
+	NewsletterRepo       *repository.NewsletterRepository
 
 	// Services
 	AuthMgmt           *auth_mgmt.AuthMgmt
 	UserMgmt           *user_mgmt.UserMgmt
 	QuestionMgmt       *question_mgmt.QuestionMgmt
 	QuestionFilterMgmt *question_filter_mgmt.QuestionFilterMgmt
+	ContactMgmt        *contact_mgmt.ContactMgmt
+	NewsletterMgmt     *newsletter_mgmt.NewsletterMgmt
 	JWTService         *auth.JWTService
 	OAuthService       *oauth.OAuthService
 	SessionService     *session.SessionService
@@ -60,6 +66,8 @@ type Container struct {
 	QuestionFilterGRPCService *grpc.QuestionFilterServiceServer
 	ProfileGRPCService        *grpc.ProfileServiceServer
 	AdminGRPCService          *grpc.AdminServiceServer
+	ContactGRPCService        *grpc.ContactServiceServer
+	NewsletterGRPCService     *grpc.NewsletterServiceServer
 
 	// Configuration
 	JWTSecret string
@@ -96,6 +104,8 @@ func (c *Container) initRepositories() {
 	c.AuditLogRepo = repository.NewAuditLogRepository(c.DB)
 	c.QuestionRepo = repository.NewQuestionRepository(c.DB)
 	c.QuestionCodeRepo = repository.NewQuestionCodeRepository(c.DB)
+	c.ContactRepo = repository.NewContactRepository(c.DB)
+	c.NewsletterRepo = repository.NewNewsletterRepository(c.DB)
 }
 
 // initServices initializes all service dependencies
@@ -111,6 +121,12 @@ func (c *Container) initServices() {
 
 	// Initialize QuestionFilterMgmt with database connection
 	c.QuestionFilterMgmt = question_filter_mgmt.NewQuestionFilterMgmt(c.DB)
+
+	// Initialize ContactMgmt with repository
+	c.ContactMgmt = contact_mgmt.NewContactMgmt(c.ContactRepo)
+
+	// Initialize NewsletterMgmt with repository
+	c.NewsletterMgmt = newsletter_mgmt.NewNewsletterMgmt(c.NewsletterRepo)
 
 	// Initialize JWT Service
 	accessSecret := getEnvOrDefault("JWT_ACCESS_SECRET", c.JWTSecret)
@@ -160,6 +176,8 @@ func (c *Container) initGRPCServices() {
 	c.AdminGRPCService = grpc.NewAdminServiceServer(
 		c.UserRepoWrapper, c.AuditLogRepo, c.ResourceAccessRepo, c.EnrollmentRepo, c.NotificationSvc,
 	)
+	c.ContactGRPCService = grpc.NewContactServiceServer(c.ContactMgmt)
+	c.NewsletterGRPCService = grpc.NewNewsletterServiceServer(c.NewsletterMgmt)
 }
 
 // GetUserRepository returns the user repository
@@ -195,6 +213,16 @@ func (c *Container) GetQuestionFilterMgmt() *question_filter_mgmt.QuestionFilter
 // GetAuthInterceptor returns the auth interceptor
 func (c *Container) GetAuthInterceptor() *middleware.AuthInterceptor {
 	return c.AuthInterceptor
+}
+
+// GetContactGRPCService returns the contact gRPC service
+func (c *Container) GetContactGRPCService() *grpc.ContactServiceServer {
+	return c.ContactGRPCService
+}
+
+// GetNewsletterGRPCService returns the newsletter gRPC service
+func (c *Container) GetNewsletterGRPCService() *grpc.NewsletterServiceServer {
+	return c.NewsletterGRPCService
 }
 
 // GetUserGRPCService returns the user gRPC service

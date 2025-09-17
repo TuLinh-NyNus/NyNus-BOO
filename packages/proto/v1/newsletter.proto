@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/protobuf/timestamp.proto";
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Newsletter subscription request
+message NewsletterSubscribeRequest {
+  string email = 1;  // Required: email address to subscribe
+  repeated string tags = 2;  // Optional: tags for segmentation
+  map<string, string> metadata = 3;  // Optional: additional metadata
+}
+
+// Newsletter subscription response
+message NewsletterSubscribeResponse {
+  common.Response response = 1;
+  NewsletterSubscription subscription = 2;
+}
+
+// Newsletter unsubscribe request
+message NewsletterUnsubscribeRequest {
+  string email = 1;  // Email to unsubscribe
+  string reason = 2;  // Optional: reason for unsubscribing
+}
+
+// Newsletter unsubscribe response
+message NewsletterUnsubscribeResponse {
+  common.Response response = 1;
+}
+
+// Newsletter subscription data
+message NewsletterSubscription {
+  string id = 1;
+  string email = 2;
+  string status = 3;  // active, unsubscribed, bounced, pending
+  string subscription_id = 4;
+  google.protobuf.Timestamp confirmed_at = 5;
+  google.protobuf.Timestamp unsubscribed_at = 6;
+  string unsubscribe_reason = 7;
+  string source = 8;  // website, admin, import
+  repeated string tags = 9;
+  map<string, string> metadata = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// List newsletter subscriptions request
+message ListSubscriptionsRequest {
+  common.PaginationRequest pagination = 1;
+  string status = 2;  // Filter by status
+  string search = 3;  // Search in email
+  repeated string tags = 4;  // Filter by tags
+}
+
+// List newsletter subscriptions response
+message ListSubscriptionsResponse {
+  common.Response response = 1;
+  repeated NewsletterSubscription subscriptions = 2;
+  common.PaginationResponse pagination = 3;
+  SubscriptionStats stats = 4;
+}
+
+// Subscription statistics
+message SubscriptionStats {
+  int32 total_active = 1;
+  int32 total_unsubscribed = 2;
+  int32 total_bounced = 3;
+  int32 total_pending = 4;
+  int32 new_this_week = 5;
+  int32 new_this_month = 6;
+}
+
+// Get subscription request
+message GetSubscriptionRequest {
+  string email = 1;
+}
+
+// Get subscription response
+message GetSubscriptionResponse {
+  common.Response response = 1;
+  NewsletterSubscription subscription = 2;
+}
+
+// Update subscription tags request
+message UpdateSubscriptionTagsRequest {
+  string email = 1;
+  repeated string tags = 2;
+}
+
+// Update subscription tags response
+message UpdateSubscriptionTagsResponse {
+  common.Response response = 1;
+  NewsletterSubscription subscription = 2;
+}
+
+// Delete subscription request (admin only, complete removal)
+message DeleteSubscriptionRequest {
+  string id = 1;
+}
+
+// Delete subscription response
+message DeleteSubscriptionResponse {
+  common.Response response = 1;
+}
+
+// Newsletter campaign (for future use)
+message NewsletterCampaign {
+  string id = 1;
+  string name = 2;
+  string subject = 3;
+  string content = 4;
+  string status = 5;  // draft, scheduled, sending, sent
+  google.protobuf.Timestamp scheduled_at = 6;
+  google.protobuf.Timestamp sent_at = 7;
+  int32 total_recipients = 8;
+  int32 sent_count = 9;
+  int32 open_count = 10;
+  int32 click_count = 11;
+  int32 bounce_count = 12;
+  int32 unsubscribe_count = 13;
+  string created_by = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+}
+
+// Newsletter service definition
+service NewsletterService {
+  // Public endpoints
+  rpc Subscribe(NewsletterSubscribeRequest) returns (NewsletterSubscribeResponse);
+  rpc Unsubscribe(NewsletterUnsubscribeRequest) returns (NewsletterUnsubscribeResponse);
+  
+  // Admin endpoints
+  rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse);
+  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse);
+  rpc UpdateSubscriptionTags(UpdateSubscriptionTagsRequest) returns (UpdateSubscriptionTagsResponse);
+  rpc DeleteSubscription(DeleteSubscriptionRequest) returns (DeleteSubscriptionResponse);
+}

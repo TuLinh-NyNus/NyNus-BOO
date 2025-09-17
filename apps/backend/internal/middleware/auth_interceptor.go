@@ -33,6 +33,9 @@ var ignoreAuthEndpoints = []string{
 	"/v1.UserService/RefreshToken",
 	"/v1.UserService/ForgotPassword",
 	"/v1.UserService/VerifyEmail",
+	"/v1.ContactService/SubmitContactForm",  // Public contact form
+	"/v1.NewsletterService/Subscribe",       // Public newsletter subscription
+	"/v1.NewsletterService/Unsubscribe",     // Public newsletter unsubscription
 	"/grpc.health.v1.Health/Check",
 }
 
@@ -67,6 +70,18 @@ var rbacDecider = map[string][]string{
 	"/v1.ExamService/StartExam":  {constant.RoleStudent},
 	"/v1.ExamService/SubmitExam": {constant.RoleStudent},
 	"/v1.ExamService/GetResults": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+
+	// Contact Management APIs (Admin only)
+	"/v1.ContactService/ListContacts":       {constant.RoleAdmin},
+	"/v1.ContactService/GetContact":         {constant.RoleAdmin},
+	"/v1.ContactService/UpdateContactStatus": {constant.RoleAdmin},
+	"/v1.ContactService/DeleteContact":      {constant.RoleAdmin},
+
+	// Newsletter Management APIs (Admin only)
+	"/v1.NewsletterService/ListSubscriptions":     {constant.RoleAdmin},
+	"/v1.NewsletterService/GetSubscription":       {constant.RoleAdmin},
+	"/v1.NewsletterService/UpdateSubscriptionTags": {constant.RoleAdmin},
+	"/v1.NewsletterService/DeleteSubscription":    {constant.RoleAdmin},
 }
 
 type AuthInterceptor struct {

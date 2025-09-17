@@ -1,0 +1,97 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/protobuf/timestamp.proto";
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Contact form submission request
+message ContactFormRequest {
+  string name = 1;     // Required: sender name
+  string email = 2;    // Required: sender email
+  string subject = 3;  // Required: message subject
+  string message = 4;  // Required: message content
+  string phone = 5;    // Optional: phone number
+}
+
+// Contact form submission response
+message ContactFormResponse {
+  common.Response response = 1;
+  ContactSubmission submission = 2;
+}
+
+// Contact submission data
+message ContactSubmission {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string subject = 4;
+  string message = 5;
+  string phone = 6;
+  string status = 7;  // pending, read, replied, archived
+  string submission_id = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
+// List contact submissions request
+message ListContactsRequest {
+  common.PaginationRequest pagination = 1;
+  string status = 2;  // Filter by status
+  string search = 3;  // Search in name, email, subject
+}
+
+// List contact submissions response
+message ListContactsResponse {
+  common.Response response = 1;
+  repeated ContactSubmission submissions = 2;
+  common.PaginationResponse pagination = 3;
+  int32 total_unread = 4;
+}
+
+// Get contact submission request
+message GetContactRequest {
+  string id = 1;
+}
+
+// Get contact submission response
+message GetContactResponse {
+  common.Response response = 1;
+  ContactSubmission submission = 2;
+}
+
+// Update contact status request
+message UpdateContactStatusRequest {
+  string id = 1;
+  string status = 2;  // pending, read, replied, archived
+}
+
+// Update contact status response
+message UpdateContactStatusResponse {
+  common.Response response = 1;
+  ContactSubmission submission = 2;
+}
+
+// Delete contact request
+message DeleteContactRequest {
+  string id = 1;
+}
+
+// Delete contact response
+message DeleteContactResponse {
+  common.Response response = 1;
+}
+
+// Contact service definition
+service ContactService {
+  // Public endpoint - submit contact form
+  rpc SubmitContactForm(ContactFormRequest) returns (ContactFormResponse);
+  
+  // Admin endpoints
+  rpc ListContacts(ListContactsRequest) returns (ListContactsResponse);
+  rpc GetContact(GetContactRequest) returns (GetContactResponse);
+  rpc UpdateContactStatus(UpdateContactStatusRequest) returns (UpdateContactStatusResponse);
+  rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse);
+}
