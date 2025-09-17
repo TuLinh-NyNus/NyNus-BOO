@@ -1322,37 +1322,964 @@ sequenceDiagram
 2. **Generated Exams**: Interactive testing từ đề đã convert
 3. **Hybrid Approach**: Có thể sử dụng cả 2 cùng lúc
 
+## Exam Sharing & Comparison System
+
+### Tổng quan
+
+**Use Case**: Tạo bài kiểm tra từ ngân hàng câu hỏi → Gửi cho người khác làm → So sánh điểm
+
+**Tình trạng hiện tại**: Hệ thống có nền tảng tốt với khả năng phân biệt đầy đủ các loại và dạng đề thi, nhưng **CHƯA ĐỦ** để đáp ứng yêu cầu chia sẻ có kiểm soát và so sánh điểm.
+
+### ✅ Những gì đã có
+
+- Tạo đề từ ngân hàng câu hỏi (`exam_questions` ↔ `questions`)
+- Người dùng làm bài (`exam_attempts`)
+- Tính điểm tự động (`exam_results`)
+- Thống kê cơ bản (`GetExamStatistics`)
+
+### ❌ Những gì còn thiếu
+
+1. **Cơ chế chia sẻ/gửi đề thi có kiểm soát**
+2. **Tính năng so sánh điểm giữa người dùng**
+3. **Quản lý nhóm/lớp học**
+4. **Giới hạn thời gian truy cập**
+5. **Thông báo tự động**
+
+### Database Schema Bổ sung
+
+#### 1. Bảng `exam_shares` - Quản lý chia sẻ đề thi
+
+```sql
+CREATE TABLE exam_shares (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    exam_id UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
+    shared_by UUID NOT NULL REFERENCES users(id),
+    
+    -- Share Configuration
+    share_type VARCHAR(20) NOT NULL DEFAULT 'individual',  -- 'individual', 'group', 'public_link'
+    access_code VARCHAR(20),                                -- Mã truy cập (optional)
+    share_link VARCHAR(500),                                -- Link chia sẻ
+    
+    -- Access Control
+    max_attempts INT DEFAULT 1,                            -- Số lần làm tối đa
+    max_recipients INT,                                     -- Số người tối đa
+    requires_approval BOOLEAN DEFAULT false,               -- Cần phê duyệt
+    
+    -- Time Control
+    available_from TIMESTAMPTZ,                            -- Có thể truy cập từ
+    available_until TIMESTAMPTZ,                           -- Có thể truy cập đến
+    expires_at TIMESTAMPTZ,                                -- Hết hạn link
+    
+    -- Status & Metadata
+    status VARCHAR(20) DEFAULT 'active',                   -- 'active', 'expired', 'disabled'
+    description TEXT,                                       -- Mô tả mục đích chia sẻ
+    
+    -- Tracking
+    total_recipients INT DEFAULT 0,                        -- Tổng số người được mời
+    total_accessed INT DEFAULT 0,                          -- Tổng số người đã truy cập
+    total_completed INT DEFAULT 0,                         -- Tổng số người đã hoàn thành
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraints
+    CHECK (share_type IN ('individual', 'group', 'public_link')),
+    CHECK (status IN ('active', 'expired', 'disabled'))
+);
+```
+
+#### 2. Bảng `exam_share_recipients` - Người được chia sẻ
+
+```sql
+CREATE TABLE exam_share_recipients (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    share_id UUID NOT NULL REFERENCES exam_shares(id) ON DELETE CASCADE,
+    
+    -- Recipient Info
+    user_id UUID REFERENCES users(id),                     -- User ID (nếu có tài khoản)
+    email VARCHAR(255),                                     -- Email (nếu chưa có tài khoản)
+    group_id UUID REFERENCES exam_groups(id),              -- Group ID (nếu share với group)
+    
+    -- Status
+    status VARCHAR(20) DEFAULT 'pending',                  -- 'pending', 'accepted', 'declined', 'expired'
+    invitation_token VARCHAR(100),                         -- Token để verify
+    
+    -- Tracking
+    invited_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    first_accessed_at TIMESTAMPTZ,
+    last_accessed_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    
+    -- Constraints
+    CHECK (user_id IS NOT NULL OR email IS NOT NULL),      -- Phải có ít nhất user_id hoặc email
+    CHECK (status IN ('pending', 'accepted', 'declined', 'expired')),
+    UNIQUE(share_id, user_id),                              -- Một user chỉ được mời 1 lần/share
+    UNIQUE(share_id, email)                                 -- Một email chỉ được mời 1 lần/share
+);
+```
+
+#### 3. Bảng `exam_groups` - Nhóm/Lớp học
+
+```sql
+CREATE TABLE exam_groups (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    
+    -- Group Information
+    name VARCHAR(255) NOT NULL,                            -- Tên nhóm/lớp
+    description TEXT,                                       -- Mô tả
+    group_code VARCHAR(20) UNIQUE,                         -- Mã nhóm để join
+    
+    -- Ownership
+    created_by UUID NOT NULL REFERENCES users(id),
+    
+    -- Settings
+    is_public BOOLEAN DEFAULT false,                       -- Công khai cho mọi người join
+    require_approval BOOLEAN DEFAULT true,                 -- Cần phê duyệt khi join
+    max_members INT,                                        -- Số thành viên tối đa
+    
+    -- Metadata
+    subject VARCHAR(50),                                    -- Môn học
+    grade INT,                                              -- Khối lớp
+    academic_year VARCHAR(20),                              -- Năm học
+    institution VARCHAR(255),                               -- Trường/Tổ chức
+    
+    -- Statistics
+    member_count INT DEFAULT 0,                            -- Số thành viên hiện tại
+    active_exams INT DEFAULT 0,                            -- Số đề thi đang hoạt động
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+#### 4. Bảng `exam_group_members` - Thành viên nhóm
+
+```sql
+CREATE TABLE exam_group_members (
+    group_id UUID REFERENCES exam_groups(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Role & Status
+    role VARCHAR(20) DEFAULT 'member',                     -- 'admin', 'moderator', 'member'
+    status VARCHAR(20) DEFAULT 'active',                   -- 'pending', 'active', 'inactive', 'banned'
+    
+    -- Timestamps
+    joined_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    approved_at TIMESTAMPTZ,
+    last_active_at TIMESTAMPTZ,
+    
+    PRIMARY KEY(group_id, user_id),
+    
+    -- Constraints
+    CHECK (role IN ('admin', 'moderator', 'member')),
+    CHECK (status IN ('pending', 'active', 'inactive', 'banned'))
+);
+```
+
+#### 5. Bảng `exam_leaderboard` - Xếp hạng
+
+```sql
+CREATE TABLE exam_leaderboard (
+    exam_id UUID REFERENCES exams(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    
+    -- Best Attempt Reference
+    best_attempt_id UUID REFERENCES exam_attempts(id),
+    
+    -- Ranking Data
+    rank INT NOT NULL,
+    score DECIMAL(5,2) NOT NULL,
+    percentage DECIMAL(5,2) NOT NULL,
+    time_spent_seconds INT,
+    
+    -- Attempt Statistics
+    total_attempts INT DEFAULT 1,
+    first_attempt_at TIMESTAMPTZ,
+    best_attempt_at TIMESTAMPTZ,
+    
+    -- Metadata
+    grade_letter VARCHAR(2),                                -- A+, A, B+, B, C, D, F
+    percentile DECIMAL(5,2),                                -- Phần trăm xếp hạng
+    
+    -- Timestamps
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    
+    PRIMARY KEY(exam_id, user_id)
+);
+```
+
+#### 6. View `exam_comparisons` - So sánh kết quả
+
+```sql
+CREATE VIEW exam_comparisons AS
+SELECT 
+    e.id as exam_id,
+    e.title,
+    e.subject,
+    e.grade,
+    u.id as user_id,
+    u.full_name,
+    u.email,
+    
+    -- Individual Performance
+    el.rank,
+    el.score,
+    el.percentage,
+    el.time_spent_seconds,
+    el.grade_letter,
+    el.total_attempts,
+    
+    -- Comparative Statistics
+    AVG(el.score) OVER (PARTITION BY e.id) as exam_avg_score,
+    MAX(el.score) OVER (PARTITION BY e.id) as exam_max_score,
+    MIN(el.score) OVER (PARTITION BY e.id) as exam_min_score,
+    STDDEV(el.score) OVER (PARTITION BY e.id) as exam_score_stddev,
+    
+    -- Position Analysis
+    COUNT(*) OVER (PARTITION BY e.id) as total_participants,
+    el.percentile,
+    
+    -- Performance vs Average
+    (el.score - AVG(el.score) OVER (PARTITION BY e.id)) as score_vs_avg,
+    
+    -- Time Analysis
+    AVG(el.time_spent_seconds) OVER (PARTITION BY e.id) as avg_time_spent,
+    (el.time_spent_seconds - AVG(el.time_spent_seconds) OVER (PARTITION BY e.id)) as time_vs_avg
+    
+FROM exams e
+JOIN exam_leaderboard el ON e.id = el.exam_id
+JOIN users u ON el.user_id = u.id
+ORDER BY e.id, el.rank;
+```
+
+### Cập nhật bảng `exams`
+
+```sql
+-- Thêm các fields mới cho access control và sharing
+ALTER TABLE exams ADD COLUMN access_type VARCHAR(20) DEFAULT 'public';
+-- 'public': Ai cũng có thể truy cập
+-- 'private': Chỉ creator truy cập được  
+-- 'shared': Chỉ những người được chia sẻ
+-- 'group': Chỉ thành viên group được chỉ định
+
+ALTER TABLE exams ADD COLUMN allowed_users UUID[];          -- Danh sách user_id được phép truy cập
+ALTER TABLE exams ADD COLUMN allowed_groups UUID[];         -- Danh sách group_id được phép truy cập
+ALTER TABLE exams ADD COLUMN require_access_code BOOLEAN DEFAULT false;
+ALTER TABLE exams ADD COLUMN default_access_code VARCHAR(20);
+
+-- Time-based access control
+ALTER TABLE exams ADD COLUMN available_from TIMESTAMPTZ;    -- Có thể truy cập từ thời điểm
+ALTER TABLE exams ADD COLUMN available_until TIMESTAMPTZ;   -- Có thể truy cập đến thời điểm
+
+-- Sharing statistics
+ALTER TABLE exams ADD COLUMN total_shares INT DEFAULT 0;    -- Tổng số lần được chia sẻ
+ALTER TABLE exams ADD COLUMN total_participants INT DEFAULT 0; -- Tổng số người tham gia
+
+-- Add constraints
+ALTER TABLE exams ADD CONSTRAINT chk_access_type 
+    CHECK (access_type IN ('public', 'private', 'shared', 'group'));
+```
+
+### Triggers và Functions bổ sung
+
+#### Auto-update leaderboard
+
+```sql
+-- Function để cập nhật leaderboard khi có attempt mới
+CREATE OR REPLACE FUNCTION update_exam_leaderboard()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Chỉ process khi attempt được submit và graded
+    IF NEW.status = 'graded' THEN
+        -- Insert or update leaderboard
+        INSERT INTO exam_leaderboard (
+            exam_id, user_id, best_attempt_id, score, percentage, 
+            time_spent_seconds, total_attempts, first_attempt_at, best_attempt_at
+        )
+        VALUES (
+            NEW.exam_id, NEW.user_id, NEW.id, NEW.score, NEW.percentage,
+            NEW.time_spent_seconds, 1, NEW.started_at, NEW.submitted_at
+        )
+        ON CONFLICT (exam_id, user_id) DO UPDATE SET
+            best_attempt_id = CASE 
+                WHEN NEW.score > exam_leaderboard.score THEN NEW.id
+                ELSE exam_leaderboard.best_attempt_id
+            END,
+            score = GREATEST(exam_leaderboard.score, NEW.score),
+            percentage = GREATEST(exam_leaderboard.percentage, NEW.percentage),
+            time_spent_seconds = CASE
+                WHEN NEW.score > exam_leaderboard.score THEN NEW.time_spent_seconds
+                ELSE exam_leaderboard.time_spent_seconds
+            END,
+            total_attempts = exam_leaderboard.total_attempts + 1,
+            best_attempt_at = CASE
+                WHEN NEW.score > exam_leaderboard.score THEN NEW.submitted_at
+                ELSE exam_leaderboard.best_attempt_at
+            END,
+            updated_at = CURRENT_TIMESTAMP;
+            
+        -- Recalculate ranks for this exam
+        WITH ranked_scores AS (
+            SELECT user_id, 
+                   RANK() OVER (ORDER BY score DESC, time_spent_seconds ASC) as new_rank,
+                   PERCENT_RANK() OVER (ORDER BY score DESC) * 100 as new_percentile
+            FROM exam_leaderboard 
+            WHERE exam_id = NEW.exam_id
+        )
+        UPDATE exam_leaderboard el
+        SET rank = rs.new_rank,
+            percentile = rs.new_percentile,
+            grade_letter = CASE
+                WHEN rs.new_percentile >= 97 THEN 'A+'
+                WHEN rs.new_percentile >= 93 THEN 'A'
+                WHEN rs.new_percentile >= 90 THEN 'A-'
+                WHEN rs.new_percentile >= 87 THEN 'B+'
+                WHEN rs.new_percentile >= 83 THEN 'B'
+                WHEN rs.new_percentile >= 80 THEN 'B-'
+                WHEN rs.new_percentile >= 77 THEN 'C+'
+                WHEN rs.new_percentile >= 73 THEN 'C'
+                WHEN rs.new_percentile >= 70 THEN 'C-'
+                WHEN rs.new_percentile >= 67 THEN 'D+'
+                WHEN rs.new_percentile >= 60 THEN 'D'
+                ELSE 'F'
+            END
+        FROM ranked_scores rs
+        WHERE el.exam_id = NEW.exam_id AND el.user_id = rs.user_id;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger
+CREATE TRIGGER update_leaderboard_on_attempt
+    AFTER UPDATE ON exam_attempts
+    FOR EACH ROW
+    EXECUTE FUNCTION update_exam_leaderboard();
+```
+
+#### Auto-update sharing statistics
+
+```sql
+-- Function để update sharing stats
+CREATE OR REPLACE FUNCTION update_sharing_stats()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        -- Update exam total_shares
+        UPDATE exams 
+        SET total_shares = total_shares + 1
+        WHERE id = NEW.exam_id;
+        
+        -- Update share total_recipients
+        UPDATE exam_shares
+        SET total_recipients = total_recipients + 1
+        WHERE id = NEW.share_id;
+        
+    ELSIF TG_OP = 'UPDATE' THEN
+        -- Track access và completion
+        IF OLD.first_accessed_at IS NULL AND NEW.first_accessed_at IS NOT NULL THEN
+            UPDATE exam_shares
+            SET total_accessed = total_accessed + 1
+            WHERE id = NEW.share_id;
+        END IF;
+        
+        IF OLD.completed_at IS NULL AND NEW.completed_at IS NOT NULL THEN
+            UPDATE exam_shares
+            SET total_completed = total_completed + 1
+            WHERE id = NEW.share_id;
+        END IF;
+    END IF;
+    
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_share_stats
+    AFTER INSERT OR UPDATE ON exam_share_recipients
+    FOR EACH ROW
+    EXECUTE FUNCTION update_sharing_stats();
+```
+
+### gRPC Protocol Buffers mở rộng
+
+#### exam_sharing.proto
+
+```proto
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Enums
+enum ShareType {
+  SHARE_TYPE_UNSPECIFIED = 0;
+  SHARE_TYPE_INDIVIDUAL = 1;
+  SHARE_TYPE_GROUP = 2;
+  SHARE_TYPE_PUBLIC_LINK = 3;
+}
+
+enum ShareStatus {
+  SHARE_STATUS_UNSPECIFIED = 0;
+  SHARE_STATUS_ACTIVE = 1;
+  SHARE_STATUS_EXPIRED = 2;
+  SHARE_STATUS_DISABLED = 3;
+}
+
+enum RecipientStatus {
+  RECIPIENT_STATUS_UNSPECIFIED = 0;
+  RECIPIENT_STATUS_PENDING = 1;
+  RECIPIENT_STATUS_ACCEPTED = 2;
+  RECIPIENT_STATUS_DECLINED = 3;
+  RECIPIENT_STATUS_EXPIRED = 4;
+}
+
+enum GroupMemberRole {
+  GROUP_MEMBER_ROLE_UNSPECIFIED = 0;
+  GROUP_MEMBER_ROLE_ADMIN = 1;
+  GROUP_MEMBER_ROLE_MODERATOR = 2;
+  GROUP_MEMBER_ROLE_MEMBER = 3;
+}
+
+// Messages
+message ExamShare {
+  string id = 1;
+  string exam_id = 2;
+  string shared_by = 3;
+  ShareType share_type = 4;
+  string access_code = 5;
+  string share_link = 6;
+  int32 max_attempts = 7;
+  int32 max_recipients = 8;
+  bool requires_approval = 9;
+  google.protobuf.Timestamp available_from = 10;
+  google.protobuf.Timestamp available_until = 11;
+  google.protobuf.Timestamp expires_at = 12;
+  ShareStatus status = 13;
+  string description = 14;
+  int32 total_recipients = 15;
+  int32 total_accessed = 16;
+  int32 total_completed = 17;
+  google.protobuf.Timestamp created_at = 18;
+  google.protobuf.Timestamp updated_at = 19;
+}
+
+message ExamGroup {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string group_code = 4;
+  string created_by = 5;
+  bool is_public = 6;
+  bool require_approval = 7;
+  int32 max_members = 8;
+  string subject = 9;
+  int32 grade = 10;
+  string academic_year = 11;
+  string institution = 12;
+  int32 member_count = 13;
+  int32 active_exams = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+}
+
+message LeaderboardEntry {
+  string exam_id = 1;
+  string user_id = 2;
+  string user_name = 3;
+  string user_email = 4;
+  int32 rank = 5;
+  double score = 6;
+  double percentage = 7;
+  int32 time_spent_seconds = 8;
+  string grade_letter = 9;
+  double percentile = 10;
+  int32 total_attempts = 11;
+  google.protobuf.Timestamp best_attempt_at = 12;
+}
+
+message ComparisonResult {
+  string exam_id = 1;
+  string exam_title = 2;
+  LeaderboardEntry user_performance = 3;
+  ExamStatistics exam_stats = 4;
+  repeated LeaderboardEntry top_performers = 5;
+  int32 total_participants = 6;
+}
+
+message ExamStatistics {
+  double avg_score = 1;
+  double max_score = 2;
+  double min_score = 3;
+  double score_stddev = 4;
+  double avg_time_spent = 5;
+  int32 total_attempts = 6;
+  int32 total_participants = 7;
+  double pass_rate = 8;
+  map<string, int32> grade_distribution = 9; // A+: 5, A: 10, B+: 15, etc.
+}
+```
+
+### Service Definitions mở rộng
+
+```proto
+service ExamSharingService {
+  // Sharing Management
+  rpc ShareExam(ShareExamRequest) returns (ShareExamResponse);
+  rpc GetExamShares(GetExamSharesRequest) returns (GetExamSharesResponse);
+  rpc GetSharedExams(GetSharedExamsRequest) returns (GetSharedExamsResponse);
+  rpc UpdateShare(UpdateShareRequest) returns (UpdateShareResponse);
+  rpc DeleteShare(DeleteShareRequest) returns (DeleteShareResponse);
+  rpc JoinExamWithCode(JoinExamWithCodeRequest) returns (JoinExamWithCodeResponse);
+  rpc AcceptExamInvitation(AcceptInvitationRequest) returns (AcceptInvitationResponse);
+  
+  // Group Management
+  rpc CreateGroup(CreateGroupRequest) returns (CreateGroupResponse);
+  rpc GetGroup(GetGroupRequest) returns (GetGroupResponse);
+  rpc ListGroups(ListGroupsRequest) returns (ListGroupsResponse);
+  rpc UpdateGroup(UpdateGroupRequest) returns (UpdateGroupResponse);
+  rpc DeleteGroup(DeleteGroupRequest) returns (DeleteGroupResponse);
+  rpc JoinGroup(JoinGroupRequest) returns (JoinGroupResponse);
+  rpc LeaveGroup(LeaveGroupRequest) returns (LeaveGroupResponse);
+  rpc AddGroupMembers(AddGroupMembersRequest) returns (AddGroupMembersResponse);
+  rpc RemoveGroupMember(RemoveGroupMemberRequest) returns (RemoveGroupMemberResponse);
+  rpc ShareExamWithGroup(ShareExamWithGroupRequest) returns (ShareExamWithGroupResponse);
+  
+  // Comparison & Leaderboard
+  rpc GetLeaderboard(GetLeaderboardRequest) returns (GetLeaderboardResponse);
+  rpc GetGroupLeaderboard(GetGroupLeaderboardRequest) returns (GetGroupLeaderboardResponse);
+  rpc CompareResults(CompareResultsRequest) returns (CompareResultsResponse);
+  rpc GetExamStatistics(GetExamStatisticsRequest) returns (GetExamStatisticsResponse);
+  rpc GetGroupStatistics(GetGroupStatisticsRequest) returns (GetGroupStatisticsResponse);
+  rpc GetUserPerformanceHistory(GetUserPerformanceHistoryRequest) returns (GetUserPerformanceHistoryResponse);
+  
+  // Export & Reports
+  rpc ExportLeaderboard(ExportLeaderboardRequest) returns (ExportLeaderboardResponse);
+  rpc ExportComparisonReport(ExportComparisonReportRequest) returns (ExportComparisonReportResponse);
+  rpc GeneratePerformanceReport(GeneratePerformanceReportRequest) returns (GeneratePerformanceReportResponse);
+}
+```
+
+### Repository Pattern mở rộng
+
+#### ExamSharingRepository Interface
+
+```go
+// File: apps/backend/internal/repository/interfaces/exam_sharing_repository.go
+
+type ExamSharingRepository interface {
+    // Sharing CRUD
+    CreateShare(ctx context.Context, share *entity.ExamShare) error
+    GetShare(ctx context.Context, shareID string) (*entity.ExamShare, error)
+    GetExamShares(ctx context.Context, examID string) ([]*entity.ExamShare, error)
+    GetUserSharedExams(ctx context.Context, userID string) ([]*entity.ExamShare, error)
+    UpdateShare(ctx context.Context, share *entity.ExamShare) error
+    DeleteShare(ctx context.Context, shareID string) error
+    
+    // Recipients management
+    AddRecipients(ctx context.Context, shareID string, recipients []*entity.ExamShareRecipient) error
+    GetRecipients(ctx context.Context, shareID string) ([]*entity.ExamShareRecipient, error)
+    UpdateRecipientStatus(ctx context.Context, recipientID string, status entity.RecipientStatus) error
+    
+    // Access control
+    CanUserAccessExam(ctx context.Context, userID, examID string) (bool, error)
+    GetExamByAccessCode(ctx context.Context, accessCode string) (*entity.Exam, error)
+    ValidateShareToken(ctx context.Context, token string) (*entity.ExamShareRecipient, error)
+    
+    // Group management
+    CreateGroup(ctx context.Context, group *entity.ExamGroup) error
+    GetGroup(ctx context.Context, groupID string) (*entity.ExamGroup, error)
+    ListUserGroups(ctx context.Context, userID string) ([]*entity.ExamGroup, error)
+    AddGroupMembers(ctx context.Context, groupID string, members []*entity.ExamGroupMember) error
+    RemoveGroupMember(ctx context.Context, groupID, userID string) error
+    GetGroupMembers(ctx context.Context, groupID string) ([]*entity.ExamGroupMember, error)
+    
+    // Leaderboard & Statistics
+    GetExamLeaderboard(ctx context.Context, examID string, limit int) ([]*entity.LeaderboardEntry, error)
+    GetGroupLeaderboard(ctx context.Context, examID, groupID string) ([]*entity.LeaderboardEntry, error)
+    GetExamStatistics(ctx context.Context, examID string) (*entity.ExamStatistics, error)
+    CompareUserPerformance(ctx context.Context, examID string, userIDs []string) ([]*entity.ComparisonResult, error)
+    GetUserPerformanceHistory(ctx context.Context, userID string, filters PerformanceFilters) ([]*entity.UserPerformance, error)
+}
+```
+
+### API Workflow mở rộng
+
+#### 1. Quy trình chia sẻ đề thi
+
+```mermaid
+sequenceDiagram
+    participant Teacher
+    participant API
+    participant DB
+    participant NotificationService
+    participant Student
+    
+    Teacher->>API: ShareExam(exam_id, recipients[], settings)
+    API->>DB: INSERT INTO exam_shares
+    API->>DB: INSERT INTO exam_share_recipients
+    
+    loop For each recipient
+        API->>NotificationService: SendInvitationEmail(recipient)
+        NotificationService->>Student: Email với link/code
+    end
+    
+    Student->>API: JoinExamWithCode(code) hoặc AcceptInvitation(token)
+    API->>DB: UPDATE recipient status = 'accepted'
+    API->>DB: UPDATE share total_accessed++
+    
+    Student->>API: StartExam(exam_id)
+    Note over API: Kiểm tra quyền truy cập từ exam_shares
+    API->>Student: Return exam questions
+```
+
+#### 2. Quy trình so sánh kết quả
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant API
+    participant DB
+    participant ReportService
+    
+    User->>API: GetLeaderboard(exam_id)
+    API->>DB: SELECT FROM exam_leaderboard
+    API->>DB: SELECT FROM exam_comparisons VIEW
+    DB-->>API: Ranked results with statistics
+    API-->>User: Leaderboard with comparative data
+    
+    User->>API: CompareResults(exam_id, user_ids[])
+    API->>DB: SELECT detailed comparison data
+    API->>ReportService: Generate comparison charts
+    ReportService-->>API: Charts + Analysis
+    API-->>User: Detailed comparison report
+    
+    User->>API: ExportLeaderboard(exam_id, format)
+    API->>ReportService: Generate Excel/PDF report
+    ReportService-->>User: Download link
+```
+
+### Security & Permission Matrix mở rộng
+
+| Action | Creator | Shared User | Group Member | Public |
+|--------|---------|-------------|--------------|--------|
+| View exam details | ✅ | ✅ (if shared) | ✅ (if group shared) | ✅ (if public) |
+| Take exam | ✅ | ✅ (if invited) | ✅ (if group shared) | ✅ (if public) |
+| Share exam | ✅ | ❌ | ❌ | ❌ |
+| View all results | ✅ | Own only | Own only | Own only |
+| View leaderboard | ✅ | ✅ (if allowed) | ✅ (if allowed) | ✅ (if public) |
+| Export reports | ✅ | ❌ | ❌ (unless admin) | ❌ |
+| Manage share settings | ✅ | ❌ | ❌ | ❌ |
+| Create groups | ✅ | ✅ | ✅ | ✅ |
+| Manage group | Group Admin | ❌ | ✅ (if moderator) | ❌ |
+
+### Performance Optimization mở rộng
+
+#### Additional Indexes
+
+```sql
+-- Sharing performance
+CREATE INDEX idx_exam_shares_exam_status ON exam_shares(exam_id, status)
+    WHERE status = 'active';
+
+CREATE INDEX idx_share_recipients_user_status ON exam_share_recipients(user_id, status);
+
+CREATE INDEX idx_share_recipients_email_token ON exam_share_recipients(email, invitation_token)
+    WHERE invitation_token IS NOT NULL;
+
+-- Group performance
+CREATE INDEX idx_group_members_user_role ON exam_group_members(user_id, role, status)
+    WHERE status = 'active';
+
+CREATE INDEX idx_groups_public_code ON exam_groups(is_public, group_code)
+    WHERE is_public = true;
+
+-- Leaderboard performance
+CREATE INDEX idx_leaderboard_exam_rank ON exam_leaderboard(exam_id, rank);
+
+CREATE INDEX idx_leaderboard_user_score ON exam_leaderboard(user_id, score DESC);
+
+-- Access control performance
+CREATE INDEX idx_exams_access_type ON exams(access_type, status)
+    WHERE status = 'published';
+
+-- Comparison view optimization
+CREATE INDEX idx_attempts_exam_user_status ON exam_attempts(exam_id, user_id, status)
+    WHERE status IN ('submitted', 'graded');
+```
+
+#### Caching Strategy mở rộng
+
+```go
+// Additional cache keys
+const (
+    ExamShareCacheKey        = "exam:%s:shares"
+    UserSharedExamsCacheKey  = "user:%s:shared_exams"
+    LeaderboardCacheKey      = "exam:%s:leaderboard"
+    GroupLeaderboardCacheKey = "exam:%s:group:%s:leaderboard"
+    ExamStatsCacheKey        = "exam:%s:statistics"
+    GroupMembersCacheKey     = "group:%s:members"
+    UserGroupsCacheKey       = "user:%s:groups"
+    ComparisonCacheKey       = "comparison:%s:users:%s" // exam_id + hash of user_ids
+)
+
+// Cache TTL
+const (
+    SharesCacheTTL      = 15 * time.Minute
+    LeaderboardCacheTTL = 5 * time.Minute
+    StatisticsCacheTTL  = 10 * time.Minute
+    GroupsCacheTTL      = 1 * time.Hour
+    ComparisonCacheTTL  = 30 * time.Minute
+)
+```
+
+### Monitoring & Analytics mở rộng
+
+#### Additional Metrics
+
+1. **Sharing Metrics**
+   - Total shares created
+   - Share acceptance rate
+   - Popular sharing methods
+   - Time from share to first access
+
+2. **Group Metrics**
+   - Active groups count
+   - Average group size
+   - Group engagement rate
+   - Cross-group performance comparison
+
+3. **Comparison Metrics**
+   - Leaderboard views
+   - Export frequency
+   - Performance improvement trends
+   - Competitive engagement indicators
+
+### Sample Queries mở rộng
+
+```sql
+-- Top performing groups across exams
+SELECT 
+    g.name as group_name,
+    AVG(el.score) as avg_group_score,
+    COUNT(DISTINCT el.exam_id) as exams_taken,
+    COUNT(el.user_id) as total_participants
+FROM exam_groups g
+JOIN exam_group_members gm ON g.id = gm.group_id
+JOIN exam_leaderboard el ON gm.user_id = el.user_id
+WHERE gm.status = 'active'
+GROUP BY g.id, g.name
+ORDER BY avg_group_score DESC;
+
+-- Most shared exams
+SELECT 
+    e.title,
+    e.subject,
+    COUNT(es.id) as total_shares,
+    SUM(es.total_recipients) as total_invitations,
+    SUM(es.total_completed) as total_completions,
+    (SUM(es.total_completed)::FLOAT / NULLIF(SUM(es.total_recipients), 0)) * 100 as completion_rate
+FROM exams e
+JOIN exam_shares es ON e.id = es.exam_id
+WHERE es.status = 'active'
+GROUP BY e.id, e.title, e.subject
+ORDER BY total_shares DESC
+LIMIT 10;
+
+-- Performance improvement tracking
+SELECT 
+    u.full_name,
+    e.title,
+    el.total_attempts,
+    first_attempt.score as first_score,
+    el.score as best_score,
+    (el.score - first_attempt.score) as improvement
+FROM exam_leaderboard el
+JOIN users u ON el.user_id = u.id
+JOIN exams e ON el.exam_id = e.id
+JOIN LATERAL (
+    SELECT score 
+    FROM exam_attempts ea 
+    WHERE ea.user_id = el.user_id AND ea.exam_id = el.exam_id
+    ORDER BY ea.started_at ASC 
+    LIMIT 1
+) first_attempt ON true
+WHERE el.total_attempts > 1
+ORDER BY improvement DESC;
+```
+
 ## Roadmap và Future Features
 
 ### Planned Features
 
-1. **Advanced Question Types**
-   - Code execution questions
-   - File upload questions
-   - Matching questions
-   - Ordering questions
+#### **Cấp độ 1 - Ưu tiên cao (1-2 tháng)**
+1. **Exam Sharing Core**
+   - ✅ Share exam với individuals/groups
+   - ✅ Access code system
+   - ✅ Time-based access control
+   - ✅ Email invitations
 
-2. **AI Integration**
-   - Auto-grading for essays
-   - Question recommendation
-   - Difficulty adjustment
-   - Cheating detection
+2. **Basic Comparison & Leaderboard**
+   - ✅ Real-time leaderboard
+   - ✅ Basic statistics (avg, min, max)
+   - ✅ Rank calculation
+   - ✅ Export to Excel/PDF
 
-3. **Analytics Dashboard**
-   - Real-time monitoring
-   - Detailed reports
-   - Learning analytics
-   - Performance predictions
+3. **Group Management**
+   - ✅ Create/join groups với codes
+   - ✅ Member management
+   - ✅ Group-based sharing
+   - ✅ Group leaderboards
 
-4. **Collaboration Features**
-   - Co-create exams
-   - Share question banks
-   - Peer review system
-   - Team competitions
+#### **Cấp độ 2 - Trung bình (2-4 tháng)**
+4. **Advanced Analytics**
+   - 📊 Interactive dashboards
+   - 📈 Performance trend charts
+   - 🎯 Detailed comparison reports
+   - 📋 Custom report builder
+
+5. **Enhanced Collaboration**
+   - 👥 Co-create exams
+   - 📚 Share question banks
+   - 🔍 Peer review system
+   - 💬 Comments & discussions
+
+6. **Notification System**
+   - 📧 Smart email notifications
+   - 🔔 Real-time in-app alerts
+   - 📱 Mobile push notifications
+   - ⚡ Webhook integrations
+
+#### **Cấp độ 3 - Nâng cao (6+ tháng)**
+7. **Advanced Question Types**
+   - 💻 Code execution questions
+   - 📎 File upload questions
+   - 🔗 Matching questions
+   - 📝 Ordering questions
+
+8. **AI Integration**
+   - 🤖 Auto-grading for essays
+   - 💡 Question recommendation
+   - ⚖️ Difficulty adjustment
+   - 🛡️ Cheating detection
+
+9. **Proctoring & Security**
+   - 🎥 Webcam monitoring
+   - 🖥️ Screen recording
+   - 🔒 Browser lockdown
+   - 📊 Suspicious behavior detection
+
+10. **Gamification**
+    - 🏆 Badges & achievements
+    - ⭐ Points & XP system
+    - 🥇 Tournaments & competitions
+    - 📊 Progress tracking
+
+11. **Mobile & Integrations**
+    - 📱 Native mobile apps
+    - 🔗 LMS integrations (Moodle, Canvas)
+    - 📧 Google Classroom sync
+    - 📊 Analytics tool exports
+
+## Kết luận và Đánh giá Tổng thể
+
+### 📊 **Tình trạng hệ thống hiện tại**
+
+**Về phân loại đề thi:** ✅ **ĐỦ MẠNH**
+- Hệ thống có đầy đủ khả năng phân biệt các loại và dạng đề thi
+- 2 loại đề chính: **Đề thi THẬT** (official_exams) và **Đề thi TẠO** (exams)
+- Enums phong phú: exam_category, exam_form, difficulty, exam_type
+- Metadata chi tiết: grade, subject, chapter, tags, academic_year
+
+**Về use case chia sẻ & so sánh:** ⚠️ **CHƯA ĐỦ**
+- Cần bổ sung 5 bảng mới cho sharing & comparison
+- Cần 15+ API endpoints mới
+- Cần tích hợp với notification system
+- Cần UI/UX mới cho dashboard so sánh
+
+### 🏁 **Ʈu tiên triển khai**
+
+| **Cấp độ** | **Thời gian** | **Tính năng chính** | **Độ khó** |
+|------------|--------------|----------------------|-------------|
+| **1** | 1-2 tháng | Sharing + Leaderboard + Groups | Trung bình |
+| **2** | 2-4 tháng | Analytics + Notifications + Collaboration | Cao |
+| **3** | 6+ tháng | AI + Proctoring + Mobile + Gamification | Rất cao |
+
+### 📊 **Tác động đến hệ thống hiện tại**
+
+#### **Database Changes:**
+- **5 bảng mới**: exam_shares, exam_share_recipients, exam_groups, exam_group_members, exam_leaderboard
+- **1 view mới**: exam_comparisons
+- **Cập nhật bảng exams**: Thêm 8 fields mới cho access control
+- **Triggers & Functions**: Auto-update leaderboard và sharing stats
+
+#### **Backend Changes:**
+- **1 service mới**: ExamSharingService với 17 gRPC endpoints
+- **1 repository mới**: ExamSharingRepository với 20+ methods
+- **Proto files mới**: exam_sharing.proto với messages & enums
+- **Entity models mới**: ExamShare, ExamGroup, LeaderboardEntry, etc.
+
+#### **Frontend Changes:**
+- **UI mới**: Sharing modal, group management, leaderboard display
+- **Dashboard mới**: Comparison charts, statistics, export features
+- **Navigation mới**: Group pages, shared exams section
+- **Services mới**: exam-sharing.service.ts, group.service.ts
+
+### ⚡ **Rủi ro và Thách thức**
+
+#### **Rủi ro kỹ thuật:**
+1. **Performance**: Leaderboard real-time có thể chậm với số lượng lớn
+2. **Caching**: Cần cache strategy phức tạp cho sharing & stats
+3. **Database**: 5 bảng mới tăng complexity và join operations
+4. **Migration**: Cần migration script cho data hiện tại
+
+#### **Rủi ro product:**
+1. **UX Complexity**: Quá nhiều tính năng có thể làm rối người dùng
+2. **Permission Management**: Hệ thống quyền phức tạp hơn
+3. **Privacy Concerns**: Chia sẻ điểm có thể gây tranh cãi
+4. **Adoption**: Người dùng có thể không sử dụng hết tính năng
+
+### 🔥 **Khuyến nghị triển khai**
+
+#### **Giai đoạn 1: MVP (4-6 tuần)**
+1. **Share exam cơ bản**: Với email/link, không cần group
+2. **Leaderboard đơn giản**: Chỉ hiển thị rank và score
+3. **Export cơ bản**: Excel/CSV cho kết quả
+4. **Access control**: Public/private exam
+
+#### **Giai đoạn 2: Enhanced (6-8 tuần)**
+1. **Group management**: Tạo và quản lý nhóm
+2. **Advanced comparison**: Charts, statistics, trends
+3. **Notification system**: Email và in-app alerts
+4. **Permission matrix**: Chi tiết theo role
+
+#### **Giai đoạn 3: Professional (8-12 tuần)**
+1. **Advanced analytics**: Dashboard với charts
+2. **Collaboration tools**: Co-create, peer review
+3. **Integration**: LMS, Google Classroom
+4. **Mobile optimization**: Responsive design
+
+### 📋 **Kết luận cuối cùng**
+
+Hệ thống ExamSystem hiện tại có **nền tảng vâng** với khả năng phân biệt đề thi tốt. Tuy nhiên, để đáp ứng đầy đủ yêu cầu **"tạo đề → chia sẻ → so sánh điểm"**, cần **mở rộng đáng kể** về:
+
+- **Database**: +5 bảng, +1 view, +8 fields, +2 functions
+- **Backend**: +1 service, +17 endpoints, +1 repository  
+- **Frontend**: +5 pages, +10 components, +3 services
+- **Thời gian**: 3-6 tháng cho phiên bản đầy đủ
+- **Effort**: High complexity, cần team 3-5 developers
+
+**Khuyến nghị**: Bắt đầu với **MVP 4-6 tuần** để validate concept, sau đó mở rộng dần theo feedback người dùng.
 
 ---
 
-**Document Version:** 1.0.0  
+**Document Version:** 1.1.0  
 **Last Updated:** 2025-01-17  
 **Author:** exam-bank-system Team  
-**Status:** Active
+**Status:** Active - Updated with Sharing & Comparison Analysis
