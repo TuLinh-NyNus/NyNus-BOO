@@ -390,3 +390,6 @@ temp/
 temporary/
 *temp*/
 *temporary*/
+
+# Windows system files that cannot be deleted
+NUL
