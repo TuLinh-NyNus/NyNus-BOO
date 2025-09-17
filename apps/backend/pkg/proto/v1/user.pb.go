@@ -8,7 +8,6 @@ package v1
 
 import (
 	common "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1368,7 +1367,7 @@ var File_v1_user_proto protoreflect.FileDescriptor
 
 const file_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\rv1/user.proto\x12\x02v1\x1a\x13common/common.proto\x1a\x1cgoogle/api/annotations.proto\"\xe5\x02\n" +
+	"\rv1/user.proto\x12\x02v1\x1a\x13common/common.proto\"\xe5\x02\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05email\x18\x02 \x01(\tR\x05email\x12\x1d\n" +
@@ -1468,21 +1467,21 @@ const file_v1_user_proto_rawDesc = "" +
 	"\x06gender\x18\v \x01(\tR\x06gender\"`\n" +
 	"\x12UpdateUserResponse\x12,\n" +
 	"\bresponse\x18\x01 \x01(\v2\x10.common.ResponseR\bresponse\x12\x1c\n" +
-	"\x04user\x18\x02 \x01(\v2\b.v1.UserR\x04user2\xf9\b\n" +
-	"\vUserService\x12K\n" +
-	"\x05Login\x12\x10.v1.LoginRequest\x1a\x11.v1.LoginResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\"\x12/api/v1/auth/login\x12X\n" +
-	"\vGoogleLogin\x12\x16.v1.GoogleLoginRequest\x1a\x11.v1.LoginResponse\"\x1e\x82\xd3\xe4\x93\x02\x18:\x01*\"\x13/api/v1/auth/google\x12b\n" +
-	"\fRefreshToken\x12\x17.v1.RefreshTokenRequest\x1a\x18.v1.RefreshTokenResponse\"\x1f\x82\xd3\xe4\x93\x02\x19:\x01*\"\x14/api/v1/auth/refresh\x12d\n" +
-	"\vVerifyEmail\x12\x16.v1.VerifyEmailRequest\x1a\x17.v1.VerifyEmailResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/auth/verify-email\x12p\n" +
-	"\x0eForgotPassword\x12\x19.v1.ForgotPasswordRequest\x1a\x1a.v1.ForgotPasswordResponse\"'\x82\xd3\xe4\x93\x02!:\x01*\"\x1c/api/v1/auth/forgot-password\x12l\n" +
-	"\rResetPassword\x12\x18.v1.ResetPasswordRequest\x1a\x19.v1.ResetPasswordResponse\"&\x82\xd3\xe4\x93\x02 :\x01*\"\x1b/api/v1/auth/reset-password\x12W\n" +
-	"\bRegister\x12\x13.v1.RegisterRequest\x1a\x14.v1.RegisterResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/auth/register\x12N\n" +
-	"\aGetUser\x12\x12.v1.GetUserRequest\x1a\x13.v1.GetUserResponse\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/users/{id}\x12O\n" +
-	"\tListUsers\x12\x14.v1.ListUsersRequest\x1a\x15.v1.ListUsersResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/users\x12g\n" +
-	"\x0eGetStudentList\x12\x19.v1.GetStudentListRequest\x1a\x1a.v1.GetStudentListResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/users/students\x12Z\n" +
-	"\x0eGetCurrentUser\x12\x19.v1.GetCurrentUserRequest\x1a\x13.v1.GetUserResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/users/me\x12Z\n" +
+	"\x04user\x18\x02 \x01(\v2\b.v1.UserR\x04user2\xf4\x05\n" +
+	"\vUserService\x12,\n" +
+	"\x05Login\x12\x10.v1.LoginRequest\x1a\x11.v1.LoginResponse\x128\n" +
+	"\vGoogleLogin\x12\x16.v1.GoogleLoginRequest\x1a\x11.v1.LoginResponse\x12A\n" +
+	"\fRefreshToken\x12\x17.v1.RefreshTokenRequest\x1a\x18.v1.RefreshTokenResponse\x12>\n" +
+	"\vVerifyEmail\x12\x16.v1.VerifyEmailRequest\x1a\x17.v1.VerifyEmailResponse\x12G\n" +
+	"\x0eForgotPassword\x12\x19.v1.ForgotPasswordRequest\x1a\x1a.v1.ForgotPasswordResponse\x12D\n" +
+	"\rResetPassword\x12\x18.v1.ResetPasswordRequest\x1a\x19.v1.ResetPasswordResponse\x125\n" +
+	"\bRegister\x12\x13.v1.RegisterRequest\x1a\x14.v1.RegisterResponse\x122\n" +
+	"\aGetUser\x12\x12.v1.GetUserRequest\x1a\x13.v1.GetUserResponse\x128\n" +
+	"\tListUsers\x12\x14.v1.ListUsersRequest\x1a\x15.v1.ListUsersResponse\x12G\n" +
+	"\x0eGetStudentList\x12\x19.v1.GetStudentListRequest\x1a\x1a.v1.GetStudentListResponse\x12@\n" +
+	"\x0eGetCurrentUser\x12\x19.v1.GetCurrentUserRequest\x1a\x13.v1.GetUserResponse\x12;\n" +
 	"\n" +
-	"UpdateUser\x12\x15.v1.UpdateUserRequest\x1a\x16.v1.UpdateUserResponse\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/api/v1/users/{id}BAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
+	"UpdateUser\x12\x15.v1.UpdateUserRequest\x1a\x16.v1.UpdateUserResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
 
 var (
 	file_v1_user_proto_rawDescOnce sync.Once

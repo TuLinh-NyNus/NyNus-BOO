@@ -2,6 +2,9 @@ import { Metadata } from "next";
 import { Users, MapPin, Clock, DollarSign, Heart, Zap, Target, Globe } from "lucide-react";
 import Link from "next/link";
 
+// Disable static generation temporarily to avoid SSR auth issues
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Tuyển dụng - Cơ hội nghề nghiệp tại NyNus",
   description: "Tham gia đội ngũ NyNus - nơi kết hợp đam mê giáo dục và công nghệ để tạo ra tác động tích cực cho hàng nghìn học sinh.",

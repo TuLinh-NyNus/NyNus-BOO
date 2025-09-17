@@ -15,17 +15,11 @@ import {
 import { AuthService as GrpcAuthService, AuthHelpers } from '@/services/grpc/auth.service';
 import type { LoginResponse as PbLoginResponse, RegisterResponse as PbRegisterResponse, User as PbUser } from '@/generated/v1/user_pb';
 
-// Temporary type for backward compatibility
-interface APIError {
-  status: number;
-  statusText: string;
+// gRPC Error interface for consistent error handling
+interface AuthError {
+  code: number;
   message: string;
-}
-
-// Backward compatibility check
-function isAPIError(error: unknown): error is APIError {
-  return typeof error === 'object' && error !== null && 
-    'status' in error && 'statusText' in error && 'message' in error;
+  details?: string;
 }
 
 // ===== TYPES =====
@@ -203,31 +197,17 @@ function mapGrpcUserToBackendUser(grpcUser: PbUser | undefined): BackendUser {
   };
 }
 
-function mapGrpcErrorToFrontendError(err: unknown): { status: number; statusText: string; message: string } {
+function mapGrpcErrorToAuthError(err: unknown): AuthError {
   logGrpcError(err, 'AuthService');
   
   const message = getGrpcErrorMessage(err);
-  let status = 500;
-  let statusText = 'gRPC Error';
+  let code = 13; // INTERNAL (default)
 
   if (isGrpcError(err)) {
-    switch (err.code) {
-      case 3: // INVALID_ARGUMENT
-        status = 422; statusText = 'Unprocessable Entity'; break;
-      case 5: // NOT_FOUND
-        status = 404; statusText = 'Not Found'; break;
-      case 7: // PERMISSION_DENIED
-        status = 403; statusText = 'Forbidden'; break;
-      case 6: // ALREADY_EXISTS
-        status = 409; statusText = 'Conflict'; break;
-      case 16: // UNAUTHENTICATED
-        status = 401; statusText = 'Unauthorized'; break;
-      default:
-        status = 500; statusText = 'Internal Server Error'; break;
-    }
+    code = err.code;
   }
 
-  return { status, statusText, message };
+  return { code, message };
 }
 
 // ===== MAIN AUTH SERVICE =====
@@ -245,34 +225,22 @@ export class AuthService {
   }> {
     // Validate input
     if (!payload.email || !payload.password) {
-      throw {
-        status: 400,
-        statusText: 'Bad Request',
-        message: 'Email và mật khẩu là bắt buộc',
-      } as APIError;
+      throw new Error('Email và mật khẩu là bắt buộc');
     }
 
     if (!isValidEmail(payload.email)) {
-      throw {
-        status: 400,
-        statusText: 'Bad Request',
-        message: 'Email không hợp lệ',
-      } as APIError;
+      throw new Error('Email không hợp lệ');
     }
 
     if (!isValidPassword(payload.password)) {
-      throw {
-        status: 400,
-        statusText: 'Bad Request',
-        message: 'Mật khẩu phải có ít nhất 6 ký tự',
-      } as APIError;
+      throw new Error('Mật khẩu phải có ít nhất 6 ký tự');
     }
 
     try {
       // gRPC-Web login
 const resp = await GrpcAuthService.login(payload.email, payload.password);
-      const accessToken = (resp as PbLoginResponse).getAccessToken();
-      const refreshToken = (resp as PbLoginResponse).getRefreshToken();
+      const accessToken = (resp as unknown as PbLoginResponse).getAccessToken();
+      const refreshToken = (resp as unknown as PbLoginResponse).getRefreshToken();
 
       // Save tokens using shared helper
       if (typeof window !== 'undefined') {
@@ -280,7 +248,7 @@ const resp = await GrpcAuthService.login(payload.email, payload.password);
       }
 
       // Map gRPC user to backend user shape then to frontend
-const grpcUser = (resp as PbLoginResponse).getUser();
+const grpcUser = (resp as unknown as PbLoginResponse).getUser();
       const backendUser: BackendUser = grpcUser
         ? mapGrpcUserToBackendUser(grpcUser)
         : {
@@ -307,18 +275,23 @@ const grpcUser = (resp as PbLoginResponse).getUser();
       };
 
     } catch (error) {
-      const mappedError = mapGrpcErrorToFrontendError(error);
+      const authError = mapGrpcErrorToAuthError(error);
       
-      // Customize messages for specific error types
-      if (mappedError.status === 401) {
-        mappedError.message = 'Email hoặc mật khẩu không chính xác';
-      } else if (mappedError.status === 403) {
-        mappedError.message = 'Tài khoản đã bị vô hiệu hóa';
-      } else if (mappedError.status === 404) {
-        mappedError.message = 'Không tìm thấy tài khoản với email này';
+      // Customize messages for specific error codes
+      let userMessage = authError.message;
+      switch (authError.code) {
+        case 16: // UNAUTHENTICATED
+          userMessage = 'Email hoặc mật khẩu không chính xác';
+          break;
+        case 7: // PERMISSION_DENIED
+          userMessage = 'Tài khoản đã bị vô hiệu hóa';
+          break;
+        case 5: // NOT_FOUND
+          userMessage = 'Không tìm thấy tài khoản với email này';
+          break;
       }
       
-      throw mappedError;
+      throw new Error(userMessage);
     }
   }
 
@@ -331,27 +304,15 @@ const grpcUser = (resp as PbLoginResponse).getUser();
   }> {
     // Validate input
     if (!payload.email || !payload.password || !payload.firstName) {
-      throw {
-        status: 400,
-        statusText: 'Bad Request',
-        message: 'Email, mật khẩu và họ tên là bắt buộc',
-      } as APIError;
+      throw new Error('Email, mật khẩu và họ tên là bắt buộc');
     }
 
     if (!isValidEmail(payload.email)) {
-      throw {
-        status: 400,
-        statusText: 'Bad Request',
-        message: 'Email không hợp lệ',
-      } as APIError;
+      throw new Error('Email không hợp lệ');
     }
 
     if (!isValidPassword(payload.password)) {
-      throw {
-        status: 400,
-        statusText: 'Bad Request',
-        message: 'Mật khẩu phải có ít nhất 6 ký tự',
-      } as APIError;
+      throw new Error('Mật khẩu phải có ít nhất 6 ký tự');
     }
 
     try {
@@ -365,7 +326,7 @@ const resp = await GrpcAuthService.register(
         3  // LEVEL_HIGH (default)
       );
 
-      const grpcUser = (resp as PbRegisterResponse).getUser();
+      const grpcUser = (resp as unknown as PbRegisterResponse).getUser();
       const backendUser: BackendUser = grpcUser
         ? mapGrpcUserToBackendUser(grpcUser)
         : {
@@ -385,14 +346,15 @@ const resp = await GrpcAuthService.register(
       };
 
     } catch (error) {
-      const mappedError = mapGrpcErrorToFrontendError(error);
+      const authError = mapGrpcErrorToAuthError(error);
       
-      // Customize messages for specific error types
-      if (mappedError.status === 409) {
-        mappedError.message = 'Email đã được sử dụng';
+      // Customize messages for specific error codes
+      let userMessage = authError.message;
+      if (authError.code === 6) { // ALREADY_EXISTS
+        userMessage = 'Email đã được sử dụng';
       }
       
-      throw mappedError;
+      throw new Error(userMessage);
     }
   }
 
@@ -460,27 +422,28 @@ const resp = await GrpcAuthService.register(
  * Check if error is authentication error
  */
 export function isAuthError(error: unknown): boolean {
-  return isAPIError(error) && (error.status === 401 || error.status === 403);
+  if (!isGrpcError(error)) return false;
+  return error.code === 16 || error.code === 7; // UNAUTHENTICATED || PERMISSION_DENIED
 }
 
 /**
  * Get auth-specific error message
  */
 export function getAuthErrorMessage(error: unknown): string {
-  if (isAPIError(error)) {
-    switch (error.status) {
-      case 401:
+  if (isGrpcError(error)) {
+    switch (error.code) {
+      case 16: // UNAUTHENTICATED
         return 'Thông tin đăng nhập không chính xác';
-      case 403:
+      case 7: // PERMISSION_DENIED
         return 'Tài khoản không có quyền truy cập';
-      case 404:
+      case 5: // NOT_FOUND
         return 'Không tìm thấy tài khoản';
-      case 409:
+      case 6: // ALREADY_EXISTS
         return 'Email đã được sử dụng';
-      case 422:
+      case 3: // INVALID_ARGUMENT
         return 'Thông tin không hợp lệ';
       default:
-        return error.message;
+        return getGrpcErrorMessage(error);
     }
   }
   

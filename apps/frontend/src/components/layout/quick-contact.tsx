@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { ContactService } from '@/services/grpc/contact.service';
 
 interface ContactForm {
   name: string;
@@ -78,18 +79,16 @@ const QuickContact = () => {
         });
       }
 
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      // Use gRPC ContactService instead of REST API
+      const response = await ContactService.submitContactForm({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Có lỗi xảy ra khi gửi tin nhắn');
+      if (!response.success) {
+        throw new Error(response.message || 'Có lỗi xảy ra khi gửi tin nhắn');
       }
 
       // Success

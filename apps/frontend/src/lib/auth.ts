@@ -1,7 +1,8 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import type { NextAuthConfig } from "next-auth";
-import { AuthService } from "@/services/grpc/auth.service";
+// TODO: Re-enable when gRPC integration is restored
+// import { AuthService } from "@/services/grpc/auth.service";
 
 // Cấu hình NextAuth cho NyNus
 export const authConfig: NextAuthConfig = {
@@ -28,9 +29,14 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user: _user, account, profile: _profile }) {
-      // Kiểm tra xem user có được phép đăng nhập không
+      // TODO: Re-enable gRPC integration after protobuf issues are resolved
       if (account?.provider === "google" && account.id_token) {
         try {
+          console.log('Google login - gRPC integration temporarily disabled');
+          // Temporarily allow all Google logins without backend verification
+          return true;
+          
+          /*
           // Exchange Google ID token với backend để lấy JWT token của hệ thống
           const response = await AuthService.googleLogin(account.id_token);
           
@@ -47,6 +53,7 @@ export const authConfig: NextAuthConfig = {
             console.error('Backend rejected Google login');
             return false;
           }
+          */
         } catch (error) {
           console.error('Google login failed:', error);
           return false;

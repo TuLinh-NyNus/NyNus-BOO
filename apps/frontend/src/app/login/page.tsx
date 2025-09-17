@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { AuthService } from '@/services/grpc/auth.service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,19 +26,24 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
+      const result = await AuthService.login(email, password);
 
-      if (result?.error) {
-        setError('Email hoặc mật khẩu không đúng');
-      } else {
+      // gRPC LoginResponse uses getters, and tokens are auto-saved by AuthService
+      if (result.getAccessToken() && result.getUser()) {
+        // Store user info (optional) - convert protobuf to plain object
+        if (typeof window !== 'undefined') {
+          const userObj = result.getUser()?.toObject();
+          localStorage.setItem('nynus-user', JSON.stringify(userObj));
+        }
+        
+        // Redirect to dashboard
         router.push('/dashboard');
+      } else {
+        setError('Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
       }
-    } catch (_err) {
-      setError('Đã xảy ra lỗi. Vui lòng thử lại.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Đã xảy ra lỗi. Vui lòng thử lại.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -49,9 +54,25 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await signIn('google', { callbackUrl: '/dashboard' });
-    } catch (_err) {
-      setError('Không thể đăng nhập với Google');
+      // TODO: Implement Google OAuth flow when credentials are configured
+      // For now, show a message that Google login is not available
+      setError('Google login chưa được cấu hình. Vui lòng sử dụng email/password.');
+      setLoading(false);
+      
+      // Sample implementation for when Google OAuth is ready:
+      // const googleToken = await getGoogleIdToken(); // Get from Google OAuth flow
+      // const result = await AuthService.googleLogin(googleToken);
+      // if (result.getAccessToken() && result.getUser()) {
+      //   // Tokens are auto-saved by AuthService
+      //   const userObj = result.getUser()?.toObject();
+      //   localStorage.setItem('nynus-user', JSON.stringify(userObj));
+      //   router.push('/dashboard');
+      // } else {
+      //   setError('Google login failed');
+      // }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Không thể đăng nhập với Google';
+      setError(errorMessage);
       setLoading(false);
     }
   };

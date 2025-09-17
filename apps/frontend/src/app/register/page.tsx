@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
 import { Eye, EyeOff, Mail, Lock, User, Phone, School, Calendar, MapPin, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/components/ui/use-toast';
-import { authService } from '@/services/grpc/auth.service';
+import { authService, AuthService } from '@/services/grpc/auth.service';
 
 interface FormData {
   // Step 1: Account
@@ -163,15 +162,24 @@ export default function RegisterPage() {
         });
         
         // Auto login after successful registration
-        const loginResult = await signIn('credentials', {
-          email: formData.email,
-          password: formData.password,
-          redirect: false,
-        });
-
-        if (loginResult?.ok) {
-          router.push('/dashboard');
-        } else {
+        try {
+          const loginResult = await AuthService.login(formData.email, formData.password);
+          
+          // gRPC LoginResponse uses getters, tokens are auto-saved by AuthService
+          if (loginResult.getAccessToken() && loginResult.getUser()) {
+            // Store user info - convert protobuf to plain object
+            if (typeof window !== 'undefined') {
+              const userObj = loginResult.getUser()?.toObject();
+              localStorage.setItem('nynus-user', JSON.stringify(userObj));
+            }
+            
+            router.push('/dashboard');
+          } else {
+            // If auto-login fails, redirect to login page
+            router.push('/login');
+          }
+        } catch {
+          // If auto-login fails, redirect to login page
           router.push('/login');
         }
       } else {
@@ -189,9 +197,12 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await signIn('google', { callbackUrl: '/dashboard' });
-    } catch (_err) {
-      setError('Không thể đăng ký với Google');
+      // TODO: Implement Google OAuth registration when credentials are configured
+      setError('Google registration chưa được cấu hình. Vui lòng sử dụng form đăng ký.');
+      setLoading(false);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Không thể đăng ký với Google';
+      setError(errorMessage);
       setLoading(false);
     }
   };

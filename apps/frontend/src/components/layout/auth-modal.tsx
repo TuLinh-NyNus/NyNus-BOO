@@ -6,7 +6,7 @@ import { FaGoogle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/form/input";
 import { Label } from "@/components/ui/form/label";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/contexts/auth-context-grpc";
 import { AuthIllustration } from "@/components/ui/auth-illustration";
 import {
   Dialog,

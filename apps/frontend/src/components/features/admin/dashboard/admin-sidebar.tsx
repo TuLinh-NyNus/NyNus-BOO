@@ -34,7 +34,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/overlay/tooltip";
 import { ScrollArea } from '@/components/ui';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/contexts/auth-context-grpc';
 import { cn } from '@/lib/utils';
 
 // Interface cho props của AdminSidebar

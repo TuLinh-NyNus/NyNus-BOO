@@ -20,9 +20,13 @@ import type {
   ImportQuestionsResponse as ImportQuestionsResponseDTO,
 } from '@/types/question.types';
 
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+// TODO: Re-enable when protobuf files are generated
+// import { GRPC_WEB_HOST, getAuthMetadata } from './client';
 
 // Generated protobuf messages and client
+// TODO: Temporarily disabled due to missing question_pb.js file
+// These imports need proper protobuf generation to work
+/*
 import {
   CreateQuestionRequest,
   CreateQuestionResponse,
@@ -44,10 +48,13 @@ import {
   TextAnswer,
 } from '@/generated/v1/question_pb';
 import { QuestionServiceClient } from '@/generated/v1/question_pb_service';
+*/
 // Pagination struct is included within v1 responses; common may not export TS impl here
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { PaginationRequest as PbPaginationRequest } from '@/generated/common/common_pb';
 
+// TODO: Temporarily disabled - need proper protobuf generation
+/*
 const client = new QuestionServiceClient(GRPC_WEB_HOST);
 
 function mapAnswerFromPb(a: import('@/generated/v1/question_pb').Answer) {
@@ -169,122 +176,73 @@ function toUpdateReq(dto: UpdateQuestionRequestDTO): UpdateQuestionRequest {
   return req;
 }
 
+*/
+
+// Temporary stub implementation for QuestionService
 export class QuestionService {
-  static async createQuestion(dto: CreateQuestionRequestDTO): Promise<CreateQuestionResponseDTO> {
-    const req = toCreateReq(dto);
-    return new Promise((resolve, reject) => {
-      client.createQuestion(req, getAuthMetadata(), (err, res) => {
-        if (err) return reject(err);
-        const msg = res as CreateQuestionResponse;
-        resolve({
-          success: msg.getResponse()?.getSuccess?.() ?? true,
-          message: msg.getResponse()?.getMessage?.() ?? '',
-          errors: msg.getResponse()?.getErrorsList?.() ?? [],
-          question: msg.getQuestion()?.toObject() as any,
-        });
-      });
+  static async createQuestion(_dto: CreateQuestionRequestDTO): Promise<CreateQuestionResponseDTO> {
+    // TODO: Implement with proper gRPC when protobuf files are generated
+    console.warn('QuestionService.createQuestion is stubbed - need protobuf generation');
+    return Promise.resolve({
+      success: false,
+      message: 'Service temporarily unavailable',
+      errors: ['Protobuf files not generated'],
+      question: undefined
     });
   }
 
-  static async getQuestion(dto: GetQuestionRequestDTO): Promise<GetQuestionResponseDTO> {
-    const req = new GetQuestionRequest();
-    req.setId(dto.id);
-    return new Promise((resolve, reject) => {
-      client.getQuestion(req, getAuthMetadata(), (err, res) => {
-        if (err) return reject(err);
-        const msg = res as GetQuestionResponse;
-        const q = msg.getQuestion();
-        resolve({
-          success: msg.getResponse()?.getSuccess?.() ?? true,
-          message: msg.getResponse()?.getMessage?.() ?? '',
-          errors: msg.getResponse()?.getErrorsList?.() ?? [],
-          question: q ? mapQuestionFromPb(q) : undefined,
-        });
-      });
+  static async getQuestion(_dto: GetQuestionRequestDTO): Promise<GetQuestionResponseDTO> {
+    console.warn('QuestionService.getQuestion is stubbed - need protobuf generation');
+    return Promise.resolve({
+      success: false,
+      message: 'Service temporarily unavailable',
+      errors: ['Protobuf files not generated'],
+      question: undefined
     });
   }
 
-  static async updateQuestion(dto: UpdateQuestionRequestDTO): Promise<UpdateQuestionResponseDTO> {
-    const req = toUpdateReq(dto);
-    return new Promise((resolve, reject) => {
-      client.updateQuestion(req, getAuthMetadata(), (err, res) => {
-        if (err) return reject(err);
-        const msg = res as UpdateQuestionResponse;
-        const q = msg.getQuestion();
-        resolve({
-          success: msg.getResponse()?.getSuccess?.() ?? true,
-          message: msg.getResponse()?.getMessage?.() ?? '',
-          errors: msg.getResponse()?.getErrorsList?.() ?? [],
-          question: q ? mapQuestionFromPb(q) : undefined,
-        });
-      });
+  static async updateQuestion(_dto: UpdateQuestionRequestDTO): Promise<UpdateQuestionResponseDTO> {
+    console.warn('QuestionService.updateQuestion is stubbed - need protobuf generation');
+    return Promise.resolve({
+      success: false,
+      message: 'Service temporarily unavailable',
+      errors: ['Protobuf files not generated'],
+      question: undefined
     });
   }
 
-  static async deleteQuestion(dto: DeleteQuestionRequestDTO): Promise<DeleteQuestionResponseDTO> {
-    const req = new DeleteQuestionRequest();
-    req.setId(dto.id);
-    return new Promise((resolve, reject) => {
-      client.deleteQuestion(req, getAuthMetadata(), (err, res) => {
-        if (err) return reject(err);
-        const msg = res as DeleteQuestionResponse;
-        resolve({
-          success: msg.getResponse()?.getSuccess?.() ?? true,
-          message: msg.getResponse()?.getMessage?.() ?? '',
-          errors: msg.getResponse()?.getErrorsList?.() ?? [],
-        });
-      });
+  static async deleteQuestion(_dto: DeleteQuestionRequestDTO): Promise<DeleteQuestionResponseDTO> {
+    console.warn('QuestionService.deleteQuestion is stubbed - need protobuf generation');
+    return Promise.resolve({
+      success: false,
+      message: 'Service temporarily unavailable',
+      errors: ['Protobuf files not generated']
     });
   }
 
-  static async listQuestions(dto: ListQuestionsRequestDTO = {}): Promise<ListQuestionsResponseDTO> {
-    const req = new ListQuestionsRequest();
-    if (dto.pagination) {
-      // In current generated output, PaginationRequest class might not be emitted.
-      // Fallback: rely on server defaults if constructor not present.
-      // If in future it exists, you can attach it here similarly.
-    }
-    return new Promise((resolve, reject) => {
-      client.listQuestions(req, getAuthMetadata(), (err, res) => {
-        if (err) return reject(err);
-        const msg = res as ListQuestionsResponse;
-        const pg = msg.getPagination();
-        resolve({
-          success: msg.getResponse()?.getSuccess?.() ?? true,
-          message: msg.getResponse()?.getMessage?.() ?? '',
-          errors: msg.getResponse()?.getErrorsList?.() ?? [],
-          questions: msg.getQuestionsList().map(mapQuestionFromPb),
-          pagination: pg ? {
-            page: pg.getPage(),
-            limit: pg.getLimit(),
-            total_count: pg.getTotalCount(),
-            total_pages: pg.getTotalPages(),
-          } : undefined,
-        });
-      });
+  static async listQuestions(_dto: ListQuestionsRequestDTO = {}): Promise<ListQuestionsResponseDTO> {
+    console.warn('QuestionService.listQuestions is stubbed - need protobuf generation');
+    return Promise.resolve({
+      success: false,
+      message: 'Service temporarily unavailable',
+      errors: ['Protobuf files not generated'],
+      questions: [],
+      pagination: undefined
     });
   }
 
-  static async importQuestions(dto: ImportQuestionsRequestDTO): Promise<ImportQuestionsResponseDTO> {
-    const req = new ImportQuestionsRequest();
-    req.setCsvDataBase64(dto.csv_data_base64);
-    req.setUpsertMode(dto.upsert_mode);
-    return new Promise((resolve, reject) => {
-      client.importQuestions(req, getAuthMetadata(), (err, res) => {
-        if (err) return reject(err);
-        const msg = res as ImportQuestionsResponse;
-        resolve({
-          success: msg.getResponse()?.getSuccess?.() ?? true,
-          message: msg.getResponse()?.getMessage?.() ?? '',
-          total_processed: msg.getTotalProcessed(),
-          created_count: msg.getCreatedCount(),
-          updated_count: msg.getUpdatedCount(),
-          error_count: msg.getErrorCount(),
-          errors: msg.getErrorsList().map(e => e.toObject() as any),
-          summary: msg.getSummary(),
-        } as any);
-      });
-    });
+  static async importQuestions(_dto: ImportQuestionsRequestDTO): Promise<ImportQuestionsResponseDTO> {
+    console.warn('QuestionService.importQuestions is stubbed - need protobuf generation');
+    return Promise.resolve({
+      success: false,
+      message: 'Service temporarily unavailable',
+      total_processed: 0,
+      created_count: 0,
+      updated_count: 0,
+      error_count: 0,
+      errors: [],
+      summary: 'Protobuf files not generated'
+    } as any);
   }
 }
 

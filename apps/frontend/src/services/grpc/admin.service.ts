@@ -4,85 +4,95 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+// TODO: Re-enable when protobuf files are generated
+// import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+// import { GetSystemStatsRequest } from '@/generated/v1/admin_pb';
+// import { AdminServiceClient } from '@/generated/v1/admin_pb_service';
+// const client = new AdminServiceClient(GRPC_WEB_HOST);
 
-// Generated stubs (assuming codegen created these; otherwise ambient types must exist)
-import { GetSystemStatsRequest } from '@/generated/v1/admin_pb';
-import { AdminServiceClient } from '@/generated/v1/admin_pb_service';
-
-const client = new AdminServiceClient(GRPC_WEB_HOST);
-
+// Temporary stub implementation
 export class AdminService {
-  static async listUsers(req: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      client.listUsers(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
+  static async listUsers(_req: any): Promise<any> {
+    console.warn('AdminService.listUsers is stubbed - need protobuf generation');
+    return Promise.resolve({
+      getUsersList: () => [],
+      getPagination: () => ({
+        getPage: () => 1,
+        getLimit: () => 20,
+        getTotalCount: () => 0,
+        getTotalPages: () => 0
+      })
     });
   }
 
-  static async updateUserRole(req: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      client.updateUserRole(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
+  static async updateUserRole(_req: any): Promise<any> {
+    console.warn('AdminService.updateUserRole is stubbed - need protobuf generation');
+    return Promise.resolve({
+      getUpdatedUser: () => null
     });
   }
 
-  static async updateUserLevel(req: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      client.updateUserLevel(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
+  static async updateUserLevel(_req: any): Promise<any> {
+    console.warn('AdminService.updateUserLevel is stubbed - need protobuf generation');
+    return Promise.resolve({ getUpdatedUser: () => null });
+  }
+
+  static async updateUserStatus(_req: any): Promise<any> {
+    console.warn('AdminService.updateUserStatus is stubbed - need protobuf generation');
+    return Promise.resolve({ getUpdatedUser: () => null });
+  }
+
+  static async getAuditLogs(_req: any): Promise<any> {
+    console.warn('AdminService.getAuditLogs is stubbed - need protobuf generation');
+    return Promise.resolve({
+      getLogsList: () => [],
+      getPagination: () => ({
+        getPage: () => 1,
+        getLimit: () => 20,
+        getTotalCount: () => 0,
+        getTotalPages: () => 0
+      })
     });
   }
 
-  static async updateUserStatus(req: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      client.updateUserStatus(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
+  static async getResourceAccess(_req: any): Promise<any> {
+    console.warn('AdminService.getResourceAccess is stubbed - need protobuf generation');
+    return Promise.resolve({
+      getAccessesList: () => [],
+      getPagination: () => ({
+        getPage: () => 1,
+        getLimit: () => 20,
+        getTotalCount: () => 0,
+        getTotalPages: () => 0
+      })
     });
   }
 
-  static async getAuditLogs(req: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      client.getAuditLogs(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
-    });
-  }
-
-  static async getResourceAccess(req: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      client.getResourceAccess(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
-    });
-  }
-
-  static async getSecurityAlerts(req: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-      client.getSecurityAlerts(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
+  static async getSecurityAlerts(_req: any): Promise<any> {
+    console.warn('AdminService.getSecurityAlerts is stubbed - need protobuf generation');
+    return Promise.resolve({
+      getAlertsList: () => [],
+      getPagination: () => ({
+        getPage: () => 1,
+        getLimit: () => 20,
+        getTotalCount: () => 0,
+        getTotalPages: () => 0
+      })
     });
   }
 
   static async getSystemStats(_req?: any): Promise<any> {
-    const req = new GetSystemStatsRequest();
-    return new Promise((resolve, reject) => {
-      client.getSystemStats(req, getAuthMetadata(), (err: unknown, res: unknown) => {
-        if (err) return reject(err);
-        resolve(res as any);
-      });
+    console.warn('AdminService.getSystemStats is stubbed - need protobuf generation');
+    return Promise.resolve({
+      getStats: () => ({
+        getTotalUsers: () => 0,
+        getActiveUsers: () => 0,
+        getTotalSessions: () => 0,
+        getActiveSessions: () => 0,
+        getUsersByRoleMap: () => ({ toObject: () => ({}) }),
+        getUsersByStatusMap: () => ({ toObject: () => ({}) }),
+        getSuspiciousActivities: () => 0
+      })
     });
   }
 }

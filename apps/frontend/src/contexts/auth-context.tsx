@@ -5,8 +5,11 @@ import React from 'react';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 
-// Import User interface và mockAdminUser từ mockdata
-import { type User, mockAdminUser } from '../lib/mockdata/auth';
+// Import User interface từ mockdata (chỉ để dùng type)
+import { type User } from '../lib/mockdata/auth';
+
+// Import gRPC AuthService
+import { AuthService, getAuthErrorMessage } from '../lib/services/api/auth.api';
 
 // Interface cho Auth Context
 interface AuthContextType {
@@ -66,21 +69,16 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
           return;
         }
 
-        // Fallback to localStorage cho mock auth - chỉ trên client
+        // Check localStorage for existing auth session
         if (typeof window !== 'undefined') {
-          const savedUser = localStorage.getItem('nynus-auth-user');
-          const authToken = localStorage.getItem('nynus-auth-token');
+          const storedUser = AuthService.getStoredUser();
+          const token = AuthService.getToken();
 
-          if (savedUser && authToken) {
-            try {
-              const parsedUser = JSON.parse(savedUser);
-              setUser(parsedUser);
-            } catch (parseError) {
-              console.error('Error parsing saved user data:', parseError);
-              // Clear invalid data
-              localStorage.removeItem('nynus-auth-user');
-              localStorage.removeItem('nynus-auth-token');
-            }
+          if (storedUser && token && AuthService.isTokenValid(token)) {
+            setUser(storedUser);
+          } else {
+            // Clear invalid/expired data
+            AuthService.clearAuth();
           }
         }
       } catch (error) {
@@ -99,30 +97,21 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
     checkAuthStatus();
   }, [session, status, isMounted]);
 
-  // Login function với mockdata
+  // Login function với gRPC AuthService
   const login = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock authentication logic
-      if (email === 'admin@nynus.edu.vn' && password === 'admin123') {
-        const userData = { ...mockAdminUser, lastLoginAt: new Date() };
-
-        // Save to localStorage - chỉ trên client
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
-          localStorage.setItem('nynus-auth-token', 'mock-jwt-token-admin');
-        }
-
-        setUser(userData);
-      } else {
-        throw new Error('Invalid credentials');
-      }
+      // Call gRPC login service
+      const response = await AuthService.login({ email, password });
+      
+      // AuthService.login đã tự động save tokens và user vào localStorage
+      // Chỉ cần cập nhật state
+      setUser(response.user);
     } catch (error) {
-      throw error;
+      // Convert gRPC error to user-friendly message
+      const errorMessage = getAuthErrorMessage(error);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -156,11 +145,8 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
         await nextAuthSignOut({ callbackUrl: '/', redirect: false });
       }
 
-      // Clear localStorage for mock auth - chỉ trên client
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('nynus-auth-user');
-        localStorage.removeItem('nynus-auth-token');
-      }
+      // Clear authentication using AuthService
+      AuthService.clearAuth();
 
       setUser(null);
     } catch (error) {
@@ -192,7 +178,7 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
       const updatedUser = { ...user, ...userData };
       setUser(updatedUser);
 
-      // Update localStorage - chỉ trên client
+      // Update localStorage using AuthService pattern
       if (typeof window !== 'undefined') {
         localStorage.setItem('nynus-auth-user', JSON.stringify(updatedUser));
       }

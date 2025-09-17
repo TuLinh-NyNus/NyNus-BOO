@@ -8,7 +8,6 @@ package v1
 
 import (
 	common "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -1828,7 +1827,7 @@ var File_v1_question_filter_proto protoreflect.FileDescriptor
 
 const file_v1_question_filter_proto_rawDesc = "" +
 	"\n" +
-	"\x18v1/question_filter.proto\x12\x02v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1cgoogle/api/annotations.proto\x1a\x13common/common.proto\"\x8a\x05\n" +
+	"\x18v1/question_filter.proto\x12\x02v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x13common/common.proto\"\x8a\x05\n" +
 	"\x0eQuestionDetail\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1f\n" +
 	"\vraw_content\x18\x02 \x01(\tR\n" +
@@ -2036,11 +2035,11 @@ const file_v1_question_filter_proto_rawDesc = "" +
 	"\tSortOrder\x12\x1a\n" +
 	"\x16SORT_ORDER_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eSORT_ORDER_ASC\x10\x01\x12\x13\n" +
-	"\x0fSORT_ORDER_DESC\x10\x022\xa0\x03\n" +
-	"\x15QuestionFilterService\x12\x81\x01\n" +
-	"\x15ListQuestionsByFilter\x12 .v1.ListQuestionsByFilterRequest\x1a!.v1.ListQuestionsByFilterResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/api/v1/questions/filter\x12o\n" +
-	"\x0fSearchQuestions\x12\x1a.v1.SearchQuestionsRequest\x1a\x1b.v1.SearchQuestionsResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/api/v1/questions/search\x12\x91\x01\n" +
-	"\x1aGetQuestionsByQuestionCode\x12%.v1.GetQuestionsByQuestionCodeRequest\x1a&.v1.GetQuestionsByQuestionCodeResponse\"$\x82\xd3\xe4\x93\x02\x1e:\x01*\"\x19/api/v1/questions/by-codeBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
+	"\x0fSORT_ORDER_DESC\x10\x022\xae\x02\n" +
+	"\x15QuestionFilterService\x12\\\n" +
+	"\x15ListQuestionsByFilter\x12 .v1.ListQuestionsByFilterRequest\x1a!.v1.ListQuestionsByFilterResponse\x12J\n" +
+	"\x0fSearchQuestions\x12\x1a.v1.SearchQuestionsRequest\x1a\x1b.v1.SearchQuestionsResponse\x12k\n" +
+	"\x1aGetQuestionsByQuestionCode\x12%.v1.GetQuestionsByQuestionCodeRequest\x1a&.v1.GetQuestionsByQuestionCodeResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
 
 var (
 	file_v1_question_filter_proto_rawDescOnce sync.Once

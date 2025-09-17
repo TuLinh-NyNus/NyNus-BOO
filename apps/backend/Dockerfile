@@ -1,8 +1,9 @@
 ﻿# Backend Dockerfile
-FROM golang:1.21-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 COPY apps/backend .
+COPY packages/ ../../packages/
 
 # Install dependencies
 RUN go mod download
@@ -19,6 +20,8 @@ WORKDIR /root/
 
 # Copy the binary from builder stage
 COPY --from=builder /app/main .
+# Copy migrations
+COPY --from=builder /app/../../packages/ ../../packages/
 
 # Expose ports
 EXPOSE 50051 8080

@@ -8,7 +8,6 @@ package v1
 
 import (
 	common "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1673,7 +1672,7 @@ var File_v1_question_proto protoreflect.FileDescriptor
 
 const file_v1_question_proto_rawDesc = "" +
 	"\n" +
-	"\x11v1/question.proto\x12\x02v1\x1a\x13common/common.proto\x1a\x1cgoogle/api/annotations.proto\"s\n" +
+	"\x11v1/question.proto\x12\x02v1\x1a\x13common/common.proto\"s\n" +
 	"\x06Answer\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1d\n" +
@@ -1815,14 +1814,14 @@ const file_v1_question_proto_rawDesc = "" +
 	"\verror_count\x18\x05 \x01(\x05R\n" +
 	"errorCount\x12'\n" +
 	"\x06errors\x18\x06 \x03(\v2\x0f.v1.ImportErrorR\x06errors\x12\x18\n" +
-	"\asummary\x18\a \x01(\tR\asummary2\xff\x04\n" +
-	"\x0fQuestionService\x12e\n" +
-	"\x0eCreateQuestion\x12\x19.v1.CreateQuestionRequest\x1a\x1a.v1.CreateQuestionResponse\"\x1c\x82\xd3\xe4\x93\x02\x16:\x01*\"\x11/api/v1/questions\x12^\n" +
-	"\vGetQuestion\x12\x16.v1.GetQuestionRequest\x1a\x17.v1.GetQuestionResponse\"\x1e\x82\xd3\xe4\x93\x02\x18\x12\x16/api/v1/questions/{id}\x12j\n" +
-	"\x0eUpdateQuestion\x12\x19.v1.UpdateQuestionRequest\x1a\x1a.v1.UpdateQuestionResponse\"!\x82\xd3\xe4\x93\x02\x1b:\x01*\x1a\x16/api/v1/questions/{id}\x12g\n" +
-	"\x0eDeleteQuestion\x12\x19.v1.DeleteQuestionRequest\x1a\x1a.v1.DeleteQuestionResponse\"\x1e\x82\xd3\xe4\x93\x02\x18*\x16/api/v1/questions/{id}\x12_\n" +
-	"\rListQuestions\x12\x18.v1.ListQuestionsRequest\x1a\x19.v1.ListQuestionsResponse\"\x19\x82\xd3\xe4\x93\x02\x13\x12\x11/api/v1/questions\x12o\n" +
-	"\x0fImportQuestions\x12\x1a.v1.ImportQuestionsRequest\x1a\x1b.v1.ImportQuestionsResponse\"#\x82\xd3\xe4\x93\x02\x1d:\x01*\"\x18/api/v1/questions/importBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
+	"\asummary\x18\a \x01(\tR\asummary2\xbe\x03\n" +
+	"\x0fQuestionService\x12G\n" +
+	"\x0eCreateQuestion\x12\x19.v1.CreateQuestionRequest\x1a\x1a.v1.CreateQuestionResponse\x12>\n" +
+	"\vGetQuestion\x12\x16.v1.GetQuestionRequest\x1a\x17.v1.GetQuestionResponse\x12G\n" +
+	"\x0eUpdateQuestion\x12\x19.v1.UpdateQuestionRequest\x1a\x1a.v1.UpdateQuestionResponse\x12G\n" +
+	"\x0eDeleteQuestion\x12\x19.v1.DeleteQuestionRequest\x1a\x1a.v1.DeleteQuestionResponse\x12D\n" +
+	"\rListQuestions\x12\x18.v1.ListQuestionsRequest\x1a\x19.v1.ListQuestionsResponse\x12J\n" +
+	"\x0fImportQuestions\x12\x1a.v1.ImportQuestionsRequest\x1a\x1b.v1.ImportQuestionsResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
 
 var (
 	file_v1_question_proto_rawDescOnce sync.Once

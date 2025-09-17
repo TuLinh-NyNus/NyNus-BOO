@@ -1,6 +1,9 @@
 import { Metadata } from "next";
 import { BugReportForm } from "./bug-report-form";
 
+// Disable static generation temporarily to avoid SSR auth issues
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Báo cáo lỗi - NyNus",
   description: "Báo cáo lỗi hoặc vấn đề gặp phải khi sử dụng NyNus để chúng tôi có thể khắc phục nhanh chóng.",
