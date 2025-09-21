@@ -1,471 +1,395 @@
-# Frontend - Next.js 15 App Agent Guide
-*Hướng dẫn cho AI agents làm việc với Next.js frontend*
+# 🤖 NyNus Frontend - AI Agent Guide
+*Essential guide for AI agents working with NyNus Frontend*
 
-## 📋 Tổng quan Frontend
+## 🎯 **QUICK OVERVIEW FOR AI**
 
-**NyNus Frontend** là ứng dụng Next.js 15 sử dụng App Router, TypeScript, và gRPC-Web để giao tiếp với backend.
+**NyNus Frontend** is a Next.js 15 exam bank system with gRPC-Web communication.
 
-### Thông tin kỹ thuật
-- **Framework**: Next.js 15.4.5 với App Router
-- **Language**: TypeScript 5.5
-- **Styling**: Tailwind CSS + Shadcn UI
-- **Communication**: gRPC-Web với @improbable-eng/grpc-web
-- **State Management**: React Context + Custom hooks
-- **Port**: 3000 (development)
+### **Tech Stack (AI Must Know)**
+- **Framework**: Next.js 15.4.5 + App Router + TypeScript 5.8.3 (strict)
+- **Styling**: Tailwind CSS 4.1.11 + Shadcn UI components
+- **Communication**: gRPC-Web (@improbable-eng/grpc-web)
+- **Auth**: NextAuth + Custom gRPC Auth (dual system)
+- **State**: React Context + TanStack Query + Zustand
+- **Port**: 3000 (dev), 8080 (gRPC backend)
 
-## 🏗️ Cấu trúc Frontend
+## 🏗️ **CRITICAL ARCHITECTURE FOR AI**
 
+### **Directory Structure (AI Implementation Guide)**
 ```
-apps/frontend/
-├── src/
-│   ├── app/                      # Next.js 15 App Router
-│   │   ├── layout.tsx           # Root layout
-│   │   ├── page.tsx             # Homepage
-│   │   ├── admin/               # Admin dashboard
-│   │   ├── login/               # Authentication pages
-│   │   ├── questions/           # Question management
-│   │   └── api/                 # API routes (if any)
-│   ├── components/              # React components
-│   │   ├── ui/                  # Shadcn UI components
-│   │   ├── auth/                # Authentication components
-│   │   ├── admin/               # Admin-specific components
-│   │   ├── question/            # Question-related components
-│   │   └── layout/              # Layout components
-│   ├── services/grpc/           # gRPC-Web client services
-│   │   ├── auth.service.ts      # Authentication service
-│   │   ├── question.service.ts  # Question service
-│   │   └── admin.service.ts     # Admin service
-│   ├── generated/               # Generated protobuf code
-│   │   ├── user.ts              # User service types
-│   │   ├── common.ts            # Common types
-│   │   └── v1/                  # API version 1 types
-│   ├── contexts/                # React contexts
-│   │   ├── auth-context.tsx     # Authentication context
-│   │   └── modal-context.tsx    # Modal management
-│   ├── hooks/                   # Custom React hooks
-│   ├── lib/                     # Utilities & configurations
-│   └── types/                   # TypeScript type definitions
-├── package.json                 # Dependencies & scripts
-├── next.config.js              # Next.js configuration
-├── tailwind.config.js          # Tailwind CSS config
-└── tsconfig.json               # TypeScript config
+apps/frontend/src/
+├── app/                         # 🚨 Next.js 15 App Router - MAIN ROUTES
+│   ├── layout.tsx              # Root layout + providers
+│   ├── page.tsx                # Homepage with dynamic imports
+│   ├── 3141592654/             # ⚠️ ADMIN PAGES - NEVER DELETE/RENAME
+│   ├── questions/              # Question management pages
+│   ├── login/register/         # Auth pages
+│   └── middleware.ts           # Route protection + role-based access
+├── components/                  # 🎨 React Components
+│   ├── ui/                     # Shadcn UI base components
+│   ├── features/               # Feature-specific components
+│   ├── layout/                 # Layout components (navbar, footer)
+│   └── [feature]/              # Organized by feature
+├── services/grpc/              # 🔌 gRPC-Web Services - CRITICAL
+│   ├── auth.service.ts         # Authentication + JWT
+│   ├── question.service.ts     # Question CRUD
+│   └── [service].service.ts    # Other gRPC services
+├── generated/                  # 🤖 Auto-generated protobuf types
+│   ├── v1/                     # Service definitions
+│   └── common/                 # Shared types
+├── contexts/                   # 🔄 React Context Providers
+│   ├── auth-context.tsx        # Auth state management
+│   └── [context].tsx           # Other contexts
+├── hooks/                      # 🪝 Custom React Hooks
+├── lib/                        # 🛠️ Utilities + Configurations
+└── types/                      # 📝 TypeScript Definitions
 ```
 
-## 🚀 Development Commands
+## ⚠️ **CRITICAL RULES FOR AI IMPLEMENTATION**
 
-### Development Server
+### **🚨 NEVER TOUCH THESE**
+```bash
+# FORBIDDEN ACTIONS
+❌ DELETE src/app/3141592654/          # Admin pages directory
+❌ RENAME src/app/3141592654/          # Security through obscurity
+❌ MODIFY middleware.ts role logic     # Authentication system
+❌ DELETE src/generated/               # Auto-generated protobuf
+❌ CHANGE gRPC service signatures      # Backend compatibility
+```
+
+### **✅ SAFE TO MODIFY**
+```bash
+# ALLOWED ACTIONS
+✅ ADD new pages in src/app/
+✅ CREATE new components in src/components/
+✅ ADD new hooks in src/hooks/
+✅ MODIFY UI components in src/components/ui/
+✅ ADD new services (follow existing patterns)
+```
+
+## 🚀 **AI DEVELOPMENT COMMANDS**
+
+### **Quick Start (AI Use These)**
 ```bash
 cd apps/frontend
-
-# Development modes
-pnpm dev                    # Standard development (port 3000)
-pnpm dev:fast              # With Turbo mode
-pnpm dev:verbose           # With detailed logs
-pnpm dev:debug             # With Node.js inspector
-pnpm dev:clean             # Clean cache + fast dev
+pnpm dev                    # Start development server (port 3000)
+pnpm build                  # Production build + search index
+pnpm type-check            # Validate TypeScript
+pnpm lint                  # Check code quality
 ```
 
-### Build & Production
+### **Advanced Commands**
 ```bash
-pnpm build                 # Production build
-pnpm build:fast           # Fast build (no lint)
-pnpm build:analyze        # Build with bundle analyzer
-pnpm start                # Start production server
+pnpm dev:fast              # Turbo mode development
+pnpm build:analyze         # Bundle analysis
+pnpm lint:fix              # Auto-fix ESLint issues
+pnpm clean:cache           # Clear Next.js cache
 ```
 
-### Code Quality
-```bash
-pnpm lint                 # ESLint check
-pnpm lint:fix            # Auto-fix ESLint issues
-pnpm type-check          # TypeScript validation
-pnpm type-check:watch    # Watch mode type checking
+## 🔐 **AUTHENTICATION SYSTEM (AI MUST UNDERSTAND)**
 
-# Specific linting
-pnpm lint:components     # Lint components only
-pnpm lint:hooks         # Lint hooks only
-pnpm lint:api           # Lint API routes only
-```
-
-### Performance & Optimization
-```bash
-pnpm clean               # Clean build artifacts
-pnpm clean:cache        # Clean Next.js cache
-pnpm perf:build         # Measure build performance
-pnpm perf:dev           # Measure dev startup time
-```
-
-## 🔧 gRPC-Web Integration
-
-### Service Generation
-```powershell
-# Generate TypeScript code from proto files
-../../scripts/development/gen-proto-web.ps1
-```
-
-### gRPC Client Services (src/services/grpc/)
-
-#### Authentication Service (auth.service.ts)
+### **Dual Auth Architecture**
 ```typescript
-import { UserServiceClient } from '@/generated/v1/user_grpc_web_pb';
-import { LoginRequest, LoginResponse } from '@/generated/v1/user_pb';
+// NextAuth (Google OAuth) + Custom gRPC Auth
+const authFlow = {
+  google: "NextAuth → session → user context",
+  email: "gRPC → JWT tokens → localStorage → user context"
+};
+```
 
-class AuthService {
-  private client: UserServiceClient;
+### **Role-Based Access Control**
+```typescript
+// middleware.ts - Route Protection
+const ROLE_HIERARCHY = {
+  ADMIN: 5,    // Full access
+  TEACHER: 4,  // Teaching features
+  TUTOR: 3,    // Tutoring features
+  STUDENT: 2,  // Learning features
+  GUEST: 1     // Public only
+};
+```
+
+### **Protected Routes (AI Implementation)**
+```typescript
+// When adding new pages, follow this pattern:
+'/admin/*'     → ADMIN only
+'/teacher/*'   → TEACHER + ADMIN
+'/student/*'   → STUDENT + higher roles
+'/profile'     → Any authenticated user
+'/'           → Public access
+```
+
+## 🔌 **gRPC-WEB INTEGRATION (AI CRITICAL KNOWLEDGE)**
+
+### **Service Pattern (AI Must Follow)**
+```typescript
+// src/services/grpc/[service].service.ts
+import { ServiceClient } from '@/generated/v1/ServiceClientPb';
+import { Request, Response } from '@/generated/v1/service_pb';
+
+export class ServiceName {
+  private client: ServiceClient;
 
   constructor() {
-    this.client = new UserServiceClient('http://localhost:8080');
+    this.client = new ServiceClient(process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080');
   }
 
-  async login(email: string, password: string): Promise<LoginResponse> {
-    const request = new LoginRequest();
-    request.setEmail(email);
-    request.setPassword(password);
+  async methodName(params: RequestParams): Promise<ResponseType> {
+    const request = new Request();
+    // Set request fields
 
-    return new Promise((resolve, reject) => {
-      this.client.login(request, {}, (err, response) => {
-        if (err) reject(err);
-        else resolve(response);
-      });
-    });
-  }
-}
-```
-
-#### Question Service (question.service.ts)
-```typescript
-import { QuestionServiceClient } from '@/generated/v1/question_grpc_web_pb';
-import { CreateQuestionRequest, GetQuestionRequest } from '@/generated/v1/question_pb';
-
-class QuestionService {
-  private client: QuestionServiceClient;
-
-  constructor() {
-    this.client = new QuestionServiceClient('http://localhost:8080');
-  }
-
-  async createQuestion(questionData: CreateQuestionRequest): Promise<Question> {
-    // Implementation with proper error handling
-  }
-
-  async getQuestion(id: string): Promise<Question> {
-    // Implementation with proper error handling
+    try {
+      const response = await this.client.methodName(request);
+      return response;
+    } catch (error) {
+      throw new Error(this.handleGrpcError(error));
+    }
   }
 }
 ```
 
-## 🎨 UI Components & Styling
-
-### Shadcn UI Components (src/components/ui/)
-- `button.tsx` - Button component
-- `input.tsx` - Input field
-- `modal.tsx` - Modal dialog
-- `table.tsx` - Data table
-- `form.tsx` - Form components
-
-### Component Structure
+### **Available Services (AI Can Use)**
 ```typescript
-// Example component structure
-interface ComponentProps {
-  // Props definition
+// Authentication
+AuthService.login(email, password)
+AuthService.register(userData)
+AuthService.getCurrentUser()
+
+// Questions
+QuestionService.createQuestion(questionData)
+QuestionService.getQuestion(id)
+QuestionService.listQuestions(filters)
+
+// Admin
+AdminService.listUsers()
+AdminService.updateUser(id, userData)
+```
+
+### **Generated Types Location**
+```bash
+src/generated/v1/           # Service clients & messages
+src/generated/common/       # Shared types (UserRole, UserStatus)
+```
+
+## 🎨 **UI COMPONENTS (AI IMPLEMENTATION GUIDE)**
+
+### **Shadcn UI Base Components (Ready to Use)**
+```typescript
+// src/components/ui/ - Pre-built components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Modal } from '@/components/ui/modal';
+import { Table } from '@/components/ui/table';
+import { Form } from '@/components/ui/form';
+```
+
+### **Component Creation Pattern (AI Must Follow)**
+```typescript
+// src/components/[feature]/ComponentName.tsx
+'use client'; // Only if using hooks/state
+
+import { cn } from '@/lib/utils';
+import { ComponentProps } from '@/types/component-types';
+
+interface Props extends ComponentProps {
+  // Specific props
 }
 
-export function Component({ ...props }: ComponentProps) {
-  // Component logic
+export function ComponentName({ className, ...props }: Props) {
   return (
-    <div className="tailwind-classes">
-      {/* Component JSX */}
+    <div className={cn("base-classes", className)}>
+      {/* Component content */}
     </div>
   );
 }
 ```
 
-### Tailwind CSS Configuration
-```javascript
-// tailwind.config.js
-module.exports = {
-  content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-  theme: {
-    extend: {
-      // Custom theme extensions
-    },
-  },
-  plugins: [],
+### **Styling Rules (AI Must Follow)**
+```typescript
+// ✅ CORRECT - Use cn() utility
+className={cn("flex items-center", isActive && "bg-primary", className)}
+
+// ❌ WRONG - Direct string concatenation
+className={`flex items-center ${isActive ? 'bg-primary' : ''} ${className}`}
+```
+
+## 🪝 **CUSTOM HOOKS (AI IMPLEMENTATION PATTERNS)**
+
+### **Available Hooks (AI Can Use)**
+```typescript
+// Authentication
+import { useAuth } from '@/contexts/auth-context';
+const { user, login, logout, isAuthenticated } = useAuth();
+
+// Debouncing
+import { useDebounce } from '@/hooks/useDebounce';
+const debouncedValue = useDebounce(searchTerm, 300);
+
+// Question Management
+import { useQuestionList } from '@/hooks/useQuestionList';
+const { questions, loading, error, refetch } = useQuestionList(filters);
+
+// Toast Notifications
+import { useToast } from '@/hooks/use-toast';
+const { toast } = useToast();
+toast({ title: "Success", description: "Action completed" });
+```
+
+### **Hook Creation Pattern (AI Must Follow)**
+```typescript
+// src/hooks/useFeatureName.ts
+import { useState, useEffect } from 'react';
+
+export function useFeatureName(params: ParamsType) {
+  const [state, setState] = useState<StateType>(initialState);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Hook logic here
+
+  return { state, loading, error, actions };
 }
 ```
 
-## 🔐 Authentication System
+## 📱 **NEXT.JS APP ROUTER (AI PAGE CREATION GUIDE)**
 
-### Auth Context (src/contexts/auth-context.tsx)
+### **Page Creation Pattern (AI Must Follow)**
 ```typescript
-interface AuthContextType {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  isLoading: boolean;
-  isAuthenticated: boolean;
-}
+// src/app/[route]/page.tsx
+import { Metadata } from 'next';
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export function AuthProvider({ children }: { children: ReactNode }) {
-  // Authentication logic with gRPC
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
-  return context;
-}
-```
-
-### Protected Routes
-```typescript
-// middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-export function middleware(request: NextRequest) {
-  // Route protection logic
-  const token = request.cookies.get('auth-token');
-  
-  if (!token && request.nextUrl.pathname.startsWith('/admin')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-}
-
-export const config = {
-  matcher: ['/admin/:path*', '/profile/:path*']
+export const metadata: Metadata = {
+  title: 'Page Title - NyNus',
+  description: 'Page description for SEO'
 };
+
+export default function PageName() {
+  return (
+    <div className="container mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Page Title</h1>
+      {/* Page content */}
+    </div>
+  );
+}
 ```
 
-## 📱 App Router Structure
-
-### Layout System
+### **Layout Pattern (AI Can Extend)**
 ```typescript
-// app/layout.tsx - Root layout
-export default function RootLayout({
+// src/app/[route]/layout.tsx
+export default function RouteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
-      <body>
-        <AuthProvider>
-          <div className="min-h-screen">
-            {children}
-          </div>
-        </AuthProvider>
-      </body>
-    </html>
-  );
-}
-```
-
-### Page Structure
-```typescript
-// app/admin/dashboard/page.tsx
-export default function AdminDashboard() {
-  return (
-    <div className="container mx-auto p-6">
-      <h1>Admin Dashboard</h1>
-      {/* Dashboard content */}
+    <div className="route-specific-layout">
+      {/* Route-specific navigation/sidebar */}
+      <main>{children}</main>
     </div>
   );
 }
 ```
 
-## 🪝 Custom Hooks
+## ⚠️ **COMMON PITFALLS (AI MUST AVOID)**
 
-### Common Hooks (src/hooks/)
-- `useAuth()` - Authentication state
-- `useDebounce()` - Debounced values
-- `useLocalStorage()` - Local storage management
-- `useQuestionFilters()` - Question filtering logic
-- `useToast()` - Toast notifications
-
-### Example Hook
+### **🚨 Critical Mistakes**
 ```typescript
-// hooks/useQuestionFilters.ts
-export function useQuestionFilters() {
-  const [filters, setFilters] = useState<QuestionFilters>({});
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [loading, setLoading] = useState(false);
+// ❌ WRONG - Direct protobuf import
+import { UserServiceClient } from 'src/generated/v1/user_grpc_web_pb';
 
-  const applyFilters = useCallback(async (newFilters: QuestionFilters) => {
-    setLoading(true);
-    try {
-      // gRPC call to filter questions
-      const result = await questionService.filterQuestions(newFilters);
-      setQuestions(result.questions);
-    } catch (error) {
-      console.error('Filter error:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+// ✅ CORRECT - Use alias
+import { UserServiceClient } from '@/generated/v1/UserServiceClientPb';
 
-  return { filters, questions, loading, applyFilters };
-}
+// ❌ WRONG - Hardcoded URLs
+const client = new UserServiceClient('http://localhost:8080');
+
+// ✅ CORRECT - Environment variable
+const client = new UserServiceClient(process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080');
 ```
 
-## 🔧 Configuration Files
-
-### Next.js Configuration (next.config.js)
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    appDir: true,
-  },
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
-  },
-  webpack: (config) => {
-    // Custom webpack configuration for gRPC-Web
-    return config;
-  },
-};
-
-module.exports = nextConfig;
-```
-
-### TypeScript Configuration (tsconfig.json)
-```json
-{
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "es6"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
-}
-```
-
-## ⚠️ Common Issues & Solutions
-
-### 1. gRPC-Web Generation Issues
-```powershell
-# Regenerate TypeScript code
-../../scripts/development/gen-proto-web.ps1
-
-# Check generated files
-ls src/generated/
-```
-
-### 2. Next.js Build Issues
-```bash
-# Clear cache and rebuild
-pnpm clean:cache
-pnpm build
-
-# Check for TypeScript errors
-pnpm type-check
-```
-
-### 3. Styling Issues
-```bash
-# Rebuild Tailwind CSS
-pnpm dev  # Tailwind rebuilds automatically in dev mode
-
-# Check Tailwind configuration
-npx tailwindcss --help
-```
-
-### 4. Authentication Issues
+### **🔧 Performance Rules**
 ```typescript
-// Check auth context provider
-// Ensure AuthProvider wraps the app
-// Verify token storage and retrieval
+// ✅ CORRECT - Dynamic imports for heavy components
+const HeavyComponent = dynamic(() => import('./HeavyComponent'), {
+  loading: () => <div>Loading...</div>
+});
+
+// ✅ CORRECT - Memoization for expensive calculations
+const expensiveValue = useMemo(() => calculateExpensive(data), [data]);
+
+// ❌ WRONG - No memoization
+const expensiveValue = calculateExpensive(data); // Runs every render
 ```
 
-## 🧪 Testing
+## 🚀 **QUICK IMPLEMENTATION CHECKLIST (AI USE THIS)**
 
-### Test Structure (Planned)
+### **Before Starting Any Feature**
 ```bash
-# Unit tests
-src/components/__tests__/
-src/hooks/__tests__/
-src/services/__tests__/
-
-# E2E tests
-tests/e2e/
+✅ Check if similar component exists in src/components/
+✅ Verify gRPC service is available in src/services/grpc/
+✅ Check authentication requirements in middleware.ts
+✅ Review existing types in src/types/ and src/generated/
 ```
 
-### Testing Commands
+### **When Creating New Pages**
 ```bash
-pnpm test              # Jest unit tests (when implemented)
-pnpm test:e2e         # Playwright E2E tests (when implemented)
-pnpm test:watch       # Watch mode testing
+✅ Add to src/app/[route]/page.tsx
+✅ Add metadata for SEO
+✅ Check if route needs protection in middleware.ts
+✅ Use existing layout components from src/components/layout/
 ```
 
-## 🔍 Debugging
-
-### Development Tools
+### **When Adding gRPC Integration**
 ```bash
-# Next.js debugging
-pnpm dev:debug        # Start with Node.js inspector
-
-# Performance monitoring
-pnpm perf:monitor     # Monitor performance metrics
-pnpm perf:report      # Generate performance report
+✅ Check if service exists in src/services/grpc/
+✅ Use generated types from src/generated/
+✅ Handle errors with try/catch
+✅ Add loading states for better UX
 ```
 
-### Browser DevTools
-- React DevTools extension
-- Network tab for gRPC-Web requests
-- Console for error logging
-
-## 📊 Performance Optimization
-
-### Next.js Optimizations
-- Use `next/image` for optimized images
-- Implement code splitting with dynamic imports
-- Use `next/font` for font optimization
-- Enable compression and caching
-
-### React Optimizations
-- Use `React.memo()` for expensive components
-- Implement `useMemo()` and `useCallback()` for expensive calculations
-- Lazy load components with `React.lazy()`
+### **Testing Your Implementation**
+```bash
+pnpm dev          # Start development server
+pnpm type-check   # Validate TypeScript
+pnpm lint         # Check code quality
+pnpm build        # Test production build
+```
 
 ---
 
-**🚀 Quick Development Setup:**
-1. `cd apps/frontend`
-2. `pnpm install`
-3. `pnpm dev`
-4. Open http://localhost:3000
+## 🎯 **AI IMPLEMENTATION SUCCESS CRITERIA**
 
-**🔧 Before Committing:**
-1. `pnpm type-check` - Validate TypeScript
-2. `pnpm lint` - Check code quality
-3. `pnpm build` - Test production build
-4. Test key user flows manually
+### **✅ Your Implementation is Good If:**
+- Uses existing patterns from src/components/, src/hooks/, src/services/
+- Follows TypeScript strict mode (no `any` types)
+- Implements proper error handling with try/catch
+- Uses cn() utility for className merging
+- Respects authentication/authorization rules
+- Includes loading states for async operations
+
+### **❌ Your Implementation Needs Improvement If:**
+- Creates duplicate components instead of reusing existing ones
+- Bypasses authentication middleware
+- Uses hardcoded URLs instead of environment variables
+- Ignores TypeScript errors or uses `any` types
+- Doesn't handle loading/error states
+
+---
+
+## 🚀 **QUICK START FOR AI**
+
+```bash
+# 1. Navigate to frontend
+cd apps/frontend
+
+# 2. Start development
+pnpm dev
+
+# 3. Open browser
+# http://localhost:3000
+
+# 4. Before committing
+pnpm type-check && pnpm lint && pnpm build
+```
+
+**🤖 AI Agent Ready! Use this guide to implement features efficiently and safely.**
