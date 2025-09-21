@@ -258,7 +258,7 @@ func (r *ContactRepository) Delete(id uuid.UUID) error {
 // CountUnread returns the count of unread (pending) submissions
 func (r *ContactRepository) CountUnread() (int, error) {
 	query := "SELECT COUNT(*) FROM contact_submissions WHERE status = $1"
-	
+
 	var count int
 	err := r.db.QueryRow(query, string(entity.ContactStatusPending)).Scan(&count)
 	if err != nil {

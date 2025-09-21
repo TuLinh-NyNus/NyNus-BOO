@@ -15,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/components/ui/use-toast';
 import { authService, AuthService } from '@/services/grpc/auth.service';
+import { convertProtobufRegisterResponse } from '@/lib/utils/protobuf-converters';
 
 interface FormData {
   // Step 1: Account
@@ -140,20 +141,14 @@ export default function RegisterPage() {
 
     try {
       // Call backend register API
-      const response = await authService.register({
+      const protobufResponse = await authService.register({
         email: formData.email,
         password: formData.password,
-        username: formData.username,
-        name: formData.fullName,
-        phone: formData.phone,
-        dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender,
-        role: formData.role,
-        level: formData.level,
-        school: formData.school,
-        address: formData.address,
-        bio: formData.bio
+        firstName: formData.fullName.split(' ')[0] || '',
+        lastName: formData.fullName.split(' ').slice(1).join(' ') || ''
       });
+
+      const response = convertProtobufRegisterResponse(protobufResponse);
 
       if (response.success) {
         toast({

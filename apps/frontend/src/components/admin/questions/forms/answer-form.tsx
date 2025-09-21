@@ -91,8 +91,8 @@ export function AnswerForm({
     control._getWatch(`answers.${index}.isCorrect`)
   ).length;
   
-  const minAnswers = questionType === 'MULTIPLE_CHOICE' ? 2 : 1;
-  const maxAnswers = questionType === 'TRUE_FALSE' ? 2 : 10;
+  const minAnswers = (questionType === 'MULTIPLE_CHOICE' || questionType === 'TRUE_FALSE') ? 4 : 1;
+  const maxAnswers = 10; // Tất cả loại đều có thể có tối đa 10 answers
   
   // ===== HANDLERS =====
   
@@ -318,24 +318,35 @@ export function AnswerForm({
     }
     
     // Check correct answers for multiple choice
-    if (questionType === 'MULTIPLE_CHOICE' && correctAnswersCount === 0) {
-      alerts.push(
-        <Alert key="no-correct" variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
-            Cần có ít nhất một đáp án đúng cho câu hỏi trắc nghiệm
-          </AlertDescription>
-        </Alert>
-      );
+    if (questionType === 'MULTIPLE_CHOICE') {
+      if (correctAnswersCount === 0) {
+        alerts.push(
+          <Alert key="no-correct" variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Câu hỏi trắc nghiệm cần có ít nhất một đáp án đúng
+            </AlertDescription>
+          </Alert>
+        );
+      } else if (correctAnswersCount > 1) {
+        alerts.push(
+          <Alert key="too-many-correct" variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Câu hỏi trắc nghiệm chỉ được có đúng 1 đáp án đúng
+            </AlertDescription>
+          </Alert>
+        );
+      }
     }
     
-    // Check multiple correct answers for true/false
-    if (questionType === 'TRUE_FALSE' && correctAnswersCount > 1) {
+    // Check minimum answers for true/false
+    if (questionType === 'TRUE_FALSE' && fields.length < 4) {
       alerts.push(
-        <Alert key="multiple-correct" variant="destructive">
+        <Alert key="tf-min-answers" variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Câu hỏi Đúng/Sai chỉ được có một đáp án đúng
+            Câu hỏi Đúng/Sai cần có ít nhất 4 đáp án
           </AlertDescription>
         </Alert>
       );

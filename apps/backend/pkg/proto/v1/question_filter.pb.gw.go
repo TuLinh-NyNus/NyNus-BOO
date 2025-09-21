@@ -10,6 +10,7 @@ package v1
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 
@@ -24,130 +25,110 @@ import (
 )
 
 // Suppress "imported and not used" errors
-var _ codes.Code
-var _ io.Reader
-var _ status.Status
-var _ = runtime.String
-var _ = utilities.NewDoubleArray
-var _ = metadata.Join
+var (
+	_ codes.Code
+	_ io.Reader
+	_ status.Status
+	_ = errors.New
+	_ = runtime.String
+	_ = utilities.NewDoubleArray
+	_ = metadata.Join
+)
 
 func request_QuestionFilterService_ListQuestionsByFilter_0(ctx context.Context, marshaler runtime.Marshaler, client QuestionFilterServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListQuestionsByFilterRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ListQuestionsByFilterRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.ListQuestionsByFilter(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_QuestionFilterService_ListQuestionsByFilter_0(ctx context.Context, marshaler runtime.Marshaler, server QuestionFilterServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ListQuestionsByFilterRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq ListQuestionsByFilterRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.ListQuestionsByFilter(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_QuestionFilterService_SearchQuestions_0(ctx context.Context, marshaler runtime.Marshaler, client QuestionFilterServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SearchQuestionsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq SearchQuestionsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.SearchQuestions(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_QuestionFilterService_SearchQuestions_0(ctx context.Context, marshaler runtime.Marshaler, server QuestionFilterServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SearchQuestionsRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq SearchQuestionsRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.SearchQuestions(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 func request_QuestionFilterService_GetQuestionsByQuestionCode_0(ctx context.Context, marshaler runtime.Marshaler, client QuestionFilterServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetQuestionsByQuestionCodeRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetQuestionsByQuestionCodeRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
 	msg, err := client.GetQuestionsByQuestionCode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
-
 }
 
 func local_request_QuestionFilterService_GetQuestionsByQuestionCode_0(ctx context.Context, marshaler runtime.Marshaler, server QuestionFilterServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetQuestionsByQuestionCodeRequest
-	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
+	var (
+		protoReq GetQuestionsByQuestionCodeRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-
 	msg, err := server.GetQuestionsByQuestionCode(ctx, &protoReq)
 	return msg, metadata, err
-
 }
 
 // RegisterQuestionFilterServiceHandlerServer registers the http handlers for service QuestionFilterService to "mux".
 // UnaryRPC     :call QuestionFilterServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterQuestionFilterServiceHandlerFromEndpoint instead.
+// GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterQuestionFilterServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server QuestionFilterServiceServer) error {
-
-	mux.Handle("POST", pattern_QuestionFilterService_ListQuestionsByFilter_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_QuestionFilterService_ListQuestionsByFilter_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/v1.QuestionFilterService/ListQuestionsByFilter", runtime.WithHTTPPathPattern("/api/v1/questions/filter"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/v1.QuestionFilterService/ListQuestionsByFilter", runtime.WithHTTPPathPattern("/v1.QuestionFilterService/ListQuestionsByFilter"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -159,20 +140,15 @@ func RegisterQuestionFilterServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_QuestionFilterService_ListQuestionsByFilter_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_QuestionFilterService_SearchQuestions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_QuestionFilterService_SearchQuestions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/v1.QuestionFilterService/SearchQuestions", runtime.WithHTTPPathPattern("/api/v1/questions/search"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/v1.QuestionFilterService/SearchQuestions", runtime.WithHTTPPathPattern("/v1.QuestionFilterService/SearchQuestions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -184,20 +160,15 @@ func RegisterQuestionFilterServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_QuestionFilterService_SearchQuestions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_QuestionFilterService_GetQuestionsByQuestionCode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_QuestionFilterService_GetQuestionsByQuestionCode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/v1.QuestionFilterService/GetQuestionsByQuestionCode", runtime.WithHTTPPathPattern("/api/v1/questions/by-code"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/v1.QuestionFilterService/GetQuestionsByQuestionCode", runtime.WithHTTPPathPattern("/v1.QuestionFilterService/GetQuestionsByQuestionCode"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -209,9 +180,7 @@ func RegisterQuestionFilterServiceHandlerServer(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_QuestionFilterService_GetQuestionsByQuestionCode_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
 
 	return nil
@@ -220,25 +189,24 @@ func RegisterQuestionFilterServiceHandlerServer(ctx context.Context, mux *runtim
 // RegisterQuestionFilterServiceHandlerFromEndpoint is same as RegisterQuestionFilterServiceHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterQuestionFilterServiceHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
-	conn, err := grpc.DialContext(ctx, endpoint, opts...)
+	conn, err := grpc.NewClient(endpoint, opts...)
 	if err != nil {
 		return err
 	}
 	defer func() {
 		if err != nil {
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 			return
 		}
 		go func() {
 			<-ctx.Done()
 			if cerr := conn.Close(); cerr != nil {
-				grpclog.Infof("Failed to close conn to %s: %v", endpoint, cerr)
+				grpclog.Errorf("Failed to close conn to %s: %v", endpoint, cerr)
 			}
 		}()
 	}()
-
 	return RegisterQuestionFilterServiceHandler(ctx, mux, conn)
 }
 
@@ -252,16 +220,13 @@ func RegisterQuestionFilterServiceHandler(ctx context.Context, mux *runtime.Serv
 // to "mux". The handlers forward requests to the grpc endpoint over the given implementation of "QuestionFilterServiceClient".
 // Note: the gRPC framework executes interceptors within the gRPC handler. If the passed in "QuestionFilterServiceClient"
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
-// "QuestionFilterServiceClient" to call the correct interceptors.
+// "QuestionFilterServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterQuestionFilterServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client QuestionFilterServiceClient) error {
-
-	mux.Handle("POST", pattern_QuestionFilterService_ListQuestionsByFilter_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_QuestionFilterService_ListQuestionsByFilter_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/v1.QuestionFilterService/ListQuestionsByFilter", runtime.WithHTTPPathPattern("/api/v1/questions/filter"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/v1.QuestionFilterService/ListQuestionsByFilter", runtime.WithHTTPPathPattern("/v1.QuestionFilterService/ListQuestionsByFilter"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -272,18 +237,13 @@ func RegisterQuestionFilterServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_QuestionFilterService_ListQuestionsByFilter_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_QuestionFilterService_SearchQuestions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_QuestionFilterService_SearchQuestions_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/v1.QuestionFilterService/SearchQuestions", runtime.WithHTTPPathPattern("/api/v1/questions/search"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/v1.QuestionFilterService/SearchQuestions", runtime.WithHTTPPathPattern("/v1.QuestionFilterService/SearchQuestions"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -294,18 +254,13 @@ func RegisterQuestionFilterServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_QuestionFilterService_SearchQuestions_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
-	mux.Handle("POST", pattern_QuestionFilterService_GetQuestionsByQuestionCode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_QuestionFilterService_GetQuestionsByQuestionCode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/v1.QuestionFilterService/GetQuestionsByQuestionCode", runtime.WithHTTPPathPattern("/api/v1/questions/by-code"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/v1.QuestionFilterService/GetQuestionsByQuestionCode", runtime.WithHTTPPathPattern("/v1.QuestionFilterService/GetQuestionsByQuestionCode"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -316,26 +271,19 @@ func RegisterQuestionFilterServiceHandlerClient(ctx context.Context, mux *runtim
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-
 		forward_QuestionFilterService_GetQuestionsByQuestionCode_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-
 	})
-
 	return nil
 }
 
 var (
-	pattern_QuestionFilterService_ListQuestionsByFilter_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "questions", "filter"}, ""))
-
-	pattern_QuestionFilterService_SearchQuestions_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "questions", "search"}, ""))
-
-	pattern_QuestionFilterService_GetQuestionsByQuestionCode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"api", "v1", "questions", "by-code"}, ""))
+	pattern_QuestionFilterService_ListQuestionsByFilter_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.QuestionFilterService", "ListQuestionsByFilter"}, ""))
+	pattern_QuestionFilterService_SearchQuestions_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.QuestionFilterService", "SearchQuestions"}, ""))
+	pattern_QuestionFilterService_GetQuestionsByQuestionCode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.QuestionFilterService", "GetQuestionsByQuestionCode"}, ""))
 )
 
 var (
-	forward_QuestionFilterService_ListQuestionsByFilter_0 = runtime.ForwardResponseMessage
-
-	forward_QuestionFilterService_SearchQuestions_0 = runtime.ForwardResponseMessage
-
+	forward_QuestionFilterService_ListQuestionsByFilter_0      = runtime.ForwardResponseMessage
+	forward_QuestionFilterService_SearchQuestions_0            = runtime.ForwardResponseMessage
 	forward_QuestionFilterService_GetQuestionsByQuestionCode_0 = runtime.ForwardResponseMessage
 )

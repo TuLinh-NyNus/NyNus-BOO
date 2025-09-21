@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
@@ -18,11 +19,11 @@ import (
 // AdminServiceServer implements the AdminService
 type AdminServiceServer struct {
 	v1.UnimplementedAdminServiceServer
-	userRepo         repository.IUserRepository
-	auditLogRepo     repository.AuditLogRepository
-	resourceRepo     repository.ResourceAccessRepository
-	enrollmentRepo   repository.EnrollmentRepository
-	notificationSvc  *notification.NotificationService
+	userRepo        repository.IUserRepository
+	auditLogRepo    repository.AuditLogRepository
+	resourceRepo    repository.ResourceAccessRepository
+	enrollmentRepo  repository.EnrollmentRepository
+	notificationSvc *notification.NotificationService
 }
 
 // NewAdminServiceServer creates a new admin service
@@ -49,19 +50,66 @@ func (s *AdminServiceServer) ListUsers(ctx context.Context, req *v1.AdminListUse
 		return nil, err
 	}
 
-	// TODO: Implement user listing with filters
-	// This requires adding a ListUsers method to user repository
-	
-	// Placeholder response
+	// Apply filters from request
+	var filters repository.UserFilters
+	if req.Filter != nil {
+		filters = repository.UserFilters{
+			Role:   convertProtoRoleToString(req.Filter.Role),
+			Status: convertProtoStatusToString(req.Filter.Status),
+			Search: req.Filter.SearchQuery,
+		}
+	}
+
+	// Calculate pagination
+	page := int(req.Pagination.GetPage())
+	if page < 1 {
+		page = 1
+	}
+	pageSize := 20 // Default page size
+	if pageSize < 1 {
+		pageSize = 20
+	}
+	if pageSize > 100 {
+		pageSize = 100 // Limit max page size
+	}
+	offset := (page - 1) * pageSize
+
+	// Get users with filters (need to implement in repository)
+	users, total, err := s.getUsersWithFilters(ctx, filters, offset, pageSize)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list users: %v", err)
+	}
+
+	// Convert to proto users
+	protoUsers := make([]*v1.User, 0, len(users))
+	for _, user := range users {
+		protoUsers = append(protoUsers, &v1.User{
+			Id:            user.ID,
+			Email:         user.Email,
+			FirstName:     user.FirstName,
+			LastName:      user.LastName,
+			Role:          user.Role,
+			Level:         int32(user.Level),
+			Username:      user.Username,
+			Avatar:        user.Avatar,
+			Status:        stringToProtoStatus(user.Status),
+			EmailVerified: user.EmailVerified,
+			IsActive:      user.IsActive,
+		})
+	}
+
+	// Calculate total pages
+	totalPages := (total + pageSize - 1) / pageSize
+
 	return &v1.AdminListUsersResponse{
 		Response: &common.Response{
 			Success: true,
-			Message: "User list retrieved successfully",
+			Message: fmt.Sprintf("Found %d users", total),
 		},
-		Users: []*v1.User{},
+		Users: protoUsers,
 		Pagination: &common.PaginationResponse{
-			Page:        req.Pagination.GetPage(),
-			TotalPages:  0,
+			Page:       int32(page),
+			TotalPages: int32(totalPages),
 		},
 	}, nil
 }
@@ -173,7 +221,7 @@ func (s *AdminServiceServer) UpdateUserLevel(ctx context.Context, req *v1.Update
 	if s.notificationSvc != nil && oldLevel != int(req.NewLevel) {
 		title := "Cấp độ tài khoản đã thay đổi"
 		message := fmt.Sprintf("Cấp độ của bạn đã được cập nhật từ %d thành %d", oldLevel, req.NewLevel)
-		s.notificationSvc.CreateNotification(ctx, user.ID, notification.TypeAccountActivity, 
+		s.notificationSvc.CreateNotification(ctx, user.ID, notification.TypeAccountActivity,
 			title, message, nil, nil)
 	}
 
@@ -208,7 +256,7 @@ func (s *AdminServiceServer) UpdateUserStatus(ctx context.Context, req *v1.Updat
 	}
 
 	oldStatus := user.Status
-	
+
 	// Convert proto status to string
 	statusStr := s.protoStatusToString(req.NewStatus)
 	user.Status = statusStr
@@ -233,7 +281,7 @@ func (s *AdminServiceServer) UpdateUserStatus(ctx context.Context, req *v1.Updat
 		if suspendReason != "" {
 			metadata["reason"] = suspendReason
 		}
-		
+
 		s.createAuditLog(ctx, adminID, "UPDATE_STATUS", "USER", user.ID,
 			map[string]interface{}{"status": oldStatus},
 			map[string]interface{}{"status": statusStr},
@@ -254,7 +302,7 @@ func (s *AdminServiceServer) UpdateUserStatus(ctx context.Context, req *v1.Updat
 			title = "Tài khoản đã được kích hoạt"
 			message = "Tài khoản của bạn đã được kích hoạt trở lại"
 		}
-		
+
 		if title != "" {
 			s.notificationSvc.CreateSecurityAlert(ctx, user.ID, title, message, "", "")
 		}
@@ -336,11 +384,11 @@ func (s *AdminServiceServer) GetAuditLogs(ctx context.Context, req *v1.GetAuditL
 			ErrorMessage: log.ErrorMessage,
 			CreatedAt:    log.CreatedAt.Format(time.RFC3339),
 		}
-		
+
 		if log.UserID != nil {
 			protoLog.UserId = *log.UserID
 		}
-		
+
 		protoLogs = append(protoLogs, protoLog)
 	}
 
@@ -424,6 +472,65 @@ func (s *AdminServiceServer) GetResourceAccess(ctx context.Context, req *v1.GetR
 	}, nil
 }
 
+// GetSystemStats gets system statistics
+func (s *AdminServiceServer) GetSystemStats(ctx context.Context, req *v1.GetSystemStatsRequest) (*v1.GetSystemStatsResponse, error) {
+	// Check admin permission
+	if err := s.checkAdminPermission(ctx); err != nil {
+		return nil, err
+	}
+
+	// Get all users for stats
+	allUsers, err := s.userRepo.GetAll(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get users: %v", err)
+	}
+
+	// Calculate statistics
+	totalUsers := len(allUsers)
+	activeUsers := 0
+	usersByRole := make(map[string]int32)
+	usersByStatus := make(map[string]int32)
+
+	for _, user := range allUsers {
+		// Count active users
+		if user.IsActive {
+			activeUsers++
+		}
+
+		// Count by role
+		roleStr := user.Role.String()
+		usersByRole[roleStr]++
+
+		// Count by status
+		usersByStatus[user.Status]++
+	}
+
+	// TODO: Get session stats from session repository
+	totalSessions := 0
+	activeSessions := 0
+
+	// TODO: Get suspicious activities from audit logs
+	suspiciousActivities := 0
+
+	stats := &v1.SystemStats{
+		TotalUsers:           int32(totalUsers),
+		ActiveUsers:          int32(activeUsers),
+		TotalSessions:        int32(totalSessions),
+		ActiveSessions:       int32(activeSessions),
+		UsersByRole:          usersByRole,
+		UsersByStatus:        usersByStatus,
+		SuspiciousActivities: int32(suspiciousActivities),
+	}
+
+	return &v1.GetSystemStatsResponse{
+		Response: &common.Response{
+			Success: true,
+			Message: "System statistics retrieved successfully",
+		},
+		Stats: stats,
+	}, nil
+}
+
 // Helper methods
 
 func (s *AdminServiceServer) checkAdminPermission(ctx context.Context) error {
@@ -486,4 +593,100 @@ func (s *AdminServiceServer) createAuditLog(
 ) {
 	// TODO: Implement audit log creation
 	// This would marshal old/new values to JSON and create audit log entry
+}
+
+// getUsersWithFilters retrieves users with filtering and pagination
+func (s *AdminServiceServer) getUsersWithFilters(
+	ctx context.Context,
+	filters repository.UserFilters,
+	offset, limit int,
+) ([]*repository.User, int, error) {
+	// Get all users first (we'll implement proper filtering in repository later)
+	allUsers, err := s.userRepo.GetAll(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Apply filters manually for now
+	var filteredUsers []*repository.User
+	for _, user := range allUsers {
+		// Filter by role
+		if filters.Role != "" && string(user.Role) != filters.Role {
+			continue
+		}
+		// Filter by status
+		if filters.Status != "" && user.Status != filters.Status {
+			continue
+		}
+		// Filter by search (email, name, username)
+		if filters.Search != "" {
+			searchLower := strings.ToLower(filters.Search)
+			if !strings.Contains(strings.ToLower(user.Email), searchLower) &&
+				!strings.Contains(strings.ToLower(user.FirstName), searchLower) &&
+				!strings.Contains(strings.ToLower(user.LastName), searchLower) &&
+				!strings.Contains(strings.ToLower(user.Username), searchLower) {
+				continue
+			}
+		}
+		filteredUsers = append(filteredUsers, user)
+	}
+
+	total := len(filteredUsers)
+
+	// Apply pagination
+	if offset >= len(filteredUsers) {
+		return []*repository.User{}, total, nil
+	}
+	end := offset + limit
+	if end > len(filteredUsers) {
+		end = len(filteredUsers)
+	}
+
+	return filteredUsers[offset:end], total, nil
+}
+
+// convertProtoRoleToString converts proto UserRole to string
+func convertProtoRoleToString(role common.UserRole) string {
+	switch role {
+	case common.UserRole_USER_ROLE_GUEST:
+		return "GUEST"
+	case common.UserRole_USER_ROLE_STUDENT:
+		return "STUDENT"
+	case common.UserRole_USER_ROLE_TUTOR:
+		return "TUTOR"
+	case common.UserRole_USER_ROLE_TEACHER:
+		return "TEACHER"
+	case common.UserRole_USER_ROLE_ADMIN:
+		return "ADMIN"
+	default:
+		return ""
+	}
+}
+
+// convertProtoStatusToString converts proto UserStatus to string
+func convertProtoStatusToString(status common.UserStatus) string {
+	switch status {
+	case common.UserStatus_USER_STATUS_ACTIVE:
+		return "ACTIVE"
+	case common.UserStatus_USER_STATUS_INACTIVE:
+		return "INACTIVE"
+	case common.UserStatus_USER_STATUS_SUSPENDED:
+		return "SUSPENDED"
+	default:
+		return ""
+	}
+}
+
+// stringToProtoStatus converts string to proto UserStatus
+func stringToProtoStatus(status string) common.UserStatus {
+	switch status {
+	case "ACTIVE":
+		return common.UserStatus_USER_STATUS_ACTIVE
+	case "INACTIVE":
+		return common.UserStatus_USER_STATUS_INACTIVE
+	case "SUSPENDED":
+		return common.UserStatus_USER_STATUS_SUSPENDED
+	default:
+		return common.UserStatus_USER_STATUS_ACTIVE
+	}
 }

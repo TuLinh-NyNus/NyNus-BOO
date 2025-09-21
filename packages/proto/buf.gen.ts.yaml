@@ -1,0 +1,17 @@
+version: v1
+plugins:
+  # Generate TypeScript/JavaScript files for protobuf messages
+  - plugin: buf.build/protocolbuffers/js
+    out: ../../apps/frontend/src/generated
+    opt:
+      - import_style=commonjs
+      - binary
+  
+  # Generate TypeScript definitions
+  - plugin: buf.build/stephenh/ts-proto
+    out: ../../apps/frontend/src/generated
+    opt:
+      - outputClientImpl=grpc-web
+      - esModuleInterop=true
+      - outputJsonMethods=true
+      - useOptionals=messages

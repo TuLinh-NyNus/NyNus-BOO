@@ -56,7 +56,7 @@ func (r *auditLogRepository) Create(ctx context.Context, log *AuditLog) error {
 			session_id, success, error_message, metadata, created_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		log.ID,
 		log.UserID,
@@ -73,7 +73,7 @@ func (r *auditLogRepository) Create(ctx context.Context, log *AuditLog) error {
 		log.Metadata,
 		log.CreatedAt,
 	)
-	
+
 	return err
 }
 
@@ -86,7 +86,7 @@ func (r *auditLogRepository) GetByID(ctx context.Context, id string) (*AuditLog,
 		FROM audit_logs
 		WHERE id = $1
 	`
-	
+
 	log := &AuditLog{}
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&log.ID,
@@ -104,11 +104,11 @@ func (r *auditLogRepository) GetByID(ctx context.Context, id string) (*AuditLog,
 		&log.Metadata,
 		&log.CreatedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
 	}
-	
+
 	return log, err
 }
 
@@ -123,13 +123,13 @@ func (r *auditLogRepository) GetByUserID(ctx context.Context, userID string, lim
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanLogs(rows)
 }
 
@@ -144,13 +144,13 @@ func (r *auditLogRepository) GetByResource(ctx context.Context, resource, resour
 		ORDER BY created_at DESC
 		LIMIT $3 OFFSET $4
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, resource, resourceID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanLogs(rows)
 }
 
@@ -165,13 +165,13 @@ func (r *auditLogRepository) GetByDateRange(ctx context.Context, startDate, endD
 		ORDER BY created_at DESC
 		LIMIT $3 OFFSET $4
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, startDate, endDate, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanLogs(rows)
 }
 
@@ -186,13 +186,13 @@ func (r *auditLogRepository) GetFailedActions(ctx context.Context, limit, offset
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanLogs(rows)
 }
 
@@ -209,13 +209,13 @@ func (r *auditLogRepository) GetSecurityEvents(ctx context.Context, limit, offse
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanLogs(rows)
 }
 
@@ -252,6 +252,6 @@ func (r *auditLogRepository) scanLogs(rows *sql.Rows) ([]*AuditLog, error) {
 		}
 		logs = append(logs, log)
 	}
-	
+
 	return logs, nil
 }

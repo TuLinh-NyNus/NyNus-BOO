@@ -164,7 +164,8 @@ export function useQuestionManagement(
       
       if (response.success) {
         updateState({
-          questions: response.questions.map(q => ({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          questions: response.questions.map((q: any) => ({
             ...q,
             tags: q.tag,
             answers: '', // Add missing fields for QuestionDetail

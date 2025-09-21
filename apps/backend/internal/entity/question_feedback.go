@@ -27,7 +27,7 @@ type QuestionFeedback struct {
 
 // TableName returns the table name for QuestionFeedback
 func (qf QuestionFeedback) TableName() string {
-	return "question_feedback"
+	return "QuestionFeedback"
 }
 
 // FieldMap returns the field mapping for database operations

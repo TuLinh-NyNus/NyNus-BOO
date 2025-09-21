@@ -103,13 +103,14 @@ const multipleChoiceOptionSchema = z.object({
 });
 
 /**
- * True/False Option Schema
+ * True/False Option Schema - Now supports any content, not just "Đúng"/"Sai"
  */
 const trueFalseOptionSchema = z.object({
   id: z.string().min(1, "ID lựa chọn không được để trống"),
-  content: z.enum(["Đúng", "Sai"], {
-    errorMap: () => ({ message: "Lựa chọn phải là 'Đúng' hoặc 'Sai'" })
-  }),
+  content: z
+    .string()
+    .min(1, "Nội dung lựa chọn không được để trống")
+    .max(1000, "Nội dung lựa chọn không được vượt quá 1000 ký tự"),
   isCorrect: z.boolean(),
 });
 
@@ -138,16 +139,21 @@ export const multipleChoiceQuestionSchema = baseQuestionSchema.extend({
 });
 
 /**
- * True/False Question Schema
+ * True/False Question Schema - Now supports 4+ options with flexible correct answers
  */
 export const trueFalseQuestionSchema = baseQuestionSchema.extend({
   type: z.literal(QuestionType.TF),
   options: z
     .array(trueFalseOptionSchema)
-    .length(2, "Câu hỏi đúng/sai phải có đúng 2 lựa chọn")
+    .min(4, "Câu hỏi đúng/sai phải có ít nhất 4 lựa chọn")
+    .max(10, "Câu hỏi đúng/sai không được có quá 10 lựa chọn")
+    // TF allows flexible correct answers: 0, 1, or multiple
     .refine(
-      (options) => options.filter(opt => opt.isCorrect).length === 1,
-      "Câu hỏi đúng/sai phải có đúng 1 đáp án đúng"
+      (options) => {
+        const contents = options.map(opt => opt.content.toLowerCase().trim());
+        return new Set(contents).size === contents.length;
+      },
+      "Các lựa chọn không được trùng lặp"
     ),
 });
 
@@ -339,8 +345,9 @@ export function getConditionalValidationRules(type: QuestionType) {
         ...baseRules,
         options: {
           required: true,
-          exactItems: 2,
-          exactCorrectAnswers: 1
+          minItems: 4,
+          maxItems: 10,
+          flexibleCorrectAnswers: true // 0, 1, or multiple correct answers allowed
         },
       };
 

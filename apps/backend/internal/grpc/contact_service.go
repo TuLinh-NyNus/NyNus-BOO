@@ -6,8 +6,8 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/contact"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -31,7 +31,7 @@ func NewContactServiceServer(contactMgmt *contact.ContactMgmt) *ContactServiceSe
 func (s *ContactServiceServer) SubmitContactForm(ctx context.Context, req *v1.ContactFormRequest) (*v1.ContactFormResponse, error) {
 	// Extract metadata for IP address and user agent
 	md, _ := metadata.FromIncomingContext(ctx)
-	
+
 	// Create request for management service
 	mgmtRequest := &contact.ContactFormRequest{
 		Name:    req.Name,
@@ -84,8 +84,8 @@ func (s *ContactServiceServer) ListContacts(ctx context.Context, req *v1.ListCon
 		if req.Pagination.Page > 0 {
 			page = req.Pagination.Page
 		}
-		if req.Pagination.PageSize > 0 && req.Pagination.PageSize <= 100 {
-			pageSize = req.Pagination.PageSize
+		if req.Pagination.Limit > 0 && req.Pagination.Limit <= 100 {
+			pageSize = req.Pagination.Limit
 		}
 	}
 
@@ -120,8 +120,8 @@ func (s *ContactServiceServer) ListContacts(ctx context.Context, req *v1.ListCon
 		Submissions: protoSubmissions,
 		Pagination: &common.PaginationResponse{
 			Page:       page,
-			PageSize:   pageSize,
-			TotalItems: int32(totalCount),
+			Limit:      pageSize,
+			TotalCount: int32(totalCount),
 			TotalPages: int32(totalPages),
 		},
 		TotalUnread: int32(unreadCount),

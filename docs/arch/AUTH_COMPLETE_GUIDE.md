@@ -117,6 +117,39 @@ CREATE INDEX idx_oauth_user_id ON oauth_accounts(user_id);
 CREATE INDEX idx_oauth_provider ON oauth_accounts(provider);
 ```
 
+#### **2.1. Email Verification Tokens Table (NEW)**
+```sql
+-- Email verification tokens for account verification
+CREATE TABLE email_verification_tokens (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT UNIQUE NOT NULL,                            -- Verification token
+    expires_at TIMESTAMPTZ NOT NULL,                       -- Token expiry (typically 24 hours)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_email_verification_user_id ON email_verification_tokens(user_id);
+CREATE INDEX idx_email_verification_token ON email_verification_tokens(token);
+```
+
+#### **2.2. Password Reset Tokens Table (NEW)**
+```sql
+-- Password reset tokens for forgot password flow
+CREATE TABLE password_reset_tokens (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT UNIQUE NOT NULL,                            -- Reset token
+    expires_at TIMESTAMPTZ NOT NULL,                       -- Token expiry (typically 1 hour)
+    used BOOLEAN NOT NULL DEFAULT FALSE,                   -- Prevent reuse
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_password_reset_user_id ON password_reset_tokens(user_id);
+CREATE INDEX idx_password_reset_token ON password_reset_tokens(token);
+```
+
 #### **3. Session Management System - Anti-Sharing**
 ```sql
 -- User Sessions table for multi-device session management
@@ -136,7 +169,7 @@ CREATE TABLE user_sessions (
     -- Session Status & Control
     is_active BOOLEAN NOT NULL DEFAULT TRUE,                -- Session active status
     last_activity TIMESTAMPTZ NOT NULL DEFAULT NOW(),       -- Last activity timestamp
-    expires_at TIMESTAMPTZ NOT NULL,                        -- Session expiry time
+    expires_at TIMESTAMPTZ NOT NULL,                        -- Session expiry time (24h sliding window)
 
     -- Timestamps
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -148,6 +181,46 @@ CREATE INDEX idx_user_sessions_token ON user_sessions(session_token);
 CREATE INDEX idx_user_sessions_active ON user_sessions(is_active);
 CREATE INDEX idx_user_sessions_expires ON user_sessions(expires_at);
 CREATE INDEX idx_user_sessions_activity ON user_sessions(last_activity);
+
+-- Note: Sessions use 24-hour sliding window expiration
+-- Each activity updates last_activity and extends expires_at by 24 hours
+```
+
+#### **3.1. Login Attempts Table (NEW)**
+```sql
+-- Track login attempts for security monitoring
+CREATE TABLE login_attempts (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    email TEXT NOT NULL,                                   -- Email attempted
+    ip_address TEXT NOT NULL,                              -- Source IP
+    user_agent TEXT,                                        -- Browser/device info
+    success BOOLEAN NOT NULL DEFAULT FALSE,                -- Login success/failure
+    error_message TEXT,                                     -- Failure reason
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_login_attempts_email ON login_attempts(email);
+CREATE INDEX idx_login_attempts_ip ON login_attempts(ip_address);
+CREATE INDEX idx_login_attempts_created ON login_attempts(created_at);
+```
+
+#### **3.2. Account Locks Table (NEW)**  
+```sql
+-- Account locking for brute force protection
+CREATE TABLE account_locks (
+    id TEXT PRIMARY KEY,                                    -- Primary key (cuid)
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,    -- User being locked
+    email TEXT NOT NULL,                                   -- Email being locked
+    reason TEXT NOT NULL,                                   -- Lock reason
+    locked_until TIMESTAMPTZ NOT NULL,                     -- Lock expiry time
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX idx_account_locks_user_id ON account_locks(user_id);
+CREATE INDEX idx_account_locks_email ON account_locks(email);
+CREATE INDEX idx_account_locks_locked_until ON account_locks(locked_until);
 ```
 
 #### **4. Resource Access Tracking - Anti-Piracy**
@@ -744,15 +817,19 @@ GUEST → STUDENT (Level 1) → ... → STUDENT (Level 9) → TUTOR (Level 1) �
 3. Check download limits
 4. Log access
 
-#### **Anti-Piracy Rules**
+#### **Anti-Piracy Rules (Implemented)**
 **Simple Risk Scoring (No AI needed):**
 - Multiple IPs in 1 hour: +30 risk points
-- Too many downloads: +30 risk points
-- Rapid access pattern: +40 risk points
+- Too many downloads: +30 risk points  
+- Rapid access pattern (>10 requests/minute): +40 risk points
+- Different device fingerprint: +20 risk points
+- Access from suspicious location: +25 risk points
+- Failed login attempts: +10 points per attempt
 
-**Auto Actions:**
-- Risk score >= 90: Suspend user for 24 hours
-- Risk score >= 70: Flag for admin review
+**Auto Actions (Implemented):**
+- Risk score >= 90: Auto-block user, terminate all sessions, send security alert
+- Risk score >= 70: Flag for admin review, send warning notification
+- Risk score >= 50: Log in audit trail for monitoring
 
 ### **🏆 Role-Based Access Control System**
 
@@ -820,16 +897,69 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 - **ResourceProtectionService**: Access validation, risk calculation, user blocking
 
 #### **Interceptors System (gRPC)**
-**Authentication Interceptors:**
-- JWTAuthInterceptor: Protect RPCs với JWT validation (Authorization: Bearer trong gRPC metadata)
-- OAuthInterceptor: Google OAuth flow handling (pure gRPC)
-- ResourceAccessInterceptor: Resource protection
-- SessionLimitInterceptor: Session limits enforcement
+**Implemented Interceptor Chain (in order):**
+1. **RateLimitInterceptor**: Prevent API abuse (runs first)
+   - Per-user và per-IP rate limiting
+   - Different limits for different endpoints
+   - Auto cleanup expired limiters
+2. **AuthInterceptor**: JWT validation và authentication  
+   - Extract JWT từ Authorization header
+   - Validate token signature và expiry
+   - Add user info vào context
+3. **SessionInterceptor**: Session validation và management
+   - Validate session token từ x-session-token header
+   - Check session expiry và active status
+   - Update last activity (24h sliding window)
+4. **RoleLevelInterceptor**: Authorization based on role và level
+   - 5 roles: GUEST, STUDENT, TUTOR, TEACHER, ADMIN
+   - Level-based access (1-9 cho STUDENT/TUTOR/TEACHER)
+   - Endpoint-specific role requirements
+5. **ResourceProtectionInterceptor**: Resource access control
+   - Track resource access patterns
+   - Calculate risk scores
+   - Auto-block suspicious activity (risk > 90)
+6. **AuditLogInterceptor**: Logging important operations
+   - Log sensitive operations
+   - Track success/failure
+   - Async logging to avoid blocking
 
 **Usage Pattern:**
-- gRPC methods được bảo vệ bởi interceptor chain
-- Auto-validation of JWT, enrollment, and session validity
-- Interceptor chain: Logging → RateLimit → Auth → Role → Business Logic
+- Full interceptor chain: RateLimit → Auth → Session → RoleLevel → ResourceProtection → AuditLog → Business Logic
+- Client phải gửi metadata headers:
+  - JWT token trong `Authorization: Bearer <access_token>` header
+  - Session token trong `x-session-token: <session_token>` header  
+  - User agent trong `user-agent: <client_info>` header (optional, for fingerprinting)
+  - Real IP trong `x-real-ip: <client_ip>` header (nếu đi qua proxy)
+
+**Client Implementation Examples:**
+
+**gRPC-Web (Frontend):**
+```javascript
+const metadata = {
+  'authorization': 'Bearer ' + accessToken,
+  'x-session-token': sessionToken,
+  'user-agent': navigator.userAgent
+};
+
+await client.someMethod(request, metadata);
+```
+
+**Go gRPC Client:**
+```go
+ctx := metadata.NewOutgoingContext(context.Background(), metadata.Pairs(
+    "authorization", "Bearer " + accessToken,
+    "x-session-token", sessionToken,
+    "user-agent", "Go-Client/1.0",
+))
+
+response, err := client.SomeMethod(ctx, request)
+```
+
+**Gateway (HTTP → gRPC Metadata Mapping):**
+- `Authorization` HTTP header → `authorization` gRPC metadata
+- `X-Session-Token` HTTP header → `x-session-token` gRPC metadata
+- `User-Agent` HTTP header → `user-agent` gRPC metadata
+- Client IP từ `X-Real-IP`, `X-Forwarded-For` headers
 
 ### **Frontend Architecture**
 
@@ -887,33 +1017,73 @@ ADMIN Content |   ❌   |      ❌      |     ❌     |      ❌      |   ✅
 ## 🛡️ **Security Best Practices**
 
 ### **Password & Token Security**
-**JWT Token Rules:**
+**JWT Token Rules (Implemented):**
 - Access Token: 15 minutes (short-lived)
-- Refresh Token: 7 days (longer-lived)
-- Rotate refresh tokens on each use
+- Refresh Token: 7 days (longer-lived) 
+- Token rotation: Planned (not yet implemented)
+- JWT includes: user_id, email, role, level claims
 - Store tokens securely (httpOnly cookies recommended)
 
-**Password Rules (for fallback auth):**
-- Minimum 8 characters
-- Hash with bcrypt (cost factor 12+)
-- No password reuse (last 5 passwords)
-- Password reset expires in 1 hour
+**Password Rules (Implemented & Configurable):**
+- Minimum 8 characters (frontend validation)
+- Hash with bcrypt cost factor 12+ (configurable via BCRYPT_COST env var)
+  - Default: 12 (secure)
+  - Minimum allowed: 10
+  - Recommended production: 14-16
+- Password reset expires in 1 hour (implemented)
+- Account lockout: 5 failed attempts → 30 minutes lock (implemented)
+- Password reuse prevention: Planned for future implementation
 
 ### **Session Security**
-**Session Management Rules:**
-- Max 3 concurrent sessions
-- Session expires after 24 hours inactivity
-- Device fingerprinting for session validation
-- IP change detection and alerts
-- Secure session token generation
+**Session Management Rules (Implemented):**
+- Max 3 concurrent sessions (enforced)
+- Session uses 24-hour sliding window (each activity extends by 24h)
+- Device fingerprinting: Browser + OS hash (implemented)
+- IP tracking và location detection (implemented)
+- When 4th device logs in: oldest session auto-terminated
+- Session termination sends notification to user
+- Secure session token generation using crypto/rand
 
 ### **Resource Protection Rules**
-**Access Control:**
+**Access Control (Implemented):**
 - Always check enrollment before resource access
-- Log every resource access attempt
-- Rate limiting: 100 requests per hour per user
-- Download limits based on access level
-- Automatic suspension for risk score > 90
+- Log every resource access attempt  
+- **Rate limiting configuration (per endpoint)**:
+  
+  **Authentication Endpoints (Stricter Limits):**
+  - Login: 3 requests per 10 seconds (0.1 rps, 3 burst) - by IP
+  - Register: 1 request per minute (0.017 rps, 1 burst) - by IP
+  - ForgotPassword: 2 requests per minute (0.017 rps, 2 burst) - by IP  
+  - ResetPassword: 1 request per 30 seconds (0.033 rps, 2 burst) - by IP
+  - GoogleLogin: 5 requests per 5 seconds (0.2 rps, 5 burst) - by IP
+  - RefreshToken: 3 requests per 2 seconds (0.5 rps, 3 burst) - per user
+  
+  **Admin Operations (Moderate Limits):**
+  - UpdateUserRole: 5 requests per 2 seconds (0.5 rps, 5 burst) - per user
+  - UpdateUserLevel: 5 requests per 2 seconds (0.5 rps, 5 burst) - per user
+  - UpdateUserStatus: 5 requests per 2 seconds (0.5 rps, 5 burst) - per user
+  
+  **Content Creation (Prevent Spam):**
+  - CreateQuestion: 10 requests per second (1 rps, 10 burst) - per user
+  - CreateExam: 5 requests per 2 seconds (0.5 rps, 5 burst) - per user
+  - ImportQuestions: 1 request per minute (0.017 rps, 1 burst) - per user
+  
+  **Exam Operations (Strict Controls):**
+  - SubmitExam: 1 request per 30 seconds (0.033 rps, 1 burst) - per user
+  
+  **Read Operations (More Lenient):**
+  - ListQuestions: 50 requests per 5 seconds (10 rps, 50 burst) - per user
+  - ListExams: 50 requests per 5 seconds (10 rps, 50 burst) - per user
+  
+  **Profile Operations:**
+  - UpdateProfile: 3 requests per 10 seconds (0.1 rps, 3 burst) - per user
+  - TerminateSession: 5 requests per 2 seconds (0.5 rps, 5 burst) - per user
+  - TerminateAllSessions: 1 request per 30 seconds (0.033 rps, 1 burst) - per user
+  
+  **Default (Unlisted Endpoints):**
+  - 20 requests per 5 seconds (5 rps, 20 burst) - per user
+- Download limits based on access level (planned)
+- Automatic suspension for risk score > 90 (implemented)
 
 ### **Data Privacy & GDPR**
 **User Data Handling:**
@@ -974,19 +1144,35 @@ if (mappedError.status === 401) {
 throw mappedError;
 ```
 
-### **🔄 Migration Benefits**
+### **🔄 Migration Benefits & Current Status**
 - ✅ **Type Safety**: Full TypeScript support maintained
 - ✅ **Error Handling**: Consistent gRPC error codes → HTTP status mapping
 - ✅ **Performance**: gRPC binary protocol (smaller payloads)
 - ✅ **Reliability**: Built-in retries and connection management
 - ✅ **Backward Compatibility**: All existing auth flows continue working
 
-### **⏳ Backend Implementation Needed** 
-- [ ] `AuthService.login()` gRPC method
-- [ ] `AuthService.register()` gRPC method  
-- [ ] `AuthService.refreshToken()` gRPC method
-- [ ] Session management gRPC methods
-- [ ] User profile gRPC CRUD methods
+### **📊 Current Architecture**
+- **Backend**: Pure gRPC services (Go)
+- **Gateway**: gRPC-Gateway for development/testing (optional)
+- **Frontend**: gRPC-Web client
+- **Session**: Dual token system:
+  - JWT for stateless auth (access_token + refresh_token)
+  - Session token for stateful session management (x-session-token)
+
+### **✅ Backend Implementation Status** 
+- [x] `UserService.GoogleLogin()` - Google OAuth authentication (implemented)
+- [x] `UserService.RefreshToken()` - JWT refresh (implemented)
+- [x] `UserService.VerifyEmail()` - Email verification (implemented)
+- [x] `UserService.ForgotPassword()` - Password reset request (implemented) 
+- [x] `UserService.ResetPassword()` - Reset with token (implemented)
+- [ ] `UserService.Login()` - Traditional login (pending migration to EnhancedUserService)
+- [ ] `UserService.Register()` - Traditional register (pending migration to EnhancedUserService)
+- [x] `ProfileService` - Full session management (implemented):
+  - GetSessions, TerminateSession, TerminateAllSessions
+  - GetProfile, UpdateProfile, GetPreferences, UpdatePreferences
+- [x] `AdminService` - User management (implemented):
+  - UpdateUserRole, UpdateUserLevel, UpdateUserStatus
+  - GetAuditLogs, GetResourceAccess
 
 ### **🏆 Production Ready**
 Frontend authentication system is **100% ready** for gRPC backend integration!
@@ -997,19 +1183,145 @@ When backend gRPC services are implemented:
 3. Test authentication flows
 4. Deploy! 🚀
 
+### **📋 Audit Logging System (Implemented)**
+
+#### **Audited Operations**
+**Authentication & Security Operations:**
+- `/v1.UserService/Login` - USER_LOGIN (AUTH resource)
+  - ❌ No request logging (passwords hidden)
+  - ❌ No response logging (tokens hidden)
+  - ✅ Log failed attempts for security
+- `/v1.UserService/GoogleLogin` - GOOGLE_LOGIN (AUTH resource)
+  - ❌ No request/response logging
+  - ✅ Log failures for monitoring
+- `/v1.UserService/Register` - USER_REGISTER (USER resource)
+  - ❌ No request logging (passwords hidden)
+  - ✅ Log successful registrations
+  - ✅ Log failed attempts
+- `/v1.UserService/ResetPassword` - RESET_PASSWORD (AUTH resource)
+  - ❌ No request/response logging (passwords hidden)
+  - ✅ Log failures for security
+
+**Admin Operations (Full Logging):**
+- `/v1.AdminService/UpdateUserRole` - UPDATE_USER_ROLE (USER resource)
+- `/v1.AdminService/UpdateUserLevel` - UPDATE_USER_LEVEL (USER resource)
+- `/v1.AdminService/UpdateUserStatus` - UPDATE_USER_STATUS (USER resource)
+  - ✅ Log request data
+  - ✅ Log response data
+  - ✅ Log failures
+
+**Content Management:**
+- `/v1.QuestionService/CreateQuestion` - CREATE_QUESTION (QUESTION resource)
+- `/v1.QuestionService/UpdateQuestion` - UPDATE_QUESTION (QUESTION resource)
+- `/v1.QuestionService/DeleteQuestion` - DELETE_QUESTION (QUESTION resource)
+- `/v1.ExamService/CreateExam` - CREATE_EXAM (EXAM resource)
+- `/v1.ExamService/UpdateExam` - UPDATE_EXAM (EXAM resource)
+- `/v1.ExamService/DeleteExam` - DELETE_EXAM (EXAM resource)
+- `/v1.ExamService/SubmitExam` - SUBMIT_EXAM (EXAM_ATTEMPT resource)
+  - ✅ Full request/response logging
+  - ✅ Log all failures
+
+**Session Management:**
+- `/v1.ProfileService/TerminateSession` - TERMINATE_SESSION (SESSION resource)
+- `/v1.ProfileService/TerminateAllSessions` - TERMINATE_ALL_SESSIONS (SESSION resource)
+  - ✅ Full logging for security
+
+#### **Audit Log Data Structure**
+```json
+{
+  "id": "audit_log_id",
+  "user_id": "user_performing_action",
+  "action": "ACTION_NAME",
+  "resource": "RESOURCE_TYPE",
+  "resource_id": "specific_resource_id",
+  "old_values": {}, // Before change (sensitive data excluded)
+  "new_values": {}, // After change (sensitive data excluded)
+  "ip_address": "client_ip",
+  "user_agent": "client_user_agent",
+  "session_id": "session_token",
+  "success": true,
+  "error_message": null,
+  "metadata": {}, // Additional context
+  "created_at": "2025-09-18T12:00:00Z"
+}
+```
+
+#### **Data Sanitization Rules**
+- **Passwords**: Never logged in any form
+- **JWT Tokens**: Access/Refresh tokens excluded from logs
+- **Session Tokens**: Masked in logs (show only last 4 characters)
+- **Personal Data**: Email addresses, phone numbers masked
+- **Payment Info**: Credit card data completely excluded
+
+### **🔔 Notification System (Implemented)**
+
+#### **Security Alert Types**
+**Account Security Notifications:**
+- **Account Locked**: Sent after 5 failed login attempts
+  - Title: "Tài khoản bị khóa do đăng nhập sai quá nhiều lần"
+  - Message: Details about 30-minute lockout + security advice
+  - Priority: HIGH
+  - Expires: 30 days
+
+- **New Device Login**: Sent for unrecognized device fingerprints
+  - Title: "Đăng nhập mới vào tài khoản của bạn"
+  - Message: Location + device info + security recommendation
+  - Priority: MEDIUM
+  - Expires: 7 days
+  - Action: "Kiểm tra bảo mật" → /settings/security
+
+- **Session Terminated**: Sent when session auto-terminated (3-device limit)
+  - Title: "Phiên đăng nhập bị chấm dứt"
+  - Message: Device info + reason (concurrent limit exceeded)
+  - Priority: MEDIUM
+  - Expires: 7 days
+
+- **Password Changed**: Sent after successful password reset
+  - Title: "Mật khẩu đã được thay đổi"
+  - Message: Timestamp + security advice
+  - Priority: HIGH
+  - Expires: 30 days
+
+- **Suspicious Activity**: Sent for high risk scores (>80)
+  - Title: "Phát hiện hoạt động đáng nghi"
+  - Message: Activity details + recommended actions
+  - Priority: HIGH
+  - Expires: 30 days
+
+#### **System Notifications**
+**Course & Content Updates:**
+- New lesson available
+- Course completion milestones
+- Exam reminders
+- Enrollment status changes
+
+**User Preferences Integration:**
+- Users can disable specific notification types
+- Security alerts are always sent (cannot be disabled)
+- High-priority notifications bypass general settings
+- Email, Push, SMS delivery preferences respected
+
+#### **Notification Delivery Channels**
+- **In-App**: Real-time notifications in UI
+- **Email**: HTML formatted emails with action buttons
+- **Push**: Browser/mobile push notifications
+- **SMS**: Critical security alerts only (optional)
+
 **📋 Chi tiết implementation**: Xem [Security & Testing + Code.md](./Security%20&%20Testing%20+%20Code.md)
 
 ---
 
 ## 📈 **Monitoring & Analytics**
 
-### **Key Metrics to Track**
+### **Key Metrics to Track (Implemented in Monitoring)**
 **Security Metrics:**
-- Failed login attempts per hour
-- Suspended users per day
-- High risk score users (>70)
-- Multiple IP access patterns
-- Download abuse patterns
+- Failed login attempts per hour (tracked in login_attempts table)
+- Suspended users per day (tracked via user status)
+- High risk score users (>70) (calculated in resource_access)
+- Multiple IP access patterns (tracked per session)
+- Download abuse patterns (tracked in resource_access)
+- Session concurrency violations (auto-handled)
+- Account lock events (tracked in account_locks table)
 
 **Performance Metrics:**
 - Average login time
@@ -1019,12 +1331,14 @@ When backend gRPC services are implemented:
 - Database query performance
 
 ### **Alert Thresholds**
-**Auto Alerts:**
-- Risk score > 80: Email admin
-- Risk score > 90: Auto-suspend user
-- Failed logins > 10/hour: Rate limit IP
-- Multiple IPs > 5/hour: Flag for review
-- Download rate > 20/hour: Temporary block
+**Auto Alerts (Implemented via Notifications):**
+- Risk score > 80: Create SECURITY_ALERT notification for admin
+- Risk score > 90: Auto-block user + terminate sessions + notification
+- Failed logins > 5: Auto-lock account for 30 minutes
+- Multiple IPs > 3/hour: Flag in audit log + notification
+- Download rate > limits: Block access + notification
+- New device login: Send notification to user
+- Session terminated: Send notification with reason
 
 ---
 
@@ -1082,8 +1396,11 @@ When backend gRPC services are implemented:
 
 **📝 Ghi chú**: Guide này là high-level overview và business requirements specification cho NyNus platform với Go backend + PostgreSQL + Raw SQL. Chi tiết implementation code được tách riêng trong các file tương ứng để dễ maintain và reference. Mỗi section có link đến file implementation chi tiết.
 
-**🔧 Tech Stack Updated**:
-- Backend: Go + PostgreSQL + Raw SQL + golang-migrate
-- Migration Example: [migration-example-enhanced-auth.sql](./migration-example-enhanced-auth.sql)
-- Database Schema: SQL CREATE TABLE statements thay vì Prisma schema
-- ORM: Raw SQL queries thay vì Prisma ORM
+**🔧 Tech Stack Final**:
+- **Backend**: Go + PostgreSQL + Raw SQL + golang-migrate
+- **gRPC Stack**: Pure gRPC services với optional gRPC-Gateway cho dev
+- **Database**: PostgreSQL 14+ với 16 tables cho auth system
+- **Security**: 6-layer interceptor chain với rate limiting, auth, session, RBAC
+- **Session**: Dual-token system (JWT + Session Token) với 24h sliding window
+- **Monitoring**: Audit logs, notifications, resource access tracking
+- **Migration Tool**: golang-migrate với versioned SQL scripts

@@ -4,14 +4,11 @@
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { Question_filterServiceClient } from '@/generated/v1/Question_filterServiceClientPb';
+import { QuestionFilterServiceClient } from '@/generated/v1/Question_filterServiceClientPb';
 import {
   ListQuestionsByFilterRequest,
-  ListQuestionsByFilterResponse,
   SearchQuestionsRequest,
-  SearchQuestionsResponse,
   GetQuestionsByQuestionCodeRequest,
-  GetQuestionsByQuestionCodeResponse,
   QuestionCodeFilter,
   MetadataFilter,
   DateRangeFilter,
@@ -23,13 +20,13 @@ import {
   QuestionDetail,
   QuestionSearchResult,
   QuestionWithCodeInfo,
-  FilterSummary,
+
 } from '@/generated/v1/question_filter_pb';
 import { RpcError } from 'grpc-web';
 
 // gRPC client configuration
 const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
-const questionFilterServiceClient = new Question_filterServiceClient(GRPC_ENDPOINT);
+const questionFilterServiceClient = new QuestionFilterServiceClient(GRPC_ENDPOINT);
 
 // Helper to get auth metadata
 function getAuthMetadata(): { [key: string]: string } {
@@ -362,22 +359,22 @@ export class QuestionFilterHelpers {
   static buildFilterSummaryText(request: any): string {
     const parts: string[] = [];
     if (request.question_code_filter?.grades?.length) {
-      const gradeLabels = request.question_code_filter.grades.map(g => `Lớp ${parseInt(g) + 10}`);
+      const gradeLabels = request.question_code_filter.grades.map((g: any) => `Lớp ${parseInt(g) + 10}`);
       parts.push(`Lớp: ${gradeLabels.join(', ')}`);
     }
     if (request.question_code_filter?.subjects?.length) {
       const subjectMap: Record<string, string> = { 'D': 'XS-TK', 'E': 'Anh', 'H': 'Hóa', 'M': 'Toán', 'P': 'Lý', 'S': 'Khoa học' };
-      const subjectLabels = request.question_code_filter.subjects.map(s => subjectMap[s] || s);
+      const subjectLabels = request.question_code_filter.subjects.map((s: any) => subjectMap[s] || s);
       parts.push(`Môn: ${subjectLabels.join(', ')}`);
     }
     if (request.metadata_filter?.types?.length) {
       const typeMap: Record<string, string> = { 'MC': 'TN', 'TF': 'Đ/S', 'SA': 'TL ngắn', 'ES': 'Tự luận', 'MA': 'TN nhiều ĐA' };
-      const typeLabels = request.metadata_filter.types.map(t => typeMap[t] || t);
+      const typeLabels = request.metadata_filter.types.map((t: any) => typeMap[t] || t);
       parts.push(`Loại: ${typeLabels.join(', ')}`);
     }
     if (request.metadata_filter?.difficulties?.length) {
       const difficultyMap: Record<string, string> = { 'EASY': 'Dễ', 'MEDIUM': 'TB', 'HARD': 'Khó' };
-      const difficultyLabels = request.metadata_filter.difficulties.map(d => difficultyMap[d] || d);
+      const difficultyLabels = request.metadata_filter.difficulties.map((d: any) => difficultyMap[d] || d);
       parts.push(`Độ khó: ${difficultyLabels.join(', ')}`);
     }
     return parts.length > 0 ? parts.join(' • ') : 'Tất cả câu hỏi';

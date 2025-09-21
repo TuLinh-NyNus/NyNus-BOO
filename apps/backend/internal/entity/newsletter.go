@@ -21,44 +21,44 @@ const (
 
 // NewsletterSubscription represents a newsletter subscription
 type NewsletterSubscription struct {
-	ID               uuid.UUID             `json:"id"`
-	Email            string                `json:"email"`
-	Status           SubscriptionStatus    `json:"status"`
-	SubscriptionID   string                `json:"subscription_id"`
-	ConfirmedAt      *time.Time            `json:"confirmed_at,omitempty"`
-	UnsubscribedAt   *time.Time            `json:"unsubscribed_at,omitempty"`
-	UnsubscribeReason *string              `json:"unsubscribe_reason,omitempty"`
-	IPAddress        *string               `json:"ip_address,omitempty"`
-	Source           string                `json:"source"` // website, admin, import
-	Tags             []string              `json:"tags"`
-	Metadata         map[string]interface{} `json:"metadata"`
-	CreatedAt        time.Time             `json:"created_at"`
-	UpdatedAt        time.Time             `json:"updated_at"`
+	ID                uuid.UUID              `json:"id"`
+	Email             string                 `json:"email"`
+	Status            SubscriptionStatus     `json:"status"`
+	SubscriptionID    string                 `json:"subscription_id"`
+	ConfirmedAt       *time.Time             `json:"confirmed_at,omitempty"`
+	UnsubscribedAt    *time.Time             `json:"unsubscribed_at,omitempty"`
+	UnsubscribeReason *string                `json:"unsubscribe_reason,omitempty"`
+	IPAddress         *string                `json:"ip_address,omitempty"`
+	Source            string                 `json:"source"` // website, admin, import
+	Tags              []string               `json:"tags"`
+	Metadata          map[string]interface{} `json:"metadata"`
+	CreatedAt         time.Time              `json:"created_at"`
+	UpdatedAt         time.Time              `json:"updated_at"`
 }
 
 // NewsletterSubscriptionDB represents the database structure
 type NewsletterSubscriptionDB struct {
-	ID                pgtype.UUID         `db:"id"`
-	Email             pgtype.Text         `db:"email"`
-	Status            pgtype.Text         `db:"status"`
-	SubscriptionID    pgtype.Text         `db:"subscription_id"`
-	ConfirmedAt       pgtype.Timestamptz  `db:"confirmed_at"`
-	UnsubscribedAt    pgtype.Timestamptz  `db:"unsubscribed_at"`
-	UnsubscribeReason pgtype.Text         `db:"unsubscribe_reason"`
-	IPAddress         pgtype.Inet         `db:"ip_address"`
-	Source            pgtype.Text         `db:"source"`
-	Tags              pq.StringArray      `db:"tags"`
-	Metadata          pgtype.JSONB        `db:"metadata"`
-	CreatedAt         pgtype.Timestamptz  `db:"created_at"`
-	UpdatedAt         pgtype.Timestamptz  `db:"updated_at"`
+	ID                pgtype.UUID        `db:"id"`
+	Email             pgtype.Text        `db:"email"`
+	Status            pgtype.Text        `db:"status"`
+	SubscriptionID    pgtype.Text        `db:"subscription_id"`
+	ConfirmedAt       pgtype.Timestamptz `db:"confirmed_at"`
+	UnsubscribedAt    pgtype.Timestamptz `db:"unsubscribed_at"`
+	UnsubscribeReason pgtype.Text        `db:"unsubscribe_reason"`
+	IPAddress         pgtype.Text        `db:"ip_address"`
+	Source            pgtype.Text        `db:"source"`
+	Tags              pq.StringArray     `db:"tags"`
+	Metadata          []byte             `db:"metadata"`
+	CreatedAt         pgtype.Timestamptz `db:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `db:"updated_at"`
 }
 
 // ToEntity converts database model to entity
 func (db *NewsletterSubscriptionDB) ToEntity() *NewsletterSubscription {
 	entity := &NewsletterSubscription{
 		SubscriptionID: db.SubscriptionID.String,
-		Tags:          []string{},
-		Metadata:      make(map[string]interface{}),
+		Tags:           []string{},
+		Metadata:       make(map[string]interface{}),
 	}
 
 	// Convert UUID
@@ -88,16 +88,15 @@ func (db *NewsletterSubscriptionDB) ToEntity() *NewsletterSubscription {
 		entity.UnsubscribeReason = &db.UnsubscribeReason.String
 	}
 	if db.IPAddress.Valid {
-		ipStr := db.IPAddress.Addr.String()
-		entity.IPAddress = &ipStr
+		entity.IPAddress = &db.IPAddress.String
 	}
 
 	// Convert arrays and JSON
 	if db.Tags != nil {
 		entity.Tags = []string(db.Tags)
 	}
-	if db.Metadata.Valid && len(db.Metadata.Bytes) > 0 {
-		_ = json.Unmarshal(db.Metadata.Bytes, &entity.Metadata)
+	if len(db.Metadata) > 0 {
+		_ = json.Unmarshal(db.Metadata, &entity.Metadata)
 	}
 
 	// Convert timestamps
@@ -135,12 +134,7 @@ func (entity *NewsletterSubscription) ToDBModel() *NewsletterSubscriptionDB {
 		db.UnsubscribeReason = pgtype.Text{String: *entity.UnsubscribeReason, Valid: true}
 	}
 	if entity.IPAddress != nil {
-		db.IPAddress = pgtype.Inet{
-			Addr: pgtype.Addr{
-				Addr: *entity.IPAddress,
-			},
-			Valid: true,
-		}
+		db.IPAddress = pgtype.Text{String: *entity.IPAddress, Valid: true}
 	}
 
 	// Set arrays and JSON
@@ -148,8 +142,7 @@ func (entity *NewsletterSubscription) ToDBModel() *NewsletterSubscriptionDB {
 		db.Tags = pq.StringArray(entity.Tags)
 	}
 	if entity.Metadata != nil {
-		metadataBytes, _ := json.Marshal(entity.Metadata)
-		db.Metadata = pgtype.JSONB{Bytes: metadataBytes, Valid: true}
+		db.Metadata, _ = json.Marshal(entity.Metadata)
 	}
 
 	// Set timestamps

@@ -9,24 +9,26 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Card, CardContent, Badge, Button, Switch } from '@/components/ui';
-import { CheckCircle, XCircle, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Card, CardContent, Badge, Button } from '@/components/ui';
+import { CheckCircle, Eye, EyeOff, AlertCircle, Circle } from 'lucide-react';
 import { LaTeXRenderer } from '@/components/ui/latex';
+
+import { AnswerOption } from '@/lib/types/question';
 
 /**
  * Props cho True/False Display
  */
 interface TrueFalseDisplayProps {
-  /** Correct answer (true/false) */
-  correctAnswer?: boolean;
-  /** Selected answer */
-  selectedAnswer?: boolean;
-  /** Show correct answer */
+  /** Answer options (4+ options) */
+  options: AnswerOption[];
+  /** Selected answer IDs */
+  selectedAnswers?: string[];
+  /** Show correct answers */
   showCorrect?: boolean;
   /** Interactive mode */
   interactive?: boolean;
   /** Answer selection handler */
-  onAnswerSelect?: (answer: boolean) => void;
+  onAnswerSelect?: (answerId: string) => void;
   /** Additional explanation */
   explanation?: string;
   /** Additional CSS classes */
@@ -35,11 +37,11 @@ interface TrueFalseDisplayProps {
 
 /**
  * True/False Display Component
- * Hiển thị câu hỏi đúng/sai với interactive UI
+ * Hiển thị câu hỏi đúng/sai với multiple options (4+)
  */
 export function TrueFalseDisplay({
-  correctAnswer,
-  selectedAnswer,
+  options,
+  selectedAnswers = [],
   showCorrect = false,
   interactive = false,
   onAnswerSelect,
@@ -47,32 +49,29 @@ export function TrueFalseDisplay({
   className = ''
 }: TrueFalseDisplayProps) {
   const [showAnswers, setShowAnswers] = useState(showCorrect);
-  const [localSelected, setLocalSelected] = useState<boolean | undefined>(selectedAnswer);
 
   /**
    * Handle answer selection
    */
-  const handleAnswerSelect = (answer: boolean) => {
-    if (!interactive) return;
-    
-    setLocalSelected(answer);
-    onAnswerSelect?.(answer);
+  const handleAnswerSelect = (answerId: string) => {
+    if (!interactive || !onAnswerSelect) return;
+    onAnswerSelect(answerId);
   };
 
   /**
    * Get option styling
    */
-  const getOptionStyles = (optionValue: boolean, isSelected: boolean) => {
-    let baseStyles = 'border-2 rounded-lg p-4 transition-all duration-200 cursor-pointer flex items-center justify-center gap-3';
+  const getOptionStyles = (option: AnswerOption, isSelected: boolean) => {
+    let baseStyles = 'border rounded-lg p-3 transition-all duration-200 cursor-pointer';
     
     if (!interactive) {
       baseStyles += ' cursor-default';
     }
 
     if (showAnswers) {
-      if (correctAnswer === optionValue) {
+      if (option.isCorrect) {
         baseStyles += ' border-green-500 bg-green-50 text-green-800';
-      } else if (isSelected && correctAnswer !== optionValue) {
+      } else if (isSelected) {
         baseStyles += ' border-red-500 bg-red-50 text-red-800';
       } else {
         baseStyles += ' border-gray-200 bg-gray-50';
@@ -91,35 +90,39 @@ export function TrueFalseDisplay({
   /**
    * Get option icon
    */
-  const getOptionIcon = (optionValue: boolean, isSelected: boolean) => {
+  const getOptionIcon = (option: AnswerOption, isSelected: boolean) => {
     if (showAnswers) {
-      if (correctAnswer === optionValue) {
-        return <CheckCircle className="h-6 w-6 text-green-600" />;
-      } else if (isSelected && correctAnswer !== optionValue) {
-        return <AlertCircle className="h-6 w-6 text-red-600" />;
+      if (option.isCorrect) {
+        return <CheckCircle className="h-5 w-5 text-green-600" />;
+      } else if (isSelected) {
+        return <AlertCircle className="h-5 w-5 text-red-600" />;
       }
     }
     
-    if (optionValue) {
-      return isSelected ? 
-        <CheckCircle className="h-6 w-6 text-blue-600" /> : 
-        <CheckCircle className="h-6 w-6 text-gray-400" />;
-    } else {
-      return isSelected ? 
-        <XCircle className="h-6 w-6 text-blue-600" /> : 
-        <XCircle className="h-6 w-6 text-gray-400" />;
-    }
+    return isSelected ? 
+      <CheckCircle className="h-5 w-5 text-blue-600" /> : 
+      <Circle className="h-5 w-5 text-gray-400" />;
   };
 
-  const currentSelected = localSelected ?? selectedAnswer;
+  /**
+   * Get option label (A, B, C, D...)
+   */
+  const getOptionLabel = (index: number) => {
+    return String.fromCharCode(65 + index); // A, B, C, D...
+  };
 
   return (
-    <div className={`true-false-display space-y-4 ${className}`}>
+    <div className={`true-false-display space-y-3 ${className}`}>
       {/* Header với toggle answers */}
       <div className="flex items-center justify-between">
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-          Đúng/Sai
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+            Đúng/Sai
+          </Badge>
+          <span className="text-sm text-muted-foreground">
+            {options.length} lựa chọn
+          </span>
+        </div>
         
         {!interactive && (
           <Button
@@ -143,67 +146,83 @@ export function TrueFalseDisplay({
         )}
       </div>
 
-      {/* Options */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* True option */}
-        <div
-          className={getOptionStyles(true, currentSelected === true)}
-          onClick={() => handleAnswerSelect(true)}
-        >
-          {getOptionIcon(true, currentSelected === true)}
-          <div className="text-center">
-            <div className="font-bold text-lg">ĐÚNG</div>
-            <div className="text-sm opacity-75">True</div>
-          </div>
-        </div>
+      {/* Options list */}
+      <div className="space-y-2">
+        {options.map((option, index) => {
+          const isSelected = selectedAnswers.includes(option.id);
+          const optionLabel = getOptionLabel(index);
+          
+          return (
+            <div
+              key={option.id}
+              className={getOptionStyles(option, isSelected)}
+              onClick={() => handleAnswerSelect(option.id)}
+            >
+              <div className="flex items-start gap-3">
+                {/* Option icon */}
+                <div className="flex-shrink-0 mt-1">
+                  {getOptionIcon(option, isSelected)}
+                </div>
 
-        {/* False option */}
-        <div
-          className={getOptionStyles(false, currentSelected === false)}
-          onClick={() => handleAnswerSelect(false)}
-        >
-          {getOptionIcon(false, currentSelected === false)}
-          <div className="text-center">
-            <div className="font-bold text-lg">SAI</div>
-            <div className="text-sm opacity-75">False</div>
-          </div>
-        </div>
+                {/* Option label */}
+                <div className="flex-shrink-0 mt-1">
+                  <Badge 
+                    variant="outline" 
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                      showAnswers && option.isCorrect 
+                        ? 'bg-green-100 border-green-300 text-green-700'
+                        : isSelected 
+                          ? 'bg-blue-100 border-blue-300 text-blue-700'
+                          : 'bg-gray-100 border-gray-300'
+                    }`}
+                  >
+                    {optionLabel}
+                  </Badge>
+                </div>
+
+                {/* Option content */}
+                <div className="flex-1 min-w-0">
+                  <LaTeXRenderer
+                    content={option.content}
+                    className="option-content"
+                    showErrorDetails={false}
+                    cleanContent={true}
+                  />
+                </div>
+
+                {/* Correct indicator */}
+                {showAnswers && option.isCorrect && (
+                  <div className="flex-shrink-0">
+                    <Badge className="bg-green-500 text-white">
+                      Đúng
+                    </Badge>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Switch alternative (for compact display) */}
-      {interactive && (
-        <div className="flex items-center justify-center gap-4 p-4 bg-gray-50 rounded-lg">
-          <span className={`font-medium ${currentSelected === false ? 'text-blue-600' : 'text-gray-500'}`}>
-            SAI
-          </span>
-          <Switch
-            checked={currentSelected === true}
-            onCheckedChange={(checked) => handleAnswerSelect(checked)}
-            className="data-[state=checked]:bg-green-500"
-          />
-          <span className={`font-medium ${currentSelected === true ? 'text-blue-600' : 'text-gray-500'}`}>
-            ĐÚNG
-          </span>
-        </div>
-      )}
-
       {/* Answer summary */}
-      {showAnswers && correctAnswer !== undefined && (
+      {showAnswers && (
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="p-3">
             <div className="text-sm">
               <div className="font-medium text-blue-800 mb-1">Đáp án đúng:</div>
-              <div className="flex items-center gap-2">
-                {correctAnswer ? (
-                  <>
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <Badge className="bg-green-500 text-white">ĐÚNG</Badge>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="h-4 w-4 text-red-600" />
-                    <Badge className="bg-red-500 text-white">SAI</Badge>
-                  </>
+              <div className="flex flex-wrap gap-1">
+                {options
+                  .filter(option => option.isCorrect)
+                  .map((option) => {
+                    const optionIndex = options.findIndex(opt => opt.id === option.id);
+                    return (
+                      <Badge key={option.id} className="bg-green-500 text-white">
+                        {getOptionLabel(optionIndex)}
+                      </Badge>
+                    );
+                  })}
+                {options.filter(option => option.isCorrect).length === 0 && (
+                  <span className="text-gray-600 italic">Không có đáp án đúng</span>
                 )}
               </div>
             </div>
@@ -231,7 +250,7 @@ export function TrueFalseDisplay({
       {/* Interactive mode instructions */}
       {interactive && !showAnswers && (
         <div className="text-sm text-muted-foreground text-center py-2">
-          Chọn ĐÚNG hoặc SAI
+          Nhấn vào lựa chọn để chọn đáp án
         </div>
       )}
     </div>
@@ -243,35 +262,21 @@ export function TrueFalseDisplay({
  * Compact preview cho lists
  */
 export function TrueFalsePreview({
-  correctAnswer,
+  options,
   className = ''
 }: {
-  correctAnswer?: boolean;
+  options: AnswerOption[];
   className?: string;
 }) {
+  const correctCount = options.filter(opt => opt.isCorrect).length;
+  
   return (
     <div className={`true-false-preview ${className}`}>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Badge variant="outline" className="text-xs">TF</Badge>
-        <span>Đúng/Sai</span>
-        {correctAnswer !== undefined && (
-          <>
-            <span>•</span>
-            <div className="flex items-center gap-1">
-              {correctAnswer ? (
-                <>
-                  <CheckCircle className="h-3 w-3 text-green-600" />
-                  <span className="text-green-600">Đúng</span>
-                </>
-              ) : (
-                <>
-                  <XCircle className="h-3 w-3 text-red-600" />
-                  <span className="text-red-600">Sai</span>
-                </>
-              )}
-            </div>
-          </>
-        )}
+        <span>{options.length} lựa chọn</span>
+        <span>•</span>
+        <span>{correctCount} đáp án đúng</span>
       </div>
     </div>
   );

@@ -1,19 +1,129 @@
-# 📚 Hệ thống Lý Thuyết - Implementation Plan
-**RIPER-5 Methodology for LaTeX-based Theory System**
+# 📚 Hệ thống Lý thuyết - Kế hoạch triển khai
+**Phương pháp RIPER-5 cho hệ thống Lý thuyết dựa trên LaTeX**
 
-## 📋 Project Overview
-- **Project**: NyNus Theory System Integration
-- **Architecture**: File-based LaTeX content management
-- **Tech Stack**: Next.js 15 + React 19 + TypeScript + KaTeX
-- **Storage**: Markdown files with LaTeX content
-- **Target**: Grades 3-12, 8 subjects, public access
-- **Estimated Timeline**: 15-20 hours
+## 📋 Tổng quan dự án
+- Dự án: Tích hợp hệ thống Lý thuyết NyNus
+- Kiến trúc: Quản lý nội dung LaTeX dựa trên tệp
+- Công nghệ: Next.js 15 + React 19 + TypeScript + KaTeX
+- Lưu trữ: Tệp Markdown chứa nội dung LaTeX
+- Đối tượng: Khối lớp 3–12, 8 môn học, truy cập công khai
+- Thời gian ước tính: 15–20 giờ
 
 ---
 
-## 🔍 RESEARCH - Codebase Analysis & Technical Challenges
+## 🔁 REVISION 2025-09-18 — Blog + Client-side KaTeX + gRPC-only + TikZ ảnh (cloud)
 
-### Current System Analysis
+Dựa trên yêu cầu cập nhật của bạn, thiết kế được điều chỉnh như sau (thay thế chiến lược build-time pre-render cũ):
+
+- Phạm vi: Không chỉ "Lý thuyết" mà còn hỗ trợ "Blog/Article/Math Notes". Nội dung viết bằng Markdown (kèm LaTeX). 
+- Render toán: Render KaTeX phía client (không prerender HTML từ server/build). 
+- TikZ: Biên dịch trước thành ảnh (SVG/PNG) bằng dịch vụ riêng, lưu trên cloud/CDN; nội dung chỉ nhúng URL ảnh. 
+- Giao tiếp: 100% gRPC/gRPC-Web cho các API business; phân phối ảnh qua CDN (file tĩnh, không phải API business). 
+- Cross-platform: Loại bỏ ví dụ shell bash đặc thù, dùng Node script/PowerShell hoặc thư viện cross-platform. 
+
+Kiến trúc gRPC đề xuất
+- BlogService: CRUD và truy xuất bài viết (Markdown + metadata). Client nhận Markdown thô, parse + sanitize + render KaTeX ở client. 
+- TikzCompilerService: Nhận mã TikZ + template_id, biên dịch bằng Tectonic/TeXLive trong container → SVG/PNG, upload cloud, trả về AssetRef (url, hash). Có BatchCompile và cache theo hash. 
+- SearchService: Nhận truy vấn và trả về kết quả qua gRPC (có thể server-stream). Backend duy trì chỉ mục.
+- ImportService: Nhập liệu DOCX/Google Docs/PDF (upload client-stream hoặc URL), tạo job xử lý, theo dõi trạng thái & kết quả.
+- gRPC-Web: Backend Go bọc grpc.Server bằng grpcweb.WrapServer; Frontend dùng grpc-web client (@improbable-eng/grpc-web hoặc grpc-web).
+
+Luồng render phía client (blog & lý thuyết)
+1) Client gọi BlogService.GetPost(slug|id) → nhận PostContent { metadata, markdown }. 
+2) Parse Markdown ở client → sanitize (isomorphic-dompurify) → auto-render KaTeX (katex/contrib/auto-render). 
+3) Ảnh TikZ là URL tới CDN đã compile sẵn (không render TikZ ở client). 
+4) Tối ưu: lazy-load nội dung dài, render theo chunk/viewport, debounce auto-render, ưu tiên inline math trước block math. 
+
+Cấu hình KaTeX & MathML phía client
+- Dùng KaTeX auto-render với delimiters: $, $$, \\( \\), \\[ \\]
+- Cấu hình output: 'htmlAndMathml' để tối ưu accessibility/SEO
+- Thứ tự xử lý: parse Markdown → sanitize (DOMPurify) → auto-render KaTeX
+- Tối ưu: chia nhỏ nội dung dài (chunking), lazy render theo viewport, ưu tiên inline math để giảm jank
+
+Pipeline TikZ & cache
+- Input: TikzSource { template_id, code }. 
+- Compile: Tectonic/TeXLive + dvisvgm/pdf2svg trong container runner (CI hoặc backend job). 
+- Output: AssetRef { asset_id, url, hash, width, height, format }. Lưu cloud (S3/CDN), set cache-control immutable. 
+- Admin UI: gọi CompileTikz → nhận url → chèn vào bài. Nếu lỗi, trả thông tin log, cho phép fallback asset thủ công.
+
+Cấu hình template TikZ & định dạng ảnh
+- Định dạng ảnh linh hoạt (WEBP/PNG/JPG/SVG) nhưng do template quyết định (output_format cố định theo template)
+- Không truyền options định dạng từ client; template chứa engine, preamble, output_format
+- API không đặt giới hạn độ dài input hay timeout; nếu cần sẽ kiểm soát ở tầng triển khai/service
+- Cloudinary: upload server-side, trả về url/public_id; cache theo hash(template_id + code + phiên bản template)
+
+Tham chiếu proto chính thức
+- packages/proto/v1/tikz.proto — TikzCompilerService (CompileTikz, ListTemplates)
+- packages/proto/v1/blog.proto — BlogService (CRUD, duyệt, publish)
+- packages/proto/v1/search.proto — SearchService (Search streaming)
+- packages/proto/v1/import.proto — ImportService (UploadImportFile streaming, CreateImportJob)
+
+Kế hoạch triển khai (rút gọn)
+- Phase 1: Proto & backend
+  - Tạo packages/proto/v1/blog.proto, tikz.proto, search.proto theo skeleton bên dưới; sinh code go + ts. 
+  - Implement service skeleton (Go gRPC), bật grpc-web. 
+- Phase 2: Frontend reader (client KaTeX)
+  - Component parse Markdown + sanitize + KaTeX auto-render; mobile-first viewer; navigation. 
+  - gRPC client (grpc-web) để gọi BlogService/SearchService. 
+- Phase 3: Admin UI
+  - Editor (Monaco) + preview client KaTeX; TikZ compile UI (gRPC TikzCompilerService). 
+- Phase 4: Search (gRPC)
+  - SearchService với chỉ mục phía server; client hiển thị realtime via server-stream/unary.
+
+Testing cập nhật
+- KaTeX client correctness, time-to-first-math; virtualization của nội dung dài; 
+- gRPC-Web e2e (Create/Get/Update/List), Search streaming; 
+- TikZ asset validity (kích thước, caching, CORS, integrity).
+
+Thông số kỹ thuật cập nhật (điểm nhấn)
+- Proto: packages/proto/v1/blog.proto, tikz.proto, search.proto. 
+- Frontend: apps/frontend/src/components/blog/*, theory/* (viewer, nav, search). 
+- Ảnh TikZ: lưu cloud. Dev local có thể dùng public/assets/tikz/ chỉ để thử nghiệm (không sản xuất). 
+- Vẫn dùng pnpm/pnpx; đảm bảo pnpm type-check và pnpm lint trước khi merge/deploy.
+
+Ví dụ proto (rút gọn)
+
+```proto
+syntax = "proto3";
+package v1;
+option go_package = "github.com/AnhPhan49/exam-bank-system/packages/proto/v1;v1";
+
+enum PostType { POST_TYPE_UNSPECIFIED = 0; POST_TYPE_ARTICLE = 1; POST_TYPE_THEORY = 2; POST_TYPE_MATH_NOTE = 3; }
+message PostMetadata { string id=1; string slug=2; string title=3; repeated string tags=4; string category=5; PostType type=6; string author_id=7; int64 created_at=8; int64 updated_at=9; string hero_image_url=10; bool math_enabled=11; }
+message PostContent { PostMetadata meta=1; string markdown=2; }
+message GetPostRequest { oneof key { string id=1; string slug=2; } }
+message GetPostResponse { PostContent content=1; }
+service BlogService { rpc GetPost(GetPostRequest) returns (GetPostResponse); }
+```
+
+```proto
+syntax = "proto3";
+package v1;
+option go_package = "github.com/AnhPhan49/exam-bank-system/packages/proto/v1;v1";
+message TikzSource { string template_id=1; string code=2; }
+message AssetRef { string asset_id=1; string url=2; string hash=3; int32 width=4; int32 height=5; string format=6; }
+message CompileTikzRequest { TikzSource source=1; }
+message CompileTikzResponse { AssetRef asset=1; }
+service TikzCompilerService { rpc CompileTikz(CompileTikzRequest) returns (CompileTikzResponse); }
+```
+
+```proto
+syntax = "proto3";
+package v1;
+option go_package = "github.com/AnhPhan49/exam-bank-system/packages/proto/v1;v1";
+message SearchRequest { string query=1; string category=2; repeated string tags=3; int32 limit=4; }
+message SearchHit { string id=1; string slug=2; string title=3; string snippet=4; PostType type=5; float score=6; }
+service SearchService { rpc Search(SearchRequest) returns (stream SearchHit); }
+```
+
+Ghi chú về sections cũ
+- Các phần INNOVATE/PLAN/EXECUTE/TESTING/Technical Specifications/Next Steps… ở bên dưới được đánh dấu LEGACY và giữ lại làm tham chiếu. Vui lòng ưu tiên nội dung trong mục REVISION này khi triển khai.
+
+---
+
+## 🔍 NGHIÊN CỨU - Phân tích codebase & thách thức kỹ thuật
+
+### Phân tích hệ thống hiện tại
 ```
 exam-bank-system/
 ├── apps/frontend/                 # Next.js 15.4.5 + React 19
@@ -25,16 +135,16 @@ exam-bank-system/
 └── docs/                         # Documentation
 ```
 
-**✅ Available Assets:**
+**✅ Tài nguyên sẵn có:**
 - KaTeX 0.16.22 (LaTeX math rendering)
 - Tailwind CSS 4.1.11 (responsive design)
 - Shadcn UI components (consistent design)
 - Admin system pattern (`/3141592654/admin`)
 - Theme system (light/dark modes)
 
-**🚨 Technical Challenges:**
+**🚨 Thách thức kỹ thuật:**
 
-### 1. LaTeX Compilation Challenge
+### 1. Thách thức biên dịch LaTeX
 ```typescript
 // Current: KaTeX (limited LaTeX subset)
 import 'katex/dist/katex.min.css';
@@ -46,8 +156,8 @@ import katex from 'katex';
 // - Server-side compilation: Complex but most powerful
 ```
 
-### 2. TikZ Rendering Challenge
-**Option A: Pre-render Approach**
+### 2. Thách thức hiển thị TikZ
+**Phương án A: Dựng sẵn (pre-render)**
 ```bash
 # Server-side compilation
 pdflatex diagram.tex → PDF → pdf2svg → SVG
@@ -55,7 +165,7 @@ pdflatex diagram.tex → PDF → pdf2svg → SVG
 # Cons: Build complexity, responsive issues
 ```
 
-**Option B: JavaScript Libraries**
+**Phương án B: Thư viện JavaScript**
 ```typescript
 // TikZJax or similar
 import { TikZJax } from 'tikzjax';
@@ -63,7 +173,7 @@ import { TikZJax } from 'tikzjax';
 // Cons: Limited TikZ features, performance
 ```
 
-**Option C: Hybrid Approach**
+**Phương án C: Kết hợp**
 ```typescript
 // Cache + on-demand rendering
 const renderTikZ = async (code: string) => {
@@ -73,7 +183,7 @@ const renderTikZ = async (code: string) => {
 };
 ```
 
-### 3. Content Structure Challenge
+### 3. Thách thức cấu trúc nội dung
 ```
 content/theory/
 ├── TOÁN/
@@ -91,7 +201,7 @@ content/theory/
 
 ---
 
-## 💡 INNOVATE - High-Performance Mobile-First Strategy
+## 💡 ĐỔI MỚI 
 
 ### **🚀 REVISED STRATEGY: Build-Time Pre-Rendering + Mobile-First**
 
@@ -219,7 +329,7 @@ interface PreBuiltIndexes {
 
 ---
 
-## 📋 PLAN - High-Performance Mobile-First Implementation
+## 📋 KẾ HOẠCH [CŨ] - Triển khai Mobile-First dựa trên dựng sẵn (đã được thay thế bởi REVISION 2025-09-18)
 
 ### **🎯 REVISED PHASES - Build-Time Optimization Focus**
 
@@ -480,7 +590,7 @@ export class InstantTheorySearch {
 
 ---
 
-## 🚀 EXECUTE - Build-Time Optimization Implementation
+## 🚀 THỰC THI
 
 ### Step 1: Setup Build-Time Infrastructure
 ```bash
@@ -536,7 +646,7 @@ echo "Building theory system..." > scripts/build-theory.js
 
 ---
 
-## 🧪 TESTING - High-Performance Mobile-First Testing Strategy
+## 🧪 KIỂM THỬ 
 
 ### Build System Tests
 ```typescript
@@ -614,8 +724,7 @@ describe('Mobile-First Optimization', () => {
 
 ---
 
-## 📊 Technical Specifications
-
+## 📊 Thông số kỹ thuật 
 ### Build-Time Optimized File Structure
 ```
 apps/frontend/src/
@@ -682,7 +791,7 @@ public/theory-built/                     # Pre-rendered output
 
 ---
 
-## 🎯 Updated Next Steps - Build-Time Optimization Ready
+## 🎯 Bước tiếp theo 
 
 ### **🚀 Immediate Actions Required:**
 
@@ -723,7 +832,7 @@ public/theory-built/                     # Pre-rendered output
 
 ---
 
-## 📈 Expected Outcomes
+## 📈 Kết quả kỳ vọng 
 
 ### **Performance Targets Achieved:**
 - **Page Load**: < 100ms (pre-rendered content)
@@ -741,7 +850,7 @@ public/theory-built/                     # Pre-rendered output
 
 ---
 
-## 🔧 REVIEW - Implementation Checklist
+## 🔧 RÀ SOÁT - Checklist triển khai
 
 ### Pre-Implementation Checklist
 - [ ] Analyze main.tex file complexity
@@ -793,7 +902,7 @@ public/theory-built/                     # Pre-rendered output
 
 ---
 
-## 📈 Success Metrics
+## 📈 Chỉ số thành công 
 
 ### Performance Targets
 - **LaTeX Math Rendering**: < 100ms per formula
@@ -818,7 +927,7 @@ public/theory-built/                     # Pre-rendered output
 
 ---
 
-## 🚨 Risk Mitigation
+## 🚨 Giảm thiểu rủi ro 
 
 ### LaTeX Rendering Risks
 **Risk**: Complex LaTeX fails to render
@@ -843,30 +952,4 @@ public/theory-built/                     # Pre-rendered output
 
 ---
 
-## 🎉 Project Completion Criteria
 
-### Functional Requirements ✅
-- [x] Students can browse theory by subject/grade
-- [x] LaTeX math formulas render correctly
-- [x] TikZ diagrams display properly
-- [x] Search works across all content
-- [x] Admin can create/edit theory content
-- [x] Live preview works in admin interface
-
-### Technical Requirements ✅
-- [x] File-based storage (no database)
-- [x] Next.js App Router integration
-- [x] TypeScript strict mode
-- [x] Responsive design
-- [x] Performance optimization
-- [x] Error handling and fallbacks
-
-### Quality Requirements ✅
-- [x] Code follows project standards
-- [x] Comprehensive testing coverage
-- [x] Documentation complete
-- [x] Cross-browser compatibility
-- [x] Mobile optimization
-- [x] Accessibility compliance
-
-**Implementation Status**: Ready to begin Phase 1 🚀

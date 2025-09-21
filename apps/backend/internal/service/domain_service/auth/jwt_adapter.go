@@ -14,15 +14,14 @@ func NewJWTAdapter(jwtService *JWTService) *JWTAdapter {
 
 // GenerateAccessToken generates access token (adapter method)
 func (a *JWTAdapter) GenerateAccessToken(userID string, role string) (string, error) {
-	// OAuth interface doesn't pass level, so we use 0 as default
-	// The actual level should be set based on role if needed
-	level := 0
-	if role == "STUDENT" || role == "TUTOR" || role == "TEACHER" {
-		level = 1 // Default level, actual level should come from user data
-	}
-	
-	// Email can be empty for OAuth flow since we have userID
-	return a.jwtService.GenerateAccessToken(userID, "", role, level)
+	// OAuth interface doesn't pass email and level, so we use defaults
+	// The actual email and level should come from user data in OAuthService
+	return a.GenerateAccessTokenWithDetails(userID, "", role, 0)
+}
+
+// GenerateAccessTokenWithDetails generates access token with full user details
+func (a *JWTAdapter) GenerateAccessTokenWithDetails(userID, email, role string, level int) (string, error) {
+	return a.jwtService.GenerateAccessToken(userID, email, role, level)
 }
 
 // GenerateRefreshToken generates refresh token

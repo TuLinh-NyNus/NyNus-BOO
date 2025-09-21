@@ -2,7 +2,10 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
-import { type User, mockAdminUser } from '../lib/mockdata/auth';
+import { type User } from '../lib/types/user/base';
+// Use protobuf generated enums (primary)
+import { UserRole, UserStatus } from '../generated/common/common_pb';
+import { mockAdminUser } from '../lib/mockdata/auth';
 import { AuthService, getAuthErrorMessage } from '@/lib/services/api/auth.api';
 
 // 🔥 KEY OPTIMIZATION: Split Context thành State và Actions
@@ -161,10 +164,15 @@ function InternalAuthProvider({ children }: { children: ReactNode }) {
             email: session.user.email || '',
             firstName: session.user.name?.split(' ')[0] || 'User',
             lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
-            role: 'student',
+            role: UserRole.STUDENT, // Use protobuf enum
             avatar: session.user.image || undefined,
             isActive: true,
-            lastLoginAt: new Date()
+            lastLoginAt: new Date(),
+            // Required fields for enhanced User interface
+            status: UserStatus.ACTIVE,
+            emailVerified: true, // Google users have verified emails
+            createdAt: new Date(),
+            updatedAt: new Date()
           };
           
           if (mounted) setUser(googleUser);

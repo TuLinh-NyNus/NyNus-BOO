@@ -8,18 +8,18 @@ import (
 
 // Enrollment represents a course enrollment
 type Enrollment struct {
-	ID                string
-	UserID            string
-	CourseID          string
-	Status            string // ACTIVE, COMPLETED, DROPPED, SUSPENDED, EXPIRED
-	AccessLevel       string // BASIC, PREMIUM, FULL
-	MaxDownloads      int
-	CurrentDownloads  int
-	MaxStreams        int
-	ExpiresAt         *time.Time
-	Progress          int
-	EnrolledAt        time.Time
-	UpdatedAt         time.Time
+	ID               string
+	UserID           string
+	CourseID         string
+	Status           string // ACTIVE, COMPLETED, DROPPED, SUSPENDED, EXPIRED
+	AccessLevel      string // BASIC, PREMIUM, FULL
+	MaxDownloads     int
+	CurrentDownloads int
+	MaxStreams       int
+	ExpiresAt        *time.Time
+	Progress         int
+	EnrolledAt       time.Time
+	UpdatedAt        time.Time
 }
 
 // EnrollmentRepository handles enrollment data access
@@ -55,7 +55,7 @@ func (r *enrollmentRepository) Create(ctx context.Context, enrollment *Enrollmen
 			expires_at, progress, enrolled_at, updated_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		enrollment.ID,
 		enrollment.UserID,
@@ -70,7 +70,7 @@ func (r *enrollmentRepository) Create(ctx context.Context, enrollment *Enrollmen
 		enrollment.EnrolledAt,
 		enrollment.UpdatedAt,
 	)
-	
+
 	return err
 }
 
@@ -83,7 +83,7 @@ func (r *enrollmentRepository) GetByID(ctx context.Context, id string) (*Enrollm
 		FROM course_enrollments
 		WHERE id = $1
 	`
-	
+
 	enrollment := &Enrollment{}
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&enrollment.ID,
@@ -99,11 +99,11 @@ func (r *enrollmentRepository) GetByID(ctx context.Context, id string) (*Enrollm
 		&enrollment.EnrolledAt,
 		&enrollment.UpdatedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
 	}
-	
+
 	return enrollment, err
 }
 
@@ -117,13 +117,13 @@ func (r *enrollmentRepository) GetByUserID(ctx context.Context, userID string) (
 		WHERE user_id = $1
 		ORDER BY enrolled_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var enrollments []*Enrollment
 	for rows.Next() {
 		enrollment := &Enrollment{}
@@ -146,7 +146,7 @@ func (r *enrollmentRepository) GetByUserID(ctx context.Context, userID string) (
 		}
 		enrollments = append(enrollments, enrollment)
 	}
-	
+
 	return enrollments, nil
 }
 
@@ -159,7 +159,7 @@ func (r *enrollmentRepository) GetByUserAndCourse(ctx context.Context, userID, c
 		FROM course_enrollments
 		WHERE user_id = $1 AND course_id = $2
 	`
-	
+
 	enrollment := &Enrollment{}
 	err := r.db.QueryRowContext(ctx, query, userID, courseID).Scan(
 		&enrollment.ID,
@@ -175,11 +175,11 @@ func (r *enrollmentRepository) GetByUserAndCourse(ctx context.Context, userID, c
 		&enrollment.EnrolledAt,
 		&enrollment.UpdatedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
 	}
-	
+
 	return enrollment, err
 }
 
@@ -192,7 +192,7 @@ func (r *enrollmentRepository) Update(ctx context.Context, enrollment *Enrollmen
 			progress = $8, updated_at = $9
 		WHERE id = $1
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		enrollment.ID,
 		enrollment.Status,
@@ -204,7 +204,7 @@ func (r *enrollmentRepository) Update(ctx context.Context, enrollment *Enrollmen
 		enrollment.Progress,
 		time.Now(),
 	)
-	
+
 	return err
 }
 
@@ -215,7 +215,7 @@ func (r *enrollmentRepository) UpdateStatus(ctx context.Context, id, status stri
 		SET status = $2, updated_at = $3
 		WHERE id = $1
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query, id, status, time.Now())
 	return err
 }
@@ -227,7 +227,7 @@ func (r *enrollmentRepository) IncrementDownloads(ctx context.Context, id string
 		SET current_downloads = current_downloads + 1, updated_at = $2
 		WHERE id = $1
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query, id, time.Now())
 	return err
 }
@@ -244,13 +244,13 @@ func (r *enrollmentRepository) GetActiveEnrollments(ctx context.Context, userID 
 			AND (expires_at IS NULL OR expires_at > NOW())
 		ORDER BY enrolled_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var enrollments []*Enrollment
 	for rows.Next() {
 		enrollment := &Enrollment{}
@@ -273,7 +273,7 @@ func (r *enrollmentRepository) GetActiveEnrollments(ctx context.Context, userID 
 		}
 		enrollments = append(enrollments, enrollment)
 	}
-	
+
 	return enrollments, nil
 }
 
@@ -288,13 +288,13 @@ func (r *enrollmentRepository) GetExpiredEnrollments(ctx context.Context) ([]*En
 			AND expires_at IS NOT NULL 
 			AND expires_at <= NOW()
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var enrollments []*Enrollment
 	for rows.Next() {
 		enrollment := &Enrollment{}
@@ -317,7 +317,7 @@ func (r *enrollmentRepository) GetExpiredEnrollments(ctx context.Context) ([]*En
 		}
 		enrollments = append(enrollments, enrollment)
 	}
-	
+
 	return enrollments, nil
 }
 

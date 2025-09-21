@@ -2,6 +2,11 @@ syntax = "proto3";
 
 package v1;
 
+// POLICY NOTE: This service follows gRPC-first design
+// HTTP annotations are kept for development and testing convenience via gRPC-Gateway
+// In production, clients should use gRPC directly for optimal performance and security
+// The HTTP gateway may be disabled in production environments
+import "google/api/annotations.proto";
 import "common/common.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
@@ -162,17 +167,47 @@ message UpdatePreferencesResponse {
 
 // Profile service
 service ProfileService {
-  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile"
+    };
+  }
 
-  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/profile"
+      body: "*"
+    };
+  }
 
-  rpc GetSessions(GetSessionsRequest) returns (GetSessionsResponse);
+  rpc GetSessions(GetSessionsRequest) returns (GetSessionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile/sessions"
+    };
+  }
 
-  rpc TerminateSession(TerminateSessionRequest) returns (TerminateSessionResponse);
+  rpc TerminateSession(TerminateSessionRequest) returns (TerminateSessionResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/profile/sessions/{session_id}"
+    };
+  }
 
-  rpc TerminateAllSessions(TerminateAllSessionsRequest) returns (TerminateAllSessionsResponse);
+  rpc TerminateAllSessions(TerminateAllSessionsRequest) returns (TerminateAllSessionsResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/profile/sessions/all"
+    };
+  }
 
-  rpc GetPreferences(GetPreferencesRequest) returns (GetPreferencesResponse);
+  rpc GetPreferences(GetPreferencesRequest) returns (GetPreferencesResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/profile/preferences"
+    };
+  }
 
-  rpc UpdatePreferences(UpdatePreferencesRequest) returns (UpdatePreferencesResponse);
+  rpc UpdatePreferences(UpdatePreferencesRequest) returns (UpdatePreferencesResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/profile/preferences"
+      body: "*"
+    };
+  }
 }

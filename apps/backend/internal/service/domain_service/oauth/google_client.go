@@ -60,7 +60,7 @@ func (c *GoogleClient) VerifyIDToken(ctx context.Context, idToken string) (*Goog
 
 	// Extract user info from payload
 	userInfo := &GoogleUserInfo{}
-	
+
 	if sub, ok := payload.Claims["sub"].(string); ok {
 		userInfo.ID = sub
 	}
@@ -93,7 +93,7 @@ func (c *GoogleClient) VerifyIDToken(ctx context.Context, idToken string) (*Goog
 func (c *GoogleClient) ExchangeCodeForToken(ctx context.Context, code string) (*TokenResponse, error) {
 	// Prepare request to Google's token endpoint
 	tokenURL := "https://oauth2.googleapis.com/token"
-	
+
 	// Create form data
 	formData := fmt.Sprintf(
 		"code=%s&client_id=%s&client_secret=%s&redirect_uri=%s&grant_type=authorization_code",

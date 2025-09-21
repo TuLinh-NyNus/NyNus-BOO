@@ -38,17 +38,17 @@ func (r *QuestionRepository) Create(ctx context.Context, question *entity.Questi
 			$12, $13, $14, $15, $16, $17, $18
 		)
 	`
-	
+
 	// Generate ID if not provided
 	if question.ID.Status != pgtype.Present || question.ID.String == "" {
 		question.ID.Set(uuid.New().String())
 	}
-	
+
 	// Set timestamps
 	now := time.Now()
 	question.CreatedAt.Set(now)
 	question.UpdatedAt.Set(now)
-	
+
 	// Convert tags to pq.StringArray for PostgreSQL
 	var tags pq.StringArray
 	if question.Tag.Status == pgtype.Present {
@@ -58,7 +58,7 @@ func (r *QuestionRepository) Create(ctx context.Context, question *entity.Questi
 			}
 		}
 	}
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		question.ID.String,
 		question.RawContent.String,
@@ -79,7 +79,7 @@ func (r *QuestionRepository) Create(ctx context.Context, question *entity.Questi
 		question.CreatedAt.Time,
 		question.UpdatedAt.Time,
 	)
-	
+
 	return err
 }
 
@@ -94,12 +94,12 @@ func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Qu
 		FROM questions
 		WHERE id = $1
 	`
-	
+
 	var q entity.Question
 	var tags pq.StringArray
 	var subcount, source, solution sql.NullString
 	var answers, correctAnswer sql.NullString
-	
+
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&q.ID.String,
 		&q.RawContent.String,
@@ -120,14 +120,14 @@ func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Qu
 		&q.CreatedAt.Time,
 		&q.UpdatedAt.Time,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("question not found")
 		}
 		return nil, err
 	}
-	
+
 	// Set statuses for pgtype fields
 	q.ID.Status = pgtype.Present
 	q.RawContent.Status = pgtype.Present
@@ -141,7 +141,7 @@ func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Qu
 	q.QuestionCodeID.Status = pgtype.Present
 	q.CreatedAt.Status = pgtype.Present
 	q.UpdatedAt.Status = pgtype.Present
-	
+
 	// Handle nullable fields
 	if subcount.Valid {
 		q.Subcount.Set(subcount.String)
@@ -158,7 +158,7 @@ func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Qu
 	if correctAnswer.Valid {
 		q.CorrectAnswer.Set([]byte(correctAnswer.String))
 	}
-	
+
 	// Convert tags
 	if len(tags) > 0 {
 		q.Tag.Elements = make([]pgtype.Text, len(tags))
@@ -167,7 +167,7 @@ func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Qu
 		}
 		q.Tag.Status = pgtype.Present
 	}
-	
+
 	return &q, nil
 }
 
@@ -190,10 +190,10 @@ func (r *QuestionRepository) Update(ctx context.Context, question *entity.Questi
 			updated_at = $14
 		WHERE id = $1
 	`
-	
+
 	// Update timestamp
 	question.UpdatedAt.Set(time.Now())
-	
+
 	// Convert tags
 	var tags pq.StringArray
 	if question.Tag.Status == pgtype.Present {
@@ -203,7 +203,7 @@ func (r *QuestionRepository) Update(ctx context.Context, question *entity.Questi
 			}
 		}
 	}
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		question.ID.String,
 		question.RawContent.String,
@@ -220,7 +220,7 @@ func (r *QuestionRepository) Update(ctx context.Context, question *entity.Questi
 		question.QuestionCodeID.String,
 		question.UpdatedAt.Time,
 	)
-	
+
 	return err
 }
 
@@ -238,13 +238,13 @@ func (r *QuestionRepository) CreateBatch(ctx context.Context, questions []*entit
 		return err
 	}
 	defer tx.Rollback()
-	
+
 	for _, q := range questions {
 		if err := r.createInTx(ctx, tx, q); err != nil {
 			return err
 		}
 	}
-	
+
 	return tx.Commit()
 }
 
@@ -261,17 +261,17 @@ func (r *QuestionRepository) createInTx(ctx context.Context, tx *sql.Tx, questio
 			$12, $13, $14, $15, $16, $17, $18
 		)
 	`
-	
+
 	// Generate ID if not provided
 	if question.ID.Status != pgtype.Present || question.ID.String == "" {
 		question.ID.Set(uuid.New().String())
 	}
-	
+
 	// Set timestamps
 	now := time.Now()
 	question.CreatedAt.Set(now)
 	question.UpdatedAt.Set(now)
-	
+
 	// Convert tags
 	var tags pq.StringArray
 	if question.Tag.Status == pgtype.Present {
@@ -281,7 +281,7 @@ func (r *QuestionRepository) createInTx(ctx context.Context, tx *sql.Tx, questio
 			}
 		}
 	}
-	
+
 	_, err := tx.ExecContext(ctx, query,
 		question.ID.String,
 		question.RawContent.String,
@@ -302,7 +302,7 @@ func (r *QuestionRepository) createInTx(ctx context.Context, tx *sql.Tx, questio
 		question.CreatedAt.Time,
 		question.UpdatedAt.Time,
 	)
-	
+
 	return err
 }
 
@@ -311,7 +311,7 @@ func (r *QuestionRepository) GetByIDs(ctx context.Context, ids []string) ([]*ent
 	if len(ids) == 0 {
 		return []*entity.Question{}, nil
 	}
-	
+
 	query := `
 		SELECT 
 			id, raw_content, content, subcount, type, source,
@@ -321,13 +321,13 @@ func (r *QuestionRepository) GetByIDs(ctx context.Context, ids []string) ([]*ent
 		FROM questions
 		WHERE id = ANY($1)
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, pq.Array(ids))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestions(rows)
 }
 
@@ -343,13 +343,13 @@ func (r *QuestionRepository) GetAll(ctx context.Context, offset, limit int) ([]*
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestions(rows)
 }
 
@@ -365,7 +365,7 @@ func (r *QuestionRepository) Count(ctx context.Context) (int, error) {
 func (r *QuestionRepository) FindWithFilters(ctx context.Context, criteria *interfaces.FilterCriteria, offset, limit int, sortColumn, sortOrder string) ([]*entity.Question, int, error) {
 	// Build WHERE clause
 	whereClause, args := r.buildWhereClause(criteria)
-	
+
 	// Count query
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(*)
@@ -373,13 +373,13 @@ func (r *QuestionRepository) FindWithFilters(ctx context.Context, criteria *inte
 		JOIN question_codes qc ON q.question_code_id = qc.id
 		%s
 	`, whereClause)
-	
+
 	var total int
 	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	// Data query with sorting and pagination
 	dataQuery := fmt.Sprintf(`
 		SELECT 
@@ -393,20 +393,20 @@ func (r *QuestionRepository) FindWithFilters(ctx context.Context, criteria *inte
 		ORDER BY q.%s %s
 		LIMIT $%d OFFSET $%d
 	`, whereClause, sortColumn, sortOrder, len(args)+1, len(args)+2)
-	
+
 	args = append(args, limit, offset)
-	
+
 	rows, err := r.db.QueryContext(ctx, dataQuery, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
-	
+
 	questions, err := r.scanQuestions(rows)
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	return questions, total, nil
 }
 
@@ -415,11 +415,11 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 	if criteria == nil {
 		return "", []interface{}{}
 	}
-	
+
 	var conditions []string
 	var args []interface{}
 	argCount := 0
-	
+
 	// Helper function to add array conditions
 	addArrayCondition := func(field string, values []string) {
 		if len(values) > 0 {
@@ -428,7 +428,7 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 			args = append(args, pq.Array(values))
 		}
 	}
-	
+
 	// Classification filters
 	addArrayCondition("qc.grade", criteria.Grades)
 	addArrayCondition("qc.subject", criteria.Subjects)
@@ -436,13 +436,13 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 	addArrayCondition("qc.level", criteria.Levels)
 	addArrayCondition("qc.lesson", criteria.Lessons)
 	addArrayCondition("qc.form", criteria.Forms)
-	
+
 	// Question properties
 	addArrayCondition("q.type", criteria.Types)
 	addArrayCondition("q.difficulty", criteria.Difficulties)
 	addArrayCondition("q.status", criteria.Statuses)
 	addArrayCondition("q.creator", criteria.Creators)
-	
+
 	// Tags
 	if len(criteria.Tags) > 0 {
 		argCount++
@@ -453,7 +453,7 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 		}
 		args = append(args, pq.Array(criteria.Tags))
 	}
-	
+
 	// Numeric ranges
 	if criteria.MinUsageCount > 0 {
 		argCount++
@@ -465,7 +465,7 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 		conditions = append(conditions, fmt.Sprintf("q.usage_count <= $%d", argCount))
 		args = append(args, criteria.MaxUsageCount)
 	}
-	
+
 	if criteria.MinFeedback > 0 {
 		argCount++
 		conditions = append(conditions, fmt.Sprintf("q.feedback >= $%d", argCount))
@@ -476,7 +476,7 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 		conditions = append(conditions, fmt.Sprintf("q.feedback <= $%d", argCount))
 		args = append(args, criteria.MaxFeedback)
 	}
-	
+
 	// Date ranges
 	if criteria.CreatedAfter != "" {
 		argCount++
@@ -488,7 +488,7 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 		conditions = append(conditions, fmt.Sprintf("q.created_at <= $%d", argCount))
 		args = append(args, criteria.CreatedBefore)
 	}
-	
+
 	// Boolean filters
 	if criteria.HasSolution != nil {
 		if *criteria.HasSolution {
@@ -497,7 +497,7 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 			conditions = append(conditions, "(q.solution IS NULL OR q.solution = '')")
 		}
 	}
-	
+
 	if criteria.HasSource != nil {
 		if *criteria.HasSource {
 			conditions = append(conditions, "q.source IS NOT NULL AND q.source != ''")
@@ -505,14 +505,14 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 			conditions = append(conditions, "(q.source IS NULL OR q.source = '')")
 		}
 	}
-	
+
 	// Question code IDs
 	addArrayCondition("q.question_code_id", criteria.QuestionCodeIDs)
-	
+
 	if len(conditions) > 0 {
 		return "WHERE " + strings.Join(conditions, " AND "), args
 	}
-	
+
 	return "", args
 }
 
@@ -520,9 +520,9 @@ func (r *QuestionRepository) buildWhereClause(criteria *interfaces.FilterCriteri
 func (r *QuestionRepository) Search(ctx context.Context, searchCriteria interfaces.SearchCriteria, filterCriteria *interfaces.FilterCriteria, offset, limit int) ([]*interfaces.SearchResult, int, error) {
 	// For now, implement a simple LIKE search
 	// In production, use PostgreSQL full-text search or OpenSearch
-	
+
 	whereClause, args := r.buildSearchWhereClause(searchCriteria, filterCriteria)
-	
+
 	// Count query
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(*)
@@ -530,13 +530,13 @@ func (r *QuestionRepository) Search(ctx context.Context, searchCriteria interfac
 		JOIN question_codes qc ON q.question_code_id = qc.id
 		%s
 	`, whereClause)
-	
+
 	var total int
 	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	// Data query
 	dataQuery := fmt.Sprintf(`
 		SELECT 
@@ -550,20 +550,20 @@ func (r *QuestionRepository) Search(ctx context.Context, searchCriteria interfac
 		ORDER BY q.created_at DESC
 		LIMIT $%d OFFSET $%d
 	`, whereClause, len(args)+1, len(args)+2)
-	
+
 	args = append(args, limit, offset)
-	
+
 	rows, err := r.db.QueryContext(ctx, dataQuery, args...)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer rows.Close()
-	
+
 	questions, err := r.scanQuestions(rows)
 	if err != nil {
 		return nil, 0, err
 	}
-	
+
 	// Convert to search results
 	results := make([]*interfaces.SearchResult, len(questions))
 	for i, q := range questions {
@@ -574,7 +574,7 @@ func (r *QuestionRepository) Search(ctx context.Context, searchCriteria interfac
 			Snippet:  r.extractSnippet(q.Content.String, searchCriteria.Query),
 		}
 	}
-	
+
 	return results, total, nil
 }
 
@@ -583,7 +583,7 @@ func (r *QuestionRepository) buildSearchWhereClause(searchCriteria interfaces.Se
 	var conditions []string
 	var args []interface{}
 	argCount := 0
-	
+
 	// Add filter conditions first
 	if filterCriteria != nil {
 		filterWhere, filterArgs := r.buildWhereClause(filterCriteria)
@@ -595,39 +595,39 @@ func (r *QuestionRepository) buildSearchWhereClause(searchCriteria interfaces.Se
 			argCount = len(args)
 		}
 	}
-	
+
 	// Add search conditions
 	if searchCriteria.Query != "" {
 		var searchConditions []string
 		searchPattern := "%" + searchCriteria.Query + "%"
-		
+
 		if searchCriteria.SearchInContent {
 			argCount++
 			searchConditions = append(searchConditions, fmt.Sprintf("q.content ILIKE $%d", argCount))
 			args = append(args, searchPattern)
 		}
-		
+
 		if searchCriteria.SearchInSolution {
 			argCount++
 			searchConditions = append(searchConditions, fmt.Sprintf("q.solution ILIKE $%d", argCount))
 			args = append(args, searchPattern)
 		}
-		
+
 		if searchCriteria.SearchInTags {
 			argCount++
 			searchConditions = append(searchConditions, fmt.Sprintf("array_to_string(q.tag, ' ') ILIKE $%d", argCount))
 			args = append(args, searchPattern)
 		}
-		
+
 		if len(searchConditions) > 0 {
 			conditions = append(conditions, "("+strings.Join(searchConditions, " OR ")+")")
 		}
 	}
-	
+
 	if len(conditions) > 0 {
 		return "WHERE " + strings.Join(conditions, " AND "), args
 	}
-	
+
 	return "", args
 }
 
@@ -636,7 +636,7 @@ func (r *QuestionRepository) extractSnippet(content, query string) string {
 	const snippetLength = 150
 	lowerContent := strings.ToLower(content)
 	lowerQuery := strings.ToLower(query)
-	
+
 	index := strings.Index(lowerContent, lowerQuery)
 	if index == -1 {
 		if len(content) > snippetLength {
@@ -644,17 +644,17 @@ func (r *QuestionRepository) extractSnippet(content, query string) string {
 		}
 		return content
 	}
-	
+
 	start := index - 50
 	if start < 0 {
 		start = 0
 	}
-	
+
 	end := index + len(query) + 100
 	if end > len(content) {
 		end = len(content)
 	}
-	
+
 	snippet := content[start:end]
 	if start > 0 {
 		snippet = "..." + snippet
@@ -662,7 +662,7 @@ func (r *QuestionRepository) extractSnippet(content, query string) string {
 	if end < len(content) {
 		snippet = snippet + "..."
 	}
-	
+
 	return snippet
 }
 
@@ -678,13 +678,13 @@ func (r *QuestionRepository) FindByQuestionCodeID(ctx context.Context, questionC
 		WHERE question_code_id = $1
 		ORDER BY created_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, questionCodeID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestions(rows)
 }
 
@@ -699,7 +699,7 @@ func (r *QuestionRepository) CountByQuestionCodeID(ctx context.Context, question
 // GetStatistics gets aggregated statistics
 func (r *QuestionRepository) GetStatistics(ctx context.Context, criteria *interfaces.FilterCriteria) (*interfaces.Statistics, error) {
 	whereClause, args := r.buildWhereClause(criteria)
-	
+
 	// Base query with conditional WHERE
 	baseQuery := `
 		FROM questions q
@@ -707,7 +707,7 @@ func (r *QuestionRepository) GetStatistics(ctx context.Context, criteria *interf
 		%s
 	`
 	baseQuery = fmt.Sprintf(baseQuery, whereClause)
-	
+
 	stats := &interfaces.Statistics{
 		TypeDistribution:       make(map[string]int),
 		DifficultyDistribution: make(map[string]int),
@@ -715,14 +715,14 @@ func (r *QuestionRepository) GetStatistics(ctx context.Context, criteria *interf
 		GradeDistribution:      make(map[string]int),
 		SubjectDistribution:    make(map[string]int),
 	}
-	
+
 	// Get total count
 	countQuery := "SELECT COUNT(*) " + baseQuery
 	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&stats.TotalQuestions)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Get distributions
 	// Type distribution
 	typeQuery := fmt.Sprintf(`
@@ -730,13 +730,13 @@ func (r *QuestionRepository) GetStatistics(ctx context.Context, criteria *interf
 		%s
 		GROUP BY q.type
 	`, baseQuery)
-	
+
 	rows, err := r.db.QueryContext(ctx, typeQuery, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var typ string
 		var count int
@@ -745,10 +745,10 @@ func (r *QuestionRepository) GetStatistics(ctx context.Context, criteria *interf
 		}
 		stats.TypeDistribution[typ] = count
 	}
-	
+
 	// Similar queries for other distributions...
 	// (Simplified for brevity)
-	
+
 	return stats, nil
 }
 
@@ -776,13 +776,13 @@ func (r *QuestionRepository) UpdateFeedback(ctx context.Context, id string, feed
 // scanQuestions scans multiple question rows
 func (r *QuestionRepository) scanQuestions(rows *sql.Rows) ([]*entity.Question, error) {
 	var questions []*entity.Question
-	
+
 	for rows.Next() {
 		var q entity.Question
 		var tags pq.StringArray
 		var subcount, source, solution sql.NullString
 		var answers, correctAnswer sql.NullString
-		
+
 		err := rows.Scan(
 			&q.ID.String,
 			&q.RawContent.String,
@@ -803,11 +803,11 @@ func (r *QuestionRepository) scanQuestions(rows *sql.Rows) ([]*entity.Question, 
 			&q.CreatedAt.Time,
 			&q.UpdatedAt.Time,
 		)
-		
+
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Set statuses
 		q.ID.Status = pgtype.Present
 		q.RawContent.Status = pgtype.Present
@@ -821,7 +821,7 @@ func (r *QuestionRepository) scanQuestions(rows *sql.Rows) ([]*entity.Question, 
 		q.QuestionCodeID.Status = pgtype.Present
 		q.CreatedAt.Status = pgtype.Present
 		q.UpdatedAt.Status = pgtype.Present
-		
+
 		// Handle nullable fields
 		if subcount.Valid {
 			q.Subcount.Set(subcount.String)
@@ -838,7 +838,7 @@ func (r *QuestionRepository) scanQuestions(rows *sql.Rows) ([]*entity.Question, 
 		if correctAnswer.Valid {
 			q.CorrectAnswer.Set([]byte(correctAnswer.String))
 		}
-		
+
 		// Convert tags
 		if len(tags) > 0 {
 			q.Tag.Elements = make([]pgtype.Text, len(tags))
@@ -847,9 +847,9 @@ func (r *QuestionRepository) scanQuestions(rows *sql.Rows) ([]*entity.Question, 
 			}
 			q.Tag.Status = pgtype.Present
 		}
-		
+
 		questions = append(questions, &q)
 	}
-	
+
 	return questions, nil
 }

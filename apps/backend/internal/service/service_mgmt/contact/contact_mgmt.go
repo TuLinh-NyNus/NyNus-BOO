@@ -196,8 +196,8 @@ func (m *ContactMgmt) isValidPhone(phone string) bool {
 
 func (m *ContactMgmt) isValidStatus(status entity.ContactStatus) bool {
 	switch status {
-	case entity.ContactStatusPending, entity.ContactStatusRead, 
-	     entity.ContactStatusReplied, entity.ContactStatusArchived:
+	case entity.ContactStatusPending, entity.ContactStatusRead,
+		entity.ContactStatusReplied, entity.ContactStatusArchived:
 		return true
 	default:
 		return false

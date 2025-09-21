@@ -34,6 +34,7 @@ message LoginResponse {
   string access_token = 2;
   User user = 3;
   string refresh_token = 4;  // JWT refresh token for token rotation
+  string session_token = 5;  // Session token for stateful session management
 }
 
 message RegisterRequest {
@@ -73,6 +74,16 @@ message VerifyEmailRequest {
 message VerifyEmailResponse {
   common.Response response = 1;
   bool verified = 2;
+}
+
+// Send Verification Email
+message SendVerificationEmailRequest {
+  string user_id = 1;  // User ID to send verification email to
+}
+
+message SendVerificationEmailResponse {
+  common.Response response = 1;
+  string message = 2;  // Success/error message
 }
 
 // Password Reset
@@ -158,6 +169,8 @@ service UserService {
   rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
 
   rpc VerifyEmail(VerifyEmailRequest) returns (VerifyEmailResponse);
+
+  rpc SendVerificationEmail(SendVerificationEmailRequest) returns (SendVerificationEmailResponse);
 
   rpc ForgotPassword(ForgotPasswordRequest) returns (ForgotPasswordResponse);
 

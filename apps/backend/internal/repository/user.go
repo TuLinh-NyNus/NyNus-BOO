@@ -12,6 +12,13 @@ import (
 	"go.uber.org/multierr"
 )
 
+// UserFilters defines filtering options for user queries
+type UserFilters struct {
+	Role   string // Filter by role (GUEST, STUDENT, TUTOR, TEACHER, ADMIN)
+	Status string // Filter by status (ACTIVE, INACTIVE, SUSPENDED)
+	Search string // Search in email, name, username
+}
+
 type UserRepository struct {
 }
 
@@ -207,7 +214,7 @@ func (r *UserRepository) UpdateLastLogin(ctx context.Context, db database.QueryE
 	defer span.Finish()
 
 	query := `UPDATE users SET last_login_at = $1, last_login_ip = $2, updated_at = $3 WHERE id = $4`
-	
+
 	_, err := db.ExecContext(ctx, query, time.Now(), ipAddress, time.Now(), userID)
 	if err != nil {
 		span.FinishWithError(err)
@@ -223,7 +230,7 @@ func (r *UserRepository) UpdateGoogleID(ctx context.Context, db database.QueryEx
 	defer span.Finish()
 
 	query := `UPDATE users SET google_id = $1, updated_at = $2 WHERE id = $3`
-	
+
 	_, err := db.ExecContext(ctx, query, googleID, time.Now(), userID)
 	if err != nil {
 		span.FinishWithError(err)
@@ -239,7 +246,7 @@ func (r *UserRepository) UpdateAvatar(ctx context.Context, db database.QueryExec
 	defer span.Finish()
 
 	query := `UPDATE users SET avatar = $1, updated_at = $2 WHERE id = $3`
-	
+
 	_, err := db.ExecContext(ctx, query, avatar, time.Now(), userID)
 	if err != nil {
 		span.FinishWithError(err)
@@ -255,7 +262,7 @@ func (r *UserRepository) IncrementLoginAttempts(ctx context.Context, db database
 	defer span.Finish()
 
 	query := `UPDATE users SET login_attempts = login_attempts + 1, updated_at = $1 WHERE id = $2`
-	
+
 	_, err := db.ExecContext(ctx, query, time.Now(), userID)
 	if err != nil {
 		span.FinishWithError(err)
@@ -271,7 +278,7 @@ func (r *UserRepository) ResetLoginAttempts(ctx context.Context, db database.Que
 	defer span.Finish()
 
 	query := `UPDATE users SET login_attempts = 0, updated_at = $1 WHERE id = $2`
-	
+
 	_, err := db.ExecContext(ctx, query, time.Now(), userID)
 	if err != nil {
 		span.FinishWithError(err)
@@ -287,7 +294,7 @@ func (r *UserRepository) LockAccount(ctx context.Context, db database.QueryExece
 	defer span.Finish()
 
 	query := `UPDATE users SET locked_until = $1, updated_at = $2 WHERE id = $3`
-	
+
 	_, err := db.ExecContext(ctx, query, until, time.Now(), userID)
 	if err != nil {
 		span.FinishWithError(err)

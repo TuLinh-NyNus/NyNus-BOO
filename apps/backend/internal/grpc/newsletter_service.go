@@ -6,8 +6,8 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/newsletter"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -31,34 +31,34 @@ func NewNewsletterServiceServer(newsletterMgmt *newsletter.NewsletterMgmt) *News
 func (s *NewsletterServiceServer) Subscribe(ctx context.Context, req *v1.NewsletterSubscribeRequest) (*v1.NewsletterSubscribeResponse, error) {
 	// Extract metadata for IP address
 	md, _ := metadata.FromIncomingContext(ctx)
-	
+
 	// Create request for management service
 	mgmtRequest := &newsletter.SubscribeRequest{
 		Email:    req.Email,
 		Tags:     req.Tags,
 		Metadata: make(map[string]interface{}),
 	}
-	
+
 	// Convert metadata map
 	if req.Metadata != nil {
 		for k, v := range req.Metadata {
 			mgmtRequest.Metadata[k] = v
 		}
 	}
-	
+
 	// Extract IP address from metadata
 	if forwardedFor := md.Get("x-forwarded-for"); len(forwardedFor) > 0 {
 		mgmtRequest.IPAddress = forwardedFor[0]
 	} else if realIP := md.Get("x-real-ip"); len(realIP) > 0 {
 		mgmtRequest.IPAddress = realIP[0]
 	}
-	
+
 	// Subscribe via management service
 	subscription, err := s.newsletterMgmt.Subscribe(mgmtRequest)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to subscribe: %v", err)
 	}
-	
+
 	// Convert to proto response
 	response := &v1.NewsletterSubscribeResponse{
 		Response: &common.Response{
@@ -67,7 +67,7 @@ func (s *NewsletterServiceServer) Subscribe(ctx context.Context, req *v1.Newslet
 		},
 		Subscription: s.entityToProto(subscription),
 	}
-	
+
 	return response, nil
 }
 
@@ -77,14 +77,14 @@ func (s *NewsletterServiceServer) Unsubscribe(ctx context.Context, req *v1.Newsl
 	if err := s.newsletterMgmt.Unsubscribe(req.Email, req.Reason); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to unsubscribe: %v", err)
 	}
-	
+
 	response := &v1.NewsletterUnsubscribeResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Successfully unsubscribed from newsletter. We're sorry to see you go!",
 		},
 	}
-	
+
 	return response, nil
 }
 
@@ -97,11 +97,11 @@ func (s *NewsletterServiceServer) ListSubscriptions(ctx context.Context, req *v1
 		if req.Pagination.Page > 0 {
 			page = req.Pagination.Page
 		}
-		if req.Pagination.PageSize > 0 && req.Pagination.PageSize <= 100 {
-			pageSize = req.Pagination.PageSize
+		if req.Pagination.Limit > 0 && req.Pagination.Limit <= 100 {
+			pageSize = req.Pagination.Limit
 		}
 	}
-	
+
 	// Get subscriptions from management service
 	subscriptions, totalCount, err := s.newsletterMgmt.ListSubscriptions(
 		req.Status,
@@ -113,23 +113,23 @@ func (s *NewsletterServiceServer) ListSubscriptions(ctx context.Context, req *v1
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list subscriptions: %v", err)
 	}
-	
+
 	// Get statistics
 	stats, err := s.newsletterMgmt.GetStats()
 	if err != nil {
 		// Don't fail the request if stats fail
 		stats = &newsletter.SubscriptionStats{}
 	}
-	
+
 	// Convert to proto
 	protoSubscriptions := make([]*v1.NewsletterSubscription, len(subscriptions))
 	for i, subscription := range subscriptions {
 		protoSubscriptions[i] = s.entityToProto(subscription)
 	}
-	
+
 	// Calculate total pages
 	totalPages := (totalCount + int(pageSize) - 1) / int(pageSize)
-	
+
 	response := &v1.ListSubscriptionsResponse{
 		Response: &common.Response{
 			Success: true,
@@ -138,8 +138,8 @@ func (s *NewsletterServiceServer) ListSubscriptions(ctx context.Context, req *v1
 		Subscriptions: protoSubscriptions,
 		Pagination: &common.PaginationResponse{
 			Page:       page,
-			PageSize:   pageSize,
-			TotalItems: int32(totalCount),
+			Limit:      pageSize,
+			TotalCount: int32(totalCount),
 			TotalPages: int32(totalPages),
 		},
 		Stats: &v1.SubscriptionStats{
@@ -151,7 +151,7 @@ func (s *NewsletterServiceServer) ListSubscriptions(ctx context.Context, req *v1
 			NewThisMonth:      int32(stats.NewThisMonth),
 		},
 	}
-	
+
 	return response, nil
 }
 
@@ -162,7 +162,7 @@ func (s *NewsletterServiceServer) GetSubscription(ctx context.Context, req *v1.G
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "subscription not found: %v", err)
 	}
-	
+
 	response := &v1.GetSubscriptionResponse{
 		Response: &common.Response{
 			Success: true,
@@ -170,7 +170,7 @@ func (s *NewsletterServiceServer) GetSubscription(ctx context.Context, req *v1.G
 		},
 		Subscription: s.entityToProto(subscription),
 	}
-	
+
 	return response, nil
 }
 
@@ -181,7 +181,7 @@ func (s *NewsletterServiceServer) UpdateSubscriptionTags(ctx context.Context, re
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "failed to update tags: %v", err)
 	}
-	
+
 	response := &v1.UpdateSubscriptionTagsResponse{
 		Response: &common.Response{
 			Success: true,
@@ -189,7 +189,7 @@ func (s *NewsletterServiceServer) UpdateSubscriptionTags(ctx context.Context, re
 		},
 		Subscription: s.entityToProto(subscription),
 	}
-	
+
 	return response, nil
 }
 
@@ -199,14 +199,14 @@ func (s *NewsletterServiceServer) DeleteSubscription(ctx context.Context, req *v
 	if err := s.newsletterMgmt.DeleteSubscription(req.Id); err != nil {
 		return nil, status.Errorf(codes.NotFound, "failed to delete subscription: %v", err)
 	}
-	
+
 	response := &v1.DeleteSubscriptionResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Subscription deleted successfully",
 		},
 	}
-	
+
 	return response, nil
 }
 
@@ -223,7 +223,7 @@ func (s *NewsletterServiceServer) entityToProto(e *entity.NewsletterSubscription
 		CreatedAt:      timestamppb.New(e.CreatedAt),
 		UpdatedAt:      timestamppb.New(e.UpdatedAt),
 	}
-	
+
 	// Convert optional fields
 	if e.ConfirmedAt != nil {
 		proto.ConfirmedAt = timestamppb.New(*e.ConfirmedAt)
@@ -234,13 +234,13 @@ func (s *NewsletterServiceServer) entityToProto(e *entity.NewsletterSubscription
 	if e.UnsubscribeReason != nil {
 		proto.UnsubscribeReason = *e.UnsubscribeReason
 	}
-	
+
 	// Convert metadata map
 	if e.Metadata != nil {
 		for k, v := range e.Metadata {
 			proto.Metadata[k] = fmt.Sprintf("%v", v)
 		}
 	}
-	
+
 	return proto
 }

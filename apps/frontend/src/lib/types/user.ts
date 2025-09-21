@@ -1,22 +1,21 @@
 /**
  * User Types
  * Interfaces và enums cho user management
+ * 
+ * @deprecated Use types from lib/types/user/base.ts and lib/types/user/roles.ts instead
  */
 
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: UserRole | string;
-  level?: string;
-  avatar?: string;
-  emailVerified?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Import from centralized types
+import { UserRole, UserStatus } from './user/roles';
+import type { User as BaseUser } from './user/base';
 
-export enum UserRole {
+// Re-export for backward compatibility
+export { UserRole, UserStatus };
+export type User = BaseUser;
+
+// Legacy UserRole enum - deprecated, use UserRole from roles.ts
+/** @deprecated Use UserRole from './user/roles' instead */
+export enum LegacyUserRole {
   ADMIN = "ADMIN",
   INSTRUCTOR = "INSTRUCTOR", 
   STUDENT = "STUDENT"

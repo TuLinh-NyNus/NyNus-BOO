@@ -182,7 +182,7 @@ func (a *AuditLogInterceptor) Unary() grpc.UnaryServerInterceptor {
 		md, _ := metadata.FromIncomingContext(ctx)
 		clientIP := extractClientIP(md)
 		userAgent := extractUserAgent(md)
-		
+
 		// Get user info from context (if available)
 		userID, _ := GetUserIDFromContext(ctx)
 		sessionID, _ := ctx.Value("session_id").(string)
@@ -223,28 +223,28 @@ func (a *AuditLogInterceptor) Unary() grpc.UnaryServerInterceptor {
 				sanitizeResponseData(responseData, info.FullMethod)
 			}
 
-		// Create audit log entry
-		metadata := map[string]interface{}{
-			"method":   info.FullMethod,
-			"duration": duration.Milliseconds(),
-			"request":  requestData,
-			"response": responseData,
-		}
-		metadataBytes, _ := json.Marshal(metadata)
-		
-		auditLog := &repository.AuditLog{
-			UserID:       &userID,
-			Action:       auditConfig.Action,
-			Resource:     auditConfig.Resource,
-			ResourceID:   extractResourceID(req, info.FullMethod),
-			IPAddress:    clientIP,
-			UserAgent:    userAgent,
-			SessionID:    sessionID,
-			Success:      success,
-			ErrorMessage: errorMessage,
-			Metadata:     metadataBytes,
-			CreatedAt:    time.Now(),
-		}
+			// Create audit log entry
+			metadata := map[string]interface{}{
+				"method":   info.FullMethod,
+				"duration": duration.Milliseconds(),
+				"request":  requestData,
+				"response": responseData,
+			}
+			metadataBytes, _ := json.Marshal(metadata)
+
+			auditLog := &repository.AuditLog{
+				UserID:       &userID,
+				Action:       auditConfig.Action,
+				Resource:     auditConfig.Resource,
+				ResourceID:   extractResourceID(req, info.FullMethod),
+				IPAddress:    clientIP,
+				UserAgent:    userAgent,
+				SessionID:    sessionID,
+				Success:      success,
+				ErrorMessage: errorMessage,
+				Metadata:     metadataBytes,
+				CreatedAt:    time.Now(),
+			}
 
 			// Log asynchronously to avoid blocking the request
 			go func() {
@@ -266,7 +266,7 @@ func extractResourceID(req interface{}, method string) string {
 	reqMap := make(map[string]interface{})
 	reqBytes, _ := json.Marshal(req)
 	json.Unmarshal(reqBytes, &reqMap)
-	
+
 	// Common field names for resource IDs
 	idFields := []string{"id", "user_id", "question_id", "exam_id", "session_id"}
 	for _, field := range idFields {
@@ -276,7 +276,7 @@ func extractResourceID(req interface{}, method string) string {
 			}
 		}
 	}
-	
+
 	return ""
 }
 
@@ -287,13 +287,13 @@ func sanitizeRequestData(data map[string]interface{}, method string) {
 	delete(data, "new_password")
 	delete(data, "old_password")
 	delete(data, "confirm_password")
-	
+
 	// Remove tokens
 	delete(data, "access_token")
 	delete(data, "refresh_token")
 	delete(data, "id_token")
 	delete(data, "session_token")
-	
+
 	// Method-specific sanitization
 	switch method {
 	case "/v1.UserService/Login", "/v1.UserService/Register":
@@ -309,7 +309,7 @@ func sanitizeResponseData(data map[string]interface{}, method string) {
 	delete(data, "access_token")
 	delete(data, "refresh_token")
 	delete(data, "session_token")
-	
+
 	// Method-specific sanitization
 	switch method {
 	case "/v1.UserService/Login", "/v1.UserService/GoogleLogin":

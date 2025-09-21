@@ -8,17 +8,11 @@
 import { QuestionServiceClient } from '@/generated/v1/QuestionServiceClientPb';
 import {
   CreateQuestionRequest,
-  CreateQuestionResponse,
   GetQuestionRequest,
-  GetQuestionResponse,
   UpdateQuestionRequest,
-  UpdateQuestionResponse,
   DeleteQuestionRequest,
-  DeleteQuestionResponse,
   ListQuestionsRequest,
-  ListQuestionsResponse,
   ImportQuestionsRequest,
-  ImportQuestionsResponse,
   AnswerList,
   Answer,
   CorrectAnswer,

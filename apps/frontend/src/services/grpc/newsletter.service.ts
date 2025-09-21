@@ -1,25 +1,20 @@
 /**
  * Newsletter Service gRPC Client
  * Service for handling newsletter subscriptions
- * 
+ *
  * @author NyNus Team
  * @version 2.0.0
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { NewsletterServiceClient } from '@/generated/v1/NewsletterServiceClientPb';
 import {
   NewsletterSubscribeRequest,
-  NewsletterSubscribeResponse,
   NewsletterUnsubscribeRequest,
-  NewsletterUnsubscribeResponse,
   ListSubscriptionsRequest,
-  ListSubscriptionsResponse,
   GetSubscriptionRequest,
-  GetSubscriptionResponse,
   UpdateSubscriptionTagsRequest,
-  UpdateSubscriptionTagsResponse,
   DeleteSubscriptionRequest,
-  DeleteSubscriptionResponse,
   NewsletterSubscription,
   SubscriptionStats,
 } from '@/generated/v1/newsletter_pb';

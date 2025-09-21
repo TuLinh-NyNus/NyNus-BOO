@@ -66,15 +66,33 @@ clean: ## Clean build artifacts
 	@echo "$(GREEN)✅ Clean completed$(NC)"
 
 ## Code Quality
-test: ## Run tests
-	@echo "$(BLUE)🧪 Running tests...$(NC)"
-	@go test -v ./apps/backend/...
+test: ## Run all tests
+	@echo "$(BLUE)🧪 Running all tests...$(NC)"
+	@cd apps/backend && go test -v ./test/unit/... ./test/integration/...
+	@cd apps/frontend && pnpm test
+	@cd tools && python -m pytest
+
+test-unit: ## Run unit tests only
+	@echo "$(BLUE)🧪 Running unit tests...$(NC)"
+	@cd apps/backend && go test -v ./test/unit/...
+
+test-integration: ## Run integration tests only
+	@echo "$(BLUE)🧪 Running integration tests...$(NC)"
+	@cd apps/backend && go test -v ./test/integration/...
+
+test-frontend: ## Run frontend tests
+	@echo "$(BLUE)🧪 Running frontend tests...$(NC)"
+	@cd apps/frontend && pnpm test
+
+test-tools: ## Run tools tests
+	@echo "$(BLUE)🧪 Running tools tests...$(NC)"
+	@cd tools && python -m pytest
 
 test-coverage: ## Run tests with coverage
 	@echo "$(BLUE)🧪 Running tests with coverage...$(NC)"
-	@go test -v -coverprofile=coverage.out ./apps/backend/...
-	@go tool cover -html=coverage.out -o coverage.html
-	@echo "$(GREEN)✅ Coverage report generated: coverage.html$(NC)"
+	@cd apps/backend && go test -v -coverprofile=coverage.out ./test/unit/... ./test/integration/...
+	@cd apps/backend && go tool cover -html=coverage.out -o coverage.html
+	@echo "$(GREEN)✅ Coverage report generated: apps/backend/coverage.html$(NC)"
 
 lint: ## Run linter
 	@echo "$(BLUE)🔍 Running linter...$(NC)"

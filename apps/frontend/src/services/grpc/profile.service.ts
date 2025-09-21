@@ -3,23 +3,17 @@
  * ===========================
  * Handles user profile, sessions, and preferences
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { ProfileServiceClient } from '@/generated/v1/ProfileServiceClientPb';
 import {
   GetProfileRequest,
-  GetProfileResponse,
   UpdateProfileRequest,
-  UpdateProfileResponse,
   GetSessionsRequest,
-  GetSessionsResponse,
   TerminateSessionRequest,
-  TerminateSessionResponse,
   TerminateAllSessionsRequest,
-  TerminateAllSessionsResponse,
   GetPreferencesRequest,
-  GetPreferencesResponse,
   UpdatePreferencesRequest,
-  UpdatePreferencesResponse,
   UserProfile,
   UserSession,
   UserPreferences,

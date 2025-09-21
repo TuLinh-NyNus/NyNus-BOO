@@ -8,34 +8,34 @@ import (
 
 // UserPreference represents user preferences
 type UserPreference struct {
-	ID                   string
-	UserID               string
-	EmailNotifications   bool
-	PushNotifications    bool
-	SmsNotifications     bool
-	AutoPlayVideos       bool
-	DefaultVideoQuality  string  // 480p, 720p, 1080p
-	PlaybackSpeed        float32 // 0.5, 0.75, 1.0, 1.25, 1.5, 2.0
-	ProfileVisibility    string  // PUBLIC, FRIENDS, PRIVATE
-	ShowOnlineStatus     bool
-	AllowDirectMessages  bool
-	Timezone             string
-	Language             string
-	DateFormat           string
-	TimeFormat           string // 12h, 24h
-	Theme                string // light, dark, auto
-	FontSize             string // small, medium, large
-	HighContrast         bool
-	ReducedMotion        bool
-	ScreenReaderMode     bool
-	KeyboardShortcuts    bool
-	TwoFactorEnabled     bool
-	LoginAlerts          bool
-	MarketingEmails      bool
-	ProductUpdates       bool
-	SecurityAlerts       bool
-	WeeklyDigest         bool
-	UpdatedAt            time.Time
+	ID                  string
+	UserID              string
+	EmailNotifications  bool
+	PushNotifications   bool
+	SmsNotifications    bool
+	AutoPlayVideos      bool
+	DefaultVideoQuality string  // 480p, 720p, 1080p
+	PlaybackSpeed       float32 // 0.5, 0.75, 1.0, 1.25, 1.5, 2.0
+	ProfileVisibility   string  // PUBLIC, FRIENDS, PRIVATE
+	ShowOnlineStatus    bool
+	AllowDirectMessages bool
+	Timezone            string
+	Language            string
+	DateFormat          string
+	TimeFormat          string // 12h, 24h
+	Theme               string // light, dark, auto
+	FontSize            string // small, medium, large
+	HighContrast        bool
+	ReducedMotion       bool
+	ScreenReaderMode    bool
+	KeyboardShortcuts   bool
+	TwoFactorEnabled    bool
+	LoginAlerts         bool
+	MarketingEmails     bool
+	ProductUpdates      bool
+	SecurityAlerts      bool
+	WeeklyDigest        bool
+	UpdatedAt           time.Time
 }
 
 // UserPreferenceRepository handles user preference data access
@@ -74,7 +74,7 @@ func (r *userPreferenceRepository) Create(ctx context.Context, pref *UserPrefere
 			$15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28
 		)
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		pref.ID,
 		pref.UserID,
@@ -105,7 +105,7 @@ func (r *userPreferenceRepository) Create(ctx context.Context, pref *UserPrefere
 		pref.WeeklyDigest,
 		time.Now(),
 	)
-	
+
 	return err
 }
 
@@ -123,7 +123,7 @@ func (r *userPreferenceRepository) GetByUserID(ctx context.Context, userID strin
 		FROM user_preferences
 		WHERE user_id = $1
 	`
-	
+
 	pref := &UserPreference{}
 	err := r.db.QueryRowContext(ctx, query, userID).Scan(
 		&pref.ID,
@@ -155,46 +155,46 @@ func (r *userPreferenceRepository) GetByUserID(ctx context.Context, userID strin
 		&pref.WeeklyDigest,
 		&pref.UpdatedAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		// Create default preferences if not exists
 		pref = &UserPreference{
-			ID:                   GenerateID(),
-			UserID:               userID,
-			EmailNotifications:   true,
-			PushNotifications:    true,
-			SmsNotifications:     false,
-			AutoPlayVideos:       true,
-			DefaultVideoQuality:  "720p",
-			PlaybackSpeed:        1.0,
-			ProfileVisibility:    "PUBLIC",
-			ShowOnlineStatus:     true,
-			AllowDirectMessages:  true,
-			Timezone:             "Asia/Ho_Chi_Minh",
-			Language:             "vi",
-			DateFormat:           "DD/MM/YYYY",
-			TimeFormat:           "24h",
-			Theme:                "light",
-			FontSize:             "medium",
-			HighContrast:         false,
-			ReducedMotion:        false,
-			ScreenReaderMode:     false,
-			KeyboardShortcuts:    true,
-			TwoFactorEnabled:     false,
-			LoginAlerts:          true,
-			MarketingEmails:      false,
-			ProductUpdates:       true,
-			SecurityAlerts:       true,
-			WeeklyDigest:         false,
+			ID:                  GenerateID(),
+			UserID:              userID,
+			EmailNotifications:  true,
+			PushNotifications:   true,
+			SmsNotifications:    false,
+			AutoPlayVideos:      true,
+			DefaultVideoQuality: "720p",
+			PlaybackSpeed:       1.0,
+			ProfileVisibility:   "PUBLIC",
+			ShowOnlineStatus:    true,
+			AllowDirectMessages: true,
+			Timezone:            "Asia/Ho_Chi_Minh",
+			Language:            "vi",
+			DateFormat:          "DD/MM/YYYY",
+			TimeFormat:          "24h",
+			Theme:               "light",
+			FontSize:            "medium",
+			HighContrast:        false,
+			ReducedMotion:       false,
+			ScreenReaderMode:    false,
+			KeyboardShortcuts:   true,
+			TwoFactorEnabled:    false,
+			LoginAlerts:         true,
+			MarketingEmails:     false,
+			ProductUpdates:      true,
+			SecurityAlerts:      true,
+			WeeklyDigest:        false,
 		}
-		
+
 		if err := r.Create(ctx, pref); err != nil {
 			return nil, err
 		}
-		
+
 		return pref, nil
 	}
-	
+
 	return pref, err
 }
 
@@ -212,7 +212,7 @@ func (r *userPreferenceRepository) Update(ctx context.Context, pref *UserPrefere
 			security_alerts = $26, weekly_digest = $27, updated_at = $28
 		WHERE user_id = $1 AND id = $2
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		pref.UserID,
 		pref.ID,
@@ -243,7 +243,7 @@ func (r *userPreferenceRepository) Update(ctx context.Context, pref *UserPrefere
 		pref.WeeklyDigest,
 		time.Now(),
 	)
-	
+
 	return err
 }
 
@@ -277,13 +277,13 @@ func (r *userPreferenceRepository) UpdateField(ctx context.Context, userID, fiel
 		"security_alerts":       true,
 		"weekly_digest":         true,
 	}
-	
+
 	if !allowedFields[field] {
 		return ErrInvalidField
 	}
-	
+
 	query := `UPDATE user_preferences SET ` + field + ` = $2, updated_at = $3 WHERE user_id = $1`
-	
+
 	_, err := r.db.ExecContext(ctx, query, userID, value, time.Now())
 	return err
 }

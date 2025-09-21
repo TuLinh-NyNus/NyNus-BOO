@@ -5,8 +5,11 @@ import React from 'react';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 
-// Import User interface từ mockdata (chỉ để dùng type)
-import { type User } from '../lib/mockdata/auth';
+// Import enhanced User interface từ types (production-ready)
+import { type User } from '../lib/types/user/base';
+// Import UserRole và UserStatus từ protobuf generated types (primary)
+import { UserRole, UserStatus } from '../generated/common/common_pb';
+
 
 // Import gRPC AuthService
 import { AuthService, getAuthErrorMessage } from '../lib/services/api/auth.api';
@@ -54,15 +57,32 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
       try {
         // Ưu tiên NextAuth session trước
         if (session?.user) {
+          // Thử lấy role từ backend hoặc session metadata
+          // Nếu không có, mặc định là STUDENT theo thiết kế AUTH_COMPLETE_GUIDE.md
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const userRole = (session as any)?.user?.role ||
+                           // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                           (session as any)?.role ||
+                           UserRole.STUDENT; // Sử dụng protobuf enum value
+          
           const googleUser: User = {
             id: session.user.id || session.user.email || 'google-user',
             email: session.user.email || '',
             firstName: session.user.name?.split(' ')[0] || 'User',
             lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
-            role: 'student', // Default role cho Google users
+            role: userRole, // Dynamic role từ backend hoặc default STUDENT
             avatar: session.user.image || undefined,
             isActive: true,
-            lastLoginAt: new Date()
+            lastLoginAt: new Date(),
+            // Enhanced fields với defaults
+            status: UserStatus.ACTIVE,
+            emailVerified: true, // Google users đã verify email
+            level: userRole === UserRole.GUEST ? undefined : 1, // Default level 1 cho authenticated users (trừ GUEST),
+            maxConcurrentSessions: 3,
+            loginAttempts: 0,
+            // Required timestamp fields
+            createdAt: new Date(),
+            updatedAt: new Date()
           };
           setUser(googleUser);
           setIsLoading(false);

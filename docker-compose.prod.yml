@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: exam_bank_postgres_prod
+    environment:
+      POSTGRES_DB: exam_bank_db
+      POSTGRES_USER: exam_bank_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-exam_bank_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - exam_bank_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U exam_bank_user -d exam_bank_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: exam_bank_backend_prod
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=exam_bank_db
+      - DB_USER=exam_bank_user
+      - DB_PASSWORD=${DB_PASSWORD:-exam_bank_password}
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-here}
+      - JWT_ACCESS_TOKEN_EXPIRY=15m
+      - JWT_REFRESH_TOKEN_EXPIRY=7d
+    ports:
+      - "50051:50051"
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - exam_bank_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.prod.Dockerfile
+    container_name: exam_bank_frontend_prod
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+      - NEXT_PUBLIC_GRPC_URL=${NEXT_PUBLIC_GRPC_URL:-http://localhost:8080}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-here}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - exam_bank_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  exam_bank_network:
+    driver: bridge
+
+volumes:
+  postgres_data_prod:

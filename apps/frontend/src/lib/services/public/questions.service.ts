@@ -251,14 +251,16 @@ export class PublicQuestionService {
         // Apply keyword filter
         if (filters.keyword) {
           const keyword = filters.keyword.toLowerCase();
-          filteredQuestions = filteredQuestions.filter(q =>
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          filteredQuestions = filteredQuestions.filter((q: any) =>
             q.content?.toLowerCase().includes(keyword) ||
             q.raw_content?.toLowerCase().includes(keyword)
           );
         }
         
         // Simple mapping - we'll need proper mappers later
-        const mappedQuestions: PublicQuestion[] = filteredQuestions.map(q => ({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mappedQuestions: PublicQuestion[] = filteredQuestions.map((q: any) => ({
           id: q.id || '',
           content: q.content || q.raw_content || '',
           type: (q.type as QuestionType) || QuestionType.MC,

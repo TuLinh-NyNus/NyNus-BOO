@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package v1;
 
+import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "common/common.proto";
 
@@ -129,12 +130,43 @@ message NewsletterCampaign {
 // Newsletter service definition
 service NewsletterService {
   // Public endpoints
-  rpc Subscribe(NewsletterSubscribeRequest) returns (NewsletterSubscribeResponse);
-  rpc Unsubscribe(NewsletterUnsubscribeRequest) returns (NewsletterUnsubscribeResponse);
+  rpc Subscribe(NewsletterSubscribeRequest) returns (NewsletterSubscribeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/newsletter/subscribe"
+      body: "*"
+    };
+  }
+  
+  rpc Unsubscribe(NewsletterUnsubscribeRequest) returns (NewsletterUnsubscribeResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/newsletter/unsubscribe"
+      body: "*"
+    };
+  }
   
   // Admin endpoints
-  rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse);
-  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse);
-  rpc UpdateSubscriptionTags(UpdateSubscriptionTagsRequest) returns (UpdateSubscriptionTagsResponse);
-  rpc DeleteSubscription(DeleteSubscriptionRequest) returns (DeleteSubscriptionResponse);
+  rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/newsletter/subscriptions"
+    };
+  }
+  
+  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/newsletter/subscriptions/{email}"
+    };
+  }
+  
+  rpc UpdateSubscriptionTags(UpdateSubscriptionTagsRequest) returns (UpdateSubscriptionTagsResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/newsletter/subscriptions/{email}/tags"
+      body: "*"
+    };
+  }
+  
+  rpc DeleteSubscription(DeleteSubscriptionRequest) returns (DeleteSubscriptionResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/newsletter/subscriptions/{id}"
+    };
+  }
 }

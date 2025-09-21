@@ -456,7 +456,7 @@ export interface Question {
   source?: string;               // TEXT - Nguồn câu hỏi
 
   // Answer data (JSONB fields)
-  answers?: string[] | Record<string, unknown> | null;      // JSONB - Answer options
+  answers?: string[] | Record<string, unknown> | Array<{id: string; content: string; isCorrect: boolean; explanation?: string}> | null;      // JSONB - Answer options
   correctAnswer?: string | string[] | Record<string, unknown> | null; // JSONB - Correct answer(s)
   solution?: string;             // TEXT - Lời giải chi tiết
 

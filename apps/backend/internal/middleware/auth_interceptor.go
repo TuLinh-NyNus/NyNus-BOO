@@ -6,8 +6,8 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/constant"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
+	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,7 +25,7 @@ const (
 	userLevelKey contextKey = "user_level"
 )
 
-// Public endpoints that don't require authentication
+// Public endpoints that don't require authentication (available to everyone including non-authenticated users)
 var ignoreAuthEndpoints = []string{
 	"/v1.UserService/Login",
 	"/v1.UserService/Register",
@@ -33,55 +33,84 @@ var ignoreAuthEndpoints = []string{
 	"/v1.UserService/RefreshToken",
 	"/v1.UserService/ForgotPassword",
 	"/v1.UserService/VerifyEmail",
-	"/v1.ContactService/SubmitContactForm",  // Public contact form
-	"/v1.NewsletterService/Subscribe",       // Public newsletter subscription
-	"/v1.NewsletterService/Unsubscribe",     // Public newsletter unsubscription
+	"/v1.ContactService/SubmitContactForm", // Public contact form
+	"/v1.NewsletterService/Subscribe",      // Public newsletter subscription
+	"/v1.NewsletterService/Unsubscribe",    // Public newsletter unsubscription
 	"/grpc.health.v1.Health/Check",
+	// GUEST access endpoints - preview các nội dung giới hạn
+	"/v1.QuestionService/GetPublicQuestions", // GUEST có thể xem một số câu hỏi demo
+	"/v1.ExamService/GetPublicExams",         // GUEST có thể xem exam preview
+	"/v1.CourseService/GetPublicCourses",     // GUEST có thể xem course preview
 }
 
-// Role-based access control (RBAC) configuration
+// Role-based access control (RBAC) configuration với 5 roles hierarchy
+// Hierarchy: GUEST < STUDENT < TUTOR < TEACHER < ADMIN
 var rbacDecider = map[string][]string{
 	// User Management APIs
-	"/v1.UserService/GetUser":        {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	"/v1.UserService/GetUser":        {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.UserService/ListUsers":      {constant.RoleAdmin, constant.RoleTeacher},
-	"/v1.UserService/GetStudentList": {constant.RoleAdmin, constant.RoleTeacher},
+	"/v1.UserService/GetStudentList": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor}, // Tutors cần xem danh sách học sinh
 
 	// Question Management APIs
-	"/v1.QuestionService/CreateQuestion": {constant.RoleAdmin, constant.RoleTeacher},
-	"/v1.QuestionService/UpdateQuestion": {constant.RoleAdmin, constant.RoleTeacher},
-	"/v1.QuestionService/DeleteQuestion": {constant.RoleAdmin, constant.RoleTeacher},
-	"/v1.QuestionService/GetQuestion":    {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
-	"/v1.QuestionService/ListQuestions":  {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	"/v1.QuestionService/CreateQuestion":  {constant.RoleAdmin, constant.RoleTeacher},
+	"/v1.QuestionService/UpdateQuestion":  {constant.RoleAdmin, constant.RoleTeacher},
+	"/v1.QuestionService/DeleteQuestion":  {constant.RoleAdmin, constant.RoleTeacher},
+	"/v1.QuestionService/GetQuestion":     {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.QuestionService/ListQuestions":   {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.QuestionService/ImportQuestions": {constant.RoleAdmin, constant.RoleTeacher},
 
-	// Question Filter Service APIs
-	"/v1.QuestionFilterService/ListQuestionsByFilter": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
-	"/v1.QuestionFilterService/SearchQuestions":       {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
-	"/v1.QuestionFilterService/GetQuestionsByQuestionCode": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	// Question Filter Service APIs - Tất cả authenticated users có thể search questions
+	"/v1.QuestionFilterService/ListQuestionsByFilter":      {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.QuestionFilterService/SearchQuestions":            {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.QuestionFilterService/GetQuestionsByQuestionCode": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 
 	// Exam Management APIs
 	"/v1.ExamService/CreateExam": {constant.RoleAdmin, constant.RoleTeacher},
 	"/v1.ExamService/UpdateExam": {constant.RoleAdmin, constant.RoleTeacher},
 	"/v1.ExamService/DeleteExam": {constant.RoleAdmin, constant.RoleTeacher},
-	"/v1.ExamService/GetExam":    {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
-	"/v1.ExamService/ListExams":  {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	"/v1.ExamService/GetExam":    {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.ExamService/ListExams":  {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 
-	// Exam Attempt APIs (Students can take exams)
-	"/v1.ExamService/StartExam":  {constant.RoleStudent},
-	"/v1.ExamService/SubmitExam": {constant.RoleStudent},
-	"/v1.ExamService/GetResults": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleStudent},
+	// Exam Attempt APIs - Students và Tutors có thể làm bài thi
+	"/v1.ExamService/StartExam":  {constant.RoleStudent, constant.RoleTutor},
+	"/v1.ExamService/SubmitExam": {constant.RoleStudent, constant.RoleTutor},
+	"/v1.ExamService/GetResults": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+
+	// Profile & Session Management APIs - Tất cả authenticated users
+	"/v1.ProfileService/GetProfile":        {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.ProfileService/UpdateProfile":     {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.ProfileService/GetSessions":       {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.ProfileService/TerminateSession":  {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.ProfileService/GetPreferences":    {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
+	"/v1.ProfileService/UpdatePreferences": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 
 	// Contact Management APIs (Admin only)
-	"/v1.ContactService/ListContacts":       {constant.RoleAdmin},
-	"/v1.ContactService/GetContact":         {constant.RoleAdmin},
+	"/v1.ContactService/ListContacts":        {constant.RoleAdmin},
+	"/v1.ContactService/GetContact":          {constant.RoleAdmin},
 	"/v1.ContactService/UpdateContactStatus": {constant.RoleAdmin},
-	"/v1.ContactService/DeleteContact":      {constant.RoleAdmin},
+	"/v1.ContactService/DeleteContact":       {constant.RoleAdmin},
 
 	// Newsletter Management APIs (Admin only)
-	"/v1.NewsletterService/ListSubscriptions":     {constant.RoleAdmin},
-	"/v1.NewsletterService/GetSubscription":       {constant.RoleAdmin},
+	"/v1.NewsletterService/ListSubscriptions":      {constant.RoleAdmin},
+	"/v1.NewsletterService/GetSubscription":        {constant.RoleAdmin},
 	"/v1.NewsletterService/UpdateSubscriptionTags": {constant.RoleAdmin},
-	"/v1.NewsletterService/DeleteSubscription":    {constant.RoleAdmin},
+	"/v1.NewsletterService/DeleteSubscription":     {constant.RoleAdmin},
+
+	// Admin Service APIs (Admin only)
+	"/v1.AdminService/ListUsers":         {constant.RoleAdmin},
+	"/v1.AdminService/UpdateUserRole":    {constant.RoleAdmin},
+	"/v1.AdminService/UpdateUserLevel":   {constant.RoleAdmin},
+	"/v1.AdminService/UpdateUserStatus":  {constant.RoleAdmin},
+	"/v1.AdminService/GetAuditLogs":      {constant.RoleAdmin},
+	"/v1.AdminService/GetResourceAccess": {constant.RoleAdmin},
+
+	// GUEST-specific endpoints - Giới hạn content cho authenticated GUEST users
+	"/v1.QuestionService/GetQuestionPreview": {constant.RoleGuest, constant.RoleStudent, constant.RoleTutor, constant.RoleTeacher, constant.RoleAdmin},
+	"/v1.ExamService/GetExamPreview":         {constant.RoleGuest, constant.RoleStudent, constant.RoleTutor, constant.RoleTeacher, constant.RoleAdmin},
+	"/v1.CourseService/GetCoursePreview":     {constant.RoleGuest, constant.RoleStudent, constant.RoleTutor, constant.RoleTeacher, constant.RoleAdmin},
+
+	// Level-based content access (sẽ được kiểm tra thêm trong interceptor logic)
+	// Higher level users can access lower level content within same role
 }
 
 type AuthInterceptor struct {

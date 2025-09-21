@@ -14,7 +14,7 @@ type QuestionTag struct {
 
 // TableName returns the table name for QuestionTag
 func (qt QuestionTag) TableName() string {
-	return "question_tag"
+	return "QuestionTag"
 }
 
 // FieldMap returns the field mapping for database operations

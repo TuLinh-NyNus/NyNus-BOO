@@ -36,14 +36,22 @@ message Question {
   
   string solution = 11;                // Lời giải chi tiết
   repeated string tag = 12;            // Tags cho câu hỏi
-  int32 usage_count = 13;              // Số lần sử dụng
-  string creator = 14;                 // Người tạo
-  common.QuestionStatus status = 15;   // ACTIVE, PENDING, INACTIVE, ARCHIVED
-  int32 feedback = 16;                 // Điểm feedback
-  common.DifficultyLevel difficulty = 17; // EASY, MEDIUM, HARD
-  string question_code_id = 18;        // FK to QuestionCode
-  string created_at = 19;
-  string updated_at = 20;
+  
+  // Metadata & Classification (optional, for filtering purposes only)
+  string grade = 13;                   // Lớp (0,1,2) - Optional classification
+  string subject = 14;                 // Môn học (P,L,H) - Optional classification  
+  string chapter = 15;                 // Chương (1-9) - Optional classification
+  string level = 16;                   // Mức độ (N,H,V,C,T,M) - Optional classification
+  
+  // Usage tracking
+  int32 usage_count = 17;              // Số lần sử dụng
+  string creator = 18;                 // Người tạo
+  common.QuestionStatus status = 19;   // ACTIVE, PENDING, INACTIVE, ARCHIVED
+  int32 feedback = 20;                 // Điểm feedback
+  common.DifficultyLevel difficulty = 21; // EASY, MEDIUM, HARD, EXPERT
+  string question_code_id = 22;        // FK to QuestionCode
+  string created_at = 23;
+  string updated_at = 24;
 }
 
 // Wrapper for multiple answers
@@ -93,10 +101,17 @@ message CreateQuestionRequest {
   
   string solution = 10;           // Lời giải chi tiết
   repeated string tag = 11;       // Tags cho câu hỏi
-  string question_code_id = 12;   // QuestionCode ID
-  common.QuestionStatus status = 13;    // ACTIVE, PENDING, INACTIVE, ARCHIVED
-  common.DifficultyLevel difficulty = 14; // EASY, MEDIUM, HARD
-  string creator = 15;            // Creator username
+  
+  // Optional classification fields
+  string grade = 12;              // Lớp (0,1,2) - Optional
+  string subject = 13;            // Môn học (P,L,H) - Optional
+  string chapter = 14;            // Chương (1-9) - Optional
+  string level = 15;              // Mức độ (N,H,V,C,T,M) - Optional
+  
+  string question_code_id = 16;   // QuestionCode ID
+  common.QuestionStatus status = 17;    // ACTIVE, PENDING, INACTIVE, ARCHIVED
+  common.DifficultyLevel difficulty = 18; // EASY, MEDIUM, HARD, EXPERT
+  string creator = 19;            // Creator username
 }
 
 message CreateQuestionResponse {
@@ -144,9 +159,16 @@ message UpdateQuestionRequest {
   
   string solution = 11;
   repeated string tag = 12;
-  string question_code_id = 13;
-  common.QuestionStatus status = 14;
-  common.DifficultyLevel difficulty = 15;
+  
+  // Optional classification fields
+  string grade = 13;              // Lớp (0,1,2) - Optional
+  string subject = 14;            // Môn học (P,L,H) - Optional
+  string chapter = 15;            // Chương (1-9) - Optional
+  string level = 16;              // Mức độ (N,H,V,C,T,M) - Optional
+  
+  string question_code_id = 17;
+  common.QuestionStatus status = 18;
+  common.DifficultyLevel difficulty = 19;
 }
 
 message UpdateQuestionResponse {
@@ -167,6 +189,64 @@ message DeleteQuestionResponse {
 message ImportQuestionsRequest {
   string csv_data_base64 = 1;
   bool upsert_mode = 2;
+}
+
+// QuestionCode message for LaTeX parsing
+message QuestionCode {
+  string id = 1;          // Full code like "4L5301N"
+  string prefix = 2;      // First part like "4L5"
+  string main_code = 3;   // Middle part like "301"
+  string extend_code = 4; // Additional code if any
+  string num_part = 5;    // Number part like "N"
+  string description = 6; // Human-readable description
+}
+
+// Parse LaTeX question
+message ParseLatexQuestionRequest {
+  string latex_content = 1;  // LaTeX content (can be base64 or raw)
+  bool is_base64 = 2;       // Whether content is base64 encoded
+}
+
+message ParseLatexQuestionResponse {
+  common.Response response = 1;
+  repeated Question questions = 2;  // Parsed questions (without ID, for preview)
+  repeated QuestionCode question_codes = 3; // Extracted question codes
+  repeated string warnings = 4;  // Parsing warnings if any
+}
+
+// Create question from LaTeX
+message CreateQuestionFromLatexRequest {
+  string latex_content = 1;  // LaTeX content (can be base64 or raw)
+  bool is_base64 = 2;        // Whether content is base64 encoded
+  bool auto_create_codes = 3; // Auto-create QuestionCode if not exists
+}
+
+message CreateQuestionFromLatexResponse {
+  common.Response response = 1;
+  repeated Question created_questions = 2;  // Created questions with IDs
+  repeated QuestionCode created_codes = 3;  // QuestionCodes that were auto-created
+  int32 created_count = 4;    // Number of questions created
+  int32 failed_count = 5;     // Number of questions that failed
+  repeated string warnings = 6; // Warnings if any
+}
+
+// Import LaTeX file
+message ImportLatexRequest {
+  string latex_content = 1;  // LaTeX content (can be base64 or raw)
+  bool is_base64 = 2;        // Whether content is base64 encoded
+  bool upsert_mode = 3;       // Update existing questions
+  bool auto_create_codes = 4; // Auto-create missing QuestionCodes
+}
+
+message ImportLatexResponse {
+  common.Response response = 1;
+  int32 total_processed = 2;
+  int32 created_count = 3;
+  int32 updated_count = 4;
+  int32 skipped_count = 5;  // MA questions or errors
+  repeated ImportError errors = 6;
+  repeated string question_codes_created = 7;  // New QuestionCodes created
+  string summary = 8;
 }
 
 message ImportError {
@@ -199,4 +279,11 @@ service QuestionService {
   rpc ListQuestions(ListQuestionsRequest) returns (ListQuestionsResponse);
 
   rpc ImportQuestions(ImportQuestionsRequest) returns (ImportQuestionsResponse);
+  
+  // LaTeX parsing operations
+  rpc ParseLatexQuestion(ParseLatexQuestionRequest) returns (ParseLatexQuestionResponse);
+  
+  rpc CreateQuestionFromLatex(CreateQuestionFromLatexRequest) returns (CreateQuestionFromLatexResponse);
+  
+  rpc ImportLatex(ImportLatexRequest) returns (ImportLatexResponse);
 }

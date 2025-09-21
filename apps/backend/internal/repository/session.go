@@ -92,6 +92,26 @@ type SessionRepository interface {
 	DeleteSession(ctx context.Context, sessionID string) error
 }
 
+// EmailVerificationToken represents email verification token
+type EmailVerificationToken struct {
+	ID        string
+	UserID    string
+	Token     string
+	ExpiresAt time.Time
+	Used      bool
+	CreatedAt time.Time
+}
+
+// PasswordResetToken represents password reset token
+type PasswordResetToken struct {
+	ID        string
+	UserID    string
+	Token     string
+	ExpiresAt time.Time
+	Used      bool
+	CreatedAt time.Time
+}
+
 // IUserRepository interface with enhanced methods
 type IUserRepository interface {
 	Create(ctx context.Context, user *User) error
@@ -99,6 +119,7 @@ type IUserRepository interface {
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByGoogleID(ctx context.Context, googleID string) (*User, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
+	GetAll(ctx context.Context) ([]*User, error)
 	Update(ctx context.Context, user *User) error
 	UpdateGoogleID(ctx context.Context, userID, googleID string) error
 	UpdateAvatar(ctx context.Context, userID, avatar string) error
@@ -107,6 +128,18 @@ type IUserRepository interface {
 	ResetLoginAttempts(ctx context.Context, userID string) error
 	LockAccount(ctx context.Context, userID string, until time.Time) error
 	Delete(ctx context.Context, id string) error
+
+	// Email verification token methods
+	CreateEmailVerificationToken(ctx context.Context, token *EmailVerificationToken) error
+	GetEmailVerificationToken(ctx context.Context, token string) (*EmailVerificationToken, error)
+	MarkEmailVerificationTokenUsed(ctx context.Context, token string) error
+	DeleteExpiredEmailVerificationTokens(ctx context.Context) error
+
+	// Password reset token methods
+	CreatePasswordResetToken(ctx context.Context, token *PasswordResetToken) error
+	GetPasswordResetToken(ctx context.Context, token string) (*PasswordResetToken, error)
+	MarkPasswordResetTokenUsed(ctx context.Context, token string) error
+	DeleteExpiredPasswordResetTokens(ctx context.Context) error
 }
 
 // OAuthAccountRepository handles OAuth account database operations
@@ -133,7 +166,7 @@ func NewSessionRepository(db database.QueryExecer) SessionRepository {
 func (r *sessionRepository) CreateSession(ctx context.Context, session *Session) error {
 	session.ID = util.ULIDNow()
 	session.CreatedAt = time.Now()
-	
+
 	query := `
 		INSERT INTO user_sessions (
 			id, user_id, session_token, ip_address, user_agent, 
@@ -352,10 +385,16 @@ func (r *sessionRepository) GetExpiredSessions(ctx context.Context) ([]*Session,
 	return sessions, nil
 }
 
-// UpdateLastActivity updates the last activity time of a session
+// UpdateLastActivity updates the last activity time and extends expiry (sliding window)
 func (r *sessionRepository) UpdateLastActivity(ctx context.Context, sessionID string) error {
-	query := `UPDATE user_sessions SET last_activity = NOW() WHERE id = $1`
-	
+	// Update both last_activity and expires_at to implement 24h sliding window
+	query := `
+		UPDATE user_sessions 
+		SET 
+			last_activity = NOW(),
+			expires_at = NOW() + INTERVAL '24 hours'
+		WHERE id = $1 AND is_active = true`
+
 	result, err := r.db.ExecContext(ctx, query, sessionID)
 	if err != nil {
 		return fmt.Errorf("failed to update last activity: %w", err)
@@ -376,7 +415,7 @@ func (r *sessionRepository) UpdateLastActivity(ctx context.Context, sessionID st
 // TerminateSession marks a session as inactive
 func (r *sessionRepository) TerminateSession(ctx context.Context, sessionID string) error {
 	query := `UPDATE user_sessions SET is_active = false WHERE id = $1`
-	
+
 	result, err := r.db.ExecContext(ctx, query, sessionID)
 	if err != nil {
 		return fmt.Errorf("failed to terminate session: %w", err)
@@ -397,7 +436,7 @@ func (r *sessionRepository) TerminateSession(ctx context.Context, sessionID stri
 // DeleteSession deletes a session
 func (r *sessionRepository) DeleteSession(ctx context.Context, sessionID string) error {
 	query := `DELETE FROM user_sessions WHERE id = $1`
-	
+
 	result, err := r.db.ExecContext(ctx, query, sessionID)
 	if err != nil {
 		return fmt.Errorf("failed to delete session: %w", err)

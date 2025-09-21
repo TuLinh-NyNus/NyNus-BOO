@@ -142,14 +142,14 @@ func (v *baseValidator) validateJSONString(jsonStr string) error {
 	if len(jsonStr) < 2 {
 		return fmt.Errorf("JSON string too short")
 	}
-	
+
 	firstChar := jsonStr[0]
 	lastChar := jsonStr[len(jsonStr)-1]
-	
+
 	if (firstChar == '{' && lastChar != '}') || (firstChar == '[' && lastChar != ']') {
 		return fmt.Errorf("invalid JSON structure")
 	}
-	
+
 	return nil
 }
 

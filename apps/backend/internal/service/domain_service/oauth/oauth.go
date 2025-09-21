@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/grpc/codes"
@@ -22,6 +23,14 @@ type OAuthService struct {
 	sessionRepo      repository.SessionRepository
 	googleClient     *GoogleClient
 	jwtService       JWTService
+	sessionService   SessionService // Add session service for proper session management
+}
+
+// SessionService interface for session management
+type SessionService interface {
+	CreateSession(ctx context.Context, userID, sessionToken, ipAddress, userAgent, deviceFingerprint string) (*repository.Session, error)
+	ValidateSession(ctx context.Context, sessionToken string) (*repository.Session, error)
+	InvalidateAllUserSessions(ctx context.Context, userID string) error
 }
 
 // JWTService interface for JWT operations
@@ -37,6 +46,7 @@ func NewOAuthService(
 	oauthAccountRepo repository.OAuthAccountRepository,
 	sessionRepo repository.SessionRepository,
 	jwtService JWTService,
+	sessionService SessionService,
 	googleClientID, googleClientSecret, redirectURI string,
 ) *OAuthService {
 	return &OAuthService{
@@ -44,6 +54,7 @@ func NewOAuthService(
 		oauthAccountRepo: oauthAccountRepo,
 		sessionRepo:      sessionRepo,
 		jwtService:       jwtService,
+		sessionService:   sessionService,
 		googleClient:     NewGoogleClient(googleClientID, googleClientSecret, redirectURI),
 	}
 }
@@ -117,49 +128,80 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 		fmt.Printf("Failed to upsert OAuth account: %v\n", err)
 	}
 
-	// Check concurrent sessions
-	activeSessions, err := s.sessionRepo.GetActiveSessions(ctx, user.ID)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to check sessions: %v", err)
-	}
+	// Create session using SessionService (handles 24h sliding window and 3-device limit)
+	var sessionToken string
+	if s.sessionService != nil {
+		// Generate session token
+		sessionToken = s.generateSessionToken()
 
-	// If exceeded max sessions, terminate oldest
-	maxSessions := 3
-	if user.MaxConcurrentSessions > 0 {
-		maxSessions = user.MaxConcurrentSessions
-	}
+		// Get user agent from context if available
+		userAgent := "Google OAuth Client"
+		deviceFingerprint := fmt.Sprintf("google-oauth-%s", ipAddress)
 
-	if len(activeSessions) >= maxSessions {
-		// Terminate oldest session
-		oldestSession := activeSessions[0]
-		for _, session := range activeSessions {
-			if session.CreatedAt.Before(oldestSession.CreatedAt) {
-				oldestSession = session
+		// Create session with 24h sliding window
+		_, err = s.sessionService.CreateSession(ctx, user.ID, sessionToken, ipAddress, userAgent, deviceFingerprint)
+		if err != nil {
+			// Log error but don't fail login
+			fmt.Printf("Failed to create session: %v\n", err)
+			sessionToken = "" // Continue without session token
+		}
+	} else {
+		// Fallback to direct session creation if SessionService not available
+		// Check concurrent sessions
+		activeSessions, err := s.sessionRepo.GetActiveSessions(ctx, user.ID)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to check sessions: %v", err)
+		}
+
+		// If exceeded max sessions, terminate oldest
+		maxSessions := 3
+		if user.MaxConcurrentSessions > 0 {
+			maxSessions = user.MaxConcurrentSessions
+		}
+
+		if len(activeSessions) >= maxSessions {
+			// Terminate oldest session
+			oldestSession := activeSessions[0]
+			for _, session := range activeSessions {
+				if session.CreatedAt.Before(oldestSession.CreatedAt) {
+					oldestSession = session
+				}
+			}
+			if err := s.sessionRepo.TerminateSession(ctx, oldestSession.ID); err != nil {
+				fmt.Printf("Failed to terminate old session: %v\n", err)
 			}
 		}
-		if err := s.sessionRepo.TerminateSession(ctx, oldestSession.ID); err != nil {
-			fmt.Printf("Failed to terminate old session: %v\n", err)
+
+		// Create new session with 24h sliding window
+		sessionToken = s.generateSessionToken()
+		session := &repository.Session{
+			UserID:       user.ID,
+			SessionToken: sessionToken,
+			IPAddress:    ipAddress,
+			IsActive:     true,
+			ExpiresAt:    time.Now().Add(24 * time.Hour), // 24 hours sliding window
+		}
+
+		if err := s.sessionRepo.CreateSession(ctx, session); err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to create session: %v", err)
 		}
 	}
 
-	// Create new session
-	sessionToken := s.generateSessionToken()
-	session := &repository.Session{
-		UserID:       user.ID,
-		SessionToken: sessionToken,
-		IPAddress:    ipAddress,
-		IsActive:     true,
-		ExpiresAt:    time.Now().Add(30 * 24 * time.Hour), // 30 days
-	}
-
-	if err := s.sessionRepo.CreateSession(ctx, session); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to create session: %v", err)
-	}
-
-	// Generate JWT tokens
-	accessToken, err := s.jwtService.GenerateAccessToken(user.ID, string(user.Role))
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
+	// Generate JWT tokens with full user details
+	// Try to use the enhanced method if available
+	var accessToken string
+	if jwtAdapter, ok := s.jwtService.(*auth.JWTAdapter); ok {
+		// Use enhanced method with email and level
+		accessToken, err = jwtAdapter.GenerateAccessTokenWithDetails(user.ID, user.Email, string(user.Role), user.Level)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
+		}
+	} else {
+		// Fallback to basic method
+		accessToken, err = s.jwtService.GenerateAccessToken(user.ID, string(user.Role))
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
+		}
 	}
 
 	refreshToken, err := s.jwtService.GenerateRefreshToken(user.ID)
@@ -183,6 +225,7 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 		},
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
+		SessionToken: sessionToken, // Include session token for stateful session management
 		User:         protoUser,
 	}, nil
 }
@@ -213,7 +256,7 @@ func (s *OAuthService) verifyGoogleIDToken(ctx context.Context, idToken string) 
 func (s *OAuthService) createUserFromGoogle(ctx context.Context, payload *GooglePayload) (*repository.User, error) {
 	// Generate username from email
 	username := payload.Email[:len(payload.Email)-len("@gmail.com")]
-	
+
 	// Check if username exists and make it unique
 	existingUser, _ := s.userRepo.GetByUsername(ctx, username)
 	if existingUser != nil {

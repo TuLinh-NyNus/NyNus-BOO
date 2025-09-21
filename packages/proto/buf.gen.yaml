@@ -1,0 +1,21 @@
+version: v1
+plugins:
+  # Generate Go protobuf files
+  - plugin: buf.build/protocolbuffers/go
+    out: ../../apps/backend/pkg/proto
+    opt: 
+      - paths=source_relative
+
+  # Generate Go gRPC files
+  - plugin: buf.build/grpc/go
+    out: ../../apps/backend/pkg/proto
+    opt:
+      - paths=source_relative
+      - require_unimplemented_servers=false
+
+  # Generate gRPC Gateway files
+  - plugin: buf.build/grpc-ecosystem/gateway
+    out: ../../apps/backend/pkg/proto
+    opt:
+      - paths=source_relative
+      - generate_unbound_methods=true

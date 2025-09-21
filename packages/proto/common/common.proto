@@ -48,17 +48,19 @@ enum UserStatus {
 
 enum QuestionType {
   QUESTION_TYPE_UNSPECIFIED = 0;
-  QUESTION_TYPE_MULTIPLE_CHOICE = 1;
-  QUESTION_TYPE_TRUE_FALSE = 2;
-  QUESTION_TYPE_SHORT_ANSWER = 3;
-  QUESTION_TYPE_ESSAY = 4;
+  QUESTION_TYPE_MULTIPLE_CHOICE = 1;  // MC - Trắc nghiệm 1 đáp án
+  QUESTION_TYPE_TRUE_FALSE = 2;       // TF - Đúng/Sai nhiều đáp án  
+  QUESTION_TYPE_SHORT_ANSWER = 3;     // SA - Trả lời ngắn
+  QUESTION_TYPE_ESSAY = 4;            // ES - Tự luận
+  QUESTION_TYPE_MATCHING = 5;         // MA - Ghép đôi
 }
 
 enum DifficultyLevel {
   DIFFICULTY_LEVEL_UNSPECIFIED = 0;
-  DIFFICULTY_LEVEL_EASY = 1;
-  DIFFICULTY_LEVEL_MEDIUM = 2;
-  DIFFICULTY_LEVEL_HARD = 3;
+  DIFFICULTY_LEVEL_EASY = 1;      // Dễ
+  DIFFICULTY_LEVEL_MEDIUM = 2;    // Trung bình
+  DIFFICULTY_LEVEL_HARD = 3;      // Khó
+  DIFFICULTY_LEVEL_EXPERT = 4;    // Chuyên gia/Rất khó
 }
 
 // Question status values to align with DB and docs

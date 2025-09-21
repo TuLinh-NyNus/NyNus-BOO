@@ -3,7 +3,10 @@
  * Core user interfaces for the application
  */
 
-import { UserRole, UserStatus } from './roles';
+// Import UserRole và UserStatus từ protobuf generated types (primary)
+import { UserRole, UserStatus } from '../../../generated/common/common_pb';
+// Fallback manual types
+// import { UserRole, UserStatus } from './roles';
 
 /**
  * Core User interface
@@ -37,6 +40,7 @@ export interface User {
   totalResourceAccess?: number;         // Total resources accessed
   activeSessionsCount?: number;         // Current active sessions
   maxConcurrentSessions?: number;       // Maximum allowed sessions
+  isActive?: boolean;                   // Account active status (for compatibility)
 }
 
 /**

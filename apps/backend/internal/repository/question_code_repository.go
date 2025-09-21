@@ -32,17 +32,17 @@ func (r *QuestionCodeRepository) Create(ctx context.Context, code *entity.Questi
 			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 		)
 	`
-	
+
 	// Ensure Code is set (it's the primary key)
 	if code.Code.Status != pgtype.Present || code.Code.String == "" {
 		return fmt.Errorf("question code is required")
 	}
-	
+
 	// Set timestamps
 	now := time.Now()
 	code.CreatedAt.Set(now)
 	code.UpdatedAt.Set(now)
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		code.Code.String,
 		code.Format.String,
@@ -55,7 +55,7 @@ func (r *QuestionCodeRepository) Create(ctx context.Context, code *entity.Questi
 		code.CreatedAt.Time,
 		code.UpdatedAt.Time,
 	)
-	
+
 	return err
 }
 
@@ -73,10 +73,10 @@ func (r *QuestionCodeRepository) GetByCode(ctx context.Context, code string) (*e
 		FROM questioncode
 		WHERE code = $1
 	`
-	
+
 	var qc entity.QuestionCode
 	var form sql.NullString
-	
+
 	err := r.db.QueryRowContext(ctx, query, code).Scan(
 		&qc.Code.String,
 		&qc.Format.String,
@@ -89,14 +89,14 @@ func (r *QuestionCodeRepository) GetByCode(ctx context.Context, code string) (*e
 		&qc.CreatedAt.Time,
 		&qc.UpdatedAt.Time,
 	)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, fmt.Errorf("question code not found")
 		}
 		return nil, err
 	}
-	
+
 	// Set statuses
 	qc.Code.Status = pgtype.Present
 	qc.Format.Status = pgtype.Present
@@ -107,11 +107,11 @@ func (r *QuestionCodeRepository) GetByCode(ctx context.Context, code string) (*e
 	qc.Level.Status = pgtype.Present
 	qc.CreatedAt.Status = pgtype.Present
 	qc.UpdatedAt.Status = pgtype.Present
-	
+
 	if form.Valid {
 		qc.Form.Set(form.String)
 	}
-	
+
 	return &qc, nil
 }
 
@@ -129,9 +129,9 @@ func (r *QuestionCodeRepository) Update(ctx context.Context, code *entity.Questi
 			updated_at = $9
 		WHERE code = $1
 	`
-	
+
 	code.UpdatedAt.Set(time.Now())
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		code.Code.String,
 		code.Format.String,
@@ -143,7 +143,7 @@ func (r *QuestionCodeRepository) Update(ctx context.Context, code *entity.Questi
 		code.Level.String,
 		code.UpdatedAt.Time,
 	)
-	
+
 	return err
 }
 
@@ -161,7 +161,7 @@ func (r *QuestionCodeRepository) CreateBatch(ctx context.Context, codes []*entit
 		return err
 	}
 	defer tx.Rollback()
-	
+
 	query := `
 		INSERT INTO questioncode (
 			code, format, grade, subject, chapter, lesson, form, level,
@@ -170,19 +170,19 @@ func (r *QuestionCodeRepository) CreateBatch(ctx context.Context, codes []*entit
 			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
 		)
 	`
-	
+
 	stmt, err := tx.PrepareContext(ctx, query)
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
-	
+
 	now := time.Now()
 	for _, qc := range codes {
 		// Set timestamps
 		qc.CreatedAt.Set(now)
 		qc.UpdatedAt.Set(now)
-		
+
 		_, err := stmt.ExecContext(ctx,
 			qc.Code.String,
 			qc.Format.String,
@@ -195,12 +195,12 @@ func (r *QuestionCodeRepository) CreateBatch(ctx context.Context, codes []*entit
 			qc.CreatedAt.Time,
 			qc.UpdatedAt.Time,
 		)
-		
+
 		if err != nil {
 			return err
 		}
 	}
-	
+
 	return tx.Commit()
 }
 
@@ -209,7 +209,7 @@ func (r *QuestionCodeRepository) GetByIDs(ctx context.Context, ids []string) ([]
 	if len(ids) == 0 {
 		return []*entity.QuestionCode{}, nil
 	}
-	
+
 	query := `
 		SELECT 
 			code, format, grade, subject, chapter, lesson, form, level,
@@ -217,13 +217,13 @@ func (r *QuestionCodeRepository) GetByIDs(ctx context.Context, ids []string) ([]
 		FROM questioncode
 		WHERE code = ANY($1)
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, pq.Array(ids))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestionCodes(rows)
 }
 
@@ -237,13 +237,13 @@ func (r *QuestionCodeRepository) GetAll(ctx context.Context, offset, limit int) 
 		ORDER BY code
 		LIMIT $1 OFFSET $2
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestionCodes(rows)
 }
 
@@ -265,13 +265,13 @@ func (r *QuestionCodeRepository) FindByGrade(ctx context.Context, grade string) 
 		WHERE grade = $1
 		ORDER BY code
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, grade)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestionCodes(rows)
 }
 
@@ -285,13 +285,13 @@ func (r *QuestionCodeRepository) FindBySubject(ctx context.Context, subject stri
 		WHERE subject = $1
 		ORDER BY code
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, subject)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestionCodes(rows)
 }
 
@@ -305,13 +305,13 @@ func (r *QuestionCodeRepository) FindByGradeAndSubject(ctx context.Context, grad
 		WHERE grade = $1 AND subject = $2
 		ORDER BY code
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, grade, subject)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	return r.scanQuestionCodes(rows)
 }
 
@@ -326,11 +326,11 @@ func (r *QuestionCodeRepository) Exists(ctx context.Context, code string) (bool,
 // scanQuestionCodes scans multiple question code rows
 func (r *QuestionCodeRepository) scanQuestionCodes(rows *sql.Rows) ([]*entity.QuestionCode, error) {
 	var codes []*entity.QuestionCode
-	
+
 	for rows.Next() {
 		var qc entity.QuestionCode
 		var form sql.NullString
-		
+
 		err := rows.Scan(
 			&qc.Code.String,
 			&qc.Format.String,
@@ -343,11 +343,11 @@ func (r *QuestionCodeRepository) scanQuestionCodes(rows *sql.Rows) ([]*entity.Qu
 			&qc.CreatedAt.Time,
 			&qc.UpdatedAt.Time,
 		)
-		
+
 		if err != nil {
 			return nil, err
 		}
-		
+
 		// Set statuses
 		qc.Code.Status = pgtype.Present
 		qc.Format.Status = pgtype.Present
@@ -358,14 +358,14 @@ func (r *QuestionCodeRepository) scanQuestionCodes(rows *sql.Rows) ([]*entity.Qu
 		qc.Level.Status = pgtype.Present
 		qc.CreatedAt.Status = pgtype.Present
 		qc.UpdatedAt.Status = pgtype.Present
-		
+
 		if form.Valid {
 			qc.Form.Set(form.String)
 		}
-		
+
 		codes = append(codes, &qc)
 	}
-	
+
 	return codes, nil
 }
 

@@ -91,9 +91,10 @@ func (a *App) initGRPCServer() error {
 	// 2. Auth (authenticate user)
 	// 3. Session (validate session)
 	// 4. Role Level (authorize based on role/level)
-	// 5. Audit Log (log after authorization)
+	// 5. Resource Protection (track and validate resource access)
+	// 6. Audit Log (log after authorization)
 	interceptors := a.container.GetAllInterceptors()
-	
+
 	// Create gRPC server with chained interceptors
 	a.grpcServer = grpcServer.NewServer(
 		grpcServer.ChainUnaryInterceptor(
@@ -101,18 +102,21 @@ func (a *App) initGRPCServer() error {
 			interceptors.Auth.Unary(),
 			interceptors.Session.Unary(),
 			interceptors.RoleLevel.Unary(),
+			interceptors.ResourceProtection.UnaryInterceptor,
 			interceptors.AuditLog.Unary(),
 		),
 	)
 
 	// Register services
-	v1.RegisterUserServiceServer(a.grpcServer, a.container.GetUserGRPCService())
+	// Use Enhanced User Service with OAuth support instead of basic User Service
+	v1.RegisterUserServiceServer(a.grpcServer, a.container.GetEnhancedUserGRPCService())
 	v1.RegisterQuestionServiceServer(a.grpcServer, a.container.GetQuestionGRPCService())
 	v1.RegisterQuestionFilterServiceServer(a.grpcServer, a.container.GetQuestionFilterGRPCService())
 	v1.RegisterProfileServiceServer(a.grpcServer, a.container.GetProfileGRPCService())
 	v1.RegisterAdminServiceServer(a.grpcServer, a.container.GetAdminGRPCService())
 	v1.RegisterContactServiceServer(a.grpcServer, a.container.GetContactGRPCService())
 	v1.RegisterNewsletterServiceServer(a.grpcServer, a.container.GetNewsletterGRPCService())
+	v1.RegisterNotificationServiceServer(a.grpcServer, a.container.GetNotificationGRPCService())
 
 	// Enable reflection for grpcurl
 	reflection.Register(a.grpcServer)
@@ -206,7 +210,7 @@ func (a *App) GetConfig() *config.Config {
 // runMigrations runs database migrations on startup
 func (a *App) runMigrations() error {
 	// Get migrations directory path (relative to project root)
-	migrationsDir := filepath.Join("..", "..", "packages", "database", "migrations")
+	migrationsDir := filepath.Join("internal", "database", "migrations")
 
 	// Create migrator
 	migrator := migration.NewMigrator(a.db, migrationsDir)

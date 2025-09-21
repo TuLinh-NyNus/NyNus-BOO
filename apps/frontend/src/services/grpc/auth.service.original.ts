@@ -54,8 +54,8 @@ export class AuthService {
     request.setEmail(email);
     request.setPassword(password);
     request.setName(name);
-    request.setRole(role);
-    request.setLevel(level);
+    request.setRole(role.toString());
+    request.setLevel(level.toString());
     
     return userServiceClient.register(request);
   }

@@ -18,10 +18,10 @@ type RateLimitInterceptor struct {
 	// Store rate limiters per user/IP
 	limiters     map[string]*userLimiter
 	limiterMutex sync.RWMutex
-	
+
 	// Configuration for different endpoint groups
 	endpointLimits map[string]RateLimitConfig
-	
+
 	// Cleanup goroutine
 	cleanupTicker *time.Ticker
 }
@@ -46,10 +46,10 @@ func NewRateLimitInterceptor() *RateLimitInterceptor {
 		endpointLimits: initializeRateLimits(),
 		cleanupTicker:  time.NewTicker(5 * time.Minute),
 	}
-	
+
 	// Start cleanup goroutine
 	go r.cleanupExpiredLimiters()
-	
+
 	return r
 }
 
@@ -58,7 +58,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 	return map[string]RateLimitConfig{
 		// Authentication endpoints - stricter limits
 		"/v1.UserService/Login": {
-			RequestsPerSecond: 0.1,  // 1 request per 10 seconds
+			RequestsPerSecond: 0.1,   // 1 request per 10 seconds
 			Burst:             3,     // Allow 3 attempts quickly
 			PerUser:           false, // Limit by IP
 		},
@@ -77,7 +77,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			Burst:             2,
 			PerUser:           false,
 		},
-		
+
 		// OAuth endpoints
 		"/v1.UserService/GoogleLogin": {
 			RequestsPerSecond: 0.2, // 1 request per 5 seconds
@@ -89,7 +89,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			Burst:             3,
 			PerUser:           true,
 		},
-		
+
 		// Admin operations - moderate limits
 		"/v1.AdminService/UpdateUserRole": {
 			RequestsPerSecond: 0.5,
@@ -106,7 +106,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			Burst:             5,
 			PerUser:           true,
 		},
-		
+
 		// Question/Exam creation - prevent spam
 		"/v1.QuestionService/CreateQuestion": {
 			RequestsPerSecond: 1,
@@ -118,21 +118,21 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			Burst:             5,
 			PerUser:           true,
 		},
-		
+
 		// Exam submission - prevent rapid submissions
 		"/v1.ExamService/SubmitExam": {
 			RequestsPerSecond: 0.033, // 1 submission per 30 seconds
 			Burst:             1,
 			PerUser:           true,
 		},
-		
+
 		// File uploads - strict limits
 		"/v1.QuestionService/ImportQuestions": {
 			RequestsPerSecond: 0.017, // 1 per minute
 			Burst:             1,
 			PerUser:           true,
 		},
-		
+
 		// Read operations - more lenient
 		"/v1.QuestionService/ListQuestions": {
 			RequestsPerSecond: 10,
@@ -144,7 +144,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			Burst:             50,
 			PerUser:           true,
 		},
-		
+
 		// Profile operations
 		"/v1.ProfileService/UpdateProfile": {
 			RequestsPerSecond: 0.1, // 1 update per 10 seconds
@@ -161,7 +161,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			Burst:             1,
 			PerUser:           true,
 		},
-		
+
 		// Default for unlisted endpoints
 		"default": {
 			RequestsPerSecond: 5,
@@ -184,24 +184,24 @@ func (r *RateLimitInterceptor) Unary() grpc.UnaryServerInterceptor {
 		if !exists {
 			config = r.endpointLimits["default"]
 		}
-		
+
 		// Get identifier (user ID or IP)
 		identifier := r.getIdentifier(ctx, config.PerUser)
 		if identifier == "" {
 			// Can't identify the requester, allow the request
 			return handler(ctx, req)
 		}
-		
+
 		// Get or create rate limiter for this identifier
 		limiter := r.getLimiter(identifier, config)
-		
+
 		// Check rate limit
 		if !limiter.Allow() {
 			// Rate limit exceeded
 			return nil, status.Errorf(codes.ResourceExhausted,
 				"rate limit exceeded for %s, please try again later", info.FullMethod)
 		}
-		
+
 		// Proceed with the request
 		return handler(ctx, req)
 	}
@@ -216,18 +216,18 @@ func (r *RateLimitInterceptor) getIdentifier(ctx context.Context, perUser bool) 
 			return "user:" + userID
 		}
 	}
-	
+
 	// Fall back to IP address
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return ""
 	}
-	
+
 	clientIP := extractClientIP(md)
 	if clientIP != "" {
 		return "ip:" + clientIP
 	}
-	
+
 	return ""
 }
 
@@ -240,24 +240,24 @@ func (r *RateLimitInterceptor) getLimiter(identifier string, config RateLimitCon
 		return ul.limiter
 	}
 	r.limiterMutex.RUnlock()
-	
+
 	// Create new limiter
 	r.limiterMutex.Lock()
 	defer r.limiterMutex.Unlock()
-	
+
 	// Double-check after acquiring write lock
 	if ul, exists := r.limiters[identifier]; exists {
 		ul.lastAccess = time.Now()
 		return ul.limiter
 	}
-	
+
 	// Create new rate limiter
 	limiter := rate.NewLimiter(rate.Limit(config.RequestsPerSecond), config.Burst)
 	r.limiters[identifier] = &userLimiter{
 		limiter:    limiter,
 		lastAccess: time.Now(),
 	}
-	
+
 	return limiter
 }
 
@@ -265,7 +265,7 @@ func (r *RateLimitInterceptor) getLimiter(identifier string, config RateLimitCon
 func (r *RateLimitInterceptor) cleanupExpiredLimiters() {
 	for range r.cleanupTicker.C {
 		r.limiterMutex.Lock()
-		
+
 		// Remove limiters that haven't been accessed in 10 minutes
 		expireTime := time.Now().Add(-10 * time.Minute)
 		for id, ul := range r.limiters {
@@ -273,7 +273,7 @@ func (r *RateLimitInterceptor) cleanupExpiredLimiters() {
 				delete(r.limiters, id)
 			}
 		}
-		
+
 		r.limiterMutex.Unlock()
 	}
 }
@@ -289,20 +289,20 @@ func (r *RateLimitInterceptor) GetRateLimitStatus(ctx context.Context, method st
 	if !exists {
 		config = r.endpointLimits["default"]
 	}
-	
+
 	identifier := r.getIdentifier(ctx, config.PerUser)
 	if identifier == "" {
 		return config.Burst, time.Now()
 	}
-	
+
 	r.limiterMutex.RLock()
 	defer r.limiterMutex.RUnlock()
-	
+
 	if ul, exists := r.limiters[identifier]; exists {
 		// Approximate remaining requests
 		tokens := ul.limiter.Tokens()
 		remaining = int(tokens)
-		
+
 		// Calculate reset time (when burst will be fully replenished)
 		secondsToFullBurst := float64(config.Burst) / config.RequestsPerSecond
 		resetTime = time.Now().Add(time.Duration(secondsToFullBurst) * time.Second)
@@ -310,7 +310,7 @@ func (r *RateLimitInterceptor) GetRateLimitStatus(ctx context.Context, method st
 		remaining = config.Burst
 		resetTime = time.Now()
 	}
-	
+
 	return remaining, resetTime
 }
 
@@ -318,7 +318,7 @@ func (r *RateLimitInterceptor) GetRateLimitStatus(ctx context.Context, method st
 func (r *RateLimitInterceptor) ResetRateLimit(identifier string) {
 	r.limiterMutex.Lock()
 	defer r.limiterMutex.Unlock()
-	
+
 	delete(r.limiters, identifier)
 	fmt.Printf("Rate limit reset for: %s\n", identifier)
 }

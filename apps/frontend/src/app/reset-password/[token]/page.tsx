@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/components/ui/use-toast';
 import { authService } from '@/services/grpc/auth.service';
+import { convertProtobufResetPasswordResponse } from '@/lib/utils/protobuf-converters';
 
 interface ResetPasswordPageProps {
   params: {
@@ -80,10 +81,12 @@ export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
     setLoading(true);
 
     try {
-      const response = await authService.resetPassword({
+      const protobufResponse = await authService.resetPassword({
         token: params.token,
-        password: password,
+        newPassword: password,
       });
+
+      const response = convertProtobufResetPasswordResponse(protobufResponse);
 
       if (response.success) {
         setSuccess(true);

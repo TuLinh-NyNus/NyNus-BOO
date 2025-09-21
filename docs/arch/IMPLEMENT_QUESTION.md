@@ -1,7 +1,7 @@
 # Question Management System - gRPC Architecture
-**Version**: 4.0.0 - gRPC Migration Complete
-**Last Modified**: January 19, 2025
-**Status**: gRPC Ready - All REST APIs migrated to gRPC
+**Version**: 5.0.0 - Standardized for Exam System Integration
+**Last Modified**: January 17, 2025
+**Status**: Updated - Enum standardization and schema optimization
 
 ## 📋 Tổng quan hệ thống
 
@@ -88,8 +88,15 @@ model Question {
   correctAnswer   Json?                          // Đáp án đúng
   solution        String?        @db.Text        // Lời giải chi tiết
   
-  // Metadata
+  // Metadata & Classification (optional, for filtering purposes only)
   tag             String[]       @default([])    // Tags tự do
+  grade           String?        @db.Char(1)     // Lớp (0,1,2) - Optional classification
+  subject         String?        @db.Char(1)     // Môn học (P,L,H) - Optional classification  
+  chapter         String?        @db.Char(1)     // Chương (1-9) - Optional classification
+  level           String?        @db.Char(1)     // Mức độ (N,H,V,C,T,M) - Optional classification
+  difficulty      QuestionDifficulty @default(MEDIUM) // Độ khó standardized
+  
+  // Usage tracking
   usageCount      Int            @default(0)     // Số lần sử dụng
   creator         String         @default("ADMIN") // Người tạo
   status          QuestionStatus @default(ACTIVE) // Trạng thái
@@ -97,10 +104,6 @@ model Question {
 
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
-
-  // Foreign Key Relationship
-  questionCode    QuestionCode   @relation(fields: [questionCodeId], references: [code])
-  questionCodeId  String         @db.VarChar(7)  // FK đến QuestionCode
   
   // Relations
   questionImages  QuestionImage[]
@@ -108,9 +111,10 @@ model Question {
   feedbacks       QuestionFeedback[]
 
   // Indexes tối ưu
-  @@index([questionCodeId])  // Join với QuestionCode
   @@index([type])            // Lọc theo loại câu hỏi
   @@index([status])          // Lọc theo trạng thái
+  @@index([grade, subject])  // Lọc theo lớp + môn
+  @@index([difficulty])      // Lọc theo độ khó
   @@index([usageCount])      // Sắp xếp theo độ phổ biến
   @@index([creator])         // Lọc theo người tạo
   @@fulltext([content])      // Tìm kiếm toàn văn
@@ -121,7 +125,7 @@ enum QuestionType {
   TF  // True/False - Đúng/Sai nhiều đáp án
   SA  // Short Answer - Trả lời ngắn
   ES  // Essay - Tự luận
-  MA  // Matching - Ghép đôi (phát triển sau)
+  MA  // Matching - Ghép đôi
 }
 
 enum QuestionStatus {
@@ -129,6 +133,13 @@ enum QuestionStatus {
   PENDING     // Chờ duyệt - ADMIN review và approve
   INACTIVE    // Tạm ngưng - ADMIN quản lý
   ARCHIVED    // Đã lưu trữ - ADMIN quản lý
+}
+
+enum QuestionDifficulty {
+  EASY        // Dễ
+  MEDIUM      // Trung bình
+  HARD        // Khó
+  EXPERT      // Chuyên gia/Rất khó
 }
 ```
 
@@ -451,12 +462,19 @@ docs/resources/latex/
 
 ### 7. Các tính năng cần phát triển
 
-#### A. LaTeX Parser System với Bracket Handling
+#### A. LaTeX Parser System với Bracket Handling ✅ **HOÀN THÀNH (18/01/2025)**
 - **Mục đích**: Parse nội dung LaTeX thành structured data theo 5 loại câu hỏi (MC/TF/SA/ES/MA)
 - **Input**: Raw LaTeX từ file hoặc user input trong format `\begin{ex}...\end{ex}`
-- **Bracket Parser**: Xử lý dấu ngoặc lồng nhau thay vì regex
-- **Output**: Question object với đầy đủ fields đã định nghĩa
+- **Bracket Parser**: Xử lý dấu ngoặc lồng nhau thay vì regex - ✅ Implemented
+- **Output**: Question object với đầy đủ fields đã định nghĩa - ✅ Functional
 - **Hỗ trợ**: 2 layout (1 cột và 2 cột với `\immini[thm]{}{}`)
+
+**Implemented Features:**
+- ✅ ParseLatex: Parse single câu hỏi với full metadata
+- ✅ CreateFromLatex: Tạo câu hỏi từ LaTeX content
+- ✅ ImportLatex: Batch import với upsert mode và auto-create codes
+- ✅ Unit tests: Type detection, content cleaning, answer extraction
+- ✅ Integration tests: gRPC method testing
 
 ##### Các loại câu hỏi được hỗ trợ:
 1. **MC (Multiple Choice)**: Trắc nghiệm 1 phương án đúng - có `\choice`
@@ -465,29 +483,37 @@ docs/resources/latex/
 4. **MA (Matching)**: Câu hỏi ghép đôi - có `\matching`
 5. **ES (Essay)**: Câu hỏi tự luận - không có answer commands
 
-##### Logic trích xuất chính:
-- **questionCode**: Từ pattern `%[XXXXX]` hoặc `%[XXXXX-X]` (ID5/ID6) thường nằm cùng hàng với \begin{ex}
-- **subcount**: Từ pattern `[XX.N]` (VD: `[TL.100022]`) thường nằm dưới 1 hàng so với \begin{ex}
-- **source**: Từ pattern `[Nguồn: "..."]`
-- **type**: Dựa trên presence của `\choice` là MC, `\choiceTF` là TF, `\shortans` là SA, `\matching` là MA, nếu không có 4 cái trên là ES
-- **content**: Loại bỏ metadata, answers, images, \loigiai{...} giữ lại nội dung câu hỏi (7 bước cleaning)
-- **answers**: JSON field - MC/TF: array options, SA/ES/MA: null
-- **correctAnswer**: JSON field - MC: single string, TF: array strings, SA: string, ES/MA: null
-- **images**: Detect và process cả existing cloud images và TikZ compilation
-- **solution**: Từ `\loigiai{...}`
+##### Logic trích xuất chính ✅:
+- **questionCode**: Từ pattern `%[XXXXX]` hoặc `%[XXXXX-X]` (ID5/ID6) - ✅ Working
+- **subcount**: Từ pattern `[XX.N]` (VD: `[TL.100022]`) - ✅ Working  
+- **source**: Từ pattern `[Nguồn: "..."]` - ✅ Working
+- **type**: Dựa trên presence của answer commands - ✅ Accurate detection
+- **content**: Loại bỏ metadata, answers, images (7 bước cleaning) - ✅ Clean extraction
+- **answers**: JSON field - MC/TF: array options, SA/ES/MA: null - ✅ Proper formatting
+- **correctAnswer**: JSON field - MC: single, TF: array, SA: string - ✅ Extracted correctly
+- **images**: Detect và process (TikZ compilation pending) - 🔶 Partial
+- **solution**: Từ `\loigiai{...}` - ✅ Working with bracket parsing
 
 
-#### B. Image Processing Pipeline
+#### B. LaTeX Import System ✅ **HOÀN THÀNH (18/01/2025)**
+- **Batch Import**: Xử lý nhiều câu hỏi từ 1 file LaTeX
+- **Upsert Mode**: Tìm và update nếu đã tồn tại (theo subcount), không thì tạo mới
+- **Auto-create QuestionCode**: Tự động tạo nếu chưa có
+- **De-duplicate**: Kiểm tra và bỏ qua QuestionCode trùng
+- **Skip MA questions**: Tự động bỏ qua câu hỏi loại Matching
+- **Report**: Trả về tổng số created, updated, skipped, errors
+
+#### C. Image Processing Pipeline 🔶 **Pending Implementation**
 - **TikZ Compilation**: LaTeX → WebP conversion với local cache
 - **Google Drive Integration**: Upload images với folder structure theo MapCode
 - **Image Status Tracking**: PENDING → UPLOADING → UPLOADED/FAILED
 - **Retry Mechanism**: Auto-retry failed uploads
 - **Naming Convention**: `{subcount}-{QUES|SOL}-{index}.webp`
 
-#### C. Question Management Interface
+#### D. Question Management Interface 🔶 **Frontend Pending**
 - **Admin Dashboard**: Quản lý câu hỏi với filtering, search, pagination
 - **Question Form**: Input LaTeX, preview parsed data, manual editing với image preview
-- **Bulk Import**: Upload file LaTeX, batch processing với error handling
+- **Bulk Import**: Upload file LaTeX, batch processing với error handling - ✅ Backend ready
 - **Statistics**: Analytics theo questionCode parameters
 - **MapCode Management**: Version control, active selection, storage warning
 
@@ -504,44 +530,47 @@ docs/resources/latex/
 - **Auto-retry**: ADMIN có thể trigger parse lại cho PENDING questions
 - **Permission**: Chỉ ADMIN có quyền quản lý tất cả status
 
-## 🏷️ QuestionCode & MapCode System
+## 🏷️ Question Classification System
 
-### QuestionCode Format
+### Classification Fields (Optional)
+Các trường phân loại trong Question model là **optional** và chỉ dùng cho mục đích lọc/tìm kiếm:
+
+- **grade**: Lớp học (0=Lớp 10, 1=Lớp 11, 2=Lớp 12)
+- **subject**: Môn học (P=Toán, L=Vật lý, H=Hóa học)
+- **chapter**: Chương (1,2,3...)
+- **level**: Mức độ (N,H,V,C,T,M)
+- **difficulty**: Độ khó chuẩn hóa (EASY, MEDIUM, HARD, EXPERT)
+
+### Legacy QuestionCode Support
+Hệ thống vẫn hỗ trợ parse QuestionCode từ LaTeX để extract classification:
+
 - **ID5**: `%[XXXXX]` - 5 ký tự (VD: `%[2H5V3]`)
 - **ID6**: `%[XXXXX-X]` - 7 ký tự (VD: `%[2H5V3-2]`)
-- **Ký tự hợp lệ**: [0-9] và [A-Z]
+- **Parse Logic**: Extract các tham số và populate vào Question fields
 
-### Cấu trúc tham số QuestionCode
+### Cấu trúc tham số Legacy QuestionCode
 ```
-ID5: [Tham số 1][Tham số 2][Tham số 3][Tham số 4][Tham số 5]
-ID6: [Tham số 1][Tham số 2][Tham số 3][Tham số 4][Tham số 5]-[Tham số 6]
+ID5: [grade][subject][chapter][level][lesson]
+ID6: [grade][subject][chapter][level][lesson]-[form]
 
-Tham số 1: Lớp (grade)     - VD: 0=Lớp 10, 1=Lớp 11, 2=Lớp 12
-Tham số 2: Môn (subject)   - VD: P=Toán, L=Vật lý, H=Hóa học
-Tham số 3: Chương (chapter) - VD: 1,2,3...
-Tham số 4: Mức độ (level)   - N,H,V,C,T,M (cố định)
-Tham số 5: Bài (lesson)     - VD: 1,2,3...
-Tham số 6: Dạng (form)      - VD: 1,2,3... (chỉ ID6)
-
-Note: Trong Google Drive folder structure, Level sẽ được đặt ở cuối cùng
-QuestionCode: "0P1N1-1" → Folder: 0/P/1/1/1/N/
+Ví dụ: "0P1N1" → grade=0, subject=P, chapter=1, level=N, lesson=1
 ```
 
-### Cấu hình mức độ (Level) - Dùng chung
+### Cấu hình mức độ (Level Mapping)
 ```
-[N] Nhận biết
-[H] Thông hiểu
-[V] Vận dụng
-[C] Vận dụng cao
-[T] VIP
-[M] Note
+[N] → MEDIUM     // Nhận biết
+[H] → MEDIUM     // Thông hiểu  
+[V] → HARD       // Vận dụng
+[C] → EXPERT     // Vận dụng cao
+[T] → EXPERT     // VIP
+[M] → EASY       // Note
 ```
 
-### QuestionCode Relationship (Updated)
-- **One-to-Many**: 1 QuestionCode → Nhiều Questions
-- **Unique Code**: QuestionCode.code là Primary Key
-- **Shared Classification**: Nhiều questions có thể cùng questionCode
-- **Auto-creation**: Tự động tạo QuestionCode record khi parse LaTeX
+### Classification Strategy
+- **Flexible**: Questions không bắt buộc phải có classification
+- **Backward Compatible**: Parse từ legacy QuestionCode format
+- **Direct Entry**: Admin có thể nhập trực tiếp classification fields
+- **Search Optimized**: Index trên các fields phổ biến nhất
 
 **Example:**
 ```

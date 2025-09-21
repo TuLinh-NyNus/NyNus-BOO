@@ -33,11 +33,11 @@ type ResourceAccessAttempt struct {
 
 // RiskFactors holds risk calculation factors
 type RiskFactors struct {
-	RecentAccessCount   int     // Accesses in last hour
-	UniqueIPCount      int     // Different IPs used recently
-	DownloadCount      int     // Downloads in recent period
-	FailedAttemptCount int     // Failed attempts
-	AverageRiskScore   float64 // Average risk of recent accesses
+	RecentAccessCount  int      // Accesses in last hour
+	UniqueIPCount      int      // Different IPs used recently
+	DownloadCount      int      // Downloads in recent period
+	FailedAttemptCount int      // Failed attempts
+	AverageRiskScore   float64  // Average risk of recent accesses
 	SuspiciousPatterns []string // List of suspicious patterns detected
 }
 
@@ -101,11 +101,11 @@ func (s *ResourceProtectionService) ValidateAndTrackAccess(ctx context.Context, 
 	if blocked, reason, until := s.isUserBlocked(ctx, attempt.UserID); blocked {
 		// Log failed access attempt
 		s.logResourceAccess(ctx, attempt, false, fmt.Sprintf("User blocked: %s", reason))
-		
+
 		// Create security alert
-		s.createSecurityAlert(ctx, attempt.UserID, "Access Blocked", 
+		s.createSecurityAlert(ctx, attempt.UserID, "Access Blocked",
 			fmt.Sprintf("Your access was blocked due to: %s. Block expires at: %v", reason, until))
-		
+
 		return fmt.Errorf("access blocked: %s until %v", reason, until)
 	}
 
@@ -143,7 +143,7 @@ func (s *ResourceProtectionService) ValidateAndTrackAccess(ctx context.Context, 
 			// Log error but don't fail the access
 			fmt.Printf("Failed to block user %s: %v\n", attempt.UserID, err)
 		}
-		
+
 		// Still allow current access but mark as suspicious
 		access.IsValidAccess = false
 		s.resourceRepo.Create(ctx, access)
@@ -208,7 +208,7 @@ func (s *ResourceProtectionService) calculateRiskFactors(ctx context.Context, us
 	}
 
 	factors.UniqueIPCount = len(uniqueIPs)
-	
+
 	if validAccessCount > 0 {
 		factors.AverageRiskScore = float64(totalRiskScore) / float64(validAccessCount)
 	}
@@ -237,7 +237,7 @@ func (s *ResourceProtectionService) calculateAccessRiskScore(ctx context.Context
 	// Download risk
 	if attempt.Action == "DOWNLOAD" {
 		riskScore += 15
-		
+
 		// PDF downloads are highest risk
 		if attempt.ResourceType == "PDF" {
 			riskScore += 10
@@ -286,20 +286,20 @@ func (s *ResourceProtectionService) shouldAutoBlock(ctx context.Context, userID 
 		if rule.MaxRiskScore > 0 && currentRiskScore >= rule.MaxRiskScore {
 			return true, rule
 		}
-		
+
 		if rule.MaxAccessesPerHour > 0 && factors.RecentAccessCount >= rule.MaxAccessesPerHour {
 			return true, rule
 		}
-		
+
 		if rule.MaxDownloadsPerDay > 0 && factors.DownloadCount >= rule.MaxDownloadsPerDay {
 			return true, rule
 		}
-		
+
 		if rule.MaxFailedAttempts > 0 && factors.FailedAttemptCount >= rule.MaxFailedAttempts {
 			return true, rule
 		}
 	}
-	
+
 	return false, BlockingRule{}
 }
 
@@ -317,13 +317,13 @@ func (s *ResourceProtectionService) blockUser(ctx context.Context, userID string
 
 	// Set user status to suspended
 	user.Status = "SUSPENDED"
-	
+
 	// Calculate block expiry
 	blockUntil := time.Now().Add(time.Duration(rule.BlockDurationHours) * time.Hour)
-	
+
 	// Store block expiry in metadata (would need to add this field to user model)
 	// For now, we'll just suspend the user
-	
+
 	if err := s.userRepo.Update(ctx, user); err != nil {
 		return fmt.Errorf("failed to update user status: %w", err)
 	}
@@ -337,9 +337,9 @@ func (s *ResourceProtectionService) blockUser(ctx context.Context, userID string
 	// Send notification
 	if rule.SendNotification && s.notificationSvc != nil {
 		title := "Tài khoản tạm thời bị khóa"
-		message := fmt.Sprintf("Tài khoản của bạn đã bị khóa tự động do vi phạm: %s. Khóa đến: %v", 
+		message := fmt.Sprintf("Tài khoản của bạn đã bị khóa tự động do vi phạm: %s. Khóa đến: %v",
 			rule.Name, blockUntil.Format("2006-01-02 15:04:05"))
-		
+
 		s.notificationSvc.CreateSecurityAlert(ctx, userID, title, message, "", "")
 	}
 
@@ -410,7 +410,7 @@ func (s *ResourceProtectionService) GetSuspiciousUsers(ctx context.Context, minR
 func (s *ResourceProtectionService) ResetUserRiskScore(ctx context.Context, userID string, adminID string) error {
 	// In a real implementation, you might clear recent suspicious accesses
 	// or add a "risk reset" record
-	
+
 	// Create audit log
 	if s.auditLogRepo != nil {
 		s.createAuditLog(ctx, adminID, "RESET_RISK_SCORE", "USER", userID,

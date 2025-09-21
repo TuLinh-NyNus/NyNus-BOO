@@ -1,39 +1,23 @@
-﻿# Frontend Dockerfile
-FROM node:18-alpine AS base
-
-# Install pnpm
-RUN npm install -g pnpm
+﻿# Frontend Dockerfile - Development Mode
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
 
+# Set NODE_ENV to development to ensure devDependencies are installed
+ENV NODE_ENV=development
+
 # Copy package files
-COPY apps/frontend/package.json apps/frontend/pnpm-lock.yaml* ./
+COPY apps/frontend/package.json ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Copy source code
+# Copy source code (excluding node_modules via .dockerignore)
 COPY apps/frontend .
 
-# Build the application
-RUN pnpm build
-
-# Production image
-FROM node:18-alpine AS runner
-
-RUN npm install -g pnpm
-WORKDIR /app
-
-# Copy built application
-COPY --from=base /app/next.config.js ./
-COPY --from=base /app/package.json ./
-COPY --from=base /app/.next ./.next
-COPY --from=base /app/public ./public
-COPY --from=base /app/node_modules ./node_modules
+# Install ALL dependencies using npm with legacy peer deps
+RUN npm install --legacy-peer-deps
 
 # Expose port
 EXPOSE 3000
 
-# Start the application
-CMD ["pnpm", "start"]
+# Start the application in development mode using npm
+CMD ["npm", "run", "dev"]

@@ -141,12 +141,12 @@ func StringSliceToPgTextArray(ss []string) pgtype.TextArray {
 	if len(ss) == 0 {
 		return pgtype.TextArray{Status: pgtype.Null}
 	}
-	
+
 	elements := make([]pgtype.Text, len(ss))
 	for i, s := range ss {
 		elements[i] = pgtype.Text{String: s, Status: pgtype.Present}
 	}
-	
+
 	return pgtype.TextArray{
 		Elements: elements,
 		Status:   pgtype.Present,

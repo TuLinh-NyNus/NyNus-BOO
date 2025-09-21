@@ -20,8 +20,8 @@ func NewJWTService(accessSecret, refreshSecret string) *JWTService {
 	return &JWTService{
 		accessSecret:  accessSecret,
 		refreshSecret: refreshSecret,
-		accessExpiry:  24 * time.Hour,       // 24 hours for access token
-		refreshExpiry: 30 * 24 * time.Hour,  // 30 days for refresh token
+		accessExpiry:  15 * time.Minute,   // 15 minutes for access token (per AUTH_COMPLETE_GUIDE.md)
+		refreshExpiry: 7 * 24 * time.Hour, // 7 days for refresh token (per AUTH_COMPLETE_GUIDE.md)
 	}
 }
 
@@ -140,11 +140,11 @@ var RoleHierarchy = map[string]int{
 func HasMinimumRole(userRole, requiredRole string) bool {
 	userLevel, userExists := RoleHierarchy[userRole]
 	requiredLevel, reqExists := RoleHierarchy[requiredRole]
-	
+
 	if !userExists || !reqExists {
 		return false
 	}
-	
+
 	return userLevel >= requiredLevel
 }
 

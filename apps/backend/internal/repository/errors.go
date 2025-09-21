@@ -4,12 +4,18 @@ import "errors"
 
 // Common repository errors
 var (
-	ErrNotFound      = errors.New("record not found")
-	ErrInvalidField  = errors.New("invalid field name")
-	ErrUserNotFound  = errors.New("user not found")
-	ErrDuplicateKey  = errors.New("duplicate key violation")
-	ErrForeignKey    = errors.New("foreign key violation")
-	ErrInvalidInput  = errors.New("invalid input")
+	ErrNotFound     = errors.New("record not found")
+	ErrInvalidField = errors.New("invalid field name")
+	ErrUserNotFound = errors.New("user not found")
+	ErrDuplicateKey = errors.New("duplicate key violation")
+	ErrForeignKey   = errors.New("foreign key violation")
+	ErrInvalidInput = errors.New("invalid input")
+
+	// Refresh token specific errors
+	ErrRefreshTokenNotFound = errors.New("refresh token not found")
+	ErrRefreshTokenExpired  = errors.New("refresh token expired")
+	ErrRefreshTokenRevoked  = errors.New("refresh token revoked")
+	ErrRefreshTokenReused   = errors.New("refresh token reuse detected")
 )
 
 // GenerateID generates a unique ID for entities

@@ -14,16 +14,16 @@ import (
 type NotificationType string
 
 const (
-	TypeSecurityAlert     NotificationType = "SECURITY_ALERT"
-	TypeCourseUpdate      NotificationType = "COURSE_UPDATE"
-	TypeSystemMessage     NotificationType = "SYSTEM_MESSAGE"
-	TypeAccountActivity   NotificationType = "ACCOUNT_ACTIVITY"
-	TypeNewContent        NotificationType = "NEW_CONTENT"
-	TypeExamReminder      NotificationType = "EXAM_REMINDER"
-	TypeLoginAlert        NotificationType = "LOGIN_ALERT"
-	TypePasswordChange    NotificationType = "PASSWORD_CHANGE"
-	TypeSessionExpired    NotificationType = "SESSION_EXPIRED"
-	TypeEnrollmentUpdate  NotificationType = "ENROLLMENT_UPDATE"
+	TypeSecurityAlert    NotificationType = "SECURITY_ALERT"
+	TypeCourseUpdate     NotificationType = "COURSE_UPDATE"
+	TypeSystemMessage    NotificationType = "SYSTEM_MESSAGE"
+	TypeAccountActivity  NotificationType = "ACCOUNT_ACTIVITY"
+	TypeNewContent       NotificationType = "NEW_CONTENT"
+	TypeExamReminder     NotificationType = "EXAM_REMINDER"
+	TypeLoginAlert       NotificationType = "LOGIN_ALERT"
+	TypePasswordChange   NotificationType = "PASSWORD_CHANGE"
+	TypeSessionExpired   NotificationType = "SESSION_EXPIRED"
+	TypeEnrollmentUpdate NotificationType = "ENROLLMENT_UPDATE"
 )
 
 // NotificationPriority represents notification priority
@@ -37,11 +37,11 @@ const (
 
 // NotificationData represents additional notification data
 type NotificationData struct {
-	Priority    NotificationPriority   `json:"priority"`
-	ActionURL   string                 `json:"action_url,omitempty"`
-	ActionText  string                 `json:"action_text,omitempty"`
-	ImageURL    string                 `json:"image_url,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
+	Priority   NotificationPriority   `json:"priority"`
+	ActionURL  string                 `json:"action_url,omitempty"`
+	ActionText string                 `json:"action_text,omitempty"`
+	ImageURL   string                 `json:"image_url,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // NotificationService handles notification operations
@@ -74,9 +74,28 @@ func (s *NotificationService) CreateNotification(
 	// Check user preferences
 	if s.userPrefRepo != nil {
 		prefs, err := s.userPrefRepo.GetByUserID(ctx, userID)
-		if err == nil && !prefs.EmailNotifications && data != nil && data.Priority != PriorityHigh {
-			// Skip non-high priority notifications if user disabled notifications
-			return nil
+		if err == nil {
+			// Check specific notification types against user preferences
+			switch notifType {
+			case TypeSecurityAlert, TypeLoginAlert, TypePasswordChange:
+				// Security alerts are always sent if SecurityAlerts is enabled
+				if !prefs.SecurityAlerts {
+					return nil // User disabled security notifications
+				}
+			case TypeCourseUpdate, TypeNewContent:
+				// Product updates check
+				if !prefs.ProductUpdates {
+					return nil
+				}
+			default:
+				// General email notifications check
+				if !prefs.EmailNotifications {
+					// Still send if high priority
+					if data == nil || data.Priority != PriorityHigh {
+						return nil
+					}
+				}
+			}
 		}
 	}
 
@@ -144,9 +163,17 @@ func (s *NotificationService) CreateLoginAlert(
 	userAgent string,
 	location string,
 ) error {
+	// Check if user wants login alerts
+	if s.userPrefRepo != nil {
+		prefs, err := s.userPrefRepo.GetByUserID(ctx, userID)
+		if err == nil && !prefs.LoginAlerts {
+			return nil // User disabled login alerts
+		}
+	}
+
 	title := "Đăng nhập mới vào tài khoản của bạn"
 	message := fmt.Sprintf("Phát hiện đăng nhập mới từ %s. Nếu không phải bạn, vui lòng đổi mật khẩu ngay.", location)
-	
+
 	data := &NotificationData{
 		Priority:   PriorityMedium,
 		ActionURL:  "/settings/security",
@@ -173,7 +200,7 @@ func (s *NotificationService) CreateCourseUpdate(
 ) error {
 	title := fmt.Sprintf("Cập nhật khóa học: %s", courseName)
 	message := fmt.Sprintf("Khóa học %s có %s mới", courseName, updateType)
-	
+
 	data := &NotificationData{
 		Priority:   PriorityLow,
 		ActionURL:  fmt.Sprintf("/courses/%s", courseID),
@@ -197,6 +224,62 @@ func (s *NotificationService) GetUserNotifications(
 	offset int,
 ) ([]*repository.Notification, error) {
 	return s.notificationRepo.GetByUserID(ctx, userID, limit, offset)
+}
+
+// SendNotificationByChannel sends notifications through preferred channels
+func (s *NotificationService) SendNotificationByChannel(
+	ctx context.Context,
+	userID string,
+	title string,
+	message string,
+	notifType NotificationType,
+) error {
+	// Get user preferences to determine channels
+	if s.userPrefRepo == nil {
+		// No preference repo, send via default (in-app notification)
+		return s.CreateNotification(ctx, userID, notifType, title, message, nil, nil)
+	}
+
+	prefs, err := s.userPrefRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		// Error getting preferences, fallback to in-app
+		return s.CreateNotification(ctx, userID, notifType, title, message, nil, nil)
+	}
+
+	// Always create in-app notification
+	if err := s.CreateNotification(ctx, userID, notifType, title, message, nil, nil); err != nil {
+		return fmt.Errorf("failed to create in-app notification: %w", err)
+	}
+
+	// Send via preferred channels
+	var errors []error
+
+	if prefs.EmailNotifications {
+		// TODO: Integrate with email service
+		// emailService.SendEmail(userID, title, message)
+		fmt.Printf("[EMAIL] Would send to user %s: %s\n", userID, title)
+	}
+
+	if prefs.PushNotifications {
+		// TODO: Integrate with push notification service (FCM, etc)
+		// pushService.SendPush(userID, title, message)
+		fmt.Printf("[PUSH] Would send to user %s: %s\n", userID, title)
+	}
+
+	if prefs.SmsNotifications {
+		// TODO: Integrate with SMS service (Twilio, etc)
+		// smsService.SendSMS(userID, message)
+		fmt.Printf("[SMS] Would send to user %s: %s\n", userID, title)
+	}
+
+	// Return first error if any
+	for _, err := range errors {
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // GetUnreadNotifications gets unread notifications for a user

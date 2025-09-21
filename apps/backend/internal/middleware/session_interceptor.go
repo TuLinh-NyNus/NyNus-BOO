@@ -57,7 +57,7 @@ func (s *SessionInterceptor) Unary() grpc.UnaryServerInterceptor {
 		}
 
 		sessionToken := sessionTokens[0]
-		
+
 		// Get user ID from context (set by auth interceptor)
 		userID, err := GetUserIDFromContext(ctx)
 		if err != nil {
@@ -83,14 +83,14 @@ func (s *SessionInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		// Check if session has expired
 		if session.ExpiresAt.Before(time.Now()) {
-		// Mark session as inactive
-		session.IsActive = false
-		// Terminate the expired session
-		if err := s.sessionRepo.TerminateSession(ctx, session.ID); err != nil {
-			// Log error but don't fail the request
-			fmt.Printf("Failed to terminate expired session: %v\n", err)
-		}
-		return nil, status.Errorf(codes.Unauthenticated, "session has expired")
+			// Mark session as inactive
+			session.IsActive = false
+			// Terminate the expired session
+			if err := s.sessionRepo.TerminateSession(ctx, session.ID); err != nil {
+				// Log error but don't fail the request
+				fmt.Printf("Failed to terminate expired session: %v\n", err)
+			}
+			return nil, status.Errorf(codes.Unauthenticated, "session has expired")
 		}
 
 		// Update last activity
@@ -127,7 +127,7 @@ func isPublicEndpoint(method string) bool {
 		"/v1.UserService/ForgotPassword",
 		"/grpc.health.v1.Health/Check",
 	}
-	
+
 	for _, endpoint := range publicEndpoints {
 		if method == endpoint {
 			return true

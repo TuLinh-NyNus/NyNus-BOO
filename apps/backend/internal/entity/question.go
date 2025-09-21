@@ -12,7 +12,7 @@ const (
 	QuestionTypeTF QuestionType = "TF" // True/False
 	QuestionTypeSA QuestionType = "SA" // Short Answer
 	QuestionTypeES QuestionType = "ES" // Essay
-	QuestionTypeMA QuestionType = "MA" // Multiple Answer
+	QuestionTypeMA QuestionType = "MA" // Matching - Ghép đôi
 )
 
 // QuestionStatus represents the status of a question
@@ -32,20 +32,29 @@ const (
 	QuestionDifficultyEasy   QuestionDifficulty = "EASY"
 	QuestionDifficultyMedium QuestionDifficulty = "MEDIUM"
 	QuestionDifficultyHard   QuestionDifficulty = "HARD"
+	QuestionDifficultyExpert QuestionDifficulty = "EXPERT" // Chuyên gia/Rất khó
 )
 
 // Question represents a question in the advanced question bank system
 type Question struct {
-	ID             pgtype.Text        `json:"id"`
-	RawContent     pgtype.Text        `json:"raw_content"`
-	Content        pgtype.Text        `json:"content"`
-	Subcount       pgtype.Text        `json:"subcount"`
-	Type           pgtype.Text        `json:"type"` // QuestionType enum
-	Source         pgtype.Text        `json:"source"`
-	Answers        pgtype.JSONB       `json:"answers"`        // JSON array of answer options
-	CorrectAnswer  pgtype.JSONB       `json:"correct_answer"` // JSON of correct answer(s)
-	Solution       pgtype.Text        `json:"solution"`
-	Tag            pgtype.TextArray   `json:"tag"`
+	ID            pgtype.Text      `json:"id"`
+	RawContent    pgtype.Text      `json:"raw_content"`
+	Content       pgtype.Text      `json:"content"`
+	Subcount      pgtype.Text      `json:"subcount"`
+	Type          pgtype.Text      `json:"type"` // QuestionType enum
+	Source        pgtype.Text      `json:"source"`
+	Answers       pgtype.JSONB     `json:"answers"`        // JSON array of answer options
+	CorrectAnswer pgtype.JSONB     `json:"correct_answer"` // JSON of correct answer(s)
+	Solution      pgtype.Text      `json:"solution"`
+	Tag           pgtype.TextArray `json:"tag"`
+
+	// Metadata & Classification (optional, for filtering purposes only)
+	Grade   pgtype.Text `json:"grade"`   // Lớp (0,1,2) - Optional classification
+	Subject pgtype.Text `json:"subject"` // Môn học (P,L,H) - Optional classification
+	Chapter pgtype.Text `json:"chapter"` // Chương (1-9) - Optional classification
+	Level   pgtype.Text `json:"level"`   // Mức độ (N,H,V,C,T,M) - Optional classification
+
+	// Usage tracking
 	UsageCount     pgtype.Int4        `json:"usage_count"`
 	Creator        pgtype.Text        `json:"creator"`
 	Status         pgtype.Text        `json:"status"` // QuestionStatus enum
@@ -74,6 +83,10 @@ func (q Question) FieldMap() ([]string, []interface{}) {
 		"correct_answer",
 		"solution",
 		"tag",
+		"grade",
+		"subject",
+		"chapter",
+		"level",
 		"usage_count",
 		"creator",
 		"status",
@@ -95,6 +108,10 @@ func (q Question) FieldMap() ([]string, []interface{}) {
 		&q.CorrectAnswer,
 		&q.Solution,
 		&q.Tag,
+		&q.Grade,
+		&q.Subject,
+		&q.Chapter,
+		&q.Level,
 		&q.UsageCount,
 		&q.Creator,
 		&q.Status,

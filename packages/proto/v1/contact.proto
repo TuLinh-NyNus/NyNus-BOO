@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package v1;
 
+import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "common/common.proto";
 
@@ -87,11 +88,36 @@ message DeleteContactResponse {
 // Contact service definition
 service ContactService {
   // Public endpoint - submit contact form
-  rpc SubmitContactForm(ContactFormRequest) returns (ContactFormResponse);
+  rpc SubmitContactForm(ContactFormRequest) returns (ContactFormResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/contact"
+      body: "*"
+    };
+  }
   
   // Admin endpoints
-  rpc ListContacts(ListContactsRequest) returns (ListContactsResponse);
-  rpc GetContact(GetContactRequest) returns (GetContactResponse);
-  rpc UpdateContactStatus(UpdateContactStatusRequest) returns (UpdateContactStatusResponse);
-  rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse);
+  rpc ListContacts(ListContactsRequest) returns (ListContactsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/contacts"
+    };
+  }
+  
+  rpc GetContact(GetContactRequest) returns (GetContactResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/contacts/{id}"
+    };
+  }
+  
+  rpc UpdateContactStatus(UpdateContactStatusRequest) returns (UpdateContactStatusResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/contacts/{id}/status"
+      body: "*"
+    };
+  }
+  
+  rpc DeleteContact(DeleteContactRequest) returns (DeleteContactResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/contacts/{id}"
+    };
+  }
 }

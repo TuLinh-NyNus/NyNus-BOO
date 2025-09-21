@@ -14,6 +14,7 @@ import {
 } from '@/lib/grpc/errors';
 import { AuthService as GrpcAuthService, AuthHelpers } from '@/services/grpc/auth.service';
 import type { LoginResponse as PbLoginResponse, RegisterResponse as PbRegisterResponse, User as PbUser } from '@/generated/v1/user_pb';
+import { UserRole, UserStatus } from '@/lib/types/user/roles';
 
 // gRPC Error interface for consistent error handling
 interface AuthError {
@@ -96,6 +97,22 @@ const AUTH_USER_KEY = 'nynus-auth-user';
 // ===== UTILITY FUNCTIONS =====
 
 /**
+ * Map backend role string to UserRole enum
+ */
+function mapBackendRoleToUserRole(backendRole: 'admin' | 'teacher' | 'student'): UserRole {
+  switch (backendRole.toLowerCase()) {
+    case 'admin':
+      return UserRole.ADMIN;
+    case 'teacher':
+      return UserRole.TEACHER;
+    case 'student':
+      return UserRole.STUDENT;
+    default:
+      return UserRole.STUDENT; // Default fallback
+  }
+}
+
+/**
  * Convert backend user to frontend user format
  */
 function mapBackendUserToFrontend(backendUser: BackendUser) {
@@ -104,12 +121,15 @@ function mapBackendUserToFrontend(backendUser: BackendUser) {
     email: backendUser.email,
     firstName: backendUser.firstName,
     lastName: backendUser.lastName,
-    role: backendUser.role,
+    role: mapBackendRoleToUserRole(backendUser.role),
     avatar: undefined, // Backend không có avatar trong response
     isActive: backendUser.isActive,
     lastLoginAt: new Date(), // Set current time as last login
-    createdAt: backendUser.createdAt,
-    updatedAt: backendUser.updatedAt,
+    createdAt: new Date(backendUser.createdAt), // Convert to Date
+    updatedAt: new Date(backendUser.updatedAt), // Convert to Date
+    // Required fields for User interface
+    status: backendUser.isActive ? UserStatus.ACTIVE : UserStatus.INACTIVE,
+    emailVerified: true, // Assume verified for logged in users
   };
 }
 
@@ -317,14 +337,12 @@ const grpcUser = (resp as unknown as PbLoginResponse).getUser();
 
     try {
       // gRPC-Web register
-      const fullName = `${payload.firstName} ${payload.lastName || ''}`.trim();
-const resp = await GrpcAuthService.register(
-        payload.email,
-        payload.password,
-        fullName,
-        1, // ROLE_STUDENT (default)
-        3  // LEVEL_HIGH (default)
-      );
+      const resp = await GrpcAuthService.register({
+        email: payload.email,
+        password: payload.password,
+        firstName: payload.firstName,
+        lastName: payload.lastName || ''
+      });
 
       const grpcUser = (resp as unknown as PbRegisterResponse).getUser();
       const backendUser: BackendUser = grpcUser

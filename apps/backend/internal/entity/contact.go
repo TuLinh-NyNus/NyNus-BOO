@@ -19,40 +19,40 @@ const (
 
 // ContactSubmission represents a contact form submission
 type ContactSubmission struct {
-	ID           uuid.UUID         `json:"id"`
-	Name         string            `json:"name"`
-	Email        string            `json:"email"`
-	Subject      string            `json:"subject"`
-	Message      string            `json:"message"`
-	Phone        *string           `json:"phone,omitempty"`
-	Status       ContactStatus     `json:"status"`
-	SubmissionID string            `json:"submission_id"`
-	IPAddress    *string           `json:"ip_address,omitempty"`
-	UserAgent    *string           `json:"user_agent,omitempty"`
-	CreatedAt    time.Time         `json:"created_at"`
-	UpdatedAt    time.Time         `json:"updated_at"`
-	RepliedAt    *time.Time        `json:"replied_at,omitempty"`
-	ReplyMessage *string           `json:"reply_message,omitempty"`
-	RepliedBy    *uuid.UUID        `json:"replied_by,omitempty"`
+	ID           uuid.UUID     `json:"id"`
+	Name         string        `json:"name"`
+	Email        string        `json:"email"`
+	Subject      string        `json:"subject"`
+	Message      string        `json:"message"`
+	Phone        *string       `json:"phone,omitempty"`
+	Status       ContactStatus `json:"status"`
+	SubmissionID string        `json:"submission_id"`
+	IPAddress    *string       `json:"ip_address,omitempty"`
+	UserAgent    *string       `json:"user_agent,omitempty"`
+	CreatedAt    time.Time     `json:"created_at"`
+	UpdatedAt    time.Time     `json:"updated_at"`
+	RepliedAt    *time.Time    `json:"replied_at,omitempty"`
+	ReplyMessage *string       `json:"reply_message,omitempty"`
+	RepliedBy    *uuid.UUID    `json:"replied_by,omitempty"`
 }
 
 // ContactSubmissionDB represents the database structure
 type ContactSubmissionDB struct {
-	ID           pgtype.UUID      `db:"id"`
-	Name         pgtype.Text      `db:"name"`
-	Email        pgtype.Text      `db:"email"`
-	Subject      pgtype.Text      `db:"subject"`
-	Message      pgtype.Text      `db:"message"`
-	Phone        pgtype.Text      `db:"phone"`
-	Status       pgtype.Text      `db:"status"`
-	SubmissionID pgtype.Text      `db:"submission_id"`
-	IPAddress    pgtype.Inet      `db:"ip_address"`
-	UserAgent    pgtype.Text      `db:"user_agent"`
+	ID           pgtype.UUID        `db:"id"`
+	Name         pgtype.Text        `db:"name"`
+	Email        pgtype.Text        `db:"email"`
+	Subject      pgtype.Text        `db:"subject"`
+	Message      pgtype.Text        `db:"message"`
+	Phone        pgtype.Text        `db:"phone"`
+	Status       pgtype.Text        `db:"status"`
+	SubmissionID pgtype.Text        `db:"submission_id"`
+	IPAddress    pgtype.Text        `db:"ip_address"`
+	UserAgent    pgtype.Text        `db:"user_agent"`
 	CreatedAt    pgtype.Timestamptz `db:"created_at"`
 	UpdatedAt    pgtype.Timestamptz `db:"updated_at"`
 	RepliedAt    pgtype.Timestamptz `db:"replied_at"`
-	ReplyMessage pgtype.Text      `db:"reply_message"`
-	RepliedBy    pgtype.UUID      `db:"replied_by"`
+	ReplyMessage pgtype.Text        `db:"reply_message"`
+	RepliedBy    pgtype.UUID        `db:"replied_by"`
 }
 
 // ToEntity converts database model to entity
@@ -88,8 +88,7 @@ func (db *ContactSubmissionDB) ToEntity() *ContactSubmission {
 		entity.Phone = &db.Phone.String
 	}
 	if db.IPAddress.Valid {
-		ipStr := db.IPAddress.Addr.String()
-		entity.IPAddress = &ipStr
+		entity.IPAddress = &db.IPAddress.String
 	}
 	if db.UserAgent.Valid {
 		entity.UserAgent = &db.UserAgent.String
@@ -138,12 +137,7 @@ func (entity *ContactSubmission) ToDBModel() *ContactSubmissionDB {
 		db.Phone = pgtype.Text{String: *entity.Phone, Valid: true}
 	}
 	if entity.IPAddress != nil {
-		db.IPAddress = pgtype.Inet{
-			Addr: pgtype.Addr{
-				Addr: *entity.IPAddress,
-			},
-			Valid: true,
-		}
+		db.IPAddress = pgtype.Text{String: *entity.IPAddress, Valid: true}
 	}
 	if entity.UserAgent != nil {
 		db.UserAgent = pgtype.Text{String: *entity.UserAgent, Valid: true}

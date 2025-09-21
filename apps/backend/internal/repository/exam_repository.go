@@ -8,7 +8,6 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/google/uuid"
-	"github.com/lib/pq"
 )
 
 // ExamRepository handles database operations for exams
@@ -652,7 +651,7 @@ func (r *ExamRepository) SubmitAttempt(attemptID string, score, totalPoints int,
 // GetAttemptCount returns the number of attempts a user has made on an exam
 func (r *ExamRepository) GetAttemptCount(examID, userID string) (int, error) {
 	query := "SELECT COUNT(*) FROM exam_attempts WHERE exam_id = $1 AND user_id = $2"
-	
+
 	var count int
 	err := r.db.QueryRow(query, examID, userID).Scan(&count)
 	if err != nil {

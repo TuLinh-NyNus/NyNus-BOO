@@ -28,16 +28,16 @@ const (
 
 // Exam represents an exam definition
 type Exam struct {
-	ID              string    `json:"id" db:"id"`
-	Title           string    `json:"title" db:"title"`
-	Description     string    `json:"description" db:"description"`
-	Instructions    string    `json:"instructions" db:"instructions"`
-	DurationMinutes int       `json:"duration_minutes" db:"duration_minutes"`
-	TotalPoints     int       `json:"total_points" db:"total_points"`
-	PassPercentage  int       `json:"pass_percentage" db:"pass_percentage"`
-	ExamType        ExamType  `json:"exam_type" db:"exam_type"`
+	ID              string     `json:"id" db:"id"`
+	Title           string     `json:"title" db:"title"`
+	Description     string     `json:"description" db:"description"`
+	Instructions    string     `json:"instructions" db:"instructions"`
+	DurationMinutes int        `json:"duration_minutes" db:"duration_minutes"`
+	TotalPoints     int        `json:"total_points" db:"total_points"`
+	PassPercentage  int        `json:"pass_percentage" db:"pass_percentage"`
+	ExamType        ExamType   `json:"exam_type" db:"exam_type"`
 	Status          ExamStatus `json:"status" db:"status"`
-	
+
 	// Settings
 	ShuffleQuestions bool `json:"shuffle_questions" db:"shuffle_questions"`
 	ShuffleAnswers   bool `json:"shuffle_answers" db:"shuffle_answers"`
@@ -45,15 +45,15 @@ type Exam struct {
 	ShowAnswers      bool `json:"show_answers" db:"show_answers"`
 	AllowReview      bool `json:"allow_review" db:"allow_review"`
 	MaxAttempts      int  `json:"max_attempts" db:"max_attempts"`
-	
+
 	// Questions (loaded separately)
 	QuestionIDs []string `json:"question_ids"`
-	
+
 	// Timestamps
-	CreatedBy   string    `json:"created_by" db:"created_by"`
+	CreatedBy   string     `json:"created_by" db:"created_by"`
 	PublishedAt *time.Time `json:"published_at" db:"published_at"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+	CreatedAt   time.Time  `json:"created_at" db:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
 }
 
 // AttemptStatus represents the status of an exam attempt

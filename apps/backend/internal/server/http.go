@@ -68,14 +68,14 @@ func NewHTTPServer(httpPort, grpcPort string) *HTTPServer {
 // Start starts the HTTP server
 func (s *HTTPServer) Start() error {
 	ctx := context.Background()
-	
+
 	// Create gRPC client connection
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
-	
+
 	grpcEndpoint := fmt.Sprintf("localhost:%s", s.grpcPort)
-	
+
 	// Register service handlers
 	if err := s.registerServices(ctx, grpcEndpoint, opts); err != nil {
 		return fmt.Errorf("failed to register services: %w", err)
@@ -108,7 +108,7 @@ func (s *HTTPServer) Start() error {
 			"Grpc-Message",
 		},
 		AllowCredentials: true,
-		MaxAge:          86400, // 24 hours
+		MaxAge:           86400, // 24 hours
 	})
 
 	// Create HTTP handler with CORS
@@ -120,7 +120,7 @@ func (s *HTTPServer) Start() error {
 	// Start HTTP server
 	addr := fmt.Sprintf(":%s", s.httpPort)
 	fmt.Printf("🌐 Starting HTTP/gRPC-Gateway server on %s\n", addr)
-	
+
 	return http.ListenAndServe(addr, wrappedHandler)
 }
 
@@ -184,7 +184,7 @@ func wrapGrpcWeb(h http.Handler) http.Handler {
 			// Add gRPC-Web specific headers
 			w.Header().Set("Content-Type", "application/grpc-web+proto")
 		}
-		
+
 		// Serve the request
 		h.ServeHTTP(w, r)
 	})

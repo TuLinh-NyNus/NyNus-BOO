@@ -19,16 +19,19 @@ type ProfileServiceServer struct {
 	v1.UnimplementedProfileServiceServer
 	userRepo       repository.IUserRepository
 	sessionService *session.SessionService
+	preferenceRepo repository.UserPreferenceRepository
 }
 
 // NewProfileServiceServer creates a new profile service
 func NewProfileServiceServer(
 	userRepo repository.IUserRepository,
 	sessionService *session.SessionService,
+	preferenceRepo repository.UserPreferenceRepository,
 ) *ProfileServiceServer {
 	return &ProfileServiceServer{
 		userRepo:       userRepo,
 		sessionService: sessionService,
+		preferenceRepo: preferenceRepo,
 	}
 }
 
@@ -272,49 +275,111 @@ func (s *ProfileServiceServer) TerminateAllSessions(ctx context.Context, req *v1
 
 // GetPreferences gets user preferences
 func (s *ProfileServiceServer) GetPreferences(ctx context.Context, req *v1.GetPreferencesRequest) (*v1.GetPreferencesResponse, error) {
-	// TODO: Implement when preferences repository is ready
+	// Get user ID from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+	}
+
+	// Get preferences from repository (auto-creates if not exists)
+	preferences, err := s.preferenceRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get preferences: %v", err)
+	}
+
+	// Convert to proto
+	protoPreferences := &v1.UserPreferences{
+		EmailNotifications:  preferences.EmailNotifications,
+		PushNotifications:   preferences.PushNotifications,
+		SmsNotifications:    preferences.SmsNotifications,
+		AutoPlayVideos:      preferences.AutoPlayVideos,
+		DefaultVideoQuality: preferences.DefaultVideoQuality,
+		PlaybackSpeed:       preferences.PlaybackSpeed,
+		ProfileVisibility:   preferences.ProfileVisibility,
+		ShowOnlineStatus:    preferences.ShowOnlineStatus,
+		AllowDirectMessages: preferences.AllowDirectMessages,
+		Timezone:            preferences.Timezone,
+		Language:            preferences.Language,
+		DateFormat:          preferences.DateFormat,
+		TimeFormat:          preferences.TimeFormat,
+		Theme:               preferences.Theme,
+		FontSize:            preferences.FontSize,
+		HighContrast:        preferences.HighContrast,
+		ReducedMotion:       preferences.ReducedMotion,
+		ScreenReaderMode:    preferences.ScreenReaderMode,
+		KeyboardShortcuts:   preferences.KeyboardShortcuts,
+		TwoFactorEnabled:    preferences.TwoFactorEnabled,
+		LoginAlerts:         preferences.LoginAlerts,
+		MarketingEmails:     preferences.MarketingEmails,
+		ProductUpdates:      preferences.ProductUpdates,
+		SecurityAlerts:      preferences.SecurityAlerts,
+		WeeklyDigest:        preferences.WeeklyDigest,
+	}
+
 	return &v1.GetPreferencesResponse{
 		Response: &common.Response{
 			Success: true,
-			Message: "Preferences feature coming soon",
+			Message: "Preferences retrieved successfully",
 		},
-		Preferences: &v1.UserPreferences{
-			EmailNotifications:    true,
-			PushNotifications:     true,
-			SmsNotifications:      false,
-			AutoPlayVideos:        true,
-			DefaultVideoQuality:   "720p",
-			PlaybackSpeed:         1.0,
-			ProfileVisibility:     "PUBLIC",
-			ShowOnlineStatus:      true,
-			AllowDirectMessages:   true,
-			Timezone:              "Asia/Ho_Chi_Minh",
-			Language:              "vi",
-			DateFormat:            "DD/MM/YYYY",
-			TimeFormat:            "24h",
-			Theme:                 "light",
-			FontSize:              "medium",
-			HighContrast:          false,
-			ReducedMotion:         false,
-			ScreenReaderMode:      false,
-			KeyboardShortcuts:     true,
-			TwoFactorEnabled:      false,
-			LoginAlerts:           true,
-			MarketingEmails:       false,
-			ProductUpdates:        true,
-			SecurityAlerts:        true,
-			WeeklyDigest:          false,
-		},
+		Preferences: protoPreferences,
 	}, nil
 }
 
 // UpdatePreferences updates user preferences
 func (s *ProfileServiceServer) UpdatePreferences(ctx context.Context, req *v1.UpdatePreferencesRequest) (*v1.UpdatePreferencesResponse, error) {
-	// TODO: Implement when preferences repository is ready
+	// Get user ID from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+	}
+
+	if req.Preferences == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "preferences cannot be nil")
+	}
+
+	// Get existing preferences
+	existingPrefs, err := s.preferenceRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get existing preferences: %v", err)
+	}
+
+	// Update fields from request
+	existingPrefs.EmailNotifications = req.Preferences.EmailNotifications
+	existingPrefs.PushNotifications = req.Preferences.PushNotifications
+	existingPrefs.SmsNotifications = req.Preferences.SmsNotifications
+	existingPrefs.AutoPlayVideos = req.Preferences.AutoPlayVideos
+	existingPrefs.DefaultVideoQuality = req.Preferences.DefaultVideoQuality
+	existingPrefs.PlaybackSpeed = req.Preferences.PlaybackSpeed
+	existingPrefs.ProfileVisibility = req.Preferences.ProfileVisibility
+	existingPrefs.ShowOnlineStatus = req.Preferences.ShowOnlineStatus
+	existingPrefs.AllowDirectMessages = req.Preferences.AllowDirectMessages
+	existingPrefs.Timezone = req.Preferences.Timezone
+	existingPrefs.Language = req.Preferences.Language
+	existingPrefs.DateFormat = req.Preferences.DateFormat
+	existingPrefs.TimeFormat = req.Preferences.TimeFormat
+	existingPrefs.Theme = req.Preferences.Theme
+	existingPrefs.FontSize = req.Preferences.FontSize
+	existingPrefs.HighContrast = req.Preferences.HighContrast
+	existingPrefs.ReducedMotion = req.Preferences.ReducedMotion
+	existingPrefs.ScreenReaderMode = req.Preferences.ScreenReaderMode
+	existingPrefs.KeyboardShortcuts = req.Preferences.KeyboardShortcuts
+	existingPrefs.TwoFactorEnabled = req.Preferences.TwoFactorEnabled
+	existingPrefs.LoginAlerts = req.Preferences.LoginAlerts
+	existingPrefs.MarketingEmails = req.Preferences.MarketingEmails
+	existingPrefs.ProductUpdates = req.Preferences.ProductUpdates
+	existingPrefs.SecurityAlerts = req.Preferences.SecurityAlerts
+	existingPrefs.WeeklyDigest = req.Preferences.WeeklyDigest
+
+	// Save updated preferences
+	err = s.preferenceRepo.Update(ctx, existingPrefs)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update preferences: %v", err)
+	}
+
 	return &v1.UpdatePreferencesResponse{
 		Response: &common.Response{
 			Success: true,
-			Message: "Preferences feature coming soon",
+			Message: "Preferences updated successfully",
 		},
 		Preferences: req.Preferences,
 	}, nil

@@ -89,11 +89,21 @@ export function AnswerOptionsDisplay({
     case QuestionType.TF:
       return (
         <TrueFalseDisplay
-          correctAnswer={correctAnswer as boolean}
-          selectedAnswer={selectedAnswers as boolean}
+          options={question.answers as AnswerOption[] || []}
+          selectedAnswers={selectedAnswers as string[]}
           showCorrect={showCorrect}
           interactive={interactive}
-          onAnswerSelect={onAnswerSelect}
+          onAnswerSelect={(answerId: string) => {
+            if (onAnswerSelect) {
+              const currentSelected = (selectedAnswers as string[]) || [];
+              const isSelected = currentSelected.includes(answerId);
+              if (isSelected) {
+                onAnswerSelect(currentSelected.filter((id: string) => id !== answerId));
+              } else {
+                onAnswerSelect([...currentSelected, answerId]);
+              }
+            }
+          }}
           explanation={question.explanation}
           className={className}
         />

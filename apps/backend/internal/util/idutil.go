@@ -2,6 +2,7 @@ package util
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"time"
 
 	"github.com/oklog/ulid/v2"
@@ -31,4 +32,11 @@ func ULIDTime(s string) (time.Time, error) {
 		return time.Time{}, err
 	}
 	return ulid.Time(id.Time()), nil
+}
+
+// GenerateSecureToken generates a secure random token as hex string
+func GenerateSecureToken(bytes int) string {
+	b := make([]byte, bytes)
+	rand.Read(b)
+	return hex.EncodeToString(b)
 }

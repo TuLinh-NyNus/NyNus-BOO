@@ -4,6 +4,7 @@
 		"keen-slider": "^6.8.6"
 	},
 	"devDependencies": {
+		"@bufbuild/buf": "^1.57.2",
 		"ts-protoc-gen": "^0.15.0"
 	}
 }

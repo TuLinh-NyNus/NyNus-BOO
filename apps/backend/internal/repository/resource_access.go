@@ -287,7 +287,7 @@ func (r *resourceAccessRepository) CalculateRiskScore(ctx context.Context, userI
 	uniqueIPs := make(map[string]bool)
 	downloadCount := 0
 	totalRiskScore := 0
-	
+
 	for _, access := range recentAccesses {
 		uniqueIPs[access.IPAddress] = true
 		if access.Action == "DOWNLOAD" {
@@ -298,17 +298,17 @@ func (r *resourceAccessRepository) CalculateRiskScore(ctx context.Context, userI
 
 	// Risk factors
 	riskScore := 0
-	
+
 	// Multiple IPs increase risk
 	if len(uniqueIPs) > 3 {
 		riskScore += 20
 	}
-	
+
 	// High download rate
 	if downloadCount > 10 {
 		riskScore += 30
 	}
-	
+
 	// Average existing risk score
 	if len(recentAccesses) > 0 {
 		avgRisk := totalRiskScore / len(recentAccesses)
@@ -329,7 +329,7 @@ func (r *resourceAccessRepository) calculateAccessRiskScore(ctx context.Context,
 
 	// Check recent access patterns
 	recentCount, _ := r.CountUserAccesses(ctx, access.UserID, time.Now().Add(-1*time.Hour))
-	
+
 	// High frequency access
 	if recentCount > 50 {
 		riskScore += 40
@@ -340,7 +340,7 @@ func (r *resourceAccessRepository) calculateAccessRiskScore(ctx context.Context,
 	// Download actions have higher risk
 	if access.Action == "DOWNLOAD" {
 		riskScore += 15
-		
+
 		// PDF downloads are highest risk
 		if access.ResourceType == "PDF" {
 			riskScore += 10

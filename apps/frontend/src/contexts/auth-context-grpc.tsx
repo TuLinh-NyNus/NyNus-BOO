@@ -4,9 +4,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useRouter } from 'next/navigation';
 import { signIn, signOut as nextAuthSignOut, useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
-import { AuthService } from '@/services/grpc/auth.service';
-import { AuthHelpers } from '@/services/grpc/auth.service';
+import { AuthService, AuthHelpers } from '@/services/grpc/auth.service';
+import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import type { User } from '@/lib/types/user';
+import {
+  convertProtobufUserToLocal,
+  convertProtobufLoginResponse,
+  convertProtobufRegisterResponse
+} from '@/lib/utils/protobuf-converters';
 
 /**
  * Auth Context Types
@@ -61,7 +66,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
           email: session.user.email || '',
           firstName: session.user.name?.split(' ')[0] || '',
           lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
-          role: 'STUDENT',
+          role: UserRole.STUDENT,
+          status: UserStatus.ACTIVE,
           avatar: session.user.image || undefined,
           emailVerified: true,
           createdAt: new Date(),
@@ -82,7 +88,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       
       // Check if we have a token
-      if (AuthHelpers.isAuthenticated()) {
+      if (AuthHelpers.isTokenValid()) {
         await fetchCurrentUser();
       }
     } catch (error) {
@@ -107,20 +113,10 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await AuthService.getCurrentUser();
       const userData = response.getUser();
-      
+
       if (userData) {
-        setUser({
-          id: userData.getId(),
-          email: userData.getEmail(),
-          firstName: userData.getName().split(' ')[0] || '',
-          lastName: userData.getName().split(' ').slice(1).join(' ') || '',
-          role: userData.getRole().toString(),
-          level: userData.getLevel().toString(),
-          avatar: userData.getAvatar(),
-          emailVerified: userData.getEmailVerified(),
-          createdAt: userData.getCreatedAt() ? new Date(userData.getCreatedAt() as unknown as string) : new Date(),
-          updatedAt: userData.getUpdatedAt() ? new Date(userData.getUpdatedAt() as unknown as string) : new Date(),
-        } as User);
+        const localUser = convertProtobufUserToLocal(userData);
+        setUser(localUser);
       }
     } catch (error) {
       console.error('Failed to fetch user:', error);
@@ -135,28 +131,17 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      const response = await AuthService.login(email, password);
-      
+      const protobufResponse = await AuthService.login(email, password);
+      const response = convertProtobufLoginResponse(protobufResponse);
+
       // Save tokens
-      const accessToken = response.getAccessToken();
-      const refreshToken = response.getRefreshToken();
-      AuthHelpers.saveTokens(accessToken, refreshToken);
-      
-      // Get user data
-      const userData = response.getUser();
-      if (userData) {
-        setUser({
-          id: userData.getId(),
-          email: userData.getEmail(),
-          firstName: userData.getName().split(' ')[0] || '',
-          lastName: userData.getName().split(' ').slice(1).join(' ') || '',
-          role: userData.getRole().toString(),
-          level: userData.getLevel().toString(),
-          avatar: userData.getAvatar(),
-          emailVerified: userData.getEmailVerified(),
-          createdAt: userData.getCreatedAt() ? new Date(userData.getCreatedAt() as unknown as string) : new Date(),
-          updatedAt: userData.getUpdatedAt() ? new Date(userData.getUpdatedAt() as unknown as string) : new Date(),
-        } as User);
+      if (response.accessToken && response.refreshToken) {
+        AuthHelpers.saveTokens(response.accessToken, response.refreshToken);
+      }
+
+      // Set user data
+      if (response.user) {
+        setUser(response.user);
       }
       
       // Redirect to dashboard
@@ -213,34 +198,23 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      const response = await AuthService.register(
+      const protobufResponse = await AuthService.register({
         email,
         password,
-        `${firstName} ${lastName}`.trim(),
-        1, // ROLE_STUDENT
-        3  // LEVEL_HIGH (default)
-      );
-      
+        firstName,
+        lastName
+      });
+
+      const response = convertProtobufRegisterResponse(protobufResponse);
+
       // Save tokens
-      const accessToken = response.getAccessToken();
-      const refreshToken = response.getRefreshToken();
-      AuthHelpers.saveTokens(accessToken, refreshToken);
-      
-      // Get user data
-      const userData = response.getUser();
-      if (userData) {
-        setUser({
-          id: userData.getId(),
-          email: userData.getEmail(),
-          firstName: userData.getName().split(' ')[0] || '',
-          lastName: userData.getName().split(' ').slice(1).join(' ') || '',
-          role: userData.getRole().toString(),
-          level: userData.getLevel().toString(),
-          avatar: userData.getAvatar(),
-          emailVerified: userData.getEmailVerified(),
-          createdAt: userData.getCreatedAt() ? new Date(userData.getCreatedAt() as unknown as string) : new Date(),
-          updatedAt: userData.getUpdatedAt() ? new Date(userData.getUpdatedAt() as unknown as string) : new Date(),
-        } as User);
+      if (response.accessToken && response.refreshToken) {
+        AuthHelpers.saveTokens(response.accessToken, response.refreshToken);
+      }
+
+      // Set user data
+      if (response.user) {
+        setUser(response.user);
       }
       
       // Redirect to dashboard

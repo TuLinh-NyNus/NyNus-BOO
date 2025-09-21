@@ -7,26 +7,17 @@
 import { AdminServiceClient } from '@/generated/v1/AdminServiceClientPb';
 import {
   AdminListUsersRequest,
-  AdminListUsersResponse,
   UpdateUserRoleRequest,
-  UpdateUserRoleResponse,
   UpdateUserLevelRequest,
-  UpdateUserLevelResponse,
   UpdateUserStatusRequest,
-  UpdateUserStatusResponse,
   GetAuditLogsRequest,
-  GetAuditLogsResponse,
   GetResourceAccessRequest,
-  GetResourceAccessResponse,
   GetSecurityAlertsRequest,
-  GetSecurityAlertsResponse,
   GetSystemStatsRequest,
-  GetSystemStatsResponse,
   ListUsersFilter,
   AuditLog,
   ResourceAccess,
   SecurityAlert,
-  SystemStats,
 } from '@/generated/v1/admin_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
 import { User } from '@/generated/v1/user_pb';

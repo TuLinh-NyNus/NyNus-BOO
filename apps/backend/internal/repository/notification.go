@@ -53,7 +53,7 @@ func (r *notificationRepository) Create(ctx context.Context, notification *Notif
 			is_read, read_at, created_at, expires_at
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query,
 		notification.ID,
 		notification.UserID,
@@ -66,7 +66,7 @@ func (r *notificationRepository) Create(ctx context.Context, notification *Notif
 		notification.CreatedAt,
 		notification.ExpiresAt,
 	)
-	
+
 	return err
 }
 
@@ -78,7 +78,7 @@ func (r *notificationRepository) GetByID(ctx context.Context, id string) (*Notif
 		FROM notifications
 		WHERE id = $1
 	`
-	
+
 	notification := &Notification{}
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&notification.ID,
@@ -92,11 +92,11 @@ func (r *notificationRepository) GetByID(ctx context.Context, id string) (*Notif
 		&notification.CreatedAt,
 		&notification.ExpiresAt,
 	)
-	
+
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
 	}
-	
+
 	return notification, err
 }
 
@@ -111,13 +111,13 @@ func (r *notificationRepository) GetByUserID(ctx context.Context, userID string,
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var notifications []*Notification
 	for rows.Next() {
 		notification := &Notification{}
@@ -138,7 +138,7 @@ func (r *notificationRepository) GetByUserID(ctx context.Context, userID string,
 		}
 		notifications = append(notifications, notification)
 	}
-	
+
 	return notifications, nil
 }
 
@@ -153,13 +153,13 @@ func (r *notificationRepository) GetUnreadByUserID(ctx context.Context, userID s
 			AND (expires_at IS NULL OR expires_at > NOW())
 		ORDER BY created_at DESC
 	`
-	
+
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var notifications []*Notification
 	for rows.Next() {
 		notification := &Notification{}
@@ -180,7 +180,7 @@ func (r *notificationRepository) GetUnreadByUserID(ctx context.Context, userID s
 		}
 		notifications = append(notifications, notification)
 	}
-	
+
 	return notifications, nil
 }
 
@@ -191,7 +191,7 @@ func (r *notificationRepository) MarkAsRead(ctx context.Context, id string) erro
 		SET is_read = true, read_at = $2
 		WHERE id = $1
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query, id, time.Now())
 	return err
 }
@@ -203,7 +203,7 @@ func (r *notificationRepository) MarkAllAsRead(ctx context.Context, userID strin
 		SET is_read = true, read_at = $2
 		WHERE user_id = $1 AND is_read = false
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query, userID, time.Now())
 	return err
 }
@@ -217,7 +217,7 @@ func (r *notificationRepository) GetUnreadCount(ctx context.Context, userID stri
 			AND is_read = false
 			AND (expires_at IS NULL OR expires_at > NOW())
 	`
-	
+
 	var count int
 	err := r.db.QueryRowContext(ctx, query, userID).Scan(&count)
 	return count, err
@@ -236,7 +236,7 @@ func (r *notificationRepository) DeleteExpired(ctx context.Context) error {
 		DELETE FROM notifications
 		WHERE expires_at IS NOT NULL AND expires_at <= NOW()
 	`
-	
+
 	_, err := r.db.ExecContext(ctx, query)
 	return err
 }

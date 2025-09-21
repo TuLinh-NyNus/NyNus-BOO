@@ -1,23 +1,19 @@
 /**
  * Contact Service gRPC Client
  * Service for handling contact form submissions
- * 
+ *
  * @author NyNus Team
  * @version 2.0.0
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { ContactServiceClient } from '@/generated/v1/ContactServiceClientPb';
 import {
   ContactFormRequest,
-  ContactFormResponse,
   ListContactsRequest,
-  ListContactsResponse,
   GetContactRequest,
-  GetContactResponse,
   UpdateContactStatusRequest,
-  UpdateContactStatusResponse,
   DeleteContactRequest,
-  DeleteContactResponse,
   ContactSubmission,
 } from '@/generated/v1/contact_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';

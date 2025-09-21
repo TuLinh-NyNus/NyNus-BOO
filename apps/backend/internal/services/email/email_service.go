@@ -24,7 +24,7 @@ type EmailService struct {
 func NewEmailService() *EmailService {
 	// In development, we'll just log emails
 	isDev := os.Getenv("ENV") != "production"
-	
+
 	return &EmailService{
 		smtpHost:     os.Getenv("SMTP_HOST"),
 		smtpPort:     os.Getenv("SMTP_PORT"),
@@ -39,11 +39,11 @@ func NewEmailService() *EmailService {
 // SendVerificationEmail sends email verification link
 func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToken string) error {
 	subject := "Xác thực email của bạn - NyNus"
-	
+
 	// Create verification URL
 	baseURL := getEnvDefault("FRONTEND_URL", "http://localhost:3000")
 	verificationURL := fmt.Sprintf("%s/verify-email?token=%s", baseURL, verificationToken)
-	
+
 	// HTML template for email
 	htmlTemplate := `
 <!DOCTYPE html>
@@ -86,13 +86,13 @@ func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToke
 </body>
 </html>
 `
-	
+
 	// Parse template
 	tmpl, err := template.New("verification").Parse(htmlTemplate)
 	if err != nil {
 		return fmt.Errorf("failed to parse email template: %v", err)
 	}
-	
+
 	// Execute template
 	var htmlBody bytes.Buffer
 	data := struct {
@@ -102,11 +102,11 @@ func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToke
 		UserName:        userName,
 		VerificationURL: verificationURL,
 	}
-	
+
 	if err := tmpl.Execute(&htmlBody, data); err != nil {
 		return fmt.Errorf("failed to execute email template: %v", err)
 	}
-	
+
 	// In development mode, just log the email
 	if s.isDev {
 		log.Printf("📧 [DEV MODE] Email Verification:\n")
@@ -116,7 +116,7 @@ func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToke
 		log.Printf("  Token: %s\n", verificationToken)
 		return nil
 	}
-	
+
 	// In production, send actual email via SMTP
 	return s.sendEmail(toEmail, subject, htmlBody.String())
 }
@@ -124,10 +124,10 @@ func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToke
 // SendPasswordResetEmail sends password reset link
 func (s *EmailService) SendPasswordResetEmail(toEmail, userName, resetToken string) error {
 	subject := "Đặt lại mật khẩu - NyNus"
-	
+
 	baseURL := getEnvDefault("FRONTEND_URL", "http://localhost:3000")
 	resetURL := fmt.Sprintf("%s/reset-password?token=%s", baseURL, resetToken)
-	
+
 	htmlTemplate := `
 <!DOCTYPE html>
 <html>
@@ -169,12 +169,12 @@ func (s *EmailService) SendPasswordResetEmail(toEmail, userName, resetToken stri
 </body>
 </html>
 `
-	
+
 	tmpl, err := template.New("reset").Parse(htmlTemplate)
 	if err != nil {
 		return fmt.Errorf("failed to parse email template: %v", err)
 	}
-	
+
 	var htmlBody bytes.Buffer
 	data := struct {
 		UserName string
@@ -183,11 +183,11 @@ func (s *EmailService) SendPasswordResetEmail(toEmail, userName, resetToken stri
 		UserName: userName,
 		ResetURL: resetURL,
 	}
-	
+
 	if err := tmpl.Execute(&htmlBody, data); err != nil {
 		return fmt.Errorf("failed to execute email template: %v", err)
 	}
-	
+
 	if s.isDev {
 		log.Printf("📧 [DEV MODE] Password Reset Email:\n")
 		log.Printf("  To: %s\n", toEmail)
@@ -196,7 +196,7 @@ func (s *EmailService) SendPasswordResetEmail(toEmail, userName, resetToken stri
 		log.Printf("  Token: %s\n", resetToken)
 		return nil
 	}
-	
+
 	return s.sendEmail(toEmail, subject, htmlBody.String())
 }
 
@@ -205,9 +205,9 @@ func (s *EmailService) sendEmail(to, subject, htmlBody string) error {
 	if s.smtpHost == "" || s.smtpPort == "" {
 		return fmt.Errorf("SMTP configuration not set")
 	}
-	
+
 	from := fmt.Sprintf("%s <%s>", s.fromName, s.fromEmail)
-	
+
 	// Email headers
 	headers := make(map[string]string)
 	headers["From"] = from
@@ -215,25 +215,25 @@ func (s *EmailService) sendEmail(to, subject, htmlBody string) error {
 	headers["Subject"] = subject
 	headers["MIME-Version"] = "1.0"
 	headers["Content-Type"] = "text/html; charset=UTF-8"
-	
+
 	// Build email message
 	message := ""
 	for k, v := range headers {
 		message += fmt.Sprintf("%s: %s\r\n", k, v)
 	}
 	message += "\r\n" + htmlBody
-	
+
 	// SMTP authentication
 	auth := smtp.PlainAuth("", s.smtpUsername, s.smtpPassword, s.smtpHost)
-	
+
 	// Send email
 	addr := fmt.Sprintf("%s:%s", s.smtpHost, s.smtpPort)
 	err := smtp.SendMail(addr, auth, s.fromEmail, []string{to}, []byte(message))
-	
+
 	if err != nil {
 		return fmt.Errorf("failed to send email: %v", err)
 	}
-	
+
 	log.Printf("✅ Email sent successfully to %s", to)
 	return nil
 }

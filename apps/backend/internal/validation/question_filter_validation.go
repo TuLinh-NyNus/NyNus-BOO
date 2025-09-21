@@ -191,9 +191,9 @@ func (v *QuestionFilterValidator) validateMetadataFilter(filter *v1.MetadataFilt
 	// Validate types (enums)
 	validTypes := map[common.QuestionType]bool{
 		common.QuestionType_QUESTION_TYPE_MULTIPLE_CHOICE: true,
-		common.QuestionType_QUESTION_TYPE_TRUE_FALSE:       true,
-		common.QuestionType_QUESTION_TYPE_SHORT_ANSWER:     true,
-		common.QuestionType_QUESTION_TYPE_ESSAY:            true,
+		common.QuestionType_QUESTION_TYPE_TRUE_FALSE:      true,
+		common.QuestionType_QUESTION_TYPE_SHORT_ANSWER:    true,
+		common.QuestionType_QUESTION_TYPE_ESSAY:           true,
 	}
 	for _, qType := range filter.Types {
 		if !validTypes[qType] {
@@ -203,10 +203,10 @@ func (v *QuestionFilterValidator) validateMetadataFilter(filter *v1.MetadataFilt
 
 	// Validate statuses (enums)
 	validStatuses := map[common.QuestionStatus]bool{
-		common.QuestionStatus_QUESTION_STATUS_ACTIVE:    true,
-		common.QuestionStatus_QUESTION_STATUS_PENDING:   true,
-		common.QuestionStatus_QUESTION_STATUS_INACTIVE:  true,
-		common.QuestionStatus_QUESTION_STATUS_ARCHIVED:  true,
+		common.QuestionStatus_QUESTION_STATUS_ACTIVE:   true,
+		common.QuestionStatus_QUESTION_STATUS_PENDING:  true,
+		common.QuestionStatus_QUESTION_STATUS_INACTIVE: true,
+		common.QuestionStatus_QUESTION_STATUS_ARCHIVED: true,
 	}
 	for _, status := range filter.Statuses {
 		if !validStatuses[status] {

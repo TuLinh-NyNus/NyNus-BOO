@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+import "google/api/annotations.proto";
+import "common/common.proto";
+
+// Notification represents a user notification
+message Notification {
+  string id = 1;
+  string user_id = 2;
+  string type = 3;        // SECURITY_ALERT, COURSE_UPDATE, SYSTEM_MESSAGE, etc.
+  string title = 4;
+  string message = 5;
+  map<string, string> data = 6;  // Additional data as key-value pairs
+  bool is_read = 7;
+  string read_at = 8;     // RFC3339 timestamp
+  string created_at = 9;  // RFC3339 timestamp
+  string expires_at = 10; // RFC3339 timestamp, optional
+}
+
+// GetNotifications request
+message GetNotificationsRequest {
+  int32 limit = 1;   // Default 20
+  int32 offset = 2;  // Default 0
+  bool unread_only = 3;  // Filter for unread only
+}
+
+// GetNotifications response
+message GetNotificationsResponse {
+  common.Response response = 1;
+  repeated Notification notifications = 2;
+  int32 total = 3;
+  int32 unread_count = 4;
+}
+
+// GetNotification request
+message GetNotificationRequest {
+  string id = 1;
+}
+
+// GetNotification response
+message GetNotificationResponse {
+  common.Response response = 1;
+  Notification notification = 2;
+}
+
+// MarkAsRead request
+message MarkAsReadRequest {
+  string id = 1;
+}
+
+// MarkAsRead response
+message MarkAsReadResponse {
+  common.Response response = 1;
+  bool success = 2;
+}
+
+// MarkAllAsRead request
+message MarkAllAsReadRequest {
+  // Empty - marks all notifications as read for current user
+}
+
+// MarkAllAsRead response
+message MarkAllAsReadResponse {
+  common.Response response = 1;
+  int32 marked_count = 2;
+}
+
+// DeleteNotification request
+message DeleteNotificationRequest {
+  string id = 1;
+}
+
+// DeleteNotification response
+message DeleteNotificationResponse {
+  common.Response response = 1;
+  bool success = 2;
+}
+
+// DeleteAllNotifications request
+message DeleteAllNotificationsRequest {
+  // Empty - deletes all notifications for current user
+}
+
+// DeleteAllNotifications response
+message DeleteAllNotificationsResponse {
+  common.Response response = 1;
+  int32 deleted_count = 2;
+}
+
+// CreateNotification request (for internal/admin use)
+message CreateNotificationRequest {
+  string user_id = 1;
+  string type = 2;
+  string title = 3;
+  string message = 4;
+  map<string, string> data = 5;
+  string expires_at = 6;  // Optional expiry time
+}
+
+// CreateNotification response
+message CreateNotificationResponse {
+  common.Response response = 1;
+  Notification notification = 2;
+}
+
+// NotificationService provides notification management
+service NotificationService {
+  // Get notifications for current user
+  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/notifications"
+    };
+  }
+
+  // Get specific notification
+  rpc GetNotification(GetNotificationRequest) returns (GetNotificationResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/notifications/{id}"
+    };
+  }
+
+  // Mark notification as read
+  rpc MarkAsRead(MarkAsReadRequest) returns (MarkAsReadResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/notifications/{id}/read"
+    };
+  }
+
+  // Mark all notifications as read
+  rpc MarkAllAsRead(MarkAllAsReadRequest) returns (MarkAllAsReadResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/notifications/read-all"
+    };
+  }
+
+  // Delete notification
+  rpc DeleteNotification(DeleteNotificationRequest) returns (DeleteNotificationResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/notifications/{id}"
+    };
+  }
+
+  // Delete all notifications
+  rpc DeleteAllNotifications(DeleteAllNotificationsRequest) returns (DeleteAllNotificationsResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/notifications/all"
+    };
+  }
+
+  // Create notification (admin only)
+  rpc CreateNotification(CreateNotificationRequest) returns (CreateNotificationResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/notifications"
+      body: "*"
+    };
+  }
+}

@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { authService } from '@/services/grpc/auth.service';
+import { convertProtobufForgotPasswordResponse } from '@/lib/utils/protobuf-converters';
 
 export default function ForgotPasswordPage() {
   const { toast } = useToast();
@@ -36,8 +37,9 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      const response = await authService.forgotPassword(email);
-      
+      const protobufResponse = await authService.forgotPassword(email);
+      const response = convertProtobufForgotPasswordResponse(protobufResponse);
+
       if (response.success) {
         setSubmitted(true);
         toast({

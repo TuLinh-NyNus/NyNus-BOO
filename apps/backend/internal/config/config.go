@@ -15,6 +15,12 @@ type Config struct {
 
 	// JWT configuration
 	JWT JWTConfig
+
+	// Image Processing configuration
+	ImageProcessing ImageProcessingConfig
+
+	// Google Drive configuration
+	GoogleDrive GoogleDriveConfig
 }
 
 // DatabaseConfig holds database configuration
@@ -39,6 +45,28 @@ type JWTConfig struct {
 	Secret string
 }
 
+// ImageProcessingConfig holds image processing configuration
+type ImageProcessingConfig struct {
+	Enabled        bool
+	TexLiveBin     string
+	LatexEngine    string
+	ImageConverter string
+	TmpDir         string
+	OutputDir      string
+	CacheDir       string
+	ImageQuality   int
+	MaxConcurrency int
+}
+
+// GoogleDriveConfig holds Google Drive configuration
+type GoogleDriveConfig struct {
+	Enabled      bool
+	ClientID     string
+	ClientSecret string
+	RefreshToken string
+	RootFolderID string
+}
+
 // LoadConfig loads configuration from environment variables
 func LoadConfig() *Config {
 	return &Config{
@@ -57,6 +85,24 @@ func LoadConfig() *Config {
 		},
 		JWT: JWTConfig{
 			Secret: getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
+		},
+		ImageProcessing: ImageProcessingConfig{
+			Enabled:        getEnv("IMAGE_PROCESSING_ENABLED", "true") == "true",
+			TexLiveBin:     getEnv("TEXLIVE_BIN", "C:\\texlive\\2024\\bin\\windows"),
+			LatexEngine:    getEnv("LATEX_ENGINE", "lualatex"),
+			ImageConverter: getEnv("IMAGE_CONVERTER", "magick"),
+			TmpDir:         getEnv("IMAGE_TMP_DIR", "./tmp/images"),
+			OutputDir:      getEnv("IMAGE_OUTPUT_DIR", "./output/images"),
+			CacheDir:       getEnv("IMAGE_CACHE_DIR", "./cache/images"),
+			ImageQuality:   85,
+			MaxConcurrency: 5,
+		},
+		GoogleDrive: GoogleDriveConfig{
+			Enabled:      getEnv("GOOGLE_DRIVE_ENABLED", "false") == "true",
+			ClientID:     getEnv("DRIVE_CLIENT_ID", ""),
+			ClientSecret: getEnv("DRIVE_CLIENT_SECRET", ""),
+			RefreshToken: getEnv("DRIVE_REFRESH_TOKEN", ""),
+			RootFolderID: getEnv("DRIVE_ROOT_FOLDER_ID", ""),
 		},
 	}
 }
