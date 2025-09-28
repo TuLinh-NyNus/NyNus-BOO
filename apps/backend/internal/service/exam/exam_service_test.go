@@ -1,16 +1,14 @@
-package exam_mgmt_test
+package exam
 
 import (
 	"context"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
 )
 
 // MockExamRepository is a mock implementation of ExamRepository
@@ -87,20 +85,20 @@ func (m *MockQuestionRepository) GetQuestionByID(ctx context.Context, id string)
 }
 
 // Test Suite
-type ExamMgmtTestSuite struct {
+type ExamServiceTestSuite struct {
 	examRepo     *MockExamRepository
 	questionRepo *MockQuestionRepository
-	service      *exam_mgmt.ExamMgmt
+	service      *ExamService
 	ctx          context.Context
 }
 
-func setupTestSuite(t *testing.T) *ExamMgmtTestSuite {
+func setupTestSuite(t *testing.T) *ExamServiceTestSuite {
 	examRepo := &MockExamRepository{}
 	questionRepo := &MockQuestionRepository{}
-	
-	service := exam_mgmt.NewExamMgmt(examRepo, questionRepo)
-	
-	return &ExamMgmtTestSuite{
+
+	service := NewExamService(examRepo, questionRepo, nil)
+
+	return &ExamServiceTestSuite{
 		examRepo:     examRepo,
 		questionRepo: questionRepo,
 		service:      service,
@@ -110,7 +108,7 @@ func setupTestSuite(t *testing.T) *ExamMgmtTestSuite {
 
 // ===== CREATE EXAM TESTS =====
 
-func TestExamMgmt_CreateExam_Success(t *testing.T) {
+func TestExamService_CreateExam_Success(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	// Arrange
@@ -142,7 +140,7 @@ func TestExamMgmt_CreateExam_Success(t *testing.T) {
 	suite.examRepo.AssertExpectations(t)
 }
 
-func TestExamMgmt_CreateExam_ValidationError(t *testing.T) {
+func TestExamService_CreateExam_ValidationError(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	testCases := []struct {
@@ -195,7 +193,7 @@ func TestExamMgmt_CreateExam_ValidationError(t *testing.T) {
 
 // ===== QUESTION MANAGEMENT TESTS =====
 
-func TestExamMgmt_AddQuestionToExam_Success(t *testing.T) {
+func TestExamService_AddQuestionToExam_Success(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	// Arrange
@@ -225,7 +223,7 @@ func TestExamMgmt_AddQuestionToExam_Success(t *testing.T) {
 	suite.questionRepo.AssertExpectations(t)
 }
 
-func TestExamMgmt_AddQuestionToExam_ExamNotFound(t *testing.T) {
+func TestExamService_AddQuestionToExam_ExamNotFound(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	// Arrange
@@ -244,7 +242,7 @@ func TestExamMgmt_AddQuestionToExam_ExamNotFound(t *testing.T) {
 	suite.examRepo.AssertExpectations(t)
 }
 
-func TestExamMgmt_AddQuestionToExam_ExamPublished(t *testing.T) {
+func TestExamService_AddQuestionToExam_ExamPublished(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	// Arrange
@@ -270,7 +268,7 @@ func TestExamMgmt_AddQuestionToExam_ExamPublished(t *testing.T) {
 
 // ===== WORKFLOW TESTS =====
 
-func TestExamMgmt_PublishExam_Success(t *testing.T) {
+func TestExamService_PublishExam_Success(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	// Arrange
@@ -298,7 +296,7 @@ func TestExamMgmt_PublishExam_Success(t *testing.T) {
 	suite.examRepo.AssertExpectations(t)
 }
 
-func TestExamMgmt_PublishExam_NoQuestions(t *testing.T) {
+func TestExamService_PublishExam_NoQuestions(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	// Arrange
@@ -323,7 +321,7 @@ func TestExamMgmt_PublishExam_NoQuestions(t *testing.T) {
 	suite.examRepo.AssertExpectations(t)
 }
 
-func TestExamMgmt_PublishExam_AlreadyPublished(t *testing.T) {
+func TestExamService_PublishExam_AlreadyPublished(t *testing.T) {
 	suite := setupTestSuite(t)
 
 	// Arrange

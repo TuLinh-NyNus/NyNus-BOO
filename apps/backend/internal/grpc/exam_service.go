@@ -8,7 +8,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/scoring"
-	exam_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 
@@ -20,14 +20,14 @@ import (
 // ExamServiceServer implements the ExamService gRPC server
 type ExamServiceServer struct {
 	v1.UnimplementedExamServiceServer
-	examMgmt        *exam_mgmt.ExamMgmt
+	examService     *exam.ExamService
 	autoGrading     *scoring.AutoGradingService
 }
 
 // NewExamServiceServer creates a new ExamServiceServer
-func NewExamServiceServer(examMgmt *exam_mgmt.ExamMgmt, autoGrading *scoring.AutoGradingService) *ExamServiceServer {
+func NewExamServiceServer(examService *exam.ExamService, autoGrading *scoring.AutoGradingService) *ExamServiceServer {
 	return &ExamServiceServer{
-		examMgmt:    examMgmt,
+		examService: examService,
 		autoGrading: autoGrading,
 	}
 }
@@ -52,7 +52,7 @@ func (s *ExamServiceServer) CreateExam(ctx context.Context, req *v1.CreateExamRe
 	exam := convertProtoToExam(req, userID)
 
 	// Create exam through service management layer
-	err = s.examMgmt.CreateExam(ctx, exam)
+	err = s.examService.CreateExam(ctx, exam)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to create exam: %v", err)
 	}
@@ -83,7 +83,7 @@ func (s *ExamServiceServer) GetExam(ctx context.Context, req *v1.GetExamRequest)
 	}
 
 	// Get exam from service management layer
-	exam, err := s.examMgmt.GetExamByID(ctx, req.GetId())
+	exam, err := s.examService.GetExamByID(ctx, req.GetId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get exam: %v", err)
 	}
@@ -164,7 +164,7 @@ func (s *ExamServiceServer) ListExams(ctx context.Context, req *v1.ListExamsRequ
 	}
 
 	// Get exams from service management layer
-	exams, _, err := s.examMgmt.ListExams(ctx, nil, pagination)
+	exams, _, err := s.examService.ListExams(ctx, nil, pagination)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list exams: %v", err)
 	}
@@ -199,7 +199,7 @@ func (s *ExamServiceServer) UpdateExam(ctx context.Context, req *v1.UpdateExamRe
 	}
 
 	// Get existing exam
-	existingExam, err := s.examMgmt.GetExamByID(ctx, req.GetId())
+	existingExam, err := s.examService.GetExamByID(ctx, req.GetId())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "exam not found: %v", err)
 	}
@@ -208,13 +208,13 @@ func (s *ExamServiceServer) UpdateExam(ctx context.Context, req *v1.UpdateExamRe
 	updatedExam := convertUpdateProtoToExam(req, existingExam, userID)
 
 	// Update exam through service management layer
-	err = s.examMgmt.UpdateExam(ctx, updatedExam)
+	err = s.examService.UpdateExam(ctx, updatedExam)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update exam: %v", err)
 	}
 
 	// Get updated exam
-	updatedExamEntity, err := s.examMgmt.GetExamByID(ctx, req.GetId())
+	updatedExamEntity, err := s.examService.GetExamByID(ctx, req.GetId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get updated exam: %v", err)
 	}
@@ -245,7 +245,7 @@ func (s *ExamServiceServer) DeleteExam(ctx context.Context, req *v1.DeleteExamRe
 	}
 
 	// Delete exam through service management layer
-	err = s.examMgmt.DeleteExam(ctx, req.GetId())
+	err = s.examService.DeleteExam(ctx, req.GetId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete exam: %v", err)
 	}
@@ -272,13 +272,13 @@ func (s *ExamServiceServer) PublishExam(ctx context.Context, req *v1.PublishExam
 	}
 
 	// Publish exam through service management layer
-	err = s.examMgmt.PublishExam(ctx, req.GetExamId())
+	err = s.examService.PublishExam(ctx, req.GetExamId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to publish exam: %v", err)
 	}
 
 	// Get updated exam
-	exam, err := s.examMgmt.GetExamByID(ctx, req.GetExamId())
+	exam, err := s.examService.GetExamByID(ctx, req.GetExamId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get published exam: %v", err)
 	}
@@ -309,13 +309,13 @@ func (s *ExamServiceServer) ArchiveExam(ctx context.Context, req *v1.ArchiveExam
 	}
 
 	// Archive exam through service management layer
-	err = s.examMgmt.ArchiveExam(ctx, req.GetExamId())
+	err = s.examService.ArchiveExam(ctx, req.GetExamId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to archive exam: %v", err)
 	}
 
 	// Get updated exam
-	exam, err := s.examMgmt.GetExamByID(ctx, req.GetExamId())
+	exam, err := s.examService.GetExamByID(ctx, req.GetExamId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get archived exam: %v", err)
 	}
@@ -352,7 +352,7 @@ func (s *ExamServiceServer) AddQuestionToExam(ctx context.Context, req *v1.AddQu
 	}
 
 	// Add question to exam through service management layer
-	err = s.examMgmt.AddQuestionToExam(ctx, req.GetExamId(), req.GetQuestionId(), int(req.GetPoints()))
+	err = s.examService.AddQuestionToExam(ctx, req.GetExamId(), req.GetQuestionId(), int(req.GetPoints()))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to add question to exam: %v", err)
 	}
@@ -382,7 +382,7 @@ func (s *ExamServiceServer) RemoveQuestionFromExam(ctx context.Context, req *v1.
 	}
 
 	// Remove question from exam through service management layer
-	err = s.examMgmt.RemoveQuestionFromExam(ctx, req.GetExamId(), req.GetQuestionId())
+	err = s.examService.RemoveQuestionFromExam(ctx, req.GetExamId(), req.GetQuestionId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to remove question from exam: %v", err)
 	}
@@ -411,16 +411,16 @@ func (s *ExamServiceServer) ReorderExamQuestions(ctx context.Context, req *v1.Re
 		return nil, status.Errorf(codes.InvalidArgument, "question orders are required")
 	}
 
-	// Convert QuestionOrder to question IDs for ExamMgmt
+	// Convert QuestionOrder to question IDs for ExamService
 	questionIDs := make([]string, len(req.GetQuestionOrders()))
 	for i, order := range req.GetQuestionOrders() {
 		questionIDs[i] = order.GetQuestionId()
 	}
 
 	// Reorder questions through service management layer
-	// TODO: Add ReorderExamQuestions method to ExamMgmt service
+	// TODO: Add ReorderExamQuestions method to ExamService service
 	_ = questionIDs // Use questionIDs when implementing
-	// err = s.examMgmt.ReorderExamQuestions(ctx, req.GetExamId(), questionIDs)
+	// err = s.examService.ReorderExamQuestions(ctx, req.GetExamId(), questionIDs)
 	// if err != nil {
 	//     return nil, status.Errorf(codes.Internal, "failed to reorder exam questions: %v", err)
 	// }
@@ -446,14 +446,14 @@ func (s *ExamServiceServer) GetExamQuestions(ctx context.Context, req *v1.GetExa
 		return nil, status.Errorf(codes.InvalidArgument, "exam ID is required")
 	}
 
-	// Get exam questions through repository (since ExamMgmt doesn't have this method yet)
-	// TODO: Add GetExamQuestions method to ExamMgmt service
+	// Get exam questions through repository (since ExamService doesn't have this method yet)
+	// TODO: Add GetExamQuestions method to ExamService service
 	return &v1.GetExamQuestionsResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam questions retrieved successfully",
 		},
-		Questions: []*v1.ExamQuestion{}, // TODO: Implement when ExamMgmt has this method
+		Questions: []*v1.ExamQuestion{}, // TODO: Implement when ExamService has this method
 	}, nil
 }
 
@@ -471,7 +471,7 @@ func (s *ExamServiceServer) StartExam(ctx context.Context, req *v1.StartExamRequ
 	}
 
 	// Start exam attempt through service management layer
-	// TODO: Add StartExamAttempt method to ExamMgmt service
+	// TODO: Add StartExamAttempt method to ExamService service
 	_ = userID // Use userID when implementing
 
 	return &v1.StartExamResponse{
@@ -479,7 +479,7 @@ func (s *ExamServiceServer) StartExam(ctx context.Context, req *v1.StartExamRequ
 			Success: true,
 			Message: "Exam started successfully",
 		},
-		// TODO: Add ExamAttempt and question_ids when ExamMgmt has StartExamAttempt method
+		// TODO: Add ExamAttempt and question_ids when ExamService has StartExamAttempt method
 	}, nil
 }
 
@@ -500,7 +500,7 @@ func (s *ExamServiceServer) SubmitAnswer(ctx context.Context, req *v1.SubmitAnsw
 	}
 
 	// Submit answer through service management layer
-	// TODO: Add SubmitExamAnswer method to ExamMgmt service
+	// TODO: Add SubmitExamAnswer method to ExamService service
 	_ = userID // Use userID when implementing
 
 	return &v1.SubmitAnswerResponse{
@@ -525,14 +525,14 @@ func (s *ExamServiceServer) GetExamAttempt(ctx context.Context, req *v1.GetExamA
 	}
 
 	// Get exam attempt through service management layer
-	// TODO: Add GetExamAttempt method to ExamMgmt service
+	// TODO: Add GetExamAttempt method to ExamService service
 
 	return &v1.GetExamAttemptResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam attempt retrieved successfully",
 		},
-		// TODO: Add ExamAttempt when ExamMgmt has GetExamAttempt method
+		// TODO: Add ExamAttempt when ExamService has GetExamAttempt method
 	}, nil
 }
 
@@ -550,14 +550,14 @@ func (s *ExamServiceServer) GetExamResults(ctx context.Context, req *v1.GetExamR
 	}
 
 	// Get exam results through repository
-	// TODO: Add GetExamResults method to ExamMgmt service
+	// TODO: Add GetExamResults method to ExamService service
 
 	return &v1.GetExamResultsResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam results retrieved successfully",
 		},
-		Results: []*v1.ExamResult{}, // TODO: Implement when ExamMgmt has this method
+		Results: []*v1.ExamResult{}, // TODO: Implement when ExamService has this method
 	}, nil
 }
 
@@ -575,14 +575,14 @@ func (s *ExamServiceServer) GetExamStatistics(ctx context.Context, req *v1.GetEx
 	}
 
 	// Get exam statistics through repository
-	// TODO: Add GetExamStatistics method to ExamMgmt service
+	// TODO: Add GetExamStatistics method to ExamService service
 
 	return &v1.GetExamStatisticsResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam statistics retrieved successfully",
 		},
-		// TODO: Add statistics fields when ExamMgmt has this method
+		// TODO: Add statistics fields when ExamService has this method
 	}, nil
 }
 
@@ -603,14 +603,14 @@ func (s *ExamServiceServer) GetUserPerformance(ctx context.Context, req *v1.GetU
 	}
 
 	// Get user performance through repository
-	// TODO: Add GetUserPerformance method to ExamMgmt service
+	// TODO: Add GetUserPerformance method to ExamService service
 
 	return &v1.GetUserPerformanceResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "User performance retrieved successfully",
 		},
-		// TODO: Add performance fields when ExamMgmt has this method
+		// TODO: Add performance fields when ExamService has this method
 	}, nil
 }
 

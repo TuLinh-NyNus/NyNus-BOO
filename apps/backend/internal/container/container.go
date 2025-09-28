@@ -20,7 +20,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/scoring"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
 	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/contact"
-	exam_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
 	image_processing "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/image_processing"
 	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/newsletter"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
@@ -70,7 +70,7 @@ type Container struct {
 	AuthMgmt              *auth.AuthMgmt
 	QuestionService       *question.QuestionService
 	QuestionFilterService *question.QuestionFilterService
-	ExamMgmt              *exam_mgmt.ExamMgmt
+	ExamService           *exam.ExamService
 	ContactMgmt           *contact_mgmt.ContactMgmt
 	NewsletterMgmt        *newsletter_mgmt.NewsletterMgmt
 	MapCodeMgmt           *mapcode_mgmt.MapCodeMgmt
@@ -272,8 +272,8 @@ func (c *Container) initServices() {
 		c.QuestionRepo,
 	)
 
-	// Initialize ExamMgmt with repositories
-	c.ExamMgmt = exam_mgmt.NewExamMgmt(
+	// Initialize ExamService with repositories
+	c.ExamService = exam.NewExamService(
 		c.ExamRepo,
 		c.QuestionRepo,
 		logger,
@@ -377,7 +377,7 @@ func (c *Container) initGRPCServices() {
 
 	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionService)
 	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.QuestionFilterService)
-	c.ExamGRPCService = grpc.NewExamServiceServer(c.ExamMgmt, c.AutoGradingService)
+	c.ExamGRPCService = grpc.NewExamServiceServer(c.ExamService, c.AutoGradingService)
 	c.ProfileGRPCService = grpc.NewProfileServiceServer(
 		c.UserRepoWrapper,
 		c.SessionService,
@@ -420,9 +420,9 @@ func (c *Container) GetQuestionFilterService() *question.QuestionFilterService {
 	return c.QuestionFilterService
 }
 
-// GetExamMgmt returns the exam management service
-func (c *Container) GetExamMgmt() *exam_mgmt.ExamMgmt {
-	return c.ExamMgmt
+// GetExamService returns the exam management service
+func (c *Container) GetExamService() *exam.ExamService {
+	return c.ExamService
 }
 
 // GetAuthInterceptor returns the auth interceptor

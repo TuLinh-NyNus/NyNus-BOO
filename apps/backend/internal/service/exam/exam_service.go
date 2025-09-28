@@ -1,4 +1,4 @@
-package exam_mgmt
+package exam
 
 import (
 	"context"
@@ -9,21 +9,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ExamMgmt provides business logic for exam management
-// Following QuestionMgmt pattern for consistency
-type ExamMgmt struct {
+// ExamService provides business logic for exam management
+// Following QuestionService pattern for consistency
+type ExamService struct {
 	examRepo     interfaces.ExamRepository
 	questionRepo interfaces.QuestionRepository
 	logger       *logrus.Logger
 }
 
-// NewExamMgmt creates a new exam management service
-func NewExamMgmt(
+// NewExamService creates a new exam management service
+func NewExamService(
 	examRepo interfaces.ExamRepository,
 	questionRepo interfaces.QuestionRepository,
 	logger *logrus.Logger,
-) *ExamMgmt {
-	return &ExamMgmt{
+) *ExamService {
+	return &ExamService{
 		examRepo:     examRepo,
 		questionRepo: questionRepo,
 		logger:       logger,
@@ -31,7 +31,7 @@ func NewExamMgmt(
 }
 
 // CreateExam creates a new exam with business logic validation
-func (m *ExamMgmt) CreateExam(ctx context.Context, exam *entity.Exam) error {
+func (m *ExamService) CreateExam(ctx context.Context, exam *entity.Exam) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_title": exam.Title,
 		"exam_type":  exam.ExamType,
@@ -78,7 +78,7 @@ func (m *ExamMgmt) CreateExam(ctx context.Context, exam *entity.Exam) error {
 }
 
 // GetExamByID retrieves an exam by ID
-func (m *ExamMgmt) GetExamByID(ctx context.Context, id string) (*entity.Exam, error) {
+func (m *ExamService) GetExamByID(ctx context.Context, id string) (*entity.Exam, error) {
 	m.logger.WithField("exam_id", id).Debug("Getting exam by ID")
 
 	if id == "" {
@@ -95,7 +95,7 @@ func (m *ExamMgmt) GetExamByID(ctx context.Context, id string) (*entity.Exam, er
 }
 
 // UpdateExam updates an existing exam
-func (m *ExamMgmt) UpdateExam(ctx context.Context, exam *entity.Exam) error {
+func (m *ExamService) UpdateExam(ctx context.Context, exam *entity.Exam) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_id":    exam.ID,
 		"exam_title": exam.Title,
@@ -131,7 +131,7 @@ func (m *ExamMgmt) UpdateExam(ctx context.Context, exam *entity.Exam) error {
 }
 
 // DeleteExam deletes an exam with dependency checks
-func (m *ExamMgmt) DeleteExam(ctx context.Context, examID string) error {
+func (m *ExamService) DeleteExam(ctx context.Context, examID string) error {
 	m.logger.WithField("exam_id", examID).Info("Deleting exam")
 
 	if examID == "" {
@@ -166,7 +166,7 @@ func (m *ExamMgmt) DeleteExam(ctx context.Context, examID string) error {
 }
 
 // PublishExam publishes an exam (changes status to ACTIVE)
-func (m *ExamMgmt) PublishExam(ctx context.Context, examID string) error {
+func (m *ExamService) PublishExam(ctx context.Context, examID string) error {
 	m.logger.WithField("exam_id", examID).Info("Publishing exam")
 
 	if examID == "" {
@@ -206,7 +206,7 @@ func (m *ExamMgmt) PublishExam(ctx context.Context, examID string) error {
 }
 
 // ArchiveExam archives an exam (changes status to ARCHIVED)
-func (m *ExamMgmt) ArchiveExam(ctx context.Context, examID string) error {
+func (m *ExamService) ArchiveExam(ctx context.Context, examID string) error {
 	m.logger.WithField("exam_id", examID).Info("Archiving exam")
 
 	if examID == "" {
@@ -224,7 +224,7 @@ func (m *ExamMgmt) ArchiveExam(ctx context.Context, examID string) error {
 }
 
 // ListExams lists exams with pagination and filtering
-func (m *ExamMgmt) ListExams(ctx context.Context, filters *interfaces.ExamFilters, pagination *interfaces.Pagination) ([]*entity.Exam, int, error) {
+func (m *ExamService) ListExams(ctx context.Context, filters *interfaces.ExamFilters, pagination *interfaces.Pagination) ([]*entity.Exam, int, error) {
 	m.logger.Debug("Listing exams")
 
 	exams, total, err := m.examRepo.List(ctx, filters, pagination)
@@ -242,7 +242,7 @@ func (m *ExamMgmt) ListExams(ctx context.Context, filters *interfaces.ExamFilter
 }
 
 // AddQuestionToExam adds a question to an exam
-func (m *ExamMgmt) AddQuestionToExam(ctx context.Context, examID, questionID string, points int) error {
+func (m *ExamService) AddQuestionToExam(ctx context.Context, examID, questionID string, points int) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_id":     examID,
 		"question_id": questionID,
@@ -293,7 +293,7 @@ func (m *ExamMgmt) AddQuestionToExam(ctx context.Context, examID, questionID str
 }
 
 // RemoveQuestionFromExam removes a question from an exam
-func (m *ExamMgmt) RemoveQuestionFromExam(ctx context.Context, examID, questionID string) error {
+func (m *ExamService) RemoveQuestionFromExam(ctx context.Context, examID, questionID string) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_id":     examID,
 		"question_id": questionID,
@@ -332,7 +332,7 @@ func (m *ExamMgmt) RemoveQuestionFromExam(ctx context.Context, examID, questionI
 }
 
 // GetExamQuestions retrieves all questions for an exam
-func (m *ExamMgmt) GetExamQuestions(ctx context.Context, examID string) ([]*entity.ExamQuestion, error) {
+func (m *ExamService) GetExamQuestions(ctx context.Context, examID string) ([]*entity.ExamQuestion, error) {
 	m.logger.WithField("exam_id", examID).Debug("Getting exam questions")
 
 	if examID == "" {
