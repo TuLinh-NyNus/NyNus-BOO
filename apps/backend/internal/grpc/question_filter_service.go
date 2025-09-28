@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	question_filter "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 
 	"google.golang.org/grpc/codes"
@@ -14,13 +14,13 @@ import (
 // QuestionFilterServiceServer implements the QuestionFilterService gRPC server
 type QuestionFilterServiceServer struct {
 	v1.UnimplementedQuestionFilterServiceServer
-	questionFilterMgmt *question_filter.QuestionFilterMgmt
+	questionFilterService *question.QuestionFilterService
 }
 
 // NewQuestionFilterServiceServer creates a new QuestionFilterServiceServer
-func NewQuestionFilterServiceServer(questionFilterMgmt *question_filter.QuestionFilterMgmt) *QuestionFilterServiceServer {
+func NewQuestionFilterServiceServer(questionFilterService *question.QuestionFilterService) *QuestionFilterServiceServer {
 	return &QuestionFilterServiceServer{
-		questionFilterMgmt: questionFilterMgmt,
+		questionFilterService: questionFilterService,
 	}
 }
 
@@ -42,7 +42,7 @@ func (s *QuestionFilterServiceServer) ListQuestionsByFilter(ctx context.Context,
 	// }
 
 	// Call question filter management layer
-	response, err := s.questionFilterMgmt.ListQuestionsByFilter(ctx, req)
+	response, err := s.questionFilterService.ListQuestionsByFilter(ctx, req)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to filter questions: %v", err)
 	}
@@ -64,7 +64,7 @@ func (s *QuestionFilterServiceServer) SearchQuestions(ctx context.Context, req *
 	// }
 
 	// Call question filter management layer
-	response, err := s.questionFilterMgmt.SearchQuestions(ctx, req)
+	response, err := s.questionFilterService.SearchQuestions(ctx, req)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to search questions: %v", err)
 	}
@@ -86,7 +86,7 @@ func (s *QuestionFilterServiceServer) GetQuestionsByQuestionCode(ctx context.Con
 	// }
 
 	// Call question filter management layer
-	response, err := s.questionFilterMgmt.GetQuestionsByQuestionCode(ctx, req)
+	response, err := s.questionFilterService.GetQuestionsByQuestionCode(ctx, req)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get questions by QuestionCode: %v", err)
 	}

@@ -9,7 +9,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/latex"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	question "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_mgmt"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
@@ -23,13 +23,13 @@ import (
 // QuestionServiceServer implements the QuestionService gRPC server
 type QuestionServiceServer struct {
 	v1.UnimplementedQuestionServiceServer
-	questionMgmt *question.QuestionMgmt
+	questionService *question.QuestionService
 }
 
 // NewQuestionServiceServer creates a new QuestionServiceServer
-func NewQuestionServiceServer(questionMgmt *question.QuestionMgmt) *QuestionServiceServer {
+func NewQuestionServiceServer(questionService *question.QuestionService) *QuestionServiceServer {
 	return &QuestionServiceServer{
-		questionMgmt: questionMgmt,
+		questionService: questionService,
 	}
 }
 
@@ -66,7 +66,7 @@ func (s *QuestionServiceServer) GetQuestion(ctx context.Context, req *v1.GetQues
 	}
 
 	// Get question from service management layer
-	question, err := s.questionMgmt.GetQuestionByID(ctx, req.GetId())
+	question, err := s.questionService.GetQuestionByID(ctx, req.GetId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get question: %v", err)
 	}
@@ -106,8 +106,8 @@ func (s *QuestionServiceServer) ListQuestions(ctx context.Context, req *v1.ListQ
 	// Calculate offset from page and limit
 	offset := int(page-1) * int(limit)
 
-	// Call QuestionMgmt to get questions list with paging
-	total, questions, err := s.questionMgmt.GetQuestionsByPaging(offset, int(limit))
+	// Call QuestionService to get questions list with paging
+	total, questions, err := s.questionService.GetQuestionsByPaging(offset, int(limit))
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get questions list: %v", err)
 	}
@@ -173,8 +173,8 @@ func (s *QuestionServiceServer) ImportQuestions(ctx context.Context, req *v1.Imp
 		UpsertMode:    req.GetUpsertMode(),
 	}
 
-	// Call QuestionMgmt to import questions
-	result, err := s.questionMgmt.ImportQuestions(ctx, serviceReq)
+	// Call QuestionService to import questions
+	result, err := s.questionService.ImportQuestions(ctx, serviceReq)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to import questions: %v", err)
 	}
@@ -438,11 +438,11 @@ func (s *QuestionServiceServer) CreateQuestionFromLatex(ctx context.Context, req
 		for _, parsedCode := range parsedCodes {
 			// Check if code already exists
 			code := util.PgTextToString(parsedCode.Code)
-			existingCode, _ := s.questionMgmt.GetQuestionCodeByID(ctx, code)
+			existingCode, _ := s.questionService.GetQuestionCodeByID(ctx, code)
 			if existingCode == nil {
 				// Create new question code (parsedCode is already entity.QuestionCode)
 				newCode := &parsedCode
-				err := s.questionMgmt.CreateQuestionCode(ctx, newCode)
+				err := s.questionService.CreateQuestionCode(ctx, newCode)
 				if err != nil {
 					warnings = append(warnings, fmt.Sprintf("Failed to create question code %s: %v", code, err))
 				}
@@ -468,7 +468,7 @@ func (s *QuestionServiceServer) CreateQuestionFromLatex(ctx context.Context, req
 
 		// Verify question code exists if required
 		if questionCodeID != "" && !req.GetAutoCreateCodes() {
-			existingCode, err := s.questionMgmt.GetQuestionCodeByID(ctx, questionCodeID)
+			existingCode, err := s.questionService.GetQuestionCodeByID(ctx, questionCodeID)
 			if err != nil || existingCode == nil {
 				warnings = append(warnings, fmt.Sprintf("Skipped question: question code %s does not exist (enable auto_create_codes to create automatically)", questionCodeID))
 				failedCount++
@@ -485,7 +485,7 @@ func (s *QuestionServiceServer) CreateQuestionFromLatex(ctx context.Context, req
 		}
 
 		// Create question in database
-		err := s.questionMgmt.CreateQuestion(ctx, entityQuestion)
+		err := s.questionService.CreateQuestion(ctx, entityQuestion)
 		if err != nil {
 			warnings = append(warnings, fmt.Sprintf("Failed to create question with code %s: %v", questionCodeID, err))
 			failedCount++
@@ -502,7 +502,7 @@ func (s *QuestionServiceServer) CreateQuestionFromLatex(ctx context.Context, req
 		for _, parsedCode := range parsedCodes {
 			// Retrieve the created code
 			code := util.PgTextToString(parsedCode.Code)
-			createdCode, err := s.questionMgmt.GetQuestionCodeByID(ctx, code)
+			createdCode, err := s.questionService.GetQuestionCodeByID(ctx, code)
 			if err == nil && createdCode != nil {
 				// Extract code components
 				codeStr := util.PgTextToString(createdCode.Code)
@@ -626,10 +626,10 @@ func (s *QuestionServiceServer) ImportLatex(ctx context.Context, req *v1.ImportL
 	if req.GetAutoCreateCodes() {
 		for code, questionCode := range codeMap {
 			// Check if code already exists
-			existingCode, _ := s.questionMgmt.GetQuestionCodeByID(ctx, code)
+			existingCode, _ := s.questionService.GetQuestionCodeByID(ctx, code)
 			if existingCode == nil {
 				// Create new question code
-				err := s.questionMgmt.CreateQuestionCode(ctx, questionCode)
+				err := s.questionService.CreateQuestionCode(ctx, questionCode)
 				if err != nil {
 					warnings = append(warnings, fmt.Sprintf("Failed to create question code %s: %v", code, err))
 				} else {
@@ -663,7 +663,7 @@ func (s *QuestionServiceServer) ImportLatex(ctx context.Context, req *v1.ImportL
 
 		// Verify question code exists if required
 		if questionCodeID != "" && !req.GetAutoCreateCodes() {
-			existingCode, err := s.questionMgmt.GetQuestionCodeByID(ctx, questionCodeID)
+			existingCode, err := s.questionService.GetQuestionCodeByID(ctx, questionCodeID)
 			if err != nil || existingCode == nil {
 				skippedCount++
 				errors = append(errors, &v1.ImportError{
@@ -681,7 +681,7 @@ func (s *QuestionServiceServer) ImportLatex(ctx context.Context, req *v1.ImportL
 			subcount := util.PgTextToString(parsedQuestion.Subcount)
 			if subcount != "" {
 				// Search for existing question with same subcount
-				existingQuestions, _, err := s.questionMgmt.SearchQuestions(ctx, &question.SearchOptions{
+				existingQuestions, _, err := s.questionService.SearchQuestions(ctx, &question.SearchOptions{
 					Query:           subcount,
 					SearchInContent: false,
 					CaseSensitive:   true,
@@ -700,7 +700,7 @@ func (s *QuestionServiceServer) ImportLatex(ctx context.Context, req *v1.ImportL
 					existingQuestion.Answers = parsedQuestion.Answers
 					existingQuestion.CorrectAnswer = parsedQuestion.CorrectAnswer
 
-					err = s.questionMgmt.UpdateQuestion(ctx, existingQuestion)
+					err = s.questionService.UpdateQuestion(ctx, existingQuestion)
 					if err != nil {
 						errors = append(errors, &v1.ImportError{
 							RowNumber:    int32(i + 1),
@@ -726,7 +726,7 @@ func (s *QuestionServiceServer) ImportLatex(ctx context.Context, req *v1.ImportL
 		entityQuestion.ID = util.StringToPgText(uuid.New().String())
 
 		// Create question
-		err = s.questionMgmt.CreateQuestion(ctx, entityQuestion)
+		err = s.questionService.CreateQuestion(ctx, entityQuestion)
 		if err != nil {
 			errors = append(errors, &v1.ImportError{
 				RowNumber:    int32(i + 1),

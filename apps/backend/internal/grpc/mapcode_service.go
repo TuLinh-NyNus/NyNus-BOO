@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
+	mapcode "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"

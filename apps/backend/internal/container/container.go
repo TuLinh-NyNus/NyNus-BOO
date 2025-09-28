@@ -13,7 +13,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/redis"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system"
+	system "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/oauth"
@@ -23,8 +23,7 @@ import (
 	exam_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
 	image_processing "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/image_processing"
 	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/newsletter"
-	question_filter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
-	question_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_mgmt"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
 	mapcode_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/analytics"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/performance"
@@ -69,8 +68,8 @@ type Container struct {
 
 	// Services
 	AuthMgmt              *auth.AuthMgmt
-	QuestionMgmt          *question_mgmt.QuestionMgmt
-	QuestionFilterMgmt    *question_filter_mgmt.QuestionFilterMgmt
+	QuestionService       *question.QuestionService
+	QuestionFilterService *question.QuestionFilterService
 	ExamMgmt              *exam_mgmt.ExamMgmt
 	ContactMgmt           *contact_mgmt.ContactMgmt
 	NewsletterMgmt        *newsletter_mgmt.NewsletterMgmt
@@ -252,7 +251,7 @@ func (c *Container) initServices() {
 		}
 	}
 
-	c.QuestionMgmt = question_mgmt.NewQuestionMgmt(
+	c.QuestionService = question.NewQuestionService(
 		c.QuestionRepo,
 		c.QuestionCodeRepo,
 		c.QuestionImageRepo,
@@ -260,8 +259,8 @@ func (c *Container) initServices() {
 		logger,
 	)
 
-	// Initialize QuestionFilterMgmt with database connection and OpenSearch client
-	c.QuestionFilterMgmt = question_filter_mgmt.NewQuestionFilterMgmt(c.DB, c.OpenSearchClient)
+	// Initialize QuestionFilterService with database connection and OpenSearch client
+	c.QuestionFilterService = question.NewQuestionFilterService(c.DB, c.OpenSearchClient)
 
 	// Initialize ScoringService first
 	scoringService := scoring.NewScoringService()
@@ -376,8 +375,8 @@ func (c *Container) initGRPCServices() {
 		bcryptCost,
 	)
 
-	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionMgmt)
-	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.QuestionFilterMgmt)
+	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionService)
+	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.QuestionFilterService)
 	c.ExamGRPCService = grpc.NewExamServiceServer(c.ExamMgmt, c.AutoGradingService)
 	c.ProfileGRPCService = grpc.NewProfileServiceServer(
 		c.UserRepoWrapper,
@@ -411,14 +410,14 @@ func (c *Container) GetAuthMgmt() *auth.AuthMgmt {
 	return c.AuthMgmt
 }
 
-// GetQuestionMgmt returns the question management service
-func (c *Container) GetQuestionMgmt() *question_mgmt.QuestionMgmt {
-	return c.QuestionMgmt
+// GetQuestionService returns the question management service
+func (c *Container) GetQuestionService() *question.QuestionService {
+	return c.QuestionService
 }
 
-// GetQuestionFilterMgmt returns the question filter management service
-func (c *Container) GetQuestionFilterMgmt() *question_filter_mgmt.QuestionFilterMgmt {
-	return c.QuestionFilterMgmt
+// GetQuestionFilterService returns the question filter management service
+func (c *Container) GetQuestionFilterService() *question.QuestionFilterService {
+	return c.QuestionFilterService
 }
 
 // GetExamMgmt returns the exam management service
