@@ -5,7 +5,7 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	userService "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/user"
+	userDomain "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/domain"
 )
 
 type IUserService interface {
@@ -17,12 +17,12 @@ type IUserService interface {
 
 type UserMgmt struct {
 	DB          database.QueryExecer
-	UserService IUserService
+	UserService *userDomain.UserService
 }
 
 func NewUserMgmt(db database.QueryExecer) *UserMgmt {
 	return &UserMgmt{
 		DB:          db,
-		UserService: userService.NewUserService(),
+		UserService: userDomain.NewUserService(),
 	}
 }

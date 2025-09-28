@@ -1,4 +1,4 @@
-package image_upload_mgmt
+package image_upload
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/image_processing"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/image_processing"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 )
 

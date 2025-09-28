@@ -11,7 +11,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/latex"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/image_processing"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/image_processing"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"

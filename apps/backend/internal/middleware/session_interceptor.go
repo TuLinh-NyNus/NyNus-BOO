@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

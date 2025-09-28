@@ -7,7 +7,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/scoring"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"

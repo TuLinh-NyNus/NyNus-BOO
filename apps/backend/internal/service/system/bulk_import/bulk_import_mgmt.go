@@ -1,4 +1,4 @@
-package bulk_import_mgmt
+package bulk_import
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/latex"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/parse_error_mgmt"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/parse_error"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 )
 

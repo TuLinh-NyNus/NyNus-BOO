@@ -6,7 +6,7 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/constant"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 
 	"google.golang.org/grpc"
