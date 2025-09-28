@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/newsletter"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/newsletter"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/grpc/codes"

@@ -8,7 +8,7 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/notification"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 

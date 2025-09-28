@@ -1,4 +1,4 @@
-package auth_mgmt
+package auth
 
 func (a *AuthMgmt) IsAdmin(userID string) (bool, error) {
 	return a.AuthService.IsAdmin(a.DB, userID)

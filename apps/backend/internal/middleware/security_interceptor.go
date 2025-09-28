@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/security"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/security"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

@@ -15,7 +15,7 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/oauth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"

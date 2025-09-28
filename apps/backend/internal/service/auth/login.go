@@ -1,4 +1,4 @@
-package auth_mgmt
+package auth
 
 import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"

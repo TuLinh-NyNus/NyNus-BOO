@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 )
 
 // AuthServiceInterface defines the contract for authentication operations

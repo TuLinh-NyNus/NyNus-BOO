@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service"
+	system "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -17,11 +17,11 @@ import (
 
 // ResourceProtectionInterceptor protects resources with automatic risk assessment
 type ResourceProtectionInterceptor struct {
-	protectionService *service.ResourceProtectionService
+	protectionService *system.ResourceProtectionService
 }
 
 // NewResourceProtectionInterceptor creates a new resource protection interceptor
-func NewResourceProtectionInterceptor(protectionService *service.ResourceProtectionService) *ResourceProtectionInterceptor {
+func NewResourceProtectionInterceptor(protectionService *system.ResourceProtectionService) *ResourceProtectionInterceptor {
 	return &ResourceProtectionInterceptor{
 		protectionService: protectionService,
 	}
@@ -113,7 +113,7 @@ func (i *ResourceProtectionInterceptor) StreamInterceptor(
 }
 
 // extractResourceAccess extracts resource access information from the request
-func (i *ResourceProtectionInterceptor) extractResourceAccess(ctx context.Context, req interface{}, method string) (bool, *service.ResourceAccessAttempt) {
+func (i *ResourceProtectionInterceptor) extractResourceAccess(ctx context.Context, req interface{}, method string) (bool, *system.ResourceAccessAttempt) {
 	// Define which methods need protection
 	protectedMethods := map[string]string{
 		"/v1.ExamService/GetExam":         "EXAM",
@@ -144,7 +144,7 @@ func (i *ResourceProtectionInterceptor) extractResourceAccess(ctx context.Contex
 	// Extract resource ID and action from request
 	resourceID, action := i.extractResourceDetails(req, method)
 
-	attempt := &service.ResourceAccessAttempt{
+	attempt := &system.ResourceAccessAttempt{
 		UserID:       userID,
 		ResourceType: resourceType,
 		ResourceID:   resourceID,
@@ -234,7 +234,7 @@ func (i *ResourceProtectionInterceptor) getSessionToken(ctx context.Context) str
 }
 
 // logFailedAccess logs a failed access attempt with higher risk score
-func (i *ResourceProtectionInterceptor) logFailedAccess(ctx context.Context, attempt *service.ResourceAccessAttempt) {
+func (i *ResourceProtectionInterceptor) logFailedAccess(ctx context.Context, attempt *system.ResourceAccessAttempt) {
 	// Create a new attempt with failed status
 	failedAttempt := *attempt
 	failedAttempt.Metadata["failed"] = true
@@ -247,8 +247,8 @@ func (i *ResourceProtectionInterceptor) logFailedAccess(ctx context.Context, att
 // resourceProtectedStream wraps grpc.ServerStream for resource protection
 type resourceProtectedStream struct {
 	grpc.ServerStream
-	protectionService *service.ResourceProtectionService
-	attempt           *service.ResourceAccessAttempt
+	protectionService *system.ResourceProtectionService
+	attempt           *system.ResourceAccessAttempt
 	startTime         time.Time
 	bytesStreamed     int64
 }
@@ -286,13 +286,13 @@ func (s *resourceProtectedStream) Context() context.Context {
 }
 
 // RiskAssessmentUnaryInterceptor provides a simplified interceptor for risk assessment only
-func RiskAssessmentUnaryInterceptor(protectionService *service.ResourceProtectionService) grpc.UnaryServerInterceptor {
+func RiskAssessmentUnaryInterceptor(protectionService *system.ResourceProtectionService) grpc.UnaryServerInterceptor {
 	interceptor := NewResourceProtectionInterceptor(protectionService)
 	return interceptor.UnaryInterceptor
 }
 
 // RiskAssessmentStreamInterceptor provides a simplified interceptor for risk assessment only
-func RiskAssessmentStreamInterceptor(protectionService *service.ResourceProtectionService) grpc.StreamServerInterceptor {
+func RiskAssessmentStreamInterceptor(protectionService *system.ResourceProtectionService) grpc.StreamServerInterceptor {
 	interceptor := NewResourceProtectionInterceptor(protectionService)
 	return interceptor.StreamInterceptor
 }

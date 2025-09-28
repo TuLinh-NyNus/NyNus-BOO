@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/grpc/codes"

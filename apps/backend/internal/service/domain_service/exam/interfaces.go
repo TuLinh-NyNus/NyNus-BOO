@@ -2,7 +2,7 @@ package exam
 
 import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 )
 
 // RepositoryInterface defines the contract for exam data access

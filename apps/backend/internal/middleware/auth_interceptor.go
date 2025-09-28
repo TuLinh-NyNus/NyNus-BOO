@@ -7,7 +7,7 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/constant"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
-	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -114,7 +114,7 @@ var rbacDecider = map[string][]string{
 }
 
 type AuthInterceptor struct {
-	authService     *auth_mgmt.AuthMgmt
+	authService     *auth.AuthMgmt
 	sessionService  *session.SessionService
 	userRepo        repository.IUserRepository
 	publicMethods   map[string]bool
@@ -124,7 +124,7 @@ type AuthInterceptor struct {
 }
 
 func NewAuthInterceptor(
-	authService *auth_mgmt.AuthMgmt,
+	authService *auth.AuthMgmt,
 	sessionService *session.SessionService,
 	userRepo repository.IUserRepository,
 ) *AuthInterceptor {

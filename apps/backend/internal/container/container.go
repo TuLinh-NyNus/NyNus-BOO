@@ -13,23 +13,22 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/redis"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/notification"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/oauth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/scoring"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
-	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
-	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/contact"
+	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/contact"
 	exam_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
 	image_processing "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/image_processing"
-	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/newsletter"
+	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/newsletter"
 	question_filter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
 	question_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_mgmt"
-	mapcode_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/mapcode_mgmt"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/analytics"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/performance"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/security"
+	mapcode_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/analytics"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/performance"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/security"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
 	"github.com/sirupsen/logrus"
 )
@@ -69,7 +68,7 @@ type Container struct {
 	MapCodeTranslationRepo *repository.MapCodeTranslationRepository
 
 	// Services
-	AuthMgmt              *auth_mgmt.AuthMgmt
+	AuthMgmt              *auth.AuthMgmt
 	QuestionMgmt          *question_mgmt.QuestionMgmt
 	QuestionFilterMgmt    *question_filter_mgmt.QuestionFilterMgmt
 	ExamMgmt              *exam_mgmt.ExamMgmt
@@ -82,7 +81,7 @@ type Container struct {
 	OAuthService          *oauth.OAuthService
 	SessionService        *session.SessionService
 	NotificationSvc       *notification.NotificationService
-	ResourceProtectionSvc *service.ResourceProtectionService
+	ResourceProtectionSvc *system.ResourceProtectionService
 	EmailService          *email.EmailService
 	PerformanceService    *performance.PerformanceService
 
@@ -217,7 +216,7 @@ func (c *Container) initRepositories() {
 // initServices initializes all service dependencies
 func (c *Container) initServices() {
 	// Auth management service following the new clean pattern
-	c.AuthMgmt = auth_mgmt.NewAuthMgmt(c.DB, c.JWTSecret)
+	c.AuthMgmt = auth.NewAuthMgmt(c.DB, c.JWTSecret)
 
 
 
@@ -325,7 +324,7 @@ func (c *Container) initServices() {
 	c.EmailService = email.NewEmailService()
 
 	// Resource Protection Service
-	c.ResourceProtectionSvc = service.NewResourceProtectionService(
+	c.ResourceProtectionSvc = system.NewResourceProtectionService(
 		c.ResourceAccessRepo,
 		c.UserRepoWrapper,
 		c.AuditLogRepo,
@@ -408,7 +407,7 @@ func (c *Container) GetAnswerRepository() *repository.AnswerRepository {
 }
 
 // GetAuthMgmt returns the auth management service
-func (c *Container) GetAuthMgmt() *auth_mgmt.AuthMgmt {
+func (c *Container) GetAuthMgmt() *auth.AuthMgmt {
 	return c.AuthMgmt
 }
 

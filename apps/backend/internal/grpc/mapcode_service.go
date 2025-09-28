@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/mapcode_mgmt"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -13,11 +13,11 @@ import (
 // MapCodeServiceServer implements the MapCode gRPC service
 type MapCodeServiceServer struct {
 	pb.UnimplementedMapCodeServiceServer
-	mapCodeMgmt *mapcode_mgmt.MapCodeMgmt
+	mapCodeMgmt *mapcode.MapCodeMgmt
 }
 
 // NewMapCodeServiceServer creates a new MapCode service server
-func NewMapCodeServiceServer(mapCodeMgmt *mapcode_mgmt.MapCodeMgmt) *MapCodeServiceServer {
+func NewMapCodeServiceServer(mapCodeMgmt *mapcode.MapCodeMgmt) *MapCodeServiceServer {
 	return &MapCodeServiceServer{
 		mapCodeMgmt: mapCodeMgmt,
 	}
