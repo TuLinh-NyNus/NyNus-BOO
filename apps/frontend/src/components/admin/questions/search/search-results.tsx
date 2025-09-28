@@ -98,13 +98,15 @@ export function SearchResultItem({
     const difficultyColors = {
       EASY: 'bg-green-100 text-green-800',
       MEDIUM: 'bg-yellow-100 text-yellow-800',
-      HARD: 'bg-red-100 text-red-800'
+      HARD: 'bg-red-100 text-red-800',
+      EXPERT: 'bg-purple-100 text-purple-800'
     };
 
     const difficultyLabels = {
       EASY: 'Dễ',
       MEDIUM: 'Trung bình',
-      HARD: 'Khó'
+      HARD: 'Khó',
+      EXPERT: 'Chuyên gia'
     };
 
     return (

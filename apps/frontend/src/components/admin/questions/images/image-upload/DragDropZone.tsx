@@ -26,7 +26,7 @@ export function DragDropZone({
   children,
 }: DragDropZoneProps) {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [_dragCounter, setDragCounter] = useState(0);
+  const [dragCounter, setDragCounter] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Handle drag events
@@ -74,8 +74,13 @@ export function DragDropZone({
     if (imageFiles.length > 0) {
       const limitedFiles = imageFiles.slice(0, maxFiles);
       onFilesDropped(limitedFiles);
+
+      // Debug info for development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Drag drop completed. Counter was: ${dragCounter}, Files: ${limitedFiles.length}`);
+      }
     }
-  }, [isUploading, maxFiles, onFilesDropped]);
+  }, [isUploading, maxFiles, onFilesDropped, dragCounter]);
 
   // Handle file input change
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

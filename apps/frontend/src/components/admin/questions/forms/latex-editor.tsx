@@ -115,8 +115,8 @@ export function LaTeXEditor({
   
   const [isPreviewVisible, setIsPreviewVisible] = useState(showPreview);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [_cursorPosition, setCursorPosition] = useState(0);
-  const [_selectedTemplate, _setSelectedTemplate] = useState<string | null>(null);
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
@@ -134,18 +134,20 @@ export function LaTeXEditor({
   
   const handleInsertTemplate = useCallback((template: string) => {
     if (!textareaRef.current) return;
-    
+
     const textarea = textareaRef.current;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const newValue = value.substring(0, start) + template + value.substring(end);
-    
+
     onChange(newValue);
-    
+    setSelectedTemplate(template);
+
     // Set cursor position after template
     setTimeout(() => {
       textarea.focus();
       textarea.setSelectionRange(start + template.length, start + template.length);
+      setCursorPosition(start + template.length);
     }, 0);
   }, [value, onChange]);
   
@@ -160,6 +162,14 @@ export function LaTeXEditor({
   const handleToggleFullscreen = useCallback(() => {
     setIsFullscreen(!isFullscreen);
   }, [isFullscreen]);
+
+  /**
+   * Handle cursor position change
+   */
+  const handleCursorChange = useCallback((event: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const target = event.target as HTMLTextAreaElement;
+    setCursorPosition(target.selectionStart);
+  }, []);
   
   // ===== RENDER HELPERS =====
   
@@ -265,7 +275,7 @@ export function LaTeXEditor({
               {category.items.map((item) => (
                 <Button
                   key={item.name}
-                  variant="outline"
+                  variant={selectedTemplate === item.code ? "default" : "outline"}
                   size="sm"
                   className="justify-start text-xs h-auto p-2"
                   onClick={() => handleInsertTemplate(item.code)}
@@ -346,6 +356,9 @@ export function LaTeXEditor({
                   ref={textareaRef}
                   value={value}
                   onChange={handleTextChange}
+                  onSelect={handleCursorChange}
+                  onKeyUp={handleCursorChange}
+                  onClick={handleCursorChange}
                   placeholder={placeholder}
                   disabled={disabled}
                   className="border-0 resize-none focus-visible:ring-0 rounded-none"
@@ -390,6 +403,20 @@ export function LaTeXEditor({
         {renderValidationErrors()}
       </CardContent>
       
+      {/* Status Bar */}
+      <div className="px-4 py-2 border-t bg-muted/50 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <span>Độ dài: {value.length} ký tự</span>
+          <span>Vị trí con trỏ: {cursorPosition}</span>
+          <span>Dòng: {value.substring(0, cursorPosition).split('\n').length}</span>
+        </div>
+        {validation.isValid ? (
+          <span className="text-green-600">✓ LaTeX hợp lệ</span>
+        ) : (
+          <span className="text-red-600">⚠ Có lỗi LaTeX</span>
+        )}
+      </div>
+
       {/* Help */}
       <div className="p-4 border-t bg-muted/50">
         <Alert>

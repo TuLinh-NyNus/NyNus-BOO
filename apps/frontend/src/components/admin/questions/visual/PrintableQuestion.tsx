@@ -74,7 +74,8 @@ export function PrintableQuestion({
     const labels = {
       [QuestionDifficulty.EASY]: 'Dễ',
       [QuestionDifficulty.MEDIUM]: 'Trung bình',
-      [QuestionDifficulty.HARD]: 'Khó'
+      [QuestionDifficulty.HARD]: 'Khó',
+      [QuestionDifficulty.EXPERT]: 'Chuyên gia'
     };
     return labels[difficulty] || difficulty;
   };

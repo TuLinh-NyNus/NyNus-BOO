@@ -36,7 +36,8 @@ import { QuestionContentFilters } from "./question-content-filters";
 import { QuestionUsageFilters } from "./question-usage-filters";
 import { QuestionSearchFilters } from "./question-search-filters";
 import { FilterPresets } from "./filter-presets";
-import { FilterChips as _FilterChips } from "./filter-chips";
+// TODO: FilterChips sẽ được sử dụng trong tương lai
+// import { FilterChips } from "./filter-chips";
 import { SmartFilterInteractions } from "./smart-filter-interactions";
 import { FilterValidationUI } from "./filter-validation-ui";
 import { FilterHelpSystem } from "./filter-help-system";

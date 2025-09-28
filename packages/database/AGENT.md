@@ -210,20 +210,15 @@ make seed                      # Seed default data
 
 ### Manual Migration Commands
 ```bash
-# Using golang-migrate directly
-migrate -path packages/database/migrations \
-        -database "postgres://exam_bank_user:exam_bank_password@localhost:5432/exam_bank_db?sslmode=disable" \
-        up
+# Using custom migrator (recommended)
+# Migrations are automatically run when starting the application
+go run apps/backend/cmd/main.go
 
-# Check migration status
-migrate -path packages/database/migrations \
-        -database "postgres://..." \
-        version
+# Manual migration using scripts
+./scripts/database/gen-db.sh migrate
 
-# Rollback migrations
-migrate -path packages/database/migrations \
-        -database "postgres://..." \
-        down 1
+# Check migration status (connect to database)
+psql -h localhost -p 5439 -U exam_bank_user -d exam_bank_db -c "SELECT version, dirty, applied_at FROM schema_migrations ORDER BY version;"
 ```
 
 ## 🔧 Database Configuration
@@ -305,12 +300,11 @@ CREATE INDEX idx_refresh_tokens_expires_at ON refresh_tokens(expires_at);
 ### Adding New Migration
 1. **Create migration files**:
 ```bash
-# Create new migration
-migrate create -ext sql -dir packages/database/migrations -seq new_feature_name
-
-# This creates:
-# 000007_new_feature_name.up.sql
-# 000007_new_feature_name.down.sql
+# Create new migration files manually in apps/backend/internal/database/migrations/
+# Follow naming convention: 000XXX_feature_name.up.sql and 000XXX_feature_name.down.sql
+# Example:
+# 000010_new_feature_name.up.sql
+# 000010_new_feature_name.down.sql
 ```
 
 2. **Write up migration** (000007_new_feature_name.up.sql):
@@ -359,19 +353,13 @@ ALTER TABLE users DROP COLUMN old_column;
 ### 1. Migration Fails
 ```bash
 # Check migration status
-migrate -path packages/database/migrations \
-        -database "postgres://..." \
-        version
+psql -h localhost -p 5439 -U exam_bank_user -d exam_bank_db -c "SELECT version, dirty, applied_at FROM schema_migrations ORDER BY version;"
 
-# Force migration version (if needed)
-migrate -path packages/database/migrations \
-        -database "postgres://..." \
-        force 5
+# Check application logs for migration status
+# Migrations run automatically on application startup
 
-# Rollback and retry
-migrate -path packages/database/migrations \
-        -database "postgres://..." \
-        down 1
+# Manual migration using scripts
+./scripts/database/gen-db.sh migrate
 ```
 
 ### 2. Database Connection Issues

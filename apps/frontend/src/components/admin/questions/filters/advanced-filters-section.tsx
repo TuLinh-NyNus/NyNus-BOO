@@ -44,12 +44,13 @@ const CREATOR_OPTIONS = [
   { value: 'TEACHER_003', label: 'Giáo viên Lê Văn C' }
 ];
 
-const _SOURCE_OPTIONS = [
-  { value: 'SGK', label: 'Sách giáo khoa' },
-  { value: 'SBT', label: 'Sách bài tập' },
-  { value: 'DE_THI', label: 'Đề thi' },
-  { value: 'CUSTOM', label: 'Tự soạn' }
-];
+// TODO: SOURCE_OPTIONS sẽ được implement trong tương lai
+// const SOURCE_OPTIONS = [
+//   { value: 'SGK', label: 'Sách giáo khoa' },
+//   { value: 'SBT', label: 'Sách bài tập' },
+//   { value: 'DE_THI', label: 'Đề thi' },
+//   { value: 'CUSTOM', label: 'Tự soạn' }
+// ];
 
 const POPULAR_TAGS = [
   'đạo hàm', 'tích phân', 'giới hạn', 'hình học', 'lượng giác',

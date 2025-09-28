@@ -114,7 +114,8 @@ func (qcp *QuestionCodeParser) ExtractSubcount(content string) string {
 
 	matches := re.FindStringSubmatch(content)
 	if len(matches) > 1 {
-		return strings.TrimSpace(matches[1])
+		// Return with brackets to match expected format [TL.100022]
+		return "[" + strings.TrimSpace(matches[1]) + "]"
 	}
 
 	return ""

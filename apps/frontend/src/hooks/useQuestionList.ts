@@ -102,13 +102,13 @@ export interface UseQuestionListReturn {
   selectNone: () => void;
   selectInvert: () => void;
 
-  // Sorting actions
-  setSortConfig: (config: SortConfig) => void;
-  addSortColumn: (key: QuestionSortKey, direction?: 'asc' | 'desc') => void;
-  removeSortColumn: (key: string) => void;
-  toggleSortDirection: (key: string) => void;
-  applySortPreset: (presetName: keyof typeof SORT_PRESETS) => void;
-  clearSort: () => void;
+  // Sorting actions (optional based on enableSorting)
+  setSortConfig?: (config: SortConfig) => void;
+  addSortColumn?: (key: QuestionSortKey, direction?: 'asc' | 'desc') => void;
+  removeSortColumn?: (key: string) => void;
+  toggleSortDirection?: (key: string) => void;
+  applySortPreset?: (presetName: keyof typeof SORT_PRESETS) => void;
+  clearSort?: () => void;
   
   // Bulk operations
   bulkDelete: (questionIds: string[]) => Promise<void>;
@@ -189,7 +189,7 @@ export function useQuestionList(options: UseQuestionListOptions = {}): UseQuesti
     // containerHeight = DEFAULT_CONTAINER_HEIGHT, // TODO: Use for virtual scrolling
     // enablePerformanceMonitoring = true, // TODO: Use for performance tracking
     initialSortConfig,
-    enableSorting: _enableSorting = true,
+    enableSorting = true,
     multiSort = true,
     persistSortInUrl = true,
     onError,
@@ -403,13 +403,15 @@ export function useQuestionList(options: UseQuestionListOptions = {}): UseQuesti
     selectNone,
     selectInvert,
 
-    // Sorting actions
-    setSortConfig,
-    addSortColumn,
-    removeSortColumn,
-    toggleSortDirection,
-    applySortPreset,
-    clearSort,
+    // Sorting actions (conditional based on enableSorting)
+    ...(enableSorting ? {
+      setSortConfig,
+      addSortColumn,
+      removeSortColumn,
+      toggleSortDirection,
+      applySortPreset,
+      clearSort,
+    } : {}),
 
     // Bulk operations
     bulkDelete,

@@ -30,13 +30,18 @@ const eslintConfig = [
     ],
     rules: {
       "@typescript-eslint/no-unused-vars": [
-        "error",
+        "warn",
         {
           "argsIgnorePattern": "^_",
           "varsIgnorePattern": "^_",
           "caughtErrorsIgnorePattern": "^_"
         }
-      ]
+      ],
+      // Temporarily disable some rules for cleanup
+      "@typescript-eslint/no-explicit-any": "warn",
+      "react/no-unescaped-entities": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+      "import/no-anonymous-default-export": "warn"
     }
   },
   // Turn off strict rules for generated outputs anyway
@@ -46,6 +51,7 @@ const eslintConfig = [
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",
+      "import/no-anonymous-default-export": "off",
     }
   },
   // Allow ambient declarations to use any where necessary

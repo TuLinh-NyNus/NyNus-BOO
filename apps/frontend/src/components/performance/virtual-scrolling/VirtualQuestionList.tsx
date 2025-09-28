@@ -60,6 +60,7 @@ const getDifficultyColor = (difficulty: QuestionDifficulty): string => {
     [QuestionDifficulty.EASY]: 'bg-green-100 text-green-800',
     [QuestionDifficulty.MEDIUM]: 'bg-yellow-100 text-yellow-800',
     [QuestionDifficulty.HARD]: 'bg-red-100 text-red-800',
+    [QuestionDifficulty.EXPERT]: 'bg-purple-100 text-purple-800',
   };
   return colors[difficulty] || 'bg-gray-100 text-gray-800';
 };

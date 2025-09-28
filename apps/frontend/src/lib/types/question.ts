@@ -16,13 +16,15 @@ export enum QuestionStatus {
   ACTIVE = 'ACTIVE',
   PENDING = 'PENDING',
   INACTIVE = 'INACTIVE',
-  ARCHIVED = 'ARCHIVED'
+  ARCHIVED = 'ARCHIVED',
+  DRAFT = 'DRAFT'
 }
 
 export enum QuestionDifficulty {
   EASY = 'EASY',
   MEDIUM = 'MEDIUM',
-  HARD = 'HARD'
+  HARD = 'HARD',
+  EXPERT = 'EXPERT'
 }
 
 // Answer Option interface cho multiple choice questions

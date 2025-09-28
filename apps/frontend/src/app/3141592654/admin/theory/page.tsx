@@ -74,7 +74,7 @@ export default function AdminTheoryPage() {
   // ===== STATE =====
   
   const [buildStatus, setBuildStatus] = useState<BuildStatus>(mockBuildStatus);
-  const [theoryStats, _setTheoryStats] = useState<TheoryStats>(mockTheoryStats);
+  const [theoryStats] = useState<TheoryStats>(mockTheoryStats);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // ===== HANDLERS =====

@@ -213,8 +213,8 @@ export function QuestionListSkeleton({
   layout = 'desktop',
   itemCount,
   showHeader = true,
-  showSearchInput: _showSearchInput = false,
-  showSearchStats: _showSearchStats = false,
+  showSearchInput = false,
+  showSearchStats = false,
   className = ""
 }: QuestionListSkeletonProps) {
   // Determine default item count dựa trên view mode và layout
@@ -251,8 +251,37 @@ export function QuestionListSkeleton({
 
   return (
     <div className={`question-list-skeleton ${className}`}>
+      {/* Search input skeleton */}
+      {showSearchInput && (
+        <div className="mb-4">
+          <div className="relative">
+            <Skeleton className="h-10 w-full rounded-md" />
+            <div className="absolute left-3 top-1/2 -translate-y-1/2">
+              <Skeleton className="h-4 w-4 rounded" />
+            </div>
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              <Skeleton className="h-4 w-4 rounded" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search stats skeleton */}
+      {showSearchStats && (
+        <div className="mb-4 flex items-center gap-4">
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-3 w-3 rounded" />
+            <Skeleton className="h-4 w-16" />
+          </div>
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-3 w-3 rounded" />
+            <Skeleton className="h-4 w-12" />
+          </div>
+        </div>
+      )}
+
       {renderSkeleton()}
-      
+
       {/* Loading indicator */}
       <div className="flex items-center justify-center py-4">
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">

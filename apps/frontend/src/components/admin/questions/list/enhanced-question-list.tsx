@@ -231,8 +231,8 @@ export function EnhancedQuestionList({
   const {
     optimizedQuestions,
     performanceMetrics: optimizationMetrics,
-    startMeasure: _startMeasure,
-    endMeasure: _endMeasure
+    startMeasure,
+    endMeasure
   } = useQuestionListOptimizations(questions, {
     enableMemoization: true,
     enableVirtualization: enableVirtualScrolling,
@@ -242,7 +242,7 @@ export function EnhancedQuestionList({
 
   // Accessibility features
   const {
-    announce: _announce,
+    announce,
     LiveRegion,
     containerRef: accessibilityContainerRef,
     prefersReducedMotion,
@@ -259,22 +259,44 @@ export function EnhancedQuestionList({
   }, [questions.length, optimizationMetrics]);
   
   // ===== EFFECTS =====
-  
+
+  // Performance monitoring for render cycles
+  React.useEffect(() => {
+    if (questions.length > 0) {
+      startMeasure('question-list-render');
+
+      // Announce changes for screen readers
+      const message = `Danh sách câu hỏi đã được cập nhật với ${questions.length} câu hỏi`;
+      announce(message);
+
+      // End measurement after render
+      setTimeout(() => {
+        const renderTime = endMeasure('question-list-render');
+        if (renderTime > 100) { // Log slow renders
+          console.log(`Slow render detected: ${renderTime.toFixed(2)}ms for ${questions.length} questions`);
+        }
+      }, 0);
+    }
+  }, [questions.length, startMeasure, endMeasure, announce]);
+
   // Listen for window resize để update layout
   React.useEffect(() => {
     if (propLayout) return; // Không auto-detect nếu layout được set manually
-    
+
     const handleResize = () => {
       const newLayout = detectLayout();
       if (newLayout !== detectedLayout) {
         setDetectedLayout(newLayout);
         onLayoutChange?.(newLayout);
+
+        // Announce layout change
+        announce(`Bố cục đã thay đổi thành ${newLayout === 'mobile' ? 'di động' : 'máy tính'}`);
       }
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [detectedLayout, propLayout, onLayoutChange]);
+  }, [detectedLayout, propLayout, onLayoutChange, announce]);
   
   // ===== CALLBACKS =====
   
@@ -592,6 +614,9 @@ export function EnhancedQuestionList({
           }
         </div>
       )}
+
+      {/* Accessibility live region for screen readers */}
+      <LiveRegion />
     </div>
     </QuestionListErrorBoundary>
   );

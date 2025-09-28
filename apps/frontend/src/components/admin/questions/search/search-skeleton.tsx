@@ -191,7 +191,7 @@ export function SearchSkeleton({
   variant = 'full-search',
   resultCount = 5,
   showInput = true,
-  showStats: _showStats = true,
+  showStats = true,
   showAdvancedOptions = false,
   className = ''
 }: SearchSkeletonProps) {
@@ -214,10 +214,13 @@ export function SearchSkeleton({
           <div className="space-y-4">
             {/* Search input */}
             {showInput && <SearchInputSkeleton />}
-            
+
             {/* Advanced options */}
             {showAdvancedOptions && <AdvancedOptionsSkeleton />}
-            
+
+            {/* Search stats */}
+            {showStats && <SearchStatsSkeleton />}
+
             {/* Search results */}
             <SearchResultsSkeleton resultCount={resultCount} />
           </div>

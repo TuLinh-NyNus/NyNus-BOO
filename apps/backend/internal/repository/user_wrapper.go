@@ -52,7 +52,7 @@ func (w *userRepositoryWrapper) Create(ctx context.Context, user *User) error {
 
 	_, err := w.db.ExecContext(ctx, query,
 		user.ID, user.Email, user.FirstName, user.LastName, user.PasswordHash,
-		user.Role.String(), level, username, avatar,
+		convertProtoRoleToString(user.Role), level, username, avatar,
 		googleID, user.Status, user.EmailVerified,
 		user.MaxConcurrentSessions, user.IsActive,
 		user.CreatedAt, user.UpdatedAt,
@@ -752,5 +752,23 @@ func parseUserRole(role string) common.UserRole {
 		return common.UserRole_USER_ROLE_ADMIN
 	default:
 		return common.UserRole_USER_ROLE_UNSPECIFIED
+	}
+}
+
+// convertProtoRoleToString converts proto UserRole to database string
+func convertProtoRoleToString(role common.UserRole) string {
+	switch role {
+	case common.UserRole_USER_ROLE_GUEST:
+		return "GUEST"
+	case common.UserRole_USER_ROLE_STUDENT:
+		return "STUDENT"
+	case common.UserRole_USER_ROLE_TUTOR:
+		return "TUTOR"
+	case common.UserRole_USER_ROLE_TEACHER:
+		return "TEACHER"
+	case common.UserRole_USER_ROLE_ADMIN:
+		return "ADMIN"
+	default:
+		return "STUDENT" // Default fallback
 	}
 }

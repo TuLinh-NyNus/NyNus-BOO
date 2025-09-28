@@ -291,7 +291,7 @@ docker-compose logs postgres
 ### Entry Points
 - `apps/backend/cmd/main.go` - Backend main
 - `apps/frontend/src/app/layout.tsx` - Frontend root
-- `packages/database/migrations/` - Database schema
+- `apps/backend/internal/database/migrations/` - Database schema
 
 ### Generated Code (DO NOT EDIT)
 - `packages/proto/gen/` - Generated Go code

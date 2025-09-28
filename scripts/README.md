@@ -6,6 +6,16 @@ Thư mục chứa các scripts hỗ trợ development và build process cho NyNu
 
 ```
 scripts/
+├── project/               # 🆕 Scripts quản lý dự án
+│   ├── quick-start.ps1          # Hybrid mode: Docker DB + Local apps
+│   ├── start-project.ps1        # Local development mode
+│   ├── stop-project.ps1         # Stop all services
+│   └── README.md                # Hướng dẫn project scripts
+├── docker/                # 🆕 Scripts Docker management
+│   ├── docker-dev.ps1           # Development Docker environment
+│   ├── docker-prod.ps1          # Production Docker environment
+│   ├── setup-docker.ps1         # Advanced Docker setup
+│   └── README.md                # Hướng dẫn Docker scripts
 ├── development/           # Scripts đang sử dụng cho development
 │   ├── gen-proto-web.ps1        # Script chính để generate gRPC-Web code
 │   ├── gen-admin-proto.ps1      # Script chuyên biệt cho admin proto
@@ -13,25 +23,53 @@ scripts/
 ├── setup/                 # Scripts setup môi trường
 │   ├── install-protoc.ps1       # Cài đặt protoc compiler
 │   └── setup-grpc-web.ps1       # Setup gRPC-Web dependencies
-├── database/              # Scripts database
-│   ├── setup-db.sh              # Setup database
-│   ├── setup-simple-db.sh       # Setup simple database
-│   └── gen-db.sh                # Generate database
-├── testing/               # Scripts testing
-│   ├── test.sh                  # Chạy tests
-│   └── test-apis.sh             # Test APIs
 ├── utilities/             # Scripts tiện ích
 │   ├── batch-import.sh          # Batch import data
-│   ├── clean.sh                 # Clean project
 │   └── status.sh                # Check status
-├── deprecated/            # Scripts cũ không còn sử dụng
-│   ├── README.md                # Hướng dẫn deprecated scripts
-│   ├── [protobuf scripts]       # Scripts protobuf cũ
-│   └── [bash scripts]           # Scripts bash cũ
 └── README.md             # File này
 ```
 
 ## 🚀 Scripts đang sử dụng
+
+### **🆕 Project Management Scripts**
+
+#### 1. `project/quick-start.ps1`
+**Mục đích**: Hybrid development mode - Docker database + Local applications
+
+**Sử dụng**:
+```powershell
+.\scripts\project\quick-start.ps1        # Start hybrid mode
+.\scripts\project\quick-start.ps1 -Stop  # Stop all services
+```
+
+#### 2. `project/start-project.ps1`
+**Mục đích**: Full local development mode
+
+**Sử dụng**:
+```powershell
+.\scripts\project\start-project.ps1              # Start all services
+.\scripts\project\start-project.ps1 -Backend     # Start only backend
+```
+
+#### 3. `project/stop-project.ps1`
+**Mục đích**: Stop tất cả running services
+
+### **🆕 Docker Management Scripts**
+
+#### 1. `docker/docker-dev.ps1`
+**Mục đích**: Development Docker environment
+
+**Sử dụng**:
+```powershell
+.\scripts\docker\docker-dev.ps1          # Start development services
+.\scripts\docker\docker-dev.ps1 -Build   # Force rebuild
+```
+
+#### 2. `docker/docker-prod.ps1`
+**Mục đích**: Production Docker environment
+
+#### 3. `docker/setup-docker.ps1`
+**Mục đích**: Advanced Docker setup và configuration
 
 ### **Development Scripts**
 
@@ -91,42 +129,6 @@ scripts/
 .\scripts\setup\setup-grpc-web.ps1
 ```
 
-### **Database Scripts**
-
-#### 1. `database/setup-db.sh`
-**Mục đích**: Setup database cho development
-
-**Sử dụng**:
-```bash
-./scripts/database/setup-db.sh
-```
-
-#### 2. `database/setup-simple-db.sh`
-**Mục đích**: Setup simple database configuration
-
-**Sử dụng**:
-```bash
-./scripts/database/setup-simple-db.sh
-```
-
-### **Testing Scripts**
-
-#### 1. `testing/test.sh`
-**Mục đích**: Chạy tất cả tests
-
-**Sử dụng**:
-```bash
-./scripts/testing/test.sh
-```
-
-#### 2. `testing/test-apis.sh`
-**Mục đích**: Test API endpoints
-
-**Sử dụng**:
-```bash
-./scripts/testing/test-apis.sh
-```
-
 ### **Utility Scripts**
 
 #### 1. `utilities/batch-import.sh`
@@ -137,15 +139,7 @@ scripts/
 ./scripts/utilities/batch-import.sh
 ```
 
-#### 2. `utilities/clean.sh`
-**Mục đích**: Clean project files và cache
-
-**Sử dụng**:
-```bash
-./scripts/utilities/clean.sh
-```
-
-#### 3. `utilities/status.sh`
+#### 2. `utilities/status.sh`
 **Mục đích**: Kiểm tra status của services
 
 **Sử dụng**:
@@ -163,9 +157,11 @@ scripts/
 | **Chỉ làm việc với admin** | `development/gen-admin-proto.ps1` | Nhanh hơn, chỉ admin proto |
 | **Setup môi trường mới** | `setup/install-protoc.ps1` | Cài đặt protoc compiler |
 | **Setup gRPC-Web** | `setup/setup-grpc-web.ps1` | Cài đặt gRPC-Web dependencies |
-| **Setup database** | `database/setup-db.sh` | Khởi tạo database |
-| **Chạy tests** | `testing/test.sh` | Kiểm tra code quality |
-| **Clean project** | `utilities/clean.sh` | Dọn dẹp files tạm |
+| **Setup database** | `make db-up` | Khởi tạo database với Docker |
+| **Chạy tests** | `make test` | Kiểm tra code quality |
+| **Clean project** | `make clean` | Dọn dẹp files tạm |
+| **Import CSV data** | `utilities/batch-import.sh` | Import bulk data |
+| **Check system status** | `utilities/status.sh` | Kiểm tra services health |
 | **CI/CD pipeline** | `development/gen-proto-web.ps1` | Build complete cho production |
 
 ### Yêu cầu hệ thống

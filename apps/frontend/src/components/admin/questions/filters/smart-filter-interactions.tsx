@@ -31,11 +31,12 @@ interface AutoSuggestOption {
   category?: string;
 }
 
-interface _FilterDependency {
-  field: keyof QuestionFilters;
-  dependsOn: keyof QuestionFilters;
-  getOptions: (parentValue: string[]) => AutoSuggestOption[];
-}
+// TODO: FilterDependency sẽ được implement trong tương lai
+// interface FilterDependency {
+//   field: keyof QuestionFilters;
+//   dependsOn: keyof QuestionFilters;
+//   getOptions: (parentValue: string[]) => AutoSuggestOption[];
+// }
 
 interface FilterConflict {
   fields: (keyof QuestionFilters)[];
@@ -116,7 +117,7 @@ export function SmartFilterInteractions({ className }: SmartFilterInteractionsPr
   
   // Local state
   const [conflicts, setConflicts] = useState<FilterConflict[]>([]);
-  const [_suggestions, _setSuggestions] = useState<{
+  const [suggestions, setSuggestions] = useState<{
     tags: AutoSuggestOption[];
     source: AutoSuggestOption[];
   }>({
@@ -202,10 +203,10 @@ export function SmartFilterInteractions({ className }: SmartFilterInteractionsPr
    */
   useEffect(() => {
     if (filters.grade?.length && filters.subject?.length) {
-      const validSubjects = filters.subject.filter(subject => 
+      const validSubjects = filters.subject.filter(subject =>
         availableSubjects.find(s => s.value === subject && !s.disabled)
       );
-      
+
       if (validSubjects.length !== filters.subject.length) {
         setSubjectFilter(validSubjects);
       }
@@ -213,9 +214,34 @@ export function SmartFilterInteractions({ className }: SmartFilterInteractionsPr
   }, [filters.grade, filters.subject, availableSubjects, setSubjectFilter]);
 
   /**
+   * Update suggestions based on current filters
+   */
+  useEffect(() => {
+    // Update suggestions based on selected filters
+    const updatedSuggestions = {
+      tags: MOCK_SUGGESTIONS.tags.map(tag => ({
+        ...tag,
+        // Boost count for tags related to selected subjects
+        count: filters.subject?.some(subject =>
+          tag.value.includes(subject) || tag.label.includes(subject)
+        ) ? tag.count! + 50 : tag.count
+      })),
+      source: MOCK_SUGGESTIONS.source.filter(source => {
+        // Filter sources based on selected grade
+        if (!filters.grade?.length) return true;
+        return filters.grade.some(grade =>
+          source.value.includes(grade) || source.label.includes(grade)
+        );
+      })
+    };
+
+    setSuggestions(updatedSuggestions);
+  }, [filters.grade, filters.subject]);
+
+  /**
    * Filter suggestions based on search
    */
-  const _filterSuggestions = (options: AutoSuggestOption[], search: string) => {
+  const filterSuggestions = (options: AutoSuggestOption[], search: string) => {
     if (!search) return options;
     return options.filter(option =>
       option.label.toLowerCase().includes(search.toLowerCase()) ||
@@ -286,9 +312,31 @@ export function SmartFilterInteractions({ className }: SmartFilterInteractionsPr
 
       {/* Auto-suggest Help */}
       <div className="text-xs text-muted-foreground">
-        💡 <strong>Gợi ý:</strong> Chọn lớp trước để xem môn học khả dụng. 
+        💡 <strong>Gợi ý:</strong> Chọn lớp trước để xem môn học khả dụng.
         Sử dụng tìm kiếm trong Tags và Source để tìm nhanh.
       </div>
+
+      {/* Popular Tags Suggestions */}
+      {suggestions.tags.length > 0 && (
+        <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+          <h4 className="text-sm font-medium mb-2">Tags phổ biến:</h4>
+          <div className="flex flex-wrap gap-1">
+            {filterSuggestions(suggestions.tags, '').slice(0, 6).map((tag) => (
+              <Badge
+                key={tag.value}
+                variant="outline"
+                className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
+                onClick={() => {
+                  // TODO: Add tag to filter when tag filter is implemented
+                  console.log('Add tag:', tag.value);
+                }}
+              >
+                {tag.label} ({tag.count})
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

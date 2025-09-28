@@ -59,7 +59,7 @@ function ClientSearchComponent({
 }: ClientSearchProps) {
   // ===== PERFORMANCE MONITORING =====
 
-  const { metrics: _metrics } = usePerformanceOptimization({
+  const { metrics } = usePerformanceOptimization({
     componentName: 'ClientSearch',
     enabled: true,
     warningThreshold: 50 // 50ms threshold cho search component
@@ -78,7 +78,7 @@ function ClientSearchComponent({
     isSearching,
     hasResults,
     resultCount,
-    search: _search,
+    search,
     clearSearch,
     searchOptions: currentOptions,
     setSearchOptions,
@@ -104,6 +104,15 @@ function ClientSearchComponent({
   const handleClearSearch = useCallback(() => {
     clearSearch();
   }, [clearSearch]);
+
+  /**
+   * Handle manual search trigger
+   */
+  const handleManualSearch = useCallback(() => {
+    if (query.trim()) {
+      search(query);
+    }
+  }, [query, search]);
 
   /**
    * Handle result click - memoized cho performance
@@ -150,6 +159,20 @@ function ClientSearchComponent({
           </Button>
         )}
         
+        {/* Manual search button */}
+        {!searchOptions.autoSearch && query.trim() && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleManualSearch}
+            className="absolute right-8 h-6 w-6 p-0"
+            disabled={isSearching}
+          >
+            <Search className="h-3 w-3" />
+          </Button>
+        )}
+
         {/* Advanced options toggle */}
         {showAdvancedOptions && (
           <Button
@@ -171,7 +194,7 @@ function ClientSearchComponent({
         </div>
       )}
     </div>
-  ), [query, isSearching, handleInputChange, handleClearSearch, showAdvancedOptions, showOptions, placeholder]);
+  ), [query, isSearching, handleInputChange, handleClearSearch, handleManualSearch, showAdvancedOptions, showOptions, placeholder, searchOptions.autoSearch]);
 
   /**
    * Render search stats
@@ -189,6 +212,14 @@ function ClientSearchComponent({
           <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
             <span>{searchTime.toFixed(1)}ms</span>
+          </div>
+        )}
+        {process.env.NODE_ENV === 'development' && metrics.renderTime > 0 && (
+          <div className="flex items-center gap-1 text-xs">
+            <span>Render: {metrics.renderTime.toFixed(1)}ms</span>
+            {metrics.rerenderCount > 5 && (
+              <span className="text-orange-500">({metrics.rerenderCount} renders)</span>
+            )}
           </div>
         )}
       </div>
@@ -252,30 +283,39 @@ function ClientSearchComponent({
   /**
    * Render default result item
    */
-  const renderDefaultResult = (result: SearchResult, _index: number) => (
+  const renderDefaultResult = (result: SearchResult, index: number) => (
     <div
       key={result.item.id}
       onClick={() => handleResultClick(result)}
       className="p-3 border rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+      role="option"
+      aria-selected={false}
+      aria-setsize={results.length}
+      tabIndex={0}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Badge variant="outline" className="text-xs">
-              {result.item.questionCodeId}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              Score: {result.score.toFixed(2)}
-            </Badge>
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium text-primary">
+            {index + 1}
           </div>
-          <p className="text-sm line-clamp-2">
-            {result.item.content}
-          </p>
-          {result.matches.length > 0 && (
-            <div className="mt-1 text-xs text-muted-foreground">
-              Matches: {result.matches.map(m => m.field).join(', ')}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="outline" className="text-xs">
+                {result.item.questionCodeId}
+              </Badge>
+              <Badge variant="secondary" className="text-xs">
+                Score: {result.score.toFixed(2)}
+              </Badge>
             </div>
-          )}
+            <p className="text-sm line-clamp-2">
+              {result.item.content}
+            </p>
+            {result.matches.length > 0 && (
+              <div className="mt-1 text-xs text-muted-foreground">
+                Matches: {result.matches.map(m => m.field).join(', ')}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

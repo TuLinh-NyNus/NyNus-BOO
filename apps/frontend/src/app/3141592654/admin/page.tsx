@@ -11,6 +11,7 @@ import { useDashboardData } from "@/hooks/admin/use-dashboard-data";
 import { DashboardHeader } from "@/components/features/admin/dashboard/dashboard-header";
 import { RealtimeDashboardMetrics } from "@/components/features/admin/dashboard/realtime-dashboard-metrics";
 import { DashboardStats } from "@/components/features/admin/dashboard/dashboard-stats";
+import { ConnectedAdminDashboard } from "@/components/admin/dashboard/connected-dashboard";
 
 
 /**
@@ -71,8 +72,8 @@ export default function AdminDashboardPage() {
         {/* Dashboard Statistics with Golden Graduation Cap Icons */}
         <DashboardStats />
 
-
-
+        {/* Connected Admin Dashboard with gRPC Backend */}
+        <ConnectedAdminDashboard />
 
 
         {/* System Status */}

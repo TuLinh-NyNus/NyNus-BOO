@@ -43,7 +43,7 @@ type AnalyticsTab = 'user-growth' | 'activity-access' | 'course-stats';
  * Advanced analytics dashboard với tab system và 3:1 layout
  */
 export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
-  const [analyticsData, _setAnalyticsData] = useState(mockAnalytics);
+  const [analyticsData, ] = useState(mockAnalytics);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>('30d');
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('user-growth');
@@ -77,7 +77,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
     );
   }
 
-  const { overview: _overview, performance, engagement } = analyticsData;
+  const { overview:  performance, engagement } = analyticsData;
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -299,30 +299,29 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
               {/* Course Stats Metrics */}
               <div className="grid gap-4 md:grid-cols-3">
                 <StatCard
-                  title="Tổng doanh thu"
-                  value={performance.totalRevenue}
-                  description="Doanh thu tích lũy"
-                  icon={<DollarSign className="h-4 w-4" />}
+                  title="Tổng khóa học"
+                  value={performance.totalCourses}
+                  description="Khóa học có sẵn"
+                  icon={<GraduationCap className="h-4 w-4" />}
                   colorScheme="success"
-                  format="currency"
                   trend={{
-                    value: performance.revenueGrowth,
+                    value: 12,
                     label: "so với tháng trước",
-                    isPositive: performance.revenueGrowth > 0,
+                    isPositive: true,
                   }}
                 />
                 <StatCard
                   title="Khóa học hoàn thành"
-                  value={performance.coursesCompleted}
-                  description="Khóa học đã hoàn thành"
+                  value={performance.coursesCompletedToday}
+                  description="Khóa học đã hoàn thành hôm nay"
                   icon={<GraduationCap className="h-4 w-4" />}
                   colorScheme="education"
                 />
                 <StatCard
-                  title="Tỷ lệ hoàn thành"
-                  value={performance.completionRate}
-                  description="Completion rate"
-                  icon={<Target className="h-4 w-4" />}
+                  title="Phiên hoạt động"
+                  value={performance.totalSessions}
+                  description="Tổng số phiên"
+                  icon={<Activity className="h-4 w-4" />}
                   colorScheme="accent"
                   format="percentage"
                 />

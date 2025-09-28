@@ -414,7 +414,9 @@ export enum UserStatus {
   ACTIVE = 'ACTIVE',                    // Hoạt động
   INACTIVE = 'INACTIVE',                // Không hoạt động
   SUSPENDED = 'SUSPENDED',              // Bị đình chỉ
-  PENDING_VERIFICATION = 'PENDING_VERIFICATION'  // Chờ xác thực email
+  PENDING_VERIFICATION = 'PENDING_VERIFICATION',  // Chờ xác thực email
+  PENDING = 'PENDING',                  // Chờ xử lý (for protobuf compatibility)
+  DELETED = 'DELETED'                   // Đã xóa (for protobuf compatibility)
 }
 
 // ===== COMMON FIELD TYPES =====

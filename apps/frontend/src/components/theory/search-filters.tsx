@@ -153,7 +153,7 @@ export function SearchFilters({
   
   // ===== STATE =====
   
-  const [_isExpanded, _setIsExpanded] = useState(false);
+  const [, ] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   // ===== COMPUTED VALUES =====

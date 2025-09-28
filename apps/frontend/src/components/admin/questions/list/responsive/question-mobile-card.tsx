@@ -126,7 +126,7 @@ function getQuestionTypeDisplay(type?: string) {
 /**
  * Truncate text for mobile display
  */
-function _truncateText(text: string, maxLength: number = 100): string {
+function truncateText(text: string, maxLength: number = 100): string {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 }
@@ -232,18 +232,25 @@ export function QuestionMobileCard({
                 {/* Question metadata */}
                 <div className="flex flex-wrap gap-1">
                   <Badge variant="secondary" className="text-xs">
-                    {questionTypeDisplay}
+                    {truncateText(questionTypeDisplay, 20)}
                   </Badge>
-                  
+
                   {question.difficulty && (
                     <Badge className={`text-xs ${difficultyColor}`}>
                       {question.difficulty}
                     </Badge>
                   )}
-                  
+
                   {question.usageCount !== undefined && question.usageCount > 0 && (
                     <Badge variant="outline" className="text-xs">
                       {question.usageCount} lượt dùng
+                    </Badge>
+                  )}
+
+                  {/* Truncated tags if available */}
+                  {question.tag && question.tag.length > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      {truncateText(question.tag.join(', '), 30)}
                     </Badge>
                   )}
                 </div>

@@ -386,8 +386,8 @@ export class PublicQuestionService {
         case 'rating':
           return (b.rating || 0) - (a.rating || 0);
         case 'difficulty':
-          const difficultyOrder = { 'EASY': 1, 'MEDIUM': 2, 'HARD': 3 };
-          return (difficultyOrder[a.difficulty || 'MEDIUM'] || 2) - 
+          const difficultyOrder = { 'EASY': 1, 'MEDIUM': 2, 'HARD': 3, 'EXPERT': 4 };
+          return (difficultyOrder[a.difficulty || 'MEDIUM'] || 2) -
                  (difficultyOrder[b.difficulty || 'MEDIUM'] || 2);
         default:
           return 0;

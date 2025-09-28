@@ -399,7 +399,7 @@ export function restoreQuestionToVersion(
 ): Question {
   const {
     preserveMetadata = true,
-    createNewVersion: _createNewVersion = true
+    createNewVersion = true
   } = options;
   
   const restoredQuestion: Question = {
@@ -414,7 +414,15 @@ export function restoreQuestionToVersion(
     restoredQuestion.feedback = currentQuestion.feedback;
     restoredQuestion.createdAt = currentQuestion.createdAt;
   }
-  
+
+  // If createNewVersion is true, this indicates a new version should be created
+  // This is typically handled by the calling code that manages version history
+  if (createNewVersion) {
+    // Add metadata to indicate this is a restored version
+    restoredQuestion.updatedAt = new Date().toISOString();
+    // Note: Version creation is handled by the version management system
+  }
+
   return restoredQuestion;
 }
 

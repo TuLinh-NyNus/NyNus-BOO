@@ -107,6 +107,15 @@ export function StatusBadge({
         borderColor: 'border-gray-300',
         icon: Archive,
         description: 'Câu hỏi đã được lưu trữ và không còn sử dụng'
+      },
+      [QuestionStatus.DRAFT]: {
+        label: 'Bản nháp',
+        color: 'blue',
+        bgColor: 'bg-badge-info',
+        textColor: 'text-badge-info-foreground',
+        borderColor: 'border-border',
+        icon: Clock,
+        description: 'Câu hỏi đang trong quá trình soạn thảo'
       }
     };
 

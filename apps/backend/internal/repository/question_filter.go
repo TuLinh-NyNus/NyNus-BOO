@@ -14,6 +14,11 @@ import (
 // QuestionFilterRepository handles advanced question filtering operations
 type QuestionFilterRepository struct{}
 
+// NewQuestionFilterRepository creates a new QuestionFilterRepository instance
+func NewQuestionFilterRepository() *QuestionFilterRepository {
+	return &QuestionFilterRepository{}
+}
+
 // QuestionFilterCriteria represents comprehensive filter criteria for questions
 type QuestionFilterCriteria struct {
 	// QuestionCode filters

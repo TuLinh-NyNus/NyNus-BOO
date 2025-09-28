@@ -101,22 +101,22 @@ export function useAdvancedDebounce<T extends (...args: unknown[]) => unknown>(
   immediate: boolean = false
 ): T {
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const _immediateRef = useRef<boolean>(immediate);
+  const immediateRef = useRef<boolean>(immediate);
 
   return useCallback((...args: Parameters<T>) => {
-    const callNow = immediate && !timeoutRef.current;
-    
+    const callNow = immediateRef.current && !timeoutRef.current;
+
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-    
+
     timeoutRef.current = setTimeout(() => {
       timeoutRef.current = undefined;
-      if (!immediate) callback(...args);
+      if (!immediateRef.current) callback(...args);
     }, delay);
-    
+
     if (callNow) callback(...args);
-  }, [callback, delay, immediate]) as T;
+  }, [callback, delay]) as T;
 }
 
 /**

@@ -73,8 +73,7 @@ export default function QuestionsBrowsePage() {
   const {
     data: questionsResponse,
     isLoading: isLoadingQuestions,
-    error: questionsError,
-    refetch: _refetch
+    error: questionsError
   } = usePublicQuestions(filters, {
     enabled: !searchQuery, // Disable when searching
     refetchOnWindowFocus: false,

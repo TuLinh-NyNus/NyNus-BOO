@@ -165,7 +165,7 @@ export function useKeyboardNavigation(
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     if (!config.enableArrowKeys || items.length === 0) return;
 
-    const { key, ctrlKey: _ctrlKey, shiftKey: _shiftKey } = event;
+    const { key } = event;
     let newIndex = focusedIndex;
     let handled = false;
 

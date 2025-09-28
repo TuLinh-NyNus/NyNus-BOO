@@ -11,7 +11,7 @@
 import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Button } from "@/components/ui/form/button";
-import { Badge as _Badge } from "@/components/ui/display/badge";
+import { Badge } from "@/components/ui/display/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/navigation/tabs";
 import {
   Select,
@@ -103,7 +103,7 @@ const MOCK_PERFORMANCE_DATA: PerformanceData[] = [
 export function ContentAnalyticsDashboard({
   timeRange = 'week',
   showPerformanceMetrics = true,
-  showContentMetrics: _showContentMetrics = true,
+  showContentMetrics = true,
   showQualityMetrics = true,
   enableExport = true,
   className
@@ -165,6 +165,15 @@ export function ContentAnalyticsDashboard({
     if (score >= 90) return 'text-green-600';
     if (score >= 70) return 'text-yellow-600';
     return 'text-red-600';
+  };
+
+  const getScoreBadge = (score: number) => {
+    const variant = score >= 90 ? 'default' : score >= 70 ? 'secondary' : 'destructive';
+    return (
+      <Badge variant={variant} className="ml-2">
+        {score.toFixed(1)}%
+      </Badge>
+    );
   };
 
   const renderOverviewMetrics = () => (
@@ -380,6 +389,18 @@ export function ContentAnalyticsDashboard({
             
             <TabsContent value="overview" className="space-y-6">
               {renderOverviewMetrics()}
+              {showContentMetrics && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Nội dung</span>
+                        {getScoreBadge(metrics.qualityScore)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
               {showQualityMetrics && renderQualityMetrics()}
             </TabsContent>
             

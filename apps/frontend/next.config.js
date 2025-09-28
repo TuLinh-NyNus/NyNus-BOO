@@ -1,23 +1,105 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Basic Next.js config only
+  // Core optimizations
   reactStrictMode: true,
   poweredByHeader: false,
-  
-  // Simplified experimental optimizations
+  compress: true,
+
+  // Production optimizations
+  ...(process.env.NODE_ENV === 'production' && process.env.ENABLE_STANDALONE === 'true' && {
+    output: 'standalone',
+    generateEtags: false,
+    httpAgentOptions: {
+      keepAlive: true,
+    },
+  }),
+
+  // Advanced experimental optimizations
   experimental: {
     optimizePackageImports: [
-      'lucide-react', 
-      '@radix-ui/react-icons'
-    ]
+      'lucide-react',
+      '@radix-ui/react-icons',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      'date-fns'
+    ],
+    optimizeCss: true,
+    scrollRestoration: true,
+    ...(process.env.NODE_ENV === 'production' && {
+      webpackBuildWorker: true,
+      parallelServerCompiles: true,
+      parallelServerBuildTraces: true,
+    }),
   },
-  
-  // Basic image optimization
+
+  // Enhanced image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 31536000, // 1 year
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
-  
-  // Basic headers
+
+  // Webpack optimizations
+  webpack: (config, { dev, isServer }) => {
+    // Production optimizations
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        moduleIds: 'deterministic',
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+            auth: {
+              test: /[\\/]src[\\/](contexts|hooks|services)[\\/].*auth/,
+              name: 'auth',
+              chunks: 'all',
+              priority: 20,
+            },
+            ui: {
+              test: /[\\/]src[\\/]components[\\/]ui[\\/]/,
+              name: 'ui',
+              chunks: 'all',
+              priority: 15,
+            },
+          },
+        },
+      };
+    }
+
+    // Bundle analyzer
+    if (process.env.ANALYZE === 'true') {
+      const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+      config.plugins.push(
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          openAnalyzer: false,
+          reportFilename: isServer ? '../analyze/server.html' : './analyze/client.html',
+        })
+      );
+    }
+
+    return config;
+  },
+
+  // Enhanced security headers
   async headers() {
     return [
       {
@@ -30,12 +112,52 @@ const nextConfig = {
           {
             key: 'X-Frame-Options',
             value: 'DENY'
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block'
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin'
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()'
+          },
+          ...(process.env.NODE_ENV === 'production' ? [
+            {
+              key: 'Strict-Transport-Security',
+              value: 'max-age=31536000; includeSubDomains; preload'
+            },
+            {
+              key: 'Content-Security-Policy',
+              value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' http://localhost:8080 ws://localhost:3000;"
+            }
+          ] : [])
+        ]
+      },
+      {
+        source: '/api/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate, proxy-revalidate'
+          }
+        ]
+      },
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
           }
         ]
       }
     ];
   },
-  
+
   // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,

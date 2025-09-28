@@ -107,6 +107,7 @@ export function QuestionListTable({
       [QuestionStatus.PENDING]: { label: "Chờ duyệt", variant: "secondary" as const, icon: Clock },
       [QuestionStatus.INACTIVE]: { label: "Không hoạt động", variant: "outline" as const, icon: XCircle },
       [QuestionStatus.ARCHIVED]: { label: "Lưu trữ", variant: "destructive" as const, icon: Archive },
+      [QuestionStatus.DRAFT]: { label: "Bản nháp", variant: "secondary" as const, icon: Clock },
     };
 
     const config = configs[status];

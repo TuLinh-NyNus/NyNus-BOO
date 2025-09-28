@@ -591,7 +591,8 @@ export const useQuestionStore = create<QuestionStoreState>()(
             
             const duplicated = await get().createQuestion(draft);
             return duplicated;
-          } catch (_error) {
+          } catch (error) {
+            console.error('Failed to duplicate question:', error);
             toast.error('Failed to duplicate question');
             return null;
           }
@@ -628,7 +629,8 @@ export const useQuestionStore = create<QuestionStoreState>()(
             }
             
             throw new Error('Failed to update status');
-          } catch (_error) {
+          } catch (error) {
+            console.error('Failed to update status:', error);
             set((state) => {
               state.error = 'Failed to update status';
               state.isUpdating = false;
@@ -669,7 +671,8 @@ export const useQuestionStore = create<QuestionStoreState>()(
             }
             
             throw new Error('Failed to update difficulty');
-          } catch (_error) {
+          } catch (error) {
+            console.error('Failed to update difficulty:', error);
             set((state) => {
               state.error = 'Failed to update difficulty';
               state.isUpdating = false;
@@ -709,7 +712,8 @@ export const useQuestionStore = create<QuestionStoreState>()(
             }
             
             throw new Error('Failed to add tags');
-          } catch (_error) {
+          } catch (error) {
+            console.error('Failed to add tags:', error);
             set((state) => {
               state.error = 'Failed to add tags';
               state.isUpdating = false;
@@ -749,7 +753,8 @@ export const useQuestionStore = create<QuestionStoreState>()(
             }
             
             throw new Error('Failed to remove tags');
-          } catch (_error) {
+          } catch (error) {
+            console.error('Failed to remove tags:', error);
             set((state) => {
               state.error = 'Failed to remove tags';
               state.isUpdating = false;
@@ -776,7 +781,8 @@ export const useQuestionStore = create<QuestionStoreState>()(
             
             toast.success(`Exported ${questionsToExport.length} questions`);
             return blob;
-          } catch (_error) {
+          } catch (error) {
+            console.error('Failed to export questions:', error);
             toast.error('Failed to export questions');
             return null;
           }
@@ -831,7 +837,8 @@ export const useQuestionStore = create<QuestionStoreState>()(
             }
             
             return successCount;
-          } catch (_error) {
+          } catch (error) {
+            console.error('Failed to import questions:', error);
             set((state) => {
               state.error = 'Failed to import questions';
               state.isCreating = false;

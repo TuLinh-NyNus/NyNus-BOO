@@ -7,32 +7,30 @@ This directory contains all Docker-related configuration files for the Exam Bank
 ```
 docker/
 ├── README.md                    # This file
-├── backend.Dockerfile           # Backend Go service
-├── frontend.Dockerfile          # Frontend Next.js (Development)
+├── DOCKER_SETUP.md             # Docker setup guide
+├── backend.prod.Dockerfile      # Backend Go service (Production)
 ├── frontend.prod.Dockerfile     # Frontend Next.js (Production)
-└── frontend.dockerignore        # Frontend Docker ignore rules
+├── compose/                     # Docker Compose files
+│   ├── docker-compose.yml      # Development environment
+│   └── docker-compose.prod.yml # Production environment
+├── scripts/                     # Docker setup scripts
+│   └── setup-docker.ps1        # Advanced setup script
+└── database/                    # Database initialization
+    └── init.sql                 # PostgreSQL initialization
 ```
 
 ## 🔧 Dockerfile Descriptions
 
-### **backend.Dockerfile**
+### **backend.prod.Dockerfile** (Production)
 - **Base Image**: golang:1.23-alpine (builder) + alpine:latest (runtime)
 - **Build Type**: Multi-stage build for optimized size
-- **Ports**: 50051 (gRPC), 8080 (HTTP Gateway)
-- **Features**: 
+- **Ports**: 8080 (HTTP Gateway only)
+- **Features**:
   - Go module caching
   - Migration files included
   - Minimal runtime image (~50MB)
-
-### **frontend.Dockerfile** (Development)
-- **Base Image**: node:20-alpine
-- **Package Manager**: npm with --legacy-peer-deps
-- **Mode**: Development with hot reload
-- **Port**: 3000
-- **Features**:
-  - Fast development builds
-  - Source code watching
-  - DevDependencies included
+  - Non-root user for security
+  - Production environment variables
 
 ### **frontend.prod.Dockerfile** (Production)
 - **Base Image**: node:20-alpine (multi-stage)
@@ -45,29 +43,32 @@ docker/
   - Non-root user security
   - Standalone Next.js server
 
-### **frontend.dockerignore**
-- Excludes: node_modules, .next, logs, env files
-- Reduces build context size significantly
-- Prevents cache invalidation from temporary files
+
 
 ## 🚀 Usage
 
 ### Development Mode
 ```bash
-# Use development frontend
-docker-compose up -d
+# Quick start (recommended)
+.\docker-dev.ps1
 
-# Or build specific service
-docker-compose build frontend
+# Or use compose directly
+docker-compose -f docker/compose/docker-compose.yml up -d
+
+# Build specific service
+docker-compose -f docker/compose/docker-compose.yml build frontend
 ```
 
 ### Production Mode
 ```bash
-# Use production configuration
-docker-compose -f docker-compose.prod.yml up -d
+# Quick start (recommended)
+.\docker-prod.ps1
+
+# Or use compose directly
+docker-compose -f docker/compose/docker-compose.prod.yml up -d
 
 # Build production frontend
-docker-compose -f docker-compose.prod.yml build frontend
+docker-compose -f docker/compose/docker-compose.prod.yml build frontend
 ```
 
 ### Individual Service Builds

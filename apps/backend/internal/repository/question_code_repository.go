@@ -50,7 +50,7 @@ func (r *QuestionCodeRepository) Create(ctx context.Context, code *entity.Questi
 		code.Subject.String,
 		code.Chapter.String,
 		code.Lesson.String,
-		nullableString(code.Form),
+		nullableStringToSQL(code.Form),
 		code.Level.String,
 		code.CreatedAt.Time,
 		code.UpdatedAt.Time,
@@ -139,7 +139,7 @@ func (r *QuestionCodeRepository) Update(ctx context.Context, code *entity.Questi
 		code.Subject.String,
 		code.Chapter.String,
 		code.Lesson.String,
-		nullableString(code.Form),
+		nullableStringToSQL(code.Form),
 		code.Level.String,
 		code.UpdatedAt.Time,
 	)
@@ -190,7 +190,7 @@ func (r *QuestionCodeRepository) CreateBatch(ctx context.Context, codes []*entit
 			qc.Subject.String,
 			qc.Chapter.String,
 			qc.Lesson.String,
-			nullableString(qc.Form),
+			nullableStringToSQL(qc.Form),
 			qc.Level.String,
 			qc.CreatedAt.Time,
 			qc.UpdatedAt.Time,
@@ -369,8 +369,8 @@ func (r *QuestionCodeRepository) scanQuestionCodes(rows *sql.Rows) ([]*entity.Qu
 	return codes, nil
 }
 
-// nullableString converts pgtype.Text to sql.NullString
-func nullableString(t pgtype.Text) sql.NullString {
+// nullableStringToSQL converts pgtype.Text to sql.NullString
+func nullableStringToSQL(t pgtype.Text) sql.NullString {
 	if t.Status == pgtype.Present {
 		return sql.NullString{String: t.String, Valid: true}
 	}

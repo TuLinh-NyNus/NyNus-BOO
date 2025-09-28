@@ -3,36 +3,148 @@ syntax = "proto3";
 package v1;
 
 import "common/common.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
+// Exam status enum (aligned with ExamSystem.md design)
+enum ExamStatus {
+  EXAM_STATUS_UNSPECIFIED = 0;
+  EXAM_STATUS_ACTIVE = 1;     // Đã xuất bản, students có thể làm
+  EXAM_STATUS_PENDING = 2;    // Đang soạn thảo, chờ review
+  EXAM_STATUS_INACTIVE = 3;   // Tạm ngưng
+  EXAM_STATUS_ARCHIVED = 4;   // Đã lưu trữ
+}
 
+// Exam type enum (aligned with ExamSystem.md design)
+enum ExamType {
+  EXAM_TYPE_UNSPECIFIED = 0;
+  EXAM_TYPE_GENERATED = 1;    // Đề thi tạo từ ngân hàng câu hỏi
+  EXAM_TYPE_OFFICIAL = 2;     // Đề thi thật từ trường/sở
+}
 
-// Exam message
+// Difficulty enum (aligned with Question system)
+enum Difficulty {
+  DIFFICULTY_UNSPECIFIED = 0;
+  DIFFICULTY_EASY = 1;        // Dễ
+  DIFFICULTY_MEDIUM = 2;      // Trung bình
+  DIFFICULTY_HARD = 3;        // Khó
+  DIFFICULTY_EXPERT = 4;      // Rất khó
+}
+
+// Attempt status enum
+enum AttemptStatus {
+  ATTEMPT_STATUS_UNSPECIFIED = 0;
+  ATTEMPT_STATUS_IN_PROGRESS = 1;  // Đang làm bài
+  ATTEMPT_STATUS_SUBMITTED = 2;    // Đã nộp bài
+  ATTEMPT_STATUS_GRADED = 3;       // Đã chấm điểm
+  ATTEMPT_STATUS_CANCELLED = 4;    // Đã hủy
+}
+
+// Exam message (updated with proper enums and fields)
 message Exam {
   string id = 1;
   string title = 2;
   string description = 3;
-  int32 duration_minutes = 4;
-  repeated string question_ids = 5;
-  string created_by = 6;
+  string instructions = 4;
+  int32 duration_minutes = 5;
+  int32 total_points = 6;
+  int32 pass_percentage = 7;
+  ExamType exam_type = 8;
+  ExamStatus status = 9;
+
+  // Academic Classification
+  string subject = 10;
+  int32 grade = 11;
+  Difficulty difficulty = 12;
+  repeated string tags = 13;
+
+  // Settings
+  bool shuffle_questions = 14;
+  bool shuffle_answers = 15;
+  bool show_results = 16;
+  bool show_answers = 17;
+  bool allow_review = 18;
+  int32 max_attempts = 19;
+
+  // Official exam fields
+  string source_institution = 20;
+  int32 exam_year = 21;
+  string exam_code = 22;
+  string file_url = 23;
+
+  // Metadata
+  int32 version = 24;
+  repeated string question_ids = 25;
+  string created_by = 26;
+  string updated_by = 27;
+  google.protobuf.Timestamp published_at = 28;
+  google.protobuf.Timestamp created_at = 29;
+  google.protobuf.Timestamp updated_at = 30;
+
+  // Relations
+  repeated ExamQuestion questions = 31;
 }
 
-// Exam attempt
+// Exam attempt (updated with proper enum and fields)
 message ExamAttempt {
   string id = 1;
   string exam_id = 2;
   string user_id = 3;
-  int32 score = 4;
-  bool completed = 5;
+  int32 attempt_number = 4;
+  AttemptStatus status = 5;
+
+  // Scoring
+  double score = 6;
+  int32 total_points = 7;
+  double percentage = 8;
+  bool passed = 9;
+
+  // Timing
+  google.protobuf.Timestamp started_at = 10;
+  google.protobuf.Timestamp submitted_at = 11;
+  int32 time_spent_seconds = 12;
+
+  // Additional
+  string ip_address = 13;
+  string user_agent = 14;
+  string notes = 15;
+
+  // Timestamps
+  google.protobuf.Timestamp created_at = 16;
+  google.protobuf.Timestamp updated_at = 17;
 }
 
 // Exam management
 message CreateExamRequest {
   string title = 1;
   string description = 2;
-  int32 duration_minutes = 3;
-  repeated string question_ids = 4;
+  string instructions = 3;
+  int32 duration_minutes = 4;
+  int32 pass_percentage = 5;
+  ExamType exam_type = 6;
+
+  // Academic Classification
+  string subject = 7;
+  int32 grade = 8;
+  Difficulty difficulty = 9;
+  repeated string tags = 10;
+
+  // Settings
+  bool shuffle_questions = 11;
+  bool shuffle_answers = 12;
+  bool show_results = 13;
+  bool show_answers = 14;
+  bool allow_review = 15;
+  int32 max_attempts = 16;
+
+  // Official exam fields (optional)
+  string source_institution = 17;
+  int32 exam_year = 18;
+  string exam_code = 19;
+  string file_url = 20;
+
+  repeated string question_ids = 21;
 }
 
 message CreateExamResponse {
@@ -49,14 +161,123 @@ message GetExamResponse {
   Exam exam = 2;
 }
 
-message ListExamsRequest {
-  common.PaginationRequest pagination = 1;
+// Update exam
+message UpdateExamRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string instructions = 4;
+  int32 duration_minutes = 5;
+  int32 pass_percentage = 6;
+
+  // Academic Classification
+  string subject = 7;
+  int32 grade = 8;
+  Difficulty difficulty = 9;
+  repeated string tags = 10;
+
+  // Settings
+  bool shuffle_questions = 11;
+  bool shuffle_answers = 12;
+  bool show_results = 13;
+  bool show_answers = 14;
+  bool allow_review = 15;
+  int32 max_attempts = 16;
+
+  // Official exam fields (optional)
+  string source_institution = 17;
+  int32 exam_year = 18;
+  string exam_code = 19;
+  string file_url = 20;
 }
 
-message ListExamsResponse {
+message UpdateExamResponse {
   common.Response response = 1;
-  repeated Exam exams = 2;
-  common.PaginationResponse pagination = 3;
+  Exam exam = 2;
+}
+
+// Delete exam
+message DeleteExamRequest {
+  string id = 1;
+}
+
+message DeleteExamResponse {
+  common.Response response = 1;
+}
+
+// Publish exam
+message PublishExamRequest {
+  string exam_id = 1;
+}
+
+message PublishExamResponse {
+  common.Response response = 1;
+  Exam exam = 2;
+}
+
+// Archive exam
+message ArchiveExamRequest {
+  string exam_id = 1;
+}
+
+message ArchiveExamResponse {
+  common.Response response = 1;
+  Exam exam = 2;
+}
+
+// Question management
+message AddQuestionToExamRequest {
+  string exam_id = 1;
+  string question_id = 2;
+  int32 points = 3;
+  int32 order = 4;
+}
+
+message AddQuestionToExamResponse {
+  common.Response response = 1;
+}
+
+message RemoveQuestionFromExamRequest {
+  string exam_id = 1;
+  string question_id = 2;
+}
+
+message RemoveQuestionFromExamResponse {
+  common.Response response = 1;
+}
+
+message ReorderExamQuestionsRequest {
+  string exam_id = 1;
+  repeated QuestionOrder question_orders = 2;
+}
+
+message QuestionOrder {
+  string question_id = 1;
+  int32 order = 2;
+}
+
+message ReorderExamQuestionsResponse {
+  common.Response response = 1;
+}
+
+message GetExamQuestionsRequest {
+  string exam_id = 1;
+}
+
+message GetExamQuestionsResponse {
+  common.Response response = 1;
+  repeated ExamQuestion questions = 2;
+}
+
+// ExamQuestion message for junction table
+message ExamQuestion {
+  string id = 1;
+  string exam_id = 2;
+  string question_id = 3;
+  int32 order_number = 4;
+  int32 points = 5;
+  bool is_bonus = 6;
+  google.protobuf.Timestamp created_at = 7;
 }
 
 // Exam taking
@@ -70,10 +291,152 @@ message StartExamResponse {
   repeated string question_ids = 3;
 }
 
+message SubmitAnswerRequest {
+  string attempt_id = 1;
+  string question_id = 2;
+  string answer_data = 3; // JSON format
+}
+
+message SubmitAnswerResponse {
+  common.Response response = 1;
+}
+
+message SubmitExamRequest {
+  string attempt_id = 1;
+}
+
+message SubmitExamResponse {
+  common.Response response = 1;
+  ExamResult result = 2;
+}
+
+message GetExamAttemptRequest {
+  string attempt_id = 1;
+}
+
+message GetExamAttemptResponse {
+  common.Response response = 1;
+  ExamAttempt attempt = 2;
+  repeated ExamAnswer answers = 3;
+}
+
+// ExamAnswer message
+message ExamAnswer {
+  string id = 1;
+  string attempt_id = 2;
+  string question_id = 3;
+  string answer_data = 4; // JSON format
+  bool is_correct = 5;
+  int32 points_earned = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+// ExamResult message
+message ExamResult {
+  string id = 1;
+  string attempt_id = 2;
+  double score = 3;
+  int32 total_points = 4;
+  double percentage = 5;
+  bool passed = 6;
+  string feedback = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+// Results and analytics
+message GetExamResultsRequest {
+  string exam_id = 1;
+  common.PaginationRequest pagination = 2;
+}
+
+message GetExamResultsResponse {
+  common.Response response = 1;
+  repeated ExamResult results = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+message GetExamStatisticsRequest {
+  string exam_id = 1;
+}
+
+message GetExamStatisticsResponse {
+  common.Response response = 1;
+  ExamStatistics statistics = 2;
+}
+
+message ExamStatistics {
+  int32 total_attempts = 1;
+  int32 completed_attempts = 2;
+  float average_score = 3;
+  float pass_rate = 4;
+  int32 average_time_spent = 5;
+  repeated QuestionStatistics question_stats = 6;
+}
+
+message QuestionStatistics {
+  string question_id = 1;
+  int32 total_answers = 2;
+  int32 correct_answers = 3;
+  float correct_rate = 4;
+  float average_time_spent = 5;
+}
+
+message GetUserPerformanceRequest {
+  string user_id = 1;
+  string exam_id = 2;
+}
+
+message GetUserPerformanceResponse {
+  common.Response response = 1;
+  UserPerformance performance = 2;
+}
+
+message UserPerformance {
+  string user_id = 1;
+  string exam_id = 2;
+  int32 attempts_count = 3;
+  float best_score = 4;
+  float average_score = 5;
+  int32 total_time_spent = 6;
+  repeated ExamAttempt attempts = 7;
+}
+
+message ListExamsRequest {
+  common.PaginationRequest pagination = 1;
+}
+
+message ListExamsResponse {
+  common.Response response = 1;
+  repeated Exam exams = 2;
+  common.PaginationResponse pagination = 3;
+}
+
 // Exam service
 service ExamService {
+  // Exam management
   rpc CreateExam(CreateExamRequest) returns (CreateExamResponse);
+  rpc UpdateExam(UpdateExamRequest) returns (UpdateExamResponse);
+  rpc DeleteExam(DeleteExamRequest) returns (DeleteExamResponse);
   rpc GetExam(GetExamRequest) returns (GetExamResponse);
   rpc ListExams(ListExamsRequest) returns (ListExamsResponse);
+  rpc PublishExam(PublishExamRequest) returns (PublishExamResponse);
+  rpc ArchiveExam(ArchiveExamRequest) returns (ArchiveExamResponse);
+
+  // Question management
+  rpc AddQuestionToExam(AddQuestionToExamRequest) returns (AddQuestionToExamResponse);
+  rpc RemoveQuestionFromExam(RemoveQuestionFromExamRequest) returns (RemoveQuestionFromExamResponse);
+  rpc ReorderExamQuestions(ReorderExamQuestionsRequest) returns (ReorderExamQuestionsResponse);
+  rpc GetExamQuestions(GetExamQuestionsRequest) returns (GetExamQuestionsResponse);
+
+  // Exam taking
   rpc StartExam(StartExamRequest) returns (StartExamResponse);
+  rpc SubmitAnswer(SubmitAnswerRequest) returns (SubmitAnswerResponse);
+  rpc SubmitExam(SubmitExamRequest) returns (SubmitExamResponse);
+  rpc GetExamAttempt(GetExamAttemptRequest) returns (GetExamAttemptResponse);
+
+  // Results and analytics
+  rpc GetExamResults(GetExamResultsRequest) returns (GetExamResultsResponse);
+  rpc GetExamStatistics(GetExamStatisticsRequest) returns (GetExamStatisticsResponse);
+  rpc GetUserPerformance(GetUserPerformanceRequest) returns (GetUserPerformanceResponse);
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/rs/cors"
@@ -111,17 +112,34 @@ func (s *HTTPServer) Start() error {
 		MaxAge:           86400, // 24 hours
 	})
 
-	// Create HTTP handler with CORS
-	handler := corsHandler.Handler(s.mux)
+	// Create HTTP handler with CORS for gRPC-Gateway
+	grpcHandler := corsHandler.Handler(s.mux)
 
-	// Add gRPC-Web wrapper
-	wrappedHandler := wrapGrpcWeb(handler)
+	// Wrap gRPC handler with gRPC-Web support
+	grpcWebHandler := wrapGrpcWeb(grpcHandler)
 
 	// Start HTTP server
 	addr := fmt.Sprintf(":%s", s.httpPort)
 	fmt.Printf("🌐 Starting HTTP/gRPC-Gateway server on %s\n", addr)
 
-	return http.ListenAndServe(addr, wrappedHandler)
+	// Create a simple handler that routes requests
+	return http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("DEBUG: *** MAIN HANDLER CALLED *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
+
+		// Handle health check endpoint
+		if r.URL.Path == "/health" {
+			fmt.Printf("DEBUG: *** HEALTH CHECK ENDPOINT MATCHED *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"status":"healthy","service":"exam-bank-backend","timestamp":"` +
+				fmt.Sprintf("%d", time.Now().Unix()) + `"}`))
+			return
+		}
+
+		// Handle all other requests with gRPC-Gateway
+		fmt.Printf("DEBUG: *** FORWARDING TO GRPC-GATEWAY *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
+		grpcWebHandler.ServeHTTP(w, r)
+	}))
 }
 
 // Stop stops the HTTP server
@@ -129,6 +147,24 @@ func (s *HTTPServer) Stop(ctx context.Context) error {
 	// In production, you would want to use http.Server with Shutdown()
 	// For now, this is a placeholder
 	return nil
+}
+
+// addHealthCheck adds a health check endpoint
+func (s *HTTPServer) addHealthCheck(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Debug logging
+		fmt.Printf("DEBUG: Health check - URL: %s, Method: %s\n", r.URL.Path, r.Method)
+
+		if r.URL.Path == "/health" {
+			fmt.Printf("DEBUG: Serving health check endpoint\n")
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"status":"healthy","service":"exam-bank-backend","timestamp":"` +
+				fmt.Sprintf("%d", time.Now().Unix()) + `"}`))
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
 }
 
 // registerServices registers all gRPC services with the gateway
@@ -168,6 +204,12 @@ func (s *HTTPServer) registerServices(ctx context.Context, endpoint string, opts
 		return fmt.Errorf("failed to register NewsletterService: %w", err)
 	}
 
+	// Register MapCodeService
+	// TODO: MapCodeService registration disabled - service not available yet
+	// if err := v1.RegisterMapCodeServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+	//     return fmt.Errorf("failed to register MapCodeService: %w", err)
+	// }
+
 	// Register ExamService (when available)
 	// if err := v1.RegisterExamServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
 	//     return fmt.Errorf("failed to register ExamService: %w", err)
@@ -179,10 +221,40 @@ func (s *HTTPServer) registerServices(ctx context.Context, endpoint string, opts
 // wrapGrpcWeb wraps the handler to support gRPC-Web
 func wrapGrpcWeb(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Debug logging
+		fmt.Printf("DEBUG: Request URL: %s\n", r.URL.Path)
+		fmt.Printf("DEBUG: Request Method: %s\n", r.Method)
+		fmt.Printf("DEBUG: Content-Type: %s\n", r.Header.Get("Content-Type"))
+		fmt.Printf("DEBUG: X-Grpc-Web: %s\n", r.Header.Get("X-Grpc-Web"))
+
 		// Check if this is a gRPC-Web request
 		if isGrpcWebRequest(r) {
-			// Add gRPC-Web specific headers
+			fmt.Printf("DEBUG: Detected gRPC-Web request\n")
+
+			// Set CORS headers first
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Grpc-Web, X-User-Agent")
+			w.Header().Set("Access-Control-Expose-Headers", "Grpc-Status, Grpc-Message")
+
+			// Handle preflight OPTIONS request
+			if r.Method == "OPTIONS" {
+				fmt.Printf("DEBUG: Handling OPTIONS preflight request\n")
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+
+			// Convert gRPC-Web content-type to application/json for gRPC Gateway
+			originalContentType := r.Header.Get("Content-Type")
+			if strings.HasPrefix(originalContentType, "application/grpc-web") {
+				fmt.Printf("DEBUG: Converting gRPC-Web content-type to application/json\n")
+				r.Header.Set("Content-Type", "application/json")
+			}
+
+			// Set response content-type for gRPC-Web
 			w.Header().Set("Content-Type", "application/grpc-web+proto")
+		} else {
+			fmt.Printf("DEBUG: Not a gRPC-Web request\n")
 		}
 
 		// Serve the request
@@ -193,6 +265,21 @@ func wrapGrpcWeb(h http.Handler) http.Handler {
 // isGrpcWebRequest checks if the request is a gRPC-Web request
 func isGrpcWebRequest(r *http.Request) bool {
 	contentType := r.Header.Get("Content-Type")
-	return strings.HasPrefix(contentType, "application/grpc-web") ||
-		r.Header.Get("X-Grpc-Web") == "1"
+
+	// Check for gRPC-Web content types
+	if strings.HasPrefix(contentType, "application/grpc-web") {
+		return true
+	}
+
+	// Check for X-Grpc-Web header
+	if r.Header.Get("X-Grpc-Web") == "1" {
+		return true
+	}
+
+	// Check for other gRPC-Web indicators
+	if strings.Contains(contentType, "grpc") {
+		return true
+	}
+
+	return false
 }

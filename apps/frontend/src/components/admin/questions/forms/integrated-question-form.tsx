@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
+  Label,
   Select,
   SelectContent,
   SelectItem,
@@ -155,7 +156,8 @@ export function IntegratedQuestionForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  const [_validationResult, _setValidationResult] = useState<QuestionValidationResult | null>(null);
+  // TODO: Validation result state sẽ được sử dụng để hiển thị validation errors
+  const [validationResult, setValidationResult] = useState<QuestionValidationResult | null>(null);
   const [activeTab, setActiveTab] = useState("basic");
   
   // ===== FORM SETUP =====
@@ -186,6 +188,21 @@ export function IntegratedQuestionForm({
   // Type-safe control for FormField components
   const typedControl = form.control;
 
+  // Tags state management (không dùng useFieldArray vì tag là array of strings)
+  const currentTags = form.watch("tag") || [];
+
+  const addTag = (newTag: string) => {
+    const currentTags = form.getValues("tag") || [];
+    if (!currentTags.includes(newTag)) {
+      form.setValue("tag", [...currentTags, newTag]);
+    }
+  };
+
+  const removeTag = (index: number) => {
+    const currentTags = form.getValues("tag") || [];
+    form.setValue("tag", currentTags.filter((_, i) => i !== index));
+  };
+
   // ===== EFFECTS =====
   
   // Validate form data on change
@@ -202,7 +219,7 @@ export function IntegratedQuestionForm({
         } as Question;
         
         const result = validateQuestion(mockQuestion);
-        _setValidationResult(result);
+        setValidationResult(result);
       }
     });
     
@@ -459,7 +476,70 @@ export function IntegratedQuestionForm({
       />
     </div>
   );
-  
+
+  /**
+   * Render tags management
+   */
+  const renderTagsManagement = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Quản lý Tags</h3>
+
+        {/* Current tags */}
+        <div className="space-y-2">
+          <Label>Tags hiện tại</Label>
+          <div className="flex flex-wrap gap-2">
+            {currentTags.map((tag, index) => (
+              <div key={`tag-${index}`} className="flex items-center gap-1 bg-secondary px-2 py-1 rounded">
+                <span className="text-sm">{tag}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-4 w-4 p-0"
+                  onClick={() => removeTag(index)}
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Add new tag */}
+        <div className="flex gap-2">
+          <Input
+            placeholder="Thêm tag mới..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = e.currentTarget.value.trim();
+                if (value) {
+                  addTag(value);
+                  e.currentTarget.value = '';
+                }
+              }
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              const input = document.querySelector('input[placeholder="Thêm tag mới..."]') as HTMLInputElement;
+              const value = input?.value.trim();
+              if (value) {
+                addTag(value);
+                input.value = '';
+              }
+            }}
+          >
+            Thêm
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   // ===== MAIN RENDER =====
   
   const currentFormData = form.getValues();
@@ -490,11 +570,12 @@ export function IntegratedQuestionForm({
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-5">
                       <TabsTrigger value="basic">Cơ bản</TabsTrigger>
                       <TabsTrigger value="content">Nội dung</TabsTrigger>
                       <TabsTrigger value="answers">Đáp án</TabsTrigger>
                       <TabsTrigger value="explanations">Lời giải</TabsTrigger>
+                      <TabsTrigger value="tags">Tags</TabsTrigger>
                     </TabsList>
                     
                     <TabsContent value="basic" className="mt-6">
@@ -511,6 +592,10 @@ export function IntegratedQuestionForm({
                     
                     <TabsContent value="explanations" className="mt-6">
                       {renderExplanations()}
+                    </TabsContent>
+
+                    <TabsContent value="tags" className="mt-6">
+                      {renderTagsManagement()}
                     </TabsContent>
                   </Tabs>
                   
@@ -580,7 +665,26 @@ export function IntegratedQuestionForm({
             showQualityScore={true}
             showSuggestions={true}
             showDetails={true}
+            onValidationChange={setValidationResult}
           />
+
+          {/* Display validation result if available */}
+          {validationResult && !validationResult.isValid && (
+            <Card className="mt-4">
+              <CardHeader>
+                <CardTitle className="text-sm text-destructive">Lỗi validation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {validationResult.errors.map((error, index) => (
+                    <div key={index} className="text-sm text-destructive">
+                      <strong>{error.field}:</strong> {error.message}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
       

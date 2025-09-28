@@ -164,10 +164,11 @@ func (s *EnhancedUserServiceServer) Register(ctx context.Context, req *v1.Regist
 		FirstName:             req.FirstName,
 		LastName:              req.LastName,
 		Role:                  common.UserRole_USER_ROLE_STUDENT, // Default role
-		Status:                "INACTIVE",                        // Need email verification
+		Status:                "ACTIVE",                          // Set to ACTIVE for testing
 		Level:                 1,                                 // Start at level 1 for STUDENT
-		EmailVerified:         false,
-		MaxConcurrentSessions: 3, // Default 3 devices
+		EmailVerified:         true,                              // Set to true for testing
+		MaxConcurrentSessions: 3,                                 // Default 3 devices
+		IsActive:              true,                              // Set to active
 	}
 
 	// Create user in database

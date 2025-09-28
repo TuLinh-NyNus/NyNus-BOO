@@ -167,7 +167,7 @@ export function useBulkSelection(
   // ===== STATE =====
   
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [_lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+  const [, setLastSelectedId] = useState<string | null>(null);
   
   // ===== COMPUTED VALUES =====
   

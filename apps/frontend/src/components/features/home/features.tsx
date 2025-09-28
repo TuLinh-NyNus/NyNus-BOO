@@ -61,8 +61,8 @@ const iconMap = {
   Library: Library       // Thư viện (tài nguyên)
 };
 
-const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) => {
-  const [_isHovered, setIsHovered] = useState(false);
+const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
+  const [, setIsHovered] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const shouldReduceMotion = useReducedMotion();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -167,6 +167,9 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
     }
   };
 
+  // Calculate animation delay based on index
+  const animationDelay = shouldReduceMotion ? 0 : (index * 100) + delay;
+
   return (
     <motion.div
       ref={cardRef}
@@ -174,7 +177,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
       initial={shouldReduceMotion ? {} : { opacity: 0, y: 20 }}
       whileInView={shouldReduceMotion ? {} : { opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.3, delay }}
+      transition={{ duration: 0.3, delay: animationDelay / 1000 }}
       whileHover={shouldReduceMotion ? {} : {
         y: -2,
         scale: 1.03,
@@ -186,8 +189,8 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
       tabIndex={0}
       role="button"
       aria-label={`Tính năng ${feature.title}. Nhấn Enter để xem chi tiết.`}
-      aria-expanded={showDetails}
       aria-describedby={`feature-${feature.id}-description`}
+      aria-expanded={showDetails}
     >
 
 
@@ -337,7 +340,7 @@ const FeatureCard = ({ feature, index: _index, delay = 0 }: FeatureCardProps) =>
 const Features = () => {
   const shouldReduceMotion = useReducedMotion();
   const analytics = useAnalytics();
-  const [_isScrolling, _setIsScrolling] = useState(false);
+  const [, ] = useState(false);
 
   // Track section view on mount
   React.useEffect(() => {
@@ -350,7 +353,7 @@ const Features = () => {
 
   // Embla setup (loop)
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
-  const [_selectedIndex, _setSelectedIndex] = useState(0);
+  const [, _setSelectedIndex] = useState(0);
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;

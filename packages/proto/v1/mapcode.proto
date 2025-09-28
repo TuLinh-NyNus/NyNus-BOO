@@ -1,0 +1,214 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// MapCode Management Service
+service MapCodeService {
+  // Version Management
+  rpc CreateVersion(CreateVersionRequest) returns (CreateVersionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/mapcode/versions"
+      body: "*"
+    };
+  }
+
+  rpc GetVersions(GetVersionsRequest) returns (GetVersionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/versions"
+    };
+  }
+
+  rpc GetActiveVersion(GetActiveVersionRequest) returns (GetActiveVersionResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/versions/active"
+    };
+  }
+
+  rpc SetActiveVersion(SetActiveVersionRequest) returns (SetActiveVersionResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/mapcode/versions/{version_id}/activate"
+    };
+  }
+
+  rpc DeleteVersion(DeleteVersionRequest) returns (DeleteVersionResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/mapcode/versions/{version_id}"
+    };
+  }
+
+  // Translation Services
+  rpc TranslateCode(TranslateCodeRequest) returns (TranslateCodeResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/translate/{question_code}"
+    };
+  }
+
+  rpc TranslateCodes(TranslateCodesRequest) returns (TranslateCodesResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/mapcode/translate/batch"
+      body: "*"
+    };
+  }
+
+  rpc GetHierarchyNavigation(GetHierarchyNavigationRequest) returns (GetHierarchyNavigationResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/hierarchy/{question_code}"
+    };
+  }
+
+  // Storage Management
+  rpc GetStorageInfo(GetStorageInfoRequest) returns (GetStorageInfoResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/storage"
+    };
+  }
+}
+
+// Messages
+
+// MapCode Version
+message MapCodeVersion {
+  string id = 1;
+  string version = 2;           // e.g., "v2025-09-22"
+  string name = 3;              // Display name
+  string description = 4;       // Version description
+  string file_path = 5;         // Path to MapCode file
+  bool is_active = 6;           // Whether this is active version
+  string created_by = 7;        // User who created this version
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+// Translation result
+message MapCodeTranslation {
+  string question_code = 1;     // Original question code
+  string translation = 2;       // Human-readable translation
+  string grade = 3;             // Parsed grade
+  string subject = 4;           // Parsed subject
+  string chapter = 5;           // Parsed chapter
+  string level = 6;             // Parsed level
+  string lesson = 7;            // Parsed lesson
+  string form = 8;              // Parsed form (optional)
+}
+
+// Hierarchy navigation
+message HierarchyNavigation {
+  string question_code = 1;
+  HierarchyLevel grade = 2;
+  HierarchyLevel subject = 3;
+  HierarchyLevel chapter = 4;
+  HierarchyLevel level = 5;
+  HierarchyLevel lesson = 6;
+  HierarchyLevel form = 7;      // Optional for ID6 format
+  repeated string breadcrumbs = 8;
+}
+
+message HierarchyLevel {
+  string code = 1;              // Single character code
+  string name = 2;              // Display name
+  string description = 3;       // Full description
+}
+
+// Storage information
+message StorageInfo {
+  int32 total_versions = 1;
+  int32 max_versions = 2;
+  int32 available_slots = 3;
+  int32 warning_level = 4;
+  bool is_near_limit = 5;
+  bool is_at_limit = 6;
+  string warning_message = 7;
+}
+
+// Request/Response Messages
+
+// Version Management
+message CreateVersionRequest {
+  string version = 1;           // Version identifier
+  string name = 2;              // Display name
+  string description = 3;       // Version description
+  string created_by = 4;        // User creating the version
+}
+
+message CreateVersionResponse {
+  common.Response status = 1;
+  MapCodeVersion version = 2;
+}
+
+message GetVersionsRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+}
+
+message GetVersionsResponse {
+  common.Response status = 1;
+  repeated MapCodeVersion versions = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+message GetActiveVersionRequest {}
+
+message GetActiveVersionResponse {
+  common.Response status = 1;
+  MapCodeVersion version = 2;
+}
+
+message SetActiveVersionRequest {
+  string version_id = 1;
+}
+
+message SetActiveVersionResponse {
+  common.Response status = 1;
+  string message = 2;
+}
+
+message DeleteVersionRequest {
+  string version_id = 1;
+}
+
+message DeleteVersionResponse {
+  common.Response status = 1;
+  string message = 2;
+}
+
+// Translation Services
+message TranslateCodeRequest {
+  string question_code = 1;
+}
+
+message TranslateCodeResponse {
+  common.Response status = 1;
+  MapCodeTranslation translation = 2;
+}
+
+message TranslateCodesRequest {
+  repeated string question_codes = 1;
+}
+
+message TranslateCodesResponse {
+  common.Response status = 1;
+  map<string, string> translations = 2;  // question_code -> translation
+}
+
+message GetHierarchyNavigationRequest {
+  string question_code = 1;
+}
+
+message GetHierarchyNavigationResponse {
+  common.Response status = 1;
+  HierarchyNavigation navigation = 2;
+}
+
+// Storage Management
+message GetStorageInfoRequest {}
+
+message GetStorageInfoResponse {
+  common.Response status = 1;
+  StorageInfo storage = 2;
+}

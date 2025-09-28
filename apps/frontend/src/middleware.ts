@@ -31,7 +31,17 @@ const ROUTE_PERMISSIONS: Record<string, { roles?: string[], minLevel?: number, r
   
   // Student routes
   '/courses': { roles: ['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'], requireAuth: true },
+
+  // Exam routes - Comprehensive permissions
   '/exams': { roles: ['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'], minLevel: 1, requireAuth: true },
+  '/exams/browse': { roles: ['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'], requireAuth: true },
+  '/exams/search': { roles: ['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'], requireAuth: true },
+  '/exams/my-exams': { roles: ['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'], requireAuth: true },
+  '/exams/my-results': { roles: ['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'], requireAuth: true },
+
+  // Teacher/Admin only exam management routes
+  '/exams/create': { roles: ['TEACHER', 'ADMIN'], requireAuth: true },
+  '/exams/manage': { roles: ['TEACHER', 'ADMIN'], requireAuth: true },
   
   // Authenticated user routes
   '/dashboard': { requireAuth: true },

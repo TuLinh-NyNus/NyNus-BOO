@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgtype"
 )
 
 // ContactStatus represents the status of a contact submission
@@ -62,54 +62,54 @@ func (db *ContactSubmissionDB) ToEntity() *ContactSubmission {
 	}
 
 	// Convert UUID
-	if db.ID.Valid {
+	if db.ID.Status == pgtype.Present {
 		entity.ID = uuid.UUID(db.ID.Bytes)
 	}
 
 	// Convert required fields
-	if db.Name.Valid {
+	if db.Name.Status == pgtype.Present {
 		entity.Name = db.Name.String
 	}
-	if db.Email.Valid {
+	if db.Email.Status == pgtype.Present {
 		entity.Email = db.Email.String
 	}
-	if db.Subject.Valid {
+	if db.Subject.Status == pgtype.Present {
 		entity.Subject = db.Subject.String
 	}
-	if db.Message.Valid {
+	if db.Message.Status == pgtype.Present {
 		entity.Message = db.Message.String
 	}
-	if db.Status.Valid {
+	if db.Status.Status == pgtype.Present {
 		entity.Status = ContactStatus(db.Status.String)
 	}
 
 	// Convert optional fields
-	if db.Phone.Valid {
+	if db.Phone.Status == pgtype.Present {
 		entity.Phone = &db.Phone.String
 	}
-	if db.IPAddress.Valid {
+	if db.IPAddress.Status == pgtype.Present {
 		entity.IPAddress = &db.IPAddress.String
 	}
-	if db.UserAgent.Valid {
+	if db.UserAgent.Status == pgtype.Present {
 		entity.UserAgent = &db.UserAgent.String
 	}
 
 	// Convert timestamps
-	if db.CreatedAt.Valid {
+	if db.CreatedAt.Status == pgtype.Present {
 		entity.CreatedAt = db.CreatedAt.Time
 	}
-	if db.UpdatedAt.Valid {
+	if db.UpdatedAt.Status == pgtype.Present {
 		entity.UpdatedAt = db.UpdatedAt.Time
 	}
-	if db.RepliedAt.Valid {
+	if db.RepliedAt.Status == pgtype.Present {
 		entity.RepliedAt = &db.RepliedAt.Time
 	}
 
 	// Convert reply fields
-	if db.ReplyMessage.Valid {
+	if db.ReplyMessage.Status == pgtype.Present {
 		entity.ReplyMessage = &db.ReplyMessage.String
 	}
-	if db.RepliedBy.Valid {
+	if db.RepliedBy.Status == pgtype.Present {
 		repliedBy := uuid.UUID(db.RepliedBy.Bytes)
 		entity.RepliedBy = &repliedBy
 	}
@@ -122,40 +122,40 @@ func (entity *ContactSubmission) ToDBModel() *ContactSubmissionDB {
 	db := &ContactSubmissionDB{}
 
 	// Set UUID
-	db.ID = pgtype.UUID{Bytes: entity.ID, Valid: true}
+	db.ID = pgtype.UUID{Bytes: entity.ID, Status: pgtype.Present}
 
 	// Set required fields
-	db.Name = pgtype.Text{String: entity.Name, Valid: true}
-	db.Email = pgtype.Text{String: entity.Email, Valid: true}
-	db.Subject = pgtype.Text{String: entity.Subject, Valid: true}
-	db.Message = pgtype.Text{String: entity.Message, Valid: true}
-	db.Status = pgtype.Text{String: string(entity.Status), Valid: true}
-	db.SubmissionID = pgtype.Text{String: entity.SubmissionID, Valid: true}
+	db.Name = pgtype.Text{String: entity.Name, Status: pgtype.Present}
+	db.Email = pgtype.Text{String: entity.Email, Status: pgtype.Present}
+	db.Subject = pgtype.Text{String: entity.Subject, Status: pgtype.Present}
+	db.Message = pgtype.Text{String: entity.Message, Status: pgtype.Present}
+	db.Status = pgtype.Text{String: string(entity.Status), Status: pgtype.Present}
+	db.SubmissionID = pgtype.Text{String: entity.SubmissionID, Status: pgtype.Present}
 
 	// Set optional fields
 	if entity.Phone != nil {
-		db.Phone = pgtype.Text{String: *entity.Phone, Valid: true}
+		db.Phone = pgtype.Text{String: *entity.Phone, Status: pgtype.Present}
 	}
 	if entity.IPAddress != nil {
-		db.IPAddress = pgtype.Text{String: *entity.IPAddress, Valid: true}
+		db.IPAddress = pgtype.Text{String: *entity.IPAddress, Status: pgtype.Present}
 	}
 	if entity.UserAgent != nil {
-		db.UserAgent = pgtype.Text{String: *entity.UserAgent, Valid: true}
+		db.UserAgent = pgtype.Text{String: *entity.UserAgent, Status: pgtype.Present}
 	}
 
 	// Set timestamps
-	db.CreatedAt = pgtype.Timestamptz{Time: entity.CreatedAt, Valid: true}
-	db.UpdatedAt = pgtype.Timestamptz{Time: entity.UpdatedAt, Valid: true}
+	db.CreatedAt = pgtype.Timestamptz{Time: entity.CreatedAt, Status: pgtype.Present}
+	db.UpdatedAt = pgtype.Timestamptz{Time: entity.UpdatedAt, Status: pgtype.Present}
 	if entity.RepliedAt != nil {
-		db.RepliedAt = pgtype.Timestamptz{Time: *entity.RepliedAt, Valid: true}
+		db.RepliedAt = pgtype.Timestamptz{Time: *entity.RepliedAt, Status: pgtype.Present}
 	}
 
 	// Set reply fields
 	if entity.ReplyMessage != nil {
-		db.ReplyMessage = pgtype.Text{String: *entity.ReplyMessage, Valid: true}
+		db.ReplyMessage = pgtype.Text{String: *entity.ReplyMessage, Status: pgtype.Present}
 	}
 	if entity.RepliedBy != nil {
-		db.RepliedBy = pgtype.UUID{Bytes: *entity.RepliedBy, Valid: true}
+		db.RepliedBy = pgtype.UUID{Bytes: *entity.RepliedBy, Status: pgtype.Present}
 	}
 
 	return db

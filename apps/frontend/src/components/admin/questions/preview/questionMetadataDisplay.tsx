@@ -74,6 +74,7 @@ export function QuestionMetadataDisplay({
       [QuestionStatus.PENDING]: { label: "Chờ duyệt", variant: "secondary" as const },
       [QuestionStatus.INACTIVE]: { label: "Không hoạt động", variant: "outline" as const },
       [QuestionStatus.ARCHIVED]: { label: "Lưu trữ", variant: "destructive" as const },
+      [QuestionStatus.DRAFT]: { label: "Bản nháp", variant: "secondary" as const },
     };
 
     const config = configs[status];
@@ -88,9 +89,10 @@ export function QuestionMetadataDisplay({
       [QuestionDifficulty.EASY]: { label: "Dễ", variant: "secondary" as const },
       [QuestionDifficulty.MEDIUM]: { label: "Trung bình", variant: "default" as const },
       [QuestionDifficulty.HARD]: { label: "Khó", variant: "destructive" as const },
+      [QuestionDifficulty.EXPERT]: { label: "Chuyên gia", variant: "outline" as const },
     };
 
-    const config = configs[difficulty];
+    const config = configs[difficulty] || { label: "Chưa xác định", variant: "secondary" as const };
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 

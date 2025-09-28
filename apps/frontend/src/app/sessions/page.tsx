@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { Monitor, Smartphone, Tablet, Globe, MapPin, Clock, Shield, Trash2, LogOut, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,7 +88,6 @@ const mockSessions: Session[] = [
 ];
 
 export default function SessionsPage() {
-  const { data: _session } = useSession();
   const { toast } = useToast();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +107,8 @@ export default function SessionsPage() {
       
       // Using mock data for now
       setSessions(mockSessions);
-    } catch (_error) {
+    } catch (error) {
+      console.error('Failed to fetch sessions:', error);
       toast({
         title: 'Lỗi',
         description: 'Không thể tải danh sách phiên đăng nhập',
@@ -133,7 +132,8 @@ export default function SessionsPage() {
         title: 'Thành công',
         description: 'Đã kết thúc phiên đăng nhập',
       });
-    } catch (_error) {
+    } catch (error) {
+      console.error('Failed to terminate session:', error);
       toast({
         title: 'Lỗi',
         description: 'Không thể kết thúc phiên đăng nhập',
@@ -157,7 +157,8 @@ export default function SessionsPage() {
         title: 'Thành công',
         description: 'Đã kết thúc tất cả phiên đăng nhập khác',
       });
-    } catch (_error) {
+    } catch (error) {
+      console.error('Failed to terminate all sessions:', error);
       toast({
         title: 'Lỗi',
         description: 'Không thể kết thúc các phiên đăng nhập',

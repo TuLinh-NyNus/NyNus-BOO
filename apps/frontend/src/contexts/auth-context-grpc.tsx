@@ -298,15 +298,25 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   /**
-   * Reset password (placeholder - needs backend implementation)
+   * Reset password with token
    */
-  const resetPassword = async (token: string, _newPassword: string) => {
+  const resetPassword = async (token: string, newPassword: string) => {
     try {
       setIsLoading(true);
-      // TODO: Implement reset password gRPC call
-      console.log('Reset password with token:', token);
-      // For now, just simulate the request
-      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Call reset password gRPC service
+      const response = await AuthService.resetPassword({
+        token,
+        newPassword
+      });
+
+      // Check if reset was successful
+      if (!response.getResponse()?.getSuccess()) {
+        throw new Error(response.getResponse()?.getMessage() || 'Reset password failed');
+      }
+
+      // Password reset successful - user needs to login again
+      console.log('Password reset successful');
     } catch (error) {
       console.error('Reset password failed:', error);
       throw error;

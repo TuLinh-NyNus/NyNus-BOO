@@ -26,16 +26,29 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await AuthService.login(email, password);
+      // Use gRPC AuthService instead of REST
+      const response = await AuthService.login(email, password);
 
-      // gRPC LoginResponse uses getters, and tokens are auto-saved by AuthService
-      if (result.getAccessToken() && result.getUser()) {
-        // Store user info (optional) - convert protobuf to plain object
+      // gRPC response - tokens are auto-saved by AuthService
+      if (response.getAccessToken() && response.getUser()) {
+        // Store user info from gRPC response
         if (typeof window !== 'undefined') {
-          const userObj = result.getUser()?.toObject();
-          localStorage.setItem('nynus-user', JSON.stringify(userObj));
+          const user = response.getUser();
+          if (user) {
+            localStorage.setItem('nynus-user', JSON.stringify({
+              id: user.getId(),
+              email: user.getEmail(),
+              firstName: user.getFirstName(),
+              lastName: user.getLastName(),
+              role: user.getRole(),
+              status: user.getStatus(),
+              level: user.getLevel(),
+              avatar: user.getAvatar(),
+              emailVerified: user.getEmailVerified()
+            }));
+          }
         }
-        
+
         // Redirect to dashboard
         router.push('/dashboard');
       } else {

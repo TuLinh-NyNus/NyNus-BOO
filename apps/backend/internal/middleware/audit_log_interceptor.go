@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -227,16 +228,37 @@ func (a *AuditLogInterceptor) Unary() grpc.UnaryServerInterceptor {
 			metadata := map[string]interface{}{
 				"method":   info.FullMethod,
 				"duration": duration.Milliseconds(),
-				"request":  requestData,
-				"response": responseData,
 			}
-			metadataBytes, _ := json.Marshal(metadata)
+
+			// Only add request/response data if they exist
+			if requestData != nil {
+				metadata["request"] = requestData
+			}
+			if responseData != nil {
+				metadata["response"] = responseData
+			}
+
+			// Safely marshal metadata
+			metadataBytes, err := json.Marshal(metadata)
+			if err != nil {
+				// Fallback to minimal metadata if marshaling fails
+				metadataBytes = []byte(`{"method":"` + info.FullMethod + `","error":"metadata_marshal_failed"}`)
+			}
+
+			// Ensure UserID is not empty string
+			var userIDPtr *string
+			if userID != "" {
+				userIDPtr = &userID
+			}
 
 			auditLog := &repository.AuditLog{
-				UserID:       &userID,
+				ID:           uuid.New().String(),
+				UserID:       userIDPtr,
 				Action:       auditConfig.Action,
 				Resource:     auditConfig.Resource,
 				ResourceID:   extractResourceID(req, info.FullMethod),
+				OldValues:    json.RawMessage(`{}`), // Initialize with empty JSON
+				NewValues:    json.RawMessage(`{}`), // Initialize with empty JSON
 				IPAddress:    clientIP,
 				UserAgent:    userAgent,
 				SessionID:    sessionID,

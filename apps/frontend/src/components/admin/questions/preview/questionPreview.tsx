@@ -91,6 +91,7 @@ export function QuestionPreview({
       [QuestionDifficulty.EASY]: { label: "Dễ", color: "bg-green-500" },
       [QuestionDifficulty.MEDIUM]: { label: "Trung bình", color: "bg-yellow-500" },
       [QuestionDifficulty.HARD]: { label: "Khó", color: "bg-red-500" },
+      [QuestionDifficulty.EXPERT]: { label: "Chuyên gia", color: "bg-purple-500" },
     };
     return configs[difficulty] || { label: difficulty, color: "bg-gray-500" };
   };
@@ -121,6 +122,11 @@ export function QuestionPreview({
         label: "Lưu trữ",
         variant: "destructive" as const,
         icon: AlertCircle,
+      },
+      [QuestionStatus.DRAFT]: {
+        label: "Bản nháp",
+        variant: "secondary" as const,
+        icon: Clock,
       },
     };
 

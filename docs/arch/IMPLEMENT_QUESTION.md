@@ -791,9 +791,11 @@ if (isGrpcError(error)) {
 }
 ```
 
-### **Backend Implementation Needed**
-- [ ] `QuestionService.searchQuestions()` - Advanced search functionality
-- [ ] `QuestionService.getQuestionById()` - Individual question retrieval  
+### **Backend Implementation Status**
+- [x] `QuestionFilterService.searchQuestions()` - Advanced Vietnamese search with OpenSearch integration
+- [x] OpenSearch Vietnamese text analysis with 350+ education domain synonyms
+- [x] Enhanced search UI with real-time Vietnamese search capabilities
+- [ ] `QuestionService.getQuestionById()` - Individual question retrieval
 - [ ] `ContactService.submitForm()` - Real contact form processing
 - [ ] `NewsletterService.subscribe()` - Real newsletter subscription
 

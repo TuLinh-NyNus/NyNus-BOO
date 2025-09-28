@@ -121,6 +121,15 @@ cd exam-bank-system
 ```
 
 ### 2. Environment Setup
+
+#### Option A: Quick OAuth Setup (Recommended)
+```powershell
+# Run automated OAuth setup script
+./scripts/setup-oauth-dev.ps1
+# Follow the prompts to enter your Google OAuth credentials
+```
+
+#### Option B: Manual Setup
 ```powershell
 # Copy environment files
 cp .env.example .env
@@ -129,57 +138,68 @@ cp apps/frontend/.env.local.example apps/frontend/.env.local
 # Edit .env files with your configuration
 ```
 
+#### Google OAuth Setup
+For Google login functionality, you need OAuth credentials:
+1. **Follow the complete guide**: [Google OAuth Setup Guide](docs/setup/GOOGLE_OAUTH_SETUP_GUIDE.md)
+2. **Quick validation**: Run `./scripts/validate-oauth-config.ps1` to check your configuration
+
 ### 3. Choose Your Development Mode
 
 #### 🔧 **Native Development** (Recommended for development)
 ```powershell
 # Start all services (Native PostgreSQL + Go + Next.js)
-.\start-project.ps1
+.\scripts\project\start-project.ps1
 
 # Or start specific services
-.\start-project.ps1 -Backend     # Backend only
-.\start-project.ps1 -Frontend    # Frontend only 
-.\start-project.ps1 -Database    # Database only
-.\start-project.ps1 -Help        # Show help
+.\scripts\project\start-project.ps1 -Backend     # Backend only
+.\scripts\project\start-project.ps1 -Frontend    # Frontend only
+.\scripts\project\start-project.ps1 -Database    # Database only
+.\scripts\project\start-project.ps1 -Help        # Show help
 
 # Stop all services
-.\stop-project.ps1
+.\scripts\project\stop-project.ps1
 ```
 
 #### 🐳 **Full Docker Stack** (Production-like environment)
 ```powershell
-# Setup and start everything in Docker containers
-.\setup-docker.ps1
+# Development Docker environment
+.\scripts\docker\docker-dev.ps1
+
+# Production Docker environment
+.\scripts\docker\docker-prod.ps1
+
+# Advanced Docker setup
+.\scripts\docker\setup-docker.ps1
 
 # Options
-.\setup-docker.ps1 -Build        # Force rebuild images
-.\setup-docker.ps1 -Stop         # Stop all services
-.\setup-docker.ps1 -Clean        # Clean up containers & volumes
-.\setup-docker.ps1 -Logs         # View service logs
-.\setup-docker.ps1 -Status       # Check service status
+.\scripts\docker\docker-dev.ps1 -Build        # Force rebuild images
+.\scripts\docker\docker-dev.ps1 -Stop         # Stop all services
+.\scripts\docker\docker-dev.ps1 -Clean        # Clean up containers & volumes
+.\scripts\docker\docker-dev.ps1 -Logs         # View service logs
+.\scripts\docker\docker-dev.ps1 -Status       # Check service status
 ```
 
 #### ⚡ **Hybrid Mode** (Docker DB + Native apps)
 ```powershell
 # PostgreSQL in Docker, Backend/Frontend native
-.\quick-start.ps1
+.\scripts\project\quick-start.ps1
 
 # Options
-.\quick-start.ps1 -Stop          # Stop all services
-.\quick-start.ps1 -Clean         # Clean up database
-.\quick-start.ps1 -Status        # Check status
+.\scripts\project\quick-start.ps1 -Stop          # Stop all services
+.\scripts\project\quick-start.ps1 -Clean         # Clean up database
+.\scripts\project\quick-start.ps1 -Status        # Check status
 ```
 
 #### 🐋 **Docker Compose Only**
 ```powershell
-# Full stack
-docker-compose up -d
+# Development environment
+docker-compose -f docker/compose/docker-compose.yml up -d
 
-# Database only
-docker-compose -f docker-compose.simple.yml up -d
+# Production environment
+docker-compose -f docker/compose/docker-compose.prod.yml up -d
 
 # Check services
-docker-compose ps
+docker-compose -f docker/compose/docker-compose.yml ps
 ```
 
 ### 5. Manual Development Setup
@@ -200,11 +220,14 @@ pnpm dev
 ### ⚡ **Most Common Commands:**
 ```powershell
 # Quick start for development
-.\start-project.ps1              # 🔧 Start everything (native)
-.\stop-project.ps1               # 🚫 Stop everything
+.\scripts\project\start-project.ps1     # 🔧 Start everything (native)
+.\scripts\project\stop-project.ps1      # 🚫 Stop everything
 
 # Quick start with Docker DB
-.\quick-start.ps1                # ⚡ Hybrid mode
+.\scripts\project\quick-start.ps1       # ⚡ Hybrid mode
+
+# Docker development
+.\scripts\docker\docker-dev.ps1         # 🐳 Full Docker environment
 .\quick-start.ps1 -Stop          # Stop hybrid mode
 
 # Full Docker environment
@@ -263,12 +286,19 @@ v1.NotificationService/GetNotifications
 
 ### 📜 **Available Scripts:**
 
+**Project Management Scripts** (in `scripts/project/`):
 | Script | Purpose | Docker | Use Case |
 |--------|---------|--------|----------|
-| **`start-project.ps1`** | Native development | ❌ No | Main development work |
-| **`setup-docker.ps1`** | Full containerization | ✅ Yes | Production testing, CI/CD |
-| **`quick-start.ps1`** | Hybrid development | 🕸️ Partial | Quick testing with Docker DB |
-| **`stop-project.ps1`** | Stop native services | ❌ No | Clean shutdown |
+| **`scripts/project/start-project.ps1`** | Native development | ❌ No | Main development work |
+| **`scripts/project/quick-start.ps1`** | Hybrid development | 🕸️ Partial | Quick testing with Docker DB |
+| **`scripts/project/stop-project.ps1`** | Stop native services | ❌ No | Clean shutdown |
+
+**Docker Management Scripts** (in `scripts/docker/`):
+| Script | Purpose | Docker | Use Case |
+|--------|---------|--------|----------|
+| **`scripts/docker/docker-dev.ps1`** | Development Docker | ✅ Yes | Full Docker development |
+| **`scripts/docker/docker-prod.ps1`** | Production Docker | ✅ Yes | Production deployment |
+| **`scripts/docker/setup-docker.ps1`** | Advanced Docker setup | ✅ Yes | Docker configuration |
 
 ### ✨ **Script Features:**
 - ✅ Automatic dependency checking
@@ -404,9 +434,6 @@ exam-bank-system/                    # Monorepo root
 ├── tools/                         # Build tools
 │   ├── protoc/                    # Protocol Buffer compiler
 │   └── docker/                    # Docker configurations
-├── start-project.ps1              # Main development script
-├── setup-docker.ps1               # Docker setup
-├── docker-compose.yml             # Full stack
 └── pnpm-workspace.yaml            # Monorepo configuration
 ```
 
@@ -511,11 +538,11 @@ curl -s -X POST "http://localhost:8080/api/v1/questions/filter" \
 ### 🔧 **Native Development Issues**
 ```powershell
 # Port conflicts
-.\stop-project.ps1              # Stop all native services
-.\start-project.ps1             # Restart
+.\scripts\project\stop-project.ps1              # Stop all native services
+.\scripts\project\start-project.ps1             # Restart
 
 # Check what's running
-.\start-project.ps1 -Help       # Show available options
+.\scripts\project\start-project.ps1 -Help       # Show available options
 netstat -an | findstr ":3000"   # Check port 3000
 netstat -an | findstr ":8080"   # Check port 8080
 ```

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
 )
 
@@ -62,32 +62,32 @@ func (db *NewsletterSubscriptionDB) ToEntity() *NewsletterSubscription {
 	}
 
 	// Convert UUID
-	if db.ID.Valid {
+	if db.ID.Status == pgtype.Present {
 		entity.ID = uuid.UUID(db.ID.Bytes)
 	}
 
 	// Convert required fields
-	if db.Email.Valid {
+	if db.Email.Status == pgtype.Present {
 		entity.Email = db.Email.String
 	}
-	if db.Status.Valid {
+	if db.Status.Status == pgtype.Present {
 		entity.Status = SubscriptionStatus(db.Status.String)
 	}
-	if db.Source.Valid {
+	if db.Source.Status == pgtype.Present {
 		entity.Source = db.Source.String
 	}
 
 	// Convert optional fields
-	if db.ConfirmedAt.Valid {
+	if db.ConfirmedAt.Status == pgtype.Present {
 		entity.ConfirmedAt = &db.ConfirmedAt.Time
 	}
-	if db.UnsubscribedAt.Valid {
+	if db.UnsubscribedAt.Status == pgtype.Present {
 		entity.UnsubscribedAt = &db.UnsubscribedAt.Time
 	}
-	if db.UnsubscribeReason.Valid {
+	if db.UnsubscribeReason.Status == pgtype.Present {
 		entity.UnsubscribeReason = &db.UnsubscribeReason.String
 	}
-	if db.IPAddress.Valid {
+	if db.IPAddress.Status == pgtype.Present {
 		entity.IPAddress = &db.IPAddress.String
 	}
 
@@ -100,10 +100,10 @@ func (db *NewsletterSubscriptionDB) ToEntity() *NewsletterSubscription {
 	}
 
 	// Convert timestamps
-	if db.CreatedAt.Valid {
+	if db.CreatedAt.Status == pgtype.Present {
 		entity.CreatedAt = db.CreatedAt.Time
 	}
-	if db.UpdatedAt.Valid {
+	if db.UpdatedAt.Status == pgtype.Present {
 		entity.UpdatedAt = db.UpdatedAt.Time
 	}
 
@@ -115,26 +115,26 @@ func (entity *NewsletterSubscription) ToDBModel() *NewsletterSubscriptionDB {
 	db := &NewsletterSubscriptionDB{}
 
 	// Set UUID
-	db.ID = pgtype.UUID{Bytes: entity.ID, Valid: true}
+	db.ID = pgtype.UUID{Bytes: entity.ID, Status: pgtype.Present}
 
 	// Set required fields
-	db.Email = pgtype.Text{String: entity.Email, Valid: true}
-	db.Status = pgtype.Text{String: string(entity.Status), Valid: true}
-	db.SubscriptionID = pgtype.Text{String: entity.SubscriptionID, Valid: true}
-	db.Source = pgtype.Text{String: entity.Source, Valid: true}
+	db.Email = pgtype.Text{String: entity.Email, Status: pgtype.Present}
+	db.Status = pgtype.Text{String: string(entity.Status), Status: pgtype.Present}
+	db.SubscriptionID = pgtype.Text{String: entity.SubscriptionID, Status: pgtype.Present}
+	db.Source = pgtype.Text{String: entity.Source, Status: pgtype.Present}
 
 	// Set optional fields
 	if entity.ConfirmedAt != nil {
-		db.ConfirmedAt = pgtype.Timestamptz{Time: *entity.ConfirmedAt, Valid: true}
+		db.ConfirmedAt = pgtype.Timestamptz{Time: *entity.ConfirmedAt, Status: pgtype.Present}
 	}
 	if entity.UnsubscribedAt != nil {
-		db.UnsubscribedAt = pgtype.Timestamptz{Time: *entity.UnsubscribedAt, Valid: true}
+		db.UnsubscribedAt = pgtype.Timestamptz{Time: *entity.UnsubscribedAt, Status: pgtype.Present}
 	}
 	if entity.UnsubscribeReason != nil {
-		db.UnsubscribeReason = pgtype.Text{String: *entity.UnsubscribeReason, Valid: true}
+		db.UnsubscribeReason = pgtype.Text{String: *entity.UnsubscribeReason, Status: pgtype.Present}
 	}
 	if entity.IPAddress != nil {
-		db.IPAddress = pgtype.Text{String: *entity.IPAddress, Valid: true}
+		db.IPAddress = pgtype.Text{String: *entity.IPAddress, Status: pgtype.Present}
 	}
 
 	// Set arrays and JSON
@@ -146,8 +146,8 @@ func (entity *NewsletterSubscription) ToDBModel() *NewsletterSubscriptionDB {
 	}
 
 	// Set timestamps
-	db.CreatedAt = pgtype.Timestamptz{Time: entity.CreatedAt, Valid: true}
-	db.UpdatedAt = pgtype.Timestamptz{Time: entity.UpdatedAt, Valid: true}
+	db.CreatedAt = pgtype.Timestamptz{Time: entity.CreatedAt, Status: pgtype.Present}
+	db.UpdatedAt = pgtype.Timestamptz{Time: entity.UpdatedAt, Status: pgtype.Present}
 
 	return db
 }

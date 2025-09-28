@@ -44,6 +44,59 @@ help: ## Show this help message
 	@echo "$(GREEN)Available targets:$(NC)"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(YELLOW)%-15s$(NC) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+## Testing
+test: test-backend ## Run backend tests (default)
+
+test-backend: ## Run backend unit and integration tests
+	@echo "$(BLUE)🧪 Running backend tests...$(NC)"
+	cd apps/backend && go test -v -race -coverprofile=coverage.out ./internal/...
+	@echo "$(GREEN)✅ Backend tests completed$(NC)"
+
+test-backend-coverage: ## Run backend tests with HTML coverage report
+	@echo "$(BLUE)🧪 Running backend tests with coverage...$(NC)"
+	cd apps/backend && go test -v -race -coverprofile=coverage.out ./internal/...
+	cd apps/backend && go tool cover -html=coverage.out -o coverage.html
+	@echo "$(GREEN)✅ Coverage report generated: apps/backend/coverage.html$(NC)"
+
+test-frontend: ## Run frontend tests
+	@echo "$(BLUE)🧪 Running frontend tests...$(NC)"
+	cd apps/frontend && npm test -- --watchAll=false
+	@echo "$(GREEN)✅ Frontend tests completed$(NC)"
+
+test-frontend-coverage: ## Run frontend tests with coverage
+	@echo "$(BLUE)🧪 Running frontend tests with coverage...$(NC)"
+	cd apps/frontend && npm test -- --coverage --watchAll=false
+	@echo "$(GREEN)✅ Frontend coverage report generated$(NC)"
+
+test-e2e: ## Run end-to-end tests
+	@echo "$(BLUE)🧪 Running E2E tests...$(NC)"
+	cd apps/frontend && npx playwright test
+	@echo "$(GREEN)✅ E2E tests completed$(NC)"
+
+test-performance: ## Run performance tests
+	@echo "$(BLUE)🧪 Running performance tests...$(NC)"
+	cd apps/frontend && npx playwright test --grep="performance"
+	@echo "$(GREEN)✅ Performance tests completed$(NC)"
+
+test-all: test-backend test-frontend ## Run all tests
+
+coverage: test-backend-coverage test-frontend-coverage ## Generate all coverage reports
+
+test-status: ## Show current test status
+	@echo "$(CYAN)=== Test Status ===$(NC)"
+	@echo "Backend tests:"
+	@cd apps/backend && go test ./internal/... > /dev/null 2>&1 && echo "  $(GREEN)✓ PASSING$(NC)" || echo "  $(RED)✗ FAILING$(NC)"
+	@echo "Frontend tests:"
+	@cd apps/frontend && npm test -- --watchAll=false --passWithNoTests > /dev/null 2>&1 && echo "  $(GREEN)✓ PASSING$(NC)" || echo "  $(YELLOW)⚠ ISSUES$(NC)"
+	@echo ""
+	@echo "See docs/testing/README.md for detailed testing guide"
+
+test-clean: ## Clean test artifacts
+	@echo "$(BLUE)🧹 Cleaning test artifacts...$(NC)"
+	cd apps/backend && rm -f coverage.out coverage.html *.log || true
+	cd apps/frontend && rm -rf coverage .jest-cache || true
+	@echo "$(GREEN)✅ Test artifacts cleaned$(NC)"
+
 ## Development
 dev: proto build run ## Generate proto, build and run the application
 
@@ -121,12 +174,12 @@ proto-clean: ## Clean generated proto files
 ## Database
 db-up: ## Start database with Docker Compose
 	@echo "$(BLUE)🐘 Starting PostgreSQL database...$(NC)"
-	@docker-compose up -d postgres
+	@docker-compose -f docker/compose/docker-compose.yml up -d postgres
 	@echo "$(GREEN)✅ Database started$(NC)"
 
 db-down: ## Stop database
 	@echo "$(YELLOW)🛑 Stopping PostgreSQL database...$(NC)"
-	@docker-compose down
+	@docker-compose -f docker/compose/docker-compose.yml down
 	@echo "$(GREEN)✅ Database stopped$(NC)"
 
 db-reset: db-down db-up ## Reset database (stop and start)
@@ -218,7 +271,7 @@ status: ## Show application status
 	fi
 	@echo ""
 	@echo "$(CYAN)Database Status:$(NC)"
-	@docker-compose ps postgres || echo "$(RED)❌ Database not running$(NC)"
+	@docker-compose -f docker/compose/docker-compose.yml ps postgres || echo "$(RED)❌ Database not running$(NC)"
 
 ## Legacy commands (for compatibility)
 setup: ## Initial setup (legacy)

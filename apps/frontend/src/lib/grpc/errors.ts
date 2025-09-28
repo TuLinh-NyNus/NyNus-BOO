@@ -1,12 +1,12 @@
 /**
  * gRPC-Web Error Handling Utilities
  * Thay thế cho REST client error handling
- * 
+ *
  * @author NyNus Development Team
  * @version 1.0.0
  */
 
-import { grpc } from '@improbable-eng/grpc-web';
+import * as grpcWeb from 'grpc-web';
 
 // ===== TYPES =====
 
@@ -15,9 +15,9 @@ import { grpc } from '@improbable-eng/grpc-web';
  * Thay thế cho APIError từ REST client
  */
 export interface GrpcServiceError {
-  code: grpc.Code;
+  code: number;
   message: string;
-  metadata?: grpc.Metadata;
+  metadata?: grpcWeb.Metadata;
   details?: unknown;
 }
 
@@ -26,7 +26,7 @@ export interface GrpcServiceError {
  */
 export enum ErrorCategory {
   AUTHENTICATION = 'authentication',
-  AUTHORIZATION = 'authorization', 
+  AUTHORIZATION = 'authorization',
   NETWORK = 'network',
   VALIDATION = 'validation',
   NOT_FOUND = 'not_found',
@@ -38,26 +38,49 @@ export enum ErrorCategory {
 // ===== CONSTANTS =====
 
 /**
+ * gRPC Status Codes (compatible with grpc-web library)
+ */
+export const GrpcCode = {
+  OK: 0,
+  CANCELLED: 1,
+  UNKNOWN: 2,
+  INVALID_ARGUMENT: 3,
+  DEADLINE_EXCEEDED: 4,
+  NOT_FOUND: 5,
+  ALREADY_EXISTS: 6,
+  PERMISSION_DENIED: 7,
+  RESOURCE_EXHAUSTED: 8,
+  FAILED_PRECONDITION: 9,
+  ABORTED: 10,
+  OUT_OF_RANGE: 11,
+  UNIMPLEMENTED: 12,
+  INTERNAL: 13,
+  UNAVAILABLE: 14,
+  DATA_LOSS: 15,
+  UNAUTHENTICATED: 16
+} as const;
+
+/**
  * User-friendly error messages map
  */
-const ERROR_MESSAGES: Record<grpc.Code, string> = {
-  [grpc.Code.OK]: 'Thành công',
-  [grpc.Code.Canceled]: 'Yêu cầu đã bị hủy',
-  [grpc.Code.Unknown]: 'Đã xảy ra lỗi không xác định',
-  [grpc.Code.InvalidArgument]: 'Dữ liệu đầu vào không hợp lệ',
-  [grpc.Code.DeadlineExceeded]: 'Hết thời gian chờ. Vui lòng thử lại',
-  [grpc.Code.NotFound]: 'Không tìm thấy dữ liệu',
-  [grpc.Code.AlreadyExists]: 'Dữ liệu đã tồn tại',
-  [grpc.Code.PermissionDenied]: 'Bạn không có quyền thực hiện hành động này',
-  [grpc.Code.ResourceExhausted]: 'Hệ thống đang quá tải. Vui lòng thử lại sau',
-  [grpc.Code.FailedPrecondition]: 'Điều kiện tiên quyết không được đáp ứng',
-  [grpc.Code.Aborted]: 'Yêu cầu đã bị hủy bởi hệ thống',
-  [grpc.Code.OutOfRange]: 'Tham số nằm ngoài phạm vi cho phép',
-  [grpc.Code.Unimplemented]: 'Chức năng chưa được hỗ trợ',
-  [grpc.Code.Internal]: 'Lỗi hệ thống nội bộ. Vui lòng thử lại sau',
-  [grpc.Code.Unavailable]: 'Hệ thống tạm thời không khả dụng. Vui lòng thử lại sau',
-  [grpc.Code.DataLoss]: 'Mất mát dữ liệu không thể khôi phục',
-  [grpc.Code.Unauthenticated]: 'Vui lòng đăng nhập để tiếp tục'
+const ERROR_MESSAGES: Record<number, string> = {
+  [GrpcCode.OK]: 'Thành công',
+  [GrpcCode.CANCELLED]: 'Yêu cầu đã bị hủy',
+  [GrpcCode.UNKNOWN]: 'Đã xảy ra lỗi không xác định',
+  [GrpcCode.INVALID_ARGUMENT]: 'Dữ liệu đầu vào không hợp lệ',
+  [GrpcCode.DEADLINE_EXCEEDED]: 'Hết thời gian chờ. Vui lòng thử lại',
+  [GrpcCode.NOT_FOUND]: 'Không tìm thấy dữ liệu',
+  [GrpcCode.ALREADY_EXISTS]: 'Dữ liệu đã tồn tại',
+  [GrpcCode.PERMISSION_DENIED]: 'Bạn không có quyền thực hiện hành động này',
+  [GrpcCode.RESOURCE_EXHAUSTED]: 'Hệ thống đang quá tải. Vui lòng thử lại sau',
+  [GrpcCode.FAILED_PRECONDITION]: 'Điều kiện tiên quyết không được đáp ứng',
+  [GrpcCode.ABORTED]: 'Yêu cầu đã bị hủy bởi hệ thống',
+  [GrpcCode.OUT_OF_RANGE]: 'Tham số nằm ngoài phạm vi cho phép',
+  [GrpcCode.UNIMPLEMENTED]: 'Chức năng chưa được hỗ trợ',
+  [GrpcCode.INTERNAL]: 'Lỗi hệ thống nội bộ. Vui lòng thử lại sau',
+  [GrpcCode.UNAVAILABLE]: 'Hệ thống tạm thời không khả dụng. Vui lòng thử lại sau',
+  [GrpcCode.DATA_LOSS]: 'Mất mát dữ liệu không thể khôi phục',
+  [GrpcCode.UNAUTHENTICATED]: 'Vui lòng đăng nhập để tiếp tục'
 };
 
 // ===== UTILITY FUNCTIONS =====
@@ -73,7 +96,7 @@ export function isGrpcError(error: unknown): error is GrpcServiceError {
 }
 
 /**
- * Check if error is from @improbable-eng/grpc-web
+ * Check if error is from grpc-web library
  */
 export function isGrpcWebError(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -88,21 +111,21 @@ export function isGrpcWebError(error: unknown): boolean {
  */
 export function getGrpcErrorMessage(error: unknown): string {
   if (isGrpcError(error)) {
-    return ERROR_MESSAGES[error.code] || error.message || ERROR_MESSAGES[grpc.Code.Unknown];
+    return ERROR_MESSAGES[error.code] || error.message || ERROR_MESSAGES[GrpcCode.UNKNOWN];
   }
-  
+
   if (isGrpcWebError(error)) {
     const err = error as Record<string, unknown>;
-    const code = err.code as grpc.Code;
+    const code = err.code as number;
     const message = err.message as string;
-    
-    return ERROR_MESSAGES[code] || message || ERROR_MESSAGES[grpc.Code.Unknown];
+
+    return ERROR_MESSAGES[code] || message || ERROR_MESSAGES[GrpcCode.UNKNOWN];
   }
-  
+
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   return 'Đã xảy ra lỗi không xác định';
 }
 
@@ -113,37 +136,37 @@ export function categorizeError(error: unknown): ErrorCategory {
   if (!isGrpcError(error) && !isGrpcWebError(error)) {
     return ErrorCategory.UNKNOWN;
   }
-  
+
   const err = error as Record<string, unknown>;
-  const code = err.code as grpc.Code;
-  
+  const code = err.code as number;
+
   switch (code) {
-    case grpc.Code.Unauthenticated:
+    case GrpcCode.UNAUTHENTICATED:
       return ErrorCategory.AUTHENTICATION;
-    
-    case grpc.Code.PermissionDenied:
+
+    case GrpcCode.PERMISSION_DENIED:
       return ErrorCategory.AUTHORIZATION;
-    
-    case grpc.Code.InvalidArgument:
-    case grpc.Code.FailedPrecondition:
-    case grpc.Code.OutOfRange:
+
+    case GrpcCode.INVALID_ARGUMENT:
+    case GrpcCode.FAILED_PRECONDITION:
+    case GrpcCode.OUT_OF_RANGE:
       return ErrorCategory.VALIDATION;
-    
-    case grpc.Code.NotFound:
+
+    case GrpcCode.NOT_FOUND:
       return ErrorCategory.NOT_FOUND;
-    
-    case grpc.Code.DeadlineExceeded:
+
+    case GrpcCode.DEADLINE_EXCEEDED:
       return ErrorCategory.TIMEOUT;
-    
-    case grpc.Code.Unavailable:
-    case grpc.Code.ResourceExhausted:
+
+    case GrpcCode.UNAVAILABLE:
+    case GrpcCode.RESOURCE_EXHAUSTED:
       return ErrorCategory.NETWORK;
-    
-    case grpc.Code.Internal:
-    case grpc.Code.DataLoss:
-    case grpc.Code.Unknown:
+
+    case GrpcCode.INTERNAL:
+    case GrpcCode.DATA_LOSS:
+    case GrpcCode.UNKNOWN:
       return ErrorCategory.SERVER_ERROR;
-    
+
     default:
       return ErrorCategory.UNKNOWN;
   }
@@ -181,36 +204,36 @@ export function isValidationError(error: unknown): boolean {
 /**
  * Map gRPC code to HTTP status code (if needed for compatibility)
  */
-export function mapGrpcCodeToHttp(code: grpc.Code): number {
+export function mapGrpcCodeToHttp(code: number): number {
   switch (code) {
-    case grpc.Code.OK:
+    case GrpcCode.OK:
       return 200;
-    case grpc.Code.InvalidArgument:
-    case grpc.Code.FailedPrecondition:
-    case grpc.Code.OutOfRange:
+    case GrpcCode.INVALID_ARGUMENT:
+    case GrpcCode.FAILED_PRECONDITION:
+    case GrpcCode.OUT_OF_RANGE:
       return 400;
-    case grpc.Code.Unauthenticated:
+    case GrpcCode.UNAUTHENTICATED:
       return 401;
-    case grpc.Code.PermissionDenied:
+    case GrpcCode.PERMISSION_DENIED:
       return 403;
-    case grpc.Code.NotFound:
+    case GrpcCode.NOT_FOUND:
       return 404;
-    case grpc.Code.AlreadyExists:
-    case grpc.Code.Aborted:
+    case GrpcCode.ALREADY_EXISTS:
+    case GrpcCode.ABORTED:
       return 409;
-    case grpc.Code.ResourceExhausted:
+    case GrpcCode.RESOURCE_EXHAUSTED:
       return 429;
-    case grpc.Code.Canceled:
+    case GrpcCode.CANCELLED:
       return 499;
-    case grpc.Code.Unimplemented:
+    case GrpcCode.UNIMPLEMENTED:
       return 501;
-    case grpc.Code.Unavailable:
+    case GrpcCode.UNAVAILABLE:
       return 503;
-    case grpc.Code.DeadlineExceeded:
+    case GrpcCode.DEADLINE_EXCEEDED:
       return 504;
-    case grpc.Code.Internal:
-    case grpc.Code.DataLoss:
-    case grpc.Code.Unknown:
+    case GrpcCode.INTERNAL:
+    case GrpcCode.DATA_LOSS:
+    case GrpcCode.UNKNOWN:
     default:
       return 500;
   }
@@ -223,20 +246,20 @@ export function unwrapServiceError(error: unknown): GrpcServiceError {
   if (isGrpcError(error)) {
     return error;
   }
-  
+
   if (isGrpcWebError(error)) {
     const err = error as Record<string, unknown>;
     return {
-      code: err.code as grpc.Code,
+      code: err.code as number,
       message: err.message as string,
-      metadata: err.metadata as grpc.Metadata,
+      metadata: err.metadata as grpcWeb.Metadata,
       details: err
     };
   }
-  
+
   // Fallback for unknown errors
   return {
-    code: grpc.Code.Unknown,
+    code: GrpcCode.UNKNOWN,
     message: error instanceof Error ? error.message : 'Unknown error occurred',
     details: error
   };
@@ -246,9 +269,9 @@ export function unwrapServiceError(error: unknown): GrpcServiceError {
  * Create GrpcServiceError from error object
  */
 export function createGrpcError(
-  code: grpc.Code, 
-  message: string, 
-  metadata?: grpc.Metadata,
+  code: number,
+  message: string,
+  metadata?: grpcWeb.Metadata,
   details?: unknown
 ): GrpcServiceError {
   return {

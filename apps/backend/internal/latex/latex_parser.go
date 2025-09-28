@@ -97,8 +97,18 @@ func (p *LaTeXQuestionParser) ParseSingleQuestion(questionBlock string) (*entity
 	// Step 7: Normalize whitespace
 	cleanContent = p.ce.NormalizeWhitespace(cleanContent)
 
+	// Validate clean content is not empty
+	if strings.TrimSpace(cleanContent) == "" {
+		return nil, nil, fmt.Errorf("no valid content found after cleaning")
+	}
+
 	// Step 3: Identify question type
 	questionType := p.ae.IdentifyQuestionType(rawContent)
+
+	// Validate question type
+	if questionType == "" {
+		return nil, nil, fmt.Errorf("unable to identify question type")
+	}
 
 	// Skip MA (Matching) questions as requested in design
 	if questionType == string(entity.QuestionTypeMA) {
@@ -107,6 +117,11 @@ func (p *LaTeXQuestionParser) ParseSingleQuestion(questionBlock string) (*entity
 
 	// Step 4: Extract answers and correct answer
 	answersJSON, correctAnswerJSON := p.ae.ExtractAnswersAndCorrect(rawContent, questionType)
+
+	// Validate answers for MC and TF questions
+	if (questionType == string(entity.QuestionTypeMC) || questionType == string(entity.QuestionTypeTF)) && len(answersJSON.Bytes) == 0 {
+		return nil, nil, fmt.Errorf("no answers found for %s question", questionType)
+	}
 
 	// Step 5: Extract solution
 	solution := p.ae.ExtractSolution(rawContent)

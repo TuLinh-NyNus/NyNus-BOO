@@ -118,7 +118,7 @@ function isPresetActive(currentConfig: SortConfig, presetName: keyof typeof SORT
 /**
  * Get badge color based on preset color
  */
-function _getBadgeVariant(color: string) {
+function getBadgeVariant(color: string) {
   switch (color) {
     case 'blue': return 'default';
     case 'green': return 'default';
@@ -165,7 +165,7 @@ export function SortPresetSelector({
           </div>
           <div className="flex items-center gap-1">
             {config.recommended && (
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant={getBadgeVariant(config.color)} className="text-xs">
                 <Zap className="h-3 w-3 mr-1" />
                 Đề xuất
               </Badge>
@@ -175,6 +175,9 @@ export function SortPresetSelector({
                 Đang dùng
               </Badge>
             )}
+            <Badge variant={getBadgeVariant(config.color)} className="text-xs opacity-75">
+              {config.color}
+            </Badge>
           </div>
         </div>
         
@@ -195,7 +198,13 @@ export function SortPresetSelector({
    */
   const renderRecommendedPresets = () => {
     const recommendedPresets = Object.entries(PRESET_CONFIGS)
-      .filter(([_, config]) => config.recommended)
+      .filter(([presetKey, config]) => {
+        // Log recommended presets for debugging
+        if (process.env.NODE_ENV === 'development' && config.recommended) {
+          console.log(`Recommended preset: ${presetKey} (${config.label})`);
+        }
+        return config.recommended;
+      })
       .map(([key]) => key as keyof typeof SORT_PRESETS);
 
     if (recommendedPresets.length === 0) return null;
@@ -222,12 +231,17 @@ export function SortPresetSelector({
    */
   const renderAllPresets = () => {
     const allPresets = Object.keys(PRESET_CONFIGS) as (keyof typeof SORT_PRESETS)[];
-    const _otherPresets = allPresets.filter(key => !PRESET_CONFIGS[key].recommended);
+    const otherPresets = allPresets.filter(key => !PRESET_CONFIGS[key].recommended);
 
     return (
       <div className="space-y-3">
-        <h4 className="text-sm font-medium">Tất cả kiểu sắp xếp</h4>
-        
+        <div className="flex items-center justify-between">
+          <h4 className="text-sm font-medium">Tất cả kiểu sắp xếp</h4>
+          <Badge variant="outline" className="text-xs">
+            {otherPresets.length} khác
+          </Badge>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {allPresets.map(renderPresetButton)}
         </div>

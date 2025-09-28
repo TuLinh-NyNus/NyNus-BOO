@@ -35,7 +35,7 @@ import {
  * Enhanced Questions Client Component
  */
 export default function EnhancedQuestionsClient() {
-  const [_isScrolled, setIsScrolled] = useState(false);
+  const [, setIsScrolled] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   // Filter states - TEMPORARILY DISABLED
   // const [selectedFilters, setSelectedFilters] = useState<{

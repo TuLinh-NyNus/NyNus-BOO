@@ -85,6 +85,7 @@ export function QuestionBankTable({
       [QuestionStatus.PENDING]: { label: "Chờ duyệt", variant: "secondary" as const },
       [QuestionStatus.INACTIVE]: { label: "Không hoạt động", variant: "outline" as const },
       [QuestionStatus.ARCHIVED]: { label: "Lưu trữ", variant: "destructive" as const },
+      [QuestionStatus.DRAFT]: { label: "Bản nháp", variant: "secondary" as const },
     };
 
     const config = configs[status];

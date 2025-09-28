@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 )
 
 // Config holds all configuration values
@@ -21,6 +22,12 @@ type Config struct {
 
 	// Google Drive configuration
 	GoogleDrive GoogleDriveConfig
+
+	// Redis configuration
+	Redis RedisConfig
+
+	// Production configuration
+	Production *ProductionConfig
 }
 
 // DatabaseConfig holds database configuration
@@ -67,12 +74,23 @@ type GoogleDriveConfig struct {
 	RootFolderID string
 }
 
+// RedisConfig holds Redis configuration
+type RedisConfig struct {
+	URL         string
+	Password    string
+	Enabled     bool
+	MaxRetries  int
+	Timeout     string
+	PoolSize    int
+	MinIdleConns int
+}
+
 // LoadConfig loads configuration from environment variables
 func LoadConfig() *Config {
 	return &Config{
 		Database: DatabaseConfig{
 			Host:     getEnv("DB_HOST", "localhost"),
-			Port:     getEnv("DB_PORT", "5439"),
+			Port:     getEnv("DB_PORT", "5432"),
 			User:     getEnv("DB_USER", "exam_bank_user"),
 			Password: getEnv("DB_PASSWORD", "exam_bank_password"),
 			Name:     getEnv("DB_NAME", "exam_bank_db"),
@@ -104,19 +122,32 @@ func LoadConfig() *Config {
 			RefreshToken: getEnv("DRIVE_REFRESH_TOKEN", ""),
 			RootFolderID: getEnv("DRIVE_ROOT_FOLDER_ID", ""),
 		},
+		Redis: RedisConfig{
+			URL:          getEnv("REDIS_URL", "redis://localhost:6379"),
+			Password:     getEnv("REDIS_PASSWORD", ""),
+			Enabled:      getEnv("REDIS_ENABLED", "true") == "true",
+			MaxRetries:   getIntEnv("REDIS_MAX_RETRIES", 3),
+			Timeout:      getEnv("REDIS_TIMEOUT", "5s"),
+			PoolSize:     getIntEnv("REDIS_POOL_SIZE", 10),
+			MinIdleConns: getIntEnv("REDIS_MIN_IDLE_CONNS", 2),
+		},
+		Production: LoadProductionConfig(),
 	}
 }
 
 // GetDatabaseConnectionString returns the database connection string
 func (c *Config) GetDatabaseConnectionString() string {
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		c.Database.Host,
-		c.Database.Port,
+	// Try postgres:// URL format instead
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
 		c.Database.User,
 		c.Database.Password,
+		c.Database.Host,
+		c.Database.Port,
 		c.Database.Name,
 		c.Database.SSLMode,
 	)
+	fmt.Printf("DEBUG: Database connection string: %s\n", connStr)
+	return connStr
 }
 
 // Validate validates the configuration
@@ -146,6 +177,16 @@ func (c *Config) Validate() error {
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
+	}
+	return defaultValue
+}
+
+// getIntEnv gets environment variable as integer or returns default value
+func getIntEnv(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
 	}
 	return defaultValue
 }

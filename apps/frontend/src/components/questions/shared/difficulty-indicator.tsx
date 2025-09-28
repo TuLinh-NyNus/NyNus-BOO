@@ -50,7 +50,7 @@ const DIFFICULTY_CONFIG = {
   [QuestionDifficulty.EASY]: {
     label: 'Dễ',
     value: 1,
-    maxValue: 3,
+    maxValue: 4,
     color: 'green',
     bgColor: 'bg-green-100',
     textColor: 'text-green-800',
@@ -62,7 +62,7 @@ const DIFFICULTY_CONFIG = {
   [QuestionDifficulty.MEDIUM]: {
     label: 'Trung bình',
     value: 2,
-    maxValue: 3,
+    maxValue: 4,
     color: 'yellow',
     bgColor: 'bg-yellow-100',
     textColor: 'text-yellow-800',
@@ -74,7 +74,7 @@ const DIFFICULTY_CONFIG = {
   [QuestionDifficulty.HARD]: {
     label: 'Khó',
     value: 3,
-    maxValue: 3,
+    maxValue: 4,
     color: 'red',
     bgColor: 'bg-red-100',
     textColor: 'text-red-800',
@@ -82,6 +82,18 @@ const DIFFICULTY_CONFIG = {
     progressColor: 'bg-red-500',
     icon: AlertTriangle,
     description: 'Câu hỏi nâng cao, đòi hỏi tư duy phân tích cao'
+  },
+  [QuestionDifficulty.EXPERT]: {
+    label: 'Chuyên gia',
+    value: 4,
+    maxValue: 4,
+    color: 'purple',
+    bgColor: 'bg-purple-100',
+    textColor: 'text-purple-800',
+    borderColor: 'border-purple-200',
+    progressColor: 'bg-purple-500',
+    icon: AlertTriangle,
+    description: 'Câu hỏi chuyên gia, đòi hỏi kiến thức sâu rộng'
   }
 } as const;
 

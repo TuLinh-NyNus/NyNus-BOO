@@ -29,34 +29,35 @@ export const authConfig: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user: _user, account, profile: _profile }) {
-      // TODO: Re-enable gRPC integration after protobuf issues are resolved
+      // gRPC integration enabled - connect to backend
       if (account?.provider === "google" && account.id_token) {
         try {
-          console.log('Google login - gRPC integration temporarily disabled');
-          // Temporarily allow all Google logins without backend verification
-          return true;
-          
-          /*
+          console.log('Google login - attempting gRPC backend integration');
+
+          // Import AuthService dynamically to avoid SSR issues
+          const { AuthService } = await import('@/services/grpc/auth.service');
+
           // Exchange Google ID token với backend để lấy JWT token của hệ thống
           const response = await AuthService.googleLogin(account.id_token);
-          
+
           if (response && response.getAccessToken()) {
             // Store backend tokens in account for later use in jwt callback
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (account as any).backendAccessToken = response.getAccessToken();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (account as any).backendRefreshToken = response.getRefreshToken();
-            
+
             console.log('Google login successful with backend');
             return true;
           } else {
             console.error('Backend rejected Google login');
             return false;
           }
-          */
         } catch (error) {
           console.error('Google login failed:', error);
-          return false;
+          // Fallback: allow login but without backend integration
+          console.log('Falling back to NextAuth-only login');
+          return true;
         }
       }
       return true; // Allow other providers for now

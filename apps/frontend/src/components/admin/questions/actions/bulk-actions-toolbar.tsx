@@ -116,7 +116,7 @@ const BULK_ACTIONS = {
 
 export function BulkActionsToolbar({
   selectedCount,
-  selectedIds: _selectedIds,
+  selectedIds,
   onBulkOperation,
   onClearSelection,
   disabled = false,
@@ -124,6 +124,9 @@ export function BulkActionsToolbar({
   className = ""
 }: BulkActionsToolbarProps) {
   // ===== STATE =====
+
+  // TODO: selectedIds sẽ được sử dụng để implement specific bulk operations
+  const _selectedIds = selectedIds;
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentOperation, setCurrentOperation] = useState<BulkOperationType | null>(null);

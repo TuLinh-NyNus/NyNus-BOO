@@ -42,10 +42,20 @@
     "perf:clear": "node scripts/dev/performance-monitor.js clear",
     "test": "jest",
     "test:unit": "jest --testPathPattern=test/unit/frontend",
-    "test:integration": "jest --testPathPattern=test/integration/frontend",
+    "test:integration": "jest --config jest.integration.config.js",
+    "test:auth": "node scripts/test-auth-integration.js",
+    "test:auth-only": "jest --config jest.integration.config.js src/tests/integration/auth-integration.test.ts",
     "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:report": "playwright show-report",
+    "test:all": "pnpm run test && pnpm run test:e2e",
+    "playwright:install": "playwright install",
+    "playwright:install-deps": "playwright install-deps",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:integration-coverage": "jest --config jest.integration.config.js --coverage"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -127,13 +137,14 @@
     "@eslint/eslintrc": "^3.3.1",
     "@grpc/proto-loader": "^0.8.0",
     "@next/eslint-plugin-next": "^15.4.6",
-    "@playwright/test": "^1.54.2",
+    "@playwright/test": "^1.48.0",
     "@protobuf-ts/plugin": "^2.11.1",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@tailwindcss/typography": "^0.5.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/google-protobuf": "^3.15.12",
     "@types/jest": "^29.0.0",
     "@types/js-cookie": "^3.0.6",
@@ -147,6 +158,7 @@
     "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.17",
     "concurrently": "^9.2.0",
+    "critters": "^0.0.25",
     "cross-env": "^10.0.0",
     "cypress": "^13.0.0",
     "eslint": "^9.32.0",
@@ -161,6 +173,7 @@
     "protoc-gen-js": "3.21.4-4",
     "tailwindcss": "^4.1.11",
     "ts-protoc-gen": "^0.15.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "webpack-bundle-analyzer": "^4.10.2"
   }
 }

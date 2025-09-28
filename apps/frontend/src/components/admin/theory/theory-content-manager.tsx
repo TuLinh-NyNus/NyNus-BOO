@@ -34,8 +34,8 @@ import {
   Search,
   Filter,
   MoreHorizontal,
-  Upload as _Upload,
-  Download as _Download,
+  Upload,
+  Download,
   Edit,
   Trash2,
   Copy,
@@ -43,7 +43,7 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  BarChart3 as _BarChart3,
+  BarChart3,
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -327,7 +327,7 @@ export function TheoryContentManager({
     }
   };
 
-  const _getDifficultyColor = (difficulty: string) => {
+  const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'text-green-600';
       case 'medium': return 'text-yellow-600';
@@ -402,6 +402,23 @@ export function TheoryContentManager({
             <Filter className="h-4 w-4" />
             Bộ lọc nâng cao
           </Button>
+
+          <Button variant="outline" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            Tải lên
+          </Button>
+
+          <Button variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            Xuất dữ liệu
+          </Button>
+
+          {showAnalytics && (
+            <Button variant="outline" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Thống kê
+            </Button>
+          )}
         </div>
 
         {/* Active filters */}
@@ -542,6 +559,12 @@ export function TheoryContentManager({
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">Lớp {item.grade}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={getDifficultyColor(item.metadata.difficulty || 'medium')}>
+                              {item.metadata.difficulty === 'easy' ? 'Dễ' :
+                               item.metadata.difficulty === 'medium' ? 'Trung bình' : 'Khó'}
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge className={cn("flex items-center gap-1 w-fit", getStatusColor(item.metadata.status))}>

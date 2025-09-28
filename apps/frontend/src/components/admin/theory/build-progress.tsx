@@ -143,7 +143,7 @@ const mockPerformanceMetrics: PerformanceMetrics = {
 // ===== MAIN COMPONENT =====
 
 export function BuildProgressTracker({
-  buildStatus: _buildStatus,
+  buildStatus,
   buildSteps = mockBuildSteps,
   performanceMetrics = mockPerformanceMetrics,
   showDetailedProgress = true,
@@ -158,10 +158,14 @@ export function BuildProgressTracker({
   const [selectedStep, setSelectedStep] = useState<string | null>(null);
 
   // ===== COMPUTED VALUES =====
-  
+
   const completedSteps = buildSteps.filter(step => step.status === 'completed').length;
   const totalSteps = buildSteps.length;
   const currentStep = buildSteps.find(step => step.status === 'running');
+
+  // Use buildStatus for overall progress calculation
+  const overallProgress = buildStatus?.progress || (completedSteps / totalSteps) * 100;
+  const isBuilding = buildStatus?.isBuilding || currentStep !== undefined;
   
   // ===== RENDER HELPERS =====
 
@@ -215,11 +219,19 @@ export function BuildProgressTracker({
     <Card className={cn("build-progress-tracker", className)}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
+          <Activity className={`h-5 w-5 ${isBuilding ? 'animate-pulse text-blue-500' : 'text-green-500'}`} />
           Build Progress
+          <Badge variant={isBuilding ? "default" : "secondary"} className="ml-2">
+            {Math.round(overallProgress)}%
+          </Badge>
         </CardTitle>
         <CardDescription>
           Chi tiết progress và performance metrics của build process
+          {buildStatus?.currentStep && (
+            <span className="block text-sm text-muted-foreground mt-1">
+              {buildStatus.currentStep}
+            </span>
+          )}
         </CardDescription>
       </CardHeader>
       

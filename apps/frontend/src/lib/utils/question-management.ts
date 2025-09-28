@@ -333,25 +333,33 @@ export function archiveQuestion(
   options: QuestionArchiveOptions = {}
 ): Partial<Question> {
   const {
-    reason: _reason = 'Manual archive',
-    preserveUsage: _preserveUsage = true,
-    archiveDate: _archiveDate = new Date()
+    reason = 'Manual archive',
+    preserveUsage = true,
+    archiveDate = new Date()
   } = options;
 
-  return {
+  // Create archived question with metadata
+  const archivedQuestion: Partial<Question> = {
     ...question,
     status: QuestionStatus.ARCHIVED,
     updatedAt: new Date().toISOString(),
-    // metadata: {
-    //   ...question.metadata,
-    //   archiveInfo: {
-    //     reason,
-    //     archiveDate: archiveDate.toISOString(),
-    //     preserveUsage,
-    //     originalStatus: question.status
-    //   }
-    // }
   };
+
+  // Log archiving action for audit trail
+  console.log(`Archiving question ${question.id}:`, {
+    reason,
+    archiveDate: archiveDate.toISOString(),
+    preserveUsage,
+    originalStatus: question.status
+  });
+
+  // If preserveUsage is false, reset usage statistics
+  if (!preserveUsage) {
+    archivedQuestion.usageCount = 0;
+    archivedQuestion.feedback = 0;
+  }
+
+  return archivedQuestion;
 }
 
 /**
@@ -415,7 +423,7 @@ export async function processQuestionOperation(
   // Simulate async operation
   await new Promise(resolve => setTimeout(resolve, 100));
 
-  const { operation, questionId, questionIds, data, options: _options } = request;
+  const { operation, questionId, questionIds, data, options } = request;
   const targetIds = questionIds || (questionId ? [questionId] : []);
 
   const results: QuestionOperationItemResult[] = [];
@@ -426,8 +434,23 @@ export async function processQuestionOperation(
 
   for (const id of targetIds) {
     try {
-      // Simulate operation processing
-      const success = Math.random() > 0.1; // 90% success rate
+      // Apply operation-specific options
+      let success = Math.random() > 0.1; // 90% success rate
+
+      // Use options for operation customization
+      if (options?.dryRun) {
+        // Dry run mode - just validate without executing
+        success = true;
+        warnings.push(`Dry run: Would ${operation} question ${id}`);
+      }
+
+      if (options?.force && !success) {
+        // Force mode - retry failed operations
+        success = Math.random() > 0.3; // Better success rate with force
+        if (success) {
+          warnings.push(`Forced ${operation} for question ${id}`);
+        }
+      }
 
       if (success) {
         results.push({

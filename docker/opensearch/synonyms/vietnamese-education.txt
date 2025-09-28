@@ -1,0 +1,207 @@
+# Vietnamese Education Domain Synonyms
+# 350+ comprehensive synonyms cho môn học Việt Nam
+
+# Môn học chính - Main Subjects
+toán,toán học,mathematics,math,maths
+lý,vật lý,physics,vật lí,physical
+hóa,hóa học,chemistry,hoá học,chemical
+sinh,sinh học,biology,sinh vật,bio
+văn,ngữ văn,literature,văn học,vietnamese literature
+sử,lịch sử,history,historical
+địa,địa lý,geography,geographical
+anh,tiếng anh,english,english language
+gdcd,giáo dục công dân,civic education,citizenship
+thể dục,physical education,pe,sports
+âm nhạc,music,nhạc,musical
+mỹ thuật,art,fine arts,drawing
+công nghệ,technology,tin học,informatics,computer science,it
+
+# Loại bài tập - Exercise Types
+bài tập,exercise,bt,ex,problem
+câu hỏi,question,ch,ques,q
+đáp án,answer,da,ans,a
+lời giải,solution,lg,sol,explanation
+kiểm tra,test,kt,quiz
+thi,exam,examination,contest
+ôn tập,review,revision,practice
+
+# Thời gian học - Academic Time
+học kỳ,semester,hk,term
+năm học,academic year,nh,school year
+quý,quarter,trimester
+tuần,week,weekly
+tháng,month,monthly
+
+# Cấp độ học - Grade Levels
+lớp,grade,class,level
+lớp 6,grade 6,sixth grade,6th grade
+lớp 7,grade 7,seventh grade,7th grade
+lớp 8,grade 8,eighth grade,8th grade
+lớp 9,grade 9,ninth grade,9th grade
+lớp 10,grade 10,tenth grade,10th grade
+lớp 11,grade 11,eleventh grade,11th grade
+lớp 12,grade 12,twelfth grade,12th grade
+
+# Cấu trúc bài học - Lesson Structure
+chương,chapter,ch,unit
+bài,lesson,unit,section
+phần,section,part,segment
+mục,item,point,topic
+tiết,period,class period
+
+# Dạng bài - Question Types
+dạng,type,form,kind
+trắc nghiệm,multiple choice,mc,choice
+tự luận,essay,written,descriptive
+đúng sai,true false,tf,boolean
+điền khuyết,fill in the blank,fill,completion
+ghép đôi,matching,match,pair
+
+# Mức độ khó - Difficulty Levels
+mức độ,level,difficulty,grade
+cơ bản,basic,cb,fundamental,elementary
+nâng cao,advanced,nc,higher,enhanced
+khó,difficult,hard,challenging
+dễ,easy,simple,basic
+trung bình,medium,average,tb,moderate
+vận dụng,application,apply,practical
+vận dụng cao,high application,advanced application
+
+# Toán học - Mathematics
+đạo hàm,derivative,đh,differentiation
+tích phân,integral,tp,integration
+giới hạn,limit,gh,limitation
+hàm số,function,hs,mathematical function
+phương trình,equation,pt,formula
+bất phương trình,inequality,bpt,inequation
+hệ phương trình,system of equations,hpt,equation system
+ma trận,matrix,mt,matrices
+định thức,determinant,dt,det
+vector,véc tơ,vt,vector space
+tọa độ,coordinate,td,coordinates
+đường thẳng,line,dt,straight line
+đường tròn,circle,dt,circular
+parabol,parabola,pb,parabolic
+elip,ellipse,el,elliptical
+hypebol,hyperbola,hb,hyperbolic
+tam giác,triangle,tg,triangular
+tứ giác,quadrilateral,tg,four-sided
+đa giác,polygon,đg,polygonal
+hình học,geometry,hh,geometric
+đại số,algebra,đs,algebraic
+giải tích,calculus,gt,analytical
+xác suất,probability,xs,chance
+thống kê,statistics,tk,statistical
+số học,arithmetic,sh,numerical
+lượng giác,trigonometry,lt,trigonometric
+
+# Vật lý - Physics
+lực,force,power,strength
+vận tốc,velocity,speed,rate
+gia tốc,acceleration,speeding
+khối lượng,mass,weight
+năng lượng,energy,power
+công suất,power,capacity
+điện,electricity,electric,electrical
+từ,magnetism,magnetic
+sóng,wave,wavelength
+ánh sáng,light,optical,optics
+nhiệt,heat,thermal,temperature
+âm thanh,sound,acoustic,audio
+cơ học,mechanics,mechanical
+động học,kinematics,kinematic
+động lực học,dynamics,dynamic
+thủy tĩnh,hydrostatics,static
+thủy động,hydrodynamics,fluid
+
+# Hóa học - Chemistry
+nguyên tố,element,elemental
+hợp chất,compound,chemical compound
+phản ứng,reaction,chemical reaction
+axit,acid,acidic
+bazơ,base,basic,alkaline
+muối,salt,saline
+oxi hóa,oxidation,oxidize
+khử,reduction,reduce
+cân bằng,equilibrium,balance
+dung dịch,solution,solvent
+nồng độ,concentration,density
+mol,mole,molecular
+nguyên tử,atom,atomic
+phân tử,molecule,molecular
+ion,ionic,ionization
+liên kết,bond,bonding
+hóa trị,valence,valency
+
+# Sinh học - Biology
+tế bào,cell,cellular
+mô,tissue,organic
+cơ quan,organ,organism
+hệ,system,systematic
+di truyền,genetics,genetic,heredity
+tiến hóa,evolution,evolutionary
+sinh thái,ecology,ecological
+thực vật,plant,botanical,flora
+động vật,animal,zoological,fauna
+vi sinh,microorganism,microbial
+enzyme,men,ferment
+protein,đạm,amino acid
+adn,dna,genetic code
+arn,rna,ribonucleic
+gen,gene,genetic
+nhiễm sắc thể,chromosome,chromosomal
+quang hợp,photosynthesis,photosynthetic
+hô hấp,respiration,respiratory
+
+# Ngữ văn - Literature
+văn xuôi,prose,prosaic
+thơ,poetry,poem,verse
+truyện,story,tale,narrative
+tiểu thuyết,novel,fiction
+kịch,drama,play,theatrical
+phong cách,style,stylistic
+tu từ,rhetoric,rhetorical
+ngữ pháp,grammar,grammatical
+từ vựng,vocabulary,lexical
+nghĩa,meaning,semantic
+âm,sound,phonetic
+vần,rhyme,rhythm
+nhịp,meter,metrical
+hình ảnh,imagery,image
+biểu tượng,symbol,symbolic
+ẩn dụ,metaphor,metaphorical
+hoán dụ,metonymy,metonymical
+
+# Lịch sử - History
+thời đại,era,age,period
+triều đại,dynasty,reign
+cách mạng,revolution,revolutionary
+chiến tranh,war,warfare,conflict
+hòa bình,peace,peaceful
+độc lập,independence,independent
+thống nhất,unification,unity
+phong kiến,feudal,feudalism
+tư bản,capitalism,capitalist
+xã hội chủ nghĩa,socialism,socialist
+dân tộc,nation,national,ethnic
+văn hóa,culture,cultural
+truyền thống,tradition,traditional
+hiện đại,modern,contemporary
+
+# Địa lý - Geography
+lục địa,continent,continental
+đại dương,ocean,oceanic
+biển,sea,marine
+sông,river,fluvial
+núi,mountain,mountainous
+đồng bằng,plain,plateau
+khí hậu,climate,climatic
+thời tiết,weather,meteorological
+dân số,population,demographic
+kinh tế,economy,economic
+nông nghiệp,agriculture,agricultural
+công nghiệp,industry,industrial
+dịch vụ,service,tertiary
+giao thông,transportation,transport
+đô thị,urban,city,metropolitan
+nông thôn,rural,countryside,village

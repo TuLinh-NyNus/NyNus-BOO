@@ -9,7 +9,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
@@ -181,10 +181,8 @@ export function QuestionForm({
   // Type-safe control for FormField components
   const typedControl = form.control;
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "answers"
-  });
+  // Answer management is handled by AnswerForm component
+  // useFieldArray is not needed here as AnswerForm has its own field array management
   
   // ===== EFFECTS =====
   
@@ -227,15 +225,7 @@ export function QuestionForm({
     onPreview?.(data);
   };
   
-  const _handleAddAnswer = () => {
-    append({ content: "", isCorrect: false });
-  };
-
-  const _handleRemoveAnswer = (index: number) => {
-    if (fields.length > 1) {
-      remove(index);
-    }
-  };
+  // Answer management is handled by AnswerForm component
   
   // ===== RENDER HELPERS =====
   
@@ -459,7 +449,7 @@ export function QuestionForm({
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium">Đáp án</h3>
                 <Badge variant="outline">
-                  {fields.length} đáp án
+                  {form.watch("answers")?.length || 0} đáp án
                 </Badge>
               </div>
               <Alert>

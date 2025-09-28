@@ -7,7 +7,6 @@
 
 import { UserServiceClient } from '@/generated/v1/UserServiceClientPb';
 import {
-  LoginRequest,
   LoginResponse,
   GoogleLoginRequest,
   RegisterRequest,
@@ -22,6 +21,7 @@ import {
   ResetPasswordResponse,
   GetCurrentUserRequest,
   GetUserResponse,
+  User,
 } from '@/generated/v1/user_pb';
 // Import enums from common protobuf
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
@@ -34,9 +34,14 @@ import { AuthHelpers } from '@/lib/utils/auth-helpers';
 const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
 
 /**
- * Create UserService client instance
+ * Create UserService client instance with JSON format for gRPC Gateway compatibility
  */
-const userServiceClient = new UserServiceClient(GRPC_ENDPOINT);
+const userServiceClient = new UserServiceClient(GRPC_ENDPOINT, null, {
+  format: 'text', // Use text format for JSON compatibility with gRPC Gateway
+  withCredentials: false,
+  unaryInterceptors: [], // No interceptors needed for basic setup
+  streamInterceptors: []
+});
 
 /**
  * Handle gRPC errors and convert to user-friendly messages
@@ -63,27 +68,60 @@ function handleGrpcError(error: RpcError): string {
  */
 export class AuthService {
   /**
-   * Login with email and password
+   * Login with email and password using gRPC Gateway JSON API
    */
   static async login(email: string, password: string): Promise<LoginResponse> {
-    const request = new LoginRequest();
-    request.setEmail(email);
-    request.setPassword(password);
-
     try {
-      const response = await userServiceClient.login(request);
-      
-      // Auto-save tokens on successful login
-      if (response.getAccessToken()) {
-        AuthHelpers.saveTokens(
-          response.getAccessToken(),
-          response.getRefreshToken()
-        );
+      // Use direct HTTP request to gRPC Gateway JSON endpoint
+      const response = await fetch(`${GRPC_ENDPOINT}/v1.UserService/Login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
       }
-      
-      return response;
+
+      const data = await response.json();
+
+      // Convert JSON response to protobuf-like object for compatibility
+      const loginResponse = new LoginResponse();
+      if (data.accessToken) {
+        loginResponse.setAccessToken(data.accessToken);
+        loginResponse.setRefreshToken(data.refreshToken || '');
+
+        // Auto-save tokens on successful login
+        AuthHelpers.saveTokens(data.accessToken, data.refreshToken);
+      }
+
+      // Set user data if available
+      if (data.user) {
+        // Create User object from JSON response
+        const user = new User();
+        user.setId(data.user.id || '');
+        user.setEmail(data.user.email || '');
+        user.setFirstName(data.user.firstName || '');
+        user.setLastName(data.user.lastName || '');
+        user.setRole(data.user.role || 0); // UserRole enum
+        user.setStatus(data.user.status || 0); // UserStatus enum
+        user.setLevel(data.user.level || 1);
+        user.setAvatar(data.user.avatar || '');
+        user.setEmailVerified(data.user.emailVerified || false);
+
+        // Set user to response
+        loginResponse.setUser(user);
+      }
+
+      return loginResponse;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
       throw new Error(errorMessage);
     }
   }

@@ -22,21 +22,35 @@ import { Upload, CheckCircle, XCircle } from 'lucide-react';
 // ===== MOCK API SERVICE =====
 
 class ImageUploadService {
-  static async uploadImage(file: File, questionId?: string, _questionCode?: string): Promise<QuestionImage> {
+  static async uploadImage(file: File, questionId?: string, questionCode?: string): Promise<QuestionImage> {
     // Simulate upload delay
     await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
-    
+
+    // Log upload info for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Uploading image for question ${questionCode || questionId || 'unknown'}`);
+    }
+
     // Simulate random failures (10% chance)
     if (Math.random() < 0.1) {
       throw new Error('Upload failed: Network error');
     }
     
-    // Generate mock QuestionImage
+    // Generate mock QuestionImage with questionCode in filename
+    const fileExtension = file.name.split('.').pop();
+    const baseFileName = questionCode ? `${questionCode}_${file.name}` : file.name;
+
+    // Validate file extension
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    if (fileExtension && !allowedExtensions.includes(fileExtension.toLowerCase())) {
+      throw new Error(`Unsupported file type: ${fileExtension}. Allowed: ${allowedExtensions.join(', ')}`);
+    }
+
     const mockImage: QuestionImage = {
       id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       questionId: questionId || `q-${Date.now()}`,
       imageType: file.name.toLowerCase().includes('solution') ? ImageType.SOLUTION : ImageType.QUESTION,
-      imagePath: `/uploads/temp/${file.name}`,
+      imagePath: `/uploads/temp/${baseFileName}`,
       driveUrl: `https://drive.google.com/file/d/mock-${Date.now()}/view`,
       driveFileId: `mock-${Date.now()}`,
       status: ImageStatus.UPLOADED,

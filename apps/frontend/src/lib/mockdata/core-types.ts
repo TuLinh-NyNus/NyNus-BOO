@@ -59,7 +59,8 @@ export enum QuestionStatus {
 export enum QuestionDifficulty {
   EASY = 'EASY',
   MEDIUM = 'MEDIUM',
-  HARD = 'HARD'
+  HARD = 'HARD',
+  EXPERT = 'EXPERT'
 }
 
 // Code Format Enum (matches database)

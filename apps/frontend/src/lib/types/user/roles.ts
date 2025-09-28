@@ -38,7 +38,9 @@ export const STATUS_LABELS: Record<UserStatus, string> = {
   [UserStatus.ACTIVE]: "Hoạt động",
   [UserStatus.SUSPENDED]: "Tạm khóa",
   [UserStatus.PENDING_VERIFICATION]: "Chờ xác thực",
-  [UserStatus.INACTIVE]: "Không hoạt động"
+  [UserStatus.INACTIVE]: "Không hoạt động",
+  [UserStatus.PENDING]: "Chờ xử lý",
+  [UserStatus.DELETED]: "Đã xóa"
 };
 
 /**
@@ -94,8 +96,10 @@ export const roleHelpers = {
     const colors = {
       [UserStatus.ACTIVE]: "green",
       [UserStatus.SUSPENDED]: "red",
-      [UserStatus.PENDING_VERIFICATION]: "yellow", 
-      [UserStatus.INACTIVE]: "gray"
+      [UserStatus.PENDING_VERIFICATION]: "yellow",
+      [UserStatus.INACTIVE]: "gray",
+      [UserStatus.PENDING]: "orange",
+      [UserStatus.DELETED]: "red"
     };
     return colors[status];
   }

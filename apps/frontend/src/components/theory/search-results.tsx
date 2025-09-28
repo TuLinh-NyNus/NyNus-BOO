@@ -215,12 +215,12 @@ export function SearchResults({
     );
   };
 
-  const renderResultItem = (result: SearchResult, _index: number) => {
+  const renderResultItem = (result: SearchResult, index: number) => {
     const isExpanded = expandedResults.has(result.id);
     const relevancePercentage = result.relevance * 100;
 
     return (
-      <Card 
+      <Card
         key={result.id}
         className={cn(
           "search-result-item cursor-pointer transition-all duration-200",
@@ -228,10 +228,17 @@ export function SearchResults({
           mobileOptimized && "touch-target"
         )}
         onClick={() => handleResultClick(result)}
+        role="button"
+        aria-label={`Search result ${index + 1} of ${displayResults.length}: ${result.title}`}
+        tabIndex={0}
       >
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
+            <div className="flex items-start gap-3 flex-1 min-w-0">
+              <div className="flex-shrink-0 w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center text-xs font-medium text-primary">
+                {index + 1}
+              </div>
+              <div className="flex-1 min-w-0">
               <CardTitle className="text-base line-clamp-2">
                 {showHighlights ? (
                   <SearchHighlight
@@ -254,7 +261,8 @@ export function SearchResults({
                 <span className={getDifficultyColor(result.difficulty)}>
                   {getDifficultyLabel(result.difficulty)}
                 </span>
-              </CardDescription>
+                </CardDescription>
+              </div>
             </div>
 
             <div className="flex items-center gap-2 ml-3">

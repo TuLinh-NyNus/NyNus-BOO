@@ -5,23 +5,35 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/cache"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/grpc"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/opensearch"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/redis"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/auth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/notification"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/oauth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/scoring"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
+	auth_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
+	question_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
+	exam_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
+	content_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content"
 	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
 	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/contact"
+	exam_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
 	image_processing "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/image_processing"
 	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/newsletter"
 	question_filter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_filter"
 	question_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/question_mgmt"
-	user_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/user"
+	mapcode_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/mapcode_mgmt"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/analytics"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/performance"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/security"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
 	"github.com/sirupsen/logrus"
 )
@@ -30,6 +42,14 @@ import (
 type Container struct {
 	// Database
 	DB *sql.DB
+
+	// Redis
+	RedisClient *redis.Client
+	CacheService cache.CacheService
+
+	// OpenSearch
+	OpenSearchClient *opensearch.Client
+	OpenSearchConfig *opensearch.Config
 
 	// Repositories
 	UserRepo           *repository.UserRepository // Legacy repository
@@ -46,16 +66,29 @@ type Container struct {
 	QuestionRepo       interfaces.QuestionRepository
 	QuestionCodeRepo   interfaces.QuestionCodeRepository
 	QuestionImageRepo  interfaces.QuestionImageRepository
-	ContactRepo        *repository.ContactRepository
-	NewsletterRepo     *repository.NewsletterRepository
+	ExamRepo           interfaces.ExamRepository
+	ContactRepo            *repository.ContactRepository
+	NewsletterRepo         *repository.NewsletterRepository
+	MapCodeRepo            *repository.MapCodeRepository
+	MapCodeTranslationRepo *repository.MapCodeTranslationRepository
 
 	// Services
-	AuthMgmt              *auth_mgmt.AuthMgmt
-	UserMgmt              *user_mgmt.UserMgmt
-	QuestionMgmt          *question_mgmt.QuestionMgmt
-	QuestionFilterMgmt    *question_filter_mgmt.QuestionFilterMgmt
+	AuthMgmt              *auth_service.AuthMgmt
+	LegacyAuthMgmt        *auth_mgmt.AuthMgmt  // For middleware compatibility
+	QuestionMgmt          *question_service.QuestionMgmt
+	LegacyQuestionMgmt    *question_mgmt.QuestionMgmt  // For backward compatibility
+	QuestionFilterMgmt    *question_service.LegacyQuestionFilterMgmt
+	LegacyQuestionFilterMgmt *question_filter_mgmt.QuestionFilterMgmt  // For backward compatibility
+	ExamMgmt              *exam_service.ExamMgmt
+	LegacyExamMgmt        *exam_mgmt.ExamMgmt  // For backward compatibility
+	ContentMgmt           *content_service.ContentMgmt
+	LegacyContactMgmt     *content_service.LegacyContactMgmt  // For backward compatibility
 	ContactMgmt           *contact_mgmt.ContactMgmt
+	LegacyNewsletterMgmt  *content_service.LegacyNewsletterMgmt  // For backward compatibility
 	NewsletterMgmt        *newsletter_mgmt.NewsletterMgmt
+	LegacyMapCodeMgmt     *content_service.LegacyMapCodeMgmt  // For backward compatibility
+	MapCodeMgmt           *mapcode_mgmt.MapCodeMgmt
+	AutoGradingService    *scoring.AutoGradingService // NEW: Auto-grading service for exams
 	JWTService            *auth.JWTService
 	EnhancedJWTService    *auth.EnhancedJWTService // NEW: JWT service with refresh token rotation
 	OAuthService          *oauth.OAuthService
@@ -63,6 +96,17 @@ type Container struct {
 	NotificationSvc       *notification.NotificationService
 	ResourceProtectionSvc *service.ResourceProtectionService
 	EmailService          *email.EmailService
+	PerformanceService    *performance.PerformanceService
+
+	// Analytics Services
+	AnalyticsService      *analytics.AnalyticsService
+	MonitoringService     *analytics.MonitoringService
+	DashboardService      *analytics.DashboardService
+
+	// Security Services
+	ExamSessionSecurity   *security.ExamSessionSecurity
+	AntiCheatService      *security.AntiCheatService
+	ExamRateLimitService  *security.ExamRateLimitService
 
 	// Middleware
 	AuthInterceptor               *middleware.AuthInterceptor
@@ -73,34 +117,89 @@ type Container struct {
 	ResourceProtectionInterceptor *middleware.ResourceProtectionInterceptor
 
 	// gRPC Services
-	UserGRPCService           *grpc.UserServiceServer
 	EnhancedUserGRPCService   *grpc.EnhancedUserServiceServer
 	QuestionGRPCService       *grpc.QuestionServiceServer
 	QuestionFilterGRPCService *grpc.QuestionFilterServiceServer
+	ExamGRPCService           *grpc.ExamServiceServer
 	ProfileGRPCService        *grpc.ProfileServiceServer
 	AdminGRPCService          *grpc.AdminServiceServer
 	ContactGRPCService        *grpc.ContactServiceServer
 	NewsletterGRPCService     *grpc.NewsletterServiceServer
 	NotificationGRPCService   *grpc.NotificationServiceServer
+	MapCodeGRPCService        *grpc.MapCodeServiceServer
 
 	// Configuration
 	JWTSecret string
 }
 
 // NewContainer creates a new dependency injection container
-func NewContainer(db *sql.DB, jwtSecret string) *Container {
+func NewContainer(db *sql.DB, jwtSecret string, cfg *config.Config) *Container {
 	container := &Container{
 		DB:        db,
 		JWTSecret: jwtSecret,
 	}
 
 	// Initialize dependencies in the correct order
+	container.initRedis(&cfg.Redis)
+	container.initOpenSearch()
 	container.initRepositories()
 	container.initServices()
 	container.initMiddleware()
 	container.initGRPCServices()
 
 	return container
+}
+
+// initRedis initializes Redis client and cache service
+func (c *Container) initRedis(cfg *config.RedisConfig) {
+	// Create Redis client
+	client, err := redis.NewClient(cfg)
+	if err != nil {
+		// Log error but don't fail startup - Redis is optional
+		logrus.WithError(err).Warn("Failed to initialize Redis client, caching will be disabled")
+		c.RedisClient = nil
+		c.CacheService = cache.NewRedisService(nil) // Disabled cache service
+	} else {
+		c.RedisClient = client
+		c.CacheService = cache.NewRedisService(client)
+		logrus.Info("Redis client initialized successfully")
+	}
+}
+
+// initOpenSearch initializes OpenSearch client and configuration
+func (c *Container) initOpenSearch() {
+	// Load OpenSearch configuration from environment
+	c.OpenSearchConfig = opensearch.DefaultConfig()
+
+	// Override with environment variables if set
+	if url := os.Getenv("OPENSEARCH_URL"); url != "" {
+		c.OpenSearchConfig.URL = url
+	}
+
+	if username := os.Getenv("OPENSEARCH_USERNAME"); username != "" {
+		c.OpenSearchConfig.Username = username
+	}
+
+	if password := os.Getenv("OPENSEARCH_PASSWORD"); password != "" {
+		c.OpenSearchConfig.Password = password
+	}
+
+	if enabled := os.Getenv("OPENSEARCH_ENABLED"); enabled != "" {
+		if enabledBool, err := strconv.ParseBool(enabled); err == nil {
+			c.OpenSearchConfig.Enabled = enabledBool
+		}
+	}
+
+	// Create OpenSearch client
+	client, err := opensearch.NewClient(c.OpenSearchConfig)
+	if err != nil {
+		// Log error but don't fail startup - OpenSearch is optional
+		logrus.WithError(err).Warn("Failed to initialize OpenSearch client, search will use PostgreSQL fallback")
+		c.OpenSearchClient = nil
+	} else {
+		c.OpenSearchClient = client
+		logrus.Info("OpenSearch client initialized successfully")
+	}
 }
 
 // initRepositories initializes all repository dependencies
@@ -120,17 +219,22 @@ func (c *Container) initRepositories() {
 	c.QuestionRepo = repository.NewQuestionRepository(c.DB)
 	c.QuestionCodeRepo = repository.NewQuestionCodeRepository(c.DB)
 	c.QuestionImageRepo = repository.NewQuestionImageRepository(c.DB)
+	c.ExamRepo = repository.NewExamRepository(c.DB)
 	c.ContactRepo = repository.NewContactRepository(c.DB)
 	c.NewsletterRepo = repository.NewNewsletterRepository(c.DB)
+	c.MapCodeRepo = repository.NewMapCodeRepository(c.DB)
+	c.MapCodeTranslationRepo = repository.NewMapCodeTranslationRepository(c.DB)
 }
 
 // initServices initializes all service dependencies
 func (c *Container) initServices() {
 	// Auth management service following the new clean pattern
-	c.AuthMgmt = auth_mgmt.NewAuthMgmt(c.DB, c.JWTSecret)
+	c.AuthMgmt = auth_service.NewAuthMgmt(c.DB, c.JWTSecret)
 
-	// Initialize UserMgmt with database connection
-	c.UserMgmt = user_mgmt.NewUserMgmt(c.DB)
+	// Create legacy auth mgmt for middleware compatibility
+	c.LegacyAuthMgmt = auth_service.CreateLegacyAuthMgmt(c.AuthMgmt)
+
+
 
 	// Initialize QuestionMgmt with repositories
 	// Note: Image processing is optional, pass nil if not configured
@@ -164,7 +268,9 @@ func (c *Container) initServices() {
 		}
 	}
 
-	c.QuestionMgmt = question_mgmt.NewQuestionMgmt(
+	// Initialize new consolidated question services
+	c.QuestionMgmt = question_service.NewQuestionMgmt(
+		c.DB,
 		c.QuestionRepo,
 		c.QuestionCodeRepo,
 		c.QuestionImageRepo,
@@ -172,14 +278,66 @@ func (c *Container) initServices() {
 		logger,
 	)
 
-	// Initialize QuestionFilterMgmt with database connection
-	c.QuestionFilterMgmt = question_filter_mgmt.NewQuestionFilterMgmt(c.DB)
+	// Initialize legacy question services for backward compatibility
+	c.LegacyQuestionMgmt = question_mgmt.NewQuestionMgmt(
+		c.QuestionRepo,
+		c.QuestionCodeRepo,
+		c.QuestionImageRepo,
+		imageProcessor,
+		logger,
+	)
+
+	// Initialize QuestionFilterMgmt with database connection and OpenSearch client
+	c.QuestionFilterMgmt = question_service.NewLegacyQuestionFilterMgmt(c.DB, c.OpenSearchClient)
+	c.LegacyQuestionFilterMgmt = question_filter_mgmt.NewQuestionFilterMgmt(c.DB, c.OpenSearchClient)
+
+	// Initialize ScoringService first
+	scoringService := scoring.NewScoringService()
+
+	// Initialize AutoGradingService
+	c.AutoGradingService = scoring.NewAutoGradingService(
+		scoringService,
+		c.ExamRepo,
+		c.QuestionRepo,
+	)
+
+	// Initialize new consolidated exam services
+	c.ExamMgmt = exam_service.NewExamMgmt(
+		c.DB,
+		c.ExamRepo,
+		c.QuestionRepo,
+		logger,
+	)
+
+	// Initialize legacy exam services for backward compatibility
+	c.LegacyExamMgmt = exam_mgmt.NewExamMgmt(
+		c.ExamRepo,
+		c.QuestionRepo,
+		logger,
+	)
+
+	// Initialize new consolidated content services
+	c.ContentMgmt = content_service.NewContentMgmt(
+		c.DB,
+		c.NewsletterRepo,
+		c.ContactRepo,
+		c.MapCodeRepo,
+		logger,
+	)
+
+	// Initialize legacy content services for backward compatibility
+	c.LegacyContactMgmt = content_service.NewLegacyContactMgmt(c.ContactRepo)
+	c.LegacyNewsletterMgmt = content_service.NewLegacyNewsletterMgmt(c.NewsletterRepo)
+	c.LegacyMapCodeMgmt = content_service.NewLegacyMapCodeMgmt(c.MapCodeRepo, c.MapCodeTranslationRepo)
 
 	// Initialize ContactMgmt with repository
 	c.ContactMgmt = contact_mgmt.NewContactMgmt(c.ContactRepo)
 
 	// Initialize NewsletterMgmt with repository
 	c.NewsletterMgmt = newsletter_mgmt.NewNewsletterMgmt(c.NewsletterRepo)
+
+	// Initialize MapCodeMgmt with repositories
+	c.MapCodeMgmt = mapcode_mgmt.NewMapCodeMgmt(c.MapCodeRepo, c.MapCodeTranslationRepo)
 
 	// Initialize JWT Service
 	accessSecret := getEnvOrDefault("JWT_ACCESS_SECRET", c.JWTSecret)
@@ -222,11 +380,25 @@ func (c *Container) initServices() {
 		c.AuditLogRepo,
 		c.NotificationSvc,
 	)
+
+	// Performance Service
+	performanceConfig := performance.DefaultConfig()
+	c.PerformanceService = performance.NewPerformanceService(c.DB, performanceConfig, logger)
+
+	// Analytics Services
+	c.AnalyticsService = analytics.NewAnalyticsService(c.ExamRepo, logger)
+	c.MonitoringService = analytics.NewMonitoringService(c.DB, c.ExamRepo, logger)
+	c.DashboardService = analytics.NewDashboardService(c.DB, c.ExamRepo, logger)
+
+	// Security Services
+	c.ExamSessionSecurity = security.NewExamSessionSecurity(c.DB, logger)
+	c.AntiCheatService = security.NewAntiCheatService(c.DB, c.ExamSessionSecurity, logger)
+	c.ExamRateLimitService = security.NewExamRateLimitService(c.DB, logger)
 }
 
 // initMiddleware initializes all middleware dependencies
 func (c *Container) initMiddleware() {
-	c.AuthInterceptor = middleware.NewAuthInterceptor(c.AuthMgmt, c.SessionService, c.UserRepoWrapper)
+	c.AuthInterceptor = middleware.NewAuthInterceptor(c.LegacyAuthMgmt, c.SessionService, c.UserRepoWrapper)
 	c.SessionInterceptor = middleware.NewSessionInterceptor(c.SessionService, c.SessionRepo)
 	c.RoleLevelInterceptor = middleware.NewRoleLevelInterceptor()
 	c.RateLimitInterceptor = middleware.NewRateLimitInterceptor()
@@ -236,8 +408,6 @@ func (c *Container) initMiddleware() {
 
 // initGRPCServices initializes all gRPC service dependencies
 func (c *Container) initGRPCServices() {
-	c.UserGRPCService = grpc.NewUserServiceServer(c.UserMgmt, c.AuthMgmt)
-
 	// Get bcrypt cost from environment (default 12)
 	bcryptCost := 12
 	if costStr := getEnvOrDefault("BCRYPT_COST", "12"); costStr != "" {
@@ -256,8 +426,9 @@ func (c *Container) initGRPCServices() {
 		bcryptCost,
 	)
 
-	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionMgmt)
-	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.QuestionFilterMgmt)
+	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.LegacyQuestionMgmt)
+	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.LegacyQuestionFilterMgmt)
+	c.ExamGRPCService = grpc.NewExamServiceServer(c.LegacyExamMgmt, c.AutoGradingService)
 	c.ProfileGRPCService = grpc.NewProfileServiceServer(
 		c.UserRepoWrapper,
 		c.SessionService,
@@ -272,6 +443,7 @@ func (c *Container) initGRPCServices() {
 		c.NotificationRepo,
 		c.UserPreferenceRepo,
 	)
+	c.MapCodeGRPCService = grpc.NewMapCodeServiceServer(c.MapCodeMgmt)
 }
 
 // GetUserRepository returns the user repository
@@ -285,23 +457,58 @@ func (c *Container) GetAnswerRepository() *repository.AnswerRepository {
 }
 
 // GetAuthMgmt returns the auth management service
-func (c *Container) GetAuthMgmt() *auth_mgmt.AuthMgmt {
+func (c *Container) GetAuthMgmt() *auth_service.AuthMgmt {
 	return c.AuthMgmt
 }
 
-// GetUserMgmt returns the user management service
-func (c *Container) GetUserMgmt() *user_mgmt.UserMgmt {
-	return c.UserMgmt
-}
-
 // GetQuestionMgmt returns the question management service
-func (c *Container) GetQuestionMgmt() *question_mgmt.QuestionMgmt {
+func (c *Container) GetQuestionMgmt() *question_service.QuestionMgmt {
 	return c.QuestionMgmt
 }
 
+// GetLegacyQuestionMgmt returns the legacy question management service
+func (c *Container) GetLegacyQuestionMgmt() *question_mgmt.QuestionMgmt {
+	return c.LegacyQuestionMgmt
+}
+
 // GetQuestionFilterMgmt returns the question filter management service
-func (c *Container) GetQuestionFilterMgmt() *question_filter_mgmt.QuestionFilterMgmt {
+func (c *Container) GetQuestionFilterMgmt() *question_service.LegacyQuestionFilterMgmt {
 	return c.QuestionFilterMgmt
+}
+
+// GetLegacyQuestionFilterMgmt returns the legacy question filter management service
+func (c *Container) GetLegacyQuestionFilterMgmt() *question_filter_mgmt.QuestionFilterMgmt {
+	return c.LegacyQuestionFilterMgmt
+}
+
+// GetExamMgmt returns the exam management service
+func (c *Container) GetExamMgmt() *exam_service.ExamMgmt {
+	return c.ExamMgmt
+}
+
+// GetLegacyExamMgmt returns the legacy exam management service
+func (c *Container) GetLegacyExamMgmt() *exam_mgmt.ExamMgmt {
+	return c.LegacyExamMgmt
+}
+
+// GetContentMgmt returns the content management service
+func (c *Container) GetContentMgmt() *content_service.ContentMgmt {
+	return c.ContentMgmt
+}
+
+// GetLegacyContactMgmt returns the legacy contact management service
+func (c *Container) GetLegacyContactMgmt() *content_service.LegacyContactMgmt {
+	return c.LegacyContactMgmt
+}
+
+// GetLegacyNewsletterMgmt returns the legacy newsletter management service
+func (c *Container) GetLegacyNewsletterMgmt() *content_service.LegacyNewsletterMgmt {
+	return c.LegacyNewsletterMgmt
+}
+
+// GetLegacyMapCodeMgmt returns the legacy mapcode management service
+func (c *Container) GetLegacyMapCodeMgmt() *content_service.LegacyMapCodeMgmt {
+	return c.LegacyMapCodeMgmt
 }
 
 // GetAuthInterceptor returns the auth interceptor
@@ -319,11 +526,6 @@ func (c *Container) GetNewsletterGRPCService() *grpc.NewsletterServiceServer {
 	return c.NewsletterGRPCService
 }
 
-// GetUserGRPCService returns the user gRPC service
-func (c *Container) GetUserGRPCService() *grpc.UserServiceServer {
-	return c.UserGRPCService
-}
-
 // GetEnhancedUserGRPCService returns the enhanced user gRPC service with OAuth support
 func (c *Container) GetEnhancedUserGRPCService() *grpc.EnhancedUserServiceServer {
 	return c.EnhancedUserGRPCService
@@ -337,6 +539,11 @@ func (c *Container) GetQuestionGRPCService() *grpc.QuestionServiceServer {
 // GetQuestionFilterGRPCService returns the question filter gRPC service
 func (c *Container) GetQuestionFilterGRPCService() *grpc.QuestionFilterServiceServer {
 	return c.QuestionFilterGRPCService
+}
+
+// GetExamGRPCService returns the exam gRPC service
+func (c *Container) GetExamGRPCService() *grpc.ExamServiceServer {
+	return c.ExamGRPCService
 }
 
 // InterceptorSet holds all interceptors
@@ -376,11 +583,66 @@ func (c *Container) GetNotificationGRPCService() *grpc.NotificationServiceServer
 	return c.NotificationGRPCService
 }
 
+// GetMapCodeGRPCService returns the MapCode gRPC service
+func (c *Container) GetMapCodeGRPCService() *grpc.MapCodeServiceServer {
+	return c.MapCodeGRPCService
+}
+
+// GetRedisClient returns the Redis client
+func (c *Container) GetRedisClient() *redis.Client {
+	return c.RedisClient
+}
+
+// GetCacheService returns the cache service
+func (c *Container) GetCacheService() cache.CacheService {
+	return c.CacheService
+}
+
+// GetAnalyticsService returns the analytics service
+func (c *Container) GetAnalyticsService() *analytics.AnalyticsService {
+	return c.AnalyticsService
+}
+
+// GetMonitoringService returns the monitoring service
+func (c *Container) GetMonitoringService() *analytics.MonitoringService {
+	return c.MonitoringService
+}
+
+// GetDashboardService returns the dashboard service
+func (c *Container) GetDashboardService() *analytics.DashboardService {
+	return c.DashboardService
+}
+
+// GetExamSessionSecurity returns the exam session security service
+func (c *Container) GetExamSessionSecurity() *security.ExamSessionSecurity {
+	return c.ExamSessionSecurity
+}
+
+// GetAntiCheatService returns the anti-cheat service
+func (c *Container) GetAntiCheatService() *security.AntiCheatService {
+	return c.AntiCheatService
+}
+
+// GetExamRateLimitService returns the exam rate limit service
+func (c *Container) GetExamRateLimitService() *security.ExamRateLimitService {
+	return c.ExamRateLimitService
+}
+
 // Cleanup performs cleanup operations
 func (c *Container) Cleanup() {
 	// Stop rate limiter cleanup
 	if c.RateLimitInterceptor != nil {
 		c.RateLimitInterceptor.Stop()
+	}
+
+	// Close Redis connection
+	if c.RedisClient != nil {
+		c.RedisClient.Close()
+	}
+
+	// Close cache service
+	if c.CacheService != nil {
+		c.CacheService.Close()
 	}
 
 	if c.DB != nil {

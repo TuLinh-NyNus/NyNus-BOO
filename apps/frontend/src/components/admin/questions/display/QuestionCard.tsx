@@ -87,7 +87,8 @@ export function QuestionCard({
     const configs = {
       [QuestionDifficulty.EASY]: { label: 'Dễ', color: 'bg-badge-success' },
       [QuestionDifficulty.MEDIUM]: { label: 'Trung bình', color: 'bg-badge-warning' },
-      [QuestionDifficulty.HARD]: { label: 'Khó', color: 'bg-destructive' }
+      [QuestionDifficulty.HARD]: { label: 'Khó', color: 'bg-destructive' },
+      [QuestionDifficulty.EXPERT]: { label: 'Chuyên gia', color: 'bg-purple-500' }
     };
     return configs[difficulty] || { label: difficulty, color: 'bg-secondary' };
   };
@@ -102,7 +103,8 @@ export function QuestionCard({
       [QuestionStatus.ACTIVE]: { label: 'Hoạt động', variant: 'default' as const },
       [QuestionStatus.PENDING]: { label: 'Chờ duyệt', variant: 'secondary' as const },
       [QuestionStatus.INACTIVE]: { label: 'Không hoạt động', variant: 'outline' as const },
-      [QuestionStatus.ARCHIVED]: { label: 'Đã lưu trữ', variant: 'destructive' as const }
+      [QuestionStatus.ARCHIVED]: { label: 'Đã lưu trữ', variant: 'destructive' as const },
+      [QuestionStatus.DRAFT]: { label: 'Bản nháp', variant: 'secondary' as const }
     };
 
     const config = statusConfig[status];

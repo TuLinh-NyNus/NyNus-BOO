@@ -30,6 +30,12 @@ export const ADMIN_PATHS = {
   FAQ: '/3141592654/admin/faq',
   RESOURCES: '/3141592654/admin/resources',
 
+  // Exam Management
+  EXAMS: '/3141592654/admin/exams',
+  EXAMS_CREATE: '/3141592654/admin/exams/create',
+  EXAMS_ANALYTICS: '/3141592654/admin/exams/analytics',
+  EXAMS_SETTINGS: '/3141592654/admin/exams/settings',
+
   // Questions Management - Extended routes
   QUESTIONS_CREATE: '/3141592654/admin/questions/create',
   QUESTIONS_EDIT: '/3141592654/admin/questions/[id]/edit',
@@ -55,6 +61,11 @@ export const ADMIN_PATHS = {
   USERS_CREATE: '/3141592654/admin/users/create',
   USERS_EDIT: (id: string) => `/3141592654/admin/users/${id}/edit`,
   USERS_VIEW: (id: string) => `/3141592654/admin/users/${id}`,
+
+  // Exam Management Sub-routes
+  EXAMS_EDIT: (id: string) => `/3141592654/admin/exams/${id}/edit`,
+  EXAMS_VIEW: (id: string) => `/3141592654/admin/exams/${id}`,
+  EXAMS_RESULTS: (id: string) => `/3141592654/admin/exams/${id}/results`,
 } as const;
 
 /**

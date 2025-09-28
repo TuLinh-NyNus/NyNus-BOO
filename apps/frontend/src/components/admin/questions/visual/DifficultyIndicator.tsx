@@ -90,10 +90,20 @@ export function DifficultyIndicator({
         borderColor: 'border-red-300',
         icon: AlertTriangle,
         description: 'Câu hỏi nâng cao, đòi hỏi tư duy phân tích cao'
+      },
+      [QuestionDifficulty.EXPERT]: {
+        label: 'Chuyên gia',
+        value: 4,
+        color: 'purple',
+        bgColor: 'bg-purple-100',
+        textColor: 'text-purple-700',
+        borderColor: 'border-purple-300',
+        icon: AlertTriangle,
+        description: 'Câu hỏi chuyên gia, đòi hỏi kiến thức sâu rộng'
       }
     };
 
-    return configs[level];
+    return configs[level] || configs[QuestionDifficulty.MEDIUM];
   };
 
   const config = getDifficultyConfig(difficulty);

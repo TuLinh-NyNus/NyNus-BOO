@@ -53,7 +53,7 @@ interface HelpSection {
 /**
  * Filter Tooltip Component (Simplified - Tooltip UI components not available yet)
  */
-function FilterTooltip({ children, title, description, examples: _examples, shortcuts: _shortcuts }: FilterTooltipProps) {
+function FilterTooltip({ children, title, description }: Omit<FilterTooltipProps, 'examples' | 'shortcuts'>) {
   // Simplified version - just return children for now
   // TODO: Implement proper tooltip when UI components are available
   return (

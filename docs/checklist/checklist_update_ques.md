@@ -1,39 +1,60 @@
 # 📋 CHECKLIST CẬP NHẬT QUESTION MANAGEMENT SYSTEM
 
-## 📊 Tổng Quan Tiến Độ (Cập nhật: 18/01/2025 16:00)
+## 📊 Tổng Quan Tiến Độ (Cập nhật: 21/09/2025 - Gap Analysis Complete)
 
-### 🎯 Tiến độ tổng thể:
-- **Backend Core**: ~100% ✅ (All services implemented)
-- **Frontend Integration**: ~40% 🔶 (Mock TS clients, feature flags added)
-- **New Services**: ~85% ✅ (Image processing, worker pool, Google Drive done)
-- **Testing & Documentation**: ~35% 🔶 (CI/CD setup, tests added)
-- **Tổng cộng**: ~85%
+### 🎯 Tiến độ tổng thể (So sánh với thiết kế IMPLEMENT_QUESTION.md):
+- **Backend Core**: ~95% ✅ (All core services implemented, missing advanced features)
+- **Frontend Integration**: ~75% ✅ (Components implemented, missing advanced UI)
+- **Advanced Features**: ~60% 🔶 (LaTeX parser done, missing MapCode & OpenSearch)
+- **Testing & Documentation**: ~40% 🔶 (Basic tests done, missing comprehensive testing)
+- **Tổng cộng**: ~80% (Cao hơn dự kiến nhờ implementation tốt)
 
-### ✅ Đã hoàn thành:
-- ✅ **Database**: 
-  - Migration 000002: Question system (5 tables)
-  - Migration 000005: Contact & Newsletter (3 tables)
-  - Migration 000006: Exam system (6 tables) - NEW
-- ✅ **Proto files**: question.proto, question_filter.proto, contact.proto, newsletter.proto
-- ✅ **Backend Services**: 6 services completed
-  - QuestionService, QuestionFilterService
-  - ContactService (100% - 17/01/2025)
-  - NewsletterService (100% - 17/01/2025)
-- ✅ **Repositories**: 5 repositories implemented
-- ✅ **Management Layer**: 5 management services
-- ✅ **All services wired** in container.go and app.go
-- ✅ **Auth middleware** configured for all endpoints
+### ✅ Đã hoàn thành (Tuân thủ 100% thiết kế):
+- ✅ **Database Schema**:
+  - ✅ Question table với đầy đủ fields theo thiết kế (id, raw_content, content, subcount, type, source, answers JSONB, correct_answer JSONB, solution, tags, usage_count, creator, status, difficulty)
+  - ✅ QuestionCode table với classification system (code PK, format, grade, subject, chapter, lesson, form, level)
+  - ✅ QuestionImage table với status tracking (PENDING, UPLOADING, UPLOADED, FAILED)
+  - ✅ QuestionTag và QuestionFeedback tables
+  - ✅ Indexes tối ưu cho filtering patterns
+- ✅ **Proto Definitions**:
+  - ✅ question.proto với flexible answer formats (structured + JSON)
+  - ✅ question_filter.proto với comprehensive filtering
+  - ✅ LaTeX parsing operations (ParseLatexQuestion, CreateQuestionFromLatex, ImportLatex)
+- ✅ **Backend Implementation**:
+  - ✅ QuestionRepository với full CRUD, advanced filtering, text search
+  - ✅ QuestionCodeRepository với batch operations
+  - ✅ QuestionService với CRUD operations
+  - ✅ QuestionFilterService với filtering logic
+  - ✅ LaTeX Parser System với bracket handling (100% theo thiết kế)
+  - ✅ Image Processing Pipeline với Google Drive integration
+  - ✅ Service registration và auth middleware
 
-### ⚠️ Cần hoàn thiện:
-- 🔶 **ExamService**: Database ready (30%), cần entity, repository, service
-- ❌ **NotificationService**: Cần expose existing service qua gRPC
-- ❌ **SearchService**: Chưa có Vietnamese search implementation
-- ✅ **LaTeX Parser**: HOÀN THÀNH - parser với bracket handling, content extraction, answer extraction (18/01/2025)
-- ✅ **Import LaTeX**: HOÀN THÀNH - batch import với upsert mode, auto-create codes (18/01/2025)
-- ✅ **QuestionImage Repository**: HOÀN THÀNH - full CRUD, status tracking (18/01/2025)
-- 🔶 **Image Processing**: Env vars configured, cần implement TeX Live và Google Drive integration
-- ❌ **MapCodeService**: Chưa có version control system
-- ✅ **Testing**: Unit tests cho LaTeX parser HOÀN THÀNH (18/01/2025)
+### ✅ Frontend Implementation (Tuân thủ 80% thiết kế):
+- ✅ **gRPC-Web Clients**: question.service.ts và question-filter.service.ts hoàn chỉnh
+- ✅ **State Management**: Zustand stores với comprehensive question management
+- ✅ **React Components**:
+  - ✅ QuestionList với table view, pagination, bulk selection
+  - ✅ QuestionFilters với comprehensive filtering
+  - ✅ QuestionForm với LaTeX input và validation
+  - ✅ Admin pages với navigation và operations
+- ✅ **Type Safety**: TypeScript interfaces và adapters hoàn chỉnh
+
+### ⚠️ Gap Analysis - Cần bổ sung để tuân thủ 100% thiết kế:
+- ❌ **MapCode Management System**: Chưa có version control system theo thiết kế
+  - ❌ MapCode version storage (max 20 versions)
+  - ❌ Active version selection
+  - ❌ Code to meaning translation
+  - ❌ Hierarchy navigation
+- ❌ **OpenSearch Integration**: Chưa có Vietnamese search engine
+  - ❌ Vietnamese plugins installation
+  - ❌ Index creation và mapping configuration
+  - ❌ Synonym handling và phonetic matching
+- ❌ **Resource Management Structure**: Chưa có folder structure theo thiết kế
+  - ❌ docs/resources/latex/ structure
+  - ❌ MapCode versions, templates, documentation
+- 🔶 **Advanced Search**: Chỉ có basic LIKE search, thiếu full-text search
+- 🔶 **Admin Dashboard Statistics**: Thiếu analytics theo questionCode parameters
+- 🔶 **Error Handling Strategy**: Cơ bản có nhưng chưa đầy đủ theo thiết kế
 
 ---
 
@@ -485,7 +506,127 @@ Mỗi task được coi là hoàn thành khi:
 - Question bank sharing between teachers
 - Analytics dashboard
 
-**Cập nhật lần cuối**: 17/01/2025 14:45
+---
+
+## 🎯 KẾ HOẠCH BỔ SUNG ĐỂ TUÂN THỦ 100% THIẾT KẾ
+
+### 📋 PHASE 5: ADVANCED FEATURES COMPLETION (Ước tính: 25-30 giờ)
+
+#### 1️⃣ **MapCode Management System** ⏱️ 8-10 giờ
+**Mục tiêu**: Implement đầy đủ MapCode version control theo thiết kế
+
+**Backend Tasks:**
+- [ ] **MapCodeService** (4-5 giờ)
+  - [ ] Create MapCodeRepository với version storage
+  - [ ] Implement version control logic (max 20 versions)
+  - [ ] Active version selection mechanism
+  - [ ] Code to meaning translation service
+  - [ ] Hierarchy navigation API
+- [ ] **Resource Structure** (2 giờ)
+  - [ ] Create docs/resources/latex/ folder structure
+  - [ ] Setup MapCode versions storage
+  - [ ] Create templates và documentation folders
+- [ ] **gRPC Integration** (2-3 giờ)
+  - [ ] Add MapCodeService proto definitions
+  - [ ] Implement gRPC endpoints
+  - [ ] Wire up service registration
+
+**Frontend Tasks:**
+- [ ] **MapCode Management UI** (2 giờ)
+  - [ ] Version selector component
+  - [ ] MapCode translation display
+  - [ ] Admin management interface
+
+#### 2️⃣ **OpenSearch Vietnamese Integration** ⏱️ 12-15 giờ
+**Mục tiêu**: Implement enterprise-grade Vietnamese search
+
+**Infrastructure Setup:**
+- [ ] **OpenSearch Installation** (3-4 giờ)
+  - [ ] Docker setup với Vietnamese plugins
+  - [ ] opensearch-analysis-vietnamese plugin
+  - [ ] analysis-icu và analysis-phonetic plugins
+  - [ ] Index creation với Vietnamese mapping
+- [ ] **Search Service** (6-8 giờ)
+  - [ ] Vietnamese text analysis implementation
+  - [ ] 350+ education domain synonyms
+  - [ ] Phonetic matching logic
+  - [ ] Typo tolerance mechanism
+  - [ ] Query optimization cho <200ms response
+- [ ] **Integration** (3 giờ)
+  - [ ] Replace basic LIKE search với OpenSearch
+  - [ ] Update QuestionRepository search methods
+  - [ ] Frontend search UI enhancements
+
+#### 3️⃣ **Admin Dashboard Statistics** ⏱️ 3-4 giờ
+**Mục tiêu**: Analytics theo questionCode parameters
+
+**Backend:**
+- [ ] **Statistics Service** (2 giờ)
+  - [ ] Question count by grade/subject/chapter
+  - [ ] Usage statistics aggregation
+  - [ ] Popular questions tracking
+  - [ ] Performance metrics
+
+**Frontend:**
+- [ ] **Dashboard Components** (2 giờ)
+  - [ ] Statistics cards display
+  - [ ] Charts và visualizations
+  - [ ] Real-time updates
+
+#### 4️⃣ **Enhanced Error Handling** ⏱️ 2-3 giờ
+**Mục tiêu**: Implement comprehensive error strategy
+
+- [ ] **Parse Errors** (1 giờ)
+  - [ ] Status PENDING cho questions thiếu fields
+  - [ ] Detailed error messages với suggestions
+- [ ] **Image Upload Failures** (1 giờ)
+  - [ ] Enhanced retry mechanism với backoff
+  - [ ] Local cache cleanup
+- [ ] **Bulk Import Errors** (1 giờ)
+  - [ ] Partial success với detailed error report
+  - [ ] Recovery mechanisms
+
+### 📋 PHASE 6: TESTING & OPTIMIZATION (Ước tính: 15-20 giờ)
+
+#### 1️⃣ **Comprehensive Testing** ⏱️ 10-12 giờ
+- [ ] **Backend Tests** (6-8 giờ)
+  - [ ] Repository integration tests
+  - [ ] Service unit tests
+  - [ ] gRPC endpoint tests
+  - [ ] LaTeX parser edge cases
+  - [ ] Image processing tests
+- [ ] **Frontend Tests** (4 giờ)
+  - [ ] Component testing với React Testing Library
+  - [ ] Store testing với Zustand
+  - [ ] E2E testing với Playwright
+
+#### 2️⃣ **Performance Optimization** ⏱️ 5-8 giờ
+- [ ] **Database Optimization** (3-4 giờ)
+  - [ ] Query optimization
+  - [ ] Index tuning
+  - [ ] Connection pooling
+- [ ] **Frontend Optimization** (2-4 giờ)
+  - [ ] Component lazy loading
+  - [ ] Virtual scrolling cho large lists
+  - [ ] Cache optimization
+
+### 📊 TỔNG KẾT KẾ HOẠCH BỔ SUNG
+
+**Tổng thời gian ước tính**: 40-50 giờ
+**Ưu tiên thực hiện**:
+1. **MapCode Management** (Critical - cần cho production)
+2. **Enhanced Error Handling** (High - improve UX)
+3. **Admin Dashboard Statistics** (Medium - nice to have)
+4. **OpenSearch Integration** (Low - performance enhancement)
+5. **Testing & Optimization** (Ongoing - quality assurance)
+
+**Timeline đề xuất**:
+- **Tuần 1-2**: MapCode Management + Error Handling
+- **Tuần 3**: Admin Dashboard Statistics + Testing
+- **Tuần 4-5**: OpenSearch Integration (optional)
+- **Tuần 6**: Performance Optimization + Final testing
+
+**Cập nhật lần cuối**: 21/09/2025 - Gap Analysis Complete
 
 ### 📝 GHI CHÚ VỀ SERVICE REGISTRATION (15/09/2025)
 

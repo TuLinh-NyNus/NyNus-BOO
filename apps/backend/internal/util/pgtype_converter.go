@@ -173,3 +173,18 @@ func PgJSONBToNullString(j pgtype.JSONB) interface{} {
 func IsTextEmpty(t pgtype.Text) bool {
 	return t.Status != pgtype.Present || t.String == ""
 }
+
+// IntToPgInt4 converts int32 to pgtype.Int4 (alias for Int32ToPgInt4)
+func IntToPgInt4(value int32) pgtype.Int4 {
+	return Int32ToPgInt4(value)
+}
+
+// TimestamptzToPgType converts time.Time to pgtype.Timestamptz (alias for TimeToPgTimestamptz)
+func TimestamptzToPgType(value time.Time) pgtype.Timestamptz {
+	return TimeToPgTimestamptz(value)
+}
+
+// IntToPgInt8 converts int64 to pgtype.Int8 (alias for Int64ToPgInt8)
+func IntToPgInt8(value int64) pgtype.Int8 {
+	return Int64ToPgInt8(value)
+}

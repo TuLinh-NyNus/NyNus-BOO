@@ -1,0 +1,53 @@
+# OpenSearch Dashboards Configuration
+# Cấu hình OpenSearch Dashboards cho monitoring và management
+
+server.name: exam-bank-dashboards
+server.host: 0.0.0.0
+server.port: 5601
+
+# OpenSearch connection
+opensearch.hosts: ["http://opensearch:9200"]
+opensearch.ssl.verificationMode: none
+opensearch.username: ""
+opensearch.password: ""
+
+# Security settings (disabled for development)
+
+# Logging
+logging.dest: stdout
+logging.silent: false
+logging.quiet: false
+logging.verbose: false
+
+# Performance settings
+server.maxPayloadBytes: 1048576
+opensearch.requestTimeout: 30000
+opensearch.shardTimeout: 30000
+
+# UI settings
+map.includeOpenSearchMapsService: false
+# Note: telemetry settings are not supported in OpenSearch Dashboards 2.11.1
+
+# Vietnamese language support
+i18n.locale: "en"
+
+# Custom branding
+server.customResponseHeaders:
+  "X-Frame-Options": "SAMEORIGIN"
+  "X-Content-Type-Options": "nosniff"
+  "X-XSS-Protection": "1; mode=block"
+
+# Development settings
+server.rewriteBasePath: false
+server.ssl.enabled: false
+
+# Dashboard settings
+# Note: defaultDarkMode is not supported in OpenSearch Dashboards 2.11.1
+
+# Advanced settings
+vis_type_vega.enableExternalUrls: false
+csp.rules: [
+  "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+  "worker-src blob:",
+  "child-src blob:"
+]

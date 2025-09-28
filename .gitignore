@@ -16,6 +16,28 @@ apps/backend/exam-bank-backend
 *.exe
 *.exe~
 
+# Backup files
+*.bak
+*.backup
+
+# Generated files
+complete-tree*.txt
+tree-*.txt
+full-file-list.txt
+*-files-list.txt
+
+# Jest cache
+.jest-cache/
+
+# Test artifacts
+coverage/
+*.log
+
+# Test temp directories
+test_cache/
+test_output/
+test_tmp/
+
 # Frontend builds (Vite)
 apps/frontend/build/
 apps/frontend/dist/

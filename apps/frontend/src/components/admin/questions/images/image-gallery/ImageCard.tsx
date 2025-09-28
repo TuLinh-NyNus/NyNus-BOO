@@ -178,9 +178,14 @@ export function ImageCard({
     setImageError(true);
   };
 
-  const handleSelect = (_checked: boolean) => {
+  const handleSelect = (checked: boolean) => {
     if (onSelect) {
       onSelect(image.id);
+    }
+
+    // Log selection state for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Image ${image.id} ${checked ? 'selected' : 'deselected'}`);
     }
   };
 

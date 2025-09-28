@@ -18,7 +18,7 @@ const Testimonials = () => {
      videoUrl: string;
    } | null>(null);
    const [isVisible, setIsVisible] = useState(false);
-  const [_currentVideoSlide, setCurrentVideoSlide] = useState(0);
+  const [, setCurrentVideoSlide] = useState(0);
 
   // Embla for video section
   const [emblaVideoRef, emblaVideoApi] = useEmblaCarousel({ loop: true, align: 'center' });
@@ -53,7 +53,7 @@ const Testimonials = () => {
 
   // Embla cho text testimonials (logic giống Features)
   const [emblaTextRef, emblaTextApi] = useEmblaCarousel({ loop: true, align: 'start' });
-  const [_currentTextIndex, setCurrentTextIndex] = useState(0);
+  const [, setCurrentTextIndex] = useState(0);
   useEffect(() => {
     if (!emblaTextApi) return;
     const onSelect = () => setCurrentTextIndex(emblaTextApi.selectedScrollSnap());

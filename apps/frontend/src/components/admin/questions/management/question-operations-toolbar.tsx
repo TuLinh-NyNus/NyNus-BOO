@@ -295,7 +295,7 @@ export function QuestionOperationsToolbar({
   // ===== MAIN RENDER =====
   
   const availableOperations = getAvailableOperations();
-  const _primaryOperations = availableOperations.filter(op => op.category === 'primary');
+  const primaryOperations = availableOperations.filter(op => op.category === 'primary');
   const secondaryOperations = availableOperations.filter(op => op.category === 'secondary');
   const destructiveOperations = availableOperations.filter(op => op.category === 'destructive');
   
@@ -316,6 +316,24 @@ export function QuestionOperationsToolbar({
         {renderOperationsByCategory('primary')}
       </div>
       
+      {/* Primary operations buttons */}
+      {primaryOperations.map(operation => {
+        const Icon = operation.icon;
+        return (
+          <Button
+            key={operation.key}
+            variant="default"
+            size="sm"
+            onClick={() => handleOperation(operation.key)}
+            disabled={disabled || isProcessing}
+            className="flex items-center gap-1"
+          >
+            <Icon className="h-4 w-4" />
+            {operation.label}
+          </Button>
+        );
+      })}
+
       {/* Secondary operations dropdown */}
       {secondaryOperations.length > 0 && (
         <DropdownMenu>

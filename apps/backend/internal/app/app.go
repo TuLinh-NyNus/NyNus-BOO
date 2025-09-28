@@ -40,7 +40,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 	}
 
 	// Initialize dependency container
-	app.container = container.NewContainer(app.db, cfg.JWT.Secret)
+	app.container = container.NewContainer(app.db, cfg.JWT.Secret, cfg)
 
 	// Initialize gRPC server
 	if err := app.initGRPCServer(); err != nil {
@@ -63,6 +63,12 @@ func (a *App) initDatabase() error {
 	if err := a.db.Ping(); err != nil {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
+
+	// Configure connection pool for optimal performance
+	a.db.SetMaxOpenConns(25)        // Maximum number of open connections
+	a.db.SetMaxIdleConns(10)        // Maximum number of idle connections
+	a.db.SetConnMaxLifetime(300)    // Maximum connection lifetime (5 minutes)
+	a.db.SetConnMaxIdleTime(60)     // Maximum idle time (1 minute)
 
 	log.Printf("✅ Connected to PostgreSQL: %s@%s:%s/%s",
 		a.config.Database.User,
@@ -112,11 +118,13 @@ func (a *App) initGRPCServer() error {
 	v1.RegisterUserServiceServer(a.grpcServer, a.container.GetEnhancedUserGRPCService())
 	v1.RegisterQuestionServiceServer(a.grpcServer, a.container.GetQuestionGRPCService())
 	v1.RegisterQuestionFilterServiceServer(a.grpcServer, a.container.GetQuestionFilterGRPCService())
+	v1.RegisterExamServiceServer(a.grpcServer, a.container.GetExamGRPCService())
 	v1.RegisterProfileServiceServer(a.grpcServer, a.container.GetProfileGRPCService())
 	v1.RegisterAdminServiceServer(a.grpcServer, a.container.GetAdminGRPCService())
 	v1.RegisterContactServiceServer(a.grpcServer, a.container.GetContactGRPCService())
 	v1.RegisterNewsletterServiceServer(a.grpcServer, a.container.GetNewsletterGRPCService())
 	v1.RegisterNotificationServiceServer(a.grpcServer, a.container.GetNotificationGRPCService())
+	v1.RegisterMapCodeServiceServer(a.grpcServer, a.container.GetMapCodeGRPCService())
 
 	// Enable reflection for grpcurl
 	reflection.Register(a.grpcServer)
@@ -126,15 +134,30 @@ func (a *App) initGRPCServer() error {
 
 // Run starts the application
 func (a *App) Run() error {
-	// Initialize HTTP server with gRPC-Gateway
-	a.httpServer = server.NewHTTPServer(a.config.Server.HTTPPort, a.config.Server.GRPCPort)
+	// Log production settings
+	config.LogProductionSettings(a.config.Production)
 
-	// Start HTTP server in a goroutine
-	go func() {
-		if err := a.httpServer.Start(); err != nil {
-			log.Printf("❌ HTTP server error: %v", err)
-		}
-	}()
+	// Validate production configuration
+	if err := config.ValidateProductionConfig(a.config.Production); err != nil {
+		log.Printf("⚠️  Production config validation warning: %v", err)
+	}
+
+	// Conditionally start HTTP server based on production settings
+	if a.config.Production.HTTPGatewayEnabled {
+		// Initialize HTTP server with gRPC-Gateway
+		a.httpServer = server.NewHTTPServer(a.config.Server.HTTPPort, a.config.Server.GRPCPort)
+
+		// Start HTTP server in a goroutine
+		go func() {
+			if err := a.httpServer.Start(); err != nil {
+				log.Printf("❌ HTTP server error: %v", err)
+			}
+		}()
+
+		log.Printf("🌐 HTTP Gateway enabled on port %s", a.config.Server.HTTPPort)
+	} else {
+		log.Println("🔒 HTTP Gateway disabled for production security")
+	}
 
 	// Create gRPC listener
 	lis, err := net.Listen("tcp", ":"+a.config.Server.GRPCPort)
@@ -163,6 +186,7 @@ func (a *App) logStartupInfo() {
 	log.Println("   - UserService (Login, Register, GetUser, ListUsers)")
 	log.Println("   - QuestionService (CreateQuestion, GetQuestion, ListQuestions, ImportQuestions)")
 	log.Println("   - QuestionFilterService (ListQuestionsByFilter, SearchQuestions, GetQuestionsByQuestionCode)")
+	log.Println("   - ExamService (CreateExam, GetExam, ListExams) [Basic Implementation]")
 	log.Println("🔐 Security:")
 	log.Println("   - JWT Authentication enabled")
 	log.Println("   - Role-based authorization (student, teacher, admin)")

@@ -160,7 +160,7 @@ const devices: DevicePreview[] = [
 export default function AdminTheoryPreviewPage() {
   // ===== STATE =====
   
-  const [selectedContent, _setSelectedContent] = useState<PreviewContent>(mockContent);
+  const [selectedContent] = useState<PreviewContent>(mockContent);
   const [selectedDevice, setSelectedDevice] = useState<DevicePreview>(devices[0]);
   const [metrics, setMetrics] = useState<PerformanceMetrics>(mockMetrics);
   const [isRefreshing, setIsRefreshing] = useState(false);

@@ -51,12 +51,10 @@ import {
   QuestionHistory,
   VersionComparisonResult,
   compareQuestionVersions,
-  formatVersionForDisplay,
-  restoreQuestionToVersion
+  formatVersionForDisplay
 } from "@/lib/utils/question-versioning";
 
-// Rename unused import
-const _restoreQuestionToVersion = restoreQuestionToVersion;
+// Note: restoreQuestionToVersion is handled via onVersionRestore callback
 import { Question } from "@/lib/types/question";
 
 // ===== TYPES =====
@@ -75,9 +73,9 @@ export interface QuestionHistoryProps {
 // ===== MAIN COMPONENT =====
 
 export function QuestionHistoryComponent({
-  questionId: _questionId,
+  questionId,
   history,
-  currentQuestion: _currentQuestion,
+  currentQuestion,
   onVersionRestore,
   onVersionCompare,
   onVersionView,
@@ -90,7 +88,7 @@ export function QuestionHistoryComponent({
   const [expandedVersions, setExpandedVersions] = useState<Set<string>>(new Set());
   const [showRestoreDialog, setShowRestoreDialog] = useState(false);
   const [restoreTarget, setRestoreTarget] = useState<QuestionVersion | null>(null);
-  const [_comparisonResult, setComparisonResult] = useState<VersionComparisonResult | null>(null);
+  const [comparisonResult, setComparisonResult] = useState<VersionComparisonResult | null>(null);
   
   // ===== COMPUTED VALUES =====
   
@@ -101,6 +99,17 @@ export function QuestionHistoryComponent({
   
   const canRestore = userRole === 'TEACHER' || userRole === 'ADMIN';
   const canCompare = selectedVersions.length === 2;
+
+  // Current version info
+  const currentVersionInfo = useMemo(() => {
+    if (!currentQuestion) return null;
+    return {
+      id: questionId,
+      version: 'current', // Version property not available in Question type
+      content: currentQuestion.content,
+      lastModified: currentQuestion.updatedAt || new Date().toISOString()
+    };
+  }, [questionId, currentQuestion]);
   
   // ===== HANDLERS =====
   
@@ -362,10 +371,51 @@ export function QuestionHistoryComponent({
           </Alert>
         )}
         
+        {/* Comparison result */}
+        {comparisonResult && (
+          <Card className="mb-4">
+            <CardHeader>
+              <CardTitle className="text-sm">
+                So sánh phiên bản {comparisonResult.fromVersion.version} → {comparisonResult.toVersion.version}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm space-y-2">
+                <div><strong>Tổng thay đổi:</strong> {comparisonResult.summary.totalChanges}</div>
+                <div><strong>Nội dung:</strong> {comparisonResult.summary.contentChanged ? 'Có thay đổi' : 'Không đổi'}</div>
+                <div><strong>Đáp án:</strong> {comparisonResult.summary.answersChanged ? 'Có thay đổi' : 'Không đổi'}</div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => setComparisonResult(null)}
+              >
+                Đóng
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Current version info */}
+        {currentVersionInfo && (
+          <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-primary">Phiên bản hiện tại</h4>
+                <p className="text-sm text-muted-foreground">
+                  ID: {currentVersionInfo.id} | Version: {currentVersionInfo.version}
+                </p>
+              </div>
+              <Badge variant="default">Current</Badge>
+            </div>
+          </div>
+        )}
+
         {/* Versions list */}
         <ScrollArea className="h-[600px]">
           <div className="space-y-3">
-            {sortedVersions.map((version, index) => 
+            {sortedVersions.map((version, index) =>
               renderVersionItem(version, index)
             )}
           </div>
