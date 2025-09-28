@@ -1,4 +1,4 @@
-package mapcode
+package mapcode_mgmt
 
 import (
 	"context"

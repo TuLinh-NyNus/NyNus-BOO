@@ -1,4 +1,4 @@
-package content
+package mapcode_mgmt
 
 import (
 	"context"
@@ -13,17 +13,17 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 )
 
-// LegacyMapCodeMgmt handles MapCode version management and translation (legacy implementation)
-type LegacyMapCodeMgmt struct {
+// MapCodeMgmt handles MapCode version management and translation
+type MapCodeMgmt struct {
 	mapCodeRepo        *repository.MapCodeRepository
 	translationRepo    *repository.MapCodeTranslationRepository
 	basePath           string // Base path for MapCode files
 	translationCache   map[string]*entity.MapCodeConfig // In-memory cache
 }
 
-// NewLegacyMapCodeMgmt creates a new LegacyMapCodeMgmt instance
-func NewLegacyMapCodeMgmt(mapCodeRepo *repository.MapCodeRepository, translationRepo *repository.MapCodeTranslationRepository) *LegacyMapCodeMgmt {
-	return &LegacyMapCodeMgmt{
+// NewMapCodeMgmt creates a new MapCodeMgmt instance
+func NewMapCodeMgmt(mapCodeRepo *repository.MapCodeRepository, translationRepo *repository.MapCodeTranslationRepository) *MapCodeMgmt {
+	return &MapCodeMgmt{
 		mapCodeRepo:      mapCodeRepo,
 		translationRepo:  translationRepo,
 		basePath:         "docs/resources/latex/mapcode",
@@ -32,7 +32,7 @@ func NewLegacyMapCodeMgmt(mapCodeRepo *repository.MapCodeRepository, translation
 }
 
 // CreateVersion creates a new MapCode version
-func (m *LegacyMapCodeMgmt) CreateVersion(ctx context.Context, version, name, description, createdBy string) (*entity.MapCodeVersion, error) {
+func (m *MapCodeMgmt) CreateVersion(ctx context.Context, version, name, description, createdBy string) (*entity.MapCodeVersion, error) {
 	// Check storage limits
 	storageInfo, err := m.mapCodeRepo.GetStorageInfo(ctx)
 	if err != nil {
@@ -72,12 +72,12 @@ func (m *LegacyMapCodeMgmt) CreateVersion(ctx context.Context, version, name, de
 }
 
 // GetActiveVersion retrieves the currently active version
-func (m *LegacyMapCodeMgmt) GetActiveVersion(ctx context.Context) (*entity.MapCodeVersion, error) {
+func (m *MapCodeMgmt) GetActiveVersion(ctx context.Context) (*entity.MapCodeVersion, error) {
 	return m.mapCodeRepo.GetActiveVersion(ctx)
 }
 
 // SetActiveVersion sets a version as active
-func (m *LegacyMapCodeMgmt) SetActiveVersion(ctx context.Context, versionID string) error {
+func (m *MapCodeMgmt) SetActiveVersion(ctx context.Context, versionID string) error {
 	// Verify version exists
 	version, err := m.mapCodeRepo.GetVersionByID(ctx, versionID)
 	if err != nil {
@@ -100,12 +100,12 @@ func (m *LegacyMapCodeMgmt) SetActiveVersion(ctx context.Context, versionID stri
 }
 
 // GetAllVersions retrieves all versions with pagination
-func (m *LegacyMapCodeMgmt) GetAllVersions(ctx context.Context, offset, limit int) ([]*entity.MapCodeVersion, error) {
+func (m *MapCodeMgmt) GetAllVersions(ctx context.Context, offset, limit int) ([]*entity.MapCodeVersion, error) {
 	return m.mapCodeRepo.GetAllVersions(ctx, offset, limit)
 }
 
 // DeleteVersion deletes a version (only if not active)
-func (m *LegacyMapCodeMgmt) DeleteVersion(ctx context.Context, versionID string) error {
+func (m *MapCodeMgmt) DeleteVersion(ctx context.Context, versionID string) error {
 	// Get version info before deletion
 	version, err := m.mapCodeRepo.GetVersionByID(ctx, versionID)
 	if err != nil {
@@ -132,12 +132,12 @@ func (m *LegacyMapCodeMgmt) DeleteVersion(ctx context.Context, versionID string)
 }
 
 // GetStorageInfo returns storage information
-func (m *LegacyMapCodeMgmt) GetStorageInfo(ctx context.Context) (*entity.MapCodeStorageInfo, error) {
+func (m *MapCodeMgmt) GetStorageInfo(ctx context.Context) (*entity.MapCodeStorageInfo, error) {
 	return m.mapCodeRepo.GetStorageInfo(ctx)
 }
 
 // TranslateQuestionCode translates a question code using active version with caching
-func (m *LegacyMapCodeMgmt) TranslateQuestionCode(ctx context.Context, questionCode string) (string, error) {
+func (m *MapCodeMgmt) TranslateQuestionCode(ctx context.Context, questionCode string) (string, error) {
 	// Get active version
 	activeVersion, err := m.GetActiveVersion(ctx)
 	if err != nil {
@@ -168,7 +168,7 @@ func (m *LegacyMapCodeMgmt) TranslateQuestionCode(ctx context.Context, questionC
 }
 
 // TranslateQuestionCodes translates multiple question codes efficiently
-func (m *LegacyMapCodeMgmt) TranslateQuestionCodes(ctx context.Context, questionCodes []string) (map[string]string, error) {
+func (m *MapCodeMgmt) TranslateQuestionCodes(ctx context.Context, questionCodes []string) (map[string]string, error) {
 	if len(questionCodes) == 0 {
 		return make(map[string]string), nil
 	}
@@ -222,7 +222,7 @@ func (m *LegacyMapCodeMgmt) TranslateQuestionCodes(ctx context.Context, question
 }
 
 // GetHierarchyNavigation returns navigation structure for a question code
-func (m *LegacyMapCodeMgmt) GetHierarchyNavigation(ctx context.Context, questionCode string) (*HierarchyNavigation, error) {
+func (m *MapCodeMgmt) GetHierarchyNavigation(ctx context.Context, questionCode string) (*HierarchyNavigation, error) {
 	// Get active version
 	activeVersion, err := m.GetActiveVersion(ctx)
 	if err != nil {
@@ -258,7 +258,7 @@ type HierarchyLevel struct {
 }
 
 // loadMapCodeConfig loads and parses MapCode configuration from file
-func (m *LegacyMapCodeMgmt) loadMapCodeConfig(filePath string) (*entity.MapCodeConfig, error) {
+func (m *MapCodeMgmt) loadMapCodeConfig(filePath string) (*entity.MapCodeConfig, error) {
 	content, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
@@ -268,7 +268,7 @@ func (m *LegacyMapCodeMgmt) loadMapCodeConfig(filePath string) (*entity.MapCodeC
 }
 
 // parseMapCodeContent parses MapCode markdown content
-func (m *LegacyMapCodeMgmt) parseMapCodeContent(content string) (*entity.MapCodeConfig, error) {
+func (m *MapCodeMgmt) parseMapCodeContent(content string) (*entity.MapCodeConfig, error) {
 	config := &entity.MapCodeConfig{
 		Grades:   make(map[string]string),
 		Subjects: make(map[string]string),
@@ -298,7 +298,7 @@ func (m *LegacyMapCodeMgmt) parseMapCodeContent(content string) (*entity.MapCode
 }
 
 // parseSection parses a specific section of MapCode content
-func (m *LegacyMapCodeMgmt) parseSection(content, sectionName string, targetMap map[string]string) error {
+func (m *MapCodeMgmt) parseSection(content, sectionName string, targetMap map[string]string) error {
 	// Find section start
 	sectionPattern := fmt.Sprintf(`## %s\s*\n(.*?)(?:\n## |$)`, regexp.QuoteMeta(sectionName))
 	sectionRegex := regexp.MustCompile(sectionPattern)
@@ -333,7 +333,7 @@ func (m *LegacyMapCodeMgmt) parseSection(content, sectionName string, targetMap 
 }
 
 // translateCode translates a question code using configuration
-func (m *LegacyMapCodeMgmt) translateCode(questionCode string, config *entity.MapCodeConfig) (string, error) {
+func (m *MapCodeMgmt) translateCode(questionCode string, config *entity.MapCodeConfig) (string, error) {
 	if len(questionCode) < 5 {
 		return "", fmt.Errorf("invalid question code format")
 	}
@@ -372,7 +372,7 @@ func (m *LegacyMapCodeMgmt) translateCode(questionCode string, config *entity.Ma
 }
 
 // translatePart translates a single part using mapping
-func (m *LegacyMapCodeMgmt) translatePart(key string, mapping map[string]string, prefix string) string {
+func (m *MapCodeMgmt) translatePart(key string, mapping map[string]string, prefix string) string {
 	if value, exists := mapping[key]; exists {
 		if prefix != "" {
 			return prefix + " " + value
@@ -383,7 +383,7 @@ func (m *LegacyMapCodeMgmt) translatePart(key string, mapping map[string]string,
 }
 
 // updateActiveSymlink updates the symlink for active MapCode
-func (m *LegacyMapCodeMgmt) updateActiveSymlink(targetPath string) error {
+func (m *MapCodeMgmt) updateActiveSymlink(targetPath string) error {
 	symlinkPath := filepath.Join(m.basePath, "current", "active-mapcode.md")
 
 	// Remove existing symlink
@@ -407,7 +407,7 @@ func (m *LegacyMapCodeMgmt) updateActiveSymlink(targetPath string) error {
 }
 
 // getOrLoadConfig gets configuration from cache or loads from file
-func (m *LegacyMapCodeMgmt) getOrLoadConfig(ctx context.Context, version *entity.MapCodeVersion) (*entity.MapCodeConfig, error) {
+func (m *MapCodeMgmt) getOrLoadConfig(ctx context.Context, version *entity.MapCodeVersion) (*entity.MapCodeConfig, error) {
 	// Check in-memory cache first
 	if config, exists := m.translationCache[version.ID.String]; exists {
 		return config, nil
@@ -426,7 +426,7 @@ func (m *LegacyMapCodeMgmt) getOrLoadConfig(ctx context.Context, version *entity
 }
 
 // cacheTranslation caches a single translation
-func (m *LegacyMapCodeMgmt) cacheTranslation(ctx context.Context, versionID, questionCode, translation string, config *entity.MapCodeConfig) {
+func (m *MapCodeMgmt) cacheTranslation(ctx context.Context, versionID, questionCode, translation string, config *entity.MapCodeConfig) {
 	cacheEntry := &entity.MapCodeTranslation{}
 	cacheEntry.VersionID.Set(versionID)
 	cacheEntry.QuestionCode.Set(questionCode)
@@ -439,7 +439,7 @@ func (m *LegacyMapCodeMgmt) cacheTranslation(ctx context.Context, versionID, que
 }
 
 // setTranslationParts sets individual parts of translation
-func (m *LegacyMapCodeMgmt) setTranslationParts(translation *entity.MapCodeTranslation, questionCode string, config *entity.MapCodeConfig) {
+func (m *MapCodeMgmt) setTranslationParts(translation *entity.MapCodeTranslation, questionCode string, config *entity.MapCodeConfig) {
 	if len(questionCode) >= 5 {
 		if grade, exists := config.Grades[string(questionCode[0])]; exists {
 			translation.Grade.Set(grade)
@@ -467,7 +467,7 @@ func (m *LegacyMapCodeMgmt) setTranslationParts(translation *entity.MapCodeTrans
 }
 
 // buildHierarchyNavigation builds navigation structure
-func (m *LegacyMapCodeMgmt) buildHierarchyNavigation(questionCode string, config *entity.MapCodeConfig) (*HierarchyNavigation, error) {
+func (m *MapCodeMgmt) buildHierarchyNavigation(questionCode string, config *entity.MapCodeConfig) (*HierarchyNavigation, error) {
 	if len(questionCode) < 5 {
 		return nil, fmt.Errorf("invalid question code format")
 	}
@@ -539,12 +539,12 @@ func (m *LegacyMapCodeMgmt) buildHierarchyNavigation(questionCode string, config
 }
 
 // ClearCache clears in-memory cache (useful when switching versions)
-func (m *LegacyMapCodeMgmt) ClearCache() {
+func (m *MapCodeMgmt) ClearCache() {
 	m.translationCache = make(map[string]*entity.MapCodeConfig)
 }
 
 // WarmupCache preloads configuration for active version
-func (m *LegacyMapCodeMgmt) WarmupCache(ctx context.Context) error {
+func (m *MapCodeMgmt) WarmupCache(ctx context.Context) error {
 	activeVersion, err := m.GetActiveVersion(ctx)
 	if err != nil {
 		return err

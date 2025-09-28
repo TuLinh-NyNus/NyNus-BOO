@@ -1,4 +1,4 @@
-package exam
+package exam_mgmt
 
 import (
 	"context"
@@ -9,21 +9,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// LegacyExamMgmt provides business logic for exam management (legacy implementation)
+// ExamMgmt provides business logic for exam management
 // Following QuestionMgmt pattern for consistency
-type LegacyExamMgmt struct {
+type ExamMgmt struct {
 	examRepo     interfaces.ExamRepository
 	questionRepo interfaces.QuestionRepository
 	logger       *logrus.Logger
 }
 
-// NewLegacyExamMgmt creates a new exam management service (legacy)
-func NewLegacyExamMgmt(
+// NewExamMgmt creates a new exam management service
+func NewExamMgmt(
 	examRepo interfaces.ExamRepository,
 	questionRepo interfaces.QuestionRepository,
 	logger *logrus.Logger,
-) *LegacyExamMgmt {
-	return &LegacyExamMgmt{
+) *ExamMgmt {
+	return &ExamMgmt{
 		examRepo:     examRepo,
 		questionRepo: questionRepo,
 		logger:       logger,
@@ -31,7 +31,7 @@ func NewLegacyExamMgmt(
 }
 
 // CreateExam creates a new exam with business logic validation
-func (m *LegacyExamMgmt) CreateExam(ctx context.Context, exam *entity.Exam) error {
+func (m *ExamMgmt) CreateExam(ctx context.Context, exam *entity.Exam) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_title": exam.Title,
 		"exam_type":  exam.ExamType,
@@ -78,7 +78,7 @@ func (m *LegacyExamMgmt) CreateExam(ctx context.Context, exam *entity.Exam) erro
 }
 
 // GetExamByID retrieves an exam by ID
-func (m *LegacyExamMgmt) GetExamByID(ctx context.Context, id string) (*entity.Exam, error) {
+func (m *ExamMgmt) GetExamByID(ctx context.Context, id string) (*entity.Exam, error) {
 	m.logger.WithField("exam_id", id).Debug("Getting exam by ID")
 
 	if id == "" {
@@ -95,7 +95,7 @@ func (m *LegacyExamMgmt) GetExamByID(ctx context.Context, id string) (*entity.Ex
 }
 
 // UpdateExam updates an existing exam
-func (m *LegacyExamMgmt) UpdateExam(ctx context.Context, exam *entity.Exam) error {
+func (m *ExamMgmt) UpdateExam(ctx context.Context, exam *entity.Exam) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_id":    exam.ID,
 		"exam_title": exam.Title,
@@ -131,7 +131,7 @@ func (m *LegacyExamMgmt) UpdateExam(ctx context.Context, exam *entity.Exam) erro
 }
 
 // DeleteExam deletes an exam with dependency checks
-func (m *LegacyExamMgmt) DeleteExam(ctx context.Context, examID string) error {
+func (m *ExamMgmt) DeleteExam(ctx context.Context, examID string) error {
 	m.logger.WithField("exam_id", examID).Info("Deleting exam")
 
 	if examID == "" {
@@ -166,7 +166,7 @@ func (m *LegacyExamMgmt) DeleteExam(ctx context.Context, examID string) error {
 }
 
 // PublishExam publishes an exam (changes status to ACTIVE)
-func (m *LegacyExamMgmt) PublishExam(ctx context.Context, examID string) error {
+func (m *ExamMgmt) PublishExam(ctx context.Context, examID string) error {
 	m.logger.WithField("exam_id", examID).Info("Publishing exam")
 
 	if examID == "" {
@@ -206,7 +206,7 @@ func (m *LegacyExamMgmt) PublishExam(ctx context.Context, examID string) error {
 }
 
 // ArchiveExam archives an exam (changes status to ARCHIVED)
-func (m *LegacyExamMgmt) ArchiveExam(ctx context.Context, examID string) error {
+func (m *ExamMgmt) ArchiveExam(ctx context.Context, examID string) error {
 	m.logger.WithField("exam_id", examID).Info("Archiving exam")
 
 	if examID == "" {
@@ -224,7 +224,7 @@ func (m *LegacyExamMgmt) ArchiveExam(ctx context.Context, examID string) error {
 }
 
 // ListExams lists exams with pagination and filtering
-func (m *LegacyExamMgmt) ListExams(ctx context.Context, filters *interfaces.ExamFilters, pagination *interfaces.Pagination) ([]*entity.Exam, int, error) {
+func (m *ExamMgmt) ListExams(ctx context.Context, filters *interfaces.ExamFilters, pagination *interfaces.Pagination) ([]*entity.Exam, int, error) {
 	m.logger.Debug("Listing exams")
 
 	exams, total, err := m.examRepo.List(ctx, filters, pagination)
@@ -242,7 +242,7 @@ func (m *LegacyExamMgmt) ListExams(ctx context.Context, filters *interfaces.Exam
 }
 
 // AddQuestionToExam adds a question to an exam
-func (m *LegacyExamMgmt) AddQuestionToExam(ctx context.Context, examID, questionID string, points int) error {
+func (m *ExamMgmt) AddQuestionToExam(ctx context.Context, examID, questionID string, points int) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_id":     examID,
 		"question_id": questionID,
@@ -293,7 +293,7 @@ func (m *LegacyExamMgmt) AddQuestionToExam(ctx context.Context, examID, question
 }
 
 // RemoveQuestionFromExam removes a question from an exam
-func (m *LegacyExamMgmt) RemoveQuestionFromExam(ctx context.Context, examID, questionID string) error {
+func (m *ExamMgmt) RemoveQuestionFromExam(ctx context.Context, examID, questionID string) error {
 	m.logger.WithFields(logrus.Fields{
 		"exam_id":     examID,
 		"question_id": questionID,
@@ -332,7 +332,7 @@ func (m *LegacyExamMgmt) RemoveQuestionFromExam(ctx context.Context, examID, que
 }
 
 // GetExamQuestions retrieves all questions for an exam
-func (m *LegacyExamMgmt) GetExamQuestions(ctx context.Context, examID string) ([]*entity.ExamQuestion, error) {
+func (m *ExamMgmt) GetExamQuestions(ctx context.Context, examID string) ([]*entity.ExamQuestion, error) {
 	m.logger.WithField("exam_id", examID).Debug("Getting exam questions")
 
 	if examID == "" {

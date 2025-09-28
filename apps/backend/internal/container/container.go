@@ -19,10 +19,6 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/oauth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/scoring"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/session"
-	auth_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	question_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
-	exam_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
-	content_service "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content"
 	auth_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/auth"
 	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/contact"
 	exam_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
@@ -73,20 +69,12 @@ type Container struct {
 	MapCodeTranslationRepo *repository.MapCodeTranslationRepository
 
 	// Services
-	AuthMgmt              *auth_service.AuthMgmt
-	LegacyAuthMgmt        *auth_mgmt.AuthMgmt  // For middleware compatibility
-	QuestionMgmt          *question_service.QuestionMgmt
-	LegacyQuestionMgmt    *question_mgmt.QuestionMgmt  // For backward compatibility
-	QuestionFilterMgmt    *question_service.LegacyQuestionFilterMgmt
-	LegacyQuestionFilterMgmt *question_filter_mgmt.QuestionFilterMgmt  // For backward compatibility
-	ExamMgmt              *exam_service.ExamMgmt
-	LegacyExamMgmt        *exam_mgmt.ExamMgmt  // For backward compatibility
-	ContentMgmt           *content_service.ContentMgmt
-	LegacyContactMgmt     *content_service.LegacyContactMgmt  // For backward compatibility
+	AuthMgmt              *auth_mgmt.AuthMgmt
+	QuestionMgmt          *question_mgmt.QuestionMgmt
+	QuestionFilterMgmt    *question_filter_mgmt.QuestionFilterMgmt
+	ExamMgmt              *exam_mgmt.ExamMgmt
 	ContactMgmt           *contact_mgmt.ContactMgmt
-	LegacyNewsletterMgmt  *content_service.LegacyNewsletterMgmt  // For backward compatibility
 	NewsletterMgmt        *newsletter_mgmt.NewsletterMgmt
-	LegacyMapCodeMgmt     *content_service.LegacyMapCodeMgmt  // For backward compatibility
 	MapCodeMgmt           *mapcode_mgmt.MapCodeMgmt
 	AutoGradingService    *scoring.AutoGradingService // NEW: Auto-grading service for exams
 	JWTService            *auth.JWTService
@@ -229,10 +217,7 @@ func (c *Container) initRepositories() {
 // initServices initializes all service dependencies
 func (c *Container) initServices() {
 	// Auth management service following the new clean pattern
-	c.AuthMgmt = auth_service.NewAuthMgmt(c.DB, c.JWTSecret)
-
-	// Create legacy auth mgmt for middleware compatibility
-	c.LegacyAuthMgmt = auth_service.CreateLegacyAuthMgmt(c.AuthMgmt)
+	c.AuthMgmt = auth_mgmt.NewAuthMgmt(c.DB, c.JWTSecret)
 
 
 
@@ -268,18 +253,7 @@ func (c *Container) initServices() {
 		}
 	}
 
-	// Initialize new consolidated question services
-	c.QuestionMgmt = question_service.NewQuestionMgmt(
-		c.DB,
-		c.QuestionRepo,
-		c.QuestionCodeRepo,
-		c.QuestionImageRepo,
-		imageProcessor,
-		logger,
-	)
-
-	// Initialize legacy question services for backward compatibility
-	c.LegacyQuestionMgmt = question_mgmt.NewQuestionMgmt(
+	c.QuestionMgmt = question_mgmt.NewQuestionMgmt(
 		c.QuestionRepo,
 		c.QuestionCodeRepo,
 		c.QuestionImageRepo,
@@ -288,8 +262,7 @@ func (c *Container) initServices() {
 	)
 
 	// Initialize QuestionFilterMgmt with database connection and OpenSearch client
-	c.QuestionFilterMgmt = question_service.NewLegacyQuestionFilterMgmt(c.DB, c.OpenSearchClient)
-	c.LegacyQuestionFilterMgmt = question_filter_mgmt.NewQuestionFilterMgmt(c.DB, c.OpenSearchClient)
+	c.QuestionFilterMgmt = question_filter_mgmt.NewQuestionFilterMgmt(c.DB, c.OpenSearchClient)
 
 	// Initialize ScoringService first
 	scoringService := scoring.NewScoringService()
@@ -301,34 +274,12 @@ func (c *Container) initServices() {
 		c.QuestionRepo,
 	)
 
-	// Initialize new consolidated exam services
-	c.ExamMgmt = exam_service.NewExamMgmt(
-		c.DB,
+	// Initialize ExamMgmt with repositories
+	c.ExamMgmt = exam_mgmt.NewExamMgmt(
 		c.ExamRepo,
 		c.QuestionRepo,
 		logger,
 	)
-
-	// Initialize legacy exam services for backward compatibility
-	c.LegacyExamMgmt = exam_mgmt.NewExamMgmt(
-		c.ExamRepo,
-		c.QuestionRepo,
-		logger,
-	)
-
-	// Initialize new consolidated content services
-	c.ContentMgmt = content_service.NewContentMgmt(
-		c.DB,
-		c.NewsletterRepo,
-		c.ContactRepo,
-		c.MapCodeRepo,
-		logger,
-	)
-
-	// Initialize legacy content services for backward compatibility
-	c.LegacyContactMgmt = content_service.NewLegacyContactMgmt(c.ContactRepo)
-	c.LegacyNewsletterMgmt = content_service.NewLegacyNewsletterMgmt(c.NewsletterRepo)
-	c.LegacyMapCodeMgmt = content_service.NewLegacyMapCodeMgmt(c.MapCodeRepo, c.MapCodeTranslationRepo)
 
 	// Initialize ContactMgmt with repository
 	c.ContactMgmt = contact_mgmt.NewContactMgmt(c.ContactRepo)
@@ -398,7 +349,7 @@ func (c *Container) initServices() {
 
 // initMiddleware initializes all middleware dependencies
 func (c *Container) initMiddleware() {
-	c.AuthInterceptor = middleware.NewAuthInterceptor(c.LegacyAuthMgmt, c.SessionService, c.UserRepoWrapper)
+	c.AuthInterceptor = middleware.NewAuthInterceptor(c.AuthMgmt, c.SessionService, c.UserRepoWrapper)
 	c.SessionInterceptor = middleware.NewSessionInterceptor(c.SessionService, c.SessionRepo)
 	c.RoleLevelInterceptor = middleware.NewRoleLevelInterceptor()
 	c.RateLimitInterceptor = middleware.NewRateLimitInterceptor()
@@ -426,9 +377,9 @@ func (c *Container) initGRPCServices() {
 		bcryptCost,
 	)
 
-	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.LegacyQuestionMgmt)
-	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.LegacyQuestionFilterMgmt)
-	c.ExamGRPCService = grpc.NewExamServiceServer(c.LegacyExamMgmt, c.AutoGradingService)
+	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionMgmt)
+	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.QuestionFilterMgmt)
+	c.ExamGRPCService = grpc.NewExamServiceServer(c.ExamMgmt, c.AutoGradingService)
 	c.ProfileGRPCService = grpc.NewProfileServiceServer(
 		c.UserRepoWrapper,
 		c.SessionService,
@@ -457,58 +408,23 @@ func (c *Container) GetAnswerRepository() *repository.AnswerRepository {
 }
 
 // GetAuthMgmt returns the auth management service
-func (c *Container) GetAuthMgmt() *auth_service.AuthMgmt {
+func (c *Container) GetAuthMgmt() *auth_mgmt.AuthMgmt {
 	return c.AuthMgmt
 }
 
 // GetQuestionMgmt returns the question management service
-func (c *Container) GetQuestionMgmt() *question_service.QuestionMgmt {
+func (c *Container) GetQuestionMgmt() *question_mgmt.QuestionMgmt {
 	return c.QuestionMgmt
 }
 
-// GetLegacyQuestionMgmt returns the legacy question management service
-func (c *Container) GetLegacyQuestionMgmt() *question_mgmt.QuestionMgmt {
-	return c.LegacyQuestionMgmt
-}
-
 // GetQuestionFilterMgmt returns the question filter management service
-func (c *Container) GetQuestionFilterMgmt() *question_service.LegacyQuestionFilterMgmt {
+func (c *Container) GetQuestionFilterMgmt() *question_filter_mgmt.QuestionFilterMgmt {
 	return c.QuestionFilterMgmt
 }
 
-// GetLegacyQuestionFilterMgmt returns the legacy question filter management service
-func (c *Container) GetLegacyQuestionFilterMgmt() *question_filter_mgmt.QuestionFilterMgmt {
-	return c.LegacyQuestionFilterMgmt
-}
-
 // GetExamMgmt returns the exam management service
-func (c *Container) GetExamMgmt() *exam_service.ExamMgmt {
+func (c *Container) GetExamMgmt() *exam_mgmt.ExamMgmt {
 	return c.ExamMgmt
-}
-
-// GetLegacyExamMgmt returns the legacy exam management service
-func (c *Container) GetLegacyExamMgmt() *exam_mgmt.ExamMgmt {
-	return c.LegacyExamMgmt
-}
-
-// GetContentMgmt returns the content management service
-func (c *Container) GetContentMgmt() *content_service.ContentMgmt {
-	return c.ContentMgmt
-}
-
-// GetLegacyContactMgmt returns the legacy contact management service
-func (c *Container) GetLegacyContactMgmt() *content_service.LegacyContactMgmt {
-	return c.LegacyContactMgmt
-}
-
-// GetLegacyNewsletterMgmt returns the legacy newsletter management service
-func (c *Container) GetLegacyNewsletterMgmt() *content_service.LegacyNewsletterMgmt {
-	return c.LegacyNewsletterMgmt
-}
-
-// GetLegacyMapCodeMgmt returns the legacy mapcode management service
-func (c *Container) GetLegacyMapCodeMgmt() *content_service.LegacyMapCodeMgmt {
-	return c.LegacyMapCodeMgmt
 }
 
 // GetAuthInterceptor returns the auth interceptor

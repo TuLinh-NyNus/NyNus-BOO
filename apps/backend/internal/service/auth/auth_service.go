@@ -17,8 +17,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// AuthServiceImpl implements the AuthService interface
-type AuthServiceImpl struct {
+// AuthService handles authentication business logic following the clean pattern
+type AuthService struct {
 	userRepo interface {
 		Create(ctx context.Context, db database.QueryExecer, user *entity.User) error
 		GetByEmail(email string, db database.QueryExecer) (*entity.User, error)
@@ -36,7 +36,6 @@ type AuthServiceImpl struct {
 	notificationService *notification.NotificationService
 	jwtSecret           string
 	bcryptCost          int // Configurable bcrypt cost for password hashing
-	db                  database.QueryExecer // Add database connection
 }
 
 // Claims represents JWT token claims
@@ -48,23 +47,12 @@ type Claims struct {
 }
 
 // NewAuthService creates a new auth service with dependency injection
-func NewAuthService(jwtSecret string) AuthService {
-	return &AuthServiceImpl{
+func NewAuthService(jwtSecret string) *AuthService {
+	return &AuthService{
 		userRepo:       &repository.UserRepository{},
 		preferenceRepo: repository.NewUserPreferenceRepository(nil), // Will be properly injected from container
 		jwtSecret:      jwtSecret,
 		bcryptCost:     12, // Default to secure cost
-	}
-}
-
-// NewAuthServiceWithDB creates a new auth service with database connection
-func NewAuthServiceWithDB(db database.QueryExecer, jwtSecret string) AuthService {
-	return &AuthServiceImpl{
-		userRepo:       &repository.UserRepository{},
-		preferenceRepo: repository.NewUserPreferenceRepository(nil),
-		jwtSecret:      jwtSecret,
-		bcryptCost:     12,
-		db:             db,
 	}
 }
 
@@ -75,11 +63,11 @@ func NewEnhancedAuthService(
 	notificationService *notification.NotificationService,
 	jwtSecret string,
 	bcryptCost int,
-) AuthService {
+) *AuthService {
 	if bcryptCost < 10 {
 		bcryptCost = 12 // Minimum secure cost
 	}
-	return &AuthServiceImpl{
+	return &AuthService{
 		userRepo:            &repository.UserRepository{},
 		enhancedUserRepo:    enhancedUserRepo,
 		preferenceRepo:      preferenceRepo,
@@ -90,11 +78,7 @@ func NewEnhancedAuthService(
 }
 
 // Login authenticates a user and returns a JWT token with enhanced security
-func (s *AuthServiceImpl) Login(ctx context.Context, email, password string) (*entity.User, string, error) {
-	db := s.db
-	if db == nil {
-		return nil, "", fmt.Errorf("database connection not available")
-	}
+func (s *AuthService) Login(db database.QueryExecer, email, password string) (*entity.User, string, error) {
 	// Get user by email
 	user, err := s.userRepo.GetByEmail(email, db)
 	if err != nil {
@@ -102,6 +86,7 @@ func (s *AuthServiceImpl) Login(ctx context.Context, email, password string) (*e
 	}
 
 	userID := util.PgTextToString(user.ID)
+	ctx := context.Background()
 
 	// Check if account is locked (if enhanced repo is available)
 	if s.enhancedUserRepo != nil {
@@ -167,7 +152,7 @@ func (s *AuthServiceImpl) Login(ctx context.Context, email, password string) (*e
 }
 
 // getBcryptCost returns the configured bcrypt cost with fallback to secure default
-func (s *AuthServiceImpl) getBcryptCost() int {
+func (s *AuthService) getBcryptCost() int {
 	if s.bcryptCost < 10 {
 		return 12 // Secure default if not configured properly
 	}
@@ -175,11 +160,7 @@ func (s *AuthServiceImpl) getBcryptCost() int {
 }
 
 // Register creates a new user account
-func (s *AuthServiceImpl) Register(ctx context.Context, email, password, firstName, lastName string) (*entity.User, error) {
-	db := s.db
-	if db == nil {
-		return nil, fmt.Errorf("database connection not available")
-	}
+func (s *AuthService) Register(db database.QueryExecer, email, password, firstName, lastName string) (*entity.User, error) {
 	// Check if user already exists
 	existingUser, _ := s.userRepo.GetByEmail(email, db)
 	if existingUser != nil {
@@ -213,6 +194,7 @@ func (s *AuthServiceImpl) Register(ctx context.Context, email, password, firstNa
 	}
 
 	// Save to database
+	ctx := context.Background()
 	if err := s.userRepo.Create(ctx, db, user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -272,7 +254,7 @@ func (s *AuthServiceImpl) Register(ctx context.Context, email, password, firstNa
 }
 
 // ValidateToken validates a JWT token and returns claims
-func (s *AuthServiceImpl) ValidateToken(tokenString string) (*Claims, error) {
+func (s *AuthService) ValidateToken(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -292,11 +274,8 @@ func (s *AuthServiceImpl) ValidateToken(tokenString string) (*Claims, error) {
 }
 
 // IsAdmin checks if a user is an admin
-func (s *AuthServiceImpl) IsAdmin(ctx context.Context, userID string) (bool, error) {
-	db := s.db
-	if db == nil {
-		return false, fmt.Errorf("database connection not available")
-	}
+func (s *AuthService) IsAdmin(db database.QueryExecer, userID string) (bool, error) {
+	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
 	if err != nil {
 		return false, err
@@ -306,11 +285,8 @@ func (s *AuthServiceImpl) IsAdmin(ctx context.Context, userID string) (bool, err
 }
 
 // IsTeacherOrAdmin checks if a user is a teacher or admin
-func (s *AuthServiceImpl) IsTeacherOrAdmin(ctx context.Context, userID string) (bool, error) {
-	db := s.db
-	if db == nil {
-		return false, fmt.Errorf("database connection not available")
-	}
+func (s *AuthService) IsTeacherOrAdmin(db database.QueryExecer, userID string) (bool, error) {
+	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
 	if err != nil {
 		return false, err
@@ -320,11 +296,8 @@ func (s *AuthServiceImpl) IsTeacherOrAdmin(ctx context.Context, userID string) (
 }
 
 // IsStudent checks if a user is a student
-func (s *AuthServiceImpl) IsStudent(ctx context.Context, userID string) (bool, error) {
-	db := s.db
-	if db == nil {
-		return false, fmt.Errorf("database connection not available")
-	}
+func (s *AuthService) IsStudent(db database.QueryExecer, userID string) (bool, error) {
+	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
 	if err != nil {
 		return false, err
@@ -335,7 +308,7 @@ func (s *AuthServiceImpl) IsStudent(ctx context.Context, userID string) (bool, e
 
 // Enhanced role checking methods với 5 roles hierarchy
 // IsTutorOrHigher kiểm tra nếu user là TUTOR hoặc cao hơn
-func (s *AuthServiceImpl) IsTutorOrHigher(db database.QueryExecer, userID string) (bool, error) {
+func (s *AuthService) IsTutorOrHigher(db database.QueryExecer, userID string) (bool, error) {
 	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
 	if err != nil {
@@ -346,7 +319,7 @@ func (s *AuthServiceImpl) IsTutorOrHigher(db database.QueryExecer, userID string
 }
 
 // IsGuest kiểm tra nếu user là GUEST
-func (s *AuthServiceImpl) IsGuest(db database.QueryExecer, userID string) (bool, error) {
+func (s *AuthService) IsGuest(db database.QueryExecer, userID string) (bool, error) {
 	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
 	if err != nil {
@@ -357,7 +330,7 @@ func (s *AuthServiceImpl) IsGuest(db database.QueryExecer, userID string) (bool,
 }
 
 // HasRoleOrHigher kiểm tra nếu user có role bằng hoặc cao hơn required role
-func (s *AuthServiceImpl) HasRoleOrHigher(db database.QueryExecer, userID string, requiredRole string) (bool, error) {
+func (s *AuthService) HasRoleOrHigher(db database.QueryExecer, userID string, requiredRole string) (bool, error) {
 	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
 	if err != nil {
@@ -368,11 +341,8 @@ func (s *AuthServiceImpl) HasRoleOrHigher(db database.QueryExecer, userID string
 }
 
 // GetUserRole returns the role of a user
-func (s *AuthServiceImpl) GetUserRole(ctx context.Context, userID string) (string, error) {
-	db := s.db
-	if db == nil {
-		return "", fmt.Errorf("database connection not available")
-	}
+func (s *AuthService) GetUserRole(db database.QueryExecer, userID string) (string, error) {
+	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
 	if err != nil {
 		return "", err
@@ -380,64 +350,8 @@ func (s *AuthServiceImpl) GetUserRole(ctx context.Context, userID string) (strin
 	return util.PgTextToString(user.Role), nil
 }
 
-// GenerateJWT generates a JWT token for a user
-func (s *AuthServiceImpl) GenerateJWT(userID string) (string, error) {
-	// Get user details to include in token
-	ctx := context.Background()
-	db := s.db
-	if db == nil {
-		return "", fmt.Errorf("database connection not available")
-	}
-
-	user, err := s.userRepo.GetByID(ctx, db, userID)
-	if err != nil {
-		return "", fmt.Errorf("failed to get user: %w", err)
-	}
-
-	return s.generateToken(&user)
-}
-
-// RefreshToken refreshes a JWT token
-func (s *AuthServiceImpl) RefreshToken(token string) (string, error) {
-	// Validate the current token
-	claims, err := s.ValidateToken(token)
-	if err != nil {
-		return "", fmt.Errorf("invalid token: %w", err)
-	}
-
-	// Generate new token with same claims
-	return s.GenerateJWT(claims.UserID)
-}
-
-// OAuth Operations - placeholder implementations
-func (s *AuthServiceImpl) HandleOAuthCallback(provider, code string) (*entity.User, error) {
-	// TODO: Implement OAuth callback handling
-	return nil, fmt.Errorf("OAuth callback not implemented yet")
-}
-
-func (s *AuthServiceImpl) GetOAuthURL(provider string) string {
-	// TODO: Implement OAuth URL generation
-	return ""
-}
-
-// Session Management - placeholder implementations
-func (s *AuthServiceImpl) CreateSession(ctx context.Context, userID, ipAddress, userAgent string) (*SessionInfo, error) {
-	// TODO: Implement session creation
-	return nil, fmt.Errorf("session creation not implemented yet")
-}
-
-func (s *AuthServiceImpl) ValidateSession(ctx context.Context, sessionID string) (*SessionInfo, error) {
-	// TODO: Implement session validation
-	return nil, fmt.Errorf("session validation not implemented yet")
-}
-
-func (s *AuthServiceImpl) InvalidateSession(ctx context.Context, sessionID string) error {
-	// TODO: Implement session invalidation
-	return fmt.Errorf("session invalidation not implemented yet")
-}
-
 // generateToken generates a JWT token for a user
-func (s *AuthServiceImpl) generateToken(user *entity.User) (string, error) {
+func (s *AuthService) generateToken(user *entity.User) (string, error) {
 	userID := util.PgTextToString(user.ID)
 	email := util.PgTextToString(user.Email)
 	role := util.PgTextToString(user.Role)

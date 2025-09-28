@@ -1,4 +1,4 @@
-package content
+package newsletter
 
 import (
 	"fmt"
@@ -10,20 +10,20 @@ import (
 	"github.com/google/uuid"
 )
 
-// LegacyNewsletterMgmt manages newsletter subscriptions (legacy implementation)
-type LegacyNewsletterMgmt struct {
+// NewsletterMgmt manages newsletter subscriptions
+type NewsletterMgmt struct {
 	newsletterRepo *repository.NewsletterRepository
 }
 
-// NewLegacyNewsletterMgmt creates a new newsletter management service (legacy)
-func NewLegacyNewsletterMgmt(newsletterRepo *repository.NewsletterRepository) *LegacyNewsletterMgmt {
-	return &LegacyNewsletterMgmt{
+// NewNewsletterMgmt creates a new newsletter management service
+func NewNewsletterMgmt(newsletterRepo *repository.NewsletterRepository) *NewsletterMgmt {
+	return &NewsletterMgmt{
 		newsletterRepo: newsletterRepo,
 	}
 }
 
 // Subscribe handles newsletter subscription
-func (m *LegacyNewsletterMgmt) Subscribe(request *SubscribeRequest) (*entity.NewsletterSubscription, error) {
+func (m *NewsletterMgmt) Subscribe(request *SubscribeRequest) (*entity.NewsletterSubscription, error) {
 	// Validate email
 	if err := m.validateEmail(request.Email); err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (m *LegacyNewsletterMgmt) Subscribe(request *SubscribeRequest) (*entity.New
 }
 
 // Unsubscribe handles newsletter unsubscription
-func (m *LegacyNewsletterMgmt) Unsubscribe(email string, reason string) error {
+func (m *NewsletterMgmt) Unsubscribe(email string, reason string) error {
 	// Validate email
 	if err := m.validateEmail(email); err != nil {
 		return err
@@ -84,7 +84,7 @@ func (m *LegacyNewsletterMgmt) Unsubscribe(email string, reason string) error {
 }
 
 // GetSubscription retrieves a subscription by email
-func (m *LegacyNewsletterMgmt) GetSubscription(email string) (*entity.NewsletterSubscription, error) {
+func (m *NewsletterMgmt) GetSubscription(email string) (*entity.NewsletterSubscription, error) {
 	// Validate email
 	if err := m.validateEmail(email); err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func (m *LegacyNewsletterMgmt) GetSubscription(email string) (*entity.Newsletter
 }
 
 // ListSubscriptions retrieves subscriptions with filters
-func (m *LegacyNewsletterMgmt) ListSubscriptions(status, search string, tags []string, page, pageSize int) ([]*entity.NewsletterSubscription, int, error) {
+func (m *NewsletterMgmt) ListSubscriptions(status, search string, tags []string, page, pageSize int) ([]*entity.NewsletterSubscription, int, error) {
 	// Calculate offset
 	offset := (page - 1) * pageSize
 
@@ -114,7 +114,7 @@ func (m *LegacyNewsletterMgmt) ListSubscriptions(status, search string, tags []s
 }
 
 // UpdateTags updates subscription tags
-func (m *LegacyNewsletterMgmt) UpdateTags(email string, tags []string) (*entity.NewsletterSubscription, error) {
+func (m *NewsletterMgmt) UpdateTags(email string, tags []string) (*entity.NewsletterSubscription, error) {
 	// Validate email
 	if err := m.validateEmail(email); err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (m *LegacyNewsletterMgmt) UpdateTags(email string, tags []string) (*entity.
 }
 
 // DeleteSubscription completely removes a subscription (admin only)
-func (m *LegacyNewsletterMgmt) DeleteSubscription(id string) error {
+func (m *NewsletterMgmt) DeleteSubscription(id string) error {
 	// Parse UUID
 	subscriptionID, err := uuid.Parse(id)
 	if err != nil {
@@ -156,7 +156,7 @@ func (m *LegacyNewsletterMgmt) DeleteSubscription(id string) error {
 }
 
 // GetStats returns subscription statistics
-func (m *LegacyNewsletterMgmt) GetStats() (*SubscriptionStats, error) {
+func (m *NewsletterMgmt) GetStats() (*SubscriptionStats, error) {
 	statsMap, err := m.newsletterRepo.GetStats()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stats: %w", err)
@@ -175,7 +175,7 @@ func (m *LegacyNewsletterMgmt) GetStats() (*SubscriptionStats, error) {
 }
 
 // ConfirmSubscription confirms a pending subscription
-func (m *LegacyNewsletterMgmt) ConfirmSubscription(email string) error {
+func (m *NewsletterMgmt) ConfirmSubscription(email string) error {
 	// Validate email
 	if err := m.validateEmail(email); err != nil {
 		return err
@@ -194,7 +194,7 @@ func (m *LegacyNewsletterMgmt) ConfirmSubscription(email string) error {
 
 // Helper methods
 
-func (m *LegacyNewsletterMgmt) validateEmail(email string) error {
+func (m *NewsletterMgmt) validateEmail(email string) error {
 	// Check if empty
 	if strings.TrimSpace(email) == "" {
 		return fmt.Errorf("email is required")
@@ -214,7 +214,7 @@ func (m *LegacyNewsletterMgmt) validateEmail(email string) error {
 	return nil
 }
 
-func (m *LegacyNewsletterMgmt) validateTags(tags []string) error {
+func (m *NewsletterMgmt) validateTags(tags []string) error {
 	if len(tags) > 10 {
 		return fmt.Errorf("too many tags (max 10)")
 	}

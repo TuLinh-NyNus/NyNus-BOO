@@ -1,4 +1,4 @@
-package question
+package question_filter_mgmt
 
 import (
 	"context"
@@ -15,8 +15,8 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-// LegacyQuestionFilterMgmt handles question filtering operations (legacy implementation)
-type LegacyQuestionFilterMgmt struct {
+// QuestionFilterMgmt handles question filtering operations
+type QuestionFilterMgmt struct {
 	DB                    *sql.DB
 	questionRepo          interfaces.QuestionRepository
 	questionFilterRepo    *repository.QuestionFilterRepository
@@ -24,8 +24,8 @@ type LegacyQuestionFilterMgmt struct {
 	logger                *logrus.Logger
 }
 
-// NewLegacyQuestionFilterMgmt creates a new question filter management service (legacy)
-func NewLegacyQuestionFilterMgmt(db *sql.DB, openSearchClient *opensearch.Client) *LegacyQuestionFilterMgmt {
+// NewQuestionFilterMgmt creates a new question filter management service
+func NewQuestionFilterMgmt(db *sql.DB, openSearchClient *opensearch.Client) *QuestionFilterMgmt {
 	logger := logrus.WithField("service", "QuestionFilterMgmt").Logger
 
 	// Initialize repositories
@@ -41,7 +41,7 @@ func NewLegacyQuestionFilterMgmt(db *sql.DB, openSearchClient *opensearch.Client
 		logger.Info("OpenSearch not available, using PostgreSQL for question filtering")
 	}
 
-	return &LegacyQuestionFilterMgmt{
+	return &QuestionFilterMgmt{
 		DB:                 db,
 		questionRepo:       questionRepo,
 		questionFilterRepo: questionFilterRepo,
@@ -171,7 +171,7 @@ func convertStringToQuestionStatus(s string) common.QuestionStatus {
 }
 
 // ListQuestionsByFilter performs comprehensive question filtering with proto conversion
-func (qfm *LegacyQuestionFilterMgmt) ListQuestionsByFilter(ctx context.Context, req *v1.ListQuestionsByFilterRequest) (*v1.ListQuestionsByFilterResponse, error) {
+func (qfm *QuestionFilterMgmt) ListQuestionsByFilter(ctx context.Context, req *v1.ListQuestionsByFilterRequest) (*v1.ListQuestionsByFilterResponse, error) {
 	// TODO: Implement filtering logic using QuestionRepository
 	return &v1.ListQuestionsByFilterResponse{
 		Questions:  []*v1.QuestionDetail{},
@@ -183,7 +183,7 @@ func (qfm *LegacyQuestionFilterMgmt) ListQuestionsByFilter(ctx context.Context, 
 }
 
 // SearchQuestions performs full-text search with filters
-func (qfm *LegacyQuestionFilterMgmt) SearchQuestions(ctx context.Context, req *v1.SearchQuestionsRequest) (*v1.SearchQuestionsResponse, error) {
+func (qfm *QuestionFilterMgmt) SearchQuestions(ctx context.Context, req *v1.SearchQuestionsRequest) (*v1.SearchQuestionsResponse, error) {
 	qfm.logger.WithFields(logrus.Fields{
 		"query":        req.Query,
 		"search_fields": req.SearchFields,
@@ -278,7 +278,7 @@ func (qfm *LegacyQuestionFilterMgmt) SearchQuestions(ctx context.Context, req *v
 // Helper methods
 
 // containsField checks if a field is in the search fields list
-func (qfm *LegacyQuestionFilterMgmt) containsField(fields []string, field string) bool {
+func (qfm *QuestionFilterMgmt) containsField(fields []string, field string) bool {
 	for _, f := range fields {
 		if f == field {
 			return true
@@ -288,7 +288,7 @@ func (qfm *LegacyQuestionFilterMgmt) containsField(fields []string, field string
 }
 
 // buildFilterCriteria builds filter criteria from proto request
-func (qfm *LegacyQuestionFilterMgmt) buildFilterCriteria(req *v1.SearchQuestionsRequest) *interfaces.FilterCriteria {
+func (qfm *QuestionFilterMgmt) buildFilterCriteria(req *v1.SearchQuestionsRequest) *interfaces.FilterCriteria {
 	criteria := &interfaces.FilterCriteria{}
 
 	// Question code filters
@@ -367,7 +367,7 @@ func (qfm *LegacyQuestionFilterMgmt) buildFilterCriteria(req *v1.SearchQuestions
 }
 
 // convertToProtoSearchResult converts search result to proto format
-func (qfm *LegacyQuestionFilterMgmt) convertToProtoSearchResult(question *entity.Question, score float32, matches []string, snippet string) *v1.QuestionSearchResult {
+func (qfm *QuestionFilterMgmt) convertToProtoSearchResult(question *entity.Question, score float32, matches []string, snippet string) *v1.QuestionSearchResult {
 	// Convert question to proto format (reuse existing conversion logic)
 	protoQuestion := qfm.convertQuestionToProto(question)
 
@@ -388,7 +388,7 @@ func (qfm *LegacyQuestionFilterMgmt) convertToProtoSearchResult(question *entity
 }
 
 // convertQuestionToProto converts entity.Question to proto format
-func (qfm *LegacyQuestionFilterMgmt) convertQuestionToProto(question *entity.Question) *v1.QuestionDetail {
+func (qfm *QuestionFilterMgmt) convertQuestionToProto(question *entity.Question) *v1.QuestionDetail {
 	// Basic conversion using util functions
 	protoQuestion := &v1.QuestionDetail{
 		Id:          util.PgTextToString(question.ID),
@@ -429,7 +429,7 @@ func (qfm *LegacyQuestionFilterMgmt) convertQuestionToProto(question *entity.Que
 }
 
 // GetQuestionsByQuestionCode gets questions by QuestionCode components
-func (qfm *LegacyQuestionFilterMgmt) GetQuestionsByQuestionCode(ctx context.Context, req *v1.GetQuestionsByQuestionCodeRequest) (*v1.GetQuestionsByQuestionCodeResponse, error) {
+func (qfm *QuestionFilterMgmt) GetQuestionsByQuestionCode(ctx context.Context, req *v1.GetQuestionsByQuestionCodeRequest) (*v1.GetQuestionsByQuestionCodeResponse, error) {
 	// TODO: Implement logic using QuestionRepository
 	return &v1.GetQuestionsByQuestionCodeResponse{
 		Questions:  []*v1.QuestionWithCodeInfo{},

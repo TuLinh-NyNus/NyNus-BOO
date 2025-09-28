@@ -1,4 +1,4 @@
-package content
+package contact
 
 import (
 	"fmt"
@@ -10,20 +10,20 @@ import (
 	"github.com/google/uuid"
 )
 
-// LegacyContactMgmt manages contact form submissions (legacy implementation)
-type LegacyContactMgmt struct {
+// ContactMgmt manages contact form submissions
+type ContactMgmt struct {
 	contactRepo *repository.ContactRepository
 }
 
-// NewLegacyContactMgmt creates a new contact management service (legacy)
-func NewLegacyContactMgmt(contactRepo *repository.ContactRepository) *LegacyContactMgmt {
-	return &LegacyContactMgmt{
+// NewContactMgmt creates a new contact management service
+func NewContactMgmt(contactRepo *repository.ContactRepository) *ContactMgmt {
+	return &ContactMgmt{
 		contactRepo: contactRepo,
 	}
 }
 
 // SubmitContactForm handles new contact form submissions
-func (m *LegacyContactMgmt) SubmitContactForm(request *ContactFormRequest) (*entity.ContactSubmission, error) {
+func (m *ContactMgmt) SubmitContactForm(request *ContactFormRequest) (*entity.ContactSubmission, error) {
 	// Validate request
 	if err := m.validateContactForm(request); err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (m *LegacyContactMgmt) SubmitContactForm(request *ContactFormRequest) (*ent
 }
 
 // ListContacts retrieves contact submissions with filters
-func (m *LegacyContactMgmt) ListContacts(status, search string, page, pageSize int) ([]*entity.ContactSubmission, int, error) {
+func (m *ContactMgmt) ListContacts(status, search string, page, pageSize int) ([]*entity.ContactSubmission, int, error) {
 	// Calculate offset
 	offset := (page - 1) * pageSize
 
@@ -70,7 +70,7 @@ func (m *LegacyContactMgmt) ListContacts(status, search string, page, pageSize i
 }
 
 // GetContact retrieves a specific contact submission
-func (m *LegacyContactMgmt) GetContact(id string) (*entity.ContactSubmission, error) {
+func (m *ContactMgmt) GetContact(id string) (*entity.ContactSubmission, error) {
 	// Parse UUID
 	contactID, err := uuid.Parse(id)
 	if err != nil {
@@ -93,7 +93,7 @@ func (m *LegacyContactMgmt) GetContact(id string) (*entity.ContactSubmission, er
 }
 
 // UpdateContactStatus updates the status of a contact submission
-func (m *LegacyContactMgmt) UpdateContactStatus(id string, status string) error {
+func (m *ContactMgmt) UpdateContactStatus(id string, status string) error {
 	// Parse UUID
 	contactID, err := uuid.Parse(id)
 	if err != nil {
@@ -115,7 +115,7 @@ func (m *LegacyContactMgmt) UpdateContactStatus(id string, status string) error 
 }
 
 // DeleteContact removes a contact submission
-func (m *LegacyContactMgmt) DeleteContact(id string) error {
+func (m *ContactMgmt) DeleteContact(id string) error {
 	// Parse UUID
 	contactID, err := uuid.Parse(id)
 	if err != nil {
@@ -131,13 +131,13 @@ func (m *LegacyContactMgmt) DeleteContact(id string) error {
 }
 
 // GetUnreadCount returns the count of unread submissions
-func (m *LegacyContactMgmt) GetUnreadCount() (int, error) {
+func (m *ContactMgmt) GetUnreadCount() (int, error) {
 	return m.contactRepo.CountUnread()
 }
 
 // Helper methods
 
-func (m *LegacyContactMgmt) validateContactForm(request *ContactFormRequest) error {
+func (m *ContactMgmt) validateContactForm(request *ContactFormRequest) error {
 	// Check required fields
 	if strings.TrimSpace(request.Name) == "" {
 		return fmt.Errorf("name is required")
@@ -181,12 +181,12 @@ func (m *LegacyContactMgmt) validateContactForm(request *ContactFormRequest) err
 	return nil
 }
 
-func (m *LegacyContactMgmt) isValidEmail(email string) bool {
+func (m *ContactMgmt) isValidEmail(email string) bool {
 	emailRegex := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return emailRegex.MatchString(email)
 }
 
-func (m *LegacyContactMgmt) isValidPhone(phone string) bool {
+func (m *ContactMgmt) isValidPhone(phone string) bool {
 	// Remove spaces, dashes, and parentheses
 	cleaned := regexp.MustCompile(`[\s\-\(\)]`).ReplaceAllString(phone, "")
 	// Check if it's a valid phone number (digits only, 10-15 characters)
@@ -194,7 +194,7 @@ func (m *LegacyContactMgmt) isValidPhone(phone string) bool {
 	return phoneRegex.MatchString(cleaned)
 }
 
-func (m *LegacyContactMgmt) isValidStatus(status entity.ContactStatus) bool {
+func (m *ContactMgmt) isValidStatus(status entity.ContactStatus) bool {
 	switch status {
 	case entity.ContactStatusPending, entity.ContactStatusRead,
 		entity.ContactStatusReplied, entity.ContactStatusArchived:

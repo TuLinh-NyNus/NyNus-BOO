@@ -1,4 +1,4 @@
-package question
+package question_mgmt
 
 import (
 	"context"
@@ -18,8 +18,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// LegacyQuestionMgmt manages question-related operations (legacy implementation)
-type LegacyQuestionMgmt struct {
+// QuestionMgmt manages question-related operations
+type QuestionMgmt struct {
 	questionRepo      interfaces.QuestionRepository
 	questionCodeRepo  interfaces.QuestionCodeRepository
 	questionImageRepo interfaces.QuestionImageRepository
@@ -28,15 +28,15 @@ type LegacyQuestionMgmt struct {
 	logger            *logrus.Logger
 }
 
-// NewLegacyQuestionMgmt creates a new question management service (legacy)
-func NewLegacyQuestionMgmt(
+// NewQuestionMgmt creates a new question management service
+func NewQuestionMgmt(
 	questionRepo interfaces.QuestionRepository,
 	questionCodeRepo interfaces.QuestionCodeRepository,
 	questionImageRepo interfaces.QuestionImageRepository,
 	imageProcessor *image_processing.ImageProcessingService,
 	logger *logrus.Logger,
-) *LegacyQuestionMgmt {
-	service := &LegacyQuestionMgmt{
+) *QuestionMgmt {
+	service := &QuestionMgmt{
 		questionRepo:      questionRepo,
 		questionCodeRepo:  questionCodeRepo,
 		questionImageRepo: questionImageRepo,
@@ -54,7 +54,7 @@ func NewLegacyQuestionMgmt(
 }
 
 // CreateQuestion creates a new question
-func (m *LegacyQuestionMgmt) CreateQuestion(ctx context.Context, question *entity.Question) error {
+func (m *QuestionMgmt) CreateQuestion(ctx context.Context, question *entity.Question) error {
 	// Validate question code exists
 	if question.QuestionCodeID.Status == pgtype.Present {
 		exists, err := m.questionCodeRepo.Exists(ctx, question.QuestionCodeID.String)
@@ -92,7 +92,7 @@ func (m *LegacyQuestionMgmt) CreateQuestion(ctx context.Context, question *entit
 }
 
 // GetQuestionByID retrieves a question by ID
-func (m *LegacyQuestionMgmt) GetQuestionByID(ctx context.Context, id string) (entity.Question, error) {
+func (m *QuestionMgmt) GetQuestionByID(ctx context.Context, id string) (entity.Question, error) {
 	question, err := m.questionRepo.GetByID(ctx, id)
 	if err != nil {
 		return entity.Question{}, err
@@ -101,7 +101,7 @@ func (m *LegacyQuestionMgmt) GetQuestionByID(ctx context.Context, id string) (en
 }
 
 // UpdateQuestion updates an existing question
-func (m *LegacyQuestionMgmt) UpdateQuestion(ctx context.Context, question *entity.Question) error {
+func (m *QuestionMgmt) UpdateQuestion(ctx context.Context, question *entity.Question) error {
 	// Validate question exists
 	existing, err := m.questionRepo.GetByID(ctx, question.ID.String)
 	if err != nil {
@@ -123,12 +123,12 @@ func (m *LegacyQuestionMgmt) UpdateQuestion(ctx context.Context, question *entit
 }
 
 // DeleteQuestion deletes a question
-func (m *LegacyQuestionMgmt) DeleteQuestion(ctx context.Context, id string) error {
+func (m *QuestionMgmt) DeleteQuestion(ctx context.Context, id string) error {
 	return m.questionRepo.Delete(ctx, id)
 }
 
 // GetQuestionsByPaging retrieves questions with pagination
-func (m *LegacyQuestionMgmt) GetQuestionsByPaging(offset, limit int) (int, []entity.Question, error) {
+func (m *QuestionMgmt) GetQuestionsByPaging(offset, limit int) (int, []entity.Question, error) {
 	ctx := context.Background()
 
 	// Get total count
@@ -153,7 +153,7 @@ func (m *LegacyQuestionMgmt) GetQuestionsByPaging(offset, limit int) (int, []ent
 }
 
 // GetQuestionsByFilter retrieves questions with advanced filtering
-func (m *LegacyQuestionMgmt) GetQuestionsByFilter(ctx context.Context, filterQuery map[string]interface{}, offset, limit int, sortColumn, sortOrder string) ([]entity.Question, int, error) {
+func (m *QuestionMgmt) GetQuestionsByFilter(ctx context.Context, filterQuery map[string]interface{}, offset, limit int, sortColumn, sortOrder string) ([]entity.Question, int, error) {
 	// Convert map to FilterCriteria
 	criteria := m.mapToFilterCriteria(filterQuery)
 
@@ -172,7 +172,7 @@ func (m *LegacyQuestionMgmt) GetQuestionsByFilter(ctx context.Context, filterQue
 }
 
 // SearchQuestions performs text search on questions
-func (m *LegacyQuestionMgmt) SearchQuestions(ctx context.Context, searchOpts *SearchOptions, filterQuery map[string]interface{}, offset, limit int) ([]SearchResult, int, error) {
+func (m *QuestionMgmt) SearchQuestions(ctx context.Context, searchOpts *SearchOptions, filterQuery map[string]interface{}, offset, limit int) ([]SearchResult, int, error) {
 	searchCriteria := interfaces.SearchCriteria{
 		Query:            searchOpts.Query,
 		SearchInContent:  searchOpts.SearchInContent,
@@ -196,10 +196,10 @@ func (m *LegacyQuestionMgmt) SearchQuestions(ctx context.Context, searchOpts *Se
 	results := make([]SearchResult, len(searchResults))
 	for i, sr := range searchResults {
 		results[i] = SearchResult{
-			Question:    sr.Question,
-			Score:       float64(sr.Score),
-			Highlights:  sr.Matches,
-			MatchFields: []string{}, // Map from sr.Snippet if needed
+			Question: sr.Question,
+			Score:    sr.Score,
+			Matches:  sr.Matches,
+			Snippet:  sr.Snippet,
 		}
 	}
 
@@ -207,7 +207,7 @@ func (m *LegacyQuestionMgmt) SearchQuestions(ctx context.Context, searchOpts *Se
 }
 
 // GetQuestionsByQuestionCode retrieves all questions for a specific question code
-func (m *LegacyQuestionMgmt) GetQuestionsByQuestionCode(ctx context.Context, questionCodeID string) ([]entity.Question, error) {
+func (m *QuestionMgmt) GetQuestionsByQuestionCode(ctx context.Context, questionCodeID string) ([]entity.Question, error) {
 	questions, err := m.questionRepo.FindByQuestionCodeID(ctx, questionCodeID)
 	if err != nil {
 		return nil, err
@@ -223,12 +223,12 @@ func (m *LegacyQuestionMgmt) GetQuestionsByQuestionCode(ctx context.Context, que
 }
 
 // GetQuestionCodeByID retrieves a question code by ID
-func (m *LegacyQuestionMgmt) GetQuestionCodeByID(ctx context.Context, id string) (*entity.QuestionCode, error) {
+func (m *QuestionMgmt) GetQuestionCodeByID(ctx context.Context, id string) (*entity.QuestionCode, error) {
 	return m.questionCodeRepo.GetByID(ctx, id)
 }
 
 // CreateQuestionCode creates a new question code
-func (m *LegacyQuestionMgmt) CreateQuestionCode(ctx context.Context, questionCode *entity.QuestionCode) error {
+func (m *QuestionMgmt) CreateQuestionCode(ctx context.Context, questionCode *entity.QuestionCode) error {
 	// Check if question code already exists
 	exists, err := m.questionCodeRepo.Exists(ctx, questionCode.Code.String)
 	if err != nil {
@@ -243,7 +243,7 @@ func (m *LegacyQuestionMgmt) CreateQuestionCode(ctx context.Context, questionCod
 }
 
 // CreateFromLatex creates a question from LaTeX content
-func (m *LegacyQuestionMgmt) CreateFromLatex(ctx context.Context, rawLatex string, autoCreateCode bool, creator string) (*entity.Question, *entity.QuestionCode, []string, error) {
+func (m *QuestionMgmt) CreateFromLatex(ctx context.Context, rawLatex string, autoCreateCode bool, creator string) (*entity.Question, *entity.QuestionCode, []string, error) {
 	var warnings []string
 
 	// Import latex parser
@@ -324,7 +324,7 @@ func (m *LegacyQuestionMgmt) CreateFromLatex(ctx context.Context, rawLatex strin
 }
 
 // processLatexImages detects and processes images in LaTeX content
-func (m *LegacyQuestionMgmt) processLatexImages(ctx context.Context, questionID string, rawLatex string, questionCode *entity.QuestionCode) []string {
+func (m *QuestionMgmt) processLatexImages(ctx context.Context, questionID string, rawLatex string, questionCode *entity.QuestionCode) []string {
 	var warnings []string
 
 	// Detect TikZ pictures
@@ -394,7 +394,7 @@ func (m *LegacyQuestionMgmt) processLatexImages(ctx context.Context, questionID 
 }
 
 // submitImageJob submits an image processing job and creates QuestionImage record
-func (m *LegacyQuestionMgmt) submitImageJob(ctx context.Context, questionID string, job *image_processing.Job, imageType string) {
+func (m *QuestionMgmt) submitImageJob(ctx context.Context, questionID string, job *image_processing.Job, imageType string) {
 	// Create initial QuestionImage record with PENDING status
 	questionImage := &entity.QuestionImage{
 		ID:         pgtype.Text{String: uuid.New().String(), Status: pgtype.Present},
@@ -442,7 +442,7 @@ func (m *LegacyQuestionMgmt) submitImageJob(ctx context.Context, questionID stri
 }
 
 // extractSubcount extracts subcount from LaTeX content
-func (m *LegacyQuestionMgmt) extractSubcount(rawLatex string) string {
+func (m *QuestionMgmt) extractSubcount(rawLatex string) string {
 	// Pattern: [XX.N] where XX are uppercase letters and N is a number
 	subcountRegex := regexp.MustCompile(`\[([A-Z]{2}\.[0-9]+)\]`)
 	matches := subcountRegex.FindStringSubmatch(rawLatex)
@@ -453,7 +453,7 @@ func (m *LegacyQuestionMgmt) extractSubcount(rawLatex string) string {
 }
 
 // GetFilterStatistics gets statistics for filtered results
-func (m *LegacyQuestionMgmt) GetFilterStatistics(ctx context.Context, filterQuery map[string]interface{}) (*FilterStatistics, error) {
+func (m *QuestionMgmt) GetFilterStatistics(ctx context.Context, filterQuery map[string]interface{}) (*FilterStatistics, error) {
 	criteria := m.mapToFilterCriteria(filterQuery)
 
 	stats, err := m.questionRepo.GetStatistics(ctx, criteria)
@@ -474,7 +474,7 @@ func (m *LegacyQuestionMgmt) GetFilterStatistics(ctx context.Context, filterQuer
 }
 
 // ImportQuestions imports questions from CSV
-func (m *LegacyQuestionMgmt) ImportQuestions(ctx context.Context, req *ImportQuestionsRequest) (*ImportQuestionsResult, error) {
+func (m *QuestionMgmt) ImportQuestions(ctx context.Context, req *ImportQuestionsRequest) (*ImportQuestionsResult, error) {
 	// Decode base64 CSV data
 	csvData, err := base64.StdEncoding.DecodeString(req.CsvDataBase64)
 	if err != nil {
@@ -508,9 +508,9 @@ func (m *LegacyQuestionMgmt) ImportQuestions(ctx context.Context, req *ImportQue
 		if err != nil {
 			result.ErrorCount++
 			result.Errors = append(result.Errors, ImportError{
-				Row:     i + 1,
-				Message: err.Error(),
-				Value:   strings.Join(records[i], ","),
+				RowNumber:    int32(i + 1),
+				ErrorMessage: err.Error(),
+				RowData:      strings.Join(records[i], ","),
 			})
 			continue
 		}
@@ -523,9 +523,9 @@ func (m *LegacyQuestionMgmt) ImportQuestions(ctx context.Context, req *ImportQue
 				if err := m.questionRepo.Update(ctx, question); err != nil {
 					result.ErrorCount++
 					result.Errors = append(result.Errors, ImportError{
-						Row:     i + 1,
-						Message: fmt.Sprintf("failed to update: %v", err),
-						Value:   strings.Join(records[i], ","),
+						RowNumber:    int32(i + 1),
+						ErrorMessage: fmt.Sprintf("failed to update: %v", err),
+						RowData:      strings.Join(records[i], ","),
 					})
 				} else {
 					result.UpdatedCount++
@@ -538,9 +538,9 @@ func (m *LegacyQuestionMgmt) ImportQuestions(ctx context.Context, req *ImportQue
 		if err := m.CreateQuestion(ctx, question); err != nil {
 			result.ErrorCount++
 			result.Errors = append(result.Errors, ImportError{
-				Row:     i + 1,
-				Message: fmt.Sprintf("failed to create: %v", err),
-				Value:   strings.Join(records[i], ","),
+				RowNumber:    int32(i + 1),
+				ErrorMessage: fmt.Sprintf("failed to create: %v", err),
+				RowData:      strings.Join(records[i], ","),
 			})
 		} else {
 			result.CreatedCount++
@@ -556,7 +556,7 @@ func (m *LegacyQuestionMgmt) ImportQuestions(ctx context.Context, req *ImportQue
 }
 
 // parseQuestionFromCSV parses a question from CSV row
-func (m *LegacyQuestionMgmt) parseQuestionFromCSV(row []string, header []string) (*entity.Question, error) {
+func (m *QuestionMgmt) parseQuestionFromCSV(row []string, header []string) (*entity.Question, error) {
 	if len(row) != len(header) {
 		return nil, fmt.Errorf("row has %d columns, expected %d", len(row), len(header))
 	}
@@ -619,7 +619,7 @@ func (m *LegacyQuestionMgmt) parseQuestionFromCSV(row []string, header []string)
 }
 
 // mapToFilterCriteria converts a map to FilterCriteria
-func (m *LegacyQuestionMgmt) mapToFilterCriteria(filterQuery map[string]interface{}) *interfaces.FilterCriteria {
+func (m *QuestionMgmt) mapToFilterCriteria(filterQuery map[string]interface{}) *interfaces.FilterCriteria {
 	if filterQuery == nil {
 		return nil
 	}
@@ -710,4 +710,58 @@ func (m *LegacyQuestionMgmt) mapToFilterCriteria(filterQuery map[string]interfac
 	return criteria
 }
 
-// Legacy types are now defined in interfaces.go
+// Types
+
+// SearchOptions contains search parameters
+type SearchOptions struct {
+	Query            string
+	SearchInContent  bool
+	SearchInSolution bool
+	SearchInTags     bool
+	UseRegex         bool
+	CaseSensitive    bool
+}
+
+// SearchResult contains search results
+type SearchResult struct {
+	Question entity.Question
+	Score    float32
+	Matches  []string
+	Snippet  string
+}
+
+// FilterStatistics contains aggregated statistics
+type FilterStatistics struct {
+	TotalQuestions         int
+	TypeDistribution       map[string]int
+	DifficultyDistribution map[string]int
+	StatusDistribution     map[string]int
+	GradeDistribution      map[string]int
+	SubjectDistribution    map[string]int
+	AverageUsageCount      float32
+	AverageFeedback        float32
+}
+
+// ImportQuestionsRequest contains import parameters
+type ImportQuestionsRequest struct {
+	CsvDataBase64 string
+	UpsertMode    bool
+}
+
+// ImportQuestionsResult contains import results
+type ImportQuestionsResult struct {
+	TotalProcessed int32
+	CreatedCount   int32
+	UpdatedCount   int32
+	ErrorCount     int32
+	Errors         []ImportError
+	Summary        string
+}
+
+// ImportError contains import error details
+type ImportError struct {
+	RowNumber    int32
+	FieldName    string
+	ErrorMessage string
+	RowData      string
+}
