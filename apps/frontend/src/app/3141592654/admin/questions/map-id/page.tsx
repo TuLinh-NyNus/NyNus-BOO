@@ -34,8 +34,8 @@ import {
 import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
-import { QuestionCode } from '@/lib/types/question';
-import { MockQuestionsService } from '@/lib/services/mock/questions';
+import { QuestionCode } from '@/types/question';
+import { MockQuestionsService } from '@/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**

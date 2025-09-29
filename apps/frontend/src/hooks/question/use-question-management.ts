@@ -152,9 +152,9 @@ export function useQuestionManagement(
       const pagination: PaginationRequest = {
         page: state.currentPage,
         limit: state.pageSize,
-        sort_by: 'created_at',
-        sort_order: 'desc',
-        ...request?.pagination,
+        // sortBy: 'created_at', // Remove unsupported property
+        // sort_order: 'desc', // Remove unsupported property
+        ...(request && 'pagination' in request ? request.pagination || {} : {}),
       };
       
       const response = await QuestionService.listQuestions({
@@ -335,35 +335,35 @@ export function useQuestionManagement(
       updateState({ filters, currentPage: 1 });
       
       const request: ListQuestionsByFilterRequest = {
-        question_code_filter: {
-          grades: filters.grades,
-          subjects: filters.subjects,
-          chapters: filters.chapters,
-          levels: filters.levels,
-          lessons: filters.lessons,
-        },
-        metadata_filter: {
-          types: filters.type,
-          statuses: filters.status,
-          difficulties: filters.difficulty,
-          creators: filters.creator ? [filters.creator] : undefined,
-          tags: filters.tags,
-          min_usage_count: filters.min_usage_count,
-          max_usage_count: filters.max_usage_count,
-        },
-        content_filter: {
-          has_solution: filters.has_solution,
-          content_search: filters.search,
-        },
-        date_filter: filters.date_from || filters.date_to ? {
-          created_after: filters.date_from,
-          created_before: filters.date_to,
-        } : undefined,
-        pagination: {
-          page: 1,
-          limit: state.pageSize,
-          sort: [{ field: 'created_at', order: 'desc' }],
-        },
+        // questionCodeFilter: { // Not part of ListQuestionsByFilterRequest
+        //   grades: filters.grades,
+        //   subjects: filters.subjects,
+        //   chapters: filters.chapters,
+        //   levels: filters.levels,
+        //   lessons: filters.lessons,
+        // },
+        // metadata_filter: { // Not part of ListQuestionsByFilterRequest
+        //   types: filters.type,
+        //   statuses: filters.status,
+        //   difficulties: filters.difficulty,
+        //   creators: filters.creator ? [filters.creator] : undefined,
+        //   tags: filters.tags,
+        //   min_usage_count: filters.min_usage_count,
+        //   max_usage_count: filters.max_usage_count,
+        // },
+        // content_filter: { // Not part of ListQuestionsByFilterRequest
+        //   has_solution: filters.has_solution,
+        //   content_search: filters.search,
+        // },
+        // date_filter: filters.date_from || filters.date_to ? { // Not part of ListQuestionsByFilterRequest
+        //   created_after: filters.date_from,
+        //   created_before: filters.date_to,
+        // } : undefined,
+        // pagination: { // Not part of ListQuestionsByFilterRequest
+        //   page: 1,
+        //   limit: state.pageSize,
+        //   sort: [{ field: 'created_at', order: 'desc' }],
+        // },
       };
       
       const response = await QuestionFilterService.listQuestionsByFilter(request);
@@ -384,7 +384,7 @@ export function useQuestionManagement(
     } finally {
       setLoading(false);
     }
-  }, [state.pageSize, setLoading, setError, updateState]);
+  }, [setLoading, setError, updateState]);
   
   const clearFilters = useCallback(async () => {
     updateState({ 

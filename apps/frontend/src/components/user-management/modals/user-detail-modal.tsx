@@ -27,8 +27,17 @@ import {
   XCircle,
   Eye
 } from 'lucide-react';
-import { AdminUser } from '@/lib/mockdata/types';
+import { AdminUser } from "@/types/user/admin";
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
+import {
+  convertProtobufRoleToEnum,
+  convertProtobufStatusToEnum,
+  convertEnumRoleToProtobuf,
+  convertEnumStatusToProtobuf,
+  getProtobufRoleLabel,
+  getProtobufStatusLabel,
+  isProtobufStatusEqual
+} from "@/lib/utils/type-converters";
 
 // ===== INTERFACES =====
 
@@ -147,10 +156,10 @@ function userToForm(user: AdminUser): EditUserForm {
     bio: user.bio || '',
     address: user.address || '',
     school: user.school || '',
-    role: user.role,
-    status: user.status,
+    role: convertProtobufRoleToEnum(user.role),
+    status: convertProtobufStatusToEnum(user.status),
     level: user.level ?? null,
-    maxConcurrentSessions: user.maxConcurrentSessions,
+    maxConcurrentSessions: user.maxConcurrentSessions ?? 1,
   };
 }
 
@@ -243,13 +252,13 @@ export function UserDetailModal({
         lastName: editForm.lastName || undefined,
         username: editForm.username || undefined,
         email: editForm.email,
-        phone: editForm.phone || null,
+        phone: editForm.phone || undefined,
         bio: editForm.bio || undefined,
-        address: editForm.address || null,
-        school: editForm.school || null,
-        role: editForm.role,
-        status: editForm.status,
-        level: editForm.level,
+        address: editForm.address || undefined,
+        school: editForm.school || undefined,
+        role: convertEnumRoleToProtobuf(editForm.role),
+        status: convertEnumStatusToProtobuf(editForm.status),
+        level: editForm.level || undefined,
         maxConcurrentSessions: editForm.maxConcurrentSessions,
         updatedAt: new Date(),
       };
@@ -462,13 +471,13 @@ export function UserDetailModal({
                 <div>
                   <span className="font-medium">Vai trò:</span>
                   <Badge className="ml-2">
-                    {ROLE_OPTIONS.find(r => r.value === user.role)?.label}
+                    {getProtobufRoleLabel(user.role)}
                   </Badge>
                 </div>
                 <div>
                   <span className="font-medium">Trạng thái:</span>
-                  <Badge className="ml-2" variant={user.status === UserStatus.ACTIVE ? 'default' : 'secondary'}>
-                    {STATUS_OPTIONS.find(s => s.value === user.status)?.label}
+                  <Badge className="ml-2" variant={isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? 'default' : 'secondary'}>
+                    {getProtobufStatusLabel(user.status)}
                   </Badge>
                 </div>
               </div>

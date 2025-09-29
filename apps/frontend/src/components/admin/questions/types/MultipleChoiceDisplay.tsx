@@ -12,7 +12,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, Badge, Button } from '@/components/ui';
 import { CheckCircle, Circle, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { LaTeXRenderer } from '@/components/ui/latex';
-import { AnswerOption } from '@/lib/types/question';
+import { AnswerOption } from '@/types/question';
 
 /**
  * Props cho Multiple Choice Display

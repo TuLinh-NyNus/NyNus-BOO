@@ -26,39 +26,39 @@ type MCAnswerData struct {
 // ValidateAnswerStructure validates MC answer data structure
 func (v *MCValidator) ValidateAnswerStructure(answerData map[string]interface{}) (*ValidationResult, error) {
 	result := NewValidationResult(true)
-	
+
 	// Validate selected_answer_id (required)
 	selectedAnswerID, exists := answerData["selected_answer_id"]
 	if !exists {
 		result.AddError("answer_data.selected_answer_id", ErrorCodeMissingField, "selected_answer_id")
 		return result, nil
 	}
-	
+
 	// Check if selected_answer_id is string
 	selectedAnswerIDStr, ok := selectedAnswerID.(string)
 	if !ok {
 		result.AddError("answer_data.selected_answer_id", ErrorCodeInvalidFieldType, "selected_answer_id")
 		return result, nil
 	}
-	
+
 	// Validate selected_answer_id is not empty
 	if selectedAnswerIDStr == "" {
 		result.AddError("answer_data.selected_answer_id", ErrorCodeMCMissingSelection)
 		return result, nil
 	}
-	
+
 	// Validate selected_answer_id is valid UUID
 	if err := v.validateUUID(selectedAnswerIDStr); err != nil {
 		result.AddError("answer_data.selected_answer_id", ErrorCodeMCInvalidAnswerID, selectedAnswerIDStr)
 	}
-	
+
 	// Validate selected_content if present (optional)
 	if selectedContent, exists := answerData["selected_content"]; exists {
 		if _, ok := selectedContent.(string); !ok {
 			result.AddError("answer_data.selected_content", ErrorCodeInvalidFieldType, "selected_content")
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -89,12 +89,12 @@ func (v *MCValidator) ValidateMCAnswerComplete(answerData []byte) (*ValidationRe
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// If base structure is invalid, return early
 	if baseResult.HasErrors() {
 		return baseResult, nil
 	}
-	
+
 	// Parse base structure to get answer_data
 	baseStructure, err := v.baseValidator.ParseBaseStructure(answerData)
 	if err != nil {
@@ -102,18 +102,18 @@ func (v *MCValidator) ValidateMCAnswerComplete(answerData []byte) (*ValidationRe
 		result.AddError("", ErrorCodeInvalidJSON)
 		return result, nil
 	}
-	
+
 	// Validate MC specific structure
 	mcResult, err := v.ValidateAnswerStructure(baseStructure.AnswerData)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Combine results
 	if mcResult.HasErrors() {
 		baseResult.IsValid = false
 		baseResult.Errors = append(baseResult.Errors, mcResult.Errors...)
 	}
-	
+
 	return baseResult, nil
 }

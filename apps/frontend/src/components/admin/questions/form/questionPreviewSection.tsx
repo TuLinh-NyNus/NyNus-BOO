@@ -21,7 +21,7 @@ import { CheckCircle } from "lucide-react";
 import { 
   QuestionType,
   AnswerOption 
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionPreviewSection component

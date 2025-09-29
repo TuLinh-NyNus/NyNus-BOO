@@ -16,7 +16,7 @@ import {
   UserStatsLoading,
   UserErrorState
 } from '@/components/user-management';
-import { AdminUser } from '@/lib/mockdata/types';
+import { AdminUser } from '@/types/user';
 
 export default function AdminUsersPage() {
   // ===== HOOKS =====

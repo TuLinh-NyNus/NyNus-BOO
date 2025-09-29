@@ -21,7 +21,11 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { UserRole } from "@/lib/mockdata/core-types";
+import { UserStatus } from "@/lib/mockdata/core-types";
+import { AdminUser } from "@/types/user/admin";
+import {
+  isProtobufStatusEqual
+} from "@/lib/utils/type-converters";
 import { toast } from "@/hooks/use-toast";
 
 // Import mockdata functions
@@ -30,31 +34,7 @@ import {
   resolveSecurityEvent,
   type SecurityEvent,
 } from "@/lib/mockdata/user-management";
-
-/**
- * Admin User interface (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-  emailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt: string;
-  updatedAt?: string;
-  activeSessionsCount: number;
-  totalResourceAccess: number;
-  riskScore?: number;
-  permissions?: string[];
-  isActive?: boolean;
-  maxConcurrentSessions?: number;
-  lastLoginIp?: string;
-  loginAttempts?: number;
-  lockedUntil?: Date;
-}
+// AdminUser imported from canonical source above
 
 /**
  * User Security Tab Props
@@ -245,14 +225,14 @@ export function UserSecurityTab({
 
           <div className="flex items-center justify-between p-3 border rounded">
             <div className="flex items-center gap-2">
-              {user.status === 'ACTIVE' ? (
+              {isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? (
                 <CheckCircle className="h-5 w-5 text-green-500" />
               ) : (
                 <XCircle className="h-5 w-5 text-red-500" />
               )}
               <span>Account status</span>
             </div>
-            <Badge className={user.status === 'ACTIVE' ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+            <Badge className={isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
               {user.status}
             </Badge>
           </div>

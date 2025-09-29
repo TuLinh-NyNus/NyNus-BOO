@@ -19,7 +19,7 @@ import {
   type ExamAnswer,
   type ExamResult,
 
-} from '@/lib/types/exam';
+} from '@/types/exam';
 
 import { ExamService } from '@/services/grpc/exam.service';
 import { toast } from 'sonner';
@@ -296,7 +296,7 @@ export const useExamAttemptStore = create<ExamAttemptStoreState>()(
                 
                 // Restore answers
                 if (attempt.answers) {
-                  attempt.answers.forEach((answer: ExamAnswer) => {
+                  (attempt.answers as ExamAnswer[]).forEach((answer: ExamAnswer) => {
                     state.answers.answers[answer.questionId] = answer.answerData;
                     state.navigation.answeredQuestions.add(
                       state.navigation.questionOrder.indexOf(

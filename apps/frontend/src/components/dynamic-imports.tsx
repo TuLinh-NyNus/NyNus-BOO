@@ -44,17 +44,7 @@ export const Chart = dynamic(
   }
 );
 
-// MathRenderer - disabled until component exists
-// export const MathRenderer = dynamic(
-//   () => import('@/components/latex/latex-renderer'),
-//   { loading: LoadingSkeleton, ssr: true }
-// );
 
-// 🔥 Admin components - disabled until components exist
-// export const AdminDashboard = dynamic(
-//   () => import('@/components/admin/dashboard'),
-//   { loading: LoadingSpinner, ssr: false }
-// );
 
 // 🔥 Home page components với progressive loading
 export const HeroSection = dynamic(

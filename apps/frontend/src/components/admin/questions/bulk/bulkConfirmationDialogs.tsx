@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 
 // Import types từ lib/types
-import { QuestionStatus } from "@/lib/types/question";
+import { QuestionStatus } from "@/types/question";
 
 /**
  * Props for BulkConfirmationDialogs component

@@ -24,7 +24,7 @@ import {
   QuestionType, 
   QuestionStatus,
   QuestionDifficulty 
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionBankFilters component

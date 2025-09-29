@@ -12,60 +12,60 @@ import (
 
 // AntiCheatService provides anti-cheating measures for exams
 type AntiCheatService struct {
-	db                    *sql.DB
-	logger                *logrus.Logger
-	examSessionSecurity   *ExamSessionSecurity
-	
+	db                  *sql.DB
+	logger              *logrus.Logger
+	examSessionSecurity *ExamSessionSecurity
+
 	// Activity monitoring
-	activityTrackers      map[string]*ActivityTracker
-	activityMux           sync.RWMutex
-	
+	activityTrackers map[string]*ActivityTracker
+	activityMux      sync.RWMutex
+
 	// Rate limiting
-	rateLimiters          map[string]*ExamRateLimiter
-	rateLimiterMux        sync.RWMutex
+	rateLimiters   map[string]*ExamRateLimiter
+	rateLimiterMux sync.RWMutex
 }
 
 // ActivityTracker tracks user activity during exam
 type ActivityTracker struct {
-	SessionID           string                 `json:"session_id"`
-	UserID              string                 `json:"user_id"`
-	ExamID              string                 `json:"exam_id"`
-	StartTime           time.Time              `json:"start_time"`
-	LastActivity        time.Time              `json:"last_activity"`
-	QuestionTimes       map[string]time.Time   `json:"question_times"`
-	AnswerChanges       map[string]int         `json:"answer_changes"`
-	SuspiciousPatterns  []SuspiciousPattern    `json:"suspicious_patterns"`
-	TotalTabSwitches    int                    `json:"total_tab_switches"`
-	TotalWindowBlurs    int                    `json:"total_window_blurs"`
-	CopyPasteAttempts   int                    `json:"copy_paste_attempts"`
-	RightClickAttempts  int                    `json:"right_click_attempts"`
+	SessionID          string               `json:"session_id"`
+	UserID             string               `json:"user_id"`
+	ExamID             string               `json:"exam_id"`
+	StartTime          time.Time            `json:"start_time"`
+	LastActivity       time.Time            `json:"last_activity"`
+	QuestionTimes      map[string]time.Time `json:"question_times"`
+	AnswerChanges      map[string]int       `json:"answer_changes"`
+	SuspiciousPatterns []SuspiciousPattern  `json:"suspicious_patterns"`
+	TotalTabSwitches   int                  `json:"total_tab_switches"`
+	TotalWindowBlurs   int                  `json:"total_window_blurs"`
+	CopyPasteAttempts  int                  `json:"copy_paste_attempts"`
+	RightClickAttempts int                  `json:"right_click_attempts"`
 }
 
 // SuspiciousPattern represents a detected suspicious pattern
 type SuspiciousPattern struct {
-	PatternType   string                 `json:"pattern_type"`
-	Description   string                 `json:"description"`
-	Confidence    float64                `json:"confidence"`
-	DetectedAt    time.Time              `json:"detected_at"`
-	Evidence      map[string]interface{} `json:"evidence"`
+	PatternType string                 `json:"pattern_type"`
+	Description string                 `json:"description"`
+	Confidence  float64                `json:"confidence"`
+	DetectedAt  time.Time              `json:"detected_at"`
+	Evidence    map[string]interface{} `json:"evidence"`
 }
 
 // ExamRateLimiter handles exam-specific rate limiting
 type ExamRateLimiter struct {
-	UserID              string                    `json:"user_id"`
-	ExamID              string                    `json:"exam_id"`
-	ActionCounts        map[string]*ActionCount   `json:"action_counts"`
-	WindowStart         time.Time                 `json:"window_start"`
-	WindowDuration      time.Duration             `json:"window_duration"`
-	IsBlocked           bool                      `json:"is_blocked"`
-	BlockedUntil        time.Time                 `json:"blocked_until"`
+	UserID         string                  `json:"user_id"`
+	ExamID         string                  `json:"exam_id"`
+	ActionCounts   map[string]*ActionCount `json:"action_counts"`
+	WindowStart    time.Time               `json:"window_start"`
+	WindowDuration time.Duration           `json:"window_duration"`
+	IsBlocked      bool                    `json:"is_blocked"`
+	BlockedUntil   time.Time               `json:"blocked_until"`
 }
 
 // ActionCount tracks action counts within a time window
 type ActionCount struct {
-	Count       int       `json:"count"`
-	MaxAllowed  int       `json:"max_allowed"`
-	LastAction  time.Time `json:"last_action"`
+	Count      int       `json:"count"`
+	MaxAllowed int       `json:"max_allowed"`
+	LastAction time.Time `json:"last_action"`
 }
 
 // AntiCheatConfig contains anti-cheating configuration
@@ -116,18 +116,18 @@ func (s *AntiCheatService) StartActivityTracking(ctx context.Context, sessionID,
 	defer s.activityMux.Unlock()
 
 	tracker := &ActivityTracker{
-		SessionID:           sessionID,
-		UserID:              userID,
-		ExamID:              examID,
-		StartTime:           time.Now(),
-		LastActivity:        time.Now(),
-		QuestionTimes:       make(map[string]time.Time),
-		AnswerChanges:       make(map[string]int),
-		SuspiciousPatterns:  []SuspiciousPattern{},
-		TotalTabSwitches:    0,
-		TotalWindowBlurs:    0,
-		CopyPasteAttempts:   0,
-		RightClickAttempts:  0,
+		SessionID:          sessionID,
+		UserID:             userID,
+		ExamID:             examID,
+		StartTime:          time.Now(),
+		LastActivity:       time.Now(),
+		QuestionTimes:      make(map[string]time.Time),
+		AnswerChanges:      make(map[string]int),
+		SuspiciousPatterns: []SuspiciousPattern{},
+		TotalTabSwitches:   0,
+		TotalWindowBlurs:   0,
+		CopyPasteAttempts:  0,
+		RightClickAttempts: 0,
 	}
 
 	s.activityTrackers[sessionID] = tracker
@@ -189,12 +189,12 @@ func (s *AntiCheatService) RecordActivity(ctx context.Context, sessionID, activi
 // checkTabSwitchViolation checks for excessive tab switching
 func (s *AntiCheatService) checkTabSwitchViolation(ctx context.Context, tracker *ActivityTracker) {
 	config := DefaultAntiCheatConfig()
-	
+
 	if tracker.TotalTabSwitches > config.MaxTabSwitches {
-		s.recordSecurityViolation(ctx, tracker.SessionID, EventTabSwitch, SeverityHigh, 
+		s.recordSecurityViolation(ctx, tracker.SessionID, EventTabSwitch, SeverityHigh,
 			fmt.Sprintf("Excessive tab switching: %d times", tracker.TotalTabSwitches))
 	} else if tracker.TotalTabSwitches > config.MaxTabSwitches/2 {
-		s.recordSecurityViolation(ctx, tracker.SessionID, EventTabSwitch, SeverityMedium, 
+		s.recordSecurityViolation(ctx, tracker.SessionID, EventTabSwitch, SeverityMedium,
 			fmt.Sprintf("Multiple tab switches detected: %d times", tracker.TotalTabSwitches))
 	}
 }
@@ -202,9 +202,9 @@ func (s *AntiCheatService) checkTabSwitchViolation(ctx context.Context, tracker 
 // checkWindowBlurViolation checks for excessive window blur events
 func (s *AntiCheatService) checkWindowBlurViolation(ctx context.Context, tracker *ActivityTracker) {
 	config := DefaultAntiCheatConfig()
-	
+
 	if tracker.TotalWindowBlurs > config.MaxWindowBlurs {
-		s.recordSecurityViolation(ctx, tracker.SessionID, EventWindowBlur, SeverityHigh, 
+		s.recordSecurityViolation(ctx, tracker.SessionID, EventWindowBlur, SeverityHigh,
 			fmt.Sprintf("Excessive window blur events: %d times", tracker.TotalWindowBlurs))
 	}
 }
@@ -212,12 +212,12 @@ func (s *AntiCheatService) checkWindowBlurViolation(ctx context.Context, tracker
 // checkCopyPasteViolation checks for copy-paste attempts
 func (s *AntiCheatService) checkCopyPasteViolation(ctx context.Context, tracker *ActivityTracker) {
 	config := DefaultAntiCheatConfig()
-	
+
 	if tracker.CopyPasteAttempts > config.MaxCopyPasteAttempts {
-		s.recordSecurityViolation(ctx, tracker.SessionID, EventCopyPaste, SeverityCritical, 
+		s.recordSecurityViolation(ctx, tracker.SessionID, EventCopyPaste, SeverityCritical,
 			fmt.Sprintf("Multiple copy-paste attempts: %d times", tracker.CopyPasteAttempts))
 	} else if tracker.CopyPasteAttempts > 0 {
-		s.recordSecurityViolation(ctx, tracker.SessionID, EventCopyPaste, SeverityMedium, 
+		s.recordSecurityViolation(ctx, tracker.SessionID, EventCopyPaste, SeverityMedium,
 			fmt.Sprintf("Copy-paste attempt detected: %d times", tracker.CopyPasteAttempts))
 	}
 }
@@ -225,7 +225,7 @@ func (s *AntiCheatService) checkCopyPasteViolation(ctx context.Context, tracker 
 // checkRightClickViolation checks for right-click attempts
 func (s *AntiCheatService) checkRightClickViolation(ctx context.Context, tracker *ActivityTracker) {
 	if tracker.RightClickAttempts > 3 {
-		s.recordSecurityViolation(ctx, tracker.SessionID, EventRightClick, SeverityMedium, 
+		s.recordSecurityViolation(ctx, tracker.SessionID, EventRightClick, SeverityMedium,
 			fmt.Sprintf("Multiple right-click attempts: %d times", tracker.RightClickAttempts))
 	}
 }
@@ -234,7 +234,7 @@ func (s *AntiCheatService) checkRightClickViolation(ctx context.Context, tracker
 func (s *AntiCheatService) checkAnswerChangePattern(ctx context.Context, tracker *ActivityTracker, questionID string) {
 	config := DefaultAntiCheatConfig()
 	changes := tracker.AnswerChanges[questionID]
-	
+
 	if changes > config.MaxAnswerChanges {
 		pattern := SuspiciousPattern{
 			PatternType: "excessive_answer_changes",
@@ -246,10 +246,10 @@ func (s *AntiCheatService) checkAnswerChangePattern(ctx context.Context, tracker
 				"changes":     changes,
 			},
 		}
-		
+
 		tracker.SuspiciousPatterns = append(tracker.SuspiciousPatterns, pattern)
-		
-		s.recordSecurityViolation(ctx, tracker.SessionID, EventSuspiciousTime, SeverityMedium, 
+
+		s.recordSecurityViolation(ctx, tracker.SessionID, EventSuspiciousTime, SeverityMedium,
 			fmt.Sprintf("Excessive answer changes for question %s: %d times", questionID, changes))
 	}
 }
@@ -265,10 +265,10 @@ func (s *AntiCheatService) detectSuspiciousTimePattern(ctx context.Context, trac
 				DetectedAt:  time.Now(),
 				Evidence:    data,
 			}
-			
+
 			tracker.SuspiciousPatterns = append(tracker.SuspiciousPatterns, pattern)
-			
-			s.recordSecurityViolation(ctx, tracker.SessionID, EventSuspiciousTime, SeverityMedium, 
+
+			s.recordSecurityViolation(ctx, tracker.SessionID, EventSuspiciousTime, SeverityMedium,
 				fmt.Sprintf("Suspiciously fast answer: %.2f seconds", timeSpent))
 		}
 	}
@@ -280,7 +280,7 @@ func (s *AntiCheatService) recordSecurityViolation(ctx context.Context, sessionI
 		"detected_by": "anti_cheat_service",
 		"timestamp":   time.Now(),
 	}
-	
+
 	err := s.examSessionSecurity.RecordSecurityEvent(ctx, sessionID, eventType, severity, description, metadata)
 	if err != nil {
 		s.logger.WithError(err).Error("Failed to record security violation")
@@ -295,15 +295,15 @@ func (s *AntiCheatService) storeActivity(ctx context.Context, sessionID, activit
 		FROM exam_sessions
 		WHERE session_id = $1
 	`
-	
+
 	questionID := ""
 	if qid, ok := data["question_id"].(string); ok {
 		questionID = qid
 	}
-	
+
 	// Convert data to JSON string (simplified)
 	dataJSON := fmt.Sprintf("%v", data)
-	
+
 	_, err := s.db.ExecContext(ctx, query, sessionID, activityType, questionID, dataJSON, time.Now())
 	if err != nil {
 		s.logger.WithError(err).Error("Failed to store activity")
@@ -315,11 +315,11 @@ func (s *AntiCheatService) GetActivitySummary(ctx context.Context, sessionID str
 	s.activityMux.RLock()
 	tracker, exists := s.activityTrackers[sessionID]
 	s.activityMux.RUnlock()
-	
+
 	if !exists {
 		return nil, fmt.Errorf("activity tracker not found")
 	}
-	
+
 	// Return a copy to avoid race conditions
 	summary := *tracker
 	return &summary, nil
@@ -329,17 +329,17 @@ func (s *AntiCheatService) GetActivitySummary(ctx context.Context, sessionID str
 func (s *AntiCheatService) StopActivityTracking(ctx context.Context, sessionID string) error {
 	s.activityMux.Lock()
 	defer s.activityMux.Unlock()
-	
+
 	tracker, exists := s.activityTrackers[sessionID]
 	if !exists {
 		return fmt.Errorf("activity tracker not found")
 	}
-	
+
 	// Store final summary
 	go s.storeFinalActivitySummary(context.Background(), tracker)
-	
+
 	delete(s.activityTrackers, sessionID)
-	
+
 	s.logger.WithField("session_id", sessionID).Info("Stopped activity tracking")
 	return nil
 }

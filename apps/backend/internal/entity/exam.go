@@ -51,10 +51,10 @@ type Exam struct {
 	Status          ExamStatus `json:"status" db:"status"`
 
 	// Academic Classification (ESSENTIAL - from ExamSystem.md)
-	Subject    string     `json:"subject" db:"subject"`         // Môn học (REQUIRED)
-	Grade      *int       `json:"grade" db:"grade"`             // Khối lớp (1-12)
-	Difficulty Difficulty `json:"difficulty" db:"difficulty"`   // EASY, MEDIUM, HARD, EXPERT
-	Tags       []string   `json:"tags" db:"tags"`               // Tags tìm kiếm
+	Subject    string     `json:"subject" db:"subject"`       // Môn học (REQUIRED)
+	Grade      *int       `json:"grade" db:"grade"`           // Khối lớp (1-12)
+	Difficulty Difficulty `json:"difficulty" db:"difficulty"` // EASY, MEDIUM, HARD, EXPERT
+	Tags       []string   `json:"tags" db:"tags"`             // Tags tìm kiếm
 
 	// Settings
 	ShuffleQuestions bool `json:"shuffle_questions" db:"shuffle_questions"`
@@ -119,60 +119,60 @@ type ExamQuestion struct {
 
 // ExamAnswer represents a user's answer to a question in an exam attempt
 type ExamAnswer struct {
-	ID               string     `json:"id" db:"id"`
-	AttemptID        string     `json:"attempt_id" db:"attempt_id"`
-	QuestionID       string     `json:"question_id" db:"question_id"`
-	AnswerData       string     `json:"answer_data" db:"answer_data"`       // JSONB stored as string
-	IsCorrect        *bool      `json:"is_correct" db:"is_correct"`         // Nullable for manual grading
-	PointsEarned     float64    `json:"points_earned" db:"points_earned"`
-	TimeSpentSeconds *int       `json:"time_spent_seconds" db:"time_spent_seconds"`
-	AnsweredAt       time.Time  `json:"answered_at" db:"answered_at"`
+	ID               string    `json:"id" db:"id"`
+	AttemptID        string    `json:"attempt_id" db:"attempt_id"`
+	QuestionID       string    `json:"question_id" db:"question_id"`
+	AnswerData       string    `json:"answer_data" db:"answer_data"` // JSONB stored as string
+	IsCorrect        *bool     `json:"is_correct" db:"is_correct"`   // Nullable for manual grading
+	PointsEarned     float64   `json:"points_earned" db:"points_earned"`
+	TimeSpentSeconds *int      `json:"time_spent_seconds" db:"time_spent_seconds"`
+	AnsweredAt       time.Time `json:"answered_at" db:"answered_at"`
 }
 
 // ExamResult represents summary statistics for a completed exam attempt
 type ExamResult struct {
-	ID                  string     `json:"id" db:"id"`
-	AttemptID           string     `json:"attempt_id" db:"attempt_id"`
-	TotalQuestions      int        `json:"total_questions" db:"total_questions"`
-	CorrectAnswers      int        `json:"correct_answers" db:"correct_answers"`
-	IncorrectAnswers    int        `json:"incorrect_answers" db:"incorrect_answers"`
-	Unanswered          int        `json:"unanswered" db:"unanswered"`
-	ScoreBreakdown      string     `json:"score_breakdown" db:"score_breakdown"`      // JSONB stored as string
-	AccuracyPercentage  *float64   `json:"accuracy_percentage" db:"accuracy_percentage"`
-	AvgTimePerQuestion  *float64   `json:"avg_time_per_question" db:"avg_time_per_question"`
-	Feedback            *string    `json:"feedback" db:"feedback"`
-	Grade               *string    `json:"grade" db:"grade"`                          // A+, A, B+, B, C, D, F
-	CreatedAt           time.Time  `json:"created_at" db:"created_at"`
+	ID                 string    `json:"id" db:"id"`
+	AttemptID          string    `json:"attempt_id" db:"attempt_id"`
+	TotalQuestions     int       `json:"total_questions" db:"total_questions"`
+	CorrectAnswers     int       `json:"correct_answers" db:"correct_answers"`
+	IncorrectAnswers   int       `json:"incorrect_answers" db:"incorrect_answers"`
+	Unanswered         int       `json:"unanswered" db:"unanswered"`
+	ScoreBreakdown     string    `json:"score_breakdown" db:"score_breakdown"` // JSONB stored as string
+	AccuracyPercentage *float64  `json:"accuracy_percentage" db:"accuracy_percentage"`
+	AvgTimePerQuestion *float64  `json:"avg_time_per_question" db:"avg_time_per_question"`
+	Feedback           *string   `json:"feedback" db:"feedback"`
+	Grade              *string   `json:"grade" db:"grade"` // A+, A, B+, B, C, D, F
+	CreatedAt          time.Time `json:"created_at" db:"created_at"`
 }
 
 // ExamFeedback represents user feedback about an exam
 type ExamFeedback struct {
-	ID               string     `json:"id" db:"id"`
-	ExamID           string     `json:"exam_id" db:"exam_id"`
-	UserID           string     `json:"user_id" db:"user_id"`
-	AttemptID        *string    `json:"attempt_id" db:"attempt_id"`
-	Rating           *int       `json:"rating" db:"rating"`                    // 1-5 scale
-	DifficultyRating *int       `json:"difficulty_rating" db:"difficulty_rating"` // 1-5 scale
-	Content          *string    `json:"content" db:"content"`
-	CreatedAt        time.Time  `json:"created_at" db:"created_at"`
+	ID               string    `json:"id" db:"id"`
+	ExamID           string    `json:"exam_id" db:"exam_id"`
+	UserID           string    `json:"user_id" db:"user_id"`
+	AttemptID        *string   `json:"attempt_id" db:"attempt_id"`
+	Rating           *int      `json:"rating" db:"rating"`                       // 1-5 scale
+	DifficultyRating *int      `json:"difficulty_rating" db:"difficulty_rating"` // 1-5 scale
+	Content          *string   `json:"content" db:"content"`
+	CreatedAt        time.Time `json:"created_at" db:"created_at"`
 }
 
 // NewExam creates a new exam with defaults
 // Updated to align with ExamSystem.md design
 func NewExam(title, description string, createdBy string) *Exam {
 	return &Exam{
-		ID:               uuid.New().String(),
-		Title:            title,
-		Description:      description,
-		DurationMinutes:  60,
-		PassPercentage:   60,
-		ExamType:         ExamTypeGenerated, // Default to 'generated'
-		Status:           ExamStatusPending,  // Default to 'PENDING'
+		ID:              uuid.New().String(),
+		Title:           title,
+		Description:     description,
+		DurationMinutes: 60,
+		PassPercentage:  60,
+		ExamType:        ExamTypeGenerated, // Default to 'generated'
+		Status:          ExamStatusPending, // Default to 'PENDING'
 
 		// Academic Classification defaults
-		Subject:    "",                 // Must be set by caller
-		Grade:      nil,                // Optional
-		Difficulty: DifficultyMedium,   // Default difficulty
+		Subject:    "",               // Must be set by caller
+		Grade:      nil,              // Optional
+		Difficulty: DifficultyMedium, // Default difficulty
 		Tags:       []string{},
 
 		// Settings defaults

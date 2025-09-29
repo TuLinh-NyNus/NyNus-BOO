@@ -1,64 +1,26 @@
 /**
  * Admin Layout Types
- * Type definitions cho admin layout components
+ * Consolidated layout types for admin interface
  */
 
 import { ReactNode } from 'react';
 
-/**
- * Admin Layout Props
- * Props cho AdminLayout component
- */
-export interface AdminLayoutProps {
-  children: ReactNode;
-  className?: string;
-}
+// ===== WEBSOCKET TYPES =====
 
 /**
- * Mock WebSocket Context Value
- * Context value cho MockWebSocketProvider
+ * WebSocket Message Interface
+ * Interface cho WebSocket messages
  */
-export interface MockWebSocketContextValue {
-  isConnected: boolean;
-  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
-  lastMessage: WebSocketMessage | null;
-  sendMessage: (message: Record<string, unknown>) => void;
-  notifications: WebSocketNotification[];
-  connect: () => void;
-  disconnect: () => void;
-  reconnect: () => void;
-}
-
-/**
- * Admin Error Context Value
- * Context value cho AdminErrorProvider
- */
-export interface AdminErrorContextValue {
-  errors: AdminError[];
-  addError: (error: AdminError) => void;
-  removeError: (id: string) => void;
-  clearErrors: () => void;
-  hasErrors: boolean;
-  errorCount: number;
-}
-
-/**
- * Admin Error Interface
- * Interface cho admin errors
- */
-export interface AdminError {
+export interface WebSocketMessage {
   id: string;
-  message: string;
-  type: 'error' | 'warning' | 'info';
+  type: string;
+  data: unknown;
   timestamp: Date;
-  source?: string;
-  stack?: string;
-  context?: Record<string, unknown>;
 }
 
 /**
  * WebSocket Notification Interface
- * Interface cho WebSocket notifications (different from header notifications)
+ * Interface cho WebSocket notifications
  */
 export interface WebSocketNotification {
   id: string;
@@ -67,82 +29,32 @@ export interface WebSocketNotification {
   type: 'info' | 'warning' | 'error' | 'success';
   timestamp: Date;
   read: boolean;
-  actionUrl?: string;
-  icon?: string;
-  data?: Record<string, unknown>;
 }
 
 /**
- * WebSocket Message Interface
- * Interface cho WebSocket messages
+ * Mock WebSocket Context Value
+ * Context value cho mock WebSocket provider
  */
-export interface WebSocketMessage {
-  id: string;
-  type: 'notification' | 'update' | 'command' | 'response';
-  payload: Record<string, unknown>;
-  timestamp: Date;
-  source?: string;
+export interface MockWebSocketContextValue {
+  isConnected: boolean;
+  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
+  lastMessage: WebSocketMessage | null;
+  notifications: WebSocketNotification[];
+  sendMessage: (message: WebSocketMessage) => void;
+  connect: () => void;
+  disconnect: () => void;
+  reconnect: () => void;
 }
 
-/**
- * Connection Status Type
- * Type cho connection status
- */
-export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
+// ===== CORE LAYOUT INTERFACES =====
 
 /**
- * Error Boundary Props
- * Props cho AdminErrorBoundary
+ * Admin Layout Props
+ * Props cho AdminLayout component
  */
-export interface AdminErrorBoundaryProps {
+export interface AdminLayoutProps {
   children: ReactNode;
-  level?: 'page' | 'component' | 'critical';
-  enableRetry?: boolean;
-  showErrorDetails?: boolean;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
-  fallback?: ReactNode;
-}
-
-/**
- * Error Boundary State
- * State cho AdminErrorBoundary
- */
-export interface AdminErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-  errorInfo: React.ErrorInfo | null;
-  retryCount: number;
-}
-
-/**
- * Provider Props Interface
- * Base interface cho admin providers
- */
-export interface AdminProviderProps {
-  children: ReactNode;
-}
-
-/**
- * Mock WebSocket Provider Props
- * Props cho MockWebSocketProvider
- */
-export interface MockWebSocketProviderProps extends AdminProviderProps {
-  enableNotifications?: boolean;
-  enableSounds?: boolean;
-  autoConnect?: boolean;
-  reconnectInterval?: number;
-  maxReconnectAttempts?: number;
-}
-
-/**
- * Admin Error Provider Props
- * Props cho AdminErrorProvider
- */
-export interface AdminErrorProviderProps extends AdminProviderProps {
-  maxErrors?: number;
-  enablePersistence?: boolean;
-  enableReporting?: boolean;
-  onErrorReport?: (error: AdminError) => void;
+  className?: string;
 }
 
 /**
@@ -195,40 +107,7 @@ export const DEFAULT_ADMIN_LAYOUT_CONFIG: AdminLayoutConfig = {
   }
 };
 
-/**
- * Layout Context Value
- * Context value cho AdminLayoutProvider
- */
-export interface AdminLayoutContextValue {
-  config: AdminLayoutConfig;
-  isSidebarCollapsed: boolean;
-  toggleSidebar: () => void;
-  setSidebarCollapsed: (collapsed: boolean) => void;
-  isMobile: boolean;
-  isTablet: boolean;
-  isDesktop: boolean;
-}
-
-/**
- * Layout Provider Props
- * Props cho AdminLayoutProvider
- */
-export interface AdminLayoutProviderProps extends AdminProviderProps {
-  config?: Partial<AdminLayoutConfig>;
-}
-
-/**
- * Responsive Breakpoint Hook Return
- * Return type cho useResponsiveBreakpoint hook
- */
-export interface ResponsiveBreakpoint {
-  isMobile: boolean;
-  isTablet: boolean;
-  isDesktop: boolean;
-  breakpoint: 'mobile' | 'tablet' | 'desktop';
-  width: number;
-  height: number;
-}
+// ===== LAYOUT STATE & ACTIONS =====
 
 /**
  * Layout State Interface
@@ -256,16 +135,87 @@ export interface AdminLayoutActions {
   resetLayout: () => void;
 }
 
+// ===== RESPONSIVE BREAKPOINTS =====
+
 /**
- * Layout Hook Return Type
- * Return type cho useAdminLayout hook
+ * Responsive Breakpoint Hook Return
+ * Return type cho useResponsiveBreakpoint hook
  */
-export interface UseAdminLayoutReturn {
-  state: AdminLayoutState;
-  actions: AdminLayoutActions;
-  config: AdminLayoutConfig;
-  responsive: ResponsiveBreakpoint;
+export interface ResponsiveBreakpoint {
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  breakpoint: 'mobile' | 'tablet' | 'desktop';
+  width: number;
+  height: number;
 }
+
+// ===== CONTEXT INTERFACES =====
+
+/**
+ * Layout Context Value
+ * Context value cho AdminLayoutProvider
+ */
+export interface AdminLayoutContextValue {
+  config: AdminLayoutConfig;
+  isSidebarCollapsed: boolean;
+  toggleSidebar: () => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+}
+
+/**
+ * Layout Provider Props
+ * Props cho AdminLayoutProvider
+ */
+export interface AdminLayoutProviderProps {
+  children: ReactNode;
+  config?: Partial<AdminLayoutConfig>;
+}
+
+// ===== ERROR HANDLING =====
+
+/**
+ * Admin Error Interface
+ * Interface cho admin errors
+ */
+export interface AdminError {
+  id: string;
+  message: string;
+  type: 'error' | 'warning' | 'info';
+  timestamp: Date;
+  source?: string;
+  stack?: string;
+  context?: Record<string, unknown>;
+}
+
+/**
+ * Error Boundary Props
+ * Props cho AdminErrorBoundary
+ */
+export interface AdminErrorBoundaryProps {
+  children: ReactNode;
+  level?: 'page' | 'component' | 'critical';
+  enableRetry?: boolean;
+  showErrorDetails?: boolean;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  fallback?: ReactNode;
+}
+
+/**
+ * Error Boundary State
+ * State cho AdminErrorBoundary
+ */
+export interface AdminErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: React.ErrorInfo | null;
+  retryCount: number;
+}
+
+// ===== THEME CONFIGURATION =====
 
 /**
  * Theme Configuration
@@ -291,3 +241,58 @@ export interface AdminThemeContextValue {
   isLight: boolean;
   isSystem: boolean;
 }
+
+// ===== HOOK RETURN TYPES =====
+
+/**
+ * Layout Hook Return Type
+ * Return type cho useAdminLayout hook
+ */
+export interface UseAdminLayoutReturn {
+  state: AdminLayoutState;
+  actions: AdminLayoutActions;
+  config: AdminLayoutConfig;
+  responsive: ResponsiveBreakpoint;
+}
+
+// ===== PROVIDER INTERFACES =====
+
+/**
+ * Provider Props Interface
+ * Base interface cho admin providers
+ */
+export interface AdminProviderProps {
+  children: ReactNode;
+}
+
+/**
+ * Admin Error Provider Props
+ * Props cho AdminErrorProvider
+ */
+export interface AdminErrorProviderProps extends AdminProviderProps {
+  maxErrors?: number;
+  enablePersistence?: boolean;
+  enableReporting?: boolean;
+  onErrorReport?: (error: AdminError) => void;
+}
+
+/**
+ * Admin Error Context Value
+ * Context value cho AdminErrorProvider
+ */
+export interface AdminErrorContextValue {
+  errors: AdminError[];
+  addError: (error: AdminError) => void;
+  removeError: (id: string) => void;
+  clearErrors: () => void;
+  hasErrors: boolean;
+  errorCount: number;
+}
+
+// ===== CONNECTION STATUS =====
+
+/**
+ * Connection Status Type
+ * Type cho connection status
+ */
+export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'error';

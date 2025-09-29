@@ -4,11 +4,18 @@
  */
 
 import {
-  UserRole,
-  UserStatus,
+  UserRole as MockdataUserRole,
+  UserStatus as MockdataUserStatus,
   ProfileVisibility
 } from '../core-types';
 import { AdminUser } from '../types';
+
+// Import enum types for function parameters
+import {
+  convertEnumRoleToProtobuf,
+  convertEnumStatusToProtobuf,
+  isProtobufStatusEqual
+} from '@/lib/utils/type-converters';
 
 // Mock student users data
 export const mockStudentUsers: AdminUser[] = [
@@ -16,8 +23,8 @@ export const mockStudentUsers: AdminUser[] = [
     // ===== CORE REQUIRED FIELDS =====
     id: 'student-001',
     email: 'student1@nynus.edu.vn',
-    role: UserRole.STUDENT,
-    status: UserStatus.ACTIVE,
+    role: convertEnumRoleToProtobuf(MockdataUserRole.STUDENT),
+    status: convertEnumStatusToProtobuf(MockdataUserStatus.ACTIVE),
     emailVerified: true,
     createdAt: new Date('2024-09-01T00:00:00Z'),
     updatedAt: new Date('2025-01-15T08:30:00Z'),
@@ -34,7 +41,7 @@ export const mockStudentUsers: AdminUser[] = [
     lastLoginAt: new Date('2025-01-15T08:30:00Z'),
     lastLoginIp: '192.168.1.101',
     loginAttempts: 0,
-    lockedUntil: null,
+    lockedUntil: undefined,
     activeSessionsCount: 1,
     totalResourceAccess: 150,
     riskScore: 10,
@@ -85,7 +92,7 @@ export function getStudentById(id: string): AdminUser | undefined {
 }
 
 export function getActiveStudents(): AdminUser[] {
-  return mockStudentUsers.filter(student => student.status === UserStatus.ACTIVE);
+  return mockStudentUsers.filter(student => isProtobufStatusEqual(student.status, MockdataUserStatus.ACTIVE));
 }
 
 export function getStudentsByLevel(level: number): AdminUser[] {

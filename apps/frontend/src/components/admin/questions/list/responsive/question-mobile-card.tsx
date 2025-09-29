@@ -35,7 +35,7 @@ import { LaTeXContent } from "@/components/latex";
 import { QuestionActionsDropdown } from "../../actions/question-actions-dropdown";
 
 // Import types
-import { Question } from "@/lib/types/question";
+import { Question } from "@/types/question";
 
 // ===== TYPES =====
 

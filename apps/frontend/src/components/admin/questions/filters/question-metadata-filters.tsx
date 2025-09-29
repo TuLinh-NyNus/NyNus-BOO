@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/display/badge";
 
 // Import store và types
 import { useQuestionFiltersStore } from "@/lib/stores/question-filters";
-import { QuestionType, QuestionStatus, QuestionDifficulty } from "@/lib/types/question";
+import { QuestionType, QuestionStatus, QuestionDifficulty } from "@/types/question";
 import { ensureArray } from '@/lib/utils/filter-type-adapters';
 import { cn } from "@/lib/utils";
 

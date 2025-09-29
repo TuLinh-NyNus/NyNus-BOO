@@ -32,12 +32,12 @@ func (s *AnswerValidationService) ValidateAnswerData(ctx context.Context, answer
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate base structure: %w", err)
 	}
-	
+
 	// If base structure is invalid, return early
 	if baseResult.HasErrors() {
 		return baseResult, nil
 	}
-	
+
 	// Validate question type specific structure
 	switch questionType {
 	case "MC":
@@ -97,12 +97,12 @@ func (s *AnswerValidationService) ValidateAnswerDataWithAutoCorrection(ctx conte
 	if err != nil {
 		return nil, nil, err
 	}
-	
+
 	// If validation passes, return original data
 	if !result.HasErrors() {
 		return result, answerData, nil
 	}
-	
+
 	// Apply auto-corrections based on question type
 	switch questionType {
 	case "SA":
@@ -122,7 +122,7 @@ func (s *AnswerValidationService) autoCorrectSAAnswer(ctx context.Context, answe
 	if err != nil {
 		return originalResult, answerData, nil
 	}
-	
+
 	// Auto-generate normalized_text if missing
 	if answerText, exists := baseStructure.AnswerData["answer_text"]; exists {
 		if answerTextStr, ok := answerText.(string); ok {
@@ -131,19 +131,19 @@ func (s *AnswerValidationService) autoCorrectSAAnswer(ctx context.Context, answe
 			baseStructure.AnswerData["normalized_text"] = normalizedText
 		}
 	}
-	
+
 	// Re-marshal and validate
 	correctedData, err := s.remarshalBaseStructure(baseStructure)
 	if err != nil {
 		return originalResult, answerData, nil
 	}
-	
+
 	// Re-validate
 	newResult, err := s.ValidateSAAnswer(ctx, correctedData)
 	if err != nil {
 		return originalResult, answerData, nil
 	}
-	
+
 	return newResult, correctedData, nil
 }
 
@@ -154,30 +154,30 @@ func (s *AnswerValidationService) autoCorrectESAnswer(ctx context.Context, answe
 	if err != nil {
 		return originalResult, answerData, nil
 	}
-	
+
 	// Auto-calculate word_count and character_count if missing or incorrect
 	if essayText, exists := baseStructure.AnswerData["essay_text"]; exists {
 		if essayTextStr, ok := essayText.(string); ok {
 			wordCount := s.esValidator.countWords(essayTextStr)
 			charCount := len([]rune(essayTextStr))
-			
+
 			baseStructure.AnswerData["word_count"] = wordCount
 			baseStructure.AnswerData["character_count"] = charCount
 		}
 	}
-	
+
 	// Re-marshal and validate
 	correctedData, err := s.remarshalBaseStructure(baseStructure)
 	if err != nil {
 		return originalResult, answerData, nil
 	}
-	
+
 	// Re-validate
 	newResult, err := s.ValidateESAnswer(ctx, correctedData)
 	if err != nil {
 		return originalResult, answerData, nil
 	}
-	
+
 	return newResult, correctedData, nil
 }
 

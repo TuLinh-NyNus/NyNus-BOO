@@ -36,7 +36,7 @@ import {
   QuestionType, 
   QuestionStatus,
   QuestionDifficulty 
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionBank component

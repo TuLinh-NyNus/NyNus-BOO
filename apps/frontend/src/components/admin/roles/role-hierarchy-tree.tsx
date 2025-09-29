@@ -27,7 +27,15 @@ import {
   getAllRolesInOrder,
   RoleHierarchyNode,
 } from "../../../lib/role-hierarchy";
-import { UserRole, USER_ROLE_LABELS } from "../../../types/admin-user";
+import { UserRole } from "@/lib/mockdata/core-types";
+
+const USER_ROLE_LABELS: Record<UserRole, string> = {
+  [UserRole.GUEST]: "Khách",
+  [UserRole.STUDENT]: "Học viên",
+  [UserRole.TUTOR]: "Trợ giảng",
+  [UserRole.TEACHER]: "Giảng viên",
+  [UserRole.ADMIN]: "Quản trị viên",
+};
 
 /**
  * Role Hierarchy Tree Props
@@ -263,7 +271,7 @@ export function RoleHierarchyTree({
   className = "",
 }: RoleHierarchyTreeProps) {
   const [hierarchyTree, setHierarchyTree] = useState<RoleHierarchyNode | null>(null);
-  const [expandedRoles, setExpandedRoles] = useState<Set<UserRole>>(new Set(["GUEST"]));
+  const [expandedRoles, setExpandedRoles] = useState<Set<UserRole>>(new Set([UserRole.GUEST]));
   const [selectedRoleState, setSelectedRoleState] = useState<UserRole | undefined>(selectedRole);
 
   /**
@@ -316,7 +324,7 @@ export function RoleHierarchyTree({
    * Thu gọn tất cả roles
    */
   const collapseAll = () => {
-    setExpandedRoles(new Set(["GUEST"]));
+    setExpandedRoles(new Set([UserRole.GUEST]));
   };
 
   if (!hierarchyTree) {

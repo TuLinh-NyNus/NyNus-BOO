@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
+	"github.com/go-redis/redis/v8"
 )
 
 // Client wraps Redis client with additional functionality

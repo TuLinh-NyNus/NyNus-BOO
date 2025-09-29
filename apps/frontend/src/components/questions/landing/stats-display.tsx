@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 
 import { useQuestionStats } from '@/hooks/public';
 import { NumberCounter, RatingCounter } from '@/components/ui';
-import { PublicQuestionStats } from '@/lib/types/public';
+import { PublicQuestionStats } from '@/types/public';
 
 // ===== TYPES =====
 

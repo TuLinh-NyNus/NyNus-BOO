@@ -26,7 +26,7 @@ import {
 import { Calendar, User } from "lucide-react";
 
 // Import types từ lib/types
-import type { QuestionFilters } from "@/lib/types/question";
+import type { QuestionFilters } from "@/types/question";
 
 /**
  * Props for QuestionExtendedFilters component

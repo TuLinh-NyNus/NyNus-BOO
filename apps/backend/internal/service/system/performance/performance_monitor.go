@@ -17,7 +17,7 @@ type PerformanceMonitor struct {
 	db     *sql.DB
 	logger *logrus.Logger
 	mutex  sync.RWMutex
-	
+
 	// In-memory metrics cache
 	metricsCache map[string]*MetricValue
 	cacheExpiry  time.Duration
@@ -25,10 +25,10 @@ type PerformanceMonitor struct {
 
 // MetricValue represents a cached metric value
 type MetricValue struct {
-	Value     float64   `json:"value"`
-	Unit      string    `json:"unit"`
+	Value     float64                `json:"value"`
+	Unit      string                 `json:"unit"`
 	Context   map[string]interface{} `json:"context,omitempty"`
-	Timestamp time.Time `json:"timestamp"`
+	Timestamp time.Time              `json:"timestamp"`
 }
 
 // PerformanceMetric represents a performance metric
@@ -42,23 +42,23 @@ type PerformanceMetric struct {
 
 // ConnectionPoolStats represents database connection pool statistics
 type ConnectionPoolStats struct {
-	ActiveConnections     int     `json:"active_connections"`
-	IdleConnections       int     `json:"idle_connections"`
-	TotalConnections      int     `json:"total_connections"`
-	MaxConnections        int     `json:"max_connections"`
-	ConnectionWaitTimeMs  float64 `json:"connection_wait_time_ms,omitempty"`
-	Timestamp             time.Time `json:"timestamp"`
+	ActiveConnections    int       `json:"active_connections"`
+	IdleConnections      int       `json:"idle_connections"`
+	TotalConnections     int       `json:"total_connections"`
+	MaxConnections       int       `json:"max_connections"`
+	ConnectionWaitTimeMs float64   `json:"connection_wait_time_ms,omitempty"`
+	Timestamp            time.Time `json:"timestamp"`
 }
 
 // SystemMetrics represents system-level metrics
 type SystemMetrics struct {
-	MemoryUsageBytes    uint64    `json:"memory_usage_bytes"`
-	MemoryAllocBytes    uint64    `json:"memory_alloc_bytes"`
-	MemorySysBytes      uint64    `json:"memory_sys_bytes"`
-	GoroutineCount      int       `json:"goroutine_count"`
-	GCPauseMs           float64   `json:"gc_pause_ms"`
-	CPUUsagePercent     float64   `json:"cpu_usage_percent,omitempty"`
-	Timestamp           time.Time `json:"timestamp"`
+	MemoryUsageBytes uint64    `json:"memory_usage_bytes"`
+	MemoryAllocBytes uint64    `json:"memory_alloc_bytes"`
+	MemorySysBytes   uint64    `json:"memory_sys_bytes"`
+	GoroutineCount   int       `json:"goroutine_count"`
+	GCPauseMs        float64   `json:"gc_pause_ms"`
+	CPUUsagePercent  float64   `json:"cpu_usage_percent,omitempty"`
+	Timestamp        time.Time `json:"timestamp"`
 }
 
 // NewPerformanceMonitor creates a new performance monitor

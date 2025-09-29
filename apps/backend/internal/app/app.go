@@ -65,10 +65,10 @@ func (a *App) initDatabase() error {
 	}
 
 	// Configure connection pool for optimal performance
-	a.db.SetMaxOpenConns(25)        // Maximum number of open connections
-	a.db.SetMaxIdleConns(10)        // Maximum number of idle connections
-	a.db.SetConnMaxLifetime(300)    // Maximum connection lifetime (5 minutes)
-	a.db.SetConnMaxIdleTime(60)     // Maximum idle time (1 minute)
+	a.db.SetMaxOpenConns(25)     // Maximum number of open connections
+	a.db.SetMaxIdleConns(10)     // Maximum number of idle connections
+	a.db.SetConnMaxLifetime(300) // Maximum connection lifetime (5 minutes)
+	a.db.SetConnMaxIdleTime(60)  // Maximum idle time (1 minute)
 
 	log.Printf("✅ Connected to PostgreSQL: %s@%s:%s/%s",
 		a.config.Database.User,

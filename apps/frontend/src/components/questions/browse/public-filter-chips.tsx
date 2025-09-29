@@ -17,8 +17,8 @@ import { Search, X, Filter, RotateCcw } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 
 // Import types
-import { PublicQuestionFilters } from "@/lib/types/public";
-import { QuestionType, QuestionDifficulty } from "@/lib/types/question";
+import { PublicQuestionFilters } from "@/types/public";
+import { QuestionType, QuestionDifficulty } from "@/types/question";
 
 // ===== CONSTANTS =====
 

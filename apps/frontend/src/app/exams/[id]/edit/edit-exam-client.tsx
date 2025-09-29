@@ -17,8 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { EXAM_DYNAMIC_ROUTES } from '@/lib/exam-paths';
-import { ExamFormData, ExamStatus, ExamType } from '@/lib/types/exam';
-import { QuestionDifficulty } from '@/lib/types/question';
+import { ExamFormData, ExamStatus, ExamType } from '@/types/exam';
+import { QuestionDifficulty } from '@/types/question';
 
 // ===== TYPES =====
 // Using centralized ExamFormData from @/lib/types/exam
@@ -100,7 +100,7 @@ export default function EditExamClient({ examId }: EditExamClientProps) {
     router.push(EXAM_DYNAMIC_ROUTES.DETAIL(examId));
   };
 
-  const handleInputChange = (field: keyof ExamFormData, value: any) => {
+  const handleInputChange = (field: keyof ExamFormData, value: string | number | boolean | string[] | ExamType | ExamStatus | QuestionDifficulty) => {
     if (!formData) return;
     
     setFormData(prev => prev ? { ...prev, [field]: value } : null);

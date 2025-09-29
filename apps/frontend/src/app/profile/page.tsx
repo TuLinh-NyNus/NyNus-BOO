@@ -3,26 +3,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts';
 // Use protobuf enums and helper functions
-import { UserRole, userRoleToString } from '@/generated/common';
-import { UserRole as ProtobufUserRole } from '@/generated/common/common_pb';
-
-// Convert protobuf UserRole to enum UserRole
-const convertProtobufRoleToEnum = (protobufRole: ProtobufUserRole): UserRole => {
-  switch (protobufRole) {
-    case ProtobufUserRole.GUEST:
-      return UserRole.USER_ROLE_GUEST;
-    case ProtobufUserRole.STUDENT:
-      return UserRole.USER_ROLE_STUDENT;
-    case ProtobufUserRole.TUTOR:
-      return UserRole.USER_ROLE_TUTOR;
-    case ProtobufUserRole.TEACHER:
-      return UserRole.USER_ROLE_TEACHER;
-    case ProtobufUserRole.ADMIN:
-      return UserRole.USER_ROLE_ADMIN;
-    default:
-      return UserRole.USER_ROLE_GUEST;
-  }
-};
+import { userRoleToString } from '@/generated/common';
+import { UserRole } from '@/generated/common/common_pb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -135,15 +117,15 @@ export default function ProfilePage() {
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeVariant = (role: number) => {
     switch (role) {
-      case 'ADMIN':
+      case UserRole.USER_ROLE_ADMIN:
         return 'destructive';
-      case 'TEACHER':
+      case UserRole.USER_ROLE_TEACHER:
         return 'default';
-      case 'TUTOR':
+      case UserRole.USER_ROLE_TUTOR:
         return 'secondary';
-      case 'STUDENT':
+      case UserRole.USER_ROLE_STUDENT:
         return 'outline';
       default:
         return 'outline';
@@ -212,8 +194,8 @@ export default function ProfilePage() {
                   <h2 className="text-2xl font-bold">{user.firstName} {user.lastName}</h2>
                   <p className="text-muted-foreground">{user.email}</p>
                   <div className="flex gap-2">
-                    <Badge variant={getRoleBadgeVariant(userRoleToString(convertProtobufRoleToEnum(user.role)))}>
-                      {userRoleToString(convertProtobufRoleToEnum(user.role))}
+                    <Badge variant={getRoleBadgeVariant(user.role)}>
+                      {userRoleToString(user.role)}
                     </Badge>
                     {user.level && (
                       <Badge variant="outline">

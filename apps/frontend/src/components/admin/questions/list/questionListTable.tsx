@@ -44,7 +44,7 @@ import {
   Question, 
   QuestionType, 
   QuestionStatus 
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionListTable component
@@ -127,6 +127,7 @@ export function QuestionListTable({
   const getTypeBadge = (type: QuestionType) => {
     const typeLabels = {
       [QuestionType.MC]: "Trắc nghiệm",
+      [QuestionType.MULTIPLE_CHOICE]: "Trắc nghiệm",
       [QuestionType.TF]: "Đúng/Sai",
       [QuestionType.SA]: "Trả lời ngắn",
       [QuestionType.ES]: "Tự luận",

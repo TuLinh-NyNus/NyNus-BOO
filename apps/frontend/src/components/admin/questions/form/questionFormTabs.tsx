@@ -43,7 +43,7 @@ import {
   Question,
   QuestionDraft,
   QuestionCode
-} from "@/lib/types/question";
+} from "@/types/question";
 
 // Technical types for LaTeX parsing result (local to this component)
 interface LatexAnswer {

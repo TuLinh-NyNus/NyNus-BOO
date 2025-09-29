@@ -48,8 +48,8 @@ import {
 } from "lucide-react";
 
 // Types
-import { ExamResult, Exam, ExamAnswer } from "@/lib/types/exam";
-import { Question, QuestionType, QuestionDifficulty } from "@/lib/types/question";
+import { ExamResult, Exam, ExamAnswer } from "@/types/exam";
+import { Question, QuestionType, QuestionDifficulty } from "@/types/question";
 
 // ===== TYPES =====
 
@@ -113,6 +113,7 @@ function analyzeQuestions(questions: Question[], answers: ExamAnswer[] = []): Qu
 function getQuestionTypeStats(analysis: QuestionAnalysis[]) {
   const stats: Record<QuestionType, { correct: number; total: number; points: number; maxPoints: number; avgTime: number }> = {
     [QuestionType.MC]: { correct: 0, total: 0, points: 0, maxPoints: 0, avgTime: 0 },
+    [QuestionType.MULTIPLE_CHOICE]: { correct: 0, total: 0, points: 0, maxPoints: 0, avgTime: 0 },
     [QuestionType.TF]: { correct: 0, total: 0, points: 0, maxPoints: 0, avgTime: 0 },
     [QuestionType.SA]: { correct: 0, total: 0, points: 0, maxPoints: 0, avgTime: 0 },
     [QuestionType.ES]: { correct: 0, total: 0, points: 0, maxPoints: 0, avgTime: 0 },
@@ -274,6 +275,7 @@ export function ScoreBreakdown({
                 
                 const typeName = {
                   [QuestionType.MC]: 'Trắc nghiệm',
+                  [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
                   [QuestionType.TF]: 'Đúng/Sai',
                   [QuestionType.SA]: 'Trả lời ngắn',
                   [QuestionType.ES]: 'Tự luận',

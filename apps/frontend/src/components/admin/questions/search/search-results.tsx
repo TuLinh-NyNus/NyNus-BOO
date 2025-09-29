@@ -76,6 +76,7 @@ export function SearchResultItem({
   const renderTypeBadge = () => {
     const typeLabels = {
       MC: 'Trắc nghiệm',
+      MULTIPLE_CHOICE: 'Trắc nghiệm',
       TF: 'Đúng/Sai',
       SA: 'Trả lời ngắn',
       ES: 'Tự luận',

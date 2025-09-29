@@ -27,8 +27,14 @@ import {
   Eye,
 } from "lucide-react";
 
-import { UserRole } from "@/lib/mockdata/core-types";
+// Removed unused UserRole import
 import { toast } from "@/hooks/use-toast";
+import {
+  getProtobufRoleLabel,
+  getProtobufStatusLabel,
+  getProtobufRoleColor,
+  getProtobufStatusColor
+} from "@/lib/utils/type-converters";
 
 // Import proper Tabs components
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/navigation/tabs";
@@ -39,30 +45,8 @@ import { UserSecurityTab } from "./user-security-tab";
 import { UserActivityTab } from "./user-activity-tab";
 import { UserSessionsTab } from "./user-sessions-tab";
 
-/**
- * Admin User interface (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-  emailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt: string;
-  updatedAt?: string;
-  activeSessionsCount: number;
-  totalResourceAccess: number;
-  riskScore?: number;
-  permissions?: string[];
-  isActive?: boolean;
-  maxConcurrentSessions?: number;
-  lastLoginIp?: string;
-  loginAttempts?: number;
-  lockedUntil?: Date;
-}
+// Import AdminUser from canonical source
+import { AdminUser } from '@/types/user';
 
 /**
  * User detail modal props
@@ -74,27 +58,7 @@ interface UserDetailModalProps {
   onUserUpdate?: (user: AdminUser) => void;
 }
 
-/**
- * User role labels mapping
- */
-const USER_ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "Khách",
-  [UserRole.STUDENT]: "Học viên",
-  [UserRole.TUTOR]: "Trợ giảng",
-  [UserRole.TEACHER]: "Giảng viên",
-  [UserRole.ADMIN]: "Quản trị viên",
-};
-
-/**
- * User role colors mapping
- */
-const USER_ROLE_COLORS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "bg-secondary text-secondary-foreground",
-  [UserRole.STUDENT]: "bg-primary text-primary-foreground",
-  [UserRole.TUTOR]: "bg-badge-success text-badge-success-foreground",
-  [UserRole.TEACHER]: "bg-accent text-accent-foreground",
-  [UserRole.ADMIN]: "bg-destructive text-destructive-foreground",
-};
+// Removed USER_ROLE_LABELS and USER_ROLE_COLORS - using protobuf helpers instead
 
 /**
  * Format time ago
@@ -161,21 +125,7 @@ export function UserDetailModal({
     return user.email[0].toUpperCase();
   };
 
-  /**
-   * Get status badge color
-   */
-  const getStatusBadgeColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return "bg-badge-success text-badge-success-foreground";
-      case 'suspended':
-        return "bg-destructive text-destructive-foreground";
-      case 'pending_verification':
-        return "bg-badge-warning text-badge-warning-foreground";
-      default:
-        return "bg-secondary text-secondary-foreground";
-    }
-  };
+  // Removed getStatusBadgeColor - using protobuf helpers instead
 
   /**
    * Handle user update
@@ -223,11 +173,11 @@ export function UserDetailModal({
               <div>
                 <DialogTitle className="text-xl">{getUserDisplayName(user)}</DialogTitle>
                 <div className="flex items-center gap-2 mt-1">
-                  <Badge className={USER_ROLE_COLORS[user.role]}>
-                    {USER_ROLE_LABELS[user.role]}
+                  <Badge className={`bg-${getProtobufRoleColor(user.role)}-100 text-${getProtobufRoleColor(user.role)}-700`}>
+                    {getProtobufRoleLabel(user.role)}
                   </Badge>
-                  <Badge className={getStatusBadgeColor(user.status)}>
-                    {user.status}
+                  <Badge className={`bg-${getProtobufStatusColor(user.status)}-100 text-${getProtobufStatusColor(user.status)}-700`}>
+                    {getProtobufStatusLabel(user.status)}
                   </Badge>
                   {user.emailVerified ? (
                     <CheckCircle className="h-4 w-4 text-badge-success-foreground" />
@@ -268,7 +218,7 @@ export function UserDetailModal({
             <div className="text-xs text-muted-foreground">Risk Score</div>
           </div>
           <div className="text-center">
-            <div className="text-sm font-medium">{formatTimeAgo(user.lastLoginAt)}</div>
+            <div className="text-sm font-medium">{user.lastLoginAt ? formatTimeAgo(user.lastLoginAt.toISOString()) : 'Chưa đăng nhập'}</div>
             <div className="text-xs text-muted-foreground">Last Login</div>
           </div>
         </div>

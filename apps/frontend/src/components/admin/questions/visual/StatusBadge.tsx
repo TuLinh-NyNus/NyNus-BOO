@@ -17,7 +17,7 @@ import {
   AlertCircle,
   EyeOff
 } from 'lucide-react';
-import { QuestionStatus } from '@/lib/types/question';
+import { QuestionStatus } from '@/types/question';
 
 /**
  * Props cho Status Badge

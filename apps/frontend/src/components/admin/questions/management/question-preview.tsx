@@ -46,7 +46,7 @@ import {
 import { QuestionLaTeXContent, LaTeXContent } from "@/components/latex";
 
 // Import types
-import { Question } from "@/lib/types/question";
+import { Question } from "@/types/question";
 import { calculateQuestionQuality } from "@/lib/utils/question-management";
 
 // ===== TYPES =====

@@ -7,7 +7,7 @@ export interface SecurityEvent {
   type: SecurityEventType;
   severity: SecuritySeverity;
   timestamp: number;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 }
 
 export type SecurityEventType = 
@@ -46,16 +46,18 @@ export class BrowserSecurityService {
   private rightClickAttempts: number = 0;
 
   constructor(config: BrowserSecurityConfig) {
-    this.config = {
+    // Set defaults first, then override with user config
+    const defaults: BrowserSecurityConfig = {
       requireFullscreen: true,
       blockCopyPaste: true,
       blockRightClick: true,
       detectDevTools: true,
       monitorTabSwitching: true,
       blockKeyboardShortcuts: true,
-      maxViolations: 5,
-      ...config
+      maxViolations: 5
     };
+
+    this.config = { ...defaults, ...config };
   }
 
   /**
@@ -166,7 +168,7 @@ export class BrowserSecurityService {
 
     // Keyboard shortcut blocking
     if (this.config.blockKeyboardShortcuts) {
-      this.addEventListener(document, 'keydown', this.handleKeyDown.bind(this));
+      this.addEventListener(document, 'keydown', this.handleKeyDown.bind(this) as EventListener);
     }
 
     // Fullscreen exit detection
@@ -259,26 +261,31 @@ export class BrowserSecurityService {
    * Handle keyboard shortcuts
    */
   private handleKeyDown(event: KeyboardEvent): void {
-    const blockedCombinations = [
+    const blockedCombinations: Array<{
+      key: string;
+      ctrl?: boolean;
+      shift?: boolean;
+      alt?: boolean;
+    }> = [
       // Developer tools
       { key: 'F12' },
       { key: 'I', ctrl: true, shift: true }, // Ctrl+Shift+I
       { key: 'J', ctrl: true, shift: true }, // Ctrl+Shift+J
       { key: 'C', ctrl: true, shift: true }, // Ctrl+Shift+C
-      
+
       // Copy/paste
       { key: 'C', ctrl: true }, // Ctrl+C
       { key: 'V', ctrl: true }, // Ctrl+V
       { key: 'X', ctrl: true }, // Ctrl+X
       { key: 'A', ctrl: true }, // Ctrl+A
-      
+
       // Navigation
       { key: 'R', ctrl: true }, // Ctrl+R (refresh)
       { key: 'F5' }, // F5 (refresh)
       { key: 'W', ctrl: true }, // Ctrl+W (close tab)
       { key: 'T', ctrl: true }, // Ctrl+T (new tab)
       { key: 'N', ctrl: true }, // Ctrl+N (new window)
-      
+
       // Browser functions
       { key: 'U', ctrl: true }, // Ctrl+U (view source)
       { key: 'S', ctrl: true }, // Ctrl+S (save)
@@ -341,7 +348,7 @@ export class BrowserSecurityService {
    * Start developer tools detection
    */
   private startDevToolsDetection(): void {
-    let devtools = { open: false };
+    const devtools = { open: false };
     
     const threshold = 160;
     
@@ -367,7 +374,7 @@ export class BrowserSecurityService {
   /**
    * Record a security event
    */
-  private recordSecurityEvent(type: SecurityEventType, severity: SecuritySeverity, data?: Record<string, any>): void {
+  private recordSecurityEvent(type: SecurityEventType, severity: SecuritySeverity, data?: Record<string, unknown>): void {
     const event: SecurityEvent = {
       type,
       severity,

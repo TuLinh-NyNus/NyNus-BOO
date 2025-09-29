@@ -44,7 +44,7 @@ import { FilterHelpSystem } from "./filter-help-system";
 
 // Import store và types
 import { useQuestionFiltersStore } from "@/lib/stores/question-filters";
-import { QuestionFilters } from "@/lib/types/question";
+import { QuestionFilters } from "@/types/question";
 import { cn } from "@/lib/utils";
 
 // ===== INTERFACES =====

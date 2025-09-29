@@ -6,13 +6,13 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
 
 // Import enhanced User interface từ types (production-ready)
-import { type User } from '../lib/types/user/base';
+import { type User } from '@/types/user';
 // Import UserRole và UserStatus từ protobuf generated types (primary)
 import { UserRole, UserStatus } from '../generated/common/common_pb';
 
 
 // Import gRPC AuthService
-import { AuthService, getAuthErrorMessage } from '../lib/services/api/auth.api';
+import { AuthService, getAuthErrorMessage } from '../services/api/auth.api';
 
 // Interface cho Auth Context
 interface AuthContextType {
@@ -63,7 +63,7 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
           const userRole = (session as any)?.user?.role ||
                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
                            (session as any)?.role ||
-                           UserRole.STUDENT; // Sử dụng protobuf enum value
+                           UserRole.USER_ROLE_STUDENT; // Sử dụng protobuf enum value
           
           const googleUser: User = {
             id: session.user.id || session.user.email || 'google-user',
@@ -75,9 +75,9 @@ function InternalAuthProvider({ children }: AuthProviderProps) {
             isActive: true,
             lastLoginAt: new Date(),
             // Enhanced fields với defaults
-            status: UserStatus.ACTIVE,
+            status: UserStatus.USER_STATUS_ACTIVE,
             emailVerified: true, // Google users đã verify email
-            level: userRole === UserRole.GUEST ? undefined : 1, // Default level 1 cho authenticated users (trừ GUEST),
+            level: userRole === UserRole.USER_ROLE_GUEST ? undefined : 1, // Default level 1 cho authenticated users (trừ GUEST),
             maxConcurrentSessions: 3,
             loginAttempts: 0,
             // Required timestamp fields

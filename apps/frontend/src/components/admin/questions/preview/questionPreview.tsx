@@ -39,7 +39,7 @@ import {
   QuestionStatus,
   QuestionDifficulty,
   AnswerOption 
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionPreview component
@@ -73,6 +73,7 @@ export function QuestionPreview({
   const getTypeLabel = (type: QuestionType) => {
     const typeLabels = {
       [QuestionType.MC]: "Trắc nghiệm",
+      [QuestionType.MULTIPLE_CHOICE]: "Trắc nghiệm",
       [QuestionType.TF]: "Đúng/Sai",
       [QuestionType.SA]: "Trả lời ngắn",
       [QuestionType.ES]: "Tự luận",

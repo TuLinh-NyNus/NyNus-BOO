@@ -32,7 +32,7 @@ import {
 import { usePublicQuestions, usePublicQuestionSearch } from '@/hooks/public';
 
 // Import types
-import { PublicQuestionFilters, DEFAULT_PUBLIC_QUESTION_FILTERS } from '@/lib/types/public';
+import { PublicQuestionFilters, DEFAULT_PUBLIC_QUESTION_FILTERS } from '@/types/public';
 
 // ===== CONSTANTS =====
 

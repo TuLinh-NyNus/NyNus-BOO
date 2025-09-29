@@ -8,7 +8,7 @@
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { QuestionFilters, QuestionType, QuestionStatus, QuestionDifficulty } from '@/lib/types/question';
+import { QuestionFilters, QuestionType, QuestionStatus, QuestionDifficulty } from '@/types/question';
 
 // ===== FILTER PRESET INTERFACE =====
 

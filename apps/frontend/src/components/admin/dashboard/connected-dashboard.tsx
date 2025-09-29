@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { useAdminDashboard } from '@/hooks/admin/use-admin-dashboard';
-import { UserRole, UserStatus } from '@/lib/types/user/roles';
+import { UserRole, UserStatus, type UserRole as UserRoleType, type UserStatus as UserStatusType } from '@/types/user/roles';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,33 +69,30 @@ function StatsCard({ title, value, icon, description, trend = 'neutral' }: Stats
 /**
  * User Role Badge Component
  */
-function UserRoleBadge({ role }: { role: UserRole }) {
-  const roleConfig = {
-    [UserRole.ADMIN]: { label: 'Admin', variant: 'destructive' as const },
-    [UserRole.TEACHER]: { label: 'Teacher', variant: 'default' as const },
-    [UserRole.TUTOR]: { label: 'Tutor', variant: 'secondary' as const },
-    [UserRole.STUDENT]: { label: 'Student', variant: 'outline' as const },
-    [UserRole.GUEST]: { label: 'Guest', variant: 'outline' as const }
+function UserRoleBadge({ role }: { role: number }) {
+  const roleConfig: Record<number, { label: string; variant: 'destructive' | 'default' | 'secondary' | 'outline' }> = {
+    [UserRole.USER_ROLE_ADMIN]: { label: 'Admin', variant: 'destructive' as const },
+    [UserRole.USER_ROLE_TEACHER]: { label: 'Teacher', variant: 'default' as const },
+    [UserRole.USER_ROLE_TUTOR]: { label: 'Tutor', variant: 'secondary' as const },
+    [UserRole.USER_ROLE_STUDENT]: { label: 'Student', variant: 'outline' as const },
+    [UserRole.USER_ROLE_GUEST]: { label: 'Guest', variant: 'outline' as const }
   };
 
-  const config = roleConfig[role] || roleConfig[UserRole.GUEST];
+  const config = roleConfig[role] || roleConfig[UserRole.USER_ROLE_GUEST];
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
 /**
  * User Status Badge Component
  */
-function UserStatusBadge({ status }: { status: UserStatus }) {
-  const statusConfig = {
-    [UserStatus.ACTIVE]: { label: 'Active', variant: 'default' as const },
-    [UserStatus.INACTIVE]: { label: 'Inactive', variant: 'secondary' as const },
-    [UserStatus.SUSPENDED]: { label: 'Suspended', variant: 'destructive' as const },
-    [UserStatus.PENDING]: { label: 'Pending', variant: 'outline' as const },
-    [UserStatus.DELETED]: { label: 'Deleted', variant: 'destructive' as const },
-    [UserStatus.PENDING_VERIFICATION]: { label: 'Pending', variant: 'outline' as const }
+function UserStatusBadge({ status }: { status: number }) {
+  const statusConfig: Record<number, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
+    [UserStatus.USER_STATUS_ACTIVE]: { label: 'Active', variant: 'default' as const },
+    [UserStatus.USER_STATUS_INACTIVE]: { label: 'Inactive', variant: 'secondary' as const },
+    [UserStatus.USER_STATUS_SUSPENDED]: { label: 'Suspended', variant: 'destructive' as const }
   };
 
-  const config = statusConfig[status] || statusConfig[UserStatus.PENDING_VERIFICATION];
+  const config = statusConfig[status] || statusConfig[UserStatus.USER_STATUS_ACTIVE];
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
 
@@ -120,8 +117,8 @@ export function ConnectedAdminDashboard() {
 
   // Local state for filters
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState<UserRole | undefined>();
-  const [statusFilter, setStatusFilter] = useState<UserStatus | undefined>();
+  const [roleFilter, setRoleFilter] = useState<UserRoleType | undefined>();
+  const [statusFilter, setStatusFilter] = useState<UserStatusType | undefined>();
 
   /**
    * Handle search and filter
@@ -138,7 +135,7 @@ export function ConnectedAdminDashboard() {
   /**
    * Handle user status update
    */
-  const handleUpdateStatus = async (userId: string, newStatus: UserStatus) => {
+  const handleUpdateStatus = async (userId: string, newStatus: number) => {
     const success = await updateUserStatus(userId, newStatus);
     if (success) {
       toast({
@@ -247,27 +244,27 @@ export function ConnectedAdminDashboard() {
                 className="max-w-sm"
               />
             </div>
-            <Select value={roleFilter} onValueChange={(value) => setRoleFilter(value as UserRole || undefined)}>
+            <Select value={roleFilter?.toString()} onValueChange={(value) => setRoleFilter(value ? parseInt(value) as UserRoleType : undefined)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Lọc theo vai trò" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tất cả vai trò</SelectItem>
-                <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
-                <SelectItem value={UserRole.TEACHER}>Teacher</SelectItem>
-                <SelectItem value={UserRole.TUTOR}>Tutor</SelectItem>
-                <SelectItem value={UserRole.STUDENT}>Student</SelectItem>
+                <SelectItem value={UserRole.USER_ROLE_ADMIN.toString()}>Admin</SelectItem>
+                <SelectItem value={UserRole.USER_ROLE_TEACHER.toString()}>Teacher</SelectItem>
+                <SelectItem value={UserRole.USER_ROLE_TUTOR.toString()}>Tutor</SelectItem>
+                <SelectItem value={UserRole.USER_ROLE_STUDENT.toString()}>Student</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as UserStatus || undefined)}>
+            <Select value={statusFilter?.toString()} onValueChange={(value) => setStatusFilter(value ? parseInt(value) as UserStatusType : undefined)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Lọc theo trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tất cả trạng thái</SelectItem>
-                <SelectItem value={UserStatus.ACTIVE}>Active</SelectItem>
-                <SelectItem value={UserStatus.INACTIVE}>Inactive</SelectItem>
-                <SelectItem value={UserStatus.SUSPENDED}>Suspended</SelectItem>
+                <SelectItem value={UserStatus.USER_STATUS_ACTIVE.toString()}>Active</SelectItem>
+                <SelectItem value={UserStatus.USER_STATUS_INACTIVE.toString()}>Inactive</SelectItem>
+                <SelectItem value={UserStatus.USER_STATUS_SUSPENDED.toString()}>Suspended</SelectItem>
               </SelectContent>
             </Select>
             <Button onClick={handleSearch} disabled={usersLoading}>
@@ -328,11 +325,11 @@ export function ConnectedAdminDashboard() {
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          {user.status === UserStatus.ACTIVE ? (
+                          {user.status === UserStatus.USER_STATUS_ACTIVE ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleUpdateStatus(user.id, UserStatus.SUSPENDED)}
+                              onClick={() => handleUpdateStatus(user.id, UserStatus.USER_STATUS_SUSPENDED)}
                             >
                               <Ban className="h-4 w-4" />
                             </Button>
@@ -340,7 +337,7 @@ export function ConnectedAdminDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => handleUpdateStatus(user.id, UserStatus.ACTIVE)}
+                              onClick={() => handleUpdateStatus(user.id, UserStatus.USER_STATUS_ACTIVE)}
                             >
                               <CheckCircle className="h-4 w-4" />
                             </Button>

@@ -23,8 +23,12 @@ import {
   CheckCircle,
   X
 } from 'lucide-react';
-import { AdminUser } from '@/lib/mockdata/types';
+import { AdminUser } from '@/types/user/admin';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
+import {
+  convertProtobufRoleToEnum,
+  isProtobufStatusEqual
+} from "@/lib/utils/type-converters";
 
 // ===== INTERFACES =====
 
@@ -159,7 +163,7 @@ function getRoleInfo(role: UserRole): RoleHierarchy {
  * Check if user can be promoted to target role
  */
 function canPromoteUser(user: AdminUser, targetRole: UserRole): { canPromote: boolean; reason?: string } {
-  const currentRoleInfo = getRoleInfo(user.role);
+  const currentRoleInfo = getRoleInfo(convertProtobufRoleToEnum(user.role));
   const targetRoleInfo = getRoleInfo(targetRole);
 
   // Cannot demote
@@ -168,7 +172,7 @@ function canPromoteUser(user: AdminUser, targetRole: UserRole): { canPromote: bo
   }
 
   // Check if target role is in allowed promotions
-  const allowedPromotions = PROMOTION_RULES[user.role]?.canPromoteTo || [];
+  const allowedPromotions = PROMOTION_RULES[convertProtobufRoleToEnum(user.role)]?.canPromoteTo || [];
   if (!allowedPromotions.includes(targetRole)) {
     return { canPromote: false, reason: 'Không thể thăng cấp trực tiếp lên vai trò này' };
   }
@@ -188,7 +192,7 @@ function canPromoteUser(user: AdminUser, targetRole: UserRole): { canPromote: bo
   }
 
   // Check status
-  if (user.status !== UserStatus.ACTIVE) {
+  if (!isProtobufStatusEqual(user.status, UserStatus.ACTIVE)) {
     return { canPromote: false, reason: 'Chỉ có thể thăng cấp người dùng đang hoạt động' };
   }
 
@@ -208,7 +212,8 @@ function groupUsersByRole(users: AdminUser[]): Record<UserRole, AdminUser[]> {
 
   // Group users
   users.forEach(user => {
-    groups[user.role].push(user);
+    const enumRole = convertProtobufRoleToEnum(user.role);
+    groups[enumRole].push(user);
   });
 
   return groups;

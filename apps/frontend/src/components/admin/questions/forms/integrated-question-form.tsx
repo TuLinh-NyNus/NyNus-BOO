@@ -72,7 +72,7 @@ import {
 } from "../management";
 
 // Import types
-import { Question, QuestionType, QuestionStatus, QuestionDifficulty } from "@/lib/types/question";
+import { Question, QuestionType, QuestionStatus, QuestionDifficulty } from "@/types/question";
 import { validateQuestion, QuestionValidationResult } from "@/lib/utils/question-management";
 
 // ===== VALIDATION SCHEMA =====

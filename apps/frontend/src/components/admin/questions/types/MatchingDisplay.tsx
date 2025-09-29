@@ -12,7 +12,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, Badge, Button } from '@/components/ui';
 import { ArrowRight, CheckCircle, XCircle, Eye, EyeOff, Shuffle } from 'lucide-react';
 import { LaTeXRenderer } from '@/components/ui/latex';
-import { MatchingPair } from '@/lib/types/question';
+import { MatchingPair } from '@/types/question';
 
 /**
  * Props cho Matching Display

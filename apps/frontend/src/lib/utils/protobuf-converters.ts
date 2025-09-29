@@ -3,17 +3,18 @@
  * Utilities để convert protobuf objects thành local types
  */
 
-import type { User } from '@/lib/types/user';
+import type { User } from '@/types/user';
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
+import type { UserRole as UserRoleType, UserStatus as UserStatusType } from '@/types/user/base';
 
 // Define protobuf object interfaces
 interface ProtobufUser {
   getId?(): string;
   getEmail?(): string;
   getName?(): string;
-  getRole?(): string;
+  getRole?(): number; // Protobuf enum returns number
   getLevel?(): string | number; // Accept both string and number
-  getStatus?(): string;
+  getStatus?(): number; // Protobuf enum returns number
   getAvatar?(): string;
   getEmailVerified?(): boolean;
   getCreatedAt?(): string | number;
@@ -22,9 +23,9 @@ interface ProtobufUser {
   id?: string;
   email?: string;
   name?: string;
-  role?: string;
+  role?: number; // Protobuf enum is number
   level?: string | number; // Accept both string and number
-  status?: string;
+  status?: number; // Protobuf enum is number
   avatar?: string;
   emailVerified?: boolean;
   createdAt?: string | number;
@@ -43,8 +44,8 @@ export function convertProtobufUserToLocal(protobufUser: ProtobufUser): User {
   const id = protobufUser.getId?.() || protobufUser.id || '';
   const email = protobufUser.getEmail?.() || protobufUser.email || '';
   const name = protobufUser.getName?.() || protobufUser.name || '';
-  const role = protobufUser.getRole?.() || protobufUser.role || UserRole.STUDENT;
-  const status = protobufUser.getStatus?.() || protobufUser.status || UserStatus.ACTIVE;
+  const role = protobufUser.getRole?.() || protobufUser.role || UserRole.USER_ROLE_STUDENT;
+  const status = protobufUser.getStatus?.() || protobufUser.status || UserStatus.USER_STATUS_ACTIVE;
   const levelValue = protobufUser.getLevel?.() || protobufUser.level || 1;
   const level = typeof levelValue === 'string' ? parseInt(levelValue) || 1 : levelValue;
   const avatar = protobufUser.getAvatar?.() || protobufUser.avatar || '';
@@ -69,14 +70,14 @@ export function convertProtobufUserToLocal(protobufUser: ProtobufUser): User {
     firstName,
     lastName,
     name,
-    role: role as UserRole,
-    status: status as UserStatus,
+    role: typeof role === 'number' ? role as UserRoleType : UserRole.USER_ROLE_STUDENT,
+    status: typeof status === 'number' ? status as UserStatusType : UserStatus.USER_STATUS_ACTIVE,
     level: typeof level === 'string' ? parseInt(level) || 1 : level,
     avatar,
     emailVerified,
     createdAt,
     updatedAt,
-    isActive: status === UserStatus.ACTIVE,
+    isActive: status === UserStatus.USER_STATUS_ACTIVE,
   };
 
   return localUser;
@@ -195,33 +196,33 @@ export function convertProtobufResetPasswordResponse(protobufResponse: ProtobufR
 /**
  * Helper function để ensure UserRole compatibility
  */
-export function normalizeUserRole(role: string | UserRole): UserRole {
+export function normalizeUserRole(role: string | number): number {
   if (typeof role === 'string') {
     switch (role.toLowerCase()) {
-      case 'guest': return UserRole.GUEST;
-      case 'student': return UserRole.STUDENT;
-      case 'tutor': return UserRole.TUTOR;
-      case 'teacher': return UserRole.TEACHER;
-      case 'admin': return UserRole.ADMIN;
-      default: return UserRole.STUDENT;
+      case 'guest': return UserRole.USER_ROLE_GUEST;
+      case 'student': return UserRole.USER_ROLE_STUDENT;
+      case 'tutor': return UserRole.USER_ROLE_TUTOR;
+      case 'teacher': return UserRole.USER_ROLE_TEACHER;
+      case 'admin': return UserRole.USER_ROLE_ADMIN;
+      default: return UserRole.USER_ROLE_STUDENT;
     }
   }
-  return role || UserRole.STUDENT;
+  return role || UserRole.USER_ROLE_STUDENT;
 }
 
 /**
  * Helper function để ensure UserStatus compatibility
  */
-export function normalizeUserStatus(status: string | UserStatus): UserStatus {
+export function normalizeUserStatus(status: string | number): number {
   if (typeof status === 'string') {
     switch (status.toLowerCase()) {
-      case 'active': return UserStatus.ACTIVE;
-      case 'inactive': return UserStatus.INACTIVE;
-      case 'pending': return UserStatus.PENDING;
-      case 'suspended': return UserStatus.SUSPENDED;
-      case 'deleted': return UserStatus.DELETED;
-      default: return UserStatus.ACTIVE;
+      case 'active': return UserStatus.USER_STATUS_ACTIVE;
+      case 'inactive': return UserStatus.USER_STATUS_INACTIVE;
+      case 'pending': return UserStatus.USER_STATUS_SUSPENDED; // Map pending to suspended for now
+      case 'suspended': return UserStatus.USER_STATUS_SUSPENDED;
+      case 'deleted': return UserStatus.USER_STATUS_INACTIVE; // Map deleted to inactive for now
+      default: return UserStatus.USER_STATUS_ACTIVE;
     }
   }
-  return status || UserStatus.ACTIVE;
+  return status || UserStatus.USER_STATUS_ACTIVE;
 }

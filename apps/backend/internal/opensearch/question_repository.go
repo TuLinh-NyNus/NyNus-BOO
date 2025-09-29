@@ -207,10 +207,10 @@ func (r *QuestionRepository) SearchQuestions(ctx context.Context, searchCriteria
 	results := make([]*interfaces.SearchResult, len(response.Hits))
 	for i, hit := range response.Hits {
 		question := r.documentToQuestion(hit.Source)
-		
+
 		// Extract snippet from highlights
 		snippet := r.extractSnippet(hit.Highlight, searchCriteria.Query)
-		
+
 		// Extract matches from highlights
 		matches := r.extractMatches(hit.Highlight)
 
@@ -282,17 +282,17 @@ func (r *QuestionRepository) RefreshIndex(ctx context.Context) error {
 // questionToDocument converts a Question entity to OpenSearch document
 func (r *QuestionRepository) questionToDocument(question *entity.Question) map[string]interface{} {
 	doc := map[string]interface{}{
-		"id":           question.ID.String,
-		"content":      question.Content.String,
-		"raw_content":  question.RawContent.String,
-		"type":         question.Type.String,
-		"difficulty":   question.Difficulty.String,
-		"status":       question.Status.String,
-		"creator":      question.Creator.String,
-		"usage_count":  question.UsageCount.Int,
-		"feedback":     question.Feedback.Int,
-		"created_at":   question.CreatedAt.Time,
-		"updated_at":   question.UpdatedAt.Time,
+		"id":          question.ID.String,
+		"content":     question.Content.String,
+		"raw_content": question.RawContent.String,
+		"type":        question.Type.String,
+		"difficulty":  question.Difficulty.String,
+		"status":      question.Status.String,
+		"creator":     question.Creator.String,
+		"usage_count": question.UsageCount.Int,
+		"feedback":    question.Feedback.Int,
+		"created_at":  question.CreatedAt.Time,
+		"updated_at":  question.UpdatedAt.Time,
 	}
 
 	// Add optional fields
@@ -334,7 +334,7 @@ func (r *QuestionRepository) questionToDocument(question *entity.Question) map[s
 				// Add other suggestion inputs based on content analysis
 			},
 			"contexts": map[string]interface{}{
-				"subject": []string{"toán", "lý", "hóa", "sinh", "văn"}, // Extract from question code
+				"subject": []string{"toán", "lý", "hóa", "sinh", "văn"},   // Extract from question code
 				"grade":   []string{"6", "7", "8", "9", "10", "11", "12"}, // Extract from question code
 			},
 		}

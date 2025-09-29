@@ -44,8 +44,8 @@ import {
   ExamStatus,
   ExamType,
   ExamFilters,
-} from "@/lib/types/exam";
-import { QuestionDifficulty } from "@/lib/types/question";
+} from "@/types/exam";
+import { QuestionDifficulty } from "@/types/question";
 
 // ===== TYPES =====
 
@@ -211,7 +211,7 @@ export function ExamGrid({
     onSortChange?.(field, newDirection);
   }, [sortField, sortDirection, onSortChange]);
   
-  const handleFilterChange = useCallback((key: string, value: any) => {
+  const handleFilterChange = useCallback((key: string, value: string | string[] | number[] | undefined) => {
     const newFilters = { ...activeFilters, [key]: value };
     setActiveFilters(newFilters);
     onFiltersChange?.(newFilters);

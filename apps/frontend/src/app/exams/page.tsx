@@ -16,12 +16,13 @@ import { Plus, Search, Filter, BookOpen, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { EXAM_ROUTES, EXAM_DYNAMIC_ROUTES } from '@/lib/exam-paths';
-import { Exam, ExamFilters as ExamFiltersType } from '@/lib/types/exam';
+import { Exam, ExamFilters as ExamFiltersType, ExamStatus } from '@/types/exam';
+import { QuestionDifficulty } from '@/types/question';
 import { ExamService } from '@/services/grpc/exam.service';
 
 // ===== TYPES =====
 
-// Using centralized Exam interface from @/lib/types/exam
+// Using centralized Exam interface from @/types/exam
 
 /**
  * Local exam filters interface (extends centralized type)
@@ -90,8 +91,8 @@ export default function ExamsPage() {
         const apiFilters: ExamFiltersType = {
           search: filters.search || undefined,
           subject: filters.subject ? [filters.subject] : undefined,
-          status: filters.status ? [filters.status as any] : undefined, // TODO: Fix enum mapping
-          difficulty: filters.difficulty ? [filters.difficulty as any] : undefined // TODO: Fix enum mapping
+          status: filters.status ? [filters.status as ExamStatus] : undefined,
+          difficulty: filters.difficulty ? [filters.difficulty as QuestionDifficulty] : undefined
         };
 
         // Call actual gRPC service

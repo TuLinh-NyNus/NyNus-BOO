@@ -72,7 +72,7 @@ class MemoryMonitor {
   }
 
   private isMemoryAPIAvailable(): boolean {
-    return 'memory' in performance && 'usedJSHeapSize' in (performance as any).memory;
+    return 'memory' in performance && 'usedJSHeapSize' in (performance as Performance & { memory: MemoryInfo }).memory;
   }
 
   private getCurrentMemoryInfo(): MemoryInfo {
@@ -84,7 +84,7 @@ class MemoryMonitor {
       };
     }
 
-    const memory = (performance as any).memory;
+    const memory = (performance as Performance & { memory: MemoryInfo }).memory;
     return {
       usedJSHeapSize: memory.usedJSHeapSize,
       totalJSHeapSize: memory.totalJSHeapSize,
@@ -217,8 +217,8 @@ class MemoryMonitor {
 
   // Force garbage collection if available (Chrome DevTools)
   forceGC(): void {
-    if ('gc' in window && typeof (window as any).gc === 'function') {
-      (window as any).gc();
+    if ('gc' in window && typeof (window as Window & { gc?: () => void }).gc === 'function') {
+      (window as Window & { gc: () => void }).gc();
     }
   }
 

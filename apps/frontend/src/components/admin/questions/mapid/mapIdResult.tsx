@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 
 // Import types từ lib/types
-import { QuestionCode } from "@/lib/types/question";
+import { QuestionCode } from "@/types/question";
 
 /**
  * Props for MapIdResult component

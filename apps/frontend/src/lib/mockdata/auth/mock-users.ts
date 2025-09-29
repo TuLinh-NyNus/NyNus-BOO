@@ -3,11 +3,8 @@
  * Mock users data cho authentication context
  */
 
-import { type User } from '../../types/user/base';
-// Import from protobuf generated types (primary)
-import { UserRole, UserStatus } from '../../../generated/common/common_pb';
-// Fallback manual types
-// import { UserRole, UserStatus } from '../../types/user/roles';
+import { type User } from '@/types/user';
+import { UserRole, UserStatus } from '@/generated/common/common_pb';
 
 // Mock user data cho admin - extracted từ auth-context.tsx
 export const mockAdminUser: User = {
@@ -15,12 +12,12 @@ export const mockAdminUser: User = {
   email: 'admin@nynus.edu.vn',
   firstName: 'Admin',
   lastName: 'NyNus',
-  role: UserRole.ADMIN,
+  role: UserRole.USER_ROLE_ADMIN,
   avatar: '/avatars/admin.svg',
   isActive: true,
   lastLoginAt: new Date(),
   // Required fields for enhanced User interface
-  status: UserStatus.ACTIVE,
+  status: UserStatus.USER_STATUS_ACTIVE,
   emailVerified: true,
   createdAt: new Date(),
   updatedAt: new Date()

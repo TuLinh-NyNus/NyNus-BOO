@@ -14,7 +14,7 @@ import { Badge } from './badge';
 import { Separator } from './separator';
 import { cn } from '@/lib/utils';
 import { parseQuestionCode, MAPCODE_CONFIG } from '@/lib/utils/question-code';
-import { QuestionCode } from '@/lib/types/question';
+import { QuestionCode } from '@/types/question';
 import { Copy, AlertCircle } from 'lucide-react';
 
 // ===== INTERFACES =====

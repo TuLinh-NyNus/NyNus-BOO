@@ -17,7 +17,7 @@ import { ArrowLeft, Save, Eye, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Types
-import { ExamFormData, ExamStatus } from '@/lib/types/exam';
+import { ExamFormData, ExamStatus } from '@/types/exam';
 
 // Services
 import { ExamService } from '@/services/grpc/exam.service';
@@ -44,7 +44,7 @@ export default function AdminCreateExamPage() {
 
   // ===== STATE =====
 
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // ===== HANDLERS =====
@@ -185,7 +185,7 @@ export default function AdminCreateExamPage() {
 
       {/* Exam Preview */}
       <ExamPreview
-        examData={previewData}
+        examData={previewData || undefined}
         questions={[]} // TODO: Get questions from form
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}

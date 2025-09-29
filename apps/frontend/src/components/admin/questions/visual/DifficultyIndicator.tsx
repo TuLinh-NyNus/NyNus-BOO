@@ -11,7 +11,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui';
 import { BarChart3, TrendingUp, AlertTriangle } from 'lucide-react';
-import { QuestionDifficulty } from '@/lib/types/question';
+import { QuestionDifficulty } from '@/types/question';
 
 /**
  * Props cho Difficulty Indicator

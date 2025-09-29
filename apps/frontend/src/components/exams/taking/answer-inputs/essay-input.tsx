@@ -13,13 +13,12 @@ import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+
 import { Button } from '@/components/ui/button';
-import { 
-  FileText, 
-  AlertTriangle, 
-  CheckCircle, 
-  Type, 
+import {
+  FileText,
+  CheckCircle,
+  Type,
   AlignLeft,
   Maximize2,
   Minimize2
@@ -170,7 +169,7 @@ export function EssayInput({
   showWordCount = true,
   minRows = DEFAULT_MIN_ROWS,
   allowFullscreen = true,
-  autoResize = true,
+  autoResize: _autoResize = true,
   readOnly = false,
   showValidation = true,
   autoSaveStatus = 'idle',
@@ -179,7 +178,7 @@ export function EssayInput({
   
   // Local state
   const [localText, setLocalText] = useState(essayText);
-  const [isFocused, setIsFocused] = useState(false);
+  const [_isFocused, setIsFocused] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
   // Sync with external value

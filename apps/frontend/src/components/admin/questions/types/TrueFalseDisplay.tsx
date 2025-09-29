@@ -13,7 +13,7 @@ import { Card, CardContent, Badge, Button } from '@/components/ui';
 import { CheckCircle, Eye, EyeOff, AlertCircle, Circle } from 'lucide-react';
 import { LaTeXRenderer } from '@/components/ui/latex';
 
-import { AnswerOption } from '@/lib/types/question';
+import { AnswerOption } from '@/types/question';
 
 /**
  * Props cho True/False Display

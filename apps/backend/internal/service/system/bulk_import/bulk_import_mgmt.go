@@ -20,11 +20,11 @@ import (
 
 // BulkImportMgmt manages bulk import operations with comprehensive error handling
 type BulkImportMgmt struct {
-	questionRepo       *repository.QuestionRepository
-	questionCodeRepo   *repository.QuestionCodeRepository
-	bulkImportRepo     *repository.BulkImportErrorRepository
-	parseErrorMgmt     *parse_error_mgmt.ParseErrorMgmt
-	logger             *logrus.Logger
+	questionRepo     *repository.QuestionRepository
+	questionCodeRepo *repository.QuestionCodeRepository
+	bulkImportRepo   *repository.BulkImportErrorRepository
+	parseErrorMgmt   *parse_error.ParseErrorMgmt
+	logger           *logrus.Logger
 }
 
 // NewBulkImportMgmt creates a new bulk import management service
@@ -32,7 +32,7 @@ func NewBulkImportMgmt(
 	questionRepo *repository.QuestionRepository,
 	questionCodeRepo *repository.QuestionCodeRepository,
 	bulkImportRepo *repository.BulkImportErrorRepository,
-	parseErrorMgmt *parse_error_mgmt.ParseErrorMgmt,
+	parseErrorMgmt *parse_error.ParseErrorMgmt,
 	logger *logrus.Logger,
 ) *BulkImportMgmt {
 	return &BulkImportMgmt{
@@ -47,7 +47,7 @@ func NewBulkImportMgmt(
 // ImportLatexWithErrorHandling imports LaTeX content with comprehensive error handling
 func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latexContent string, options *entity.BulkImportOptions) (*entity.BulkImportResult, error) {
 	startTime := time.Now()
-	
+
 	// Create import session
 	session := &entity.BulkImportSession{
 		ID:        util.StringToPgText(uuid.New().String()),
@@ -81,22 +81,22 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 
 	// Parse LaTeX content
 	parser := latex.NewLaTeXQuestionParser()
-	questions, questionCodes, warnings := parser.ParseLatexContent(latexContent)
+	questions, questionCodes, _ := parser.ParseLatexContent(latexContent) // warnings not used in bulk import
 
 	if len(questions) == 0 {
 		// No questions found - create error
-		importError := m.createBulkImportError(sessionID, 1, entity.BulkImportErrorTypeParseError, 
-			entity.BulkImportErrorSeverityError, "No valid questions found in LaTeX content", 
+		importError := m.createBulkImportError(sessionID, 1, entity.BulkImportErrorTypeParseError,
+			entity.BulkImportErrorSeverityError, "No valid questions found in LaTeX content",
 			"", "Kiểm tra cú pháp LaTeX và đảm bảo có ít nhất một câu hỏi hợp lệ", latexContent, "", true)
 		result.Errors = append(result.Errors, importError)
 		m.saveBulkImportError(ctx, &importError)
-		
+
 		// Update session as failed
 		session.Status = util.StringToPgText("FAILED")
 		session.EndTime = util.TimestamptzToPgType(time.Now())
 		session.ErrorRows = util.IntToPgInt4(1)
 		m.bulkImportRepo.UpdateImportSession(ctx, session)
-		
+
 		result.ProcessingTime = time.Since(startTime)
 		return result, nil
 	}
@@ -113,7 +113,7 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 	for i, question := range questions {
 		rowNumber := int32(i + 1)
 		session.ProcessedRows = util.IntToPgInt4(rowNumber)
-		
+
 		// Validate question
 		validationErrors := m.validateQuestion(question, rowNumber)
 		if len(validationErrors) > 0 {
@@ -128,7 +128,7 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 				result.Errors = append(result.Errors, validationError)
 				m.saveBulkImportError(ctx, &validationError)
 			}
-			
+
 			if hasErrors {
 				continue // Skip this question due to validation errors
 			}
@@ -160,7 +160,7 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 		}
 
 		// Try to save question using parse error management
-		parseResult, err := m.parseErrorMgmt.ParseLatexWithErrorHandling(ctx, question.RawContent.String, options.Creator)
+		parseResult, err := m.parseErrorMgmt.ParseWithErrorHandling(ctx, question.RawContent.String, options.Creator)
 		if err != nil {
 			// Database error
 			dbError := m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeDatabaseError,
@@ -235,12 +235,12 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 	result.ErrorCount = errorCount
 	result.WarningCount = warningCount
 	result.ProcessingTime = endTime.Sub(startTime)
-	result.Summary = fmt.Sprintf("Import completed: %d processed, %d success, %d errors, %d warnings", 
+	result.Summary = fmt.Sprintf("Import completed: %d processed, %d success, %d errors, %d warnings",
 		result.TotalProcessed, result.SuccessCount, result.ErrorCount, result.WarningCount)
-	
+
 	// Generate recovery actions
 	result.RecoveryActions = m.generateRecoveryActions(result.Errors)
-	
+
 	// Generate detailed report
 	result.DetailedReport = m.generateDetailedReport(result)
 
@@ -255,7 +255,7 @@ func (m *BulkImportMgmt) validateQuestion(question entity.Question, rowNumber in
 	// Validate required fields
 	if util.IsTextEmpty(question.Content) {
 		errors = append(errors, m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeValidationError,
-			entity.BulkImportErrorSeverityError, "Question content is required", "content", 
+			entity.BulkImportErrorSeverityError, "Question content is required", "content",
 			"Nhập nội dung câu hỏi đầy đủ", "", "", true))
 	}
 
@@ -292,7 +292,7 @@ func (m *BulkImportMgmt) validateQuestion(question entity.Question, rowNumber in
 }
 
 // createBulkImportError creates a bulk import error entity
-func (m *BulkImportMgmt) createBulkImportError(importID string, rowNumber int32, errorType entity.BulkImportErrorType, 
+func (m *BulkImportMgmt) createBulkImportError(importID string, rowNumber int32, errorType entity.BulkImportErrorType,
 	severity entity.BulkImportErrorSeverity, message, field, suggestion, rowData, questionID string, isRecoverable bool) entity.BulkImportError {
 	return entity.BulkImportError{
 		ID:            util.StringToPgText(uuid.New().String()),
@@ -332,7 +332,7 @@ func (m *BulkImportMgmt) generateRecoveryActions(errors []entity.BulkImportError
 // generateDetailedReport generates a detailed import report
 func (m *BulkImportMgmt) generateDetailedReport(result *entity.BulkImportResult) string {
 	report := strings.Builder{}
-	
+
 	report.WriteString(fmt.Sprintf("=== BULK IMPORT REPORT ===\n"))
 	report.WriteString(fmt.Sprintf("Import ID: %s\n", result.ImportID))
 	report.WriteString(fmt.Sprintf("Processing Time: %v\n", result.ProcessingTime))
@@ -340,33 +340,33 @@ func (m *BulkImportMgmt) generateDetailedReport(result *entity.BulkImportResult)
 	report.WriteString(fmt.Sprintf("Success: %d\n", result.SuccessCount))
 	report.WriteString(fmt.Sprintf("Errors: %d\n", result.ErrorCount))
 	report.WriteString(fmt.Sprintf("Warnings: %d\n", result.WarningCount))
-	
+
 	if len(result.Errors) > 0 {
 		report.WriteString("\n=== ERRORS ===\n")
 		for _, err := range result.Errors {
-			report.WriteString(fmt.Sprintf("Row %d: %s - %s\n", 
-				util.PgInt4ToInt32(err.RowNumber), 
+			report.WriteString(fmt.Sprintf("Row %d: %s - %s\n",
+				util.PgInt4ToInt32(err.RowNumber),
 				util.PgTextToString(err.Message),
 				util.PgTextToString(err.Suggestion)))
 		}
 	}
-	
+
 	if len(result.Warnings) > 0 {
 		report.WriteString("\n=== WARNINGS ===\n")
 		for _, warning := range result.Warnings {
-			report.WriteString(fmt.Sprintf("Row %d: %s\n", 
-				util.PgInt4ToInt32(warning.RowNumber), 
+			report.WriteString(fmt.Sprintf("Row %d: %s\n",
+				util.PgInt4ToInt32(warning.RowNumber),
 				util.PgTextToString(warning.Message)))
 		}
 	}
-	
+
 	if len(result.RecoveryActions) > 0 {
 		report.WriteString("\n=== RECOVERY ACTIONS ===\n")
 		for i, action := range result.RecoveryActions {
 			report.WriteString(fmt.Sprintf("%d. %s\n", i+1, action))
 		}
 	}
-	
+
 	return report.String()
 }
 

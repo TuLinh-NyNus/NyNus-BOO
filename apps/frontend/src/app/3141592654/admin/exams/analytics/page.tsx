@@ -9,7 +9,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
@@ -98,15 +98,9 @@ export default function AdminExamAnalyticsPage() {
   const [analytics, setAnalytics] = useState<ExamAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // ===== EFFECTS =====
-
-  useEffect(() => {
-    loadAnalytics();
-  }, []);
-
   // ===== HANDLERS =====
 
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     setLoading(true);
     
     try {
@@ -126,7 +120,7 @@ export default function AdminExamAnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   const handleBack = () => {
     router.push(ADMIN_PATHS.EXAMS);
@@ -139,6 +133,12 @@ export default function AdminExamAnalyticsPage() {
       variant: 'default'
     });
   };
+
+  // ===== EFFECTS =====
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   // ===== RENDER =====
 

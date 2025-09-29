@@ -29,7 +29,7 @@ import {
 } from "@/components/ui";
 
 // Import types (for future use)
-// import { PublicQuestionFilters } from "@/lib/types/public";
+// import { PublicQuestionFilters } from "@/types/public";
 
 // ===== CONSTANTS =====
 

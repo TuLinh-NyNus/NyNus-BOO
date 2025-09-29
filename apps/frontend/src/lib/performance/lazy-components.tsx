@@ -379,12 +379,7 @@ export const preloadComponents = {
   resourceProtection: () => import('@/components/resource-protection/resource-access-monitor'),
   userRiskProfile: () => import('@/components/resource-protection/user-risk-profile'),
   notificationCenter: () => import('@/components/notifications/notification-center'),
-  // TODO: Enable when components are created
-  // userManagement: () => import('@/components/admin/user-management').catch(() => null),
-  // auditLogs: () => import('@/components/admin/audit-logs').catch(() => null),
   notificationPreferences: () => import('@/components/notifications/notification-preferences').catch(() => null),
-  // userSettings: () => import('@/components/settings/user-settings').catch(() => null),
-  // securitySettings: () => import('@/components/settings/security-settings').catch(() => null),
 };
 
 /**

@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	_ "github.com/lib/pq"
 )
 
 // TestAnalyticsIntegration tests the complete analytics functionality
@@ -105,16 +105,16 @@ func TestAnalyticsServiceRecommendations(t *testing.T) {
 		// Create mock analytics data
 		analytics := &interfaces.ExamAnalytics{
 			Statistics: &interfaces.ExamStatistics{
-				PassRate:         30.0, // Low pass rate
-				AverageScore:     45.0,
-				TotalAttempts:    100,
+				PassRate:          30.0, // Low pass rate
+				AverageScore:      45.0,
+				TotalAttempts:     100,
 				CompletedAttempts: 80,
 			},
 			DifficultyAnalysis: &interfaces.DifficultyAnalysis{
-				EasyQuestions:   1,
-				MediumQuestions: 2,
-				HardQuestions:   7,
-				ExpertQuestions: 5,
+				EasyQuestions:     1,
+				MediumQuestions:   2,
+				HardQuestions:     7,
+				ExpertQuestions:   5,
 				OverallDifficulty: "Hard",
 			},
 			TimeAnalysis: &interfaces.TimeAnalysis{
@@ -248,7 +248,7 @@ func TestMonitoringServiceAlerts(t *testing.T) {
 		metrics := &SystemHealthMetrics{
 			DatabaseHealth: "unhealthy",
 			ResponseTime:   1500.0, // High response time
-			SystemLoad:    0.9,     // High system load
+			SystemLoad:     0.9,    // High system load
 		}
 
 		alerts := service.collectSystemAlerts(context.Background(), metrics)
@@ -291,12 +291,12 @@ func TestMonitoringServiceAlerts(t *testing.T) {
 
 // Helper function to check if a string contains a substring (case-insensitive)
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-		    (len(s) > len(substr) && 
-		     (s[:len(substr)] == substr || 
-		      s[len(s)-len(substr):] == substr || 
-		      containsSubstring(s, substr))))
+	return len(s) >= len(substr) &&
+		(s == substr ||
+			(len(s) > len(substr) &&
+				(s[:len(substr)] == substr ||
+					s[len(s)-len(substr):] == substr ||
+					containsSubstring(s, substr))))
 }
 
 func containsSubstring(s, substr string) bool {

@@ -35,7 +35,7 @@ export function UserMenu({
     const loadUser = async () => {
       try {
         const userData = await adminHeaderMockService.getCurrentUser();
-        setUser(userData);
+        setUser(userData as unknown as AdminUser);
       } catch (error) {
         console.error('Failed to load user data:', error);
       }
@@ -101,7 +101,7 @@ export function UserMenu({
       return (
         <Image
           src={user.avatar}
-          alt={user.name}
+          alt={user.name || user.email || 'User'}
           width={32}
           height={32}
           className="w-8 h-8 rounded-full object-cover"

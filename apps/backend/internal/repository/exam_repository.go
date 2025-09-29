@@ -1649,13 +1649,13 @@ func (r *ExamRepository) GetExamStatistics(ctx context.Context, examID string) (
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &interfaces.ExamStatistics{
-				ExamID:           examID,
-				TotalAttempts:    0,
+				ExamID:            examID,
+				TotalAttempts:     0,
 				CompletedAttempts: 0,
-				AverageScore:     0,
-				PassRate:         0,
-				AverageTimeSpent: 0,
-				QuestionStats:    []*interfaces.QuestionStatistics{},
+				AverageScore:      0,
+				PassRate:          0,
+				AverageTimeSpent:  0,
+				QuestionStats:     []*interfaces.QuestionStatistics{},
 			}, nil
 		}
 		return nil, fmt.Errorf("failed to get exam statistics: %w", err)
@@ -1767,14 +1767,14 @@ func (r *ExamRepository) GetUserPerformance(ctx context.Context, userID, examID 
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return &interfaces.UserPerformance{
-				UserID:           userID,
-				ExamID:           examID,
-				TotalAttempts:    0,
-				BestScore:        0,
-				BestPercentage:   0,
-				AverageScore:     0,
-				LastAttemptDate:  nil,
-				ImprovementRate:  0,
+				UserID:          userID,
+				ExamID:          examID,
+				TotalAttempts:   0,
+				BestScore:       0,
+				BestPercentage:  0,
+				AverageScore:    0,
+				LastAttemptDate: nil,
+				ImprovementRate: 0,
 			}, nil
 		}
 		return nil, fmt.Errorf("failed to get user performance: %w", err)
@@ -1873,11 +1873,11 @@ func (r *ExamRepository) GetExamAnalytics(ctx context.Context, examID string) (*
 	}
 
 	analytics := &interfaces.ExamAnalytics{
-		ExamID:              examID,
-		Statistics:          statistics,
-		DifficultyAnalysis:  difficultyAnalysis,
-		TimeAnalysis:        timeAnalysis,
-		PerformanceTrends:   performanceTrends,
+		ExamID:             examID,
+		Statistics:         statistics,
+		DifficultyAnalysis: difficultyAnalysis,
+		TimeAnalysis:       timeAnalysis,
+		PerformanceTrends:  performanceTrends,
 	}
 
 	return analytics, nil

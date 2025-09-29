@@ -4,8 +4,9 @@
  */
 
 import * as grpcWeb from 'grpc-web';
+import { getGrpcUrl } from '@/lib/config/endpoints';
 
-export const GRPC_WEB_HOST = process.env.NEXT_PUBLIC_GRPC_URL || process.env.NEXT_PUBLIC_GRPC_WEB_URL || 'http://localhost:8080';
+export const GRPC_WEB_HOST = getGrpcUrl();
 
 export function getAuthMetadata(): grpcWeb.Metadata {
   const md: grpcWeb.Metadata = {};

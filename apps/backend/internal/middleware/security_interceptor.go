@@ -15,10 +15,10 @@ import (
 
 // SecurityInterceptor provides security validation for exam-related gRPC calls
 type SecurityInterceptor struct {
-	examSessionSecurity  *security.ExamSessionSecurity
-	antiCheatService     *security.AntiCheatService
-	rateLimitService     *security.ExamRateLimitService
-	logger               *logrus.Logger
+	examSessionSecurity *security.ExamSessionSecurity
+	antiCheatService    *security.AntiCheatService
+	rateLimitService    *security.ExamRateLimitService
+	logger              *logrus.Logger
 }
 
 // NewSecurityInterceptor creates a new security interceptor
@@ -158,15 +158,15 @@ func (s *SecurityInterceptor) checkRateLimit(ctx context.Context, userID, method
 
 	if !result.Allowed {
 		s.logger.WithFields(logrus.Fields{
-			"user_id":     userID,
-			"exam_id":     examID,
-			"action":      actionType,
-			"is_blocked":  result.IsBlocked,
-			"reason":      result.Reason,
+			"user_id":    userID,
+			"exam_id":    examID,
+			"action":     actionType,
+			"is_blocked": result.IsBlocked,
+			"reason":     result.Reason,
 		}).Warn("Rate limit exceeded")
 
 		if result.IsBlocked {
-			return status.Errorf(codes.ResourceExhausted, 
+			return status.Errorf(codes.ResourceExhausted,
 				"rate limit exceeded - blocked until %s", result.BlockedUntil.Format("15:04:05"))
 		}
 

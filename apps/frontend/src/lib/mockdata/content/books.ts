@@ -1,5 +1,5 @@
 // Mock data for books/materials - Admin management
-import { AdminBook, MockPagination, MockApiResponse } from '../shared/core-types';
+import { AdminBook, MockPagination, MockApiResponse } from '../core-types';
 
 // Mock books data với realistic content
 export const mockBooks: AdminBook[] = [

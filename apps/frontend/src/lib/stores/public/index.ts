@@ -21,4 +21,4 @@ export {
 export type {
   PublicQuestionFilters,
   PublicQuestionSortBy
-} from '@/lib/types/public';
+} from '@/types/public';

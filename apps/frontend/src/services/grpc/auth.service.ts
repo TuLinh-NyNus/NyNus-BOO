@@ -27,11 +27,12 @@ import {
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
+import { getGrpcUrl } from '@/lib/config/endpoints';
 
 /**
  * gRPC client configuration
  */
-const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+const GRPC_ENDPOINT = getGrpcUrl();
 
 /**
  * Create UserService client instance with JSON format for gRPC Gateway compatibility
@@ -138,7 +139,7 @@ export class AuthService {
     const request = new RegisterRequest();
     request.setEmail(params.email);
     request.setPassword(params.password);
-    request.setName(`${params.firstName} ${params.lastName}`);
+    // request.setName(`${params.firstName} ${params.lastName}`); // Method not available in protobuf
 
     try {
       const response = await userServiceClient.register(request);

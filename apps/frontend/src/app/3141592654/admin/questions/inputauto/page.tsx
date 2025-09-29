@@ -38,8 +38,8 @@ import {
   Question,
   QuestionType,
   QuestionStatus
-} from '@/lib/types/question';
-import { MockQuestionsService } from '@/lib/services/mock/questions';
+} from '@/types/question';
+import { MockQuestionsService } from '@/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**
@@ -206,6 +206,7 @@ export default function InputAutoQuestionsPage() {
   const renderQuestionTypeBadge = (type: QuestionType) => {
     const typeLabels = {
       [QuestionType.MC]: 'Trắc nghiệm',
+      [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
       [QuestionType.TF]: 'Đúng/Sai',
       [QuestionType.SA]: 'Tự luận ngắn',
       [QuestionType.ES]: 'Tự luận',
@@ -214,6 +215,7 @@ export default function InputAutoQuestionsPage() {
 
     const typeColors = {
       [QuestionType.MC]: 'bg-blue-100 text-blue-800',
+      [QuestionType.MULTIPLE_CHOICE]: 'bg-blue-100 text-blue-800',
       [QuestionType.TF]: 'bg-green-100 text-green-800',
       [QuestionType.SA]: 'bg-yellow-100 text-yellow-800',
       [QuestionType.ES]: 'bg-purple-100 text-purple-800',

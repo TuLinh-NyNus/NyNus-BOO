@@ -7,8 +7,8 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
 
@@ -20,8 +20,8 @@ import (
 // ExamServiceServer implements the ExamService gRPC server
 type ExamServiceServer struct {
 	v1.UnimplementedExamServiceServer
-	examService     *exam.ExamService
-	autoGrading     *scoring.AutoGradingService
+	examService *exam.ExamService
+	autoGrading *scoring.AutoGradingService
 }
 
 // NewExamServiceServer creates a new ExamServiceServer
@@ -689,8 +689,8 @@ func convertProtoToExam(req *v1.CreateExamRequest, userID string) *entity.Exam {
 		// Settings
 		ShuffleQuestions: req.GetShuffleQuestions(),
 		// TODO: Add ShuffleAnswers, ShowAnswers, AllowReview to entity.Exam
-		ShowResults:      req.GetShowResults(),
-		MaxAttempts:      int(req.GetMaxAttempts()),
+		ShowResults: req.GetShowResults(),
+		MaxAttempts: int(req.GetMaxAttempts()),
 
 		// Official exam fields (optional)
 		SourceInstitution: stringToStringPtr(req.GetSourceInstitution()),
@@ -730,8 +730,8 @@ func convertUpdateProtoToExam(req *v1.UpdateExamRequest, existing *entity.Exam, 
 		// Settings
 		ShuffleQuestions: req.GetShuffleQuestions(),
 		// TODO: Add ShuffleAnswers, ShowAnswers, AllowReview to entity.Exam
-		ShowResults:      req.GetShowResults(),
-		MaxAttempts:      int(req.GetMaxAttempts()),
+		ShowResults: req.GetShowResults(),
+		MaxAttempts: int(req.GetMaxAttempts()),
 
 		// Official exam fields (optional)
 		SourceInstitution: stringToStringPtr(req.GetSourceInstitution()),

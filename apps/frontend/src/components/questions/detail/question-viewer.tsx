@@ -43,7 +43,7 @@ import { SolutionPanel } from './solution-panel';
 import { MetadataDisplay } from './metadata-display';
 
 // Import types
-import { PublicQuestion } from '@/lib/types/public';
+import { PublicQuestion } from '@/types/public';
 
 // Import utils
 import { cn } from '@/lib/utils';

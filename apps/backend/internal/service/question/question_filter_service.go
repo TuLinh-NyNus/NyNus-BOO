@@ -17,11 +17,11 @@ import (
 
 // QuestionFilterService handles question filtering operations
 type QuestionFilterService struct {
-	DB                    *sql.DB
-	questionRepo          interfaces.QuestionRepository
-	questionFilterRepo    *repository.QuestionFilterRepository
-	openSearchRepo        *opensearch.QuestionRepository
-	logger                *logrus.Logger
+	DB                 *sql.DB
+	questionRepo       interfaces.QuestionRepository
+	questionFilterRepo *repository.QuestionFilterRepository
+	openSearchRepo     *opensearch.QuestionRepository
+	logger             *logrus.Logger
 }
 
 // NewQuestionFilterService creates a new question filter management service
@@ -185,10 +185,10 @@ func (qfm *QuestionFilterService) ListQuestionsByFilter(ctx context.Context, req
 // SearchQuestions performs full-text search with filters
 func (qfm *QuestionFilterService) SearchQuestions(ctx context.Context, req *v1.SearchQuestionsRequest) (*v1.SearchQuestionsResponse, error) {
 	qfm.logger.WithFields(logrus.Fields{
-		"query":        req.Query,
+		"query":         req.Query,
 		"search_fields": req.SearchFields,
-		"page":         req.Pagination.GetPage(),
-		"limit":        req.Pagination.GetLimit(),
+		"page":          req.Pagination.GetPage(),
+		"limit":         req.Pagination.GetLimit(),
 	}).Info("Processing search questions request")
 
 	// Build search criteria
@@ -267,9 +267,9 @@ func (qfm *QuestionFilterService) SearchQuestions(ctx context.Context, req *v1.S
 	}
 
 	qfm.logger.WithFields(logrus.Fields{
-		"total_results": total,
+		"total_results":  total,
 		"returned_count": len(protoResults),
-		"total_pages":   totalPages,
+		"total_pages":    totalPages,
 	}).Info("Search completed successfully")
 
 	return response, nil
@@ -391,16 +391,16 @@ func (qfm *QuestionFilterService) convertToProtoSearchResult(question *entity.Qu
 func (qfm *QuestionFilterService) convertQuestionToProto(question *entity.Question) *v1.QuestionDetail {
 	// Basic conversion using util functions
 	protoQuestion := &v1.QuestionDetail{
-		Id:          util.PgTextToString(question.ID),
-		Content:     util.PgTextToString(question.Content),
-		RawContent:  util.PgTextToString(question.RawContent),
-		Type:        convertStringToQuestionType(util.PgTextToString(question.Type)),
-		Difficulty:  convertStringToDifficultyLevel(util.PgTextToString(question.Difficulty)),
-		Status:      convertStringToQuestionStatus(util.PgTextToString(question.Status)),
-		Creator:     util.PgTextToString(question.Creator),
-		UsageCount:  util.PgInt4ToInt32(question.UsageCount),
-		Feedback:    util.PgInt4ToInt32(question.Feedback),
-		Tags:        util.PgTextArrayToStringSlice(question.Tag),
+		Id:         util.PgTextToString(question.ID),
+		Content:    util.PgTextToString(question.Content),
+		RawContent: util.PgTextToString(question.RawContent),
+		Type:       convertStringToQuestionType(util.PgTextToString(question.Type)),
+		Difficulty: convertStringToDifficultyLevel(util.PgTextToString(question.Difficulty)),
+		Status:     convertStringToQuestionStatus(util.PgTextToString(question.Status)),
+		Creator:    util.PgTextToString(question.Creator),
+		UsageCount: util.PgInt4ToInt32(question.UsageCount),
+		Feedback:   util.PgInt4ToInt32(question.Feedback),
+		Tags:       util.PgTextArrayToStringSlice(question.Tag),
 	}
 
 	// Add optional fields

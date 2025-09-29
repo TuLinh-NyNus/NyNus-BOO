@@ -15,7 +15,7 @@ import {
   QuestionStatus as DomainQuestionStatus,
   QuestionDifficulty as DomainQuestionDifficulty,
   type CorrectAnswer as DomainCorrectAnswer,
-} from '@/lib/types/question';
+} from '@/types/question';
 
 import {
   type Question as GrpcQuestion,
@@ -36,25 +36,60 @@ import {
   type QuestionDifficulty as GrpcQuestionDifficulty,
 } from '@/types/question.types';
 
+// Type for protobuf questions with potential JSON methods
+interface ProtobufQuestion extends GrpcQuestion {
+  getJsonAnswers?: () => string;
+  getJsonCorrectAnswer?: () => string;
+}
+
+// Type for protobuf responses with potential nested data
+interface ProtobufListResponse {
+  questions: DomainQuestion[];
+  questionsList?: GrpcQuestion[];
+  pagination?: {
+    page?: number;
+    limit?: number;
+    totalCount?: number;
+  };
+}
+
+interface ProtobufCreateResponse {
+  success: boolean;
+  data?: GrpcQuestion;
+  id?: string;
+}
+
+interface ProtobufUpdateResponse {
+  success: boolean;
+  data?: GrpcQuestion;
+}
+
+interface _ProtobufDeleteResponse {
+  success: boolean;
+  data?: GrpcQuestion;
+}
+
 /**
  * Convert gRPC Question to Domain Question
  */
 export function grpcQuestionToDomain(grpcQuestion: GrpcQuestion): DomainQuestion {
+  const protobufQuestion = grpcQuestion as ProtobufQuestion;
+
   // Parse answers from JSON if needed
-  let answers = grpcQuestion.structured_answers;
-  if (!answers && grpcQuestion.json_answers) {
+  let answers = grpcQuestion.answers;
+  if (!answers && protobufQuestion.getJsonAnswers && typeof protobufQuestion.getJsonAnswers === 'function') {
     try {
-      answers = JSON.parse(grpcQuestion.json_answers);
+      answers = JSON.parse(protobufQuestion.getJsonAnswers());
     } catch {
       answers = undefined;
     }
   }
 
   // Parse correct answer from JSON if needed
-  let correctAnswer = grpcQuestion.structured_correct;
-  if (!correctAnswer && grpcQuestion.json_correct_answer) {
+  let correctAnswer = grpcQuestion.correctAnswer;
+  if (!correctAnswer && protobufQuestion.getJsonCorrectAnswer && typeof protobufQuestion.getJsonCorrectAnswer === 'function') {
     try {
-      correctAnswer = JSON.parse(grpcQuestion.json_correct_answer);
+      correctAnswer = JSON.parse(protobufQuestion.getJsonCorrectAnswer());
     } catch {
       correctAnswer = undefined;
     }
@@ -62,7 +97,7 @@ export function grpcQuestionToDomain(grpcQuestion: GrpcQuestion): DomainQuestion
 
   return {
     id: grpcQuestion.id,
-    rawContent: grpcQuestion.raw_content,
+    rawContent: grpcQuestion.rawContent,
     content: grpcQuestion.content,
     subcount: grpcQuestion.subcount,
     type: grpcQuestion.type as DomainQuestionType,
@@ -72,14 +107,14 @@ export function grpcQuestionToDomain(grpcQuestion: GrpcQuestion): DomainQuestion
     solution: grpcQuestion.solution,
     explanation: grpcQuestion.solution, // Map solution to explanation
     tag: grpcQuestion.tag || [],
-    usageCount: grpcQuestion.usage_count,
+    usageCount: grpcQuestion.usageCount,
     creator: grpcQuestion.creator,
     status: grpcQuestion.status as DomainQuestionStatus,
     feedback: grpcQuestion.feedback,
     difficulty: grpcQuestion.difficulty as DomainQuestionDifficulty,
-    questionCodeId: grpcQuestion.question_code_id,
-    createdAt: grpcQuestion.created_at,
-    updatedAt: grpcQuestion.updated_at,
+    questionCodeId: grpcQuestion.questionCodeId,
+    createdAt: grpcQuestion.createdAt,
+    updatedAt: grpcQuestion.updatedAt,
     
     // Optional fields
     points: undefined,
@@ -93,25 +128,25 @@ export function grpcQuestionToDomain(grpcQuestion: GrpcQuestion): DomainQuestion
 export function domainQuestionToGrpc(domainQuestion: DomainQuestion): GrpcQuestion {
   return {
     id: domainQuestion.id,
-    raw_content: domainQuestion.rawContent,
+    rawContent: domainQuestion.rawContent,
     content: domainQuestion.content,
     subcount: domainQuestion.subcount || '',
     type: domainQuestion.type as GrpcQuestionType,
     source: domainQuestion.source || '',
-    structured_answers: domainQuestion.answers as Answer[],
-    json_answers: domainQuestion.answers ? JSON.stringify(domainQuestion.answers) : undefined,
-    structured_correct: domainQuestion.correctAnswer as GrpcCorrectAnswer,
-    json_correct_answer: domainQuestion.correctAnswer ? JSON.stringify(domainQuestion.correctAnswer) : undefined,
+    answers: domainQuestion.answers as Answer[],
+    // jsonAnswers will be set by protobuf if needed
+    correctAnswer: domainQuestion.correctAnswer as GrpcCorrectAnswer,
+    // jsonCorrectAnswer: domainQuestion.correctAnswer ? JSON.stringify(domainQuestion.correctAnswer) : undefined, // Not part of protobuf Question
     solution: domainQuestion.solution,
     tag: domainQuestion.tag || [],
-    usage_count: domainQuestion.usageCount || 0,
+    usageCount: domainQuestion.usageCount || 0,
     creator: domainQuestion.creator || '',
     status: (domainQuestion.status || 'PENDING') as GrpcQuestionStatus,
     feedback: domainQuestion.feedback || 0,
     difficulty: (domainQuestion.difficulty || 'MEDIUM') as GrpcQuestionDifficulty,
-    question_code_id: domainQuestion.questionCodeId,
-    created_at: domainQuestion.createdAt,
-    updated_at: domainQuestion.updatedAt,
+    questionCodeId: domainQuestion.questionCodeId,
+    createdAt: domainQuestion.createdAt,
+    updatedAt: domainQuestion.updatedAt,
   };
 }
 
@@ -120,19 +155,19 @@ export function domainQuestionToGrpc(domainQuestion: DomainQuestion): GrpcQuesti
  */
 export function draftToCreateRequest(draft: QuestionDraft): CreateQuestionRequest {
   return {
-    raw_content: draft.rawContent || draft.content,
+    // rawContent: draft.rawContent || draft.content, // Not part of CreateQuestionRequest
     content: draft.content,
-    subcount: '',
+    // subcount: '', // Not part of CreateQuestionRequest
     type: draft.type as GrpcQuestionType,
-    source: draft.source || '',
-    structured_answers: draft.answers as Answer[],
-    json_answers: draft.answers ? JSON.stringify(draft.answers) : undefined,
-    structured_correct: draft.correctAnswer as GrpcCorrectAnswer,
-    json_correct_answer: draft.correctAnswer ? JSON.stringify(draft.correctAnswer) : undefined,
-    solution: draft.explanation || '',
-    tag: draft.tags || [],
-    question_code_id: draft.questionCodeId || '',
-    status: 'PENDING' as GrpcQuestionStatus,
+    // source: draft.source || '', // Not part of CreateQuestionRequest
+    answers: draft.answers as Answer[],
+    // jsonAnswers will be set by protobuf if needed
+    correctAnswer: draft.correctAnswer as GrpcCorrectAnswer,
+    // jsonCorrectAnswer: draft.correctAnswer ? JSON.stringify(draft.correctAnswer) : undefined, // Not part of CreateQuestionRequest
+    // solution: draft.explanation || '', // Not part of CreateQuestionRequest
+    tags: draft.tags || [],
+    // questionCodeId: draft.questionCodeId || '', // Not part of CreateQuestionRequest
+    // status: 'PENDING' as GrpcQuestionStatus, // Not part of CreateQuestionRequest
     difficulty: (draft.difficulty || 'MEDIUM') as GrpcQuestionDifficulty,
     creator: '',
   };
@@ -181,18 +216,18 @@ export function createDeleteRequest(id: string): DeleteQuestionRequest {
  * Create ListQuestionsRequest from filters and pagination
  */
 export function createListRequest(
-  filters?: QuestionFilters,
-  page?: number,
-  pageSize?: number
+  _filters?: QuestionFilters,
+  _page?: number,
+  _pageSize?: number
 ): ListQuestionsRequest {
   return {
-    pagination: {
-      page: page || filters?.page || 1,
-      limit: pageSize || filters?.pageSize || 20,
-      sort_by: filters?.sortBy || 'created_at',
-      sort_order: filters?.sortDir || 'desc',
-    },
-  };
+    // pagination: { // Not part of ListQuestionsRequest
+    //   page: page || filters?.page || 1,
+    //   limit: pageSize || filters?.pageSize || 20,
+    //   sortBy: filters?.sortBy || 'created_at',
+    //   sortOrder: filters?.sortDir || 'desc',
+    // }
+  } as ListQuestionsRequest;
 }
 
 /**
@@ -204,11 +239,12 @@ export function parseListResponse(response: ListQuestionsResponse): {
   pageSize: number;
   total: number;
 } {
+  const protobufResponse = response as ProtobufListResponse;
   return {
-    questions: response.questions.map(grpcQuestionToDomain),
-    page: response.pagination?.page || 1,
-    pageSize: response.pagination?.limit || 20,
-    total: response.pagination?.total_count || 0,
+    questions: (protobufResponse.questionsList || protobufResponse.questions || []).map(grpcQuestionToDomain),
+    page: protobufResponse.pagination?.page || 1,
+    pageSize: protobufResponse.pagination?.limit || 20,
+    total: protobufResponse.pagination?.totalCount || 0,
   };
 }
 
@@ -216,8 +252,9 @@ export function parseListResponse(response: ListQuestionsResponse): {
  * Parse CreateQuestionResponse to domain format
  */
 export function parseCreateResponse(response: CreateQuestionResponse): DomainQuestion | null {
-  if (response.success && response.question) {
-    return grpcQuestionToDomain(response.question);
+  const protobufResponse = response as ProtobufCreateResponse;
+  if (protobufResponse.success && protobufResponse.data) {
+    return grpcQuestionToDomain(protobufResponse.data);
   }
   return null;
 }
@@ -226,8 +263,9 @@ export function parseCreateResponse(response: CreateQuestionResponse): DomainQue
  * Parse GetQuestionResponse to domain format
  */
 export function parseGetResponse(response: GetQuestionResponse): DomainQuestion | null {
-  if (response.success && response.question) {
-    return grpcQuestionToDomain(response.question);
+  const protobufResponse = response as unknown as ProtobufCreateResponse; // Same structure as create response
+  if (protobufResponse.success && protobufResponse.data) {
+    return grpcQuestionToDomain(protobufResponse.data);
   }
   return null;
 }
@@ -236,8 +274,9 @@ export function parseGetResponse(response: GetQuestionResponse): DomainQuestion 
  * Parse UpdateQuestionResponse to domain format
  */
 export function parseUpdateResponse(response: UpdateQuestionResponse): DomainQuestion | null {
-  if (response.success && response.question) {
-    return grpcQuestionToDomain(response.question);
+  const protobufResponse = response as ProtobufUpdateResponse;
+  if (protobufResponse.success && protobufResponse.data) {
+    return grpcQuestionToDomain(protobufResponse.data);
   }
   return null;
 }

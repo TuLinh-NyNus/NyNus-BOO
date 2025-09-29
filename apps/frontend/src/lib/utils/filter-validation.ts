@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-import { QuestionFilters, QuestionType, QuestionDifficulty, QuestionStatus } from '@/lib/types/question';
+import { QuestionFilters, QuestionType, QuestionDifficulty, QuestionStatus } from '@/types/question';
 
 // ===== INTERFACES =====
 

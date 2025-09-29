@@ -10,13 +10,10 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
-import { 
-  GripVertical, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Plus, 
-  Minus,
+import {
+  Trash2,
+  Eye,
+  Plus,
   ChevronUp,
   ChevronDown,
   Settings
@@ -31,7 +28,6 @@ import {
   Button,
   Input,
   Badge,
-  Separator,
   Switch,
   Label,
   Tooltip,
@@ -42,7 +38,7 @@ import {
 
 // Types
 import { SelectedQuestion } from "./question-selector";
-import { QuestionType, QuestionDifficulty } from "@/lib/types/question";
+import { QuestionType, QuestionDifficulty } from "@/types/question";
 
 // Utils
 import { cn } from "@/lib/utils";
@@ -82,6 +78,7 @@ export interface SelectedQuestionsPreviewProps {
 
 const QUESTION_TYPE_LABELS = {
   [QuestionType.MC]: 'Trắc nghiệm',
+  [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
   [QuestionType.TF]: 'Đúng/Sai',
   [QuestionType.SA]: 'Trả lời ngắn',
   [QuestionType.ES]: 'Tự luận',
@@ -104,7 +101,7 @@ export function SelectedQuestionsPreview({
   onQuestionsReorder,
   onOpenSelector,
   onViewQuestion,
-  onEditQuestion,
+  onEditQuestion: _onEditQuestion,
   allowEdit = true,
   className,
 }: SelectedQuestionsPreviewProps) {
@@ -365,7 +362,7 @@ export function SelectedQuestionsPreview({
           <div className="text-center py-8 text-muted-foreground">
             <Plus className="w-12 h-12 mx-auto mb-4 opacity-50" />
             <p>Chưa có câu hỏi nào được chọn</p>
-            <p className="text-sm">Nhấn "Chọn câu hỏi" để thêm câu hỏi vào đề thi</p>
+            <p className="text-sm">Nhấn &quot;Chọn câu hỏi&quot; để thêm câu hỏi vào đề thi</p>
           </div>
         ) : (
           <div className="space-y-3">

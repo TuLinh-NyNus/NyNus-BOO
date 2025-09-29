@@ -44,7 +44,7 @@ import { useQuestionListAccessibility } from "@/lib/utils/question-list-accessib
 import {
   Question,
   QuestionPagination
-} from "@/lib/types/question";
+} from "@/types/question";
 
 // ===== CONSTANTS =====
 

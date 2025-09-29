@@ -45,7 +45,7 @@ const TabsContent = ({
   return <div className={className}>{children}</div>;
 };
 import { Shield, Grid3X3, File, Settings, RefreshCw } from "lucide-react";
-import { UserRole } from "../../../../types/admin-user";
+import { UserRole } from "@/lib/mockdata/core-types";
 import { PermissionMatrix } from "../../../../components/admin/roles/permission-matrix";
 import { PermissionEditor } from "../../../../components/admin/roles/permission-editor";
 import { PermissionTemplates } from "../../../../components/admin/roles/permission-templates";

@@ -36,7 +36,7 @@ func TestExamRepository_EnumAlignment(t *testing.T) {
 	t.Run("NewExam uses correct defaults", func(t *testing.T) {
 		// Test that NewExam constructor uses new enum values
 		exam := entity.NewExam("Test Exam", "Test Description", "test-user")
-		
+
 		assert.Equal(t, entity.ExamStatusPending, exam.Status, "Default status should be PENDING")
 		assert.Equal(t, entity.ExamTypeGenerated, exam.ExamType, "Default type should be generated")
 		assert.Equal(t, "Test Exam", exam.Title)
@@ -84,18 +84,18 @@ func TestExamRepository_CRUD(t *testing.T) {
 
 	t.Run("Status transitions work correctly", func(t *testing.T) {
 		exam := entity.NewExam("Test Exam", "Description", "user")
-		
+
 		// Test status transitions
 		assert.Equal(t, entity.ExamStatusPending, exam.Status, "Should start as PENDING")
-		
+
 		// Simulate publishing
 		exam.Status = entity.ExamStatusActive
 		assert.Equal(t, "ACTIVE", string(exam.Status))
-		
+
 		// Simulate archiving
 		exam.Status = entity.ExamStatusArchived
 		assert.Equal(t, "ARCHIVED", string(exam.Status))
-		
+
 		// Test inactive status
 		exam.Status = entity.ExamStatusInactive
 		assert.Equal(t, "INACTIVE", string(exam.Status))
@@ -103,14 +103,14 @@ func TestExamRepository_CRUD(t *testing.T) {
 
 	t.Run("Type transitions work correctly", func(t *testing.T) {
 		exam := entity.NewExam("Test Exam", "Description", "user")
-		
+
 		// Test type transitions
 		assert.Equal(t, entity.ExamTypeGenerated, exam.ExamType, "Should start as generated")
-		
+
 		// Simulate changing to official
 		exam.ExamType = entity.ExamTypeOfficial
 		assert.Equal(t, "official", string(exam.ExamType))
-		
+
 		// Change back to generated
 		exam.ExamType = entity.ExamTypeGenerated
 		assert.Equal(t, "generated", string(exam.ExamType))
@@ -131,7 +131,7 @@ func TestExamRepository_EnumCompatibility(t *testing.T) {
 		// Verify old values don't match new constants
 		for i, oldValue := range oldStatusValues {
 			if i < len(newStatusValues) {
-				assert.NotEqual(t, oldValue, string(newStatusValues[i]), 
+				assert.NotEqual(t, oldValue, string(newStatusValues[i]),
 					"Old value %s should not match new constant %s", oldValue, newStatusValues[i])
 			}
 		}

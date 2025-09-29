@@ -40,7 +40,7 @@ import { LaTeXContent } from '@/components/latex';
 import { PublicQuestionErrorBoundary } from '@/components/questions/shared';
 
 // Import types
-import { PublicQuestion } from '@/lib/types/public';
+import { PublicQuestion } from '@/types/public';
 import type { LaTeXExpression } from '@/lib/utils/latex-rendering';
 
 // Import utils

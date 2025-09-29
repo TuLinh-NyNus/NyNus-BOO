@@ -43,8 +43,8 @@ import { ExamTimer } from "./exam-timer";
 import { QuestionDisplay } from "./question-display";
 
 // Types
-import { Exam } from "@/lib/types/exam";
-import { Question } from "@/lib/types/question";
+import { Exam } from "@/types/exam";
+import { Question } from "@/types/question";
 
 // Custom answer interface for exam taking
 interface ExamAnswerInput {

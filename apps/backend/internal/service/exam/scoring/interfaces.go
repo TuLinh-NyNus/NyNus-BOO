@@ -11,7 +11,7 @@ type ScoringServiceInterface interface {
 	CalculateTFScore(userAnswer, correctAnswer []byte, maxPoints float64) (float64, bool, error)
 	CalculateSAScore(userAnswer, correctAnswer []byte, maxPoints float64) (float64, bool, error)
 	CalculateESScore(userAnswer, correctAnswer []byte, maxPoints float64) (float64, bool, error)
-	
+
 	// Generic scoring method
 	ScoreAnswer(ctx context.Context, questionType string, userAnswer, correctAnswer []byte, maxPoints float64) (float64, bool, error)
 }
@@ -20,10 +20,10 @@ type ScoringServiceInterface interface {
 type AutoGradingServiceInterface interface {
 	// Auto-grade entire exam attempt
 	AutoGradeExam(ctx context.Context, attemptID string) (*ExamGradingResult, error)
-	
+
 	// Grade specific questions only
 	GradeSpecificQuestions(ctx context.Context, attemptID string, questionIDs []string) ([]QuestionGradingResult, error)
-	
+
 	// Re-grade already submitted exam
 	ReGradeExam(ctx context.Context, attemptID string) (*ExamGradingResult, error)
 }

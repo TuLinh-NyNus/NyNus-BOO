@@ -116,25 +116,8 @@ export function useExamSecurity(options: UseExamSecurityOptions = {}): UseExamSe
         securityServiceRef.current.stop();
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config, onSecurityEvent, onViolationLimitReached, onSecurityBlocked]);
-
-  // Auto-start if enabled
-  useEffect(() => {
-    if (autoStart && securityServiceRef.current && !isSecurityActive) {
-      startSecurity();
-    }
-  }, [autoStart]);
-
-  // Update status periodically
-  useEffect(() => {
-    if (!isSecurityActive) return;
-
-    const interval = setInterval(() => {
-      updateStatus();
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isSecurityActive]);
 
   // Update status from security service
   const updateStatus = useCallback(() => {
@@ -224,7 +207,7 @@ export function useExamSecurity(options: UseExamSecurityOptions = {}): UseExamSe
       const failedEvents = JSON.parse(localStorage.getItem('failedSecurityEvents') || '[]');
       if (failedEvents.length === 0) return;
 
-      const retryPromises = failedEvents.map(async (event: any) => {
+      const retryPromises = failedEvents.map(async (event: SecurityEvent) => {
         try {
           await reportToBackend(event);
           return event; // Mark for removal
@@ -235,7 +218,7 @@ export function useExamSecurity(options: UseExamSecurityOptions = {}): UseExamSe
       });
 
       const results = await Promise.allSettled(retryPromises);
-      const remainingEvents = failedEvents.filter((_, index) => {
+      const remainingEvents = failedEvents.filter((_: SecurityEvent, index: number) => {
         const result = results[index];
         return result.status === 'rejected' || result.value === null;
       });
@@ -285,6 +268,24 @@ export function useExamSecurity(options: UseExamSecurityOptions = {}): UseExamSe
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isSecurityActive]);
+
+  // Auto-start if enabled
+  useEffect(() => {
+    if (autoStart && securityServiceRef.current && !isSecurityActive) {
+      startSecurity();
+    }
+  }, [autoStart, isSecurityActive, startSecurity]);
+
+  // Update status periodically
+  useEffect(() => {
+    if (!isSecurityActive) return;
+
+    const interval = setInterval(() => {
+      updateStatus();
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isSecurityActive, updateStatus]);
 
   return {
     status,

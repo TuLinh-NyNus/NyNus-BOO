@@ -2,11 +2,11 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { SessionProvider, useSession, signIn as nextAuthSignIn, signOut as nextAuthSignOut } from 'next-auth/react';
-import { type User } from '../lib/types/user/base';
+import { type User } from '@/types/user';
 // Use protobuf generated enums (primary)
 import { UserRole, UserStatus } from '../generated/common/common_pb';
 import { mockAdminUser } from '../lib/mockdata/auth';
-import { AuthService, getAuthErrorMessage } from '@/lib/services/api/auth.api';
+import { AuthService, getAuthErrorMessage } from '@/services/api/auth.api';
 
 // 🔥 KEY OPTIMIZATION: Split Context thành State và Actions
 interface AuthState {
@@ -164,12 +164,12 @@ function InternalAuthProvider({ children }: { children: ReactNode }) {
             email: session.user.email || '',
             firstName: session.user.name?.split(' ')[0] || 'User',
             lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
-            role: UserRole.STUDENT, // Use protobuf enum
+            role: UserRole.USER_ROLE_STUDENT, // Use protobuf enum
             avatar: session.user.image || undefined,
             isActive: true,
             lastLoginAt: new Date(),
             // Required fields for enhanced User interface
-            status: UserStatus.ACTIVE,
+            status: UserStatus.USER_STATUS_ACTIVE,
             emailVerified: true, // Google users have verified emails
             createdAt: new Date(),
             updatedAt: new Date()

@@ -42,7 +42,7 @@ import {
 } from "lucide-react";
 
 // Import types
-import { Question } from "@/lib/types/question";
+import { Question } from "@/types/question";
 
 // ===== TYPES =====
 

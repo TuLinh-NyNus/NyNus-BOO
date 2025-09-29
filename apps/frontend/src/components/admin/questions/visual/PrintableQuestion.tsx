@@ -11,7 +11,7 @@
 import React from 'react';
 import { QuestionLaTeXDisplay, SolutionLaTeXDisplay } from '@/components/ui/latex';
 import { AnswerOptionsDisplay } from '../answers';
-import { Question, QuestionType, QuestionDifficulty } from '@/lib/types/question';
+import { Question, QuestionType, QuestionDifficulty } from '@/types/question';
 
 /**
  * Props cho Printable Question
@@ -57,6 +57,7 @@ export function PrintableQuestion({
   const getTypeLabel = (type: QuestionType) => {
     const labels = {
       [QuestionType.MC]: 'Trắc nghiệm',
+      [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
       [QuestionType.TF]: 'Đúng/Sai',
       [QuestionType.SA]: 'Trả lời ngắn',
       [QuestionType.ES]: 'Tự luận',

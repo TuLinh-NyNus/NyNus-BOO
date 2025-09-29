@@ -22,7 +22,7 @@ import {
   searchUsers,
   getAdminErrorMessage,
   isAdminPermissionError,
-} from '@/lib/services/api/admin.api';
+} from '@/services/api/admin.api';
 
 // ===== TYPES =====
 

@@ -9,7 +9,7 @@
 "use client";
 
 import React from 'react';
-import { Question, QuestionType, AnswerOption, MatchingPair } from '@/lib/types/question';
+import { Question, QuestionType, AnswerOption, MatchingPair } from '@/types/question';
 import { 
   MultipleChoiceDisplay, 
   TrueFalseDisplay, 

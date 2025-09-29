@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuestionFilters } from './useQuestionFilters';
-import { Question, QuestionFilters } from '@/lib/types/question';
+import { Question, QuestionFilters } from '@/types/question';
 import {
   calculateQuestionListPerformance,
   shouldEnableVirtualScrolling,

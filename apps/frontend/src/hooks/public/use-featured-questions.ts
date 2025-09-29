@@ -9,8 +9,8 @@
 
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 
-import { PublicQuestionService } from '@/lib/services/public';
-import { PublicQuestion, PublicQuestionListResponse } from '@/lib/types/public';
+import { PublicQuestionService } from '@/services/public';
+import { PublicQuestion, PublicQuestionListResponse } from '@/types/public';
 
 // ===== TYPES =====
 

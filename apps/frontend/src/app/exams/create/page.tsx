@@ -17,12 +17,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { EXAM_ROUTES, EXAM_DYNAMIC_ROUTES } from '@/lib/exam-paths';
-import { ExamFormData, ExamType, ExamStatus } from '@/lib/types/exam';
-import { QuestionDifficulty } from '@/lib/types/question';
+import { ExamFormData, ExamType, ExamStatus } from '@/types/exam';
+import { QuestionDifficulty } from '@/types/question';
 import { ExamService } from '@/services/grpc/exam.service';
 
 // ===== TYPES =====
-// Using centralized ExamFormData from @/lib/types/exam
+// Using centralized ExamFormData from @/types/exam
 
 // ===== CONSTANTS =====
 
@@ -77,7 +77,7 @@ export default function CreateExamPage() {
     router.push(EXAM_ROUTES.LANDING);
   };
 
-  const handleInputChange = (field: keyof ExamFormData, value: any) => {
+  const handleInputChange = (field: keyof ExamFormData, value: string | number | boolean | string[] | ExamType | ExamStatus | QuestionDifficulty) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
     // Clear error when user starts typing

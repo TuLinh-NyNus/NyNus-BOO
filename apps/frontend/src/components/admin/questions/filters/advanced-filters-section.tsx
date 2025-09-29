@@ -15,7 +15,7 @@ import {
   Badge
 } from '@/components/ui';
 import { EnhancedCheckbox } from '@/components/ui/enhanced-checkbox';
-import { QuestionFilters, QuestionStatus } from '@/lib/types/question';
+import { QuestionFilters, QuestionStatus } from '@/types/question';
 import { useDebounce } from '@/hooks/use-debounce';
 
 /**

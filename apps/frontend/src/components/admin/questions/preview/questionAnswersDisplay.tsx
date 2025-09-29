@@ -30,7 +30,7 @@ import {
   Question, 
   QuestionType,
   AnswerOption 
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionAnswersDisplay component

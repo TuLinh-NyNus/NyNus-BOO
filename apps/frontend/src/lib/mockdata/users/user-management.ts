@@ -6,14 +6,14 @@
  * @version 1.0.0
  */
 
-import { UserRole } from '../shared/core-types';
+import { UserRole, type UserRole as UserRoleType } from '@/types/user/roles';
 
 /**
  * Interface cho bulk role promotion data
  */
 export interface BulkRolePromotionData {
   userIds: string[];
-  targetRole: UserRole;
+  targetRole: UserRoleType;
   reason: string;
   notifyUsers: boolean;
   scheduledAt?: string;
@@ -58,8 +58,8 @@ export interface PromotionWorkflowStep {
 export interface PromotionRequest {
   id: string;
   userId: string;
-  currentRole: UserRole;
-  targetRole: UserRole;
+  currentRole: UserRoleType;
+  targetRole: UserRoleType;
   reason: string;
   requestedBy: string;
   requestedAt: string;
@@ -128,7 +128,7 @@ export interface SecurityEvent {
  * Interface cho user filter options
  */
 export interface UserFilterOptions {
-  roles: UserRole[];
+  roles: UserRoleType[];
   statuses: string[];
   dateRange: {
     from: string;
@@ -185,8 +185,8 @@ export const mockPromotionRequests: PromotionRequest[] = [
   {
     id: 'promotion-001',
     userId: 'user-789',
-    currentRole: UserRole.STUDENT,
-    targetRole: UserRole.TEACHER,
+    currentRole: UserRole.USER_ROLE_STUDENT,
+    targetRole: UserRole.USER_ROLE_TEACHER,
     reason: 'Hoàn thành xuất sắc các khóa học và có kinh nghiệm giảng dạy',
     requestedBy: 'admin-001',
     requestedAt: '2024-07-15T09:00:00Z',

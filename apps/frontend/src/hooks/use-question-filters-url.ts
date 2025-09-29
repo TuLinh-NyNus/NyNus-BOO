@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { QuestionFilters } from '@/lib/types/question';
+import { QuestionFilters } from '@/types/question';
 
 /**
  * Hook for syncing question filters with URL parameters

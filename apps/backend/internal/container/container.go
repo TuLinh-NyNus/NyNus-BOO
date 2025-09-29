@@ -13,21 +13,21 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/redis"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	system "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/oauth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
 	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/contact"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
-	image_processing "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/image_processing"
-	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/newsletter"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
 	mapcode_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
+	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/newsletter"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
+	system "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/analytics"
+	image_processing "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/image_processing"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/performance"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/security"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/oauth"
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
 	"github.com/sirupsen/logrus"
 )
@@ -38,7 +38,7 @@ type Container struct {
 	DB *sql.DB
 
 	// Redis
-	RedisClient *redis.Client
+	RedisClient  *redis.Client
 	CacheService cache.CacheService
 
 	// OpenSearch
@@ -46,21 +46,21 @@ type Container struct {
 	OpenSearchConfig *opensearch.Config
 
 	// Repositories
-	UserRepo           *repository.UserRepository // Legacy repository
-	UserRepoWrapper    repository.IUserRepository // Interface implementation
-	AnswerRepo         *repository.AnswerRepository
-	SessionRepo        repository.SessionRepository
-	OAuthAccountRepo   repository.OAuthAccountRepository
-	ResourceAccessRepo repository.ResourceAccessRepository
-	EnrollmentRepo     repository.EnrollmentRepository
-	NotificationRepo   repository.NotificationRepository
-	UserPreferenceRepo repository.UserPreferenceRepository
-	AuditLogRepo       repository.AuditLogRepository
-	RefreshTokenRepo   *repository.RefreshTokenRepository // NEW: Refresh token rotation support
-	QuestionRepo       interfaces.QuestionRepository
-	QuestionCodeRepo   interfaces.QuestionCodeRepository
-	QuestionImageRepo  interfaces.QuestionImageRepository
-	ExamRepo           interfaces.ExamRepository
+	UserRepo               *repository.UserRepository // Legacy repository
+	UserRepoWrapper        repository.IUserRepository // Interface implementation
+	AnswerRepo             *repository.AnswerRepository
+	SessionRepo            repository.SessionRepository
+	OAuthAccountRepo       repository.OAuthAccountRepository
+	ResourceAccessRepo     repository.ResourceAccessRepository
+	EnrollmentRepo         repository.EnrollmentRepository
+	NotificationRepo       repository.NotificationRepository
+	UserPreferenceRepo     repository.UserPreferenceRepository
+	AuditLogRepo           repository.AuditLogRepository
+	RefreshTokenRepo       *repository.RefreshTokenRepository // NEW: Refresh token rotation support
+	QuestionRepo           interfaces.QuestionRepository
+	QuestionCodeRepo       interfaces.QuestionCodeRepository
+	QuestionImageRepo      interfaces.QuestionImageRepository
+	ExamRepo               interfaces.ExamRepository
 	ContactRepo            *repository.ContactRepository
 	NewsletterRepo         *repository.NewsletterRepository
 	MapCodeRepo            *repository.MapCodeRepository
@@ -85,14 +85,14 @@ type Container struct {
 	PerformanceService    *performance.PerformanceService
 
 	// Analytics Services
-	AnalyticsService      *analytics.AnalyticsService
-	MonitoringService     *analytics.MonitoringService
-	DashboardService      *analytics.DashboardService
+	AnalyticsService  *analytics.AnalyticsService
+	MonitoringService *analytics.MonitoringService
+	DashboardService  *analytics.DashboardService
 
 	// Security Services
-	ExamSessionSecurity   *security.ExamSessionSecurity
-	AntiCheatService      *security.AntiCheatService
-	ExamRateLimitService  *security.ExamRateLimitService
+	ExamSessionSecurity  *security.ExamSessionSecurity
+	AntiCheatService     *security.AntiCheatService
+	ExamRateLimitService *security.ExamRateLimitService
 
 	// Middleware
 	AuthInterceptor               *middleware.AuthInterceptor
@@ -216,8 +216,6 @@ func (c *Container) initRepositories() {
 func (c *Container) initServices() {
 	// Auth management service following the new clean pattern
 	c.AuthMgmt = auth.NewAuthMgmt(c.DB, c.JWTSecret)
-
-
 
 	// Initialize QuestionMgmt with repositories
 	// Note: Image processing is optional, pass nil if not configured

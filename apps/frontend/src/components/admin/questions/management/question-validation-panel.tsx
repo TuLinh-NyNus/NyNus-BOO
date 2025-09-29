@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 
 // Import types và utilities
-import { Question } from "@/lib/types/question";
+import { Question } from "@/types/question";
 import {
   validateQuestion,
   validateQuestionForOperation,

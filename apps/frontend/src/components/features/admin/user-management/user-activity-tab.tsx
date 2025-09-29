@@ -21,7 +21,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-import { UserRole } from "@/lib/mockdata/core-types";
+import { AdminUser } from "@/types/user/admin";
 import { toast } from "@/hooks/use-toast";
 
 // Import mockdata functions
@@ -29,18 +29,7 @@ import {
   getUserActivities,
   type UserActivity,
 } from "@/lib/mockdata/user-management";
-
-/**
- * Admin User interface (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-}
+// AdminUser imported from canonical source above
 
 /**
  * User Activity Tab Props

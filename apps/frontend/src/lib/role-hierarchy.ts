@@ -3,7 +3,24 @@
  * Quản lý hệ thống phân cấp vai trò với visualization support
  */
 
-import { UserRole, USER_ROLE_LABELS, USER_ROLE_COLORS } from "../types/admin-user";
+import { UserRole } from "@/lib/mockdata/core-types";
+
+// Import labels and colors from mockdata for compatibility
+const USER_ROLE_LABELS: Record<UserRole, string> = {
+  GUEST: "Khách",
+  STUDENT: "Học viên",
+  TUTOR: "Gia sư",
+  TEACHER: "Giáo viên",
+  ADMIN: "Quản trị viên",
+};
+
+const USER_ROLE_COLORS: Record<UserRole, string> = {
+  ADMIN: "destructive",
+  TEACHER: "default",
+  TUTOR: "secondary",
+  STUDENT: "outline",
+  GUEST: "secondary",
+};
 
 /**
  * Role hierarchy levels
@@ -327,7 +344,7 @@ export function getRoleHierarchyTree(): RoleHierarchyNode {
   };
 
   // Create root node (GUEST)
-  const root = createNode("GUEST");
+  const root = createNode(UserRole.GUEST);
 
   // Build tree structure
   const nodes: Partial<Record<UserRole, RoleHierarchyNode>> = { GUEST: root };

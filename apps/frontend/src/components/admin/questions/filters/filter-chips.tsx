@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 // Import hooks và utilities
 import { MAPCODE_CONFIG } from "@/lib/utils/question-code";
-import { QuestionType, QuestionStatus, QuestionDifficulty, QuestionFilters } from "@/lib/types/question";
+import { QuestionType, QuestionStatus, QuestionDifficulty, QuestionFilters } from "@/types/question";
 import { ensureArray } from '@/lib/utils/filter-type-adapters';
 
 

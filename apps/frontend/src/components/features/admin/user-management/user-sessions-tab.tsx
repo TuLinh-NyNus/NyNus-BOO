@@ -22,7 +22,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-import { UserRole } from "@/lib/mockdata/core-types";
+import { AdminUser } from "@/types/user/admin";
 import { toast } from "@/hooks/use-toast";
 
 // Import mockdata functions
@@ -31,19 +31,7 @@ import {
   terminateUserSession,
   type UserSession,
 } from "@/lib/mockdata/user-management";
-
-/**
- * Admin User interface (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-  activeSessionsCount: number;
-}
+// AdminUser imported from canonical source above
 
 /**
  * User Sessions Tab Props
@@ -375,7 +363,7 @@ export function UserSessionsTab({
       )}
 
       {/* Session Security Warning */}
-      {activeSessions.length > user.activeSessionsCount && (
+      {activeSessions.length > (user.activeSessionsCount ?? 0) && (
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-orange-600">

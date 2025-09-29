@@ -12,7 +12,7 @@ import {
   Button,
   Label
 } from '@/components/ui';
-import { QuestionFilters, QuestionType } from '@/lib/types/question';
+import { QuestionFilters, QuestionType } from '@/types/question';
 
 /**
  * Basic Filters Row Component

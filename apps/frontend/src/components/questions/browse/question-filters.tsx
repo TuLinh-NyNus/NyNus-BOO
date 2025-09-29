@@ -24,8 +24,8 @@ import {
 } from "@/components/ui";
 
 // Import types
-import type { PublicQuestionFilters } from "@/lib/types/public";
-import { QuestionType, QuestionDifficulty } from "@/lib/types/question";
+import type { PublicQuestionFilters } from "@/types/public";
+import { QuestionType, QuestionDifficulty } from "@/types/question";
 
 // Import utilities
 import { useDebounce } from "@/hooks/useDebounce";

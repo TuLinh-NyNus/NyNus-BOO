@@ -29,10 +29,10 @@ type ValidationResult struct {
 type AnswerValidationServiceInterface interface {
 	// ValidateAnswerData validates JSONB answer data according to ExamSystem.md specifications
 	ValidateAnswerData(ctx context.Context, answerData []byte, questionType string) (*ValidationResult, error)
-	
+
 	// ValidateBaseStructure validates the base JSONB structure (question_type, question_id, answer_data, metadata)
 	ValidateBaseStructure(ctx context.Context, answerData []byte) (*ValidationResult, error)
-	
+
 	// Type-specific validation methods
 	ValidateMCAnswer(ctx context.Context, answerData []byte) (*ValidationResult, error)
 	ValidateTFAnswer(ctx context.Context, answerData []byte) (*ValidationResult, error)

@@ -38,9 +38,9 @@ import {
   Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Exam } from '@/lib/types/exam';
-import { ExamExportService, ExportOptions } from '@/lib/services/exam-export.service';
-import { ExamImportService, ImportOptions } from '@/lib/services/exam-import.service';
+import { Exam, ExamStatus } from '@/types/exam';
+import { ExamExportService, ExportOptions } from '@/services/exam-export.service';
+import { ExamImportService, ImportOptions } from '@/services/exam-import.service';
 
 export interface BulkOperationsProps {
   selectedExams: Exam[];
@@ -496,7 +496,7 @@ export function BulkOperations({
               <label className="text-sm font-medium">Trạng thái</label>
               <Select
                 value={editUpdates.status || ''}
-                onValueChange={(value) => setEditUpdates(prev => ({ ...prev, status: value as any }))}
+                onValueChange={(value) => setEditUpdates(prev => ({ ...prev, status: value as ExamStatus }))}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn trạng thái" />
@@ -536,7 +536,7 @@ export function BulkOperations({
               <label className="text-sm font-medium">Định dạng</label>
               <Select
                 value={exportOptions.format}
-                onValueChange={(value) => setExportOptions(prev => ({ ...prev, format: value as any }))}
+                onValueChange={(value) => setExportOptions(prev => ({ ...prev, format: value as 'excel' | 'pdf' | 'word' }))}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -598,7 +598,7 @@ export function BulkOperations({
               <label className="text-sm font-medium">Định dạng file</label>
               <Select
                 value={importOptions.format}
-                onValueChange={(value) => setImportOptions(prev => ({ ...prev, format: value as any }))}
+                onValueChange={(value) => setImportOptions(prev => ({ ...prev, format: value as 'excel' | 'csv' | 'json' }))}
               >
                 <SelectTrigger>
                   <SelectValue />

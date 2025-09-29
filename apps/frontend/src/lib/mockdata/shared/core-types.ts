@@ -1,9 +1,11 @@
 /**
  * Core Types for Mockdata System
- * 
+ *
  * Consolidated type definitions to eliminate duplication
  * Aligned with database schema from migrations
  */
+
+import { UserRole, type UserRole as UserRoleType, type UserStatus as UserStatusType } from '@/types/user/roles';
 
 // ===== SHARED INTERFACES =====
 
@@ -220,8 +222,8 @@ export interface AdminUser {
   // Core required fields
   id: string;
   email: string;
-  role: UserRole;
-  status: UserStatus;
+  role: UserRoleType;
+  status: UserStatusType;
   emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -281,8 +283,8 @@ export interface UserStats {
   newUsersThisMonth: number;
   newUsersToday?: number;
   pendingVerificationUsers?: number;
-  usersByRole: Record<UserRole, number>;
-  usersByStatus: Record<UserStatus, number>;
+  usersByRole: Record<UserRoleType, number>;
+  usersByStatus: Record<UserStatusType, number>;
   averageSessionDuration: number;
   topActiveUsers: AdminUser[];
   // Allow any additional fields
@@ -290,8 +292,8 @@ export interface UserStats {
 }
 
 export interface AdvancedUserFilters {
-  roles?: UserRole[];
-  statuses?: UserStatus[];
+  roles?: UserRoleType[];
+  statuses?: UserStatusType[];
   riskLevels?: string[];
   emailVerified?: boolean | null;
   levelRange?: {
@@ -400,24 +402,7 @@ export enum FeedbackType {
 
 
 
-// User Role Enum (matches Enhanced User Model from AUTH_COMPLETE_GUIDE.md)
-export enum UserRole {
-  GUEST = 'GUEST',         // Khách (không đăng ký) - Không có level
-  STUDENT = 'STUDENT',     // Học sinh - Level 1-9
-  TUTOR = 'TUTOR',         // Gia sư - Level 1-9
-  TEACHER = 'TEACHER',     // Giáo viên - Level 1-9
-  ADMIN = 'ADMIN'          // Quản trị viên - Không có level
-}
-
-// User Status Enum (matches Enhanced User Model)
-export enum UserStatus {
-  ACTIVE = 'ACTIVE',                    // Hoạt động
-  INACTIVE = 'INACTIVE',                // Không hoạt động
-  SUSPENDED = 'SUSPENDED',              // Bị đình chỉ
-  PENDING_VERIFICATION = 'PENDING_VERIFICATION',  // Chờ xác thực email
-  PENDING = 'PENDING',                  // Chờ xử lý (for protobuf compatibility)
-  DELETED = 'DELETED'                   // Đã xóa (for protobuf compatibility)
-}
+// Note: UserRole and UserStatus are now imported from @/types/user/roles at the top
 
 // ===== COMMON FIELD TYPES =====
 
@@ -749,8 +734,8 @@ export function isQuestionDifficulty(value: string): value is QuestionDifficulty
   return Object.values(QuestionDifficulty).includes(value as QuestionDifficulty);
 }
 
-export function isUserRole(value: string): value is UserRole {
-  return Object.values(UserRole).includes(value as UserRole);
+export function isUserRole(value: number): value is UserRoleType {
+  return Object.values(UserRole).includes(value as UserRoleType);
 }
 
 // ===== UTILITY TYPES =====

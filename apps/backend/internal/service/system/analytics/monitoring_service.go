@@ -16,60 +16,60 @@ type MonitoringService struct {
 	db       *sql.DB
 	examRepo interfaces.ExamRepository
 	logger   *logrus.Logger
-	
+
 	// Real-time monitoring state
-	activeExams     map[string]*ActiveExamMonitor
-	activeExamsMux  sync.RWMutex
-	
+	activeExams    map[string]*ActiveExamMonitor
+	activeExamsMux sync.RWMutex
+
 	// Background monitoring
-	stopChan        chan struct{}
-	isRunning       bool
-	runningMux      sync.RWMutex
+	stopChan   chan struct{}
+	isRunning  bool
+	runningMux sync.RWMutex
 }
 
 // ActiveExamMonitor tracks real-time exam activity
 type ActiveExamMonitor struct {
-	ExamID           string                 `json:"exam_id"`
-	ExamTitle        string                 `json:"exam_title"`
-	ActiveAttempts   int                    `json:"active_attempts"`
-	CompletedToday   int                    `json:"completed_today"`
-	AverageScore     float64                `json:"average_score"`
-	LastActivity     time.Time              `json:"last_activity"`
-	UserActivity     map[string]*UserStatus `json:"user_activity"`
-	Alerts           []MonitoringAlert      `json:"alerts"`
+	ExamID         string                 `json:"exam_id"`
+	ExamTitle      string                 `json:"exam_title"`
+	ActiveAttempts int                    `json:"active_attempts"`
+	CompletedToday int                    `json:"completed_today"`
+	AverageScore   float64                `json:"average_score"`
+	LastActivity   time.Time              `json:"last_activity"`
+	UserActivity   map[string]*UserStatus `json:"user_activity"`
+	Alerts         []MonitoringAlert      `json:"alerts"`
 }
 
 // UserStatus tracks individual user exam status
 type UserStatus struct {
-	UserID       string    `json:"user_id"`
-	Status       string    `json:"status"` // "active", "paused", "completed"
-	StartTime    time.Time `json:"start_time"`
-	LastActivity time.Time `json:"last_activity"`
-	Progress     float64   `json:"progress"` // Percentage completed
-	CurrentQuestion int    `json:"current_question"`
+	UserID          string    `json:"user_id"`
+	Status          string    `json:"status"` // "active", "paused", "completed"
+	StartTime       time.Time `json:"start_time"`
+	LastActivity    time.Time `json:"last_activity"`
+	Progress        float64   `json:"progress"` // Percentage completed
+	CurrentQuestion int       `json:"current_question"`
 }
 
 // MonitoringAlert represents a monitoring alert
 type MonitoringAlert struct {
-	Type        string    `json:"type"`        // "performance", "security", "system"
-	Severity    string    `json:"severity"`    // "low", "medium", "high", "critical"
-	Message     string    `json:"message"`
-	Timestamp   time.Time `json:"timestamp"`
-	ExamID      string    `json:"exam_id,omitempty"`
-	UserID      string    `json:"user_id,omitempty"`
+	Type      string    `json:"type"`     // "performance", "security", "system"
+	Severity  string    `json:"severity"` // "low", "medium", "high", "critical"
+	Message   string    `json:"message"`
+	Timestamp time.Time `json:"timestamp"`
+	ExamID    string    `json:"exam_id,omitempty"`
+	UserID    string    `json:"user_id,omitempty"`
 }
 
 // SystemHealthMetrics contains system health information
 type SystemHealthMetrics struct {
-	ActiveUsers        int                    `json:"active_users"`
-	ActiveExams        int                    `json:"active_exams"`
-	TotalAttempts      int                    `json:"total_attempts"`
-	SystemLoad         float64                `json:"system_load"`
-	DatabaseHealth     string                 `json:"database_health"`
-	ResponseTime       float64                `json:"response_time"`
-	ErrorRate          float64                `json:"error_rate"`
-	Alerts             []MonitoringAlert      `json:"alerts"`
-	LastUpdated        time.Time              `json:"last_updated"`
+	ActiveUsers    int               `json:"active_users"`
+	ActiveExams    int               `json:"active_exams"`
+	TotalAttempts  int               `json:"total_attempts"`
+	SystemLoad     float64           `json:"system_load"`
+	DatabaseHealth string            `json:"database_health"`
+	ResponseTime   float64           `json:"response_time"`
+	ErrorRate      float64           `json:"error_rate"`
+	Alerts         []MonitoringAlert `json:"alerts"`
+	LastUpdated    time.Time         `json:"last_updated"`
 }
 
 // NewMonitoringService creates a new monitoring service
@@ -320,7 +320,7 @@ func (s *MonitoringService) updateUserActivity(ctx context.Context, monitor *Act
 		}
 
 		// Calculate progress (simplified)
-		userStatus.Progress = 0.5 // Placeholder
+		userStatus.Progress = 0.5      // Placeholder
 		userStatus.CurrentQuestion = 1 // Placeholder
 
 		monitor.UserActivity[userStatus.UserID] = &userStatus

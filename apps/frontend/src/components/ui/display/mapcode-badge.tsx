@@ -12,7 +12,7 @@ import React from 'react';
 import { Badge } from './badge';
 import { cn } from '@/lib/utils';
 import { parseQuestionCode, getQuestionCodeLabel } from '@/lib/utils/question-code';
-import { QuestionCode } from '@/lib/types/question';
+import { QuestionCode } from '@/types/question';
 
 // ===== INTERFACES =====
 

@@ -32,14 +32,14 @@ func NewAnalyticsService(examRepo interfaces.ExamRepository, logger *logrus.Logg
 
 // ExamAnalyticsReport contains comprehensive exam analytics
 type ExamAnalyticsReport struct {
-	ExamID              string                           `json:"exam_id"`
-	GeneratedAt         time.Time                        `json:"generated_at"`
-	Statistics          *interfaces.ExamStatistics       `json:"statistics"`
-	DifficultyAnalysis  *interfaces.DifficultyAnalysis   `json:"difficulty_analysis"`
-	TimeAnalysis        *interfaces.TimeAnalysis         `json:"time_analysis"`
-	PerformanceTrends   []*interfaces.PerformanceTrend   `json:"performance_trends"`
-	QuestionInsights    []*QuestionInsight               `json:"question_insights"`
-	Recommendations     []string                         `json:"recommendations"`
+	ExamID             string                         `json:"exam_id"`
+	GeneratedAt        time.Time                      `json:"generated_at"`
+	Statistics         *interfaces.ExamStatistics     `json:"statistics"`
+	DifficultyAnalysis *interfaces.DifficultyAnalysis `json:"difficulty_analysis"`
+	TimeAnalysis       *interfaces.TimeAnalysis       `json:"time_analysis"`
+	PerformanceTrends  []*interfaces.PerformanceTrend `json:"performance_trends"`
+	QuestionInsights   []*QuestionInsight             `json:"question_insights"`
+	Recommendations    []string                       `json:"recommendations"`
 }
 
 // QuestionInsight provides insights about individual questions
@@ -54,14 +54,14 @@ type QuestionInsight struct {
 
 // SystemAnalytics contains system-wide analytics
 type SystemAnalytics struct {
-	TotalExams          int                    `json:"total_exams"`
-	TotalAttempts       int                    `json:"total_attempts"`
-	AverageScore        float64                `json:"average_score"`
-	SystemPassRate      float64                `json:"system_pass_rate"`
-	PopularDifficulties map[string]int         `json:"popular_difficulties"`
-	ActivityTrends      []*ActivityTrend       `json:"activity_trends"`
-	TopPerformingExams  []*ExamPerformance     `json:"top_performing_exams"`
-	GeneratedAt         time.Time              `json:"generated_at"`
+	TotalExams          int                `json:"total_exams"`
+	TotalAttempts       int                `json:"total_attempts"`
+	AverageScore        float64            `json:"average_score"`
+	SystemPassRate      float64            `json:"system_pass_rate"`
+	PopularDifficulties map[string]int     `json:"popular_difficulties"`
+	ActivityTrends      []*ActivityTrend   `json:"activity_trends"`
+	TopPerformingExams  []*ExamPerformance `json:"top_performing_exams"`
+	GeneratedAt         time.Time          `json:"generated_at"`
 }
 
 // ActivityTrend represents system activity over time
@@ -102,14 +102,14 @@ func (s *AnalyticsService) GetExamAnalyticsReport(ctx context.Context, examID st
 	recommendations := s.generateRecommendations(analytics, questionInsights)
 
 	report := &ExamAnalyticsReport{
-		ExamID:              examID,
-		GeneratedAt:         time.Now(),
-		Statistics:          analytics.Statistics,
-		DifficultyAnalysis:  analytics.DifficultyAnalysis,
-		TimeAnalysis:        analytics.TimeAnalysis,
-		PerformanceTrends:   analytics.PerformanceTrends,
-		QuestionInsights:    questionInsights,
-		Recommendations:     recommendations,
+		ExamID:             examID,
+		GeneratedAt:        time.Now(),
+		Statistics:         analytics.Statistics,
+		DifficultyAnalysis: analytics.DifficultyAnalysis,
+		TimeAnalysis:       analytics.TimeAnalysis,
+		PerformanceTrends:  analytics.PerformanceTrends,
+		QuestionInsights:   questionInsights,
+		Recommendations:    recommendations,
 	}
 
 	s.logger.WithField("exam_id", examID).Info("Exam analytics report generated successfully")
@@ -174,14 +174,14 @@ func (s *AnalyticsService) generateRecommendations(analytics *interfaces.ExamAna
 	}
 
 	// Analyze difficulty distribution
-	totalQuestions := analytics.DifficultyAnalysis.EasyQuestions + 
-					  analytics.DifficultyAnalysis.MediumQuestions + 
-					  analytics.DifficultyAnalysis.HardQuestions + 
-					  analytics.DifficultyAnalysis.ExpertQuestions
+	totalQuestions := analytics.DifficultyAnalysis.EasyQuestions +
+		analytics.DifficultyAnalysis.MediumQuestions +
+		analytics.DifficultyAnalysis.HardQuestions +
+		analytics.DifficultyAnalysis.ExpertQuestions
 
 	if totalQuestions > 0 {
 		easyPercent := float64(analytics.DifficultyAnalysis.EasyQuestions) / float64(totalQuestions) * 100
-		hardPercent := float64(analytics.DifficultyAnalysis.HardQuestions + analytics.DifficultyAnalysis.ExpertQuestions) / float64(totalQuestions) * 100
+		hardPercent := float64(analytics.DifficultyAnalysis.HardQuestions+analytics.DifficultyAnalysis.ExpertQuestions) / float64(totalQuestions) * 100
 
 		if easyPercent > 70 {
 			recommendations = append(recommendations, "Consider adding more challenging questions for better assessment")
@@ -230,7 +230,7 @@ func (s *AnalyticsService) GetQuestionDifficultyAnalysis(ctx context.Context, qu
 		EstimatedDifficulty:  "medium",
 		PerformanceIndicator: "good",
 		SuggestedAdjustment:  "none",
-		AnalyzedAt:          time.Now(),
+		AnalyzedAt:           time.Now(),
 	}, nil
 }
 
@@ -240,5 +240,5 @@ type QuestionDifficultyAnalysis struct {
 	EstimatedDifficulty  string    `json:"estimated_difficulty"`
 	PerformanceIndicator string    `json:"performance_indicator"`
 	SuggestedAdjustment  string    `json:"suggested_adjustment"`
-	AnalyzedAt          time.Time `json:"analyzed_at"`
+	AnalyzedAt           time.Time `json:"analyzed_at"`
 }

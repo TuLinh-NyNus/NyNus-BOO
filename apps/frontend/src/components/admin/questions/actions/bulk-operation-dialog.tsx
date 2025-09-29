@@ -49,7 +49,7 @@ import {
   getOperationDisplayName,
   validateBulkOperationRequest
 } from "@/lib/utils/bulk-operation-utils";
-import { Question } from "@/lib/types/question";
+import { Question } from "@/types/question";
 
 // ===== TYPES =====
 

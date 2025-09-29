@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	_ "github.com/lib/pq"
 )
 
 // TestPerformanceService tests the performance service functionality
@@ -128,7 +128,7 @@ func TestOptimisticLocking(t *testing.T) {
 	t.Run("GetExamVersion", func(t *testing.T) {
 		// This test assumes there's at least one exam in the database
 		// In a real test, you'd create test data first
-		
+
 		// For now, just test that the function doesn't crash
 		_, err := service.GetExamVersion(ctx, "non-existent-id")
 		assert.Error(t, err) // Should error for non-existent exam
@@ -138,7 +138,7 @@ func TestOptimisticLocking(t *testing.T) {
 		conflictErr := NewConflictError("exam", "test-id", 1, 2, "test conflict")
 		assert.True(t, IsConflictError(conflictErr))
 		assert.Contains(t, conflictErr.Error(), "optimistic locking conflict")
-		
+
 		regularErr := assert.AnError
 		assert.False(t, IsConflictError(regularErr))
 	})

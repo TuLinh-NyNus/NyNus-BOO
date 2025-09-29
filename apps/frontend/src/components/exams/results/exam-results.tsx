@@ -42,8 +42,8 @@ import {
 } from "lucide-react";
 
 // Types
-import { ExamResult, Exam, ExamAnswer } from "@/lib/types/exam";
-import { Question } from "@/lib/types/question";
+import { ExamResult, Exam, ExamAnswer } from "@/types/exam";
+import { Question } from "@/types/question";
 
 // Components
 import { ResultsSummary } from "./results-summary";

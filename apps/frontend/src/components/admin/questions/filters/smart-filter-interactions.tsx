@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 
 // Import store và types
 import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
-import { QuestionFilters } from '@/lib/types/question';
+import { QuestionFilters } from '@/types/question';
 
 // ===== INTERFACES =====
 

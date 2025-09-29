@@ -12,48 +12,48 @@ import (
 
 // ExamRateLimitService provides exam-specific rate limiting
 type ExamRateLimitService struct {
-	db      *sql.DB
-	logger  *logrus.Logger
-	
+	db     *sql.DB
+	logger *logrus.Logger
+
 	// In-memory rate limiters
-	limiters map[string]*ExamRateLimiter
+	limiters   map[string]*ExamRateLimiter
 	limiterMux sync.RWMutex
-	
+
 	// Configuration
 	config *RateLimitConfig
 }
 
 // RateLimitConfig contains rate limiting configuration
 type RateLimitConfig struct {
-	AnswerSubmissionLimit    int           `json:"answer_submission_limit"`
-	QuestionViewLimit        int           `json:"question_view_limit"`
-	NavigationLimit          int           `json:"navigation_limit"`
-	WindowSize               time.Duration `json:"window_size"`
-	BlockDuration            time.Duration `json:"block_duration"`
-	SuspiciousThreshold      int           `json:"suspicious_threshold"`
-	CleanupInterval          time.Duration `json:"cleanup_interval"`
+	AnswerSubmissionLimit int           `json:"answer_submission_limit"`
+	QuestionViewLimit     int           `json:"question_view_limit"`
+	NavigationLimit       int           `json:"navigation_limit"`
+	WindowSize            time.Duration `json:"window_size"`
+	BlockDuration         time.Duration `json:"block_duration"`
+	SuspiciousThreshold   int           `json:"suspicious_threshold"`
+	CleanupInterval       time.Duration `json:"cleanup_interval"`
 }
 
 // RateLimitResult contains the result of a rate limit check
 type RateLimitResult struct {
-	Allowed       bool          `json:"allowed"`
-	Remaining     int           `json:"remaining"`
-	ResetTime     time.Time     `json:"reset_time"`
-	IsBlocked     bool          `json:"is_blocked"`
-	BlockedUntil  time.Time     `json:"blocked_until"`
-	Reason        string        `json:"reason"`
+	Allowed      bool      `json:"allowed"`
+	Remaining    int       `json:"remaining"`
+	ResetTime    time.Time `json:"reset_time"`
+	IsBlocked    bool      `json:"is_blocked"`
+	BlockedUntil time.Time `json:"blocked_until"`
+	Reason       string    `json:"reason"`
 }
 
 // ActionType defines types of actions that can be rate limited
 type ActionType string
 
 const (
-	ActionAnswerSubmit   ActionType = "answer_submit"
-	ActionQuestionView   ActionType = "question_view"
-	ActionNavigation     ActionType = "navigation"
-	ActionExamStart      ActionType = "exam_start"
-	ActionExamSubmit     ActionType = "exam_submit"
-	ActionAnswerChange   ActionType = "answer_change"
+	ActionAnswerSubmit ActionType = "answer_submit"
+	ActionQuestionView ActionType = "question_view"
+	ActionNavigation   ActionType = "navigation"
+	ActionExamStart    ActionType = "exam_start"
+	ActionExamSubmit   ActionType = "exam_submit"
+	ActionAnswerChange ActionType = "answer_change"
 )
 
 // NewExamRateLimitService creates a new exam rate limit service
@@ -94,7 +94,7 @@ func DefaultRateLimitConfig() *RateLimitConfig {
 // CheckRateLimit checks if an action is allowed under rate limiting
 func (s *ExamRateLimitService) CheckRateLimit(ctx context.Context, userID, examID string, action ActionType) (*RateLimitResult, error) {
 	key := fmt.Sprintf("%s:%s:%s", userID, examID, string(action))
-	
+
 	s.limiterMux.Lock()
 	limiter, exists := s.limiters[key]
 	if !exists {
@@ -109,7 +109,7 @@ func (s *ExamRateLimitService) CheckRateLimit(ctx context.Context, userID, examI
 // createNewLimiter creates a new rate limiter for a user/exam/action combination
 func (s *ExamRateLimitService) createNewLimiter(userID, examID string, action ActionType) *ExamRateLimiter {
 	now := time.Now()
-	
+
 	limiter := &ExamRateLimiter{
 		UserID:         userID,
 		ExamID:         examID,
@@ -222,11 +222,11 @@ func (s *ExamRateLimitService) checkLimit(ctx context.Context, limiter *ExamRate
 	suspiciousThreshold := int(float64(actionCount.MaxAllowed) * float64(s.config.SuspiciousThreshold) / 100.0)
 	if actionCount.Count >= suspiciousThreshold {
 		s.logger.WithFields(logrus.Fields{
-			"user_id":     limiter.UserID,
-			"exam_id":     limiter.ExamID,
-			"action":      action,
-			"count":       actionCount.Count,
-			"threshold":   suspiciousThreshold,
+			"user_id":   limiter.UserID,
+			"exam_id":   limiter.ExamID,
+			"action":    action,
+			"count":     actionCount.Count,
+			"threshold": suspiciousThreshold,
 		}).Warn("Suspicious activity detected - approaching rate limit")
 	}
 
@@ -253,12 +253,12 @@ func (s *ExamRateLimitService) checkLimit(ctx context.Context, limiter *ExamRate
 // resetWindow resets the rate limiting window
 func (s *ExamRateLimitService) resetWindow(limiter *ExamRateLimiter, now time.Time) {
 	limiter.WindowStart = now
-	
+
 	// Reset all action counts
 	for actionStr, actionCount := range limiter.ActionCounts {
 		actionCount.Count = 0
 		actionCount.LastAction = now
-		
+
 		// Update max allowed in case config changed
 		action := ActionType(actionStr)
 		actionCount.MaxAllowed = s.getMaxAllowedForAction(action)
@@ -268,7 +268,7 @@ func (s *ExamRateLimitService) resetWindow(limiter *ExamRateLimiter, now time.Ti
 // storeRateLimit stores rate limit information in database
 func (s *ExamRateLimitService) storeRateLimit(ctx context.Context, limiter *ExamRateLimiter, action ActionType, isBlocked bool) {
 	actionCount := limiter.ActionCounts[string(action)]
-	
+
 	query := `
 		INSERT INTO exam_rate_limits (
 			user_id, exam_id, action_type, action_count, window_start, window_end,
@@ -279,9 +279,9 @@ func (s *ExamRateLimitService) storeRateLimit(ctx context.Context, limiter *Exam
 			action_count = EXCLUDED.action_count,
 			is_blocked = EXCLUDED.is_blocked
 	`
-	
+
 	windowEnd := limiter.WindowStart.Add(limiter.WindowDuration)
-	
+
 	_, err := s.db.ExecContext(ctx, query,
 		limiter.UserID,
 		limiter.ExamID,
@@ -292,7 +292,7 @@ func (s *ExamRateLimitService) storeRateLimit(ctx context.Context, limiter *Exam
 		actionCount.MaxAllowed,
 		isBlocked,
 	)
-	
+
 	if err != nil {
 		s.logger.WithError(err).Error("Failed to store rate limit")
 	}
@@ -301,7 +301,7 @@ func (s *ExamRateLimitService) storeRateLimit(ctx context.Context, limiter *Exam
 // GetRateLimitStatus returns current rate limit status for a user/exam
 func (s *ExamRateLimitService) GetRateLimitStatus(ctx context.Context, userID, examID string) (map[ActionType]*RateLimitResult, error) {
 	status := make(map[ActionType]*RateLimitResult)
-	
+
 	actions := []ActionType{
 		ActionAnswerSubmit,
 		ActionQuestionView,
@@ -310,14 +310,14 @@ func (s *ExamRateLimitService) GetRateLimitStatus(ctx context.Context, userID, e
 		ActionExamSubmit,
 		ActionAnswerChange,
 	}
-	
+
 	for _, action := range actions {
 		result, err := s.CheckRateLimit(ctx, userID, examID, action)
 		if err != nil {
 			s.logger.WithError(err).Error("Failed to check rate limit status")
 			continue
 		}
-		
+
 		// Don't increment count, just check status
 		key := fmt.Sprintf("%s:%s:%s", userID, examID, string(action))
 		s.limiterMux.RLock()
@@ -327,10 +327,10 @@ func (s *ExamRateLimitService) GetRateLimitStatus(ctx context.Context, userID, e
 			}
 		}
 		s.limiterMux.RUnlock()
-		
+
 		status[action] = result
 	}
-	
+
 	return status, nil
 }
 
@@ -338,26 +338,26 @@ func (s *ExamRateLimitService) GetRateLimitStatus(ctx context.Context, userID, e
 func (s *ExamRateLimitService) ResetUserRateLimit(ctx context.Context, userID, examID string) error {
 	s.limiterMux.Lock()
 	defer s.limiterMux.Unlock()
-	
+
 	// Remove from memory
 	for key := range s.limiters {
 		if fmt.Sprintf("%s:%s:", userID, examID) == key[:len(userID)+len(examID)+2] {
 			delete(s.limiters, key)
 		}
 	}
-	
+
 	// Remove from database
 	query := `DELETE FROM exam_rate_limits WHERE user_id = $1 AND exam_id = $2`
 	_, err := s.db.ExecContext(ctx, query, userID, examID)
 	if err != nil {
 		return fmt.Errorf("failed to reset rate limits in database: %w", err)
 	}
-	
+
 	s.logger.WithFields(logrus.Fields{
 		"user_id": userID,
 		"exam_id": examID,
 	}).Info("Rate limits reset")
-	
+
 	return nil
 }
 
@@ -365,25 +365,25 @@ func (s *ExamRateLimitService) ResetUserRateLimit(ctx context.Context, userID, e
 func (s *ExamRateLimitService) cleanupExpiredLimiters() {
 	ticker := time.NewTicker(s.config.CleanupInterval)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		s.limiterMux.Lock()
 		now := time.Now()
-		
+
 		for key, limiter := range s.limiters {
 			// Remove if window expired and not blocked
 			if now.Sub(limiter.WindowStart) > limiter.WindowDuration*2 && !limiter.IsBlocked {
 				delete(s.limiters, key)
 			}
-			
+
 			// Remove if block expired
 			if limiter.IsBlocked && now.After(limiter.BlockedUntil.Add(time.Hour)) {
 				delete(s.limiters, key)
 			}
 		}
-		
+
 		s.limiterMux.Unlock()
-		
+
 		// Also cleanup database
 		go s.cleanupDatabase()
 	}
@@ -394,7 +394,7 @@ func (s *ExamRateLimitService) cleanupDatabase() {
 	ctx := context.Background()
 	query := `DELETE FROM exam_rate_limits WHERE window_end < $1`
 	cutoff := time.Now().Add(-24 * time.Hour) // Keep 24 hours of history
-	
+
 	_, err := s.db.ExecContext(ctx, query, cutoff)
 	if err != nil {
 		s.logger.WithError(err).Error("Failed to cleanup old rate limit entries")

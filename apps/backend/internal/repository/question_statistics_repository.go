@@ -34,7 +34,7 @@ func (r *QuestionStatisticsRepository) GetOverallStatistics(ctx context.Context,
 		DifficultyDistribution: make(map[string]int64),
 		StatusDistribution:     make(map[string]int64),
 		CreatorDistribution:    make(map[string]int64),
-		LastUpdated:           time.Now(),
+		LastUpdated:            time.Now(),
 	}
 
 	// Build WHERE clause based on filter
@@ -112,7 +112,7 @@ func (r *QuestionStatisticsRepository) getTimeBasedStatistics(ctx context.Contex
 		FROM questions q
 		JOIN question_codes qc ON q.question_code_id = qc.id
 		%s
-	`, len(args)+1, len(args)+2, len(args)+3, whereClause), 
+	`, len(args)+1, len(args)+2, len(args)+3, whereClause),
 		append(args, today, weekStart, monthStart)...).Scan(
 		&stats.QuestionsCreatedToday,
 		&stats.QuestionsCreatedThisWeek,
@@ -314,7 +314,7 @@ func (r *QuestionStatisticsRepository) getUsageAndQualityStatistics(ctx context.
 
 	for rows.Next() {
 		var info entity.QuestionUsageInfo
-		if err := rows.Scan(&info.QuestionID, &info.Content, &info.QuestionCode, 
+		if err := rows.Scan(&info.QuestionID, &info.Content, &info.QuestionCode,
 			&info.UsageCount, &info.Feedback, &info.Type, &info.Difficulty, &info.CreatedAt); err != nil {
 			return fmt.Errorf("failed to scan most used question: %w", err)
 		}
@@ -338,7 +338,7 @@ func (r *QuestionStatisticsRepository) getUsageAndQualityStatistics(ctx context.
 
 	for rows.Next() {
 		var info entity.QuestionUsageInfo
-		if err := rows.Scan(&info.QuestionID, &info.Content, &info.QuestionCode, 
+		if err := rows.Scan(&info.QuestionID, &info.Content, &info.QuestionCode,
 			&info.UsageCount, &info.Feedback, &info.Type, &info.Difficulty, &info.CreatedAt); err != nil {
 			return fmt.Errorf("failed to scan high rated question: %w", err)
 		}
@@ -364,7 +364,7 @@ func (r *QuestionStatisticsRepository) getUsageAndQualityStatistics(ctx context.
 
 	for rows.Next() {
 		var creator entity.CreatorInfo
-		if err := rows.Scan(&creator.Creator, &creator.QuestionCount, 
+		if err := rows.Scan(&creator.Creator, &creator.QuestionCount,
 			&creator.AverageFeedback, &creator.LastActivity); err != nil {
 			return fmt.Errorf("failed to scan creator info: %w", err)
 		}

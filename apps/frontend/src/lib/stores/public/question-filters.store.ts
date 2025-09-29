@@ -18,7 +18,7 @@ import {
   PublicQuestionSortBy,
   QuestionType,
   QuestionDifficulty
-} from '@/lib/types/public';
+} from '@/types/public';
 
 // ===== STORE INTERFACES =====
 

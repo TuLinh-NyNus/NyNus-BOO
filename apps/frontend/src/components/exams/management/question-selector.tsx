@@ -11,7 +11,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from "react";
-import { Search, Filter, Check, X, Plus, Minus } from "lucide-react";
+import { Search, Check, X, Plus } from "lucide-react";
 
 // UI Components
 import {
@@ -31,7 +31,7 @@ import {
 } from "@/components/ui";
 
 // Types
-import { Question, QuestionType, QuestionDifficulty } from "@/lib/types/question";
+import { Question } from "@/types/question";
 
 // Utils
 import { cn } from "@/lib/utils";
@@ -100,7 +100,7 @@ export function QuestionSelector({
   
   const [activeTab, setActiveTab] = useState<'browse' | 'selected'>('browse');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, _setIsLoading] = useState(false);
 
   // Mock questions data for now - in real implementation, this would come from API
   const [questions] = useState<Question[]>([]);
@@ -275,11 +275,11 @@ export function QuestionSelector({
         <div className="text-center py-8 text-muted-foreground">
           <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
           <p>Chưa có câu hỏi nào được chọn</p>
-          <p className="text-sm">Chuyển sang tab "Duyệt câu hỏi" để chọn câu hỏi</p>
+          <p className="text-sm">Chuyển sang tab &quot;Duyệt câu hỏi&quot; để chọn câu hỏi</p>
         </div>
       ) : (
         <div className="space-y-3 max-h-[500px] overflow-y-auto">
-          {selectedQuestionsArray.map((question, index) => (
+          {selectedQuestionsArray.map((question, _index) => (
             <div
               key={question.id}
               className="flex items-start gap-3 p-3 border rounded-lg bg-card"

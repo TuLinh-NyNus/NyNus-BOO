@@ -51,7 +51,7 @@ import {
 import { useToast } from "@/components/ui/feedback/use-toast";
 
 // Import types từ lib/types
-import { QuestionStatus } from "@/lib/types/question";
+import { QuestionStatus } from "@/types/question";
 
 /**
  * Props for QuestionBulkActions component

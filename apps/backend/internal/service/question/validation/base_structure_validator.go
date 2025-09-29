@@ -26,36 +26,36 @@ type BaseAnswerStructure struct {
 // ValidateBaseStructure validates the base JSONB structure according to ExamSystem.md
 func (v *BaseStructureValidator) ValidateBaseStructure(answerData []byte) (*ValidationResult, error) {
 	result := NewValidationResult(true)
-	
+
 	// Parse JSON
 	var baseStructure BaseAnswerStructure
 	if err := json.Unmarshal(answerData, &baseStructure); err != nil {
 		result.AddError("", ErrorCodeInvalidJSON)
 		return result, nil
 	}
-	
+
 	// Validate question_type
 	if err := v.ValidateQuestionType(baseStructure.QuestionType); err != nil {
 		result.AddError("question_type", ErrorCodeInvalidQuestionType, baseStructure.QuestionType)
 	}
-	
+
 	// Validate question_id
 	if err := v.ValidateQuestionID(baseStructure.QuestionID); err != nil {
 		result.AddError("question_id", ErrorCodeInvalidUUID, baseStructure.QuestionID)
 	}
-	
+
 	// Validate answer_data exists
 	if baseStructure.AnswerData == nil {
 		result.AddError("answer_data", ErrorCodeMissingField, "answer_data")
 	}
-	
+
 	// Validate metadata if present
 	if baseStructure.Metadata != nil {
 		if err := v.ValidateMetadata(baseStructure.Metadata); err != nil {
 			result.AddError("metadata", ErrorCodeInvalidFieldType, "metadata")
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -67,11 +67,11 @@ func (v *BaseStructureValidator) ValidateQuestionType(questionType string) error
 		"SA": true,
 		"ES": true,
 	}
-	
+
 	if !validTypes[questionType] {
 		return fmt.Errorf("invalid question type: %s", questionType)
 	}
-	
+
 	return nil
 }
 
@@ -97,7 +97,7 @@ func (v *BaseStructureValidator) ValidateMetadata(metadata map[string]interface{
 			return fmt.Errorf("submitted_at must be string")
 		}
 	}
-	
+
 	// Validate time_spent_seconds if present
 	if timeSpent, exists := metadata["time_spent_seconds"]; exists {
 		switch v := timeSpent.(type) {
@@ -113,7 +113,7 @@ func (v *BaseStructureValidator) ValidateMetadata(metadata map[string]interface{
 			return fmt.Errorf("time_spent_seconds must be number")
 		}
 	}
-	
+
 	// Validate attempt_count if present
 	if attemptCount, exists := metadata["attempt_count"]; exists {
 		switch v := attemptCount.(type) {
@@ -129,7 +129,7 @@ func (v *BaseStructureValidator) ValidateMetadata(metadata map[string]interface{
 			return fmt.Errorf("attempt_count must be number")
 		}
 	}
-	
+
 	return nil
 }
 

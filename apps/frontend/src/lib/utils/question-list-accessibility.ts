@@ -7,7 +7,7 @@
  */
 
 import React, { useEffect, useCallback, useRef, useState } from 'react';
-import { Question } from '@/lib/types/question';
+import { Question } from '@/types/question';
 
 // ===== TYPES =====
 

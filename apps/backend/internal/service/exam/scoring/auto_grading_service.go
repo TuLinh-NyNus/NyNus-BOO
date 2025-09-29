@@ -33,27 +33,27 @@ func NewAutoGradingService(
 
 // ExamGradingResult represents the result of exam grading
 type ExamGradingResult struct {
-	AttemptID           string                 `json:"attempt_id"`
-	TotalScore          float64                `json:"total_score"`
-	MaxPossibleScore    float64                `json:"max_possible_score"`
-	Percentage          float64                `json:"percentage"`
-	Passed              bool                   `json:"passed"`
-	CorrectAnswers      int                    `json:"correct_answers"`
-	IncorrectAnswers    int                    `json:"incorrect_answers"`
-	UnansweredQuestions int                    `json:"unanswered_questions"`
+	AttemptID           string                  `json:"attempt_id"`
+	TotalScore          float64                 `json:"total_score"`
+	MaxPossibleScore    float64                 `json:"max_possible_score"`
+	Percentage          float64                 `json:"percentage"`
+	Passed              bool                    `json:"passed"`
+	CorrectAnswers      int                     `json:"correct_answers"`
+	IncorrectAnswers    int                     `json:"incorrect_answers"`
+	UnansweredQuestions int                     `json:"unanswered_questions"`
 	QuestionResults     []QuestionGradingResult `json:"question_results"`
-	GradedAt            time.Time              `json:"graded_at"`
+	GradedAt            time.Time               `json:"graded_at"`
 }
 
 // QuestionGradingResult represents the result of grading a single question
 type QuestionGradingResult struct {
-	QuestionID    string  `json:"question_id"`
-	QuestionType  string  `json:"question_type"`
-	MaxPoints     float64 `json:"max_points"`
-	PointsEarned  float64 `json:"points_earned"`
-	IsCorrect     bool    `json:"is_correct"`
-	IsAnswered    bool    `json:"is_answered"`
-	ErrorMessage  string  `json:"error_message,omitempty"`
+	QuestionID   string  `json:"question_id"`
+	QuestionType string  `json:"question_type"`
+	MaxPoints    float64 `json:"max_points"`
+	PointsEarned float64 `json:"points_earned"`
+	IsCorrect    bool    `json:"is_correct"`
+	IsAnswered   bool    `json:"is_answered"`
+	ErrorMessage string  `json:"error_message,omitempty"`
 }
 
 // AutoGradeExam automatically grades an exam attempt
@@ -95,9 +95,9 @@ func (s *AutoGradingService) AutoGradeExam(ctx context.Context, attemptID string
 
 	// Initialize grading result
 	result := &ExamGradingResult{
-		AttemptID:        attemptID,
-		QuestionResults:  make([]QuestionGradingResult, 0, len(examQuestions)),
-		GradedAt:         time.Now(),
+		AttemptID:       attemptID,
+		QuestionResults: make([]QuestionGradingResult, 0, len(examQuestions)),
+		GradedAt:        time.Now(),
 	}
 
 	var totalScore float64

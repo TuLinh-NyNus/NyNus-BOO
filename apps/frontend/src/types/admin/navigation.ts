@@ -1,13 +1,294 @@
 /**
  * Admin Navigation Types
- * Type definitions cho admin navigation system
+ * Consolidated navigation types for admin interface
  */
+
+import { ReactNode } from 'react';
+
+// ===== CORE NAVIGATION INTERFACES =====
+
+/**
+ * Navigation Item Interface
+ * Interface cho navigation items
+ */
+export interface NavigationItem {
+  id: string;
+  name: string;
+  href: string;
+  icon: string;
+  badge?: string | number;
+  permissions?: string[];
+  isActive?: boolean;
+  isDisabled?: boolean;
+  children?: NavigationItem[];
+  metadata?: Record<string, unknown>;
+}
+
+/**
+ * Navigation Section Interface
+ * Interface cho navigation sections
+ */
+export interface NavigationSection {
+  id: string;
+  title?: string;
+  items: NavigationItem[];
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
+}
+
+/**
+ * User Permissions Interface
+ * Interface cho user permissions
+ */
+export interface UserPermissions {
+  userId: string;
+  permissions: string[];
+  role: string;
+  roleLevel?: number;
+}
+
+// ===== SIDEBAR INTERFACES =====
+
+/**
+ * Admin Sidebar Props
+ * Props cho AdminSidebar component
+ */
+export interface AdminSidebarProps {
+  className?: string;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+  showLogo?: boolean;
+  showCollapseButton?: boolean;
+}
+
+/**
+ * Navigation Item Props
+ * Props cho NavItem component
+ */
+export interface NavItemProps {
+  item: NavigationItem;
+  isActive?: boolean;
+  collapsed?: boolean;
+  level?: number;
+  onClick?: (item: NavigationItem) => void;
+  className?: string;
+}
+
+/**
+ * Navigation Section Props
+ * Props cho NavSection component
+ */
+export interface NavSectionProps {
+  section: NavigationSection;
+  collapsed?: boolean;
+  activeItemId?: string;
+  onItemClick?: (item: NavigationItem) => void;
+  className?: string;
+}
+
+/**
+ * Admin Logo Props
+ * Props cho AdminLogo component
+ */
+export interface AdminLogoProps {
+  collapsed?: boolean;
+  showText?: boolean;
+  className?: string;
+  onClick?: () => void;
+}
+
+// ===== SIDEBAR STATE & ACTIONS =====
+
+/**
+ * Sidebar State Interface
+ * Interface cho sidebar state
+ */
+export interface SidebarState {
+  collapsed: boolean;
+  activeItemId: string | null;
+  expandedSections: string[];
+  navigationItems: NavigationSection[];
+  userPermissions: UserPermissions | null;
+  isLoading: boolean;
+}
+
+/**
+ * Sidebar Actions Interface
+ * Interface cho sidebar actions
+ */
+export interface SidebarActions {
+  setCollapsed: (collapsed: boolean) => void;
+  toggleCollapsed: () => void;
+  setActiveItem: (itemId: string | null) => void;
+  toggleSection: (sectionId: string) => void;
+  expandSection: (sectionId: string) => void;
+  collapseSection: (sectionId: string) => void;
+  setNavigationItems: (items: NavigationSection[]) => void;
+  setUserPermissions: (permissions: UserPermissions | null) => void;
+  setLoading: (loading: boolean) => void;
+  refreshNavigation: () => void;
+}
+
+// ===== SIDEBAR CONFIGURATION =====
+
+/**
+ * Sidebar Configuration
+ * Configuration cho admin sidebar
+ */
+export interface AdminSidebarConfig {
+  width: {
+    expanded: number;
+    collapsed: number;
+  };
+  animation: {
+    duration: number;
+    easing: string;
+  };
+  logo: {
+    show: boolean;
+    showTextWhenCollapsed: boolean;
+  };
+  navigation: {
+    showBadges: boolean;
+    showIcons: boolean;
+    highlightActive: boolean;
+    expandOnHover: boolean;
+  };
+  permissions: {
+    hideUnauthorized: boolean;
+    showPermissionHints: boolean;
+  };
+}
+
+/**
+ * Default Sidebar Configuration
+ * Default config cho admin sidebar
+ */
+export const DEFAULT_ADMIN_SIDEBAR_CONFIG: AdminSidebarConfig = {
+  width: {
+    expanded: 256, // w-64
+    collapsed: 64  // w-16
+  },
+  animation: {
+    duration: 200,
+    easing: 'ease-in-out'
+  },
+  logo: {
+    show: true,
+    showTextWhenCollapsed: false
+  },
+  navigation: {
+    showBadges: true,
+    showIcons: true,
+    highlightActive: true,
+    expandOnHover: false
+  },
+  permissions: {
+    hideUnauthorized: true,
+    showPermissionHints: false
+  }
+};
+
+// ===== NAVIGATION BADGES =====
+
+/**
+ * Navigation Badge Type
+ * Type cho navigation badges
+ */
+export type NavigationBadgeType = 'count' | 'dot' | 'text' | 'status';
+
+/**
+ * Navigation Badge Interface
+ * Interface cho navigation badges
+ */
+export interface NavigationBadge {
+  type: NavigationBadgeType;
+  value: string | number;
+  color?: 'primary' | 'secondary' | 'success' | 'warning' | 'error';
+  pulse?: boolean;
+}
+
+// ===== ACTIVE NAVIGATION DETECTION =====
+
+/**
+ * Active Navigation Detection
+ * Interface cho active navigation detection
+ */
+export interface ActiveNavigationDetection {
+  exact: boolean;
+  includeChildren: boolean;
+  customMatcher?: (pathname: string, itemHref: string) => boolean;
+}
+
+// ===== CONTEXT INTERFACES =====
+
+/**
+ * Navigation Context Value
+ * Context value cho NavigationProvider
+ */
+export interface NavigationContextValue {
+  activeItemId: string | null;
+  setActiveItem: (itemId: string | null) => void;
+  isItemActive: (item: NavigationItem, pathname: string) => boolean;
+  hasPermission: (permissions: string[]) => boolean;
+  userPermissions: UserPermissions | null;
+}
+
+/**
+ * Navigation Provider Props
+ * Props cho NavigationProvider
+ */
+export interface NavigationProviderProps {
+  children: ReactNode;
+  userPermissions?: UserPermissions;
+  activeDetection?: ActiveNavigationDetection;
+}
+
+// ===== HOOK RETURN TYPES =====
+
+/**
+ * Use Admin Sidebar Hook Return
+ * Return type cho useAdminSidebar hook
+ */
+export interface UseAdminSidebarReturn {
+  state: SidebarState;
+  actions: SidebarActions;
+}
+
+// ===== BREADCRUMB INTERFACES =====
+
+/**
+ * Breadcrumb Item Interface
+ * Interface cho breadcrumb items
+ */
+export interface BreadcrumbItem {
+  id: string;
+  label: string;
+  href?: string;
+  icon?: string;
+  isActive?: boolean;
+  isClickable?: boolean;
+}
+
+/**
+ * Breadcrumb Props
+ * Props cho Breadcrumb component
+ */
+export interface BreadcrumbProps {
+  items: BreadcrumbItem[];
+  separator?: ReactNode;
+  maxItems?: number;
+  className?: string;
+  onItemClick?: (item: BreadcrumbItem) => void;
+}
+
+// ===== NAVIGATION TYPE DEFINITIONS =====
 
 /**
  * Navigation Icon Type
  * Type cho navigation icons
  */
-export type NavigationIcon = 
+export type NavigationIcon =
   | 'LayoutDashboard'
   | 'Users'
   | 'FileQuestion'
@@ -38,7 +319,7 @@ export type NavigationIcon =
  * Navigation Permission Type
  * Type cho navigation permissions
  */
-export type NavigationPermission = 
+export type NavigationPermission =
   | 'admin.dashboard'
   | 'users.read'
   | 'users.create'
@@ -73,7 +354,7 @@ export type NavigationPermission =
  * Navigation Route Type
  * Type cho navigation routes
  */
-export type NavigationRoute = 
+export type NavigationRoute =
   | '/3141592654/admin'
   | '/3141592654/admin/users'
   | '/3141592654/admin/questions'
@@ -93,32 +374,10 @@ export type NavigationRoute =
   | '/3141592654/admin/resources';
 
 /**
- * Navigation Badge Color Type
- * Type cho navigation badge colors
- */
-export type NavigationBadgeColor = 
-  | 'primary'
-  | 'secondary'
-  | 'success'
-  | 'warning'
-  | 'error'
-  | 'info';
-
-/**
- * Navigation Section ID Type
- * Type cho navigation section IDs
- */
-export type NavigationSectionId = 
-  | 'main'
-  | 'management'
-  | 'system'
-  | 'advanced';
-
-/**
  * Navigation Item ID Type
  * Type cho navigation item IDs
  */
-export type NavigationItemId = 
+export type NavigationItemId =
   | 'dashboard'
   | 'users'
   | 'questions'
@@ -139,235 +398,11 @@ export type NavigationItemId =
   | 'resources';
 
 /**
- * User Role Type
- * Type cho user roles
+ * Navigation Section ID Type
+ * Type cho navigation section IDs
  */
-export type UserRole = 
-  | 'ADMIN'
-  | 'TEACHER'
-  | 'TUTOR'
-  | 'STUDENT'
-  | 'GUEST';
-
-/**
- * Navigation State Type
- * Type cho navigation states
- */
-export type NavigationState = 
-  | 'active'
-  | 'inactive'
-  | 'disabled'
-  | 'loading';
-
-/**
- * Navigation Animation Type
- * Type cho navigation animations
- */
-export type NavigationAnimation = 
-  | 'none'
-  | 'fade'
-  | 'slide'
-  | 'scale'
-  | 'bounce';
-
-/**
- * Navigation Layout Type
- * Type cho navigation layouts
- */
-export type NavigationLayout = 
-  | 'vertical'
-  | 'horizontal'
-  | 'compact'
-  | 'minimal';
-
-/**
- * Navigation Theme Type
- * Type cho navigation themes
- */
-export type NavigationTheme = 
-  | 'light'
-  | 'dark'
-  | 'auto';
-
-/**
- * Navigation Size Type
- * Type cho navigation sizes
- */
-export type NavigationSize = 
-  | 'sm'
-  | 'md'
-  | 'lg'
-  | 'xl';
-
-/**
- * Navigation Variant Type
- * Type cho navigation variants
- */
-export type NavigationVariant = 
-  | 'default'
-  | 'minimal'
-  | 'compact'
-  | 'pills'
-  | 'underline';
-
-/**
- * Navigation Position Type
- * Type cho navigation positions
- */
-export type NavigationPosition = 
-  | 'left'
-  | 'right'
-  | 'top'
-  | 'bottom'
-  | 'fixed'
-  | 'sticky';
-
-/**
- * Navigation Behavior Type
- * Type cho navigation behaviors
- */
-export type NavigationBehavior = 
-  | 'hover'
-  | 'click'
-  | 'auto'
-  | 'manual';
-
-/**
- * Navigation Constants
- * Constants cho navigation system
- */
-export const NAVIGATION_CONSTANTS = {
-  DEFAULT_ANIMATION_DURATION: 200,
-  DEFAULT_DEBOUNCE_MS: 300,
-  DEFAULT_MAX_ITEMS: 10,
-  DEFAULT_BADGE_LIMIT: 99,
-  DEFAULT_TOOLTIP_DELAY: 500,
-  
-  BREAKPOINTS: {
-    MOBILE: 640,
-    TABLET: 768,
-    DESKTOP: 1024,
-    WIDE: 1280
-  },
-  
-  SIZES: {
-    SIDEBAR_EXPANDED: 256,
-    SIDEBAR_COLLAPSED: 64,
-    HEADER_HEIGHT: 64,
-    BREADCRUMB_HEIGHT: 40
-  },
-  
-  Z_INDEX: {
-    SIDEBAR: 40,
-    HEADER: 50,
-    DROPDOWN: 1000,
-    MODAL: 1050,
-    TOOLTIP: 1070
-  }
-} as const;
-
-/**
- * Navigation Icon Mapping
- * Mapping cho navigation icons
- */
-export const NAVIGATION_ICON_MAPPING = {
-  dashboard: 'LayoutDashboard',
-  users: 'Users',
-  questions: 'FileQuestion',
-  'questions-list': 'List',
-  'questions-create': 'Plus',
-  analytics: 'BarChart3',
-  books: 'BookOpen',
-  faq: 'HelpCircle',
-  roles: 'Shield',
-  permissions: 'Key',
-  audit: 'FileText',
-  sessions: 'Clock',
-  notifications: 'Bell',
-  security: 'Lock',
-  settings: 'Settings',
-  'level-progression': 'TrendingUp',
-  mapcode: 'Map',
-  resources: 'FolderOpen'
-} as const;
-
-/**
- * Navigation Permission Mapping
- * Mapping cho navigation permissions
- */
-export const NAVIGATION_PERMISSION_MAPPING = {
-  dashboard: ['admin.dashboard'],
-  users: ['users.read'],
-  questions: ['questions.read'],
-  'questions-list': ['questions.read'],
-  'questions-create': ['questions.create'],
-  analytics: ['analytics.read'],
-  books: ['books.read'],
-  faq: ['faq.read'],
-  roles: ['roles.read'],
-  permissions: ['permissions.read'],
-  audit: ['audit.read'],
-  sessions: ['sessions.read'],
-  notifications: ['notifications.read'],
-  security: ['security.read'],
-  settings: ['settings.read'],
-  'level-progression': ['level.read'],
-  mapcode: ['mapcode.read'],
-  resources: ['resources.read']
-} as const;
-
-/**
- * Navigation Route Mapping
- * Mapping cho navigation routes
- */
-export const NAVIGATION_ROUTE_MAPPING = {
-  dashboard: '/3141592654/admin',
-  users: '/3141592654/admin/users',
-  questions: '/3141592654/admin/questions',
-  'questions-list': '/3141592654/admin/questions',
-  'questions-create': '/3141592654/admin/questions/create',
-  analytics: '/3141592654/admin/analytics',
-  books: '/3141592654/admin/books',
-  faq: '/3141592654/admin/faq',
-  roles: '/3141592654/admin/roles',
-  permissions: '/3141592654/admin/permissions',
-  audit: '/3141592654/admin/audit',
-  sessions: '/3141592654/admin/sessions',
-  notifications: '/3141592654/admin/notifications',
-  security: '/3141592654/admin/security',
-  settings: '/3141592654/admin/settings',
-  'level-progression': '/3141592654/admin/level-progression',
-  mapcode: '/3141592654/admin/mapcode',
-  resources: '/3141592654/admin/resources'
-} as const;
-
-/**
- * Navigation Validation Functions
- * Functions để validate navigation data
- */
-export const NavigationValidation = {
-  isValidIcon: (icon: string): icon is NavigationIcon => {
-    const validIcons: string[] = Object.values(NAVIGATION_ICON_MAPPING);
-    return validIcons.includes(icon);
-  },
-
-  isValidPermission: (permission: string): permission is NavigationPermission => {
-    const validPermissions: string[] = Object.values(NAVIGATION_PERMISSION_MAPPING).flat();
-    return validPermissions.includes(permission);
-  },
-
-  isValidRoute: (route: string): route is NavigationRoute => {
-    const validRoutes: string[] = Object.values(NAVIGATION_ROUTE_MAPPING);
-    return validRoutes.includes(route);
-  },
-
-  isValidItemId: (itemId: string): itemId is NavigationItemId => {
-    const validItemIds: string[] = Object.keys(NAVIGATION_ROUTE_MAPPING);
-    return validItemIds.includes(itemId);
-  },
-
-  isValidSectionId: (sectionId: string): sectionId is NavigationSectionId => {
-    const validSectionIds: NavigationSectionId[] = ['main', 'management', 'system', 'advanced'];
-    return validSectionIds.includes(sectionId as NavigationSectionId);
-  }
-} as const;
+export type NavigationSectionId =
+  | 'main'
+  | 'management'
+  | 'system'
+  | 'advanced';

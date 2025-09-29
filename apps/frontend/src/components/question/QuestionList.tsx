@@ -511,11 +511,11 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                           onClick={() => onQuestionSelect?.(question)}
                           title={question.content}
                         >
-                          {question.content || question.raw_content}
+                          {question.content || question.rawContent}
                         </div>
-                        {question.subcount && (
+                        {question.subcountText && (
                           <div className="text-xs text-muted-foreground mt-1">
-                            {question.subcount}
+                            {question.subcountText}
                           </div>
                         )}
                       </TableCell>
@@ -530,18 +530,18 @@ export const QuestionList: React.FC<QuestionListProps> = ({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusBadgeVariant(question.status)}>
-                          {QuestionHelpers.getStatusDisplayName(question.status)}
+                        <Badge variant={getStatusBadgeVariant(question.status || 'ACTIVE')}>
+                          {QuestionHelpers.getStatusDisplayName(question.status || 'ACTIVE')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {question.creator || 'Không rõ'}
+                        {question.createdBy || 'Không rõ'}
                       </TableCell>
                       <TableCell className="text-center">
-                        {question.usage_count || 0}
+                        {question.usageCount || 0}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
-                        {new Date(question.created_at).toLocaleDateString('vi-VN')}
+                        {new Date(question.createdAt).toLocaleDateString('vi-VN')}
                       </TableCell>
                       {showActions && (
                         <TableCell className="text-right">

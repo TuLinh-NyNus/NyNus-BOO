@@ -1,13 +1,15 @@
 // Extended types for admin mockdata
-import { Question, AnswerOption } from '../types/question';
+import { Question, AnswerOption } from '@/types/question';
 // ✅ Import shared types from consolidated core-types
 import {
   UserRole,
   UserStatus,
   QuestionType,
-  QuestionDifficulty,
-  ProfileVisibility
+  QuestionDifficulty
 } from './core-types';
+
+// ✅ Re-export AdminUser from canonical source
+export type { AdminUser } from '@/types/user/admin';
 
 // ✅ Re-export shared types for backward compatibility
 export type {
@@ -16,75 +18,7 @@ export type {
   MockListResponse
 } from './core-types';
 
-// Enhanced AdminUser interface aligned with AUTH_COMPLETE_GUIDE.md
-// Note: Không extend User vì có conflicts với optional fields
-export interface AdminUser {
-  // ===== CORE REQUIRED FIELDS (MVP) =====
-  id: string;                           // REQUIRED - Primary key
-  email: string;                        // REQUIRED - Login identifier
-  role: UserRole;                       // REQUIRED - Authorization với 5 roles
-  status: UserStatus;                   // REQUIRED - Account control (thay vì isActive boolean)
-  emailVerified: boolean;               // REQUIRED - Security
-  createdAt: Date;                      // REQUIRED - Audit trail
-  updatedAt: Date;                      // REQUIRED - Audit trail
 
-  // ===== AUTHENTICATION FIELDS (IMPORTANT) =====
-  googleId?: string | null;             // IMPORTANT - OAuth primary (null = không dùng OAuth)
-  password?: string;                    // IMPORTANT - Fallback only
-  password_hash?: string;               // Database storage
-
-  // ===== CORE BUSINESS LOGIC (IMPORTANT) =====
-  level?: number | null;                // IMPORTANT - Hierarchy (1-9 cho STUDENT/TUTOR/TEACHER, null cho GUEST/ADMIN)
-  maxConcurrentSessions: number;        // IMPORTANT - Anti-sharing (default: 3)
-
-  // ===== SECURITY TRACKING (IMPORTANT) =====
-  lastLoginAt?: Date;                   // IMPORTANT - Security monitoring
-  lastLoginIp?: string;                 // IMPORTANT - Suspicious detection
-  loginAttempts: number;                // IMPORTANT - Brute force protection (default: 0)
-  lockedUntil?: Date | null;            // IMPORTANT - Account locking (null = not locked)
-  activeSessionsCount: number;          // IMPORTANT - Current sessions (0-3)
-  totalResourceAccess: number;          // IMPORTANT - Anti-piracy monitoring
-  riskScore?: number;                   // IMPORTANT - Risk calculation (0-100)
-
-  // ===== PROFILE INFORMATION (NICE-TO-HAVE) =====
-  username?: string;                    // OPTIONAL - Display name
-  firstName?: string;                   // OPTIONAL - From Google/manual
-  lastName?: string;                    // OPTIONAL - From Google/manual
-  avatar?: string;                      // OPTIONAL - From Google/upload
-  bio?: string;                         // OPTIONAL - User description
-  phone?: string | null;                // OPTIONAL - Contact info (null = không có)
-  address?: string | null;              // OPTIONAL - Simple address (null = không có)
-  school?: string | null;               // OPTIONAL - Educational background (null = không có)
-  dateOfBirth?: Date | null;            // OPTIONAL - Age verification (null = không có)
-  gender?: string | null;               // OPTIONAL - Analytics ('male'/'female'/'other', null = không có)
-
-  // ===== ADMIN SPECIFIC FIELDS =====
-  adminNotes?: string;                  // Admin internal notes
-  maxConcurrentIPs?: number;            // Legacy field for backward compatibility
-
-  // ===== NESTED OBJECTS =====
-  profile?: {
-    bio?: string;
-    phoneNumber?: string | null;         // Có thể null cho guest users
-    completionRate?: number;
-    preferences?: {
-      language?: string;
-      timezone?: string;
-      profileVisibility?: ProfileVisibility;
-      notifications?: {
-        email?: boolean;
-        push?: boolean;
-        sms?: boolean;
-      };
-    };
-  };
-  stats?: {
-    totalExamResults?: number;
-    totalCourses?: number;
-    totalLessons?: number;
-    averageScore?: number;
-  };
-}
 
 // Admin-specific question interface extending base Question
 export interface AdminQuestion extends Omit<Question, 'correctAnswer' | 'questionCodeId'> {

@@ -19,7 +19,7 @@ import { PublicQuestionListLoading } from "@/components/questions/shared/questio
 import { PublicQuestionErrorBoundary } from "@/components/questions/shared/question-error-boundary";
 
 // Import types
-import { PublicQuestion } from "@/lib/types/public";
+import { PublicQuestion } from "@/types/public";
 
 // Import utilities
 import { shouldEnableVirtualScrolling } from "@/lib/utils/question-list-performance";

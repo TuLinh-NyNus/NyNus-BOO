@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Eye, 
@@ -25,7 +25,7 @@ import {
   Minimize2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Exam, Question, ExamFormData } from '@/lib/types/exam';
+import { Exam, Question, ExamFormData } from '@/types/exam';
 import { QuestionDisplay } from '@/components/exams/taking/question-display';
 import { ExamTimer } from '@/components/exams/taking/exam-timer';
 
@@ -78,7 +78,7 @@ export function ExamPreview({
   // Validation checks
   const validationIssues = validateExam(previewData, questions);
   const hasErrors = validationIssues.some(issue => issue.type === 'error');
-  const hasWarnings = validationIssues.some(issue => issue.type === 'warning');
+  const _hasWarnings = validationIssues.some(issue => issue.type === 'warning');
 
   const handleModeChange = (mode: ExamPreviewMode['mode']) => {
     setPreviewMode(prev => ({ ...prev, mode }));
@@ -117,7 +117,7 @@ export function ExamPreview({
               <label className="text-sm font-medium text-muted-foreground">Thời gian</label>
               <p className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                {previewData.duration_minutes} phút
+                {previewData.durationMinutes} phút
               </p>
             </div>
             <div>
@@ -222,10 +222,8 @@ export function ExamPreview({
           <p className="text-muted-foreground">{previewData.subject}</p>
         </div>
         <ExamTimer
-          duration={previewData.duration_minutes * 60}
           variant="compact"
           showWarnings={false}
-          isPaused={true}
         />
       </div>
 
@@ -251,15 +249,16 @@ export function ExamPreview({
             <QuestionDisplay
               question={questions[currentQuestionIndex]}
               questionNumber={currentQuestionIndex + 1}
-              totalQuestions={questions.length}
-              answer={{
-                question_id: questions[currentQuestionIndex].id,
-                answer_text: '',
-                selected_options: [],
-                is_flagged: false
+              currentAnswer={{
+                questionId: questions[currentQuestionIndex].id,
+                answerText: '',
+                selectedOptions: [],
+                isFlagged: false,
+                timeSpent: 0,
+                isAnswered: false
               }}
               onAnswerChange={() => {}}
-              isPreview={true}
+              readOnly={true}
             />
           </CardContent>
         </Card>
@@ -300,7 +299,7 @@ export function ExamPreview({
               <Users className="h-5 w-5 text-blue-500" />
               <div>
                 <p className="text-sm text-muted-foreground">Ước tính thời gian</p>
-                <p className="text-lg font-semibold">{previewData.duration_minutes} phút</p>
+                <p className="text-lg font-semibold">{previewData.durationMinutes} phút</p>
               </div>
             </div>
           </CardContent>
@@ -477,7 +476,7 @@ function validateExam(examData: Exam | ExamFormData, questions: Question[]) {
     });
   }
 
-  if (examData.duration_minutes < 5) {
+  if (examData.durationMinutes < 5) {
     issues.push({
       type: 'warning',
       title: 'Thời gian ngắn',

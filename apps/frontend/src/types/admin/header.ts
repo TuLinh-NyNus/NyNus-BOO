@@ -1,7 +1,14 @@
 /**
  * Admin Header Types
- * Type definitions cho admin header components
+ * Consolidated header types for admin interface
  */
+
+import { AdminUser } from '../user/index';
+
+// Re-export AdminUser for convenience
+export type { AdminUser };
+
+// ===== CORE HEADER INTERFACES =====
 
 /**
  * Admin Header Props
@@ -16,22 +23,7 @@ export interface AdminHeaderProps {
   variant?: 'default' | 'minimal' | 'elevated';
 }
 
-/**
- * Admin User Interface
- * Interface cho admin user trong header
- */
-export interface AdminUser {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  role: string;
-  firstName?: string;
-  lastName?: string;
-  permissions?: string[];
-  lastLoginAt?: Date;
-  isActive?: boolean;
-}
+// ===== NOTIFICATION INTERFACES =====
 
 /**
  * Admin Notification Interface
@@ -54,6 +46,8 @@ export interface AdminNotification {
 
 export type NotificationType = 'info' | 'warning' | 'error' | 'success';
 
+// ===== SEARCH INTERFACES =====
+
 /**
  * Search Category Interface
  * Interface cho search categories
@@ -64,56 +58,6 @@ export interface SearchCategory {
   icon: string;
   color: string;
   searchPath: string;
-}
-
-/**
- * Search Bar Props
- * Props cho SearchBar component
- */
-export interface SearchBarProps {
-  placeholder?: string;
-  className?: string;
-  onSearch?: (query: string) => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
-  showShortcut?: boolean;
-  variant?: 'default' | 'compact' | 'large';
-}
-
-/**
- * Search Dropdown Props
- * Props cho SearchDropdown component
- */
-export interface SearchDropdownProps {
-  query?: string;
-  suggestions?: SearchSuggestion[];
-  isLoading?: boolean;
-  onSuggestionSelect: (suggestion: SearchSuggestion) => void;
-  onClose: () => void;
-  className?: string;
-}
-
-/**
- * User Menu Props
- * Props cho UserMenu component
- */
-export interface UserMenuProps {
-  className?: string;
-  onProfileClick?: () => void;
-  onSettingsClick?: () => void;
-  onLogoutClick?: () => void;
-  variant?: 'default' | 'compact';
-}
-
-/**
- * Notification Dropdown Props
- * Props cho NotificationDropdown component
- */
-export interface NotificationDropdownProps {
-  className?: string;
-  onNotificationClick?: (notification: AdminNotification) => void;
-  onMarkAllRead?: () => void;
-  maxNotifications?: number;
 }
 
 /**
@@ -166,6 +110,58 @@ export interface SearchResponse {
     questions: SearchResult[];
     pages: SearchResult[];
   };
+}
+
+// ===== COMPONENT PROPS =====
+
+/**
+ * Search Bar Props
+ * Props cho SearchBar component
+ */
+export interface SearchBarProps {
+  placeholder?: string;
+  className?: string;
+  onSearch?: (query: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  showShortcut?: boolean;
+  variant?: 'default' | 'compact' | 'large';
+}
+
+/**
+ * Search Dropdown Props
+ * Props cho SearchDropdown component
+ */
+export interface SearchDropdownProps {
+  query?: string;
+  suggestions?: SearchSuggestion[];
+  isLoading?: boolean;
+  onSuggestionSelect: (suggestion: SearchSuggestion) => void;
+  onClose: () => void;
+  className?: string;
+}
+
+/**
+ * User Menu Props
+ * Props cho UserMenu component
+ */
+export interface UserMenuProps {
+  className?: string;
+  onProfileClick?: () => void;
+  onSettingsClick?: () => void;
+  onLogoutClick?: () => void;
+  variant?: 'default' | 'compact';
+}
+
+/**
+ * Notification Dropdown Props
+ * Props cho NotificationDropdown component
+ */
+export interface NotificationDropdownProps {
+  className?: string;
+  onNotificationClick?: (notification: AdminNotification) => void;
+  onMarkAllRead?: () => void;
+  maxNotifications?: number;
 }
 
 /**
@@ -245,6 +241,8 @@ export interface NotificationItemProps {
   className?: string;
 }
 
+// ===== STATE & ACTIONS =====
+
 /**
  * Header Search State
  * State cho header search functionality
@@ -323,6 +321,8 @@ export interface HeaderUserActions {
   logout: () => void;
 }
 
+// ===== HOOK RETURN TYPES =====
+
 /**
  * Use Admin Search Hook Return
  * Return type cho useAdminSearch hook
@@ -349,6 +349,8 @@ export interface UseAdminUserReturn {
   state: HeaderUserState;
   actions: HeaderUserActions;
 }
+
+// ===== CONFIGURATION =====
 
 /**
  * Header Configuration
@@ -409,6 +411,8 @@ export const DEFAULT_ADMIN_HEADER_CONFIG: AdminHeaderConfig = {
     showLabel: false
   }
 };
+
+// ===== CONSTANTS =====
 
 /**
  * Notification Type Colors

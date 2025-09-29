@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-import { QuestionCode } from '@/lib/types/question';
+import { QuestionCode } from '@/types/question';
 
 // Type alias for backward compatibility
 type ParsedQuestionCode = QuestionCode;

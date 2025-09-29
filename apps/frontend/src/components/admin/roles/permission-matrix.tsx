@@ -21,7 +21,15 @@ import {
   FileText,
   Lock,
 } from "lucide-react";
-import { UserRole, USER_ROLE_LABELS } from "../../../types/admin-user";
+import { UserRole } from "@/lib/mockdata/core-types";
+
+const USER_ROLE_LABELS: Record<UserRole, string> = {
+  [UserRole.GUEST]: "Khách",
+  [UserRole.STUDENT]: "Học viên",
+  [UserRole.TUTOR]: "Trợ giảng",
+  [UserRole.TEACHER]: "Giảng viên",
+  [UserRole.ADMIN]: "Quản trị viên",
+};
 import {
   mockPermissions,
   mockRoles,

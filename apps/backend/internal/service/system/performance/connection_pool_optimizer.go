@@ -12,16 +12,16 @@ import (
 
 // ConnectionPoolOptimizer optimizes database connection pool settings
 type ConnectionPoolOptimizer struct {
-	db                *sql.DB
-	logger            *logrus.Logger
+	db                 *sql.DB
+	logger             *logrus.Logger
 	performanceMonitor *PerformanceMonitor
-	
+
 	// Current settings
 	currentSettings *PoolSettings
 	mutex           sync.RWMutex
-	
+
 	// Optimization state
-	isOptimizing    bool
+	isOptimizing      bool
 	optimizationMutex sync.Mutex
 }
 
@@ -31,26 +31,26 @@ type PoolSettings struct {
 	MaxIdleConns    int           `json:"max_idle_conns"`
 	ConnMaxLifetime time.Duration `json:"conn_max_lifetime"`
 	ConnMaxIdleTime time.Duration `json:"conn_max_idle_time"`
-	
+
 	// Performance metrics
-	AverageWaitTime   time.Duration `json:"average_wait_time"`
-	ConnectionUtilization float64   `json:"connection_utilization"`
-	LastOptimized     time.Time     `json:"last_optimized"`
+	AverageWaitTime       time.Duration `json:"average_wait_time"`
+	ConnectionUtilization float64       `json:"connection_utilization"`
+	LastOptimized         time.Time     `json:"last_optimized"`
 }
 
 // OptimizationResult represents the result of pool optimization
 type OptimizationResult struct {
-	PreviousSettings *PoolSettings `json:"previous_settings"`
-	NewSettings      *PoolSettings `json:"new_settings"`
+	PreviousSettings *PoolSettings           `json:"previous_settings"`
+	NewSettings      *PoolSettings           `json:"new_settings"`
 	Improvement      *PerformanceImprovement `json:"improvement"`
-	OptimizedAt      time.Time     `json:"optimized_at"`
+	OptimizedAt      time.Time               `json:"optimized_at"`
 }
 
 // PerformanceImprovement represents performance improvements
 type PerformanceImprovement struct {
-	WaitTimeReduction    time.Duration `json:"wait_time_reduction"`
-	UtilizationImprovement float64     `json:"utilization_improvement"`
-	ThroughputIncrease   float64       `json:"throughput_increase"`
+	WaitTimeReduction      time.Duration `json:"wait_time_reduction"`
+	UtilizationImprovement float64       `json:"utilization_improvement"`
+	ThroughputIncrease     float64       `json:"throughput_increase"`
 }
 
 // NewConnectionPoolOptimizer creates a new connection pool optimizer
@@ -74,7 +74,7 @@ func NewConnectionPoolOptimizer(db *sql.DB, performanceMonitor *PerformanceMonit
 func (cpo *ConnectionPoolOptimizer) GetCurrentSettings() *PoolSettings {
 	cpo.mutex.RLock()
 	defer cpo.mutex.RUnlock()
-	
+
 	// Create a copy to avoid race conditions
 	settings := *cpo.currentSettings
 	return &settings
@@ -104,7 +104,7 @@ func (cpo *ConnectionPoolOptimizer) UpdateSettings(settings *PoolSettings) error
 // CollectCurrentMetrics collects current connection pool metrics
 func (cpo *ConnectionPoolOptimizer) CollectCurrentMetrics(ctx context.Context) (*ConnectionPoolStats, error) {
 	stats := cpo.db.Stats()
-	
+
 	poolStats := &ConnectionPoolStats{
 		ActiveConnections: stats.OpenConnections - stats.Idle,
 		IdleConnections:   stats.Idle,
@@ -142,7 +142,7 @@ func (cpo *ConnectionPoolOptimizer) AnalyzePerformance(ctx context.Context) (*Pe
 
 	// Analyze bottlenecks
 	analysis.Bottlenecks = cpo.identifyBottlenecks(stats)
-	
+
 	// Generate recommendations
 	analysis.Recommendations = cpo.generateRecommendations(stats, analysis.Utilization)
 
@@ -308,7 +308,7 @@ func (cpo *ConnectionPoolOptimizer) calculateOptimalSettings(analysis *Performan
 func (cpo *ConnectionPoolOptimizer) measureImprovement(ctx context.Context, previous, current *PoolSettings) (*PerformanceImprovement, error) {
 	// This is a simplified implementation
 	// In a real system, you'd collect metrics over time and compare
-	
+
 	improvement := &PerformanceImprovement{
 		WaitTimeReduction:      previous.AverageWaitTime - current.AverageWaitTime,
 		UtilizationImprovement: current.ConnectionUtilization - previous.ConnectionUtilization,

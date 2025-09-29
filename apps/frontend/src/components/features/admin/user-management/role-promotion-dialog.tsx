@@ -23,6 +23,13 @@ import { Badge } from "@/components/ui/display/badge";
 import { Alert, AlertDescription } from "@/components/ui/feedback/alert";
 import { Loader2, AlertTriangle, CheckCircle, ArrowUp, ArrowDown } from "lucide-react";
 import { UserRole } from "@/lib/mockdata/core-types";
+import { AdminUser } from "@/types/user/admin";
+import {
+  convertProtobufRoleToEnum,
+  getProtobufRoleLabel,
+  getProtobufRoleColor,
+  isProtobufRoleEqual
+} from "@/lib/utils/type-converters";
 import { toast } from "@/hooks/use-toast";
 
 /**
@@ -36,16 +43,7 @@ const USER_ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: "Quản trị viên",
 };
 
-/**
- * User role colors mapping
- */
-const USER_ROLE_COLORS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "bg-secondary text-secondary-foreground",
-  [UserRole.STUDENT]: "bg-primary text-primary-foreground",
-  [UserRole.TUTOR]: "bg-badge-success text-badge-success-foreground",
-  [UserRole.TEACHER]: "bg-accent text-accent-foreground",
-  [UserRole.ADMIN]: "bg-destructive text-destructive-foreground",
-};
+// Removed unused USER_ROLE_COLORS - using protobuf helpers instead
 
 /**
  * Interface cho role promotion dialog props
@@ -53,13 +51,7 @@ const USER_ROLE_COLORS: Record<UserRole, string> = {
 interface RolePromotionDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  user: {
-    id: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    role: UserRole;
-  } | null;
+  user: AdminUser | null;
   onSuccess: () => void;
 }
 
@@ -191,7 +183,7 @@ export function RolePromotionDialog({
 
     setIsValidating(true);
     try {
-      const validationResult = await validateRoleChange(user.id, user.role, user.role);
+      const validationResult = await validateRoleChange(user.id, convertProtobufRoleToEnum(user.role), convertProtobufRoleToEnum(user.role));
       setValidation(validationResult);
     } catch (error) {
       console.error("Error loading role validation:", error);
@@ -220,7 +212,7 @@ export function RolePromotionDialog({
     setIsProcessing(true);
     try {
       // Validate role change
-      const validationResult = await validateRoleChange(user.id, user.role, targetRole as UserRole);
+      const validationResult = await validateRoleChange(user.id, convertProtobufRoleToEnum(user.role), targetRole as UserRole);
       
       if (!validationResult.isValid) {
         toast({
@@ -236,7 +228,7 @@ export function RolePromotionDialog({
 
       toast({
         title: "Role promotion thành công",
-        description: `Đã thay đổi role của ${getUserDisplayName(user)} từ ${USER_ROLE_LABELS[user.role]} thành ${USER_ROLE_LABELS[targetRole as UserRole]}`,
+        description: `Đã thay đổi role của ${getUserDisplayName(user)} từ ${getProtobufRoleLabel(user.role)} thành ${USER_ROLE_LABELS[targetRole as UserRole]}`,
       });
 
       onSuccess();
@@ -279,7 +271,7 @@ export function RolePromotionDialog({
    * Check if form is valid
    */
   const isFormValid = () => {
-    return targetRole && reason.trim().length >= 10 && user && targetRole !== user.role;
+    return targetRole && reason.trim().length >= 10 && user && !isProtobufRoleEqual(user.role, targetRole as UserRole);
   };
 
   if (!user) return null;
@@ -303,8 +295,8 @@ export function RolePromotionDialog({
           <div className="space-y-2">
             <Label>Role hiện tại</Label>
             <div className="p-2 border rounded bg-muted/25">
-              <Badge className={USER_ROLE_COLORS[user.role]}>
-                {USER_ROLE_LABELS[user.role]}
+              <Badge className={`bg-${getProtobufRoleColor(user.role)}-100 text-${getProtobufRoleColor(user.role)}-700`}>
+                {getProtobufRoleLabel(user.role)}
               </Badge>
             </div>
           </div>
@@ -329,10 +321,10 @@ export function RolePromotionDialog({
                         <span>{USER_ROLE_LABELS[role]}</span>
                         {targetRole === role && user && (
                           <>
-                            {getPromotionType(user.role, role) === 'promotion' && (
+                            {getPromotionType(convertProtobufRoleToEnum(user.role), role) === 'promotion' && (
                               <ArrowUp className="h-3 w-3 text-badge-success-foreground" />
                             )}
-                            {getPromotionType(user.role, role) === 'demotion' && (
+                            {getPromotionType(convertProtobufRoleToEnum(user.role), role) === 'demotion' && (
                               <ArrowDown className="h-3 w-3 text-destructive" />
                             )}
                           </>
@@ -371,7 +363,7 @@ export function RolePromotionDialog({
           )}
 
           {/* Promotion Type Warning */}
-          {targetRole && user && getPromotionType(user.role, targetRole as UserRole) === 'demotion' && (
+          {targetRole && user && getPromotionType(convertProtobufRoleToEnum(user.role), targetRole as UserRole) === 'demotion' && (
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>

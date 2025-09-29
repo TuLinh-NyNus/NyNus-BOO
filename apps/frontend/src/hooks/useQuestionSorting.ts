@@ -19,7 +19,7 @@ import {
   DEFAULT_SORT_CONFIG,
   SORT_PRESETS
 } from '@/lib/utils/question-sorting';
-import { Question } from '@/lib/types/question';
+import { Question } from '@/types/question';
 
 // ===== TYPES =====
 

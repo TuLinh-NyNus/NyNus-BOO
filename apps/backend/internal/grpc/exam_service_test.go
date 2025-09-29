@@ -94,7 +94,7 @@ type ExamServiceTestSuite struct {
 func setupExamServiceTestSuite(t *testing.T) *ExamServiceTestSuite {
 	examMgmt := &MockExamMgmt{}
 	service := grpc.NewExamService(examMgmt)
-	
+
 	return &ExamServiceTestSuite{
 		examMgmt: examMgmt,
 		service:  service,
@@ -152,7 +152,7 @@ func TestExamService_CreateExam_Success(t *testing.T) {
 	assert.Equal(t, req.Title, resp.Exam.Title)
 	assert.Equal(t, req.Description, resp.Exam.Description)
 	assert.Equal(t, pb.ExamStatus_EXAM_STATUS_PENDING, resp.Exam.Status)
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }
 
@@ -172,7 +172,7 @@ func TestExamService_CreateExam_ValidationError(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, resp)
-	
+
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
@@ -197,11 +197,11 @@ func TestExamService_CreateExam_ServiceError(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, resp)
-	
+
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.Internal, st.Code())
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }
 
@@ -241,7 +241,7 @@ func TestExamService_GetExam_Success(t *testing.T) {
 	assert.Equal(t, "exam-123", resp.Exam.Id)
 	assert.Equal(t, "Test Exam", resp.Exam.Title)
 	assert.Equal(t, pb.ExamStatus_EXAM_STATUS_ACTIVE, resp.Exam.Status)
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }
 
@@ -261,11 +261,11 @@ func TestExamService_GetExam_NotFound(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, resp)
-	
+
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.NotFound, st.Code())
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }
 
@@ -289,7 +289,7 @@ func TestExamService_PublishExam_Success(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.True(t, resp.Response.Success)
 	assert.Equal(t, "Exam published successfully", resp.Response.Message)
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }
 
@@ -309,11 +309,11 @@ func TestExamService_PublishExam_ValidationError(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, resp)
-	
+
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.FailedPrecondition, st.Code())
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }
 
@@ -339,7 +339,7 @@ func TestExamService_AddQuestionToExam_Success(t *testing.T) {
 	assert.NotNil(t, resp)
 	assert.True(t, resp.Response.Success)
 	assert.Equal(t, "Question added to exam successfully", resp.Response.Message)
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }
 
@@ -359,7 +359,7 @@ func TestExamService_AddQuestionToExam_InvalidRequest(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, resp)
-	
+
 	st, ok := status.FromError(err)
 	require.True(t, ok)
 	assert.Equal(t, codes.InvalidArgument, st.Code())
@@ -404,6 +404,6 @@ func TestExamService_ListExams_Success(t *testing.T) {
 	assert.Equal(t, int32(2), resp.Total)
 	assert.Equal(t, "exam-1", resp.Exams[0].Id)
 	assert.Equal(t, "exam-2", resp.Exams[1].Id)
-	
+
 	suite.examMgmt.AssertExpectations(t)
 }

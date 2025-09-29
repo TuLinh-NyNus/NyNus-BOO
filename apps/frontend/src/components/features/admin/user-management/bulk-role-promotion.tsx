@@ -46,6 +46,8 @@ import {
   Users,
 } from "lucide-react";
 import { UserRole } from "@/lib/mockdata/core-types";
+import { AdminUser } from "@/types/user/admin";
+import { getProtobufRoleLabel, getProtobufRoleColor, convertProtobufRoleToEnum } from "@/lib/utils/type-converters";
 import { toast } from "@/hooks/use-toast";
 
 // Import mockdata functions
@@ -66,28 +68,9 @@ const USER_ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.ADMIN]: "Quản trị viên",
 };
 
-/**
- * User role colors mapping
- */
-const USER_ROLE_COLORS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "bg-gray-100 text-gray-800",
-  [UserRole.STUDENT]: "bg-blue-100 text-blue-800",
-  [UserRole.TUTOR]: "bg-green-100 text-green-800",
-  [UserRole.TEACHER]: "bg-purple-100 text-purple-800",
-  [UserRole.ADMIN]: "bg-red-100 text-red-800",
-};
+// Removed unused USER_ROLE_COLORS - using protobuf helpers instead
 
-/**
- * Interface cho admin user (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-}
+// AdminUser already imported above
 
 /**
  * Interface cho bulk role promotion dialog props
@@ -312,8 +295,8 @@ export function BulkRolePromotionDialog({
                 {selectedUsers.map((user) => (
                   <div key={user.id} className="flex items-center justify-between text-sm">
                     <span>{getUserDisplayName(user)}</span>
-                    <Badge className={USER_ROLE_COLORS[user.role]}>
-                      {USER_ROLE_LABELS[user.role]}
+                    <Badge className={`bg-${getProtobufRoleColor(user.role)}-100 text-${getProtobufRoleColor(user.role)}-700`}>
+                      {getProtobufRoleLabel(user.role)}
                     </Badge>
                   </div>
                 ))}
@@ -334,11 +317,11 @@ export function BulkRolePromotionDialog({
                     <div className="flex items-center gap-2">
                       <span>{label}</span>
                       {targetRole && selectedUsers.some(user => {
-                        const type = getPromotionType(user.role, role as UserRole);
+                        const type = getPromotionType(convertProtobufRoleToEnum(user.role), role as UserRole);
                         return type === 'promotion';
                       }) && <ArrowUp className="h-3 w-3 text-green-500" />}
                       {targetRole && selectedUsers.some(user => {
-                        const type = getPromotionType(user.role, role as UserRole);
+                        const type = getPromotionType(convertProtobufRoleToEnum(user.role), role as UserRole);
                         return type === 'demotion';
                       }) && <ArrowDown className="h-3 w-3 text-red-500" />}
                     </div>
@@ -390,7 +373,7 @@ export function BulkRolePromotionDialog({
           {showResults && renderResults()}
 
           {/* Warnings */}
-          {targetRole && selectedUsers.some(user => getPromotionType(user.role, targetRole as UserRole) === 'demotion') && (
+          {targetRole && selectedUsers.some(user => getPromotionType(convertProtobufRoleToEnum(user.role), targetRole as UserRole) === 'demotion') && (
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>

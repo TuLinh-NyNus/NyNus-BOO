@@ -40,47 +40,47 @@ func (p *EnhancedLaTeXParser) ParseWithDetailedErrors(latexContent string) *enti
 
 	// Extract question blocks
 	questionBlocks := p.bp.ExtractEnvironmentContent(latexContent, "ex")
-	
+
 	if len(questionBlocks) == 0 {
 		result.Errors = append(result.Errors, entity.DetailedParseError{
-			ID:       util.StringToPgText(uuid.New().String()),
-			Type:     entity.ParseErrorTypeStructural,
-			Severity: entity.ParseErrorSeverityError,
-			Message:  util.StringToPgText("Không tìm thấy block câu hỏi \\begin{ex}...\\end{ex}"),
+			ID:         util.StringToPgText(uuid.New().String()),
+			Type:       entity.ParseErrorTypeStructural,
+			Severity:   entity.ParseErrorSeverityError,
+			Message:    util.StringToPgText("Không tìm thấy block câu hỏi \\begin{ex}...\\end{ex}"),
 			Suggestion: util.StringToPgText("Đảm bảo nội dung LaTeX có cấu trúc \\begin{ex}...\\end{ex}"),
-			Context:  util.StringToPgText("latex_structure"),
-			CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+			Context:    util.StringToPgText("latex_structure"),
+			CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 		})
 		return result
 	}
 
 	// Parse first question block
 	questionBlock := questionBlocks[0]
-	
+
 	// Validate structure first
 	structuralErrors := p.validateStructure(questionBlock)
 	result.Errors = append(result.Errors, structuralErrors...)
-	
+
 	// Parse question content
 	question, questionCode, parseErrors := p.parseQuestionContent(questionBlock)
 	result.Errors = append(result.Errors, parseErrors...)
-	
+
 	// Validate required fields
 	validationErrors, missingFields := p.validateRequiredFields(question)
 	result.Errors = append(result.Errors, validationErrors...)
 	result.MissingFields = missingFields
-	
+
 	// Validate field formats
 	formatErrors := p.validateFieldFormats(question)
 	result.Warnings = append(result.Warnings, formatErrors...)
-	
+
 	// Generate suggestions
 	result.SuggestedActions = p.generateSuggestions(result.Errors, result.Warnings)
-	
+
 	// Determine if parsing was successful
 	hasErrors := len(result.Errors) > 0
 	result.Success = !hasErrors
-	
+
 	if result.Success {
 		result.Question = question
 		result.QuestionCode = questionCode
@@ -89,70 +89,70 @@ func (p *EnhancedLaTeXParser) ParseWithDetailedErrors(latexContent string) *enti
 		// Set status based on error severity
 		result.Status = p.determineQuestionStatus(result.Errors)
 	}
-	
+
 	// Populate required fields list
 	result.RequiredFields = p.getRequiredFields()
-	
+
 	return result
 }
 
 // validateStructure validates the basic LaTeX structure
 func (p *EnhancedLaTeXParser) validateStructure(questionBlock string) []entity.DetailedParseError {
 	var errors []entity.DetailedParseError
-	
+
 	// Check for basic LaTeX commands
 	requiredCommands := []string{"\\begin{ex}", "\\end{ex}"}
 	for _, cmd := range requiredCommands {
 		if !strings.Contains(questionBlock, cmd) {
 			errors = append(errors, entity.DetailedParseError{
-				ID:       util.StringToPgText(uuid.New().String()),
-				Type:     entity.ParseErrorTypeStructural,
-				Severity: entity.ParseErrorSeverityError,
-				Message:  util.StringToPgText(fmt.Sprintf("Thiếu lệnh LaTeX bắt buộc: %s", cmd)),
+				ID:         util.StringToPgText(uuid.New().String()),
+				Type:       entity.ParseErrorTypeStructural,
+				Severity:   entity.ParseErrorSeverityError,
+				Message:    util.StringToPgText(fmt.Sprintf("Thiếu lệnh LaTeX bắt buộc: %s", cmd)),
 				Suggestion: util.StringToPgText(fmt.Sprintf("Thêm lệnh %s vào nội dung LaTeX", cmd)),
-				Context:  util.StringToPgText("latex_commands"),
-				CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+				Context:    util.StringToPgText("latex_commands"),
+				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 			})
 		}
 	}
-	
+
 	// Check for balanced brackets (simplified check)
 	if !hasBalancedBrackets(questionBlock) {
 		errors = append(errors, entity.DetailedParseError{
-			ID:       util.StringToPgText(uuid.New().String()),
-			Type:     entity.ParseErrorTypeStructural,
-			Severity: entity.ParseErrorSeverityError,
-			Message:  util.StringToPgText("Dấu ngoặc không cân bằng trong LaTeX"),
+			ID:         util.StringToPgText(uuid.New().String()),
+			Type:       entity.ParseErrorTypeStructural,
+			Severity:   entity.ParseErrorSeverityError,
+			Message:    util.StringToPgText("Dấu ngoặc không cân bằng trong LaTeX"),
 			Suggestion: util.StringToPgText("Kiểm tra lại các dấu ngoặc {}, [], () trong nội dung LaTeX"),
-			Context:  util.StringToPgText("bracket_balance"),
-			CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+			Context:    util.StringToPgText("bracket_balance"),
+			CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 		})
 	}
-	
+
 	return errors
 }
 
 // parseQuestionContent parses the actual question content
 func (p *EnhancedLaTeXParser) parseQuestionContent(questionBlock string) (*entity.Question, *entity.QuestionCode, []entity.DetailedParseError) {
 	var errors []entity.DetailedParseError
-	
+
 	// Use existing parser for basic parsing
 	basicParser := NewLaTeXQuestionParser()
 	question, questionCode, err := basicParser.ParseSingleQuestion(questionBlock)
-	
+
 	if err != nil {
 		errors = append(errors, entity.DetailedParseError{
-			ID:       util.StringToPgText(uuid.New().String()),
-			Type:     entity.ParseErrorTypeInvalidFormat,
-			Severity: entity.ParseErrorSeverityError,
-			Message:  util.StringToPgText(fmt.Sprintf("Lỗi phân tích nội dung: %v", err)),
+			ID:         util.StringToPgText(uuid.New().String()),
+			Type:       entity.ParseErrorTypeInvalidFormat,
+			Severity:   entity.ParseErrorSeverityError,
+			Message:    util.StringToPgText(fmt.Sprintf("Lỗi phân tích nội dung: %v", err)),
 			Suggestion: util.StringToPgText("Kiểm tra lại cú pháp LaTeX và định dạng câu hỏi"),
-			Context:  util.StringToPgText("content_parsing"),
-			CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+			Context:    util.StringToPgText("content_parsing"),
+			CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 		})
 		return nil, nil, errors
 	}
-	
+
 	return question, questionCode, errors
 }
 
@@ -160,99 +160,99 @@ func (p *EnhancedLaTeXParser) parseQuestionContent(questionBlock string) (*entit
 func (p *EnhancedLaTeXParser) validateRequiredFields(question *entity.Question) ([]entity.DetailedParseError, []string) {
 	var errors []entity.DetailedParseError
 	var missingFields []string
-	
+
 	if question == nil {
 		return errors, missingFields
 	}
-	
+
 	// Check each validation rule
 	for _, rule := range entity.QuestionValidationRules {
 		if !rule.Required {
 			continue
 		}
-		
+
 		fieldValue := p.getFieldValue(question, rule.Field)
 		if p.isFieldEmpty(fieldValue) {
 			missingFields = append(missingFields, rule.Field)
-			
+
 			errors = append(errors, entity.DetailedParseError{
-				ID:       util.StringToPgText(uuid.New().String()),
-				Type:     rule.ErrorType,
-				Severity: rule.Severity,
-				Message:  util.StringToPgText(fmt.Sprintf("Trường bắt buộc '%s' bị thiếu", rule.Field)),
-				Field:    util.StringToPgText(rule.Field),
+				ID:         util.StringToPgText(uuid.New().String()),
+				Type:       rule.ErrorType,
+				Severity:   rule.Severity,
+				Message:    util.StringToPgText(fmt.Sprintf("Trường bắt buộc '%s' bị thiếu", rule.Field)),
+				Field:      util.StringToPgText(rule.Field),
 				Suggestion: util.StringToPgText(strings.Join(rule.Suggestions, "; ")),
-				Context:  util.StringToPgText("required_field_validation"),
-				CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+				Context:    util.StringToPgText("required_field_validation"),
+				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 			})
 		}
 	}
-	
+
 	return errors, missingFields
 }
 
 // validateFieldFormats validates field formats and constraints
 func (p *EnhancedLaTeXParser) validateFieldFormats(question *entity.Question) []entity.DetailedParseError {
 	var errors []entity.DetailedParseError
-	
+
 	if question == nil {
 		return errors
 	}
-	
+
 	// Check each validation rule
 	for _, rule := range entity.QuestionValidationRules {
 		fieldValue := p.getFieldValue(question, rule.Field)
-		
+
 		if p.isFieldEmpty(fieldValue) {
 			continue // Skip empty fields (handled in required validation)
 		}
-		
+
 		// Validate pattern if specified
 		if rule.Pattern != "" {
 			matched, err := regexp.MatchString(rule.Pattern, fieldValue)
 			if err != nil || !matched {
 				errors = append(errors, entity.DetailedParseError{
-					ID:       util.StringToPgText(uuid.New().String()),
-					Type:     rule.ErrorType,
-					Severity: rule.Severity,
-					Message:  util.StringToPgText(fmt.Sprintf("Định dạng trường '%s' không hợp lệ", rule.Field)),
-					Field:    util.StringToPgText(rule.Field),
+					ID:         util.StringToPgText(uuid.New().String()),
+					Type:       rule.ErrorType,
+					Severity:   rule.Severity,
+					Message:    util.StringToPgText(fmt.Sprintf("Định dạng trường '%s' không hợp lệ", rule.Field)),
+					Field:      util.StringToPgText(rule.Field),
 					Suggestion: util.StringToPgText(strings.Join(rule.Suggestions, "; ")),
-					Context:  util.StringToPgText("format_validation"),
-					CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+					Context:    util.StringToPgText("format_validation"),
+					CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 				})
 			}
 		}
-		
+
 		// Validate length constraints
 		fieldLength := len(fieldValue)
 		if rule.MinLength > 0 && fieldLength < rule.MinLength {
 			errors = append(errors, entity.DetailedParseError{
-				ID:       util.StringToPgText(uuid.New().String()),
-				Type:     rule.ErrorType,
-				Severity: rule.Severity,
-				Message:  util.StringToPgText(fmt.Sprintf("Trường '%s' quá ngắn (tối thiểu %d ký tự)", rule.Field, rule.MinLength)),
-				Field:    util.StringToPgText(rule.Field),
+				ID:         util.StringToPgText(uuid.New().String()),
+				Type:       rule.ErrorType,
+				Severity:   rule.Severity,
+				Message:    util.StringToPgText(fmt.Sprintf("Trường '%s' quá ngắn (tối thiểu %d ký tự)", rule.Field, rule.MinLength)),
+				Field:      util.StringToPgText(rule.Field),
 				Suggestion: util.StringToPgText(strings.Join(rule.Suggestions, "; ")),
-				Context:  util.StringToPgText("length_validation"),
-				CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+				Context:    util.StringToPgText("length_validation"),
+				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 			})
 		}
-		
+
 		if rule.MaxLength > 0 && fieldLength > rule.MaxLength {
 			errors = append(errors, entity.DetailedParseError{
-				ID:       util.StringToPgText(uuid.New().String()),
-				Type:     rule.ErrorType,
-				Severity: rule.Severity,
-				Message:  util.StringToPgText(fmt.Sprintf("Trường '%s' quá dài (tối đa %d ký tự)", rule.Field, rule.MaxLength)),
-				Field:    util.StringToPgText(rule.Field),
+				ID:         util.StringToPgText(uuid.New().String()),
+				Type:       rule.ErrorType,
+				Severity:   rule.Severity,
+				Message:    util.StringToPgText(fmt.Sprintf("Trường '%s' quá dài (tối đa %d ký tự)", rule.Field, rule.MaxLength)),
+				Field:      util.StringToPgText(rule.Field),
 				Suggestion: util.StringToPgText("Rút gọn nội dung hoặc chia thành nhiều phần"),
-				Context:  util.StringToPgText("length_validation"),
-				CreatedAt: pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
+				Context:    util.StringToPgText("length_validation"),
+				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 			})
 		}
 	}
-	
+
 	return errors
 }
 
@@ -271,7 +271,7 @@ func (p *EnhancedLaTeXParser) getFieldValue(question *entity.Question, fieldName
 		return util.PgTextToString(question.QuestionCodeID)
 	case "answers":
 		// For answers, we need to check if there are any answers
-		// This is a simplified check - in real implementation, 
+		// This is a simplified check - in real implementation,
 		// you'd check the actual answers array
 		if question.Content.Status == pgtype.Present && strings.Contains(question.Content.String, "choice") {
 			return "has_answers"
@@ -290,29 +290,29 @@ func (p *EnhancedLaTeXParser) isFieldEmpty(value string) bool {
 // generateSuggestions generates actionable suggestions based on errors
 func (p *EnhancedLaTeXParser) generateSuggestions(errors, warnings []entity.DetailedParseError) []string {
 	var suggestions []string
-	
+
 	// Add general suggestions based on error types
 	errorTypes := make(map[entity.ParseErrorType]bool)
 	for _, err := range errors {
 		errorTypes[err.Type] = true
 	}
-	
+
 	if errorTypes[entity.ParseErrorTypeMissingField] {
 		suggestions = append(suggestions, "Thêm các trường bắt buộc còn thiếu")
 	}
-	
+
 	if errorTypes[entity.ParseErrorTypeInvalidFormat] {
 		suggestions = append(suggestions, "Kiểm tra lại cú pháp LaTeX")
 	}
-	
+
 	if errorTypes[entity.ParseErrorTypeStructural] {
 		suggestions = append(suggestions, "Sửa cấu trúc LaTeX cơ bản")
 	}
-	
+
 	if len(warnings) > 0 {
 		suggestions = append(suggestions, "Xem xét các cảnh báo để cải thiện chất lượng câu hỏi")
 	}
-	
+
 	return suggestions
 }
 
@@ -320,7 +320,7 @@ func (p *EnhancedLaTeXParser) generateSuggestions(errors, warnings []entity.Deta
 func (p *EnhancedLaTeXParser) determineQuestionStatus(errors []entity.DetailedParseError) entity.QuestionStatus {
 	hasErrors := false
 	hasWarnings := false
-	
+
 	for _, err := range errors {
 		if err.Severity == entity.ParseErrorSeverityError {
 			hasErrors = true
@@ -328,26 +328,26 @@ func (p *EnhancedLaTeXParser) determineQuestionStatus(errors []entity.DetailedPa
 			hasWarnings = true
 		}
 	}
-	
+
 	if hasErrors {
 		return entity.QuestionStatusPending
 	} else if hasWarnings {
 		return entity.QuestionStatusActive // Can be active but with warnings
 	}
-	
+
 	return entity.QuestionStatusActive
 }
 
 // getRequiredFields returns list of required field names
 func (p *EnhancedLaTeXParser) getRequiredFields() []string {
 	var fields []string
-	
+
 	for _, rule := range entity.QuestionValidationRules {
 		if rule.Required {
 			fields = append(fields, rule.Field)
 		}
 	}
-	
+
 	return fields
 }
 

@@ -88,7 +88,7 @@ function validateShortAnswer(
       if (!regex.test(trimmedText)) {
         return patternDescription || 'Định dạng câu trả lời không hợp lệ';
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Invalid regex pattern:', pattern);
     }
   }

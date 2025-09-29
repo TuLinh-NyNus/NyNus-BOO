@@ -76,12 +76,12 @@ type GoogleDriveConfig struct {
 
 // RedisConfig holds Redis configuration
 type RedisConfig struct {
-	URL         string
-	Password    string
-	Enabled     bool
-	MaxRetries  int
-	Timeout     string
-	PoolSize    int
+	URL          string
+	Password     string
+	Enabled      bool
+	MaxRetries   int
+	Timeout      string
+	PoolSize     int
 	MinIdleConns int
 }
 

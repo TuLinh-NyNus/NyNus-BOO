@@ -11,7 +11,7 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { AlertCircle, CheckCircle, Clock, Save } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 // ===== TYPES =====
 
@@ -20,10 +20,10 @@ export interface BaseAnswerInputProps {
   questionId: string;
   
   /** Current answer value */
-  value?: any;
-  
+  value?: string | string[] | boolean | null;
+
   /** Answer change handler */
-  onChange?: (value: any) => void;
+  onChange?: (value: string | string[] | boolean | null) => void;
   
   /** Validation error message */
   error?: string | null;
@@ -82,7 +82,7 @@ const AUTO_SAVE_STATUS_CONFIG = {
  * Get answer input state based on value and validation
  */
 export function getAnswerInputState(
-  value: any,
+  value: string | string[] | boolean | null | undefined,
   error: string | null | undefined,
   hasChanged: boolean = false
 ): AnswerInputState {
@@ -153,9 +153,9 @@ export function getInputContainerStyles(
  * Provides common layout and functionality for all answer input types
  */
 export function BaseAnswerInput({
-  questionId,
+  questionId: _questionId,
   value,
-  onChange,
+  onChange: _onChange,
   error,
   readOnly = false,
   showValidation = true,

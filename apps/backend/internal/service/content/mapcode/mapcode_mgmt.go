@@ -15,10 +15,10 @@ import (
 
 // MapCodeMgmt handles MapCode version management and translation
 type MapCodeMgmt struct {
-	mapCodeRepo        *repository.MapCodeRepository
-	translationRepo    *repository.MapCodeTranslationRepository
-	basePath           string // Base path for MapCode files
-	translationCache   map[string]*entity.MapCodeConfig // In-memory cache
+	mapCodeRepo      *repository.MapCodeRepository
+	translationRepo  *repository.MapCodeTranslationRepository
+	basePath         string                           // Base path for MapCode files
+	translationCache map[string]*entity.MapCodeConfig // In-memory cache
 }
 
 // NewMapCodeMgmt creates a new MapCodeMgmt instance
@@ -240,14 +240,14 @@ func (m *MapCodeMgmt) GetHierarchyNavigation(ctx context.Context, questionCode s
 
 // HierarchyNavigation represents navigation structure
 type HierarchyNavigation struct {
-	QuestionCode string                    `json:"question_code"`
-	Grade        *HierarchyLevel          `json:"grade"`
-	Subject      *HierarchyLevel          `json:"subject"`
-	Chapter      *HierarchyLevel          `json:"chapter"`
-	Level        *HierarchyLevel          `json:"level"`
-	Lesson       *HierarchyLevel          `json:"lesson"`
-	Form         *HierarchyLevel          `json:"form,omitempty"`
-	Breadcrumbs  []string                 `json:"breadcrumbs"`
+	QuestionCode string          `json:"question_code"`
+	Grade        *HierarchyLevel `json:"grade"`
+	Subject      *HierarchyLevel `json:"subject"`
+	Chapter      *HierarchyLevel `json:"chapter"`
+	Level        *HierarchyLevel `json:"level"`
+	Lesson       *HierarchyLevel `json:"lesson"`
+	Form         *HierarchyLevel `json:"form,omitempty"`
+	Breadcrumbs  []string        `json:"breadcrumbs"`
 }
 
 // HierarchyLevel represents a single level in hierarchy

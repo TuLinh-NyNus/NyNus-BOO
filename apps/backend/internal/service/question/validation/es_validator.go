@@ -28,36 +28,36 @@ type ESAnswerData struct {
 // ValidateAnswerStructure validates ES answer data structure
 func (v *ESValidator) ValidateAnswerStructure(answerData map[string]interface{}) (*ValidationResult, error) {
 	result := NewValidationResult(true)
-	
+
 	// Validate essay_text (required)
 	essayText, exists := answerData["essay_text"]
 	if !exists {
 		result.AddError("answer_data.essay_text", ErrorCodeMissingField, "essay_text")
 		return result, nil
 	}
-	
+
 	// Check if essay_text is string
 	essayTextStr, ok := essayText.(string)
 	if !ok {
 		result.AddError("answer_data.essay_text", ErrorCodeInvalidFieldType, "essay_text")
 		return result, nil
 	}
-	
+
 	// Validate essay_text is not empty
 	if strings.TrimSpace(essayTextStr) == "" {
 		result.AddError("answer_data.essay_text", ErrorCodeESMissingText)
 		return result, nil
 	}
-	
+
 	// Validate essay_text minimum length (at least 10 characters)
 	if utf8.RuneCountInString(strings.TrimSpace(essayTextStr)) < 10 {
 		result.AddError("answer_data.essay_text", ErrorCodeESTextTooShort)
 	}
-	
+
 	// Calculate actual word and character counts for validation
 	actualWordCount := v.countWords(essayTextStr)
 	actualCharCount := utf8.RuneCountInString(essayTextStr)
-	
+
 	// Validate word_count if present (optional, auto-calculated if missing)
 	if wordCount, exists := answerData["word_count"]; exists {
 		switch wc := wordCount.(type) {
@@ -73,7 +73,7 @@ func (v *ESValidator) ValidateAnswerStructure(answerData map[string]interface{})
 			result.AddError("answer_data.word_count", ErrorCodeInvalidFieldType, "word_count")
 		}
 	}
-	
+
 	// Validate character_count if present (optional, auto-calculated if missing)
 	if charCount, exists := answerData["character_count"]; exists {
 		switch cc := charCount.(type) {
@@ -89,7 +89,7 @@ func (v *ESValidator) ValidateAnswerStructure(answerData map[string]interface{})
 			result.AddError("answer_data.character_count", ErrorCodeInvalidFieldType, "character_count")
 		}
 	}
-	
+
 	// Validate manual_score if present (optional, null for auto-grading)
 	if manualScore, exists := answerData["manual_score"]; exists {
 		if manualScore != nil {
@@ -107,7 +107,7 @@ func (v *ESValidator) ValidateAnswerStructure(answerData map[string]interface{})
 			}
 		}
 	}
-	
+
 	return result, nil
 }
 
@@ -127,7 +127,7 @@ func (v *ESValidator) countWords(text string) int {
 	if text == "" {
 		return 0
 	}
-	
+
 	words := strings.Fields(text)
 	return len(words)
 }
@@ -139,12 +139,12 @@ func (v *ESValidator) ValidateESAnswerComplete(answerData []byte) (*ValidationRe
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// If base structure is invalid, return early
 	if baseResult.HasErrors() {
 		return baseResult, nil
 	}
-	
+
 	// Parse base structure to get answer_data
 	baseStructure, err := v.baseValidator.ParseBaseStructure(answerData)
 	if err != nil {
@@ -152,19 +152,19 @@ func (v *ESValidator) ValidateESAnswerComplete(answerData []byte) (*ValidationRe
 		result.AddError("", ErrorCodeInvalidJSON)
 		return result, nil
 	}
-	
+
 	// Validate ES specific structure
 	esResult, err := v.ValidateAnswerStructure(baseStructure.AnswerData)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Combine results
 	if esResult.HasErrors() {
 		baseResult.IsValid = false
 		baseResult.Errors = append(baseResult.Errors, esResult.Errors...)
 	}
-	
+
 	return baseResult, nil
 }
 
@@ -175,22 +175,22 @@ func (v *ESValidator) ValidateAndCalculateStats(answerData []byte) (*ValidationR
 	if err != nil {
 		return nil, 0, 0, err
 	}
-	
+
 	if result.HasErrors() {
 		return result, 0, 0, nil
 	}
-	
+
 	// Parse to get essay text
 	baseStructure, err := v.baseValidator.ParseBaseStructure(answerData)
 	if err != nil {
 		return result, 0, 0, err
 	}
-	
+
 	essayText, _ := baseStructure.AnswerData["essay_text"].(string)
-	
+
 	// Calculate statistics
 	wordCount := v.countWords(essayText)
 	charCount := utf8.RuneCountInString(essayText)
-	
+
 	return result, wordCount, charCount, nil
 }

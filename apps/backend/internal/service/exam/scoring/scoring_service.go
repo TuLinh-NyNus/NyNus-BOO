@@ -41,16 +41,16 @@ type TFStatement struct {
 
 // SAAnswerData represents Short Answer data
 type SAAnswerData struct {
-	AnswerText      string `json:"answer_text"`
-	NormalizedText  string `json:"normalized_text"`
-	CaseSensitive   bool   `json:"case_sensitive"`
+	AnswerText     string `json:"answer_text"`
+	NormalizedText string `json:"normalized_text"`
+	CaseSensitive  bool   `json:"case_sensitive"`
 }
 
 // ESAnswerData represents Essay answer data
 type ESAnswerData struct {
-	EssayText      string  `json:"essay_text"`
-	WordCount      int     `json:"word_count"`
-	CharacterCount int     `json:"character_count"`
+	EssayText      string   `json:"essay_text"`
+	WordCount      int      `json:"word_count"`
+	CharacterCount int      `json:"character_count"`
 	ManualScore    *float64 `json:"manual_score"`
 }
 

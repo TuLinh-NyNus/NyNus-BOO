@@ -46,8 +46,8 @@ import {
   Exam,
   ExamStatus,
   ExamType,
-} from "@/lib/types/exam";
-import { QuestionDifficulty } from "@/lib/types/question";
+} from "@/types/exam";
+import { QuestionDifficulty } from "@/types/question";
 
 // ===== TYPES =====
 

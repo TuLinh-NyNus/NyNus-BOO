@@ -33,21 +33,21 @@ type TFStatement struct {
 // ValidateAnswerStructure validates TF answer data structure
 func (v *TFValidator) ValidateAnswerStructure(answerData map[string]interface{}) (*ValidationResult, error) {
 	result := NewValidationResult(true)
-	
+
 	// Validate selected_answer_ids (required, can be empty array)
 	selectedAnswerIDs, exists := answerData["selected_answer_ids"]
 	if !exists {
 		result.AddError("answer_data.selected_answer_ids", ErrorCodeMissingField, "selected_answer_ids")
 		return result, nil
 	}
-	
+
 	// Check if selected_answer_ids is array
 	selectedAnswerIDsSlice, ok := selectedAnswerIDs.([]interface{})
 	if !ok {
 		result.AddError("answer_data.selected_answer_ids", ErrorCodeInvalidFieldType, "selected_answer_ids")
 		return result, nil
 	}
-	
+
 	// Convert to string slice and validate UUIDs
 	selectedIDs := make([]string, 0, len(selectedAnswerIDsSlice))
 	for _, id := range selectedAnswerIDsSlice {
@@ -56,36 +56,36 @@ func (v *TFValidator) ValidateAnswerStructure(answerData map[string]interface{})
 			result.AddError("answer_data.selected_answer_ids", ErrorCodeInvalidFieldType, "selected_answer_ids")
 			continue
 		}
-		
+
 		// Validate UUID format
 		if err := v.validateUUID(idStr); err != nil {
 			result.AddError("answer_data.selected_answer_ids", ErrorCodeTFInvalidStatementID, idStr)
 			continue
 		}
-		
+
 		selectedIDs = append(selectedIDs, idStr)
 	}
-	
+
 	// Validate statements (required)
 	statements, exists := answerData["statements"]
 	if !exists {
 		result.AddError("answer_data.statements", ErrorCodeMissingField, "statements")
 		return result, nil
 	}
-	
+
 	// Check if statements is array
 	statementsSlice, ok := statements.([]interface{})
 	if !ok {
 		result.AddError("answer_data.statements", ErrorCodeInvalidFieldType, "statements")
 		return result, nil
 	}
-	
+
 	// Validate statements count (must be exactly 4)
 	if len(statementsSlice) != 4 {
 		result.AddError("answer_data.statements", ErrorCodeTFIncorrectStatementCount, len(statementsSlice))
 		return result, nil
 	}
-	
+
 	// Validate each statement and collect selected ones
 	selectedFromStatements := make([]string, 0)
 	for idx, stmt := range statementsSlice {
@@ -101,7 +101,7 @@ func (v *TFValidator) ValidateAnswerStructure(answerData map[string]interface{})
 			result.AddError("answer_data.statements", ErrorCodeMissingField, "statements["+fmt.Sprintf("%d", idx)+"].id")
 			continue
 		}
-		
+
 		idStr, ok := id.(string)
 		if !ok {
 			result.AddError("answer_data.statements", ErrorCodeInvalidFieldType, "statements["+fmt.Sprintf("%d", idx)+"].id")
@@ -138,18 +138,18 @@ func (v *TFValidator) ValidateAnswerStructure(answerData map[string]interface{})
 			result.AddError("answer_data.statements", ErrorCodeInvalidFieldType, "statements["+fmt.Sprintf("%d", idx)+"].selected")
 			continue
 		}
-		
+
 		// Collect selected statement IDs
 		if selectedBool {
 			selectedFromStatements = append(selectedFromStatements, idStr)
 		}
 	}
-	
+
 	// Validate consistency between selected_answer_ids and statements
 	if !v.arraysEqual(selectedIDs, selectedFromStatements) {
 		result.AddError("answer_data", ErrorCodeTFMismatchedSelections)
 	}
-	
+
 	return result, nil
 }
 
@@ -178,26 +178,26 @@ func (v *TFValidator) arraysEqual(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
 	}
-	
+
 	// Create maps to count occurrences
 	countA := make(map[string]int)
 	countB := make(map[string]int)
-	
+
 	for _, item := range a {
 		countA[item]++
 	}
-	
+
 	for _, item := range b {
 		countB[item]++
 	}
-	
+
 	// Compare maps
 	for key, count := range countA {
 		if countB[key] != count {
 			return false
 		}
 	}
-	
+
 	return true
 }
 
@@ -208,12 +208,12 @@ func (v *TFValidator) ValidateTFAnswerComplete(answerData []byte) (*ValidationRe
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// If base structure is invalid, return early
 	if baseResult.HasErrors() {
 		return baseResult, nil
 	}
-	
+
 	// Parse base structure to get answer_data
 	baseStructure, err := v.baseValidator.ParseBaseStructure(answerData)
 	if err != nil {
@@ -221,18 +221,18 @@ func (v *TFValidator) ValidateTFAnswerComplete(answerData []byte) (*ValidationRe
 		result.AddError("", ErrorCodeInvalidJSON)
 		return result, nil
 	}
-	
+
 	// Validate TF specific structure
 	tfResult, err := v.ValidateAnswerStructure(baseStructure.AnswerData)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Combine results
 	if tfResult.HasErrors() {
 		baseResult.IsValid = false
 		baseResult.Errors = append(baseResult.Errors, tfResult.Errors...)
 	}
-	
+
 	return baseResult, nil
 }

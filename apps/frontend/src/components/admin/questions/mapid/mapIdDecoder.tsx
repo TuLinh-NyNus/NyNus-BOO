@@ -33,7 +33,7 @@ import {
 import { useToast } from "@/components/ui/feedback/use-toast";
 
 // Import types từ lib/types
-import { QuestionCode } from "@/lib/types/question";
+import { QuestionCode } from "@/types/question";
 
 /**
  * Props for MapIdDecoder component

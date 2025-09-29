@@ -38,9 +38,9 @@ func NewBatchProcessor(db *sql.DB, logger *logrus.Logger) *BatchProcessor {
 
 // ProcessingResult represents the result of a batch processing operation
 type ProcessingResult struct {
-	ProcessedCount   int       `json:"processed_count"`
-	QuestionsUpdated int       `json:"questions_updated"`
-	ProcessedAt      time.Time `json:"processed_at"`
+	ProcessedCount   int           `json:"processed_count"`
+	QuestionsUpdated int           `json:"questions_updated"`
+	ProcessedAt      time.Time     `json:"processed_at"`
 	Duration         time.Duration `json:"duration"`
 }
 
@@ -223,8 +223,8 @@ func (bp *BatchProcessor) CleanupProcessedEntries(ctx context.Context, olderThan
 
 // BatchUsageUpdate represents a batch of usage updates
 type BatchUsageUpdate struct {
-	QuestionID      string `json:"question_id"`
-	IncrementValue  int    `json:"increment_value"`
+	QuestionID     string `json:"question_id"`
+	IncrementValue int    `json:"increment_value"`
 }
 
 // QueueBatchUsageUpdates queues multiple usage updates in a single transaction

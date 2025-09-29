@@ -1,12 +1,18 @@
 // Mock data for users - Admin management với Enhanced User Model
 import {
-  UserRole,
-  UserStatus,
+  UserRole as MockdataUserRole,
+  UserStatus as MockdataUserStatus,
   MockPagination,
-  MockApiResponse
+  MockApiResponse,
+  UserRole,
+  UserStatus
 } from '../core-types';
 import { AdminUser, UserStats } from '../types';
 import { generateLargeUserDataset } from './generate-large-dataset';
+import {
+  isProtobufRoleEqual,
+  isProtobufStatusEqual
+} from '@/lib/utils/type-converters';
 
 // Generate large dataset for testing pagination (250 users)
 export const mockUsers: AdminUser[] = generateLargeUserDataset();
@@ -150,8 +156,8 @@ export const mockUsers: AdminUser[] = generateLargeUserDataset();
     // ===== CORE REQUIRED FIELDS =====
     id: 'teacher-001',
     email: 'gv.toan@nynus.edu.vn',
-    role: UserRole.TEACHER,              // Thay từ INSTRUCTOR thành TEACHER
-    status: UserStatus.ACTIVE,
+    role: convertEnumRoleToProtobuf(MockdataUserRole.TEACHER),
+    status: convertEnumStatusToProtobuf(MockdataUserStatus.ACTIVE),
     emailVerified: true,
     createdAt: new Date('2024-03-01T00:00:00Z'),
     updatedAt: new Date('2025-01-15T07:20:00Z'),
@@ -350,8 +356,8 @@ export const mockUsers: AdminUser[] = generateLargeUserDataset();
     // ===== CORE REQUIRED FIELDS =====
     id: 'student-001',
     email: 'hv001@student.nynus.edu.vn',
-    role: UserRole.STUDENT,
-    status: UserStatus.ACTIVE,
+    role: convertEnumRoleToProtobuf(MockdataUserRole.STUDENT),
+    status: convertEnumStatusToProtobuf(MockdataUserStatus.ACTIVE),
     emailVerified: true,
     createdAt: new Date('2024-09-01T00:00:00Z'),
     updatedAt: new Date('2025-01-15T09:15:00Z'),
@@ -480,8 +486,8 @@ export const mockUsers: AdminUser[] = generateLargeUserDataset();
     // ===== CORE REQUIRED FIELDS =====
     id: 'student-003',
     email: 'hv003@student.nynus.edu.vn',
-    role: UserRole.STUDENT,
-    status: UserStatus.SUSPENDED,        // Thay vì isActive: false
+    role: convertEnumRoleToProtobuf(MockdataUserRole.STUDENT),
+    status: convertEnumStatusToProtobuf(MockdataUserStatus.SUSPENDED),
     emailVerified: false,                // Chưa verify email
     createdAt: new Date('2024-09-01T00:00:00Z'),
     updatedAt: new Date('2024-12-20T15:30:00Z'),
@@ -547,8 +553,8 @@ export const mockUsers: AdminUser[] = generateLargeUserDataset();
     // ===== CORE REQUIRED FIELDS =====
     id: 'guest-001',
     email: 'guest001@gmail.com',
-    role: UserRole.GUEST,                // NEW role
-    status: UserStatus.PENDING_VERIFICATION, // Chờ verify email
+    role: convertEnumRoleToProtobuf(MockdataUserRole.GUEST),
+    status: convertEnumStatusToProtobuf(MockdataUserStatus.PENDING_VERIFICATION),
     emailVerified: false,
     createdAt: new Date('2025-01-14T18:00:00Z'),
     updatedAt: new Date('2025-01-14T18:00:00Z'),
@@ -616,16 +622,16 @@ export function getUserById(id: string): AdminUser | undefined {
   return mockUsers.find(user => user.id === id);
 }
 
-export function getUsersByRole(role: UserRole): AdminUser[] {
-  return mockUsers.filter(user => user.role === role);
+export function getUsersByRole(role: MockdataUserRole): AdminUser[] {
+  return mockUsers.filter(user => isProtobufRoleEqual(user.role, role));
 }
 
-export function getUsersByStatus(status: UserStatus): AdminUser[] {
-  return mockUsers.filter(user => user.status === status);
+export function getUsersByStatus(status: MockdataUserStatus): AdminUser[] {
+  return mockUsers.filter(user => isProtobufStatusEqual(user.status, status));
 }
 
 export function getActiveUsers(): AdminUser[] {
-  return mockUsers.filter(user => user.status === UserStatus.ACTIVE);
+  return mockUsers.filter(user => isProtobufStatusEqual(user.status, MockdataUserStatus.ACTIVE));
 }
 
 export function getHighRiskUsers(): AdminUser[] {
@@ -637,7 +643,7 @@ export function getLockedUsers(): AdminUser[] {
 }
 
 export function getUsersWithMultipleSessions(): AdminUser[] {
-  return mockUsers.filter(user => user.activeSessionsCount > 1);
+  return mockUsers.filter(user => (user.activeSessionsCount ?? 0) > 1);
 }
 
 export function searchUsers(query: string): AdminUser[] {
@@ -671,10 +677,10 @@ export function getMockUsersResponse(
 
   // Apply Enhanced User Model filters
   if (filters?.role) {
-    filteredUsers = filteredUsers.filter(user => user.role === filters.role);
+    filteredUsers = filteredUsers.filter(user => filters.role && isProtobufRoleEqual(user.role, filters.role));
   }
   if (filters?.status) {
-    filteredUsers = filteredUsers.filter(user => user.status === filters.status);
+    filteredUsers = filteredUsers.filter(user => filters.status && isProtobufStatusEqual(user.status, filters.status));
   }
   if (filters?.emailVerified !== undefined) {
     filteredUsers = filteredUsers.filter(user => user.emailVerified === filters.emailVerified);
@@ -735,22 +741,22 @@ export function getMockUsersResponse(
 // Enhanced UserStats calculation function
 export function getMockUserStats(): UserStats {
   const totalUsers = mockUsers.length;
-  const activeUsers = mockUsers.filter(user => user.status === UserStatus.ACTIVE).length;
-  const inactiveUsers = mockUsers.filter(user => user.status === UserStatus.INACTIVE).length;
-  const suspendedUsers = mockUsers.filter(user => user.status === UserStatus.SUSPENDED).length;
-  const pendingVerificationUsers = mockUsers.filter(user => user.status === UserStatus.PENDING_VERIFICATION).length;
+  const activeUsers = mockUsers.filter(user => isProtobufStatusEqual(user.status, MockdataUserStatus.ACTIVE)).length;
+  const inactiveUsers = mockUsers.filter(user => isProtobufStatusEqual(user.status, MockdataUserStatus.INACTIVE)).length;
+  const suspendedUsers = mockUsers.filter(user => isProtobufStatusEqual(user.status, MockdataUserStatus.SUSPENDED)).length;
+  const pendingVerificationUsers = mockUsers.filter(user => isProtobufStatusEqual(user.status, MockdataUserStatus.PENDING_VERIFICATION)).length;
 
   // Role distribution
-  const guestUsers = mockUsers.filter(user => user.role === UserRole.GUEST).length;
-  const studentUsers = mockUsers.filter(user => user.role === UserRole.STUDENT).length;
-  const tutorUsers = mockUsers.filter(user => user.role === UserRole.TUTOR).length;
-  const teacherUsers = mockUsers.filter(user => user.role === UserRole.TEACHER).length;
-  const adminUsers = mockUsers.filter(user => user.role === UserRole.ADMIN).length;
+  const guestUsers = mockUsers.filter(user => isProtobufRoleEqual(user.role, MockdataUserRole.GUEST)).length;
+  const studentUsers = mockUsers.filter(user => isProtobufRoleEqual(user.role, MockdataUserRole.STUDENT)).length;
+  const tutorUsers = mockUsers.filter(user => isProtobufRoleEqual(user.role, MockdataUserRole.TUTOR)).length;
+  const teacherUsers = mockUsers.filter(user => isProtobufRoleEqual(user.role, MockdataUserRole.TEACHER)).length;
+  const adminUsers = mockUsers.filter(user => isProtobufRoleEqual(user.role, MockdataUserRole.ADMIN)).length;
 
   // Security metrics
   const highRiskUsers = mockUsers.filter(user => user.riskScore && user.riskScore > 70).length;
   const lockedUsers = mockUsers.filter(user => user.lockedUntil && user.lockedUntil > new Date()).length;
-  const multipleSessionUsers = mockUsers.filter(user => user.activeSessionsCount > 1).length;
+  const multipleSessionUsers = mockUsers.filter(user => (user.activeSessionsCount ?? 0) > 1).length;
 
   // Calculate new users (mock data)
   const today = new Date();

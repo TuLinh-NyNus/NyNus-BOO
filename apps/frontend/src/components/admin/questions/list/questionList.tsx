@@ -30,7 +30,7 @@ import { QuestionListPagination } from "./questionListPagination";
 import {
   Question,
   QuestionPagination
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionList component

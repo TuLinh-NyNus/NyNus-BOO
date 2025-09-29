@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-import { UserRole } from '../shared/core-types';
+import { UserRole, type UserRole as UserRoleType } from '@/types/user/roles';
 
 /**
  * Interface cho progression settings
@@ -36,7 +36,7 @@ export interface ProgressionStatistics {
   manualProgressions: number;
   averageProgressionTime: number; // days
   progressionsByRole: {
-    [key in UserRole]: number;
+    [key in UserRoleType]: number;
   };
   recentProgressions: number; // last 30 days
   pendingReviews: number;
@@ -70,9 +70,9 @@ export interface AuditLogEntry {
 export interface ProgressionHistoryEntry {
   id: string;
   userId: string;
-  previousRole: UserRole;
+  previousRole: UserRoleType;
   previousLevel: number;
-  newRole: UserRole;
+  newRole: UserRoleType;
   newLevel: number;
   progressionType: 'AUTOMATIC' | 'MANUAL_OVERRIDE' | 'ADMIN_PROMOTION';
   reason?: string;
@@ -125,11 +125,12 @@ export const mockProgressionStatistics: ProgressionStatistics = {
   manualProgressions: 22,
   averageProgressionTime: 45,
   progressionsByRole: {
-    [UserRole.GUEST]: 5,
-    [UserRole.STUDENT]: 89,
-    [UserRole.TUTOR]: 25,
-    [UserRole.TEACHER]: 45,
-    [UserRole.ADMIN]: 12,
+    [UserRole.USER_ROLE_UNSPECIFIED]: 0,
+    [UserRole.USER_ROLE_GUEST]: 5,
+    [UserRole.USER_ROLE_STUDENT]: 89,
+    [UserRole.USER_ROLE_TUTOR]: 25,
+    [UserRole.USER_ROLE_TEACHER]: 45,
+    [UserRole.USER_ROLE_ADMIN]: 12,
   },
   recentProgressions: 23,
   pendingReviews: 5,
@@ -214,9 +215,9 @@ export const mockProgressionHistory: ProgressionHistoryEntry[] = [
   {
     id: 'progression-001',
     userId: 'user-123',
-    previousRole: UserRole.STUDENT,
+    previousRole: UserRole.USER_ROLE_STUDENT,
     previousLevel: 1,
-    newRole: UserRole.TEACHER,
+    newRole: UserRole.USER_ROLE_TEACHER,
     newLevel: 1,
     progressionType: 'AUTOMATIC',
     timestamp: '2024-07-15T14:30:00Z',
@@ -236,9 +237,9 @@ export const mockProgressionHistory: ProgressionHistoryEntry[] = [
   {
     id: 'progression-002',
     userId: 'user-456',
-    previousRole: UserRole.STUDENT,
+    previousRole: UserRole.USER_ROLE_STUDENT,
     previousLevel: 2,
-    newRole: UserRole.STUDENT,
+    newRole: UserRole.USER_ROLE_STUDENT,
     newLevel: 3,
     progressionType: 'MANUAL_OVERRIDE',
     reason: 'Exceptional performance in advanced mathematics',

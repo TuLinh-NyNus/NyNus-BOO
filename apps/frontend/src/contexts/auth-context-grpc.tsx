@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { signIn, signOut as nextAuthSignOut, useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
 import { AuthService, AuthHelpers } from '@/services/grpc/auth.service';
+import { type User } from '@/types/user';
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
-import type { User } from '@/lib/types/user';
 import {
   convertProtobufUserToLocal,
   convertProtobufLoginResponse,
@@ -66,8 +66,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
           email: session.user.email || '',
           firstName: session.user.name?.split(' ')[0] || '',
           lastName: session.user.name?.split(' ').slice(1).join(' ') || '',
-          role: UserRole.STUDENT,
-          status: UserStatus.ACTIVE,
+          role: UserRole.USER_ROLE_STUDENT,
+          status: UserStatus.USER_STATUS_ACTIVE,
           avatar: session.user.image || undefined,
           emailVerified: true,
           createdAt: new Date(),

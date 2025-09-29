@@ -20,9 +20,10 @@ import {
 } from '@/generated/v1/newsletter_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
+import { getGrpcUrl } from '@/lib/config/endpoints';
 
 // gRPC client configuration
-const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+const GRPC_ENDPOINT = getGrpcUrl();
 const newsletterServiceClient = new NewsletterServiceClient(GRPC_ENDPOINT);
 
 // Helper to get auth metadata

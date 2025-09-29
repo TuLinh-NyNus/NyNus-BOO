@@ -12,7 +12,7 @@ import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/components/ui';
 import { ArrowLeftRight, Eye, EyeOff, Download, X } from 'lucide-react';
 import { QuestionCard } from '../display/QuestionCard';
-import { Question } from '@/lib/types/question';
+import { Question } from '@/types/question';
 
 /**
  * Props cho Question Comparison

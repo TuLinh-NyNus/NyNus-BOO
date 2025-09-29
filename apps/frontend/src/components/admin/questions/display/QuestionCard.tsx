@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, Badge } from '@/components/ui';
 import { FileText, Hash, User, Calendar, BarChart3 } from 'lucide-react';
 import { QuestionLaTeXDisplay, SolutionLaTeXDisplay } from '@/components/ui/latex';
 import { QuestionActions } from './QuestionActions';
-import { Question, QuestionType, QuestionStatus, QuestionDifficulty } from '@/lib/types/question';
+import { Question, QuestionType, QuestionStatus, QuestionDifficulty } from '@/types/question';
 
 /**
  * Props cho Question Card
@@ -56,6 +56,7 @@ export function QuestionCard({
   const getTypeStyles = (type: QuestionType) => {
     const styles = {
       [QuestionType.MC]: 'border-l-primary bg-primary/10',
+      [QuestionType.MULTIPLE_CHOICE]: 'border-l-primary bg-primary/10',
       [QuestionType.TF]: 'border-l-badge-success bg-badge-success/10',
       [QuestionType.SA]: 'border-l-badge-warning bg-badge-warning/10',
       [QuestionType.ES]: 'border-l-accent bg-accent/10',
@@ -70,6 +71,7 @@ export function QuestionCard({
   const getTypeLabel = (type: QuestionType) => {
     const labels = {
       [QuestionType.MC]: 'Trắc nghiệm',
+      [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
       [QuestionType.TF]: 'Đúng/Sai',
       [QuestionType.SA]: 'Trả lời ngắn',
       [QuestionType.ES]: 'Tự luận',

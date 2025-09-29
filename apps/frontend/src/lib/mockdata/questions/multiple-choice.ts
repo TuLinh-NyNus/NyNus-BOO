@@ -1,5 +1,5 @@
 // Mock data for questions - Admin management
-import { QuestionType, QuestionDifficulty } from '../../types/question';
+import { QuestionType, QuestionDifficulty } from '@/types/question';
 import { AdminQuestion, MockPagination, MockApiResponse } from '../types';
 
 // Mock questions data với realistic content

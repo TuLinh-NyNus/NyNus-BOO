@@ -23,7 +23,7 @@ import {
   Share2
 } from 'lucide-react';
 import { QuestionCard } from '../display/QuestionCard';
-import { Question } from '@/lib/types/question';
+import { Question } from '@/types/question';
 
 /**
  * Props cho Question Preview Modal

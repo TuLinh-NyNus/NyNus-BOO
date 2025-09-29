@@ -16,7 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Circle, Check, X } from 'lucide-react';
 import { LaTeXContent } from '@/components/latex';
 import { BaseAnswerInput, BaseAnswerInputProps } from './base-answer-input';
-import { AnswerOption } from '@/lib/types/question';
+import { AnswerOption } from '@/types/question';
 
 // ===== TYPES =====
 
@@ -154,14 +154,14 @@ export function TrueFalseInput({
   }, [options, trueLabel, falseLabel]);
   
   // Render option
-  const renderOption = useCallback((option: any, index: number) => {
+  const renderOption = useCallback((option: AnswerOption, index: number) => {
     const isSelected = selectedOption === option.id;
-    const isTrue = option.isTrue;
+    const isTrue = (option as { isTrue?: boolean }).isTrue;
     
     return (
       <div
         key={option.id}
-        className={getOptionStyles(isSelected, isTrue, readOnly)}
+        className={getOptionStyles(isSelected, isTrue || false, readOnly)}
         onClick={() => handleOptionSelect(option.id)}
       >
         {/* Selection Indicator */}

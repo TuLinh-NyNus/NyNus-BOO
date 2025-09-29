@@ -20,12 +20,14 @@ import {
   type ExamFilters,
   type ExamAttempt,
   type ExamResult,
+  type ExamAnswerInput,
+  type ExamStatistics as ExamStatsType,
 
   ExamStatus,
   ExamType
-} from '@/lib/types/exam';
+} from '@/types/exam';
 
-import { QuestionDifficulty } from '@/lib/types/question';
+import { QuestionDifficulty } from '@/types/question';
 import { ExamService } from '@/services/grpc/exam.service';
 import { toast } from 'sonner';
 
@@ -48,7 +50,7 @@ interface ExamCacheEntry {
 interface ExamTakingState {
   currentAttempt: ExamAttempt | null;
   currentQuestionIndex: number;
-  answers: Record<string, any>;
+  answers: Record<string, ExamAnswerInput>;
   timeRemaining: number; // seconds
   isTimerActive: boolean;
   lastSaveTime: number;
@@ -210,7 +212,7 @@ interface ExamStoreState {
   
   // Results actions
   fetchExamResults: (attemptId: string) => Promise<ExamResult | null>;
-  fetchExamStatistics: (examId: string) => Promise<any>;
+  fetchExamStatistics: (examId: string) => Promise<ExamStatsType | null>;
 }
 
 // ===== CONSTANTS =====
@@ -1109,7 +1111,7 @@ export const useExamStore = create<ExamStoreState>()(
             await ExamService.saveAnswer(currentAttempt.id, questionId, answer);
 
             set((state) => {
-              state.examTaking.answers[questionId] = answer;
+              state.examTaking.answers[questionId] = answer as ExamAnswerInput;
               state.examTaking.lastSaveTime = Date.now();
             });
 
@@ -1313,7 +1315,7 @@ export const useExamStore = create<ExamStoreState>()(
         updateDraftField: (field, value) => {
           set((state) => {
             if (state.draftExam) {
-              (state.draftExam as any)[field] = value;
+              (state.draftExam as Record<string, unknown>)[field] = value;
             }
           });
         },
@@ -1571,8 +1573,26 @@ export const useExamStore = create<ExamStoreState>()(
 
         fetchExamStatistics: async (examId) => {
           try {
-            const statistics = await ExamService.getExamStatistics(examId);
-            return statistics;
+            const stats = await ExamService.getExamStatistics(examId);
+
+            // Convert basic stats to full ExamStatistics
+            const fullStats: ExamStatsType = {
+              examId,
+              totalAttempts: stats?.totalAttempts || 0,
+              completedAttempts: stats?.totalAttempts || 0,
+              averageScore: stats?.averageScore || 0,
+              passRate: stats?.passRate || 0,
+              averageTimeSpent: stats?.averageTimeSpent || 0,
+              difficultyDistribution: {
+                EASY: 0,
+                MEDIUM: 0,
+                HARD: 0,
+                EXPERT: 0
+              },
+              scoreDistribution: []
+            };
+
+            return fullStats;
           } catch (error) {
             console.error('Failed to fetch exam statistics:', error);
             return null;

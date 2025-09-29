@@ -4,12 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"testing"
-	"time"
 
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	_ "github.com/lib/pq"
 )
 
 // TestSecurityIntegration tests the complete security system integration

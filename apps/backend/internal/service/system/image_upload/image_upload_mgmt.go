@@ -80,20 +80,20 @@ func (m *ImageUploadMgmt) UploadImageWithErrorHandling(ctx context.Context, ques
 	// Process TikZ to WebP
 	localPath, err := m.processTikZWithErrorHandling(ctx, imageID, tikzCode)
 	if err != nil {
-		uploadError := m.createUploadError(imageID, entity.ImageUploadErrorTypeConversion, entity.ImageUploadErrorSeverityError, 
+		uploadError := m.createUploadError(imageID, entity.ImageUploadErrorTypeConversion, entity.ImageUploadErrorSeverityError,
 			fmt.Sprintf("TikZ processing failed: %v", err), "Kiểm tra lại cú pháp TikZ hoặc thử với code đơn giản hơn")
 		result.Errors = append(result.Errors, uploadError)
-		
+
 		// Save error and update image status
 		m.saveUploadError(ctx, &uploadError)
 		m.updateImageStatus(ctx, imageID, entity.ImageStatusFailed)
-		
+
 		result.UploadTime = time.Since(startTime)
 		return result, nil
 	}
 
 	result.LocalPath = localPath
-	
+
 	// Get file size
 	if fileInfo, err := os.Stat(localPath); err == nil {
 		result.FileSize = fileInfo.Size()
@@ -108,11 +108,11 @@ func (m *ImageUploadMgmt) UploadImageWithErrorHandling(ctx context.Context, ques
 		uploadError := m.createUploadError(imageID, m.classifyUploadError(err), entity.ImageUploadErrorSeverityError,
 			fmt.Sprintf("Upload failed: %v", err), m.getUploadErrorSuggestion(err))
 		result.Errors = append(result.Errors, uploadError)
-		
+
 		// Save error and update image status
 		m.saveUploadError(ctx, &uploadError)
 		m.updateImageStatus(ctx, imageID, entity.ImageStatusFailed)
-		
+
 		// Schedule retry if retryable
 		if m.retryPolicy.IsRetryable(uploadError.Type) {
 			nextRetry := time.Now().Add(m.retryPolicy.CalculateNextRetryDelay(1))
@@ -122,7 +122,7 @@ func (m *ImageUploadMgmt) UploadImageWithErrorHandling(ctx context.Context, ques
 		} else {
 			result.CanRetry = false
 		}
-		
+
 		result.UploadTime = time.Since(startTime)
 		return result, nil
 	}
@@ -150,7 +150,17 @@ func (m *ImageUploadMgmt) UploadImageWithErrorHandling(ctx context.Context, ques
 	}
 
 	// Save upload history
-	m.uploadErrorRepo.SaveImageUploadHistory(ctx, imageID, string(entity.ImageStatusUploaded), "")
+	history := &entity.ImageUploadHistory{
+		ID:           util.StringToPgText(uuid.New().String()),
+		ImageID:      util.StringToPgText(imageID),
+		AttemptCount: util.Int32ToPgInt4(1),
+		LastAttempt:  util.TimestamptzToPgType(time.Now()),
+		Status:       util.StringToPgText(string(entity.ImageStatusUploaded)),
+		LastError:    util.StringToPgText(""),
+		CreatedAt:    util.TimestamptzToPgType(time.Now()),
+		UpdatedAt:    util.TimestamptzToPgType(time.Now()),
+	}
+	m.uploadErrorRepo.SaveImageUploadHistory(ctx, history)
 
 	result.Success = true
 	result.RemotePath = uploadResult.WebViewLink
@@ -186,7 +196,7 @@ func (m *ImageUploadMgmt) processTikZWithErrorHandling(ctx context.Context, imag
 // uploadWithRetry uploads file with retry mechanism
 func (m *ImageUploadMgmt) uploadWithRetry(ctx context.Context, imageID string, localPath string, questionCode string, imageType string) (*image_processing.UploadResult, error) {
 	var lastError error
-	
+
 	for attempt := 1; attempt <= m.retryPolicy.MaxRetries; attempt++ {
 		if attempt > 1 {
 			backoff := m.retryPolicy.CalculateNextRetryDelay(attempt - 1)
@@ -205,7 +215,7 @@ func (m *ImageUploadMgmt) uploadWithRetry(ctx context.Context, imageID string, l
 
 		lastError = err
 		errorType := m.classifyUploadError(err)
-		
+
 		m.logger.WithFields(logrus.Fields{
 			"image_id":   imageID,
 			"attempt":    attempt,
@@ -231,7 +241,7 @@ func (m *ImageUploadMgmt) uploadWithRetry(ctx context.Context, imageID string, l
 // classifyUploadError classifies an upload error by type
 func (m *ImageUploadMgmt) classifyUploadError(err error) entity.ImageUploadErrorType {
 	errStr := strings.ToLower(err.Error())
-	
+
 	if strings.Contains(errStr, "quota") || strings.Contains(errStr, "limit") {
 		return entity.ImageUploadErrorTypeQuota
 	}
@@ -253,7 +263,7 @@ func (m *ImageUploadMgmt) classifyUploadError(err error) entity.ImageUploadError
 	if strings.Contains(errStr, "invalid") || strings.Contains(errStr, "validation") {
 		return entity.ImageUploadErrorTypeValidation
 	}
-	
+
 	return entity.ImageUploadErrorTypeUnknown
 }
 
@@ -261,11 +271,11 @@ func (m *ImageUploadMgmt) classifyUploadError(err error) entity.ImageUploadError
 func (m *ImageUploadMgmt) getUploadErrorSuggestion(err error) string {
 	errorType := m.classifyUploadError(err)
 	suggestions := entity.GetImageUploadSuggestions(errorType, nil)
-	
+
 	if len(suggestions) > 0 {
 		return suggestions[0].Action
 	}
-	
+
 	return "Thử lại hoặc liên hệ support nếu vấn đề tiếp tục"
 }
 
@@ -302,7 +312,7 @@ func (m *ImageUploadMgmt) updateImageStatus(ctx context.Context, imageID string,
 		m.logger.WithError(err).Error("Failed to get image for status update")
 		return
 	}
-	
+
 	if image != nil {
 		image.Status = util.StringToPgText(string(status))
 		err = m.imageRepo.Update(ctx, image)
@@ -413,7 +423,24 @@ func (m *ImageUploadMgmt) GetImageUploadHistory(ctx context.Context, imageID str
 
 // GetUploadStatistics retrieves comprehensive upload statistics
 func (m *ImageUploadMgmt) GetUploadStatistics(ctx context.Context) (*entity.ImageUploadStatistics, error) {
-	return m.uploadErrorRepo.GetImageUploadStatistics(ctx)
+	statsMap, err := m.uploadErrorRepo.GetImageUploadStatistics(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert map to structured statistics
+	stats := &entity.ImageUploadStatistics{
+		TotalUploads:      int64(statsMap["total_errors"].(int)),
+		SuccessfulUploads: 0, // Would need additional query for successful uploads
+		FailedUploads:     int64(statsMap["error_count"].(int)),
+		RetryCount:        int64(statsMap["retryable_errors"].(int)),
+		AverageUploadTime: 0, // Would need additional data
+		ErrorsByType:      make(map[entity.ImageUploadErrorType]int64),
+		ErrorsBySeverity:  make(map[entity.ImageUploadErrorSeverity]int64),
+		LastUpdated:       time.Now(),
+	}
+
+	return stats, nil
 }
 
 // ScheduleAutoRetry schedules automatic retry for failed uploads

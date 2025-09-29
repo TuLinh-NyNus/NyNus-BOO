@@ -39,7 +39,7 @@ import { TouchCard } from "./touch-enhancements";
 // Import public types
 import {
   PublicQuestion
-} from "@/lib/types/public";
+} from "@/types/public";
 
 // Note: QuestionType và QuestionDifficulty types được sử dụng
 // thông qua badge components, không cần import trực tiếp ở đây

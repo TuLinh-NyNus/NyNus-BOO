@@ -35,17 +35,17 @@ func NewDashboardService(db *sql.DB, examRepo interfaces.ExamRepository, logger 
 
 // DashboardOverview contains high-level dashboard metrics
 type DashboardOverview struct {
-	TotalExams          int                    `json:"total_exams"`
-	ActiveExams         int                    `json:"active_exams"`
-	TotalAttempts       int                    `json:"total_attempts"`
-	TotalUsers          int                    `json:"total_users"`
-	AverageScore        float64                `json:"average_score"`
-	SystemPassRate      float64                `json:"system_pass_rate"`
-	PopularSubjects     []*SubjectMetrics      `json:"popular_subjects"`
-	RecentActivity      []*ActivityMetrics     `json:"recent_activity"`
-	PerformanceTrends   []*PerformanceTrend    `json:"performance_trends"`
-	TopPerformingExams  []*ExamPerformance     `json:"top_performing_exams"`
-	GeneratedAt         time.Time              `json:"generated_at"`
+	TotalExams         int                 `json:"total_exams"`
+	ActiveExams        int                 `json:"active_exams"`
+	TotalAttempts      int                 `json:"total_attempts"`
+	TotalUsers         int                 `json:"total_users"`
+	AverageScore       float64             `json:"average_score"`
+	SystemPassRate     float64             `json:"system_pass_rate"`
+	PopularSubjects    []*SubjectMetrics   `json:"popular_subjects"`
+	RecentActivity     []*ActivityMetrics  `json:"recent_activity"`
+	PerformanceTrends  []*PerformanceTrend `json:"performance_trends"`
+	TopPerformingExams []*ExamPerformance  `json:"top_performing_exams"`
+	GeneratedAt        time.Time           `json:"generated_at"`
 }
 
 // SubjectMetrics contains subject-specific metrics
@@ -59,11 +59,11 @@ type SubjectMetrics struct {
 
 // ActivityMetrics contains activity metrics for a time period
 type ActivityMetrics struct {
-	Date            string `json:"date"`
-	ExamsCreated    int    `json:"exams_created"`
-	AttemptsStarted int    `json:"attempts_started"`
-	AttemptsCompleted int  `json:"attempts_completed"`
-	NewUsers        int    `json:"new_users"`
+	Date              string `json:"date"`
+	ExamsCreated      int    `json:"exams_created"`
+	AttemptsStarted   int    `json:"attempts_started"`
+	AttemptsCompleted int    `json:"attempts_completed"`
+	NewUsers          int    `json:"new_users"`
 }
 
 // PerformanceTrend contains performance trend data

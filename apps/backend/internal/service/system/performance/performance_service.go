@@ -12,31 +12,31 @@ import (
 
 // PerformanceService is the main service that coordinates all performance optimization components
 type PerformanceService struct {
-	db                      *sql.DB
-	logger                  *logrus.Logger
-	
+	db     *sql.DB
+	logger *logrus.Logger
+
 	// Sub-services
 	optimisticLocking       *OptimisticLockingService
 	batchProcessor          *BatchProcessor
 	performanceMonitor      *PerformanceMonitor
 	connectionPoolOptimizer *ConnectionPoolOptimizer
-	
+
 	// Service state
-	isRunning               bool
-	mutex                   sync.RWMutex
-	ctx                     context.Context
-	cancel                  context.CancelFunc
-	wg                      sync.WaitGroup
+	isRunning bool
+	mutex     sync.RWMutex
+	ctx       context.Context
+	cancel    context.CancelFunc
+	wg        sync.WaitGroup
 }
 
 // Config represents performance service configuration
 type Config struct {
-	BatchProcessingInterval    time.Duration `json:"batch_processing_interval"`
-	MetricsCollectionInterval  time.Duration `json:"metrics_collection_interval"`
-	PoolOptimizationInterval   time.Duration `json:"pool_optimization_interval"`
-	EnableAutomaticOptimization bool         `json:"enable_automatic_optimization"`
-	EnableBatchProcessing      bool          `json:"enable_batch_processing"`
-	EnableMetricsCollection    bool          `json:"enable_metrics_collection"`
+	BatchProcessingInterval     time.Duration `json:"batch_processing_interval"`
+	MetricsCollectionInterval   time.Duration `json:"metrics_collection_interval"`
+	PoolOptimizationInterval    time.Duration `json:"pool_optimization_interval"`
+	EnableAutomaticOptimization bool          `json:"enable_automatic_optimization"`
+	EnableBatchProcessing       bool          `json:"enable_batch_processing"`
+	EnableMetricsCollection     bool          `json:"enable_metrics_collection"`
 }
 
 // DefaultConfig returns default configuration
@@ -56,7 +56,7 @@ func NewPerformanceService(db *sql.DB, config *Config, logger *logrus.Logger) *P
 	if config == nil {
 		config = DefaultConfig()
 	}
-	
+
 	if logger == nil {
 		logger = logrus.New()
 		logger.SetFormatter(&logrus.TextFormatter{
@@ -240,9 +240,9 @@ func (ps *PerformanceService) HealthCheck(ctx context.Context) (*HealthStatus, e
 
 // HealthStatus represents the health status of the performance service
 type HealthStatus struct {
-	Overall   string                    `json:"overall"`
-	Timestamp time.Time                 `json:"timestamp"`
-	Services  map[string]ServiceHealth  `json:"services"`
+	Overall   string                   `json:"overall"`
+	Timestamp time.Time                `json:"timestamp"`
+	Services  map[string]ServiceHealth `json:"services"`
 }
 
 // ServiceHealth represents the health of an individual service

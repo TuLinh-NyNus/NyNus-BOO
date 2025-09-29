@@ -12,7 +12,7 @@ import React from "react";
 import { Button } from "@/components/ui";
 
 // Import types từ lib/types
-import { QuestionPagination } from "@/lib/types/question";
+import { QuestionPagination } from "@/types/question";
 
 /**
  * Props for QuestionListPagination component

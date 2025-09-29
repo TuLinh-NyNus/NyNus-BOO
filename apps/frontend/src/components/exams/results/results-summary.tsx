@@ -35,8 +35,8 @@ import {
 } from "lucide-react";
 
 // Types
-import { ExamResult, Exam, ExamAnswer } from "@/lib/types/exam";
-import { Question, QuestionType, QuestionDifficulty } from "@/lib/types/question";
+import { ExamResult, Exam, ExamAnswer } from "@/types/exam";
+import { Question, QuestionType, QuestionDifficulty } from "@/types/question";
 
 // ===== TYPES =====
 
@@ -94,6 +94,7 @@ function analyzePerformanceByDifficulty(questions: Question[], answers: ExamAnsw
 function analyzePerformanceByType(questions: Question[], answers: ExamAnswer[]): TypeAnalysis {
   const analysis: TypeAnalysis = {
     [QuestionType.MC]: { correct: 0, total: 0 },
+    [QuestionType.MULTIPLE_CHOICE]: { correct: 0, total: 0 },
     [QuestionType.TF]: { correct: 0, total: 0 },
     [QuestionType.SA]: { correct: 0, total: 0 },
     [QuestionType.ES]: { correct: 0, total: 0 },
@@ -145,6 +146,7 @@ function generateStrengths(result: ExamResult, difficultyAnalysis: DifficultyAna
       if (percentage >= 85) {
         const typeName = {
           [QuestionType.MC]: 'trắc nghiệm',
+          [QuestionType.MULTIPLE_CHOICE]: 'trắc nghiệm',
           [QuestionType.TF]: 'đúng/sai',
           [QuestionType.SA]: 'trả lời ngắn',
           [QuestionType.ES]: 'tự luận',
@@ -196,6 +198,7 @@ function generateImprovementAreas(result: ExamResult, difficultyAnalysis: Diffic
       if (percentage < 60) {
         const typeName = {
           [QuestionType.MC]: 'trắc nghiệm',
+          [QuestionType.MULTIPLE_CHOICE]: 'trắc nghiệm',
           [QuestionType.TF]: 'đúng/sai',
           [QuestionType.SA]: 'trả lời ngắn',
           [QuestionType.ES]: 'tự luận',
@@ -339,6 +342,7 @@ export function ResultsSummary({
                   const percentage = (data.correct / data.total) * 100;
                   const typeName = {
                     [QuestionType.MC]: 'Trắc nghiệm',
+                    [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
                     [QuestionType.TF]: 'Đúng/Sai',
                     [QuestionType.SA]: 'Trả lời ngắn',
                     [QuestionType.ES]: 'Tự luận',

@@ -11,11 +11,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  Save, 
-  Settings, 
-  Clock, 
+import {
+  ArrowLeft,
+  Save,
+  Settings,
   Shield,
   Users,
   FileText,
@@ -23,7 +22,7 @@ import {
 } from 'lucide-react';
 
 // UI Components
-import { 
+import {
   Button,
   Card,
   CardContent,
@@ -33,11 +32,6 @@ import {
   Input,
   Label,
   Switch,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
   Textarea
 } from '@/components/ui';
 
@@ -131,7 +125,7 @@ export default function AdminExamSettingsPage() {
     router.push(ADMIN_PATHS.EXAMS);
   };
 
-  const handleSettingChange = (key: keyof ExamSettings, value: any) => {
+  const handleSettingChange = (key: keyof ExamSettings, value: string | number | boolean) => {
     setSettings(prev => ({ ...prev, [key]: value }));
     setHasChanges(true);
   };

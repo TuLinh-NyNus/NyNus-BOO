@@ -14,26 +14,18 @@ import { Skeleton } from "@/components/ui";
 import { useToast } from '@/hooks/use-toast';
 // ✅ Import mock data instead of API service
 import { getUserById } from '@/lib/mockdata';
-import { AdminUser } from '@/lib/mockdata/types';
+import { AdminUser } from '@/types/user/admin';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
+import {
+  getProtobufRoleLabel,
+  getProtobufStatusLabel,
+  getProtobufRoleColor,
+  convertEnumRoleToProtobuf,
+  convertEnumStatusToProtobuf,
+  isProtobufStatusEqual
+} from '@/lib/utils/type-converters';
 
-// ✅ Role colors mapping với Enhanced User Model - NEW COLOR SCHEME
-const roleColors = {
-  ADMIN: 'bg-[#FD5653]/10 text-[#FD5653] dark:bg-[#FD5653]/20 dark:text-[#FD5653]',
-  TEACHER: 'bg-[#A259FF]/10 text-[#A259FF] dark:bg-[#A259FF]/20 dark:text-[#A259FF]',
-  TUTOR: 'bg-[#5B88B9]/10 text-[#5B88B9] dark:bg-[#5B88B9]/20 dark:text-[#5B88B9]',
-  STUDENT: 'bg-[#48BB78]/10 text-[#48BB78] dark:bg-[#48BB78]/20 dark:text-[#48BB78]',
-  GUEST: 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
-};
-
-// ✅ Role labels mapping với Enhanced User Model
-const roleLabels = {
-  ADMIN: 'Quản trị viên',
-  TEACHER: 'Giáo viên',
-  TUTOR: 'Gia sư',
-  STUDENT: 'Học sinh',
-  GUEST: 'Khách',
-};
+// Removed unused constants - using protobuf helpers instead
 
 export default function AdminUserDetailPage() {
   const params = useParams();
@@ -48,7 +40,7 @@ export default function AdminUserDetailPage() {
     firstName: '',
     lastName: '',
     email: '',
-    role: 'STUDENT' as AdminUser['role'],
+    role: convertEnumRoleToProtobuf(UserRole.STUDENT),
     isActive: true,
     adminNotes: '',
   });
@@ -70,7 +62,7 @@ export default function AdminUserDetailPage() {
           lastName: userData.lastName || '',
           email: userData.email,
           role: userData.role,
-          isActive: userData.status === 'ACTIVE',
+          isActive: isProtobufStatusEqual(userData.status, UserStatus.ACTIVE),
           adminNotes: userData.adminNotes || '',
         });
       } else {
@@ -80,8 +72,8 @@ export default function AdminUserDetailPage() {
           email: 'user@example.com',
           firstName: 'John',
           lastName: 'Doe',
-          role: UserRole.STUDENT,
-          status: UserStatus.ACTIVE,
+          role: convertEnumRoleToProtobuf(UserRole.STUDENT),
+          status: convertEnumStatusToProtobuf(UserStatus.ACTIVE),
           emailVerified: true,
           password_hash: '$2b$12$mockHashForTestUser',
           level: 1,
@@ -113,7 +105,7 @@ export default function AdminUserDetailPage() {
           lastName: mockUser.lastName || '',
           email: mockUser.email,
           role: mockUser.role,
-          isActive: mockUser.status === 'ACTIVE',
+          isActive: isProtobufStatusEqual(mockUser.status, UserStatus.ACTIVE),
           adminNotes: mockUser.adminNotes || '',
         });
       }
@@ -178,7 +170,7 @@ export default function AdminUserDetailPage() {
       lastName: user.lastName || '',
       email: user.email,
       role: user.role,
-      isActive: user.status === 'ACTIVE',
+      isActive: isProtobufStatusEqual(user.status, UserStatus.ACTIVE),
       adminNotes: user.adminNotes || '',
     });
     setEditing(false);
@@ -268,17 +260,17 @@ export default function AdminUserDetailPage() {
             </h1>
             <p className="text-muted-foreground">{user.email}</p>
           </div>
-          <Badge className={roleColors[user.role as keyof typeof roleColors]}>
-            {roleLabels[user.role as keyof typeof roleLabels]}
+          <Badge className={`bg-${getProtobufRoleColor(user.role)}-100 text-${getProtobufRoleColor(user.role)}-700`}>
+            {getProtobufRoleLabel(user.role)}
           </Badge>
           <div className="flex items-center gap-2">
-            {user.status === 'ACTIVE' ? (
+            {isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? (
               <UserCheck className="h-4 w-4 text-green-600" />
             ) : (
               <UserX className="h-4 w-4 text-red-600" />
             )}
-            <span className={user.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600'}>
-              {user.status === 'ACTIVE' ? 'Hoạt động' : user.status === 'SUSPENDED' ? 'Tạm ngưng' : 'Không hoạt động'}
+            <span className={isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? 'text-green-600' : 'text-red-600'}>
+              {getProtobufStatusLabel(user.status)}
             </span>
           </div>
         </div>
@@ -357,8 +349,8 @@ export default function AdminUserDetailPage() {
               <Label htmlFor="role">Vai trò</Label>
               {editing ? (
                 <Select
-                  value={editForm.role}
-                  onValueChange={(value) => setEditForm(prev => ({ ...prev, role: value as AdminUser['role'] }))}
+                  value={editForm.role.toString()}
+                  onValueChange={(value) => setEditForm(prev => ({ ...prev, role: parseInt(value) as AdminUser['role'] }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -372,8 +364,8 @@ export default function AdminUserDetailPage() {
                 </Select>
               ) : (
                 <div className="flex items-center justify-between p-2 bg-muted rounded-md">
-                  <Badge className={roleColors[user.role as keyof typeof roleColors]}>
-                    {roleLabels[user.role as keyof typeof roleLabels]}
+                  <Badge className={`bg-${getProtobufRoleColor(user.role)}-100 text-${getProtobufRoleColor(user.role)}-700`}>
+                    {getProtobufRoleLabel(user.role)}
                   </Badge>
                 </div>
               )}

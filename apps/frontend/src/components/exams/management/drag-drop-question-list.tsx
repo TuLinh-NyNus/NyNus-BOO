@@ -9,6 +9,7 @@ import React, { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { QuestionType, AnswerOption } from '@/types/question';
 import { 
   GripVertical, 
   Edit, 
@@ -20,7 +21,7 @@ import {
   MoreVertical
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Question } from '@/lib/types/exam';
+import { Question } from '@/types/exam';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,7 +66,7 @@ export function DragDropQuestionList({
   });
 
   const listRef = useRef<HTMLDivElement>(null);
-  const dragElementRef = useRef<HTMLDivElement>(null);
+  const _dragElementRef = useRef<HTMLDivElement>(null);
 
   const handleDragStart = useCallback((index: number, event: React.DragEvent) => {
     if (disabled) return;
@@ -403,19 +404,19 @@ export function DragDropQuestionList({
                     </div>
 
                     {/* Question Options Preview (for multiple choice) */}
-                    {question.type === 'MULTIPLE_CHOICE' && question.options && question.options.length > 0 && (
+                    {question.type === QuestionType.MC && question.answers && question.answers.length > 0 && (
                       <div className="mt-3 space-y-1">
-                        {question.options.slice(0, 2).map((option, optionIndex) => (
-                          <div key={optionIndex} className="text-xs text-muted-foreground flex items-center gap-2">
+                        {(question.answers as AnswerOption[]).slice(0, 2).map((answer: AnswerOption, answerIndex: number) => (
+                          <div key={answerIndex} className="text-xs text-muted-foreground flex items-center gap-2">
                             <span className="font-medium">
-                              {String.fromCharCode(65 + optionIndex)}.
+                              {String.fromCharCode(65 + answerIndex)}.
                             </span>
-                            <span className="line-clamp-1">{option}</span>
+                            <span className="line-clamp-1">{answer.content}</span>
                           </div>
                         ))}
-                        {question.options.length > 2 && (
+                        {question.answers.length > 2 && (
                           <div className="text-xs text-muted-foreground">
-                            ... và {question.options.length - 2} đáp án khác
+                            ... và {question.answers.length - 2} đáp án khác
                           </div>
                         )}
                       </div>

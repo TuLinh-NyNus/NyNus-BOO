@@ -31,7 +31,23 @@ import {
   ROLE_RESTRICTIONS,
   getPromotionPaths,
 } from "../../../lib/role-hierarchy";
-import { UserRole, USER_ROLE_LABELS, USER_ROLE_COLORS } from "../../../types/admin-user";
+import { UserRole } from "@/lib/mockdata/core-types";
+
+const USER_ROLE_LABELS: Record<UserRole, string> = {
+  [UserRole.GUEST]: "Khách",
+  [UserRole.STUDENT]: "Học viên",
+  [UserRole.TUTOR]: "Trợ giảng",
+  [UserRole.TEACHER]: "Giảng viên",
+  [UserRole.ADMIN]: "Quản trị viên",
+};
+
+const USER_ROLE_COLORS: Record<UserRole, string> = {
+  [UserRole.GUEST]: "bg-secondary text-secondary-foreground",
+  [UserRole.STUDENT]: "bg-primary text-primary-foreground",
+  [UserRole.TUTOR]: "bg-badge-success text-badge-success-foreground",
+  [UserRole.TEACHER]: "bg-accent text-accent-foreground",
+  [UserRole.ADMIN]: "bg-destructive text-destructive-foreground",
+};
 
 /**
  * Role Permissions Panel Props

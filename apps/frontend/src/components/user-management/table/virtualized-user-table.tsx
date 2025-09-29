@@ -35,8 +35,15 @@ import {
   ChevronsLeft,
   ChevronsRight
 } from 'lucide-react';
-import { AdminUser } from '@/lib/mockdata/types';
+import { AdminUser } from '@/types/user/admin';
 import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
+import {
+  getProtobufRoleLabel,
+  getProtobufStatusLabel,
+  getProtobufRoleColor,
+  getProtobufStatusColor,
+  isProtobufStatusEqual
+} from "@/lib/utils/type-converters";
 import { UserTableLoading, UserErrorState } from '../loading';
 
 // ===== INTERFACES =====
@@ -87,47 +94,7 @@ const TABLE_COLUMNS: TableColumn[] = [
   { key: 'actions', label: 'Thao tác', width: 'w-24' },
 ];
 
-/**
- * Role colors mapping - Dark theme compatible
- */
-const ROLE_COLORS = {
-  [UserRole.GUEST]: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
-  [UserRole.STUDENT]: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  [UserRole.TUTOR]: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-  [UserRole.TEACHER]: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-  [UserRole.ADMIN]: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-};
-
-/**
- * Role labels mapping
- */
-const ROLE_LABELS = {
-  [UserRole.GUEST]: 'Khách',
-  [UserRole.STUDENT]: 'Học sinh',
-  [UserRole.TUTOR]: 'Gia sư',
-  [UserRole.TEACHER]: 'Giáo viên',
-  [UserRole.ADMIN]: 'Quản trị viên',
-};
-
-/**
- * Status colors mapping - Dark theme compatible
- */
-const STATUS_COLORS = {
-  [UserStatus.ACTIVE]: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  [UserStatus.INACTIVE]: 'bg-muted text-muted-foreground dark:bg-muted dark:text-muted-foreground',
-  [UserStatus.SUSPENDED]: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-  [UserStatus.PENDING_VERIFICATION]: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-};
-
-/**
- * Status labels mapping
- */
-const STATUS_LABELS = {
-  [UserStatus.ACTIVE]: 'Hoạt động',
-  [UserStatus.INACTIVE]: 'Không hoạt động',
-  [UserStatus.SUSPENDED]: 'Tạm ngưng',
-  [UserStatus.PENDING_VERIFICATION]: 'Chờ xác thực',
-};
+// Removed unused constants - using protobuf helpers instead
 
 // ===== HELPER FUNCTIONS =====
 
@@ -236,12 +203,12 @@ export function VirtualizedUserTable({
           bValue = getUserDisplayName(b).toLowerCase();
           break;
         case 'role':
-          aValue = a.role;
-          bValue = b.role;
+          aValue = getProtobufRoleLabel(a.role);
+          bValue = getProtobufRoleLabel(b.role);
           break;
         case 'status':
-          aValue = a.status;
-          bValue = b.status;
+          aValue = getProtobufStatusLabel(a.status);
+          bValue = getProtobufStatusLabel(b.status);
           break;
         default:
           return 0;
@@ -423,8 +390,8 @@ export function VirtualizedUserTable({
    * Render role cell với level
    */
   const renderRoleCell = useCallback((user: AdminUser) => {
-    const roleLabel = ROLE_LABELS[user.role];
-    const roleColor = ROLE_COLORS[user.role];
+    const roleLabel = getProtobufRoleLabel(user.role);
+    const roleColor = `bg-${getProtobufRoleColor(user.role)}-100 text-${getProtobufRoleColor(user.role)}-700`;
     
     return (
       <div className="space-y-1">
@@ -444,8 +411,8 @@ export function VirtualizedUserTable({
    * Render status cell với email verification
    */
   const renderStatusCell = useCallback((user: AdminUser) => {
-    const statusLabel = STATUS_LABELS[user.status];
-    const statusColor = STATUS_COLORS[user.status];
+    const statusLabel = getProtobufStatusLabel(user.status);
+    const statusColor = `bg-${getProtobufStatusColor(user.status)}-100 text-${getProtobufStatusColor(user.status)}-700`;
 
     return (
       <div className="flex flex-col gap-1">
@@ -554,7 +521,7 @@ export function VirtualizedUserTable({
             Chỉnh sửa
           </DropdownMenuItem>
           <div className="border-t my-1" />
-          {user.status === UserStatus.ACTIVE ? (
+          {isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? (
             <DropdownMenuItem 
               onClick={() => handleUserAction('suspend', user)}
               className="text-orange-600"

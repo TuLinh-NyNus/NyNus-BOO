@@ -10,8 +10,8 @@
 'use client';
 
 import React from 'react';
-import { QuestionType } from '@/lib/types/question';
-import type { Question, AnswerOption } from '@/lib/types/question';
+import { QuestionType } from '@/types/question';
+import type { Question, AnswerOption } from '@/types/question';
 
 // Import specialized input components
 import { MultipleChoiceInput } from './multiple-choice-input';
@@ -205,13 +205,13 @@ export function AnswerInputFactory({
       return (
         <BaseAnswerInput
           {...commonProps}
-          value={answer}
+          value={answer as unknown as string | string[] | boolean | null}
           error="Loại câu hỏi không được hỗ trợ"
         >
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-center space-x-2 text-red-600">
               <span className="text-sm">
-                Loại câu hỏi "{question.type}" chưa được hỗ trợ
+                Loại câu hỏi &quot;{question.type}&quot; chưa được hỗ trợ
               </span>
             </div>
           </div>

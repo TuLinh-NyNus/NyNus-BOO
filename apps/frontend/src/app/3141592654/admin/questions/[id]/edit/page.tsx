@@ -18,8 +18,8 @@ import {
   QuestionStatus,
   QuestionType,
   QuestionDifficulty
-} from '@/lib/types/question';
-import { MockQuestionsService } from '@/lib/services/mock/questions';
+} from '@/types/question';
+import { MockQuestionsService } from '@/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**

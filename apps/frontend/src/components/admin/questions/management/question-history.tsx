@@ -55,7 +55,7 @@ import {
 } from "@/lib/utils/question-versioning";
 
 // Note: restoreQuestionToVersion is handled via onVersionRestore callback
-import { Question } from "@/lib/types/question";
+import { Question } from "@/types/question";
 
 // ===== TYPES =====
 

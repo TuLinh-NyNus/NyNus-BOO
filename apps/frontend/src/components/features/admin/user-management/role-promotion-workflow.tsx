@@ -12,30 +12,22 @@ import {
 } from "@/components/ui/overlay/dropdown-menu";
 import { Badge } from "@/components/ui/display/badge";
 import { ArrowUp, ArrowDown, Users, MoreVertical, UserCheck, UserX, Shield } from "lucide-react";
-import { UserRole } from "@/lib/mockdata/core-types";
+import { UserRole, UserStatus } from "@/lib/mockdata/core-types";
+import { AdminUser } from "@/types/user/admin";
+import {
+  getProtobufRoleLabel,
+  getProtobufRoleColor,
+  convertProtobufRoleToEnum,
+  isProtobufRoleEqual,
+  isProtobufStatusEqual
+} from "@/lib/utils/type-converters";
 import { toast } from "@/hooks/use-toast";
 
 // Import dialog components
 import { RolePromotionDialog } from "./role-promotion-dialog";
 import { BulkRolePromotionDialog } from "./bulk-role-promotion";
 
-/**
- * Admin User interface (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-  emailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt: string;
-  activeSessionsCount: number;
-  totalResourceAccess: number;
-  riskScore?: number;
-}
+// AdminUser imported from canonical source above
 
 /**
  * User role labels mapping
@@ -122,7 +114,8 @@ export function RolePromotionWorkflow({
    */
   const getRoleStatistics = () => {
     const roleStats = selectedUsers.reduce((acc, user) => {
-      acc[user.role] = (acc[user.role] || 0) + 1;
+      const enumRole = convertProtobufRoleToEnum(user.role);
+      acc[enumRole] = (acc[enumRole] || 0) + 1;
       return acc;
     }, {} as Record<UserRole, number>);
 
@@ -140,7 +133,7 @@ export function RolePromotionWorkflow({
     const suggestions = [];
 
     // Suggest promoting students to tutors
-    const students = selectedUsers.filter(u => u.role === UserRole.STUDENT);
+    const students = selectedUsers.filter(u => isProtobufRoleEqual(u.role, UserRole.STUDENT));
     if (students.length > 0) {
       suggestions.push({
         from: UserRole.STUDENT,
@@ -151,7 +144,7 @@ export function RolePromotionWorkflow({
     }
 
     // Suggest promoting tutors to teachers
-    const tutors = selectedUsers.filter(u => u.role === UserRole.TUTOR);
+    const tutors = selectedUsers.filter(u => isProtobufRoleEqual(u.role, UserRole.TUTOR));
     if (tutors.length > 0) {
       suggestions.push({
         from: UserRole.TUTOR,
@@ -250,8 +243,8 @@ export function RolePromotionWorkflow({
                     <div className="font-medium">{getUserDisplayName(user)}</div>
                     <div className="text-sm text-muted-foreground">{user.email}</div>
                   </div>
-                  <Badge className={USER_ROLE_COLORS[user.role]}>
-                    {USER_ROLE_LABELS[user.role]}
+                  <Badge className={`bg-${getProtobufRoleColor(user.role)}-100 text-${getProtobufRoleColor(user.role)}-700`}>
+                    {getProtobufRoleLabel(user.role)}
                   </Badge>
                 </div>
                 
@@ -283,7 +276,7 @@ export function RolePromotionWorkflow({
                         Demote Role
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      {user.status === 'ACTIVE' ? (
+                      {isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? (
                         <DropdownMenuItem>
                           <UserX className="h-4 w-4 mr-2" />
                           Suspend User

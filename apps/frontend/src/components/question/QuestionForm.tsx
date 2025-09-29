@@ -8,14 +8,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { 
-  Question, 
-  CreateQuestionRequest, 
+import {
+  Question,
+  CreateQuestionRequest,
   UpdateQuestionRequest,
-  QuestionType, 
-  QuestionStatus, 
+  QuestionType,
+  QuestionStatus,
   QuestionDifficulty,
-  Answer
+  Answer,
+  CorrectAnswer
 } from '@/types/question.types';
 import { QuestionHelpers } from '@/services/grpc/question.service';
 
@@ -79,17 +80,17 @@ interface QuestionFormProps {
 // ========================================
 
 const DEFAULT_FORM_VALUES: Partial<QuestionFormData> = {
-  type: 'MC',
-  status: 'ACTIVE',
-  difficulty: 'MEDIUM',
+  type: QuestionType.MC,
+  status: QuestionStatus.ACTIVE,
+  difficulty: QuestionDifficulty.MEDIUM,
   source: '',
   subcount: '',
   tag: [],
   answers: [
-    { id: '1', content: '', is_correct: false },
-    { id: '2', content: '', is_correct: false },
-    { id: '3', content: '', is_correct: false },
-    { id: '4', content: '', is_correct: false },
+    { id: '1', content: '', isCorrect: false },
+    { id: '2', content: '', isCorrect: false },
+    { id: '3', content: '', isCorrect: false },
+    { id: '4', content: '', isCorrect: false },
   ],
   correct_answers: []
 };
@@ -116,18 +117,18 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
     formState: { errors, isSubmitting }
   } = useForm<QuestionFormData>({
     defaultValues: question ? {
-      raw_content: question.raw_content,
+      raw_content: question.rawContent || question.content,
       content: question.content,
-      subcount: question.subcount,
+      subcount: question.subcount || '',
       type: question.type,
-      source: question.source,
+      source: question.source || '',
       solution: question.solution,
       tag: question.tag || [],
-      question_code_id: question.question_code_id,
+      question_code_id: question.questionCodeId || '',
       status: question.status,
       difficulty: question.difficulty,
-      creator: question.creator,
-      answers: question.structured_answers || DEFAULT_FORM_VALUES.answers!,
+      creator: question.creator || '',
+      answers: (question.answers as Answer[]) || [],
       correct_answers: [],
     } : DEFAULT_FORM_VALUES
   });
@@ -159,8 +160,8 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
           removeAnswer(i);
         }
       } else if (currentLength < 2) {
-        appendAnswer({ id: '1', content: 'Đúng', is_correct: false });
-        appendAnswer({ id: '2', content: 'Sai', is_correct: false });
+        appendAnswer({ id: '1', content: 'Đúng', isCorrect: false });
+        appendAnswer({ id: '2', content: 'Sai', isCorrect: false });
       } else {
         // Update existing answers
         setValue('answers.0.content', 'Đúng');
@@ -171,7 +172,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
       const currentLength = currentAnswers?.length || 0;
       if (currentLength < 2) {
         for (let i = currentLength; i < 4; i++) {
-          appendAnswer({ id: (i + 1).toString(), content: '', is_correct: false });
+          appendAnswer({ id: (i + 1).toString(), content: '', isCorrect: false });
         }
       }
     }
@@ -181,7 +182,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
 
   const handleAddAnswer = () => {
     const newId = (currentAnswers.length + 1).toString();
-    appendAnswer({ id: newId, content: '', is_correct: false });
+    appendAnswer({ id: newId, content: '', isCorrect: false });
   };
 
   const handleRemoveAnswer = (index: number) => {
@@ -191,14 +192,14 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
   };
 
   const handleCorrectAnswerChange = (index: number, isCorrect: boolean) => {
-    setValue(`answers.${index}.is_correct`, isCorrect);
+    setValue(`answers.${index}.isCorrect`, isCorrect);
 
     if (questionType === 'MC' || questionType === 'TF') {
       // Single correct answer - uncheck others
       if (isCorrect) {
         currentAnswers.forEach((_, i) => {
           if (i !== index) {
-            setValue(`answers.${i}.is_correct`, false);
+            setValue(`answers.${i}.isCorrect`, false);
           }
         });
       }
@@ -223,18 +224,13 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
       // Prepare request data
       const requestData: CreateQuestionRequest | UpdateQuestionRequest = {
         ...(question && { id: question.id }), // Add ID for update
-        raw_content: data.raw_content,
         content: data.content || data.raw_content, // Use raw_content if content is empty
-        subcount: data.subcount,
         type: data.type,
-        source: data.source,
-        solution: data.solution,
-        tag: data.tag,
-        question_code_id: data.question_code_id || 'DEFAULT', // Use default if empty
-        status: data.status,
         difficulty: data.difficulty,
-        creator: data.creator,
-        structured_answers: data.answers.filter(answer => answer.content.trim() !== ''),
+        answers: data.answers.filter(answer => answer.content.trim() !== ''),
+        correctAnswer: (data.answers.find(answer => answer.isCorrect) || data.answers[0]) as unknown as CorrectAnswer,
+        tags: data.tag,
+        subject: data.source,
       };
 
       await onSave(requestData);
@@ -281,12 +277,12 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                     answer.content.trim() && (
                       <div 
                         key={index} 
-                        className={`p-2 rounded border ${answer.is_correct ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}
+                        className={`p-2 rounded border ${answer.isCorrect ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-mono text-sm">{String.fromCharCode(65 + index)}.</span>
                           <span>{answer.content}</span>
-                          {answer.is_correct && (
+                          {answer.isCorrect && (
                             <CheckCircle className="h-4 w-4 text-green-600" />
                           )}
                         </div>
@@ -430,7 +426,7 @@ export const QuestionForm: React.FC<QuestionFormProps> = ({
                         </span>
                         <Controller
                           control={control}
-                          name={`answers.${index}.is_correct`}
+                          name={`answers.${index}.isCorrect`}
                           render={({ field: checkField }) => (
                             <input
                               type="checkbox"

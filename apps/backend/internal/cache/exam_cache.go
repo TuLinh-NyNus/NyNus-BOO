@@ -26,12 +26,12 @@ func NewExamCacheHelper(cache CacheService) *ExamCacheHelper {
 func (h *ExamCacheHelper) GetQuestion(ctx context.Context, questionID string) (*entity.Question, error) {
 	key := GetQuestionCacheKey(questionID)
 	var question entity.Question
-	
+
 	err := h.cache.GetJSON(ctx, key, &question)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &question, nil
 }
 
@@ -47,12 +47,12 @@ func (h *ExamCacheHelper) SetQuestion(ctx context.Context, question *entity.Ques
 func (h *ExamCacheHelper) GetExamQuestions(ctx context.Context, examID string) ([]*entity.Question, error) {
 	key := GetExamQuestionsCacheKey(examID)
 	var questions []*entity.Question
-	
+
 	err := h.cache.GetJSON(ctx, key, &questions)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return questions, nil
 }
 
@@ -68,12 +68,12 @@ func (h *ExamCacheHelper) SetExamQuestions(ctx context.Context, examID string, q
 func (h *ExamCacheHelper) GetQuestionPool(ctx context.Context, grade, subject, difficulty string) ([]string, error) {
 	key := GetQuestionPoolCacheKey(grade, subject, difficulty)
 	var questionIDs []string
-	
+
 	err := h.cache.GetJSON(ctx, key, &questionIDs)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return questionIDs, nil
 }
 
@@ -89,13 +89,13 @@ func (h *ExamCacheHelper) SetQuestionPool(ctx context.Context, grade, subject, d
 func (h *ExamCacheHelper) GetSearchResults(ctx context.Context, filters map[string]interface{}) (interface{}, error) {
 	filtersHash := h.hashFilters(filters)
 	key := GetQuestionSearchCacheKey(filtersHash)
-	
+
 	var results interface{}
 	err := h.cache.GetJSON(ctx, key, &results)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return results, nil
 }
 
@@ -112,12 +112,12 @@ func (h *ExamCacheHelper) SetSearchResults(ctx context.Context, filters map[stri
 func (h *ExamCacheHelper) GetExam(ctx context.Context, examID string) (*entity.Exam, error) {
 	key := GetExamCacheKey(examID)
 	var exam entity.Exam
-	
+
 	err := h.cache.GetJSON(ctx, key, &exam)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &exam, nil
 }
 
@@ -131,12 +131,12 @@ func (h *ExamCacheHelper) SetExam(ctx context.Context, exam *entity.Exam) error 
 func (h *ExamCacheHelper) GetExamStats(ctx context.Context, examID string) (interface{}, error) {
 	key := GetExamStatsCacheKey(examID)
 	var stats interface{}
-	
+
 	err := h.cache.GetJSON(ctx, key, &stats)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return stats, nil
 }
 
@@ -155,7 +155,7 @@ func (h *ExamCacheHelper) InvalidateQuestion(ctx context.Context, questionID str
 	if err := h.cache.Del(ctx, questionKey); err != nil {
 		return err
 	}
-	
+
 	// Remove question pool caches (pattern-based)
 	return h.cache.DelPattern(ctx, "question_pool:*")
 }
@@ -167,7 +167,7 @@ func (h *ExamCacheHelper) InvalidateExam(ctx context.Context, examID string) err
 		GetExamQuestionsCacheKey(examID),
 		GetExamStatsCacheKey(examID),
 	}
-	
+
 	return h.cache.Del(ctx, keys...)
 }
 

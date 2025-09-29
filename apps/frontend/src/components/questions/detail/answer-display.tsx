@@ -43,8 +43,8 @@ import {
 } from '@/components/questions/shared';
 
 // Import types
-import { PublicQuestion } from '@/lib/types/public';
-import { QuestionType } from '@/lib/types/question';
+import { PublicQuestion } from '@/types/public';
+import { QuestionType } from '@/types/question';
 import type { LaTeXExpression } from '@/lib/utils/latex-rendering';
 
 // Import utils

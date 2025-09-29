@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 // Import types
-import { QuestionType } from "@/lib/types/question";
+import { QuestionType } from "@/types/question";
 
 // ===== TYPES =====
 
@@ -50,6 +50,16 @@ export interface QuestionTypeBadgeProps {
  */
 const QUESTION_TYPE_CONFIG = {
   [QuestionType.MC]: {
+    label: 'Trắc nghiệm',
+    shortLabel: 'TN',
+    icon: CheckSquare,
+    color: 'blue',
+    bgColor: 'bg-blue-100',
+    textColor: 'text-blue-800',
+    borderColor: 'border-blue-200',
+    description: 'Câu hỏi trắc nghiệm với nhiều lựa chọn'
+  },
+  [QuestionType.MULTIPLE_CHOICE]: {
     label: 'Trắc nghiệm',
     shortLabel: 'TN',
     icon: CheckSquare,

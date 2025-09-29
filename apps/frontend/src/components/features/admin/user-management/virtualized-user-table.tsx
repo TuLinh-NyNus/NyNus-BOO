@@ -25,26 +25,17 @@ import {
   Activity,
 } from "lucide-react";
 
-import { UserRole } from "@/lib/mockdata/core-types";
 import { useVirtualUserTable } from "@/hooks/admin/use-virtual-user-table";
+import {
+  getProtobufRoleLabel,
+  getProtobufStatusLabel,
+  getProtobufRoleColor,
+  getProtobufStatusColor,
+  convertProtobufStatusToEnum
+} from "@/lib/utils/type-converters";
 
-/**
- * Admin User interface (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-  emailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt: string;
-  activeSessionsCount: number;
-  totalResourceAccess: number;
-  riskScore?: number;
-}
+// Import AdminUser from canonical source
+import { AdminUser } from '@/types/user';
 
 /**
  * Virtualized User Table Props
@@ -75,39 +66,31 @@ interface VirtualizedUserTableProps {
 // };
 
 /**
- * Get role badge component
+ * Get role badge component using protobuf types
  */
-function getRoleBadge(role: UserRole) {
-  const roleConfig = {
-    [UserRole.ADMIN]: { label: "Admin", className: "bg-destructive text-destructive-foreground" },
-    [UserRole.TEACHER]: { label: "Giáo viên", className: "bg-accent text-accent-foreground" },
-    [UserRole.TUTOR]: { label: "Gia sư", className: "bg-badge-success text-badge-success-foreground" },
-    [UserRole.STUDENT]: { label: "Học viên", className: "bg-primary text-primary-foreground" },
-    [UserRole.GUEST]: { label: "Khách", className: "bg-secondary text-secondary-foreground" },
-  };
+function getRoleBadge(protobufRole: number) {
+  const label = getProtobufRoleLabel(protobufRole);
+  const color = getProtobufRoleColor(protobufRole);
+  const className = `bg-${color}-100 text-${color}-700`;
 
-  const config = roleConfig[role] || roleConfig[UserRole.STUDENT];
-
-  return <Badge className={config.className}>{config.label}</Badge>;
+  return <Badge className={className}>{label}</Badge>;
 }
 
 /**
- * Get status badge component
+ * Get status badge component using protobuf types
  */
-function getStatusBadge(status: string) {
-  const statusConfig = {
-    ACTIVE: { label: "Hoạt động", className: "bg-badge-success text-badge-success-foreground", icon: Activity },
-    SUSPENDED: { label: "Tạm ngưng", className: "bg-destructive text-destructive-foreground", icon: UserX },
-    PENDING_VERIFICATION: { label: "Chờ xác thực", className: "bg-badge-warning text-badge-warning-foreground", icon: Shield },
-  };
+function getStatusBadge(protobufStatus: number) {
+  const label = getProtobufStatusLabel(protobufStatus);
+  const color = getProtobufStatusColor(protobufStatus);
+  const className = `bg-${color}-100 text-${color}-700`;
 
-  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.ACTIVE;
-  const IconComponent = config.icon;
+  const IconComponent = protobufStatus === 1 ? Activity :
+                      protobufStatus === 3 ? UserX : Shield;
 
   return (
-    <Badge className={config.className}>
+    <Badge className={className}>
       <IconComponent className="h-3 w-3 mr-1" />
-      {config.label}
+      {label}
     </Badge>
   );
 }
@@ -243,7 +226,7 @@ export function VirtualizedUserTable({
 
         {/* Last Login */}
         <div className="flex-shrink-0 text-sm text-muted-foreground">
-          {formatDate(user.lastLoginAt)}
+          {user.lastLoginAt ? formatDate(user.lastLoginAt.toISOString()) : 'Chưa đăng nhập'}
         </div>
 
         {/* Actions */}
@@ -267,13 +250,13 @@ export function VirtualizedUserTable({
                   Thay đổi role
                 </DropdownMenuItem>
               )}
-              {user.status === 'ACTIVE' && onSuspendUser && (
+              {convertProtobufStatusToEnum(user.status) === 'ACTIVE' && onSuspendUser && (
                 <DropdownMenuItem onClick={() => onSuspendUser(user)}>
                   <UserX className="h-4 w-4 mr-2" />
                   Tạm khóa
                 </DropdownMenuItem>
               )}
-              {user.status === 'SUSPENDED' && onActivateUser && (
+              {convertProtobufStatusToEnum(user.status) === 'SUSPENDED' && onActivateUser && (
                 <DropdownMenuItem onClick={() => onActivateUser(user)}>
                   <UserCheck className="h-4 w-4 mr-2" />
                   Kích hoạt

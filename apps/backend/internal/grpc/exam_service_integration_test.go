@@ -26,7 +26,7 @@ type ExamServiceIntegrationTestSuite struct {
 	container   *container.Container
 	examService pb.ExamServiceServer
 	ctx         context.Context
-	
+
 	// Test data cleanup
 	createdExamIDs     []string
 	createdQuestionIDs []string
@@ -61,12 +61,12 @@ func (suite *ExamServiceIntegrationTestSuite) SetupSuite() {
 
 	// Initialize container with test dependencies
 	suite.container = container.NewContainer(db, cfg.JWT.Secret, cfg)
-	
+
 	// Initialize ExamService
 	suite.examService = grpc.NewExamService(suite.container.ExamMgmt)
-	
+
 	suite.ctx = context.Background()
-	
+
 	// Initialize cleanup slices
 	suite.createdExamIDs = make([]string, 0)
 	suite.createdQuestionIDs = make([]string, 0)
@@ -76,7 +76,7 @@ func (suite *ExamServiceIntegrationTestSuite) SetupSuite() {
 func (suite *ExamServiceIntegrationTestSuite) TearDownSuite() {
 	// Cleanup test data
 	suite.cleanupTestData()
-	
+
 	// Close database connection
 	if suite.db != nil {
 		suite.db.Close()
@@ -102,13 +102,13 @@ func (suite *ExamServiceIntegrationTestSuite) cleanupTestData() {
 		suite.db.Exec("DELETE FROM exam_answers WHERE attempt_id = $1", attemptID)
 		suite.db.Exec("DELETE FROM exam_results WHERE attempt_id = $1", attemptID)
 	}
-	
+
 	// Cleanup exams
 	for _, examID := range suite.createdExamIDs {
 		suite.db.Exec("DELETE FROM exam_questions WHERE exam_id = $1", examID)
 		suite.db.Exec("DELETE FROM exams WHERE id = $1", examID)
 	}
-	
+
 	// Cleanup questions
 	for _, questionID := range suite.createdQuestionIDs {
 		suite.db.Exec("DELETE FROM question WHERE id = $1", questionID)
@@ -117,16 +117,16 @@ func (suite *ExamServiceIntegrationTestSuite) cleanupTestData() {
 
 func (suite *ExamServiceIntegrationTestSuite) createTestQuestion() string {
 	questionID := fmt.Sprintf("test-question-%d", time.Now().UnixNano())
-	
+
 	_, err := suite.db.Exec(`
 		INSERT INTO question (id, raw_content, content, type, source, answers, correct_answer, solution, creator, status, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-	`, questionID, "Test Question", "What is 2+2?", "MC", "test", 
+	`, questionID, "Test Question", "What is 2+2?", "MC", "test",
 		`["2", "3", "4", "5"]`, `"4"`, "2+2=4", "test-user", "ACTIVE", time.Now(), time.Now())
-	
+
 	require.NoError(suite.T(), err)
 	suite.createdQuestionIDs = append(suite.createdQuestionIDs, questionID)
-	
+
 	return questionID
 }
 
@@ -156,7 +156,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestCompleteExamWorkflow_Success()
 	createResp, err := suite.examService.CreateExam(suite.ctx, createReq)
 	require.NoError(suite.T(), err)
 	require.True(suite.T(), createResp.Response.Success)
-	
+
 	examID := createResp.Exam.Id
 	suite.createdExamIDs = append(suite.createdExamIDs, examID)
 
@@ -166,7 +166,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestCompleteExamWorkflow_Success()
 		QuestionId:  questionID1,
 		OrderNumber: 1,
 	}
-	
+
 	addQ1Resp, err := suite.examService.AddQuestionToExam(suite.ctx, addQ1Req)
 	require.NoError(suite.T(), err)
 	require.True(suite.T(), addQ1Resp.Response.Success)
@@ -176,7 +176,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestCompleteExamWorkflow_Success()
 		QuestionId:  questionID2,
 		OrderNumber: 2,
 	}
-	
+
 	addQ2Resp, err := suite.examService.AddQuestionToExam(suite.ctx, addQ2Req)
 	require.NoError(suite.T(), err)
 	require.True(suite.T(), addQ2Resp.Response.Success)
@@ -206,11 +206,11 @@ func (suite *ExamServiceIntegrationTestSuite) TestCompleteExamWorkflow_Success()
 		ExamId: examID,
 		UserId: "test-student-user",
 	}
-	
+
 	startResp, err := suite.examService.StartExam(suite.ctx, startReq)
 	require.NoError(suite.T(), err)
 	require.True(suite.T(), startResp.Response.Success)
-	
+
 	attemptID := startResp.AttemptId
 	suite.createdAttemptIDs = append(suite.createdAttemptIDs, attemptID)
 
@@ -220,7 +220,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestCompleteExamWorkflow_Success()
 		QuestionId: questionID1,
 		AnswerData: `{"answer": "4"}`,
 	}
-	
+
 	submitAnswer1Resp, err := suite.examService.SubmitAnswer(suite.ctx, submitAnswer1Req)
 	require.NoError(suite.T(), err)
 	require.True(suite.T(), submitAnswer1Resp.Response.Success)
@@ -230,7 +230,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestCompleteExamWorkflow_Success()
 		QuestionId: questionID2,
 		AnswerData: `{"answer": "4"}`,
 	}
-	
+
 	submitAnswer2Resp, err := suite.examService.SubmitAnswer(suite.ctx, submitAnswer2Req)
 	require.NoError(suite.T(), err)
 	require.True(suite.T(), submitAnswer2Resp.Response.Success)
@@ -260,7 +260,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestCompleteExamWorkflow_Success()
 func (suite *ExamServiceIntegrationTestSuite) TestConcurrentExamTaking_Success() {
 	// Create test exam
 	questionID := suite.createTestQuestion()
-	
+
 	createReq := &pb.CreateExamRequest{
 		Title:           "Concurrent Test Exam",
 		Description:     "Test exam for concurrent access",
@@ -273,7 +273,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestConcurrentExamTaking_Success()
 
 	createResp, err := suite.examService.CreateExam(suite.ctx, createReq)
 	require.NoError(suite.T(), err)
-	
+
 	examID := createResp.Exam.Id
 	suite.createdExamIDs = append(suite.createdExamIDs, examID)
 
@@ -293,18 +293,18 @@ func (suite *ExamServiceIntegrationTestSuite) TestConcurrentExamTaking_Success()
 	// Test concurrent exam attempts
 	numConcurrentUsers := 5
 	attemptIDs := make([]string, numConcurrentUsers)
-	
+
 	// Start concurrent exam attempts
 	for i := 0; i < numConcurrentUsers; i++ {
 		startReq := &pb.StartExamRequest{
 			ExamId: examID,
 			UserId: fmt.Sprintf("test-user-%d", i),
 		}
-		
+
 		startResp, err := suite.examService.StartExam(suite.ctx, startReq)
 		require.NoError(suite.T(), err)
 		require.True(suite.T(), startResp.Response.Success)
-		
+
 		attemptIDs[i] = startResp.AttemptId
 		suite.createdAttemptIDs = append(suite.createdAttemptIDs, startResp.AttemptId)
 	}
@@ -316,7 +316,7 @@ func (suite *ExamServiceIntegrationTestSuite) TestConcurrentExamTaking_Success()
 			QuestionId: questionID,
 			AnswerData: fmt.Sprintf(`{"answer": "answer-%d"}`, i),
 		}
-		
+
 		submitResp, err := suite.examService.SubmitAnswer(suite.ctx, submitReq)
 		require.NoError(suite.T(), err)
 		require.True(suite.T(), submitResp.Response.Success)
@@ -344,6 +344,6 @@ func TestExamServiceIntegrationTestSuite(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration tests in short mode")
 	}
-	
+
 	suite.Run(t, new(ExamServiceIntegrationTestSuite))
 }

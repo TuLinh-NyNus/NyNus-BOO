@@ -8,6 +8,7 @@ import {
 } from '@/lib/mockdata';
 import { AdminUser, UserStats, AdvancedUserFilters } from '@/lib/mockdata/types';
 import { UserRole, UserStatus, MockPagination } from '@/lib/mockdata/core-types';
+import { convertEnumStatusToProtobuf, convertEnumRoleToProtobuf } from '@/lib/utils/type-converters';
 
 // ===== INTERFACES =====
 
@@ -321,9 +322,9 @@ export function useUserManagement(
       console.log(`Suspending user ${userId} with reason: ${reason}`);
       
       // Update local state
-      setUsers(prev => prev.map(user => 
-        user.id === userId 
-          ? { ...user, status: UserStatus.SUSPENDED, adminNotes: `SUSPENDED: ${reason}` }
+      setUsers(prev => prev.map(user =>
+        user.id === userId
+          ? { ...user, status: convertEnumStatusToProtobuf(UserStatus.SUSPENDED), adminNotes: `SUSPENDED: ${reason}` } as AdminUser
           : user
       ));
       
@@ -345,9 +346,9 @@ export function useUserManagement(
       console.log(`Reactivating user ${userId}`);
       
       // Update local state
-      setUsers(prev => prev.map(user => 
-        user.id === userId 
-          ? { ...user, status: UserStatus.ACTIVE, lockedUntil: null, loginAttempts: 0 }
+      setUsers(prev => prev.map(user =>
+        user.id === userId
+          ? { ...user, status: convertEnumStatusToProtobuf(UserStatus.ACTIVE), lockedUntil: undefined, loginAttempts: 0 } as AdminUser
           : user
       ));
       
@@ -369,9 +370,9 @@ export function useUserManagement(
       console.log(`Promoting user ${userId} to role ${newRole}`);
       
       // Update local state
-      setUsers(prev => prev.map(user => 
-        user.id === userId 
-          ? { ...user, role: newRole, level: newRole === UserRole.ADMIN ? null : 1 }
+      setUsers(prev => prev.map(user =>
+        user.id === userId
+          ? { ...user, role: convertEnumRoleToProtobuf(newRole), level: newRole === UserRole.ADMIN ? undefined : 1 } as AdminUser
           : user
       ));
       
@@ -393,15 +394,15 @@ export function useUserManagement(
       console.log(`Resetting security for user ${userId}`);
       
       // Update local state
-      setUsers(prev => prev.map(user => 
-        user.id === userId 
-          ? { 
-              ...user, 
-              loginAttempts: 0, 
-              lockedUntil: null, 
+      setUsers(prev => prev.map(user =>
+        user.id === userId
+          ? {
+              ...user,
+              loginAttempts: 0,
+              lockedUntil: undefined,
               riskScore: 0,
-              activeSessionsCount: 0 
-            }
+              activeSessionsCount: 0
+            } as AdminUser
           : user
       ));
       

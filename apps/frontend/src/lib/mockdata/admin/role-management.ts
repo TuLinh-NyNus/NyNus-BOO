@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-import { UserRole } from '../shared/core-types';
+import { UserRole, type UserRole as UserRoleType } from '@/types/user/roles';
 
 /**
  * Interface cho role permission
@@ -46,22 +46,22 @@ export interface PermissionLevel {
  * Interface cho role hierarchy node
  */
 export interface RoleHierarchyNode {
-  role: UserRole;
+  role: UserRoleType;
   level: number;
-  children: UserRole[];
-  parent?: UserRole;
+  children: UserRoleType[];
+  parent?: UserRoleType;
   permissions: RolePermission[];
   userCount: number;
-  canPromoteTo: UserRole[];
-  canDemoteTo: UserRole[];
+  canPromoteTo: UserRoleType[];
+  canDemoteTo: UserRoleType[];
 }
 
 /**
  * Interface cho role relationship
  */
 export interface RoleRelationship {
-  parent: UserRole;
-  child: UserRole;
+  parent: UserRoleType;
+  child: UserRoleType;
   canPromote: boolean;
   canDemote: boolean;
   restrictions: string[];
@@ -71,8 +71,8 @@ export interface RoleRelationship {
  * Interface cho promotion path
  */
 export interface PromotionPath {
-  from: UserRole;
-  to: UserRole;
+  from: UserRoleType;
+  to: UserRoleType;
   requirements: string[];
   restrictions: string[];
   isDirectPath: boolean;
@@ -86,7 +86,7 @@ export interface PermissionTemplate {
   name: string;
   description: string;
   permissions: RolePermission[];
-  applicableRoles: UserRole[];
+  applicableRoles: UserRoleType[];
   isDefault: boolean;
   createdAt: string;
   createdBy?: string;
@@ -97,7 +97,7 @@ export interface PermissionTemplate {
  * Interface cho permission matrix response
  */
 export interface PermissionMatrixResponse {
-  matrix: Record<UserRole, RolePermission[]>;
+  matrix: Record<UserRoleType, RolePermission[]>;
   categories: PermissionCategory[];
   levels: PermissionLevel[];
   timestamp: string;
@@ -312,7 +312,7 @@ export const mockPermissionTemplates: PermissionTemplate[] = [
     name: 'Basic User Template',
     description: 'Template cơ bản cho user mới',
     permissions: mockRolePermissions.filter(p => p.level === 'read'),
-    applicableRoles: [UserRole.STUDENT, UserRole.GUEST],
+    applicableRoles: [UserRole.USER_ROLE_STUDENT, UserRole.USER_ROLE_GUEST],
     isDefault: true,
     createdAt: '2024-07-01T00:00:00Z',
     createdBy: 'system',
@@ -323,7 +323,7 @@ export const mockPermissionTemplates: PermissionTemplate[] = [
     name: 'Content Creator Template',
     description: 'Template cho người tạo nội dung',
     permissions: mockRolePermissions.filter(p => p.category === 'content' && ['read', 'write'].includes(p.level)),
-    applicableRoles: [UserRole.TUTOR, UserRole.TEACHER],
+    applicableRoles: [UserRole.USER_ROLE_TUTOR, UserRole.USER_ROLE_TEACHER],
     isDefault: true,
     createdAt: '2024-07-01T00:00:00Z',
     createdBy: 'system',
@@ -334,7 +334,7 @@ export const mockPermissionTemplates: PermissionTemplate[] = [
     name: 'Moderator Template',
     description: 'Template cho moderator',
     permissions: mockRolePermissions.filter(p => ['user', 'content'].includes(p.category)),
-    applicableRoles: [UserRole.TEACHER],
+    applicableRoles: [UserRole.USER_ROLE_TEACHER],
     isDefault: true,
     createdAt: '2024-07-01T00:00:00Z',
     createdBy: 'system',
@@ -506,52 +506,52 @@ export function validateRolePromotion(
  */
 export const mockRoleHierarchy: RoleHierarchyNode[] = [
   {
-    role: UserRole.ADMIN,
+    role: UserRole.USER_ROLE_ADMIN,
     level: 5,
-    children: [UserRole.TEACHER],
+    children: [UserRole.USER_ROLE_TEACHER],
     permissions: mockRolePermissions,
     userCount: 3,
     canPromoteTo: [],
-    canDemoteTo: [UserRole.TEACHER],
+    canDemoteTo: [UserRole.USER_ROLE_TEACHER],
   },
   {
-    role: UserRole.TEACHER,
+    role: UserRole.USER_ROLE_TEACHER,
     level: 4,
-    children: [UserRole.TUTOR],
-    parent: UserRole.ADMIN,
+    children: [UserRole.USER_ROLE_TUTOR],
+    parent: UserRole.USER_ROLE_ADMIN,
     permissions: mockRolePermissions.filter(p => p.category !== 'admin'),
     userCount: 25,
-    canPromoteTo: [UserRole.ADMIN],
-    canDemoteTo: [UserRole.TUTOR],
+    canPromoteTo: [UserRole.USER_ROLE_ADMIN],
+    canDemoteTo: [UserRole.USER_ROLE_TUTOR],
   },
   {
-    role: UserRole.TUTOR,
+    role: UserRole.USER_ROLE_TUTOR,
     level: 3,
-    children: [UserRole.STUDENT],
-    parent: UserRole.TEACHER,
+    children: [UserRole.USER_ROLE_STUDENT],
+    parent: UserRole.USER_ROLE_TEACHER,
     permissions: mockRolePermissions.filter(p => !['admin', 'system'].includes(p.category)),
     userCount: 150,
-    canPromoteTo: [UserRole.TEACHER],
-    canDemoteTo: [UserRole.STUDENT],
+    canPromoteTo: [UserRole.USER_ROLE_TEACHER],
+    canDemoteTo: [UserRole.USER_ROLE_STUDENT],
   },
   {
-    role: UserRole.STUDENT,
+    role: UserRole.USER_ROLE_STUDENT,
     level: 2,
-    children: [UserRole.GUEST],
-    parent: UserRole.TUTOR,
+    children: [UserRole.USER_ROLE_GUEST],
+    parent: UserRole.USER_ROLE_TUTOR,
     permissions: mockRolePermissions.filter(p => p.level === 'read'),
     userCount: 5000,
-    canPromoteTo: [UserRole.TUTOR],
-    canDemoteTo: [UserRole.GUEST],
+    canPromoteTo: [UserRole.USER_ROLE_TUTOR],
+    canDemoteTo: [UserRole.USER_ROLE_GUEST],
   },
   {
-    role: UserRole.GUEST,
+    role: UserRole.USER_ROLE_GUEST,
     level: 1,
     children: [],
-    parent: UserRole.STUDENT,
+    parent: UserRole.USER_ROLE_STUDENT,
     permissions: mockRolePermissions.filter(p => p.level === 'read' && p.category === 'content'),
     userCount: 1000,
-    canPromoteTo: [UserRole.STUDENT],
+    canPromoteTo: [UserRole.USER_ROLE_STUDENT],
     canDemoteTo: [],
   },
 ];
@@ -561,29 +561,29 @@ export const mockRoleHierarchy: RoleHierarchyNode[] = [
  */
 export const mockRoleRelationships: RoleRelationship[] = [
   {
-    parent: UserRole.ADMIN,
-    child: UserRole.TEACHER,
+    parent: UserRole.USER_ROLE_ADMIN,
+    child: UserRole.USER_ROLE_TEACHER,
     canPromote: true,
     canDemote: true,
     restrictions: ['Cần approval từ super admin'],
   },
   {
-    parent: UserRole.TEACHER,
-    child: UserRole.TUTOR,
+    parent: UserRole.USER_ROLE_TEACHER,
+    child: UserRole.USER_ROLE_TUTOR,
     canPromote: true,
     canDemote: true,
     restrictions: ['Cần kinh nghiệm tối thiểu 6 tháng'],
   },
   {
-    parent: UserRole.TUTOR,
-    child: UserRole.STUDENT,
+    parent: UserRole.USER_ROLE_TUTOR,
+    child: UserRole.USER_ROLE_STUDENT,
     canPromote: true,
     canDemote: true,
     restrictions: ['Cần hoàn thành khóa đào tạo'],
   },
   {
-    parent: UserRole.STUDENT,
-    child: UserRole.GUEST,
+    parent: UserRole.USER_ROLE_STUDENT,
+    child: UserRole.USER_ROLE_GUEST,
     canPromote: true,
     canDemote: true,
     restrictions: ['Cần xác thực email'],
@@ -595,29 +595,29 @@ export const mockRoleRelationships: RoleRelationship[] = [
  */
 export const mockPromotionPaths: PromotionPath[] = [
   {
-    from: UserRole.GUEST,
-    to: UserRole.STUDENT,
+    from: UserRole.USER_ROLE_GUEST,
+    to: UserRole.USER_ROLE_STUDENT,
     requirements: ['Email verification', 'Profile completion'],
     restrictions: [],
     isDirectPath: true,
   },
   {
-    from: UserRole.STUDENT,
-    to: UserRole.TUTOR,
+    from: UserRole.USER_ROLE_STUDENT,
+    to: UserRole.USER_ROLE_TUTOR,
     requirements: ['6 months experience', 'Training completion', 'Good performance'],
     restrictions: ['Must have clean record'],
     isDirectPath: true,
   },
   {
-    from: UserRole.TUTOR,
-    to: UserRole.TEACHER,
+    from: UserRole.USER_ROLE_TUTOR,
+    to: UserRole.USER_ROLE_TEACHER,
     requirements: ['1 year experience', 'Advanced training', 'Recommendation'],
     restrictions: ['Must have teaching qualification'],
     isDirectPath: true,
   },
   {
-    from: UserRole.TEACHER,
-    to: UserRole.ADMIN,
+    from: UserRole.USER_ROLE_TEACHER,
+    to: UserRole.USER_ROLE_ADMIN,
     requirements: ['2 years experience', 'Admin training', 'Super admin approval'],
     restrictions: ['Limited admin slots available'],
     isDirectPath: true,

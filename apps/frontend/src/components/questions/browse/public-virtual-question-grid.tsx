@@ -21,7 +21,7 @@ import { PublicQuestionLoading } from "@/components/questions/shared/question-lo
 import { PublicQuestionErrorBoundary } from "@/components/questions/shared/question-error-boundary";
 
 // Import types
-import { PublicQuestion } from "@/lib/types/public";
+import { PublicQuestion } from "@/types/public";
 
 // ===== CONSTANTS =====
 

@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 
 // Import types
-import { FormQuestion, FormAnswer } from "@/lib/types/form-compatibility";
+import { FormQuestion, FormAnswer } from "@/types/form-compatibility";
 
 // ===== TYPES =====
 

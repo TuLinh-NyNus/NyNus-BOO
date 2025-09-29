@@ -23,7 +23,7 @@ import { ADMIN_PATHS } from '@/lib/admin-paths';
 import { ComprehensiveQuestionFiltersNew } from '@/components/admin/questions/filters';
 import { QuestionList } from '@/components/admin/questions/list';
 import { useQuestionStore, questionSelectors } from '@/lib/stores/question.store';
-import { QuestionFilters } from '@/lib/types/question';
+import { QuestionFilters } from '@/types/question';
 
 /**
  * Admin Questions Page

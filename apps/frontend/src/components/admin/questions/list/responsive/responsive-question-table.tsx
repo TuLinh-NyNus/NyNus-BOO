@@ -37,7 +37,7 @@ import { QuestionMobileCard } from "./question-mobile-card";
 import { LaTeXContent } from "@/components/latex";
 
 // Import types
-import { Question } from "@/lib/types/question";
+import { Question } from "@/types/question";
 import { SortColumn, QuestionSortKey } from "@/lib/utils/question-sorting";
 
 // ===== TYPES =====

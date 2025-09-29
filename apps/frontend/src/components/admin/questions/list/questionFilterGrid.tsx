@@ -21,7 +21,7 @@ import {
 // Import types từ lib/types
 import {
   IQuestionFilters
-} from "@/lib/types/question";
+} from "@/types/question";
 import { questionTypeAdapters, questionStatusAdapters, questionDifficultyAdapters } from "@/lib/utils/filter-type-adapters";
 
 /**

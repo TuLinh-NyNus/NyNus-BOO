@@ -12,14 +12,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  Plus, 
-  Download, 
-  Upload, 
-  FileText, 
+  Plus,
+  Download,
+  Upload,
+  FileText,
   BarChart3,
-  Settings,
-  Archive,
-  Trash2
+  Settings
 } from 'lucide-react';
 
 // UI Components
@@ -36,7 +34,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 // Types
-import { Exam, ExamFilters } from '@/lib/types/exam';
+import { Exam, ExamFilters } from '@/types/exam';
 
 // Services
 import { ExamService } from '@/services/grpc/exam.service';
@@ -92,12 +90,6 @@ export default function AdminExamPage() {
 
   const [state, setState] = useState<AdminExamPageState>(DEFAULT_STATE);
 
-  // ===== EFFECTS =====
-
-  useEffect(() => {
-    loadExams();
-  }, [state.filters]);
-
   // ===== HANDLERS =====
 
   const loadExams = useCallback(async () => {
@@ -127,6 +119,12 @@ export default function AdminExamPage() {
       });
     }
   }, [state.filters, toast]);
+
+  // ===== EFFECTS =====
+
+  useEffect(() => {
+    loadExams();
+  }, [loadExams]);
 
   const handleCreateExam = () => {
     router.push(ADMIN_PATHS.EXAMS_CREATE);

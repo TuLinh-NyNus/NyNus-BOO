@@ -22,7 +22,7 @@ import {
   QuestionStatus,
   QuestionDifficulty,
   type QuestionFilters
-} from '@/lib/types/question';
+} from '@/types/question';
 
 import { QuestionService } from '@/services/grpc/question.service';
 import { toast } from 'sonner';

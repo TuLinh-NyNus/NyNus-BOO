@@ -30,8 +30,8 @@ import {
   QuestionDifficulty,
   QuestionStatus,
   AnswerOption
-} from '@/lib/types/question';
-import { MockQuestionsService } from '@/lib/services/mock/questions';
+} from '@/types/question';
+import { MockQuestionsService } from '@/services/mock/questions';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**
@@ -203,6 +203,7 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
 
     const typeLabels = {
       [QuestionType.MC]: 'Trắc nghiệm',
+      [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
       [QuestionType.TF]: 'Đúng/Sai',
       [QuestionType.SA]: 'Tự luận ngắn',
       [QuestionType.ES]: 'Tự luận',

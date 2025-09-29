@@ -6,7 +6,7 @@
  * @version 1.0.0
  */
 
-import { QuestionType, QuestionStatus, QuestionDifficulty } from '@/lib/types/question';
+import { QuestionType, QuestionStatus, QuestionDifficulty } from '@/types/question';
 
 // ===== TYPE UTILITIES =====
 

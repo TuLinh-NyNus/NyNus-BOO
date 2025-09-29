@@ -3,8 +3,12 @@
  * Tạo 200+ users mockdata để test pagination với tên tiếng Việt
  */
 
-import { UserRole, UserStatus, ProfileVisibility } from '../core-types';
+import { UserRole as MockdataUserRole, UserStatus as MockdataUserStatus, ProfileVisibility } from '../core-types';
 import { AdminUser } from '../types';
+import {
+  convertEnumRoleToProtobuf,
+  convertEnumStatusToProtobuf
+} from '@/lib/utils/type-converters';
 
 // Danh sách tên tiếng Việt
 const vietnameseFirstNames = [
@@ -62,23 +66,23 @@ function getRandomDate(start: Date, end: Date): Date {
   return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
 }
 
-function generateEmail(firstName: string, lastName: string, role: UserRole): string {
+function generateEmail(firstName: string, lastName: string, role: MockdataUserRole): string {
   const cleanFirstName = firstName.toLowerCase().replace(/\s+/g, '');
   const cleanLastName = lastName.toLowerCase().replace(/\s+/g, '').replace(/[àáạảãâầấậẩẫăằắặẳẵ]/g, 'a')
     .replace(/[èéẹẻẽêềếệểễ]/g, 'e').replace(/[ìíịỉĩ]/g, 'i').replace(/[òóọỏõôồốộổỗơờớợởỡ]/g, 'o')
     .replace(/[ùúụủũưừứựửữ]/g, 'u').replace(/[ỳýỵỷỹ]/g, 'y').replace(/đ/g, 'd');
   
-  const rolePrefix = role === UserRole.STUDENT ? 'hv' : 
-                    role === UserRole.TEACHER ? 'gv' :
-                    role === UserRole.TUTOR ? 'tg' :
-                    role === UserRole.ADMIN ? 'admin' : 'user';
+  const rolePrefix = role === MockdataUserRole.STUDENT ? 'hv' :
+                    role === MockdataUserRole.TEACHER ? 'gv' :
+                    role === MockdataUserRole.TUTOR ? 'tg' :
+                    role === MockdataUserRole.ADMIN ? 'admin' : 'user';
   
   const randomNum = getRandomNumber(100, 999);
   return `${rolePrefix}${randomNum}.${cleanFirstName}.${cleanLastName}@gmail.com`;
 }
 
 // Generate users by role
-function generateUsersByRole(role: UserRole, count: number, startId: number): AdminUser[] {
+function generateUsersByRole(role: MockdataUserRole, count: number, startId: number): AdminUser[] {
   const users: AdminUser[] = [];
   
   for (let i = 0; i < count; i++) {
@@ -88,13 +92,14 @@ function generateUsersByRole(role: UserRole, count: number, startId: number): Ad
     const email = generateEmail(firstName, lastName, role);
     
     // Level logic: STUDENT/TUTOR có level 1-9, TEACHER/ADMIN/GUEST không có level
-    const level = (role === UserRole.STUDENT || role === UserRole.TUTOR) ? getRandomNumber(1, 9) : null;
+    const level = (role === MockdataUserRole.STUDENT || role === MockdataUserRole.TUTOR) ? getRandomNumber(1, 9) : null;
     
     // Status distribution: 70% ACTIVE, 20% INACTIVE, 8% SUSPENDED, 2% PENDING_VERIFICATION
     const statusRand = Math.random();
-    const status = statusRand < 0.7 ? UserStatus.ACTIVE :
-                  statusRand < 0.9 ? UserStatus.INACTIVE :
-                  statusRand < 0.98 ? UserStatus.SUSPENDED : UserStatus.PENDING_VERIFICATION;
+    const enumStatus = statusRand < 0.7 ? MockdataUserStatus.ACTIVE :
+                      statusRand < 0.9 ? MockdataUserStatus.INACTIVE :
+                      statusRand < 0.98 ? MockdataUserStatus.SUSPENDED : MockdataUserStatus.PENDING_VERIFICATION;
+    const status = convertEnumStatusToProtobuf(enumStatus);
     
     // Email verification: 85% verified
     const emailVerified = Math.random() < 0.85;
@@ -115,7 +120,7 @@ function generateUsersByRole(role: UserRole, count: number, startId: number): Ad
       // ===== CORE REQUIRED FIELDS =====
       id: `${role.toLowerCase()}-${String(id).padStart(3, '0')}`,
       email,
-      role,
+      role: convertEnumRoleToProtobuf(role),
       status,
       emailVerified,
       createdAt,
@@ -126,16 +131,16 @@ function generateUsersByRole(role: UserRole, count: number, startId: number): Ad
       password_hash: `$2b$12$${role}HashExample${id}`,
 
       // ===== CORE BUSINESS LOGIC =====
-      level,
-      maxConcurrentSessions: role === UserRole.ADMIN ? 5 : 
-                           role === UserRole.TEACHER ? 4 : 
-                           role === UserRole.TUTOR ? 3 : 2,
+      level: level ?? undefined,
+      maxConcurrentSessions: role === MockdataUserRole.ADMIN ? 5 :
+                           role === MockdataUserRole.TEACHER ? 4 :
+                           role === MockdataUserRole.TUTOR ? 3 : 2,
 
       // ===== SECURITY TRACKING =====
       lastLoginAt,
       lastLoginIp: `192.168.1.${getRandomNumber(100, 254)}`,
       loginAttempts: Math.random() < 0.1 ? getRandomNumber(1, 3) : 0,
-      lockedUntil: null,
+      lockedUntil: undefined,
       activeSessionsCount,
       totalResourceAccess: getRandomNumber(10, 2000),
       riskScore,
@@ -173,10 +178,10 @@ function generateUsersByRole(role: UserRole, count: number, startId: number): Ad
         }
       },
       stats: {
-        totalExamResults: role === UserRole.STUDENT ? getRandomNumber(0, 50) : 0,
+        totalExamResults: role === MockdataUserRole.STUDENT ? getRandomNumber(0, 50) : 0,
         totalCourses: getRandomNumber(0, 20),
         totalLessons: getRandomNumber(0, 200),
-        averageScore: role === UserRole.STUDENT ? getRandomNumber(0, 10) : 0
+        averageScore: role === MockdataUserRole.STUDENT ? getRandomNumber(0, 10) : 0
       }
     };
 
@@ -191,11 +196,11 @@ export function generateLargeUserDataset(): AdminUser[] {
   const users: AdminUser[] = [];
   
   // 50 users per role
-  users.push(...generateUsersByRole(UserRole.ADMIN, 50, 1));
-  users.push(...generateUsersByRole(UserRole.TEACHER, 50, 51));
-  users.push(...generateUsersByRole(UserRole.TUTOR, 50, 101));
-  users.push(...generateUsersByRole(UserRole.STUDENT, 50, 151));
-  users.push(...generateUsersByRole(UserRole.GUEST, 50, 201));
+  users.push(...generateUsersByRole(MockdataUserRole.ADMIN, 50, 1));
+  users.push(...generateUsersByRole(MockdataUserRole.TEACHER, 50, 51));
+  users.push(...generateUsersByRole(MockdataUserRole.TUTOR, 50, 101));
+  users.push(...generateUsersByRole(MockdataUserRole.STUDENT, 50, 151));
+  users.push(...generateUsersByRole(MockdataUserRole.GUEST, 50, 201));
   
   return users;
 }

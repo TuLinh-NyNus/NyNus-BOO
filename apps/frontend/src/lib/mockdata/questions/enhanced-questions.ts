@@ -13,7 +13,7 @@ import {
   QuestionPagination as _QuestionPagination,
   AnswerOption as _AnswerOption,
   CorrectAnswer as _CorrectAnswer
-} from '../../types/question';
+} from '@/types/question';
 // Mock Enhanced Questions (150 questions from CSV)
 export const mockEnhancedQuestions: Question[] = [
   {

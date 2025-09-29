@@ -6,7 +6,7 @@
 
 // Authentication Context
 export { AuthProvider, useAuth } from './auth-context-grpc';
-export type { User } from '@/lib/types/user';
+export type { User } from '@/types/user';
 
 // Notification Context
 export { NotificationProvider, useNotification } from './notification-context';

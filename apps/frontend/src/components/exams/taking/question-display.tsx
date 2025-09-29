@@ -20,14 +20,8 @@ import {
   CardHeader,
   CardTitle,
   Button,
-  Input,
-  Textarea,
-  Label,
-  RadioGroup,
-  RadioGroupItem,
   Badge,
 } from "@/components/ui";
-import { Checkbox } from "@/components/ui/form/checkbox";
 
 // Icons
 import {
@@ -46,7 +40,7 @@ import { LaTeXContent } from "@/components/latex";
 import { AnswerInputFactory } from "./answer-inputs";
 
 // Types
-import { Question, QuestionType } from "@/lib/types/question";
+import { Question, QuestionType } from "@/types/question";
 
 
 // Custom answer interface for exam taking
@@ -99,6 +93,11 @@ export interface QuestionDisplayProps {
 
 const QUESTION_TYPE_CONFIG = {
   [QuestionType.MC]: {
+    label: 'Trắc nghiệm',
+    icon: CheckCircle,
+    color: 'bg-blue-100 text-blue-800',
+  },
+  [QuestionType.MULTIPLE_CHOICE]: {
     label: 'Trắc nghiệm',
     icon: CheckCircle,
     color: 'bg-blue-100 text-blue-800',
@@ -232,11 +231,11 @@ export function QuestionDisplay({
     updateActivity();
   }, [answer, onAnswerChange, updateActivity]);
   
-  const handleTextChange = useCallback((text: string) => {
+  const _handleTextChange = useCallback((text: string) => {
     handleAnswerChange({ answerText: text });
   }, [handleAnswerChange]);
-  
-  const handleOptionSelect = useCallback((optionId: string, selected: boolean) => {
+
+  const _handleOptionSelect = useCallback((optionId: string, selected: boolean) => {
     const currentOptions = answer.selectedOptions || [];
     
     let newOptions: string[];

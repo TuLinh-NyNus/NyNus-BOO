@@ -12,7 +12,7 @@ import React from 'react';
 import { LaTeXRenderer } from './LaTeXRenderer';
 import { Badge } from '@/components/ui';
 import { FileText, AlertCircle } from 'lucide-react';
-import { QuestionType } from '@/lib/types/question';
+import { QuestionType } from '@/types/question';
 
 /**
  * Props cho Question LaTeX Display
@@ -72,6 +72,7 @@ export function QuestionLaTeXDisplay({
   const getTypeLabel = (type?: QuestionType) => {
     const labels = {
       [QuestionType.MC]: 'Trắc nghiệm',
+      [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
       [QuestionType.TF]: 'Đúng/Sai',
       [QuestionType.SA]: 'Trả lời ngắn',
       [QuestionType.ES]: 'Tự luận',

@@ -23,7 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, User, Shield, AlertTriangle } from 'lucide-react';
-import { User as UserType, UserRole, UserStatus } from '@/lib/services/api/admin.api';
+import { User as UserType, UserRole, UserStatus } from '@/services/api/admin.api';
 
 // ===== TYPES =====
 

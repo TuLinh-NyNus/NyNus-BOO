@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Circle } from 'lucide-react';
 import { LaTeXContent } from '@/components/latex';
 import { BaseAnswerInput, BaseAnswerInputProps } from './base-answer-input';
-import { AnswerOption } from '@/lib/types/question';
+import { AnswerOption } from '@/types/question';
 
 // ===== TYPES =====
 

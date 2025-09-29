@@ -9,7 +9,7 @@ import {
   QuestionDifficulty,
   Question,
   MockApiResponse
-} from '../shared/core-types';
+} from '../core-types';
 
 // Mock Short Answer Questions theo đúng specification
 export const mockShortAnswerQuestions: Question[] = [

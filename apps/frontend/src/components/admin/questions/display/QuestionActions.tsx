@@ -12,7 +12,7 @@ import React, { useState } from 'react';
 import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui';
 import { Copy, Share2, Bookmark, MoreHorizontal, FileText, Code, Hash } from 'lucide-react';
 import { useToast } from '@/components/ui/feedback/use-toast';
-import { Question } from '@/lib/types/question';
+import { Question } from '@/types/question';
 
 /**
  * Props cho Question Actions

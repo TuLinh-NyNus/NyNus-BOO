@@ -37,16 +37,16 @@ type MapCodeTranslation struct {
 
 // MapCodeConfig represents the parsed configuration from a MapCode file
 type MapCodeConfig struct {
-	Version     string                       `json:"version"`
-	Name        string                       `json:"name"`
-	Description string                       `json:"description"`
-	Grades      map[string]string           `json:"grades"`
-	Subjects    map[string]string           `json:"subjects"`
-	Chapters    map[string]string           `json:"chapters"`
-	Levels      map[string]string           `json:"levels"`
-	Lessons     map[string]string           `json:"lessons"`
-	Forms       map[string]string           `json:"forms"`
-	CreatedAt   time.Time                   `json:"created_at"`
+	Version     string            `json:"version"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Grades      map[string]string `json:"grades"`
+	Subjects    map[string]string `json:"subjects"`
+	Chapters    map[string]string `json:"chapters"`
+	Levels      map[string]string `json:"levels"`
+	Lessons     map[string]string `json:"lessons"`
+	Forms       map[string]string `json:"forms"`
+	CreatedAt   time.Time         `json:"created_at"`
 }
 
 // MapCodeVersionStatus represents the status of version operations
@@ -61,19 +61,19 @@ const (
 
 // MapCodeStorageInfo represents storage information
 type MapCodeStorageInfo struct {
-	TotalVersions   int `json:"total_versions"`
-	MaxVersions     int `json:"max_versions"`
-	AvailableSlots  int `json:"available_slots"`
-	WarningLevel    int `json:"warning_level"`    // Warning when reaching this number
-	IsNearLimit     bool `json:"is_near_limit"`
-	IsAtLimit       bool `json:"is_at_limit"`
+	TotalVersions  int  `json:"total_versions"`
+	MaxVersions    int  `json:"max_versions"`
+	AvailableSlots int  `json:"available_slots"`
+	WarningLevel   int  `json:"warning_level"` // Warning when reaching this number
+	IsNearLimit    bool `json:"is_near_limit"`
+	IsAtLimit      bool `json:"is_at_limit"`
 }
 
 // NewMapCodeStorageInfo creates storage info with default limits
 func NewMapCodeStorageInfo(totalVersions int) *MapCodeStorageInfo {
 	const maxVersions = 20
 	const warningLevel = 18
-	
+
 	return &MapCodeStorageInfo{
 		TotalVersions:  totalVersions,
 		MaxVersions:    maxVersions,

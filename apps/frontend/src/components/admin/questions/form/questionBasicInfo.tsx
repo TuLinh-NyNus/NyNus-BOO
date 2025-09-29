@@ -28,7 +28,7 @@ import {
 import { 
   QuestionType, 
   QuestionDifficulty 
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionBasicInfo component

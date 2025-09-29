@@ -5,7 +5,7 @@
  */
 
 import { z } from "zod";
-import { QuestionType, QuestionDifficulty, QuestionStatus } from "@/lib/types/question";
+import { QuestionType, QuestionDifficulty, QuestionStatus } from "@/types/question";
 
 // ===== BASE VALIDATION RULES =====
 

@@ -26,44 +26,44 @@ func NewSearchService(client *Client) *SearchService {
 
 // SearchRequest represents a Vietnamese search request
 type SearchRequest struct {
-	Query           string            `json:"query"`
-	Fields          []string          `json:"fields,omitempty"`
-	Filters         map[string]interface{} `json:"filters,omitempty"`
-	Sort            []map[string]interface{} `json:"sort,omitempty"`
-	From            int               `json:"from,omitempty"`
-	Size            int               `json:"size,omitempty"`
-	Highlight       bool              `json:"highlight,omitempty"`
-	Suggest         bool              `json:"suggest,omitempty"`
-	Fuzziness       string            `json:"fuzziness,omitempty"`
-	MinScore        float64           `json:"min_score,omitempty"`
-	IncludeScore    bool              `json:"include_score,omitempty"`
-	Timeout         time.Duration     `json:"timeout,omitempty"`
+	Query        string                   `json:"query"`
+	Fields       []string                 `json:"fields,omitempty"`
+	Filters      map[string]interface{}   `json:"filters,omitempty"`
+	Sort         []map[string]interface{} `json:"sort,omitempty"`
+	From         int                      `json:"from,omitempty"`
+	Size         int                      `json:"size,omitempty"`
+	Highlight    bool                     `json:"highlight,omitempty"`
+	Suggest      bool                     `json:"suggest,omitempty"`
+	Fuzziness    string                   `json:"fuzziness,omitempty"`
+	MinScore     float64                  `json:"min_score,omitempty"`
+	IncludeScore bool                     `json:"include_score,omitempty"`
+	Timeout      time.Duration            `json:"timeout,omitempty"`
 }
 
 // SearchResponse represents a Vietnamese search response
 type SearchResponse struct {
-	Hits         []SearchHit           `json:"hits"`
-	Total        int64                 `json:"total"`
-	MaxScore     float64               `json:"max_score"`
-	Took         int                   `json:"took"`
-	TimedOut     bool                  `json:"timed_out"`
-	Suggestions  []Suggestion          `json:"suggestions,omitempty"`
+	Hits         []SearchHit            `json:"hits"`
+	Total        int64                  `json:"total"`
+	MaxScore     float64                `json:"max_score"`
+	Took         int                    `json:"took"`
+	TimedOut     bool                   `json:"timed_out"`
+	Suggestions  []Suggestion           `json:"suggestions,omitempty"`
 	Aggregations map[string]interface{} `json:"aggregations,omitempty"`
 }
 
 // SearchHit represents a single search result
 type SearchHit struct {
-	ID          string                 `json:"id"`
-	Score       float64                `json:"score"`
-	Source      map[string]interface{} `json:"source"`
-	Highlight   map[string][]string    `json:"highlight,omitempty"`
-	Sort        []interface{}          `json:"sort,omitempty"`
+	ID        string                 `json:"id"`
+	Score     float64                `json:"score"`
+	Source    map[string]interface{} `json:"source"`
+	Highlight map[string][]string    `json:"highlight,omitempty"`
+	Sort      []interface{}          `json:"sort,omitempty"`
 }
 
 // Suggestion represents an auto-completion suggestion
 type Suggestion struct {
-	Text    string  `json:"text"`
-	Score   float64 `json:"score"`
+	Text    string                 `json:"text"`
+	Score   float64                `json:"score"`
 	Payload map[string]interface{} `json:"payload,omitempty"`
 }
 
@@ -75,7 +75,7 @@ func (s *SearchService) Search(ctx context.Context, req *SearchRequest) (*Search
 
 	// Build OpenSearch query
 	query := s.buildSearchQuery(req)
-	
+
 	// Execute search
 	searchReq := opensearchapi.SearchRequest{
 		Index: []string{s.config.GetQuestionsAliasName()},

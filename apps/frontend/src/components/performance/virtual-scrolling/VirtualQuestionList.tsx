@@ -6,7 +6,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { VirtualScrollList, VirtualScrollItem } from './VirtualScrollList';
-import { Question, QuestionType, QuestionDifficulty } from '@/lib/types/question';
+import { Question, QuestionType, QuestionDifficulty } from '@/types/question';
 import { Badge, Button, Card, CardContent } from '@/components/ui';
 import { Eye, Edit, Trash2, Copy } from 'lucide-react';
 
@@ -44,6 +44,7 @@ const COMPACT_QUESTION_ITEM_HEIGHT = 80;
 const getQuestionTypeLabel = (type: QuestionType): string => {
   const labels = {
     [QuestionType.MC]: 'Trắc nghiệm',
+    [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
     [QuestionType.TF]: 'Đúng/Sai',
     [QuestionType.SA]: 'Trả lời ngắn',
     [QuestionType.ES]: 'Tự luận',

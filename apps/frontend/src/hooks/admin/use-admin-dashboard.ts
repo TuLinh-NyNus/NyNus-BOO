@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AdminService } from '@/services/grpc/admin.service';
-import { UserRole, UserStatus } from '@/generated/common/common_pb';
+// import { UserRole, UserStatus } from '@/generated/common/common_pb';
 
 export interface AdminDashboardStats {
   totalUsers: number;
@@ -62,8 +62,8 @@ export interface AdminUser {
   email: string;
   first_name: string;
   last_name: string;
-  role: UserRole;
-  status: UserStatus;
+  role: number;
+  status: number;
   level?: number;
   is_active: boolean;
   email_verified: boolean;
@@ -75,8 +75,8 @@ export interface AdminUser {
 export interface AdminUserListParams {
   page?: number;
   limit?: number;
-  role?: UserRole;
-  status?: UserStatus;
+  role?: number;
+  status?: number;
   search?: string;
 }
 
@@ -103,8 +103,8 @@ export interface UseAdminDashboardReturn {
   usersError: string | null;
   usersPagination: AdminUserListResponse['pagination'] | null;
   loadUsers: (params?: AdminUserListParams) => Promise<void>;
-  updateUserRole: (userId: string, role: UserRole, level?: number) => Promise<boolean>;
-  updateUserStatus: (userId: string, status: UserStatus) => Promise<boolean>;
+  updateUserRole: (userId: string, role: number, level?: number) => Promise<boolean>;
+  updateUserStatus: (userId: string, status: number) => Promise<boolean>;
   deleteUser: (userId: string) => Promise<boolean>;
 
   // Audit logs
@@ -209,7 +209,7 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
   /**
    * Update user role and level
    */
-  const updateUserRole = useCallback(async (userId: string, role: UserRole, level?: number): Promise<boolean> => {
+  const updateUserRole = useCallback(async (userId: string, role: number, level?: number): Promise<boolean> => {
     try {
       const response = await AdminService.updateUserRole({
         user_id: userId,
@@ -233,7 +233,7 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
   /**
    * Update user status
    */
-  const updateUserStatus = useCallback(async (userId: string, status: UserStatus): Promise<boolean> => {
+  const updateUserStatus = useCallback(async (userId: string, status: number): Promise<boolean> => {
     try {
       const response = await AdminService.updateUserStatus({
         user_id: userId,

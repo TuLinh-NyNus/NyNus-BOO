@@ -4,11 +4,20 @@
  */
 
 import {
-  UserRole,
-  UserStatus,
+  UserRole as MockdataUserRole,
+  UserStatus as MockdataUserStatus,
   ProfileVisibility
 } from '../core-types';
 import { AdminUser } from '../types';
+
+// Import enum types for function parameters
+import { UserRole } from '@/lib/mockdata/core-types';
+import {
+  convertEnumRoleToProtobuf,
+  convertEnumStatusToProtobuf,
+  isProtobufRoleEqual,
+  isProtobufStatusEqual
+} from '@/lib/utils/type-converters';
 
 // Mock instructor users data
 export const mockInstructorUsers: AdminUser[] = [
@@ -16,8 +25,8 @@ export const mockInstructorUsers: AdminUser[] = [
     // ===== CORE REQUIRED FIELDS =====
     id: 'instructor-001',
     email: 'instructor1@nynus.edu.vn',
-    role: UserRole.TEACHER,
-    status: UserStatus.ACTIVE,
+    role: convertEnumRoleToProtobuf(MockdataUserRole.TEACHER),
+    status: convertEnumStatusToProtobuf(MockdataUserStatus.ACTIVE),
     emailVerified: true,
     createdAt: new Date('2024-06-01T00:00:00Z'),
     updatedAt: new Date('2025-01-15T08:30:00Z'),
@@ -27,14 +36,14 @@ export const mockInstructorUsers: AdminUser[] = [
     password_hash: '$2b$12$InstructorHashExample123456789',
 
     // ===== CORE BUSINESS LOGIC =====
-    level: null, // Instructors không có level
+    level: undefined, // Instructors không có level
     maxConcurrentSessions: 3,
 
     // ===== SECURITY TRACKING =====
     lastLoginAt: new Date('2025-01-15T08:30:00Z'),
     lastLoginIp: '192.168.1.102',
     loginAttempts: 0,
-    lockedUntil: null,
+    lockedUntil: undefined,
     activeSessionsCount: 1,
     totalResourceAccess: 500,
     riskScore: 5,
@@ -81,8 +90,8 @@ export const mockInstructorUsers: AdminUser[] = [
     // ===== TUTOR USER =====
     id: 'tutor-001',
     email: 'tutor1@nynus.edu.vn',
-    role: UserRole.TUTOR,
-    status: UserStatus.ACTIVE,
+    role: convertEnumRoleToProtobuf(MockdataUserRole.TUTOR),
+    status: convertEnumStatusToProtobuf(MockdataUserStatus.ACTIVE),
     emailVerified: true,
     createdAt: new Date('2024-08-15T00:00:00Z'),
     updatedAt: new Date('2025-01-15T08:30:00Z'),
@@ -92,14 +101,14 @@ export const mockInstructorUsers: AdminUser[] = [
     password_hash: '$2b$12$TutorHashExample123456789',
 
     // ===== CORE BUSINESS LOGIC =====
-    level: null, // Tutors không có level
+    level: undefined, // Tutors không có level
     maxConcurrentSessions: 2,
 
     // ===== SECURITY TRACKING =====
     lastLoginAt: new Date('2025-01-15T08:30:00Z'),
     lastLoginIp: '192.168.1.103',
     loginAttempts: 0,
-    lockedUntil: null,
+    lockedUntil: undefined,
     activeSessionsCount: 1,
     totalResourceAccess: 200,
     riskScore: 8,
@@ -150,11 +159,11 @@ export function getInstructorById(id: string): AdminUser | undefined {
 }
 
 export function getActiveInstructors(): AdminUser[] {
-  return mockInstructorUsers.filter(instructor => instructor.status === UserStatus.ACTIVE);
+  return mockInstructorUsers.filter(instructor => isProtobufStatusEqual(instructor.status, MockdataUserStatus.ACTIVE));
 }
 
 export function getInstructorsByRole(role: UserRole): AdminUser[] {
-  return mockInstructorUsers.filter(instructor => instructor.role === role);
+  return mockInstructorUsers.filter(instructor => isProtobufRoleEqual(instructor.role, role));
 }
 
 export function searchInstructors(query: string): AdminUser[] {

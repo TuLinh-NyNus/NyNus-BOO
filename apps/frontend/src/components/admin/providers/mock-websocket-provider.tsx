@@ -97,7 +97,7 @@ export function MockWebSocketProvider({
    * Send message
    * Mô phỏng gửi message qua WebSocket
    */
-  const sendMessage = useCallback((message: Record<string, unknown>) => {
+  const sendMessage = useCallback((message: WebSocketMessage) => {
     if (!isConnected) {
       console.warn('[MockWebSocket] Cannot send message: not connected');
       return;
@@ -110,9 +110,8 @@ export function MockWebSocketProvider({
       const echoMessage: WebSocketMessage = {
         id: `echo-${Date.now()}`,
         type: 'response',
-        payload: { echo: message, status: 'received' },
-        timestamp: new Date(),
-        source: 'server'
+        data: { echo: message, status: 'received' },
+        timestamp: new Date()
       };
       setLastMessage(echoMessage);
     }, 100 + Math.random() * 500); // 100-600ms delay

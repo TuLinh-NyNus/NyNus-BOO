@@ -16,43 +16,43 @@ import (
 type ExamSessionSecurity struct {
 	db     *sql.DB
 	logger *logrus.Logger
-	
+
 	// Active exam sessions tracking
 	activeSessions map[string]*ExamSession
 	sessionsMux    sync.RWMutex
-	
+
 	// Security configuration
 	config *ExamSecurityConfig
 }
 
 // ExamSession represents a secure exam session
 type ExamSession struct {
-	SessionID       string                 `json:"session_id"`
-	ExamID          string                 `json:"exam_id"`
-	UserID          string                 `json:"user_id"`
-	AttemptID       string                 `json:"attempt_id"`
-	StartTime       time.Time              `json:"start_time"`
-	ExpiryTime      time.Time              `json:"expiry_time"`
-	IsActive        bool                   `json:"is_active"`
-	SecurityToken   string                 `json:"security_token"`
-	IPAddress       string                 `json:"ip_address"`
-	UserAgent       string                 `json:"user_agent"`
-	BrowserInfo     *BrowserInfo           `json:"browser_info"`
-	SecurityEvents  []*SecurityEvent       `json:"security_events"`
-	LastActivity    time.Time              `json:"last_activity"`
-	Violations      int                    `json:"violations"`
-	IsLocked        bool                   `json:"is_locked"`
+	SessionID      string           `json:"session_id"`
+	ExamID         string           `json:"exam_id"`
+	UserID         string           `json:"user_id"`
+	AttemptID      string           `json:"attempt_id"`
+	StartTime      time.Time        `json:"start_time"`
+	ExpiryTime     time.Time        `json:"expiry_time"`
+	IsActive       bool             `json:"is_active"`
+	SecurityToken  string           `json:"security_token"`
+	IPAddress      string           `json:"ip_address"`
+	UserAgent      string           `json:"user_agent"`
+	BrowserInfo    *BrowserInfo     `json:"browser_info"`
+	SecurityEvents []*SecurityEvent `json:"security_events"`
+	LastActivity   time.Time        `json:"last_activity"`
+	Violations     int              `json:"violations"`
+	IsLocked       bool             `json:"is_locked"`
 }
 
 // BrowserInfo contains browser security information
 type BrowserInfo struct {
-	IsFullScreen    bool   `json:"is_fullscreen"`
-	TabCount        int    `json:"tab_count"`
-	HasDevTools     bool   `json:"has_devtools"`
-	WindowSize      string `json:"window_size"`
-	ScreenSize      string `json:"screen_size"`
-	Timezone        string `json:"timezone"`
-	Language        string `json:"language"`
+	IsFullScreen bool   `json:"is_fullscreen"`
+	TabCount     int    `json:"tab_count"`
+	HasDevTools  bool   `json:"has_devtools"`
+	WindowSize   string `json:"window_size"`
+	ScreenSize   string `json:"screen_size"`
+	Timezone     string `json:"timezone"`
+	Language     string `json:"language"`
 }
 
 // SecurityEvent represents a security event during exam
@@ -93,15 +93,15 @@ const (
 
 // ExamSecurityConfig contains security configuration
 type ExamSecurityConfig struct {
-	MaxViolations           int           `json:"max_violations"`
-	SessionTimeout          time.Duration `json:"session_timeout"`
-	ActivityTimeout         time.Duration `json:"activity_timeout"`
-	RequireFullScreen       bool          `json:"require_fullscreen"`
-	BlockCopyPaste          bool          `json:"block_copy_paste"`
-	BlockRightClick         bool          `json:"block_right_click"`
-	DetectDevTools          bool          `json:"detect_devtools"`
-	MonitorTabSwitching     bool          `json:"monitor_tab_switching"`
-	AllowedViolationsPerHour int          `json:"allowed_violations_per_hour"`
+	MaxViolations            int           `json:"max_violations"`
+	SessionTimeout           time.Duration `json:"session_timeout"`
+	ActivityTimeout          time.Duration `json:"activity_timeout"`
+	RequireFullScreen        bool          `json:"require_fullscreen"`
+	BlockCopyPaste           bool          `json:"block_copy_paste"`
+	BlockRightClick          bool          `json:"block_right_click"`
+	DetectDevTools           bool          `json:"detect_devtools"`
+	MonitorTabSwitching      bool          `json:"monitor_tab_switching"`
+	AllowedViolationsPerHour int           `json:"allowed_violations_per_hour"`
 }
 
 // NewExamSessionSecurity creates a new exam session security service
@@ -124,14 +124,14 @@ func NewExamSessionSecurity(db *sql.DB, logger *logrus.Logger) *ExamSessionSecur
 // DefaultExamSecurityConfig returns default security configuration
 func DefaultExamSecurityConfig() *ExamSecurityConfig {
 	return &ExamSecurityConfig{
-		MaxViolations:           5,
-		SessionTimeout:          2 * time.Hour,
-		ActivityTimeout:         30 * time.Minute,
-		RequireFullScreen:       true,
-		BlockCopyPaste:          true,
-		BlockRightClick:         true,
-		DetectDevTools:          true,
-		MonitorTabSwitching:     true,
+		MaxViolations:            5,
+		SessionTimeout:           2 * time.Hour,
+		ActivityTimeout:          30 * time.Minute,
+		RequireFullScreen:        true,
+		BlockCopyPaste:           true,
+		BlockRightClick:          true,
+		DetectDevTools:           true,
+		MonitorTabSwitching:      true,
 		AllowedViolationsPerHour: 3,
 	}
 }
@@ -265,7 +265,7 @@ func (s *ExamSessionSecurity) RecordSecurityEvent(ctx context.Context, sessionID
 // recordSecurityEvent is an internal method to record security events
 func (s *ExamSessionSecurity) recordSecurityEvent(session *ExamSession, eventType SecurityEventType, severity SecuritySeverity, description string, metadata map[string]interface{}) {
 	eventID, _ := s.generateSecureID()
-	
+
 	event := &SecurityEvent{
 		EventID:     eventID,
 		EventType:   eventType,

@@ -6,7 +6,7 @@ import {
   ResourceType,
   AccessAction,
   ProfileVisibility
-} from '../shared/core-types';
+} from '../core-types';
 
 // Enhanced User Session với device fingerprinting
 export interface EnhancedUserSession {

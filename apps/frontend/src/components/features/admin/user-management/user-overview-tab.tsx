@@ -33,32 +33,13 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-import { UserRole } from "@/lib/mockdata/core-types";
-
-/**
- * Admin User interface (simplified)
- */
-interface AdminUser {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  role: UserRole;
-  status: string;
-  emailVerified: boolean;
-  lastLoginAt?: string;
-  createdAt: string;
-  updatedAt?: string;
-  activeSessionsCount: number;
-  totalResourceAccess: number;
-  riskScore?: number;
-  permissions?: string[];
-  isActive?: boolean;
-  maxConcurrentSessions?: number;
-  lastLoginIp?: string;
-  loginAttempts?: number;
-  lockedUntil?: Date;
-}
+import { UserRole, UserStatus } from "@/lib/mockdata/core-types";
+import { AdminUser } from "@/types/user/admin";
+// formatDate function defined locally below
+import {
+  getProtobufRoleLabel,
+  isProtobufStatusEqual
+} from "@/lib/utils/type-converters";
 
 /**
  * User Overview Tab Props
@@ -201,8 +182,8 @@ export function UserOverviewTab({
               <Label>Role</Label>
               {isEditing ? (
                 <Select
-                  value={editedUser.role}
-                  onValueChange={(value) => handleFieldChange("role", value)}
+                  value={editedUser.role.toString()}
+                  onValueChange={(value) => handleFieldChange("role", parseInt(value))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -217,7 +198,7 @@ export function UserOverviewTab({
                 </Select>
               ) : (
                 <div className="p-2 border rounded bg-muted/25">
-                  <Badge variant="outline">{USER_ROLE_LABELS[user.role]}</Badge>
+                  <Badge variant="outline">{getProtobufRoleLabel(user.role)}</Badge>
                 </div>
               )}
             </div>
@@ -226,8 +207,8 @@ export function UserOverviewTab({
               <Label>Trạng thái</Label>
               {isEditing ? (
                 <Select
-                  value={editedUser.status}
-                  onValueChange={(value) => handleFieldChange("status", value)}
+                  value={editedUser.status.toString()}
+                  onValueChange={(value) => handleFieldChange("status", parseInt(value))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -297,7 +278,7 @@ export function UserOverviewTab({
                 Ngày tạo
               </Label>
               <div className="p-2 border rounded bg-muted/25">
-                {formatDate(user.createdAt)}
+                {formatDate(user.createdAt.toISOString())}
               </div>
             </div>
 
@@ -307,7 +288,7 @@ export function UserOverviewTab({
                 Cập nhật cuối
               </Label>
               <div className="p-2 border rounded bg-muted/25">
-                {formatDate(user.updatedAt)}
+                {formatDate(user.updatedAt.toISOString())}
               </div>
             </div>
 
@@ -317,7 +298,7 @@ export function UserOverviewTab({
                 Đăng nhập cuối
               </Label>
               <div className="p-2 border rounded bg-muted/25">
-                {formatDate(user.lastLoginAt)}
+                {user.lastLoginAt ? formatDate(user.lastLoginAt.toISOString()) : 'Chưa đăng nhập'}
               </div>
             </div>
 
@@ -386,7 +367,7 @@ export function UserOverviewTab({
       )}
 
       {/* Account Warnings */}
-      {(user.status === 'SUSPENDED' || user.lockedUntil) && (
+      {(isProtobufStatusEqual(user.status, UserStatus.SUSPENDED) || user.lockedUntil) && (
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
@@ -395,7 +376,7 @@ export function UserOverviewTab({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {user.status === 'SUSPENDED' && (
+            {isProtobufStatusEqual(user.status, UserStatus.SUSPENDED) && (
               <div className="text-red-600">
                 Tài khoản đã bị tạm khóa. Liên hệ admin để được hỗ trợ.
               </div>

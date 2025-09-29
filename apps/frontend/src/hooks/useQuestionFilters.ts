@@ -9,8 +9,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
-import { MockQuestionsService } from '@/lib/services/mock/questions';
-import { Question, QuestionFilters, QuestionListResponse } from '@/lib/types/question';
+import { MockQuestionsService } from '@/services/mock/questions';
+import { Question, QuestionFilters, QuestionListResponse } from '@/types/question';
 import { useDebounce } from './useDebounce';
 
 // ===== INTERFACES =====

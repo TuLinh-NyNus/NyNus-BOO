@@ -136,7 +136,7 @@ func TestExamService_CreateExam_Success(t *testing.T) {
 	assert.Equal(t, entity.ExamStatusPending, result.Status)
 	assert.NotEmpty(t, result.ID)
 	assert.NotZero(t, result.CreatedAt)
-	
+
 	suite.examRepo.AssertExpectations(t)
 }
 

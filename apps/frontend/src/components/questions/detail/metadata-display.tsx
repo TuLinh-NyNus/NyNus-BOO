@@ -45,7 +45,7 @@ import {
 } from '@/components/questions/shared';
 
 // Import types
-import { PublicQuestion } from '@/lib/types/public';
+import { PublicQuestion } from '@/types/public';
 
 // Import utils
 import { cn } from '@/lib/utils';

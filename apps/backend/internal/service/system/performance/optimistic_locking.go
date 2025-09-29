@@ -99,7 +99,7 @@ func (s *OptimisticLockingService) UpdateQuestionWithOptimisticLocking(ctx conte
 // GetExamVersion gets the current version of an exam
 func (s *OptimisticLockingService) GetExamVersion(ctx context.Context, examID string) (int, error) {
 	query := `SELECT version FROM exams WHERE id = $1`
-	
+
 	var version int
 	err := s.db.QueryRowContext(ctx, query, examID).Scan(&version)
 	if err != nil {
@@ -115,7 +115,7 @@ func (s *OptimisticLockingService) GetExamVersion(ctx context.Context, examID st
 // GetQuestionVersion gets the current version of a question
 func (s *OptimisticLockingService) GetQuestionVersion(ctx context.Context, questionID string) (int, error) {
 	query := `SELECT version FROM questions WHERE id = $1`
-	
+
 	var version int
 	err := s.db.QueryRowContext(ctx, query, questionID).Scan(&version)
 	if err != nil {
@@ -158,11 +158,11 @@ func (s *OptimisticLockingService) ValidateQuestionVersion(ctx context.Context, 
 
 // ConflictError represents a version conflict error
 type ConflictError struct {
-	EntityType     string `json:"entity_type"`
-	EntityID       string `json:"entity_id"`
+	EntityType      string `json:"entity_type"`
+	EntityID        string `json:"entity_id"`
 	ExpectedVersion int    `json:"expected_version"`
 	CurrentVersion  int    `json:"current_version"`
-	Message        string `json:"message"`
+	Message         string `json:"message"`
 }
 
 func (e *ConflictError) Error() string {

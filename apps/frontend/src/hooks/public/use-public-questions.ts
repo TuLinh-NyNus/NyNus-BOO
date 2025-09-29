@@ -10,7 +10,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { PublicQuestionService } from '@/lib/services/public';
+import { PublicQuestionService } from '@/services/public';
 import {
   PublicQuestion,
   PublicQuestionFilters,
@@ -20,7 +20,7 @@ import {
   QuestionCategory,
   PublicQuestionStats,
   DEFAULT_PUBLIC_QUESTION_FILTERS
-} from '@/lib/types/public';
+} from '@/types/public';
 
 // ===== QUERY KEYS =====
 

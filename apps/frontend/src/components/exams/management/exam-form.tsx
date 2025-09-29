@@ -57,8 +57,8 @@ import {
   ExamFormData,
   ExamStatus,
   ExamType,
-} from "@/lib/types/exam";
-import { QuestionDifficulty } from "@/lib/types/question";
+} from "@/types/exam";
+import { QuestionDifficulty } from "@/types/question";
 
 // Question Selection Components
 import { QuestionSelector, SelectedQuestion } from "./question-selector";

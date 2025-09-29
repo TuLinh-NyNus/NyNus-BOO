@@ -43,16 +43,16 @@ type DetailedParseError struct {
 
 // ParseResult represents the result of parsing with detailed errors
 type ParseResult struct {
-	Success          bool                  `json:"success"`
-	Question         *Question             `json:"question,omitempty"`
-	QuestionCode     *QuestionCode         `json:"question_code,omitempty"`
-	Errors           []DetailedParseError  `json:"errors"`
-	Warnings         []DetailedParseError  `json:"warnings"`
-	RequiredFields   []string              `json:"required_fields"`
-	MissingFields    []string              `json:"missing_fields"`
-	SuggestedActions []string              `json:"suggested_actions"`
-	CanRetry         bool                  `json:"can_retry"`
-	Status           QuestionStatus        `json:"status"`
+	Success          bool                 `json:"success"`
+	Question         *Question            `json:"question,omitempty"`
+	QuestionCode     *QuestionCode        `json:"question_code,omitempty"`
+	Errors           []DetailedParseError `json:"errors"`
+	Warnings         []DetailedParseError `json:"warnings"`
+	RequiredFields   []string             `json:"required_fields"`
+	MissingFields    []string             `json:"missing_fields"`
+	SuggestedActions []string             `json:"suggested_actions"`
+	CanRetry         bool                 `json:"can_retry"`
+	Status           QuestionStatus       `json:"status"`
 }
 
 // ValidationRule represents a validation rule for question fields
@@ -85,10 +85,10 @@ var QuestionValidationRules = []ValidationRule{
 		Severity:  ParseErrorSeverityError,
 	},
 	{
-		Field:     "type",
-		Required:  true,
-		Type:      "enum",
-		Pattern:   "^(MC|TF|SA|ES|MA)$",
+		Field:    "type",
+		Required: true,
+		Type:     "enum",
+		Pattern:  "^(MC|TF|SA|ES|MA)$",
 		Suggestions: []string{
 			"Loại câu hỏi phải là một trong: MC (Multiple Choice), TF (True/False), SA (Short Answer), ES (Essay), MA (Matching)",
 			"Kiểm tra lại cú pháp LaTeX để xác định loại câu hỏi",
@@ -123,10 +123,10 @@ var QuestionValidationRules = []ValidationRule{
 		Severity:  ParseErrorSeverityWarning,
 	},
 	{
-		Field:     "difficulty",
-		Required:  false,
-		Type:      "enum",
-		Pattern:   "^(EASY|MEDIUM|HARD|EXPERT)$",
+		Field:    "difficulty",
+		Required: false,
+		Type:     "enum",
+		Pattern:  "^(EASY|MEDIUM|HARD|EXPERT)$",
 		Suggestions: []string{
 			"Độ khó phải là một trong: EASY, MEDIUM, HARD, EXPERT",
 			"Nếu không có, hệ thống sẽ tự động đặt là MEDIUM",
@@ -135,10 +135,10 @@ var QuestionValidationRules = []ValidationRule{
 		Severity:  ParseErrorSeverityWarning,
 	},
 	{
-		Field:     "question_code_id",
-		Required:  false,
-		Type:      "text",
-		Pattern:   "^[0-9A-Z]{5}(-[0-9])?$",
+		Field:    "question_code_id",
+		Required: false,
+		Type:     "text",
+		Pattern:  "^[0-9A-Z]{5}(-[0-9])?$",
 		Suggestions: []string{
 			"Mã câu hỏi phải theo định dạng ID5 (XXXXX) hoặc ID6 (XXXXX-X)",
 			"Ví dụ: 0P1N1 hoặc 2H5V3-2",
@@ -151,11 +151,11 @@ var QuestionValidationRules = []ValidationRule{
 
 // RetryableError represents an error that can be retried
 type RetryableError struct {
-	OriginalError error                `json:"original_error"`
-	RetryCount    int                  `json:"retry_count"`
-	MaxRetries    int                  `json:"max_retries"`
-	NextRetryAt   time.Time            `json:"next_retry_at"`
-	RetryStrategy string               `json:"retry_strategy"`
+	OriginalError error                  `json:"original_error"`
+	RetryCount    int                    `json:"retry_count"`
+	MaxRetries    int                    `json:"max_retries"`
+	NextRetryAt   time.Time              `json:"next_retry_at"`
+	RetryStrategy string                 `json:"retry_strategy"`
 	Context       map[string]interface{} `json:"context"`
 }
 
@@ -168,29 +168,29 @@ func (r *RetryableError) IsRetryable() bool {
 func (r *RetryableError) GetNextRetryDelay() time.Duration {
 	baseDelay := time.Second * 2
 	maxDelay := time.Minute * 5
-	
+
 	delay := time.Duration(1<<uint(r.RetryCount)) * baseDelay
 	if delay > maxDelay {
 		delay = maxDelay
 	}
-	
+
 	return delay
 }
 
 // ErrorSuggestion represents a suggestion for fixing an error
 type ErrorSuggestion struct {
-	Type        string `json:"type"`
-	Message     string `json:"message"`
-	Action      string `json:"action"`
-	Priority    int    `json:"priority"`
-	Automated   bool   `json:"automated"`
-	UserFriendly bool  `json:"user_friendly"`
+	Type         string `json:"type"`
+	Message      string `json:"message"`
+	Action       string `json:"action"`
+	Priority     int    `json:"priority"`
+	Automated    bool   `json:"automated"`
+	UserFriendly bool   `json:"user_friendly"`
 }
 
 // GetErrorSuggestions returns suggestions based on error type and context
 func GetErrorSuggestions(errorType ParseErrorType, field string, context map[string]interface{}) []ErrorSuggestion {
 	suggestions := []ErrorSuggestion{}
-	
+
 	switch errorType {
 	case ParseErrorTypeMissingField:
 		suggestions = append(suggestions, ErrorSuggestion{
@@ -201,7 +201,7 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 			Automated:    false,
 			UserFriendly: true,
 		})
-		
+
 	case ParseErrorTypeValidation:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "validation",
@@ -211,7 +211,7 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 			Automated:    false,
 			UserFriendly: true,
 		})
-		
+
 	case ParseErrorTypeInvalidFormat:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "format",
@@ -221,7 +221,7 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 			Automated:    false,
 			UserFriendly: true,
 		})
-		
+
 	case ParseErrorTypeUnsupported:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "unsupported",
@@ -231,7 +231,7 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 			Automated:    false,
 			UserFriendly: true,
 		})
-		
+
 	case ParseErrorTypeStructural:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "structural",
@@ -242,7 +242,7 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 			UserFriendly: true,
 		})
 	}
-	
+
 	return suggestions
 }
 

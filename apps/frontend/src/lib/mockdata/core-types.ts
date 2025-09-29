@@ -93,6 +93,8 @@ export enum FeedbackType {
 
 
 
+// ===== COMPATIBILITY LAYER =====
+// Keep enum format for backward compatibility with mockdata
 // User Role Enum (matches Enhanced User Model from AUTH_COMPLETE_GUIDE.md)
 export enum UserRole {
   GUEST = 'GUEST',         // Khách (không đăng ký) - Không có level

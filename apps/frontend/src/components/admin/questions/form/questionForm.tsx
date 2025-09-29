@@ -34,7 +34,7 @@ import {
   QuestionType,
   QuestionDifficulty,
   AnswerOption
-} from "@/lib/types/question";
+} from "@/types/question";
 
 /**
  * Props for QuestionForm component

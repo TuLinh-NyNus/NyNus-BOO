@@ -77,27 +77,27 @@ type ExamRepository interface {
 // ExamFilters contains filter parameters for exam queries
 type ExamFilters struct {
 	// Basic filters
-	Status     []entity.ExamStatus
-	ExamType   []entity.ExamType
-	CreatedBy  []string
-	
+	Status    []entity.ExamStatus
+	ExamType  []entity.ExamType
+	CreatedBy []string
+
 	// Academic filters
 	Subjects   []string
 	Grades     []int
 	Difficulty []string
 	Tags       []string
-	
+
 	// Official exam filters
 	SourceInstitution []string
-	ExamYear         []string
-	ExamCode         []string
-	
+	ExamYear          []string
+	ExamCode          []string
+
 	// Date filters
-	CreatedAfter  *string
-	CreatedBefore *string
-	PublishedAfter *string
+	CreatedAfter    *string
+	CreatedBefore   *string
+	PublishedAfter  *string
 	PublishedBefore *string
-	
+
 	// Numeric filters
 	MinDuration *int
 	MaxDuration *int
@@ -108,17 +108,17 @@ type ExamFilters struct {
 // OfficialExamFilters contains specific filters for official exams
 type OfficialExamFilters struct {
 	SourceInstitution []string
-	ExamYear         []string
-	ExamCode         []string
-	Subject          []string
-	Grade            []int
+	ExamYear          []string
+	ExamCode          []string
+	Subject           []string
+	Grade             []int
 }
 
 // ExamSearchCriteria contains search parameters for exams
 type ExamSearchCriteria struct {
-	Query       string
-	SearchIn    []string // title, description, instructions, tags
-	ExactMatch  bool
+	Query         string
+	SearchIn      []string // title, description, instructions, tags
+	ExactMatch    bool
 	CaseSensitive bool
 }
 
@@ -132,51 +132,51 @@ type Pagination struct {
 
 // ExamStatistics contains exam performance statistics
 type ExamStatistics struct {
-	ExamID           string
-	TotalAttempts    int
+	ExamID            string
+	TotalAttempts     int
 	CompletedAttempts int
-	AverageScore     float64
-	PassRate         float64
-	AverageTimeSpent int // seconds
-	QuestionStats    []*QuestionStatistics
+	AverageScore      float64
+	PassRate          float64
+	AverageTimeSpent  int // seconds
+	QuestionStats     []*QuestionStatistics
 }
 
 // QuestionStatistics contains per-question statistics
 type QuestionStatistics struct {
-	QuestionID      string
-	CorrectAnswers  int
-	TotalAnswers    int
-	CorrectRate     float64
+	QuestionID       string
+	CorrectAnswers   int
+	TotalAnswers     int
+	CorrectRate      float64
 	AverageTimeSpent int // seconds
 }
 
 // UserPerformance contains user performance data
 type UserPerformance struct {
-	UserID           string
-	ExamID           string
-	TotalAttempts    int
-	BestScore        int
-	BestPercentage   float64
-	AverageScore     float64
-	LastAttemptDate  *string
-	ImprovementRate  float64
+	UserID          string
+	ExamID          string
+	TotalAttempts   int
+	BestScore       int
+	BestPercentage  float64
+	AverageScore    float64
+	LastAttemptDate *string
+	ImprovementRate float64
 }
 
 // ExamAnalytics contains comprehensive exam analytics
 type ExamAnalytics struct {
-	ExamID              string
-	Statistics          *ExamStatistics
-	DifficultyAnalysis  *DifficultyAnalysis
-	TimeAnalysis        *TimeAnalysis
-	PerformanceTrends   []*PerformanceTrend
+	ExamID             string
+	Statistics         *ExamStatistics
+	DifficultyAnalysis *DifficultyAnalysis
+	TimeAnalysis       *TimeAnalysis
+	PerformanceTrends  []*PerformanceTrend
 }
 
 // DifficultyAnalysis contains difficulty-based analytics
 type DifficultyAnalysis struct {
-	EasyQuestions   int
-	MediumQuestions int
-	HardQuestions   int
-	ExpertQuestions int
+	EasyQuestions     int
+	MediumQuestions   int
+	HardQuestions     int
+	ExpertQuestions   int
 	OverallDifficulty string
 }
 
@@ -190,7 +190,7 @@ type TimeAnalysis struct {
 
 // PerformanceTrend contains performance trend data
 type PerformanceTrend struct {
-	Date        string
+	Date         string
 	AttemptCount int
 	AverageScore float64
 	PassRate     float64

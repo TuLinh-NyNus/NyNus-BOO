@@ -7,7 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Question } from '@/lib/types/question';
+import { Question } from '@/types/question';
 
 /**
  * Custom hook để quản lý localStorage

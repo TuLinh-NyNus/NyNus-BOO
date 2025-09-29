@@ -11,37 +11,37 @@ import (
 type ProductionConfig struct {
 	// gRPC Gateway Control
 	HTTPGatewayEnabled bool
-	
+
 	// Security Settings
-	TLSEnabled         bool
-	TLSCertFile        string
-	TLSKeyFile         string
-	
+	TLSEnabled  bool
+	TLSCertFile string
+	TLSKeyFile  string
+
 	// Performance Settings
-	MaxConcurrentStreams uint32
+	MaxConcurrentStreams  uint32
 	MaxReceiveMessageSize int
 	MaxSendMessageSize    int
 	ConnectionTimeout     int // seconds
-	
+
 	// Logging Settings
-	LogLevel           string
-	LogFormat          string // json or text
-	EnableAccessLog    bool
-	EnableErrorLog     bool
-	
+	LogLevel        string
+	LogFormat       string // json or text
+	EnableAccessLog bool
+	EnableErrorLog  bool
+
 	// Rate Limiting
-	EnableRateLimit    bool
-	RateLimitRPS       int // requests per second
-	RateLimitBurst     int
-	
+	EnableRateLimit bool
+	RateLimitRPS    int // requests per second
+	RateLimitBurst  int
+
 	// Health Check
-	EnableHealthCheck  bool
-	HealthCheckPath    string
-	
+	EnableHealthCheck bool
+	HealthCheckPath   string
+
 	// Monitoring
-	EnableMetrics      bool
-	MetricsPort        string
-	EnableTracing      bool
+	EnableMetrics bool
+	MetricsPort   string
+	EnableTracing bool
 }
 
 // LoadProductionConfig loads production-specific configurations
@@ -49,33 +49,33 @@ func LoadProductionConfig() *ProductionConfig {
 	return &ProductionConfig{
 		// gRPC Gateway - DISABLED in production by default
 		HTTPGatewayEnabled: getBoolEnv("HTTP_GATEWAY_ENABLED", false),
-		
+
 		// Security Settings
 		TLSEnabled:  getBoolEnv("TLS_ENABLED", true), // Enable TLS in production
 		TLSCertFile: getEnv("TLS_CERT_FILE", "/etc/ssl/certs/server.crt"),
 		TLSKeyFile:  getEnv("TLS_KEY_FILE", "/etc/ssl/private/server.key"),
-		
+
 		// Performance Settings - Optimized for production
 		MaxConcurrentStreams:  getUint32Env("MAX_CONCURRENT_STREAMS", 1000),
 		MaxReceiveMessageSize: getIntEnv("MAX_RECEIVE_MESSAGE_SIZE", 4*1024*1024), // 4MB
 		MaxSendMessageSize:    getIntEnv("MAX_SEND_MESSAGE_SIZE", 4*1024*1024),    // 4MB
-		ConnectionTimeout:     getIntEnv("CONNECTION_TIMEOUT", 30),                 // 30 seconds
-		
+		ConnectionTimeout:     getIntEnv("CONNECTION_TIMEOUT", 30),                // 30 seconds
+
 		// Logging Settings - Structured logging for production
 		LogLevel:        getEnv("LOG_LEVEL", "info"),
 		LogFormat:       getEnv("LOG_FORMAT", "json"), // JSON format for production
 		EnableAccessLog: getBoolEnv("ENABLE_ACCESS_LOG", true),
 		EnableErrorLog:  getBoolEnv("ENABLE_ERROR_LOG", true),
-		
+
 		// Rate Limiting - Enabled in production
 		EnableRateLimit: getBoolEnv("ENABLE_RATE_LIMIT", true),
 		RateLimitRPS:    getIntEnv("RATE_LIMIT_RPS", 100),   // 100 RPS per client
 		RateLimitBurst:  getIntEnv("RATE_LIMIT_BURST", 200), // Burst of 200
-		
+
 		// Health Check
 		EnableHealthCheck: getBoolEnv("ENABLE_HEALTH_CHECK", true),
 		HealthCheckPath:   getEnv("HEALTH_CHECK_PATH", "/health"),
-		
+
 		// Monitoring
 		EnableMetrics: getBoolEnv("ENABLE_METRICS", true),
 		MetricsPort:   getEnv("METRICS_PORT", "9090"),
@@ -109,22 +109,22 @@ func ValidateProductionConfig(cfg *ProductionConfig) error {
 			if cfg.TLSCertFile == "" || cfg.TLSKeyFile == "" {
 				log.Println("⚠️  WARNING: TLS enabled but cert/key files not specified")
 			}
-			
+
 			// Check if cert files exist
 			if _, err := os.Stat(cfg.TLSCertFile); os.IsNotExist(err) {
 				log.Printf("⚠️  WARNING: TLS cert file not found: %s", cfg.TLSCertFile)
 			}
-			
+
 			if _, err := os.Stat(cfg.TLSKeyFile); os.IsNotExist(err) {
 				log.Printf("⚠️  WARNING: TLS key file not found: %s", cfg.TLSKeyFile)
 			}
 		}
-		
+
 		// Warn if HTTP Gateway is enabled in production
 		if cfg.HTTPGatewayEnabled {
 			log.Println("⚠️  WARNING: HTTP Gateway is enabled in production - consider disabling for security")
 		}
-		
+
 		// Validate rate limiting settings
 		if cfg.EnableRateLimit {
 			if cfg.RateLimitRPS <= 0 {
@@ -135,26 +135,26 @@ func ValidateProductionConfig(cfg *ProductionConfig) error {
 			}
 		}
 	}
-	
+
 	return nil
 }
 
 // GetOptimizedGRPCOptions returns gRPC server options optimized for the current environment
 func GetOptimizedGRPCOptions(cfg *ProductionConfig) map[string]interface{} {
 	options := make(map[string]interface{})
-	
+
 	if IsProduction() {
 		// Production optimizations
 		options["max_concurrent_streams"] = cfg.MaxConcurrentStreams
 		options["max_receive_message_size"] = cfg.MaxReceiveMessageSize
 		options["max_send_message_size"] = cfg.MaxSendMessageSize
 		options["connection_timeout"] = cfg.ConnectionTimeout
-		options["keepalive_time"] = 30                    // 30 seconds
-		options["keepalive_timeout"] = 5                  // 5 seconds
-		options["keepalive_enforcement_min_time"] = 10    // 10 seconds
-		options["max_connection_idle"] = 60               // 60 seconds
-		options["max_connection_age"] = 300               // 5 minutes
-		options["max_connection_age_grace"] = 30          // 30 seconds
+		options["keepalive_time"] = 30                 // 30 seconds
+		options["keepalive_timeout"] = 5               // 5 seconds
+		options["keepalive_enforcement_min_time"] = 10 // 10 seconds
+		options["max_connection_idle"] = 60            // 60 seconds
+		options["max_connection_age"] = 300            // 5 minutes
+		options["max_connection_age_grace"] = 30       // 30 seconds
 	} else {
 		// Development settings - more lenient
 		options["max_concurrent_streams"] = uint32(100)
@@ -162,7 +162,7 @@ func GetOptimizedGRPCOptions(cfg *ProductionConfig) map[string]interface{} {
 		options["max_send_message_size"] = 1024 * 1024    // 1MB
 		options["connection_timeout"] = 60                // 60 seconds
 	}
-	
+
 	return options
 }
 
@@ -239,16 +239,16 @@ func GetCORSConfig() map[string]interface{} {
 				"grpc-accept-encoding",
 			},
 			"allow_credentials": true,
-			"max_age":          86400, // 24 hours
+			"max_age":           86400, // 24 hours
 		}
 	} else {
 		// Permissive CORS for development
 		return map[string]interface{}{
-			"allowed_origins": []string{"*"},
-			"allowed_methods": []string{"*"},
-			"allowed_headers": []string{"*"},
+			"allowed_origins":   []string{"*"},
+			"allowed_methods":   []string{"*"},
+			"allowed_headers":   []string{"*"},
 			"allow_credentials": true,
-			"max_age":          3600, // 1 hour
+			"max_age":           3600, // 1 hour
 		}
 	}
 }
