@@ -31,7 +31,7 @@ import {
 } from '@/components/ui';
 
 // Hooks
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 
 // Types
 import { Exam, ExamFilters } from '@/types/exam';

@@ -4,7 +4,7 @@ import { Clock, Play } from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/display/badge";
-import { MockTutorial } from "@/lib/mockdata/courses-types";
+import { MockTutorial } from "@/lib/mockdata/courses/courses-types";
 import { cn } from "@/lib/utils";
 
 interface LessonItemProps {

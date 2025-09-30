@@ -117,7 +117,7 @@ export function PasswordStrengthIndicator({
             Để tăng độ mạnh mật khẩu:
           </div>
           <ul className="space-y-0.5 text-slate-600 dark:text-slate-400">
-            {strength.suggestions.map((suggestion, index) => (
+            {strength.suggestions.map((suggestion: string, index: number) => (
               <li key={index} className="flex items-center">
                 <span className="w-1 h-1 bg-current rounded-full mr-2 flex-shrink-0" />
                 {suggestion}

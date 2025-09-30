@@ -101,12 +101,14 @@ export const PERFORMANCE_CONFIG = {
   }
 } as const;
 
+import { API_ENDPOINTS } from '@/lib/config/endpoints';
+
 /**
  * API Configuration
  */
 export const API_CONFIG = {
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080',
-  grpcURL: process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080',
+  baseURL: API_ENDPOINTS.API_URL,
+  grpcURL: API_ENDPOINTS.GRPC_URL,
   
   // Endpoints
   endpoints: {

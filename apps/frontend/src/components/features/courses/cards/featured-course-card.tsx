@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/form/button";
 import { Progress } from "@/components/ui/display/progress";
-import { MockCourse } from "@/lib/mockdata/courses-types";
+import { MockCourse } from "@/lib/mockdata/courses/courses-types";
 import { cn } from "@/lib/utils";
 
 interface FeaturedCourseCardProps {

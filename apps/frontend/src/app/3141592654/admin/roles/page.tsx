@@ -7,7 +7,7 @@
 
 import React from "react";
 
-import { RolePermissionsPanel } from "@/components/features/admin/role-management";
+import { RolePermissionsPanel } from "@/components/admin/role-management";
 
 /**
  * Roles Management Page Component

@@ -6,7 +6,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useResourceProtection } from '@/hooks/use-resource-protection';
+import { useResourceProtection } from '@/hooks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';

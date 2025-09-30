@@ -1,6 +1,6 @@
 'use client';
 
-import { useBrowserExtensionCleanup } from '@/hooks/use-browser-extension-cleanup';
+import { useBrowserExtensionCleanup } from '@/hooks';
 
 /**
  * Component xử lý browser extension cleanup

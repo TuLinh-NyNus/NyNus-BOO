@@ -1,6 +1,7 @@
 /**
- * Jest Configuration for Frontend Component Tests
- * Cấu hình Jest cho testing components và stores
+ * Unified Jest Configuration with Projects
+ * Consolidated configuration for unit, integration, and e2e tests
+ * Uses Jest projects pattern to eliminate duplication
  */
 
 const nextJest = require('next/jest');
@@ -10,15 +11,13 @@ const createJestConfig = nextJest({
   dir: './',
 });
 
-// Add any custom config to be passed to Jest
-const customJestConfig = {
+// Shared configuration for all test types
+const sharedConfig = {
   // Test environment
   testEnvironment: 'jsdom',
-  
-  // Setup files
-  setupFilesAfterEnv: ['<rootDir>/src/tests/setup/jest.setup.ts'],
-  
-  // Module name mapping for absolute imports
+
+  // Module name mapping for absolute imports (shared across all projects)
+  // Note: Tests are now in root-level tests/ directory
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@/components/(.*)$': '<rootDir>/src/components/$1',
@@ -26,112 +25,130 @@ const customJestConfig = {
     '^@/hooks/(.*)$': '<rootDir>/src/hooks/$1',
     '^@/stores/(.*)$': '<rootDir>/src/stores/$1',
     '^@/services/(.*)$': '<rootDir>/src/services/$1',
+    '^@/contexts/(.*)$': '<rootDir>/src/contexts/$1',
     '^@/types/(.*)$': '<rootDir>/src/types/$1',
     '^@/utils/(.*)$': '<rootDir>/src/utils/$1',
-    '^@/tests/(.*)$': '<rootDir>/src/tests/$1',
+    '^@/generated/(.*)$': '<rootDir>/src/generated/$1',
+    '^@/tests/(.*)$': '<rootDir>/../../tests/frontend/$1',
   },
-  
-  // Test match patterns
-  testMatch: [
-    '<rootDir>/src/tests/**/*.test.{js,jsx,ts,tsx}',
-    '<rootDir>/src/tests/**/*.spec.{js,jsx,ts,tsx}',
-  ],
-  
-  // Test ignore patterns
-  testPathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/src/tests/e2e/',
-    '<rootDir>/src/tests/integration/',
-  ],
-  
-  // Coverage configuration
-  collectCoverageFrom: [
-    'src/components/**/*.{js,jsx,ts,tsx}',
-    'src/lib/**/*.{js,ts}',
-    'src/hooks/**/*.{js,ts}',
-    'src/stores/**/*.{js,ts}',
-    'src/services/**/*.{js,ts}',
-    '!src/**/*.d.ts',
-    '!src/**/*.stories.{js,jsx,ts,tsx}',
-    '!src/tests/**/*',
-    '!src/**/index.{js,ts}',
-  ],
-  
-  // Coverage thresholds
-  coverageThreshold: {
-    global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
-    },
-    './src/components/': {
-      branches: 75,
-      functions: 75,
-      lines: 75,
-      statements: 75,
-    },
-    './src/stores/': {
-      branches: 90,
-      functions: 90,
-      lines: 90,
-      statements: 90,
-    },
-  },
-  
-  // Coverage reporters
-  coverageReporters: [
-    'text',
-    'lcov',
-    'html',
-    'json-summary',
-  ],
-  
-  // Coverage directory
-  coverageDirectory: 'coverage',
-  
-  // Transform configuration
+
+  // Transform configuration (shared)
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
-  
-  // Module file extensions
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
-  
-  // Test timeout
-  testTimeout: 10000,
-  
-  // Verbose output
-  verbose: true,
-  
-  // Clear mocks between tests
+
+  // Module file extensions (shared)
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+
+  // Common settings
   clearMocks: true,
-  
-  // Restore mocks after each test
   restoreMocks: true,
-  
-  // Global setup and teardown
-  globalSetup: '<rootDir>/src/tests/setup/global-setup.ts',
-  globalTeardown: '<rootDir>/src/tests/setup/global-teardown.ts',
-  
-  // Max workers for parallel testing
-  maxWorkers: '50%',
-  
-  // Cache directory
-  cacheDirectory: '<rootDir>/.jest-cache',
-  
-  // Error on deprecated features
   errorOnDeprecated: true,
-  
-  // Notify mode
+};
+
+// Jest Projects Configuration
+const customJestConfig = {
+  ...sharedConfig,
+
+  // Use projects for different test types
+  projects: [
+    // Unit Tests Project
+    {
+      displayName: 'unit',
+      ...sharedConfig,
+      setupFilesAfterEnv: ['<rootDir>/../../tests/frontend/setup/jest.setup.ts'],
+      testMatch: [
+        '<rootDir>/../../tests/frontend/unit/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/../../tests/frontend/unit/**/*.spec.{js,jsx,ts,tsx}',
+      ],
+      testPathIgnorePatterns: [
+        '<rootDir>/.next/',
+        '<rootDir>/node_modules/',
+        '<rootDir>/../../tests/frontend/e2e/',
+        '<rootDir>/../../tests/frontend/integration/',
+      ],
+      collectCoverageFrom: [
+        'src/components/**/*.{js,jsx,ts,tsx}',
+        'src/lib/**/*.{js,ts}',
+        'src/hooks/**/*.{js,ts}',
+        'src/stores/**/*.{js,ts}',
+        'src/services/**/*.{js,ts}',
+        '!src/**/*.d.ts',
+        '!src/**/*.stories.{js,jsx,ts,tsx}',
+        '!src/tests/**/*',
+        '!src/**/index.{js,ts}',
+      ],
+      coverageThreshold: {
+        global: {
+          branches: 80,
+          functions: 80,
+          lines: 80,
+          statements: 80,
+        },
+        './src/components/': {
+          branches: 75,
+          functions: 75,
+          lines: 75,
+          statements: 75,
+        },
+        './src/stores/': {
+          branches: 90,
+          functions: 90,
+          lines: 90,
+          statements: 90,
+        },
+      },
+      testTimeout: 10000,
+      globalSetup: '<rootDir>/../../tests/frontend/setup/global-setup.ts',
+      globalTeardown: '<rootDir>/../../tests/frontend/setup/global-teardown.ts',
+      cacheDirectory: '<rootDir>/.jest-cache/unit',
+    },
+
+    // Integration Tests Project
+    {
+      displayName: 'integration',
+      ...sharedConfig,
+      setupFilesAfterEnv: ['<rootDir>/../../tests/frontend/setup/jest.integration.setup.ts'],
+      testMatch: [
+        '<rootDir>/../../tests/frontend/integration/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/../../tests/frontend/e2e/**/*.test.{js,jsx,ts,tsx}',
+      ],
+      collectCoverageFrom: [
+        'src/services/**/*.{js,ts,tsx}',
+        'src/contexts/**/*.{js,ts,tsx}',
+        'src/lib/**/*.{js,ts,tsx}',
+        '!src/**/*.d.ts',
+        '!src/tests/**/*',
+        '!src/generated/**/*',
+      ],
+      coverageThreshold: {
+        global: {
+          branches: 70,
+          functions: 70,
+          lines: 70,
+          statements: 70,
+        },
+      },
+      testTimeout: 30000,
+      globalSetup: '<rootDir>/../../tests/frontend/setup/global.setup.ts',
+      globalTeardown: '<rootDir>/../../tests/frontend/setup/global.teardown.ts',
+      watchPathIgnorePatterns: [
+        '<rootDir>/node_modules/',
+        '<rootDir>/.next/',
+        '<rootDir>/test-reports/',
+      ],
+      cacheDirectory: '<rootDir>/.jest-cache/integration',
+    },
+  ],
+
+  // Global coverage configuration
+  coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
+  coverageDirectory: 'coverage',
+
+  // Global settings
+  verbose: true,
   notify: false,
-  
-  // Watch plugins (disabled for now)
-  // watchPlugins: [
-  //   'jest-watch-typeahead/filename',
-  //   'jest-watch-typeahead/testname',
-  // ],
+  maxWorkers: '50%',
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

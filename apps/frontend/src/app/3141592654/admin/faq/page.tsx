@@ -7,7 +7,7 @@ import { useState } from 'react';
 
 import { Card } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
-import { mockFAQs } from '@/lib/mockdata/faq';
+import { mockFAQs } from '@/lib/mockdata';
 import { AdminFAQ } from '@/lib/mockdata/types';
 
 // Danh mục FAQ có sẵn trong hệ thống

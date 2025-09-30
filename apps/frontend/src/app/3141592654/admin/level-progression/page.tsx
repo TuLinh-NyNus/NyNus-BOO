@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/form/button";
 
 import { TrendingUp, Activity, History, Settings, RefreshCw, Users } from "lucide-react";
-import { LevelProgressionManagement } from "@/components/features/admin/level-progression/level-progression-management";
-import { AuditTrailDisplay } from "@/components/features/admin/level-progression/audit-trail-display";
-import { PromotionHistory } from "@/components/features/admin/level-progression/promotion-history";
+import { LevelProgressionManagement } from "@/components/admin/level-progression/level-progression-management";
+import { AuditTrailDisplay } from "@/components/admin/level-progression/audit-trail-display";
+import { PromotionHistory } from "@/components/admin/level-progression/promotion-history";
 
 // Simple Tabs implementation
 const Tabs = ({

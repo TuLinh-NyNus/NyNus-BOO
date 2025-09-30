@@ -15,6 +15,9 @@ export * from './file-upload-schemas';
 // Sanitization utilities
 export * from './sanitization/xss-prevention';
 
+// Shared validation utilities
+export * from './shared/common-schemas';
+
 // Re-export commonly used types
 export type {
   QuestionFormData,

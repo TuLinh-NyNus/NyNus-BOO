@@ -37,7 +37,7 @@ import {
   QuestionDifficulty
 } from '@/types/question';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
-import { useSavedQuestions } from '@/hooks/useLocalStorage';
+import { useSavedQuestions } from '@/hooks';
 
 /**
  * Saved Questions Page

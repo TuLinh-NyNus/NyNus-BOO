@@ -8,8 +8,8 @@ import { AdvancedSearchBar, SearchFilters, SortOption } from "@/components/featu
 import { CourseCard, CourseCardSkeleton } from "@/components/features/courses/cards";
 import { HeroSection } from "@/components/features/courses/layout";
 import { getCoursesByCategory } from "@/lib/mockdata";
-import { MockTutorial, MockCourse } from "@/lib/mockdata/courses-types";
-import { useTutorials } from "@/hooks/use-tutorials";
+import { MockTutorial, MockCourse } from "@/lib/mockdata/courses/courses-types";
+import { useTutorials } from '@/hooks';
 import { Button } from "@/components/ui/form/button";
 import { ThemeForcer } from "@/components/ui/theme";
 

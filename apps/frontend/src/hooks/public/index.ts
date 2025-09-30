@@ -68,6 +68,8 @@ export interface PublicQuestionHookOptions {
   refetchInterval?: number;
 }
 
+import { TIMEOUTS } from '@/lib/constants/timeouts';
+
 export interface PublicQuestionSearchOptions {
   enabled?: boolean;
   debounceMs?: number;
@@ -83,25 +85,25 @@ export const HOOK_CONFIGURATIONS = {
     refetchOnWindowFocus: false,
     refetchInterval: undefined,
   },
-  
+
   // Configuration cho real-time data
   realtime: {
     enabled: true,
     refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000, // 30 seconds
+    refetchInterval: TIMEOUTS.REALTIME_REFRESH_MS,
   },
-  
+
   // Configuration cho static data
   static: {
     enabled: true,
     refetchOnWindowFocus: false,
-    refetchInterval: 15 * 60 * 1000, // 15 minutes
+    refetchInterval: TIMEOUTS.STATIC_REFRESH_MS,
   },
-  
+
   // Configuration cho search
   search: {
     enabled: true,
-    debounceMs: 300,
+    debounceMs: TIMEOUTS.SEARCH_DEBOUNCE_MS,
   },
 } as const;
 
@@ -299,12 +301,12 @@ export function debugQueryKey(queryKey: readonly unknown[]): void {
  * Hook constants
  */
 export const PUBLIC_QUESTION_HOOK_CONSTANTS = {
-  DEFAULT_STALE_TIME: 5 * 60 * 1000, // 5 minutes
-  DEFAULT_CACHE_TIME: 10 * 60 * 1000, // 10 minutes
+  DEFAULT_STALE_TIME: TIMEOUTS.DEFAULT_STALE_TIME_MS,
+  DEFAULT_CACHE_TIME: TIMEOUTS.DEFAULT_CACHE_TIME_MS,
   DEFAULT_RETRY_COUNT: 3,
   DEFAULT_RETRY_DELAY: 1000,
-  SEARCH_DEBOUNCE_MS: 300,
-  PREFETCH_STALE_TIME: 2 * 60 * 1000, // 2 minutes
+  SEARCH_DEBOUNCE_MS: TIMEOUTS.SEARCH_DEBOUNCE_MS,
+  PREFETCH_STALE_TIME: TIMEOUTS.PREFETCH_STALE_TIME_MS,
 } as const;
 
 /**

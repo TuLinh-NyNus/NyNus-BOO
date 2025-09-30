@@ -30,22 +30,11 @@ import {
 import { QuestionDifficulty } from '@/types/question';
 import { ExamService } from '@/services/grpc/exam.service';
 import { toast } from 'sonner';
+import { SelectionState, CacheEntry, createInitialSelectionState } from '@/lib/stores/shared/store-patterns';
 
 // ===== STORE INTERFACES =====
 
 export type ExamViewMode = 'list' | 'grid' | 'detail' | 'preview';
-
-interface ExamSelectionState {
-  selectedIds: Set<string>;
-  isAllSelected: boolean;
-  lastSelectedId: string | null;
-}
-
-interface ExamCacheEntry {
-  exam: Exam;
-  timestamp: number;
-  ttl: number;
-}
 
 interface ExamTakingState {
   currentAttempt: ExamAttempt | null;
@@ -81,15 +70,15 @@ interface ExamStoreState {
   draftExam: ExamFormData | null;
   
   // Cache management
-  examCache: Map<string, ExamCacheEntry>;
+  examCache: Map<string, CacheEntry<Exam>>;
   cacheSize: number;
   maxCacheSize: number;
-  
+
   // Pagination state
   pagination: ExamPagination;
-  
+
   // Selection state
-  selection: ExamSelectionState;
+  selection: SelectionState<string>;
   
   // View state
   viewMode: ExamViewMode;
@@ -251,8 +240,8 @@ const INITIAL_EXAM_TAKING: ExamTakingState = {
 
 // ===== UTILITY FUNCTIONS =====
 
-function isCacheValid(entry: ExamCacheEntry): boolean {
-  return Date.now() - entry.timestamp < entry.ttl;
+function isCacheValid(entry: CacheEntry<Exam>): boolean {
+  return entry.expiresAt ? Date.now() < entry.expiresAt : !entry.isStale;
 }
 
 function calculateTotalPages(total: number, pageSize: number): number {
@@ -312,11 +301,7 @@ export const useExamStore = create<ExamStoreState>()(
         
         pagination: { ...INITIAL_PAGINATION },
         
-        selection: {
-          selectedIds: new Set(),
-          isAllSelected: false,
-          lastSelectedId: null,
-        },
+        selection: createInitialSelectionState<string>(),
         
         viewMode: 'list',
         isDetailPanelOpen: false,
@@ -395,7 +380,7 @@ export const useExamStore = create<ExamStoreState>()(
           if (!forceRefresh) {
             const cached = examCache.get(id);
             if (cached && isCacheValid(cached)) {
-              return cached.exam;
+              return cached.data;
             }
           }
 
@@ -406,9 +391,9 @@ export const useExamStore = create<ExamStoreState>()(
               // Update cache
               set((state) => {
                 state.examCache.set(id, {
-                  exam,
+                  data: exam,
                   timestamp: Date.now(),
-                  ttl: DEFAULT_CACHE_TTL,
+                  expiresAt: Date.now() + DEFAULT_CACHE_TTL,
                 });
                 state.cacheSize = state.examCache.size;
 
@@ -490,9 +475,9 @@ export const useExamStore = create<ExamStoreState>()(
 
               // Update cache
               state.examCache.set(id, {
-                exam: updatedExam,
+                data: updatedExam,
                 timestamp: Date.now(),
-                ttl: DEFAULT_CACHE_TTL,
+                expiresAt: Date.now() + DEFAULT_CACHE_TTL,
               });
 
               // Update selected exam if it's the same
@@ -675,9 +660,9 @@ export const useExamStore = create<ExamStoreState>()(
 
               // Update cache
               state.examCache.set(id, {
-                exam: publishedExam,
+                data: publishedExam,
                 timestamp: Date.now(),
-                ttl: DEFAULT_CACHE_TTL,
+                expiresAt: Date.now() + DEFAULT_CACHE_TTL,
               });
 
               // Update selected exam if it's the same
@@ -719,9 +704,9 @@ export const useExamStore = create<ExamStoreState>()(
 
               // Update cache
               state.examCache.set(id, {
-                exam: archivedExam,
+                data: archivedExam,
                 timestamp: Date.now(),
-                ttl: DEFAULT_CACHE_TTL,
+                expiresAt: Date.now() + DEFAULT_CACHE_TTL,
               });
 
               // Update selected exam if it's the same
@@ -780,8 +765,8 @@ export const useExamStore = create<ExamStoreState>()(
               ids.forEach(id => {
                 const cached = state.examCache.get(id);
                 if (cached) {
-                  cached.exam.status = status;
-                  cached.exam.updatedAt = new Date().toISOString();
+                  cached.data.status = status;
+                  cached.data.updatedAt = new Date().toISOString();
                   cached.timestamp = Date.now();
                 }
               });
@@ -840,8 +825,8 @@ export const useExamStore = create<ExamStoreState>()(
               ids.forEach(id => {
                 const cached = state.examCache.get(id);
                 if (cached) {
-                  cached.exam.difficulty = difficulty;
-                  cached.exam.updatedAt = new Date().toISOString();
+                  cached.data.difficulty = difficulty;
+                  cached.data.updatedAt = new Date().toISOString();
                   cached.timestamp = Date.now();
                 }
               });
@@ -994,13 +979,13 @@ export const useExamStore = create<ExamStoreState>()(
 
               // Update cache
               const cached = state.examCache.get(examId);
-              if (cached && !cached.exam.questionIds.includes(questionId)) {
+              if (cached && !cached.data.questionIds.includes(questionId)) {
                 if (orderNumber !== undefined) {
-                  cached.exam.questionIds.splice(orderNumber, 0, questionId);
+                  cached.data.questionIds.splice(orderNumber, 0, questionId);
                 } else {
-                  cached.exam.questionIds.push(questionId);
+                  cached.data.questionIds.push(questionId);
                 }
-                cached.exam.updatedAt = new Date().toISOString();
+                cached.data.updatedAt = new Date().toISOString();
                 cached.timestamp = Date.now();
               }
             });
@@ -1029,8 +1014,8 @@ export const useExamStore = create<ExamStoreState>()(
               // Update cache
               const cached = state.examCache.get(examId);
               if (cached) {
-                cached.exam.questionIds = cached.exam.questionIds.filter(id => id !== questionId);
-                cached.exam.updatedAt = new Date().toISOString();
+                cached.data.questionIds = cached.data.questionIds.filter((id: string) => id !== questionId);
+                cached.data.updatedAt = new Date().toISOString();
                 cached.timestamp = Date.now();
               }
             });
@@ -1059,8 +1044,8 @@ export const useExamStore = create<ExamStoreState>()(
               // Update cache
               const cached = state.examCache.get(examId);
               if (cached) {
-                cached.exam.questionIds = questionIds;
-                cached.exam.updatedAt = new Date().toISOString();
+                cached.data.questionIds = questionIds;
+                cached.data.updatedAt = new Date().toISOString();
                 cached.timestamp = Date.now();
               }
             });

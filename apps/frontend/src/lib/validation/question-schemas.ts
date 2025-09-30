@@ -6,24 +6,18 @@
 
 import { z } from "zod";
 import { QuestionType, QuestionDifficulty, QuestionStatus } from "@/types/question";
+import {
+  commonContentSchema,
+  commonCategorySchema,
+  uniqueArrayRefinement
+} from './shared/common-schemas';
 
 // ===== BASE VALIDATION RULES =====
 
 /**
- * Content validation - Nội dung câu hỏi
+ * Content validation - Nội dung câu hỏi (using shared schema)
  */
-const contentSchema = z
-  .string()
-  .min(10, "Nội dung câu hỏi phải có ít nhất 10 ký tự")
-  .max(5000, "Nội dung câu hỏi không được vượt quá 5000 ký tự")
-  .refine(
-    (content) => content.trim().length > 0,
-    "Nội dung câu hỏi không được chỉ chứa khoảng trắng"
-  )
-  .refine(
-    (content) => !content.includes("<script"),
-    "Nội dung câu hỏi không được chứa thẻ script"
-  );
+const contentSchema = commonContentSchema;
 
 /**
  * Explanation validation - Lời giải
@@ -77,10 +71,7 @@ const baseQuestionSchema = z.object({
   difficulty: z.nativeEnum(QuestionDifficulty, {
     errorMap: () => ({ message: "Độ khó không hợp lệ" })
   }),
-  category: z
-    .string()
-    .min(1, "Danh mục không được để trống")
-    .max(100, "Danh mục không được vượt quá 100 ký tự"),
+  category: commonCategorySchema,
   tags: tagsSchema,
   points: pointsSchema,
   timeLimit: timeLimitSchema,
@@ -149,10 +140,11 @@ export const trueFalseQuestionSchema = baseQuestionSchema.extend({
     .max(10, "Câu hỏi đúng/sai không được có quá 10 lựa chọn")
     // TF allows flexible correct answers: 0, 1, or multiple
     .refine(
-      (options) => {
-        const contents = options.map(opt => opt.content.toLowerCase().trim());
-        return new Set(contents).size === contents.length;
-      },
+      (options) => uniqueArrayRefinement(
+        options,
+        () => "Các lựa chọn không được trùng lặp",
+        (opt) => opt.content.toLowerCase().trim()
+      ),
       "Các lựa chọn không được trùng lặp"
     ),
 });
@@ -305,17 +297,8 @@ export function validateQuestionByType(data: unknown, type: QuestionType) {
   }
 }
 
-/**
- * Get validation errors in Vietnamese
- */
-export function getValidationErrors(result: z.SafeParseReturnType<unknown, unknown>): string[] {
-  if (result.success) return [];
-
-  return result.error.errors.map(error => {
-    const path = error.path.join(".");
-    return `${path}: ${error.message}`;
-  });
-}
+// Re-export validation errors helper from shared utilities
+export { getValidationErrors } from './shared/common-schemas';
 
 /**
  * Conditional validation based on question type

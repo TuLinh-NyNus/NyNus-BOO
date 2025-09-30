@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/form/label";
 import { Textarea } from "@/components/ui/form/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { Skeleton } from "@/components/ui";
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 // ✅ Import mock data instead of API service
 import { getUserById } from '@/lib/mockdata';
 import { AdminUser } from '@/types/user/admin';

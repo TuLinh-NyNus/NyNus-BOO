@@ -25,9 +25,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/display/ava
 import { Badge } from "@/components/ui/display/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/navigation/tabs";
-import { getChaptersByCourseId, getReviewsByCourseId } from '@/lib/mockdata/course-details';
+import { getChaptersByCourseId, getReviewsByCourseId } from '@/lib/mockdata/courses/course-details';
 import { getCourseBySlug } from '@/lib/mockdata';
-import { MockCourse, MockChapter, MockReview } from '@/lib/mockdata/courses-types';
+import { MockCourse, MockChapter, MockReview } from '@/lib/mockdata/courses/courses-types';
 
 export default function CourseDetailPage(): JSX.Element {
   const params = useParams();

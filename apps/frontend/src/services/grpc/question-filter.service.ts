@@ -23,9 +23,10 @@ import {
 
 } from '@/generated/v1/question_filter_pb';
 import { RpcError } from 'grpc-web';
+import { getGrpcUrl } from '@/lib/config/endpoints';
 
 // gRPC client configuration
-const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+const GRPC_ENDPOINT = getGrpcUrl();
 const questionFilterServiceClient = new QuestionFilterServiceClient(GRPC_ENDPOINT);
 
 // Helper to get auth metadata

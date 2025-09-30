@@ -99,7 +99,7 @@ export {
   getMockAnalyticsResponse,
   getMockSystemMetricsResponse,
   getMockRevenueMetricsResponse
-} from './analytics';
+} from './analytics/analytics';
 
 // Export sessions mockdata
 export {
@@ -147,7 +147,7 @@ export {
   searchBooks,
   getMockBooksResponse,
   getMockBookStatsResponse
-} from './books';
+} from './content/books';
 
 // Export FAQ mockdata
 export {
@@ -162,7 +162,7 @@ export {
   searchFAQs,
   getMockFAQsResponse,
   getMockFAQStatsResponse
-} from './faq';
+} from './content/faq';
 
 // Export forum mockdata
 export {
@@ -179,7 +179,7 @@ export {
   searchPosts,
   getMockForumPostsResponse,
   getMockForumStatsResponse
-} from './forum';
+} from './content/forum';
 
 // Export settings mockdata
 export {
@@ -227,7 +227,7 @@ export {
   getUnreadNotifications,
   getAuditLogsByUser,
   getMockEnhancedSessionsResponse
-} from './auth-enhanced';
+} from './auth/auth-enhanced';
 
 // Enhanced questions exports are now included in questions export above
 
@@ -306,7 +306,7 @@ export {
   type SecurityEvent,
   type AuditLog,
   type AuditStats
-} from './security';
+} from './admin/security';
 
 // Export level progression mockdata
 export {
@@ -336,7 +336,7 @@ export {
   saveMapCodeVersion,
   type MapCodeVersion,
   type MapCodeStatistics
-} from './mapcode';
+} from './admin/mapcode';
 
 // Export user management mockdata
 export {
@@ -423,17 +423,17 @@ import { MOCK_DATA_CONSTANTS } from './core-types';
 import { mockUsers } from './users';
 import { mockQuestions } from './questions';
 import { mockCourses } from './courses/';
-import { mockAnalytics } from './analytics';
+import { mockAnalytics } from './analytics/analytics';
 import { mockSessions } from './sessions';
 import { mockSystemNotifications, mockNotificationStats } from './notifications';
-import { mockBooks } from './books';
-import { mockFAQs } from './faq';
-import { mockForumPosts } from './forum';
+import { mockBooks } from './content/books';
+import { mockFAQs } from './content/faq';
+import { mockForumPosts } from './content/forum';
 import { mockSettings } from './settings';
-import { mockEnhancedSessions, mockOAuthAccounts, mockResourceAccess, mockUserPreferences, mockAuditLogs, mockNotifications } from './auth-enhanced';
+import { mockEnhancedSessions, mockOAuthAccounts, mockResourceAccess, mockUserPreferences, mockAuditLogs, mockNotifications } from './auth/auth-enhanced';
 import { mockQuestionCodes, mockEnhancedQuestions, mockQuestionImages, mockQuestionTags, mockQuestionFeedback, mockMapCodeConfig } from './questions';
 import { mockProgressionSettings, mockProgressionStatistics, mockProgressionHistory } from './level-progression';
-import { mockMapCodeVersions, mockMapCodeStatistics } from './mapcode';
+import { mockMapCodeVersions, mockMapCodeStatistics } from './admin/mapcode';
 
 // Export default object with all mockdata
 const mockDataExports = {

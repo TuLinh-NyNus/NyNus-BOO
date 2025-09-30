@@ -26,7 +26,7 @@ import {
   ZoomOut
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
+import { usePerformanceOptimization } from '@/hooks';
 import { MobileOptimizer } from "@/lib/theory/mobile-optimizer";
 
 // ===== TYPES =====

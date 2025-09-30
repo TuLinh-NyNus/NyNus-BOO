@@ -28,7 +28,7 @@ import type { PublicQuestionFilters } from "@/types/public";
 import { QuestionType, QuestionDifficulty } from "@/types/question";
 
 // Import utilities
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce } from '@/hooks';
 
 // ===== CONSTANTS =====
 

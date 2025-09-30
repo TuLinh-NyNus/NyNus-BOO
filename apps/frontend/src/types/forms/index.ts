@@ -245,25 +245,27 @@ export type SyncValidationFunction<T = unknown> = (
 
 // ===== FORM CONSTANTS =====
 
+import { TIMEOUTS, LIMITS, VALIDATION_CONSTANTS } from '@/lib/constants/timeouts';
+
 /**
  * Form Constants
  * Common constants for forms
  */
 export const FORM_CONSTANTS = {
-  DEFAULT_DEBOUNCE_MS: 300,
-  MAX_FILE_SIZE_MB: 10,
-  MAX_FILES_COUNT: 5,
-  VALIDATION_TIMEOUT_MS: 5000,
-  
+  DEFAULT_DEBOUNCE_MS: TIMEOUTS.DEBOUNCE_MS,
+  MAX_FILE_SIZE_MB: LIMITS.MAX_FILE_SIZE_MB,
+  MAX_FILES_COUNT: LIMITS.MAX_FILES_COUNT,
+  VALIDATION_TIMEOUT_MS: TIMEOUTS.VALIDATION_TIMEOUT_MS,
+
   // Common validation patterns
-  EMAIL_PATTERN: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  PHONE_PATTERN: /^[\+]?[1-9][\d]{0,15}$/,
-  URL_PATTERN: /^https?:\/\/.+/,
-  
+  EMAIL_PATTERN: VALIDATION_CONSTANTS.EMAIL_PATTERN,
+  PHONE_PATTERN: VALIDATION_CONSTANTS.PHONE_PATTERN,
+  URL_PATTERN: VALIDATION_CONSTANTS.URL_PATTERN,
+
   // File type groups
-  IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-  DOCUMENT_TYPES: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-  SPREADSHEET_TYPES: ['application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+  IMAGE_TYPES: VALIDATION_CONSTANTS.IMAGE_TYPES,
+  DOCUMENT_TYPES: VALIDATION_CONSTANTS.DOCUMENT_TYPES,
+  SPREADSHEET_TYPES: VALIDATION_CONSTANTS.SPREADSHEET_TYPES
 } as const;
 
 /**

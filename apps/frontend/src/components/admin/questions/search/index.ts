@@ -74,9 +74,9 @@ export {
   useClientSearch,
   useQuickSearch,
   useAdvancedSearch
-} from '@/hooks/useClientSearch';
+} from '@/hooks';
 
 export type {
   UseClientSearchOptions,
   UseClientSearchReturn
-} from '@/hooks/useClientSearch';
+} from '@/hooks';

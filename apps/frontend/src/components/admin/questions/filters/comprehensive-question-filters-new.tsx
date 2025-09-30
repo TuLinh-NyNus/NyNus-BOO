@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QuestionFilters } from '@/types/question';
-import { useQuestionFiltersUrl } from '@/hooks/use-question-filters-url';
+import { useQuestionFiltersUrl } from '@/hooks';
 import { BasicFiltersRow } from './basic-filters-row';
 import { AdvancedFiltersSection } from './advanced-filters-section';
 import { FilterChips } from './filter-chips';

@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/form/button';
 import { Badge } from "@/components/ui/display/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/display/card";
-import { MockResource } from '@/lib/mockdata/courses-types';
+import { MockResource } from '@/lib/mockdata/courses/courses-types';
 import { cn } from '@/lib/utils';
 
 interface FilePreviewProps {

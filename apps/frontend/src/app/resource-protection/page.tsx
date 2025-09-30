@@ -6,7 +6,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useResourceProtection } from '@/hooks/use-resource-protection';
+import { useResourceProtection } from '@/hooks';
 import { ResourceAccessMonitor } from '@/components/resource-protection/resource-access-monitor';
 import { UserRiskProfile } from '@/components/resource-protection/user-risk-profile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 import {
   Shield,
   Play,

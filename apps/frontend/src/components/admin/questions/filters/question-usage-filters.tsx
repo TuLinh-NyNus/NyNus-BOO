@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/display/badge";
 
 // Import custom components
 import { UsageCountRangeSlider, FeedbackRangeSlider } from "@/components/ui/form/range-slider";
-import { DateRangePicker } from "@/components/features/admin/user-management/filters/date-range-picker";
+import { DateRangePicker } from "@/components/admin/user-management/filters/date-range-picker";
 
 // Import store
 import { useQuestionFiltersStore } from "@/lib/stores/question-filters";

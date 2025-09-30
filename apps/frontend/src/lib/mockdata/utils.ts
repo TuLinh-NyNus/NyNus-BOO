@@ -469,44 +469,38 @@ export class DataGenerationUtils {
 
 // ===== VALIDATION UTILITIES =====
 
+// ValidationUtils moved to shared validation utilities
+// Import from shared location to avoid duplication
+import {
+  isValidEmail,
+  isValidPhone,
+  validateRequiredFields
+} from '../validation/shared/common-schemas';
+import { AUTH_CONSTANTS } from '../constants/timeouts';
+
 export class ValidationUtils {
   /**
-   * Validate email format
+   * Validate email format (using shared utility)
    */
-  static isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
+  static isValidEmail = isValidEmail;
 
   /**
-   * Validate phone number (Vietnamese format)
+   * Validate phone number (Vietnamese format, using shared utility)
    */
-  static isValidPhone(phone: string): boolean {
-    const phoneRegex = /^(\+84|0)[0-9]{9,10}$/;
-    return phoneRegex.test(phone);
-  }
+  static isValidPhone = isValidPhone;
 
   /**
-   * Validate password strength
+   * Validate password strength (simplified)
    */
   static isValidPassword(password: string): boolean {
-    return password.length >= MOCK_DATA_CONSTANTS.PASSWORD_MIN_LENGTH;
+    return password.length >= AUTH_CONSTANTS.PASSWORD_MIN_LENGTH;
   }
 
   /**
-   * Validate required fields
+   * Validate required fields (using shared utility)
    */
-  static validateRequired<T>(obj: T, requiredFields: (keyof T)[]): string[] {
-    const errors: string[] = [];
-    
-    requiredFields.forEach(field => {
-      const value = obj[field];
-      if (value === null || value === undefined || value === '') {
-        errors.push(`${String(field)} is required`);
-      }
-    });
-    
-    return errors;
+  static validateRequired<T extends Record<string, unknown>>(obj: T, requiredFields: (keyof T)[]): string[] {
+    return validateRequiredFields(obj, requiredFields);
   }
 }
 

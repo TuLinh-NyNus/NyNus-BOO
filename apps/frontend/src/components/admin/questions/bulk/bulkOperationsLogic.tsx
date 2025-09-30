@@ -9,7 +9,7 @@
 "use client";
 
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from '@/hooks';
 
 // Import types từ lib/types
 

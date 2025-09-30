@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-import { MockCourse, MockTutorial } from "@/lib/mockdata/courses-types";
+import { MockCourse, MockTutorial } from "@/lib/mockdata/courses/courses-types";
 import { cn } from "@/lib/utils";
 
 import { CourseInfo } from "../content/course-info";

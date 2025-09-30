@@ -178,23 +178,6 @@ export const LazyAdminDashboard = lazy(() =>
   }))
 );
 
-// TODO: Create these components when needed
-// export const LazyUserManagement = lazy(() =>
-//   import('@/components/admin/user-management').then(module => ({
-//     default: module.UserManagement
-//   })).catch(() => ({
-//     default: () => <div>User Management component not found</div>
-//   }))
-// );
-
-// export const LazyAuditLogs = lazy(() =>
-//   import('@/components/admin/audit-logs').then(module => ({
-//     default: module.AuditLogs
-//   })).catch(() => ({
-//     default: () => <div>Audit Logs component not found</div>
-//   }))
-// );
-
 // Resource Protection Components
 export const LazyResourceAccessMonitor = lazy(() => 
   import('@/components/resource-protection/resource-access-monitor').then(module => ({
@@ -222,23 +205,6 @@ export const LazyNotificationPreferences = lazy(() =>
     default: () => <div>Notification Preferences component not found</div>
   }))
 );
-
-// TODO: Settings Components - create when needed
-// export const LazyUserSettings = lazy(() =>
-//   import('@/components/settings/user-settings').then(module => ({
-//     default: module.UserSettings
-//   })).catch(() => ({
-//     default: () => <div>User Settings component not found</div>
-//   }))
-// );
-
-// export const LazySecuritySettings = lazy(() =>
-//   import('@/components/settings/security-settings').then(module => ({
-//     default: module.SecuritySettings
-//   })).catch(() => ({
-//     default: () => <div>Security Settings component not found</div>
-//   }))
-// );
 
 /**
  * Wrapper Components with Suspense
@@ -340,36 +306,11 @@ export const NotificationCenterLazy: React.FC = () => (
   </LazyWrapper>
 );
 
-// TODO: Enable when components are created
-// export const UserManagementLazy: React.FC = () => (
-//   <LazyWrapper fallback={<AdminDashboardSkeleton />}>
-//     <LazyUserManagement />
-//   </LazyWrapper>
-// );
-
-// export const AuditLogsLazy: React.FC = () => (
-//   <LazyWrapper fallback={<GenericLoadingSkeleton />}>
-//     <LazyAuditLogs />
-//   </LazyWrapper>
-// );
-
 export const NotificationPreferencesLazy: React.FC = () => (
   <LazyWrapper fallback={<GenericLoadingSkeleton />}>
     <LazyNotificationPreferences />
   </LazyWrapper>
 );
-
-// export const UserSettingsLazy: React.FC = () => (
-//   <LazyWrapper fallback={<GenericLoadingSkeleton />}>
-//     <LazyUserSettings />
-//   </LazyWrapper>
-// );
-
-// export const SecuritySettingsLazy: React.FC = () => (
-//   <LazyWrapper fallback={<GenericLoadingSkeleton />}>
-//     <LazySecuritySettings />
-//   </LazyWrapper>
-// );
 
 /**
  * Preload Functions

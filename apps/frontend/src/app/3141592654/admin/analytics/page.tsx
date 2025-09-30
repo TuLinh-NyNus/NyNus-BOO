@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import {
   getAnalyticsOverview,
   mockSystemMetrics
-} from '@/lib/mockdata/analytics';
+} from '@/lib/mockdata';
 
 // Interface cho overview metrics để đảm bảo type safety
 interface OverviewMetric {

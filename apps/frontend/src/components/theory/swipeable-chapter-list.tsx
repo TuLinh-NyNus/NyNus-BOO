@@ -22,7 +22,7 @@ import {
   Play
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useHorizontalScroll } from "@/hooks/use-horizontal-scroll";
+import { useHorizontalScroll } from '@/hooks';
 
 // ===== TYPES =====
 

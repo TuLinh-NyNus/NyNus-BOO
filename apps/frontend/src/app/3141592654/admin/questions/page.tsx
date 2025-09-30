@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 import { ComprehensiveQuestionFiltersNew } from '@/components/admin/questions/filters';
 import { QuestionList } from '@/components/admin/questions/list';

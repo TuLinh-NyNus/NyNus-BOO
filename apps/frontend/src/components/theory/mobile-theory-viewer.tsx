@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LaTeXContent } from "@/components/latex";
-import { usePerformanceOptimization } from "@/hooks/usePerformanceOptimization";
+import { usePerformanceOptimization } from '@/hooks';
 
 // ===== TYPES =====
 

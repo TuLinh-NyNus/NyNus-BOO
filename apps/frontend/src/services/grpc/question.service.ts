@@ -149,8 +149,10 @@ function toUpdateReq(dto: UpdateQuestionRequestDTO): UpdateQuestionRequest {
 
 */
 
+import { getGrpcUrl } from '@/lib/config/endpoints';
+
 // gRPC client configuration
-const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+const GRPC_ENDPOINT = getGrpcUrl();
 const questionServiceClient = new QuestionServiceClient(GRPC_ENDPOINT);
 
 // Helper to get auth metadata

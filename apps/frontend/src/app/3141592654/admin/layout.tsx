@@ -12,7 +12,7 @@ import { MockWebSocketProvider } from '@/components/admin/providers/mock-websock
 import { AdminErrorBoundary } from '@/components/admin/providers/admin-error-boundary';
 import { AdminLayoutProvider } from '@/components/admin/providers/admin-layout-provider';
 import { DarkThemeProvider } from '@/components/admin/theme/dark-theme-provider';
-import { useHydrationFix } from '@/hooks/use-hydration-fix';
+import { useHydrationFix } from '@/hooks';
 
 /**
  * Admin Layout Props

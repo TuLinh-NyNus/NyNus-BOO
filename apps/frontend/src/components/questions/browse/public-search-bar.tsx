@@ -17,7 +17,7 @@ import { Search, X, Loader2 } from "lucide-react";
 import { Input, Button } from "@/components/ui";
 
 // Import utilities
-import { useDebounce } from "@/hooks/useDebounce";
+import { useDebounce } from '@/hooks';
 
 // ===== CONSTANTS =====
 

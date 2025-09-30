@@ -38,22 +38,11 @@ import {
   parseUpdateResponse,
   parseDeleteResponse,
 } from '@/lib/adapters/question.adapter';
+import { SelectionState, CacheEntry, createInitialSelectionState } from '@/lib/stores/shared/store-patterns';
 
 // ===== STORE INTERFACES =====
 
 export type QuestionViewMode = 'list' | 'grid' | 'detail' | 'preview';
-
-interface QuestionSelectionState {
-  selectedIds: Set<string>;
-  isAllSelected: boolean;
-  lastSelectedId: string | null;
-}
-
-interface QuestionCacheEntry {
-  question: Question;
-  timestamp: number;
-  ttl: number;
-}
 
 interface QuestionStoreState {
   // Questions data
@@ -62,15 +51,15 @@ interface QuestionStoreState {
   draftQuestion: QuestionDraft | null;
   
   // Cache management
-  questionCache: Map<string, QuestionCacheEntry>;
+  questionCache: Map<string, CacheEntry<Question>>;
   cacheSize: number;
   maxCacheSize: number;
-  
+
   // Pagination state
   pagination: QuestionPagination;
-  
+
   // Selection state
-  selection: QuestionSelectionState;
+  selection: SelectionState<string>;
   
   // View state
   viewMode: QuestionViewMode;
@@ -193,8 +182,8 @@ const INITIAL_PAGINATION: QuestionPagination = {
 
 // ===== UTILITY FUNCTIONS =====
 
-function isCacheValid(entry: QuestionCacheEntry): boolean {
-  return Date.now() - entry.timestamp < entry.ttl;
+function isCacheValid(entry: CacheEntry<Question>): boolean {
+  return entry.expiresAt ? Date.now() < entry.expiresAt : !entry.isStale;
 }
 
 function calculateTotalPages(total: number, pageSize: number): number {
@@ -257,11 +246,7 @@ export const useQuestionStore = create<QuestionStoreState>()(
         
         pagination: { ...INITIAL_PAGINATION },
         
-        selection: {
-          selectedIds: new Set(),
-          isAllSelected: false,
-          lastSelectedId: null,
-        },
+        selection: createInitialSelectionState<string>(),
         
         viewMode: 'list',
         isDetailPanelOpen: false,
@@ -334,7 +319,7 @@ export const useQuestionStore = create<QuestionStoreState>()(
           if (!forceRefresh) {
             const cached = questionCache.get(id);
             if (cached && isCacheValid(cached)) {
-              return cached.question;
+              return cached.data;
             }
           }
           
@@ -347,9 +332,9 @@ export const useQuestionStore = create<QuestionStoreState>()(
               // Update cache
               set((state) => {
                 state.questionCache.set(id, {
-                  question,
+                  data: question,
                   timestamp: Date.now(),
-                  ttl: DEFAULT_CACHE_TTL,
+                  expiresAt: Date.now() + DEFAULT_CACHE_TTL,
                 });
                 state.cacheSize = state.questionCache.size;
                 
@@ -436,9 +421,9 @@ export const useQuestionStore = create<QuestionStoreState>()(
                 
                 // Update cache
                 state.questionCache.set(id, {
-                  question: updated,
+                  data: updated,
                   timestamp: Date.now(),
-                  ttl: DEFAULT_CACHE_TTL,
+                  expiresAt: Date.now() + DEFAULT_CACHE_TTL,
                 });
                 
                 // Update selected question if it's the same
@@ -1075,9 +1060,9 @@ export const useQuestionStore = create<QuestionStoreState>()(
         
         pruneCache: () => {
           set((state) => {
-            const validEntries: [string, QuestionCacheEntry][] = [];
-            
-            state.questionCache.forEach((entry: QuestionCacheEntry, id: string) => {
+            const validEntries: [string, CacheEntry<Question>][] = [];
+
+            state.questionCache.forEach((entry: CacheEntry<Question>, id: string) => {
               if (isCacheValid(entry)) {
                 validEntries.push([id, entry]);
               }

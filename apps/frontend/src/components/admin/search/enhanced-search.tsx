@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/form/checkbox';
 import { QuestionFilterService } from '@/services/grpc/question-filter.service';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 
 interface SearchResult {
   question: {

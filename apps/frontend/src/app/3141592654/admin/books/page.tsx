@@ -6,7 +6,7 @@ import { BookOpen, Download, Filter, Search, Plus, FileUp, Star, BookOpenCheck, 
 
 import { Card } from "@/components/ui/card";
 import { cn } from '@/lib/utils';
-import { mockBooks } from '@/lib/mockdata/books';
+import { mockBooks } from '@/lib/mockdata';
 import { AdminBook } from '@/lib/mockdata/types';
 import { useState, useMemo } from 'react';
 

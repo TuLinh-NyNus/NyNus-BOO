@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce } from '@/hooks';
 
 // ===== TYPES =====
 

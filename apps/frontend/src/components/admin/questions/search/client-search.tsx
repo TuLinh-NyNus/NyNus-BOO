@@ -12,9 +12,9 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { Search, X, Filter, Clock, Hash } from 'lucide-react';
 import { Input, Button, Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { Question } from '@/types/question';
-import { useClientSearch, UseClientSearchOptions } from '@/hooks/useClientSearch';
+import { useClientSearch, UseClientSearchOptions } from '@/hooks';
 import { SearchResult } from '@/lib/utils/search-utils';
-import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization';
+import { usePerformanceOptimization } from '@/hooks';
 import { cn } from '@/lib/utils';
 
 // ===== TYPES =====

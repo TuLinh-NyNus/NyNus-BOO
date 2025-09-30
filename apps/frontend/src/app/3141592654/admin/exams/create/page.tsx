@@ -27,7 +27,7 @@ import { ExamForm } from '@/components/exams/management/exam-form';
 import { ExamPreview } from '@/components/exams/management/exam-preview';
 
 // Hooks
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks';
 
 // Paths
 import { ADMIN_PATHS } from '@/lib/admin-paths';

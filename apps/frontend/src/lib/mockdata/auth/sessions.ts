@@ -1,5 +1,5 @@
 // Mock data for sessions - Admin management
-import { AdminSession, MockPagination, MockApiResponse } from '../core-types';
+import { AdminSession, MockPagination, MockApiResponse } from '../types';
 
 // Interface cho user login sessions (khác với exam sessions)
 export interface UserLoginSession {

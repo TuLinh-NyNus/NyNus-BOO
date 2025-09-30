@@ -8,9 +8,9 @@ import {
 
 // Import dashboard components
 import { useDashboardData } from "@/hooks/admin/use-dashboard-data";
-import { DashboardHeader } from "@/components/features/admin/dashboard/dashboard-header";
-import { RealtimeDashboardMetrics } from "@/components/features/admin/dashboard/realtime-dashboard-metrics";
-import { DashboardStats } from "@/components/features/admin/dashboard/dashboard-stats";
+import { DashboardHeader } from "@/components/admin/dashboard/dashboard-header";
+import { RealtimeDashboardMetrics } from "@/components/admin/dashboard/realtime-dashboard-metrics";
+import { DashboardStats } from "@/components/admin/dashboard/dashboard-stats";
 import { ConnectedAdminDashboard } from "@/components/admin/dashboard/connected-dashboard";
 
 

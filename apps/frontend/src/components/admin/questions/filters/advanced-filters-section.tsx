@@ -16,7 +16,7 @@ import {
 } from '@/components/ui';
 import { EnhancedCheckbox } from '@/components/ui/enhanced-checkbox';
 import { QuestionFilters, QuestionStatus } from '@/types/question';
-import { useDebounce } from '@/hooks/use-debounce';
+import { useDebounce } from '@/hooks';
 
 /**
  * Advanced Filters Section Component

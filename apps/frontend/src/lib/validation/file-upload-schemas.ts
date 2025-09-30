@@ -5,6 +5,12 @@
  */
 
 import { z } from "zod";
+import {
+  commonFilenameSchema,
+  fileSizeSchema,
+  containsDangerousContent,
+  SECURITY_VALIDATION_PATTERNS
+} from './shared/common-schemas';
 
 // ===== CONSTANTS =====
 
@@ -107,28 +113,20 @@ function isAllowedFileType(filename: string, mimeType?: string): boolean {
 }
 
 /**
- * Check for malicious content in file
+ * Check for malicious content in file (using shared security patterns)
  */
 function containsMaliciousContent(content: string, filename: string): string[] {
-  const issues: string[] = [];
+  const issues = containsDangerousContent(content);
   const extension = getFileExtension(filename);
-  
-  // Check for script injection
-  for (const pattern of SECURITY_PATTERNS.SCRIPT_PATTERNS) {
-    if (pattern.test(content)) {
-      issues.push('File chứa mã script nguy hiểm');
-      break;
-    }
-  }
-  
+
   // Check for executable signatures
-  for (const signature of SECURITY_PATTERNS.EXECUTABLE_SIGNATURES) {
+  for (const signature of SECURITY_VALIDATION_PATTERNS.DANGEROUS_SIGNATURES) {
     if (content.startsWith(signature)) {
       issues.push('File có thể là file thực thi nguy hiểm');
       break;
     }
   }
-  
+
   // LaTeX specific checks
   if (['.tex', '.latex'].includes(extension)) {
     for (const command of SECURITY_PATTERNS.DANGEROUS_LATEX) {
@@ -137,7 +135,7 @@ function containsMaliciousContent(content: string, filename: string): string[] {
       }
     }
   }
-  
+
   return issues;
 }
 
@@ -148,22 +146,12 @@ function containsMaliciousContent(content: string, filename: string): string[] {
  */
 export const singleFileUploadSchema = z.object({
   file: z.instanceof(File, { message: "File không hợp lệ" }),
-  filename: z
-    .string()
-    .min(1, "Tên file không được để trống")
-    .max(255, "Tên file không được vượt quá 255 ký tự")
-    .refine(
-      (filename) => !/[<>:"/\\|?*]/.test(filename),
-      "Tên file chứa ký tự không hợp lệ"
-    )
+  filename: commonFilenameSchema
     .refine(
       (filename) => isAllowedFileType(filename),
       "Loại file không được hỗ trợ. Chỉ chấp nhận: .tex, .txt, .csv, .json"
     ),
-  size: z
-    .number()
-    .min(FILE_SIZE_LIMITS.MIN_FILE_SIZE, "File quá nhỏ")
-    .max(FILE_SIZE_LIMITS.MAX_FILE_SIZE, `File không được vượt quá ${FILE_SIZE_LIMITS.MAX_FILE_SIZE / 1024 / 1024}MB`),
+  size: fileSizeSchema,
   mimeType: z
     .string()
     .optional(),

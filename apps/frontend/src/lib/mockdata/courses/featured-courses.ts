@@ -3,7 +3,7 @@
  * Tương thích với dự án cũ để chuyển đổi giao diện
  */
 
-import { MockCourse, MockTutorial } from '../courses-types';
+import { MockCourse, MockTutorial } from './courses-types';
 
 // Mock courses data cho frontend
 export const mockFrontendCourses: MockCourse[] = [

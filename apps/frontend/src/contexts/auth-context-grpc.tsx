@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, signOut as nextAuthSignOut, useSession } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
@@ -14,12 +14,15 @@ import {
 } from '@/lib/utils/protobuf-converters';
 
 /**
- * Auth Context Types
+ * Auth Context Types - Split State and Actions for Performance
  */
-interface AuthContextType {
+interface AuthState {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+}
+
+interface AuthActions {
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
@@ -27,11 +30,19 @@ interface AuthContextType {
   refreshToken: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
 }
 
+// Legacy interface for backwards compatibility
+interface AuthContextType extends AuthState, AuthActions {}
+
 /**
- * Auth Context
+ * Split Contexts for Performance Optimization
  */
+const AuthStateContext = createContext<AuthState | undefined>(undefined);
+const AuthActionsContext = createContext<AuthActions | undefined>(undefined);
+
+// Legacy context for backwards compatibility
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
@@ -42,6 +53,13 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { data: session, status } = useSession();
+
+  // Memoize state object to prevent unnecessary re-renders
+  const authState = useMemo((): AuthState => ({
+    user,
+    isLoading,
+    isAuthenticated: !!user
+  }), [user, isLoading]);
 
   // Sync with NextAuth session
   useEffect(() => {
@@ -78,7 +96,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setIsLoading(false);
     }
-  }, [session, status, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, status, user]); // fetchCurrentUser will be defined below
 
   /**
    * Check authentication status
@@ -97,19 +116,18 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // fetchCurrentUser is stable, no need to include in deps
 
   // Check authentication status on mount
   useEffect(() => {
     checkAuthStatus();
-    // We intentionally avoid adding checkAuthStatus to deps to prevent re-run loops
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [checkAuthStatus]);
 
   /**
    * Fetch current user data
    */
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = useCallback(async () => {
     try {
       const response = await AuthService.getCurrentUser();
       const userData = response.getUser();
@@ -122,12 +140,12 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Failed to fetch user:', error);
       throw error;
     }
-  };
+  }, []);
 
   /**
    * Login with email and password
    */
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       setIsLoading(true);
       
@@ -152,12 +170,12 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   /**
    * Login with Google OAuth
    */
-  const loginWithGoogle = async () => {
+  const loginWithGoogle = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -184,15 +202,15 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchCurrentUser, router]);
 
   /**
    * Register new user
    */
-  const register = async (
-    email: string, 
-    password: string, 
-    firstName: string, 
+  const register = useCallback(async (
+    email: string,
+    password: string,
+    firstName: string,
     lastName: string
   ) => {
     try {
@@ -225,7 +243,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router]);
 
   /**
    * Logout
@@ -277,12 +295,12 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       await logout();
       throw error;
     }
-  }, [logout]);
+  }, [logout, fetchCurrentUser]);
 
   /**
    * Forgot password (placeholder - needs backend implementation)
    */
-  const forgotPassword = async (email: string) => {
+  const forgotPassword = useCallback(async (email: string) => {
     try {
       setIsLoading(true);
       // TODO: Implement forgot password gRPC call
@@ -295,12 +313,12 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   /**
    * Reset password with token
    */
-  const resetPassword = async (token: string, newPassword: string) => {
+  const resetPassword = useCallback(async (token: string, newPassword: string) => {
     try {
       setIsLoading(true);
 
@@ -323,7 +341,26 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  /**
+   * Update user data
+   */
+  const updateUser = useCallback((userData: Partial<User>) => {
+    setUser(currentUser => {
+      if (currentUser) {
+        const updatedUser = { ...currentUser, ...userData };
+
+        // Update localStorage if available
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('nynus-auth-user', JSON.stringify(updatedUser));
+        }
+
+        return updatedUser;
+      }
+      return currentUser;
+    });
+  }, []);
 
   // Setup token refresh interval
   useEffect(() => {
@@ -337,10 +374,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [user, refreshToken]);
 
-  const value: AuthContextType = {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
+  // Memoize actions object to prevent unnecessary re-renders
+  const authActions = useMemo((): AuthActions => ({
     login,
     loginWithGoogle,
     register,
@@ -348,12 +383,23 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     refreshToken,
     forgotPassword,
     resetPassword,
+    updateUser,
+  }), [login, loginWithGoogle, register, logout, refreshToken, forgotPassword, resetPassword, updateUser]);
+
+  // Legacy value for backwards compatibility
+  const value: AuthContextType = {
+    ...authState,
+    ...authActions,
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
+    <AuthStateContext.Provider value={authState}>
+      <AuthActionsContext.Provider value={authActions}>
+        <AuthContext.Provider value={value}>
+          {children}
+        </AuthContext.Provider>
+      </AuthActionsContext.Provider>
+    </AuthStateContext.Provider>
   );
 }
 
@@ -369,12 +415,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Hook to use auth context
+ * Optimized hooks for state and actions
  */
-export function useAuth() {
+export function useAuthState(): AuthState {
+  const context = useContext(AuthStateContext);
+  if (context === undefined) {
+    throw new Error('useAuthState must be used within an AuthProvider');
+  }
+  return context;
+}
+
+export function useAuthActions(): AuthActions {
+  const context = useContext(AuthActionsContext);
+  if (context === undefined) {
+    throw new Error('useAuthActions must be used within an AuthProvider');
+  }
+  return context;
+}
+
+/**
+ * Legacy hook for backwards compatibility
+ */
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }
+
+// Export types for external use
+export type { AuthState, AuthActions, AuthContextType };

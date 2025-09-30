@@ -87,29 +87,7 @@ export const ProgressScrollIndicator = dynamic(
   }
 );
 
-// 🔥 Question components - disabled until components exist
-// export const QuestionViewer = dynamic(
-//   () => import('@/components/student/question-viewer'),
-//   { loading: LoadingSkeleton, ssr: true }
-// );
 
-// 🔥 Course components - disabled until components exist
-// export const CourseViewer = dynamic(
-//   () => import('@/components/courses/course-viewer'),
-//   { loading: LoadingSkeleton, ssr: true }
-// );
-
-// 🔥 Modal components - disabled until components exist
-// export const ModalManager = dynamic(
-//   () => import('@/components/modals/modal-manager'),
-//   { loading: () => null, ssr: false }
-// );
-
-// 🔥 Theory components - disabled until components exist
-// export const TheoryViewer = dynamic(
-//   () => import('@/components/student/theory/student-theory-viewer'),
-//   { loading: LoadingSkeleton, ssr: true }
-// );
 
 // 🔥 Utility function cho conditional loading
 export function loadComponentWhen<T>(

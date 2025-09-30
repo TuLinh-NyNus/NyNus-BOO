@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useLoadingState } from '@/hooks/use-loading-state';
+import { useLoadingState } from '@/hooks';
 import { DashboardCardSkeleton, FeatureCardSkeleton } from '@/components/ui/skeleton';
 import AILearning from './ai-learning';
 
