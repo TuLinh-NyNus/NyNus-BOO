@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 // Import LaTeX components
-import { QuestionLaTeXContent } from '@/components/latex';
+import { QuestionLaTeXContent } from '@/components/common/latex';
 import type { LaTeXExpression } from '@/lib/utils/latex-rendering';
 
 // Import shared components

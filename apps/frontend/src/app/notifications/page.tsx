@@ -6,8 +6,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { NotificationCenter } from '@/components/notifications/notification-center';
-import { NotificationPreferences } from '@/components/notifications/notification-preferences';
+import { NotificationCenter } from '@/components/features/notifications/notification-center';
+import { NotificationPreferences } from '@/components/features/notifications/notification-preferences';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

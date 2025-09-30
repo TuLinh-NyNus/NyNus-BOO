@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 
 // Import LaTeX components
-import { LaTeXContent } from '@/components/latex';
+import { LaTeXContent } from '@/components/common/latex';
 
 // Import shared components
 import { PublicQuestionErrorBoundary } from '@/components/questions/shared';

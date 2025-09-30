@@ -7,8 +7,8 @@
 
 import React, { useState } from 'react';
 import { useResourceProtection } from '@/hooks';
-import { ResourceAccessMonitor } from '@/components/resource-protection/resource-access-monitor';
-import { UserRiskProfile } from '@/components/resource-protection/user-risk-profile';
+import { ResourceAccessMonitor } from '@/components/features/security/resource-access-monitor';
+import { UserRiskProfile } from '@/components/features/security/user-risk-profile';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

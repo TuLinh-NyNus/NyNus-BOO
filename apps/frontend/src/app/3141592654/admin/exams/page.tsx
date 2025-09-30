@@ -40,8 +40,8 @@ import { Exam, ExamFilters } from '@/types/exam';
 import { ExamService } from '@/services/grpc/exam.service';
 
 // Components
-import { ExamGrid } from '@/components/exams/management/exam-grid';
-import { BulkOperations } from '@/components/exams/management/bulk-operations';
+import { ExamGrid } from '@/components/features/exams/management/exam-grid';
+import { BulkOperations } from '@/components/features/exams/management/bulk-operations';
 
 // Paths
 import { ADMIN_PATHS } from '@/lib/admin-paths';

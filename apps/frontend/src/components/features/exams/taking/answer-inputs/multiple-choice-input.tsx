@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/form/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Circle } from 'lucide-react';
-import { LaTeXContent } from '@/components/latex';
+import { LaTeXContent } from '@/components/common/latex';
 import { BaseAnswerInput, BaseAnswerInputProps } from './base-answer-input';
 import { AnswerOption } from '@/types/question';
 

@@ -23,8 +23,8 @@ import { ExamFormData, ExamStatus } from '@/types/exam';
 import { ExamService } from '@/services/grpc/exam.service';
 
 // Components
-import { ExamForm } from '@/components/exams/management/exam-form';
-import { ExamPreview } from '@/components/exams/management/exam-preview';
+import { ExamForm } from '@/components/features/exams/management/exam-form';
+import { ExamPreview } from '@/components/features/exams/management/exam-preview';
 
 // Hooks
 import { useToast } from '@/hooks';

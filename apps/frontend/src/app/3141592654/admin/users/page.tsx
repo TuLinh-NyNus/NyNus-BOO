@@ -15,7 +15,7 @@ import {
   RolePromotionWorkflow,
   UserStatsLoading,
   UserErrorState
-} from '@/components/user-management';
+} from '@/components/admin/users';
 import { AdminUser } from '@/types/user';
 
 export default function AdminUsersPage() {

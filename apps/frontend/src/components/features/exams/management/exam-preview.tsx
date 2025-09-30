@@ -26,8 +26,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Exam, Question, ExamFormData } from '@/types/exam';
-import { QuestionDisplay } from '@/components/exams/taking/question-display';
-import { ExamTimer } from '@/components/exams/taking/exam-timer';
+import { QuestionDisplay } from '@/components/features/exams/taking/question-display';
+import { ExamTimer } from '@/components/features/exams/taking/exam-timer';
 
 export interface ExamPreviewProps {
   exam?: Exam;

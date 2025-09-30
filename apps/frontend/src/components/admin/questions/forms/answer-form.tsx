@@ -44,7 +44,7 @@ import {
 } from "lucide-react";
 
 // Import LaTeX components
-import { LaTeXPreview } from "@/components/latex";
+import { LaTeXPreview } from "@/components/common/latex";
 
 // ===== TYPES =====
 

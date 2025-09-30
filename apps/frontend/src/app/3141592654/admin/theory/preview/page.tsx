@@ -29,7 +29,7 @@ import {
   FolderOpen
 } from "lucide-react";
 import Link from "next/link";
-import { LaTeXContent } from "@/components/latex";
+import { LaTeXContent } from "@/components/common/latex";
 
 // ===== TYPES =====
 
