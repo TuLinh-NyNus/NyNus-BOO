@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 
 // Import LaTeX components
-import { QuestionLaTeXContent, LaTeXContent } from "@/components/latex";
+import { QuestionLaTeXContent, LaTeXContent } from "@/components/common/latex";
 
 // Import types
 import { Question } from "@/types/question";

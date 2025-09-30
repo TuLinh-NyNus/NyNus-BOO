@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 
 // Import LaTeX components
-import { LaTeXContent } from "@/components/latex";
+import { LaTeXContent } from "@/components/common/latex";
 
 // Import badge components
 import { QuestionTypeBadge } from "./question-type-badge";

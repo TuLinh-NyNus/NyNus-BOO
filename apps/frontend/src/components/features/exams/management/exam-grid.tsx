@@ -14,7 +14,7 @@ import React, { useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 // Import components
-import { ExamCard } from "@/components/exams/shared/exam-card";
+import { ExamCard } from "@/components/features/exams/shared/exam-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

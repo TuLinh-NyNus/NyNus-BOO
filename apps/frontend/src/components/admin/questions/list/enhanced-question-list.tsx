@@ -33,7 +33,7 @@ import {
 // Import existing components
 // import { QuestionListTable } from "./questionListTable";
 import { QuestionListPagination } from "./questionListPagination";
-import { VirtualQuestionList } from "@/components/performance/virtual-scrolling/VirtualQuestionList";
+import { VirtualQuestionList } from "@/components/common/performance/virtual-scrolling/VirtualQuestionList";
 import { QuestionListSkeleton } from "./question-list-skeleton";
 import { QuestionListErrorBoundary } from "./question-list-error-boundary";
 import { ResponsiveQuestionTable, QuestionMobileCard } from "./responsive";

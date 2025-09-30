@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 
 // Import LaTeX components
-import { LaTeXContent, useLatexValidation } from "@/components/latex";
+import { LaTeXContent, useLatexValidation } from "@/components/common/latex";
 
 // ===== TYPES =====
 

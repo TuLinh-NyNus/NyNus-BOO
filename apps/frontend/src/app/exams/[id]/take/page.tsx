@@ -9,7 +9,7 @@
 
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import LazyExamInterface from '@/components/exams/taking/lazy-exam-interface';
+import LazyExamInterface from '@/components/features/exams/taking/lazy-exam-interface';
 import { isValidExamId } from '@/lib/exam-paths';
 
 // ===== TYPES =====

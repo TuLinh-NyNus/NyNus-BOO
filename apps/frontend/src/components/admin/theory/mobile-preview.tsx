@@ -25,7 +25,7 @@ import {
   Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LaTeXContent } from "@/components/latex";
+import { LaTeXContent } from "@/components/common/latex";
 
 // ===== TYPES =====
 

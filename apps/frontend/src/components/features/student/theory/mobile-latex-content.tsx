@@ -22,7 +22,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LaTeXContent, useLatexContent } from "@/components/latex";
+import { LaTeXContent, useLatexContent } from "@/components/common/latex";
 import { usePerformanceOptimization } from '@/hooks';
 
 // ===== TYPES =====

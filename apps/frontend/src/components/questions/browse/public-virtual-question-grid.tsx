@@ -13,7 +13,7 @@ import React, { useMemo, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 // Import virtual scrolling components
-import { VirtualScrollList, VirtualScrollItem } from "@/components/performance/virtual-scrolling/VirtualScrollList";
+import { VirtualScrollList, VirtualScrollItem } from "@/components/common/performance/virtual-scrolling/VirtualScrollList";
 
 // Import public question components
 import { PublicQuestionCard } from "@/components/questions/shared";

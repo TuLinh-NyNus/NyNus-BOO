@@ -179,27 +179,27 @@ export const LazyAdminDashboard = lazy(() =>
 );
 
 // Resource Protection Components
-export const LazyResourceAccessMonitor = lazy(() => 
-  import('@/components/resource-protection/resource-access-monitor').then(module => ({
+export const LazyResourceAccessMonitor = lazy(() =>
+  import('@/components/features/security/resource-access-monitor').then(module => ({
     default: module.ResourceAccessMonitor
   }))
 );
 
-export const LazyUserRiskProfile = lazy(() => 
-  import('@/components/resource-protection/user-risk-profile').then(module => ({
+export const LazyUserRiskProfile = lazy(() =>
+  import('@/components/features/security/user-risk-profile').then(module => ({
     default: module.UserRiskProfile
   }))
 );
 
 // Notification Components
-export const LazyNotificationCenter = lazy(() => 
-  import('@/components/notifications/notification-center').then(module => ({
+export const LazyNotificationCenter = lazy(() =>
+  import('@/components/features/notifications/notification-center').then(module => ({
     default: module.NotificationCenter
   }))
 );
 
-export const LazyNotificationPreferences = lazy(() => 
-  import('@/components/notifications/notification-preferences').then(module => ({
+export const LazyNotificationPreferences = lazy(() =>
+  import('@/components/features/notifications/notification-preferences').then(module => ({
     default: module.NotificationPreferences
   })).catch(() => ({
     default: () => <div>Notification Preferences component not found</div>
@@ -317,10 +317,10 @@ export const NotificationPreferencesLazy: React.FC = () => (
  */
 export const preloadComponents = {
   adminDashboard: () => import('@/components/admin/dashboard/connected-dashboard'),
-  resourceProtection: () => import('@/components/resource-protection/resource-access-monitor'),
-  userRiskProfile: () => import('@/components/resource-protection/user-risk-profile'),
-  notificationCenter: () => import('@/components/notifications/notification-center'),
-  notificationPreferences: () => import('@/components/notifications/notification-preferences').catch(() => null),
+  resourceProtection: () => import('@/components/features/security/resource-access-monitor'),
+  userRiskProfile: () => import('@/components/features/security/user-risk-profile'),
+  notificationCenter: () => import('@/components/features/notifications/notification-center'),
+  notificationPreferences: () => import('@/components/features/notifications/notification-preferences').catch(() => null),
 };
 
 /**

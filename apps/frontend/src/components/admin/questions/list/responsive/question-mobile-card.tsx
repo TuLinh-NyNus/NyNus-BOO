@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 // Import LaTeX components
-import { LaTeXContent } from "@/components/latex";
+import { LaTeXContent } from "@/components/common/latex";
 
 // Import components
 import { QuestionActionsDropdown } from "../../actions/question-actions-dropdown";

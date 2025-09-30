@@ -24,7 +24,7 @@ import {
   Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { LaTeXContent } from "@/components/latex";
+import { LaTeXContent } from "@/components/common/latex";
 
 // Dynamic import Monaco Editor để tránh SSR issues
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {

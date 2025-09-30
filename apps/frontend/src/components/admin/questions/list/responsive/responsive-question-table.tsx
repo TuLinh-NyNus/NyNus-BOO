@@ -34,7 +34,7 @@ import {
 // Import components
 import { QuestionActionsDropdown } from "../../actions/question-actions-dropdown";
 import { QuestionMobileCard } from "./question-mobile-card";
-import { LaTeXContent } from "@/components/latex";
+import { LaTeXContent } from "@/components/common/latex";
 
 // Import types
 import { Question } from "@/types/question";

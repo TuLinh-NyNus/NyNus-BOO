@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 
 // LaTeX components
-import { LaTeXContent } from "@/components/latex";
+import { LaTeXContent } from "@/components/common/latex";
 
 // Answer Input Components
 import { AnswerInputFactory } from "./answer-inputs";
