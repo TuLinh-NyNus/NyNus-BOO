@@ -46,16 +46,19 @@ export class ThemePreloader {
           function applyTheme(theme) {
             var resolvedTheme = theme === 'system' ? getSystemTheme() : theme;
             var root = document.documentElement;
-            
+
             // Remove all theme classes
             root.classList.remove('light', 'dark');
-            
+
             // Add the resolved theme class
             root.classList.add(resolvedTheme);
-            
+
             // Set color-scheme for optimal browser rendering
             root.style.colorScheme = resolvedTheme;
-            
+
+            // ✅ NEW: Set data attribute for debugging
+            root.setAttribute('data-theme', resolvedTheme);
+
             // Store the applied theme for React hydration
             sessionStorage.setItem('__theme_applied', resolvedTheme);
           }
@@ -75,15 +78,22 @@ export class ThemePreloader {
           // Apply theme immediately
           applyTheme(theme);
           
-          // Listen for system theme changes if system theme is enabled
+          // ✅ ENHANCED: Listen for system theme changes with modern API
           if (enableSystem && (theme === 'system' || !storedTheme)) {
             var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            mediaQuery.addListener(function() {
+            var handleChange = function() {
               var currentTheme = localStorage.getItem(storageKey);
               if (currentTheme === 'system' || !currentTheme) {
                 applyTheme('system');
               }
-            });
+            };
+
+            // Use modern API if available, fallback to deprecated addListener
+            if (mediaQuery.addEventListener) {
+              mediaQuery.addEventListener('change', handleChange);
+            } else {
+              mediaQuery.addListener(handleChange);
+            }
           }
         } catch (e) {
           // Fallback to default theme on error
