@@ -960,6 +960,8 @@ const Hero = () => {
         </motion.div>
       )}
 
+      {/* Hero to Content Transition - Smooth gradient from hero to light background */}
+      <div className="hero-to-content-transition" />
 
     </section>
   );

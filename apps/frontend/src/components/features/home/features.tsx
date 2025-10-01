@@ -84,49 +84,49 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
     }
   }, [showDetails, analytics, feature.title]);
 
-  // Semantic color schemes based on feature purpose
+  // Semantic color schemes based on feature purpose - IMPROVED CONTRAST
   const semanticColorSchemes = {
     // Học tập/Kiến thức - Xanh dương (Blue)
     learning: {
-      bg: 'bg-gradient-to-br from-blue-500/10 via-blue-400/5 to-indigo-500/10',
+      bg: 'bg-gradient-to-br from-blue-500/20 via-blue-400/10 to-indigo-500/20',  // Increased from /10 to /20
       icon: 'text-blue-400',
-      border: 'border-blue-500/20',
-      iconBg: 'bg-blue-500/15'
+      border: 'border-blue-500/50',  // Increased from /20 to /50
+      iconBg: 'bg-blue-500/20'  // Increased from /15 to /20
     },
     // AI/Hỗ trợ thông minh - Tím (Purple)
     ai: {
-      bg: 'bg-gradient-to-br from-purple-500/10 via-purple-400/5 to-violet-500/10',
+      bg: 'bg-gradient-to-br from-purple-500/20 via-purple-400/10 to-violet-500/20',  // Increased from /10 to /20
       icon: 'text-purple-400',
-      border: 'border-purple-500/20',
-      iconBg: 'bg-purple-500/15'
+      border: 'border-purple-500/50',  // Increased from /20 to /50
+      iconBg: 'bg-purple-500/20'  // Increased from /15 to /20
     },
     // Đánh giá/Thi cử - Lục (Green)
     assessment: {
-      bg: 'bg-gradient-to-br from-emerald-500/10 via-emerald-400/5 to-teal-500/10',
+      bg: 'bg-gradient-to-br from-emerald-500/20 via-emerald-400/10 to-teal-500/20',  // Increased from /10 to /20
       icon: 'text-emerald-400',
-      border: 'border-emerald-500/20',
-      iconBg: 'bg-emerald-500/15'
+      border: 'border-emerald-500/50',  // Increased from /20 to /50
+      iconBg: 'bg-emerald-500/20'  // Increased from /15 to /20
     },
     // Theo dõi/Tiến bộ - Hổ phách (Amber)
     progress: {
-      bg: 'bg-gradient-to-br from-amber-500/10 via-amber-400/5 to-orange-500/10',
+      bg: 'bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-orange-500/20',  // Increased from /10 to /20
       icon: 'text-amber-400',
-      border: 'border-amber-500/20',
-      iconBg: 'bg-amber-500/15'
+      border: 'border-amber-500/50',  // Increased from /20 to /50
+      iconBg: 'bg-amber-500/20'  // Increased from /15 to /20
     },
     // Nội dung/Video - Hồng (Pink)
     content: {
-      bg: 'bg-gradient-to-br from-pink-500/10 via-pink-400/5 to-rose-500/10',
+      bg: 'bg-gradient-to-br from-pink-500/20 via-pink-400/10 to-rose-500/20',  // Increased from /10 to /20
       icon: 'text-pink-400',
-      border: 'border-pink-500/20',
-      iconBg: 'bg-pink-500/15'
+      border: 'border-pink-500/50',  // Increased from /20 to /50
+      iconBg: 'bg-pink-500/20'  // Increased from /15 to /20
     },
     // Giáo viên/Quản lý - Xanh lam (Cyan)
     teacher: {
-      bg: 'bg-gradient-to-br from-cyan-500/10 via-cyan-400/5 to-sky-500/10',
+      bg: 'bg-gradient-to-br from-cyan-500/20 via-cyan-400/10 to-sky-500/20',  // Increased from /10 to /20
       icon: 'text-cyan-400',
-      border: 'border-cyan-500/20',
-      iconBg: 'bg-cyan-500/15'
+      border: 'border-cyan-500/50',  // Increased from /20 to /50
+      iconBg: 'bg-cyan-500/20'  // Increased from /15 to /20
     }
   };
 

@@ -10,6 +10,30 @@
   overflow: hidden;
 }
 
+/* ===== HERO TO CONTENT TRANSITION ===== */
+/* Smooth gradient transition from hero gradient to light background */
+.hero-to-content-transition {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom,
+    rgba(241, 133, 130, 0.3) 0%,
+    rgba(253, 242, 248, 1) 100%
+  );
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Dark mode: transition to dark background */
+.dark .hero-to-content-transition {
+  background: linear-gradient(to bottom,
+    rgba(241, 133, 130, 0.2) 0%,
+    rgba(15, 20, 34, 1) 100%
+  );
+}
+
 /* ===== HERO BACKGROUNDS ===== */
 .hero-gradient {
   background: var(--hero-bg-gradient);
