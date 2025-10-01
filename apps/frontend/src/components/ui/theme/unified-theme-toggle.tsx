@@ -210,7 +210,7 @@ export function UnifiedThemeToggle({
   // Get icon container classes based on size
   const getIconContainerClasses = () => {
     return cn(
-      'relative inline-flex items-center justify-center',
+      'relative',
       size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'
     );
   };
