@@ -16,10 +16,11 @@ interface FAQItemProps {
 
 const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
   return (
-    <motion.div 
-      className="group rounded-2xl overflow-hidden backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl border border-border bg-card/50 hover:bg-card"
+    <motion.div
+      className="group rounded-2xl overflow-hidden backdrop-blur-xl transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl border border-border/60 bg-card/80 hover:bg-card hover:border-border data-[state=open]:bg-muted data-[state=open]:border-primary/30"
       whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
+      data-state={isOpen ? 'open' : 'closed'}
     >
       <button
         className={`w-full p-5 md:p-6 flex items-center justify-between text-left font-semibold transition-all duration-300 ${

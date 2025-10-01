@@ -298,7 +298,7 @@ const Testimonials = () => {
                     transition={{ duration: 0.6, delay: 0.2 + index * 0.1 }}
                     className="group relative z-0 hover:z-50 p-2"
                   >
-                    <div className="bg-card border border-border rounded-2xl p-5 h-[440px] hover:shadow-xl transition-all duration-300 hover:border-primary/20 relative overflow-visible hover:-translate-y-1 hover:scale-105 transform-gpu flex flex-col justify-between" style={{ transformOrigin: 'center center' }}>
+                    <div className="bg-card border border-border/60 rounded-2xl p-5 h-[440px] shadow-[0_2px_8px_rgba(26,26,46,0.06)] hover:shadow-[0_8px_24px_rgba(26,26,46,0.10)] transition-all duration-300 hover:border-primary/40 relative overflow-visible hover:-translate-y-1 hover:scale-105 transform-gpu flex flex-col justify-between" style={{ transformOrigin: 'center center' }}>
                       {/* Background decoration */}
                       <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full blur-2xl -translate-y-10 translate-x-10 group-hover:scale-150 transition-transform duration-500"></div>
                       
@@ -317,8 +317,8 @@ const Testimonials = () => {
 
                         {/* Content Section - Flex grow with fixed heights */}
                         <div className="flex-grow flex flex-col justify-between">
-                          {/* Content text with improved overflow handling */}
-                          <blockquote className="text-muted-foreground leading-relaxed text-sm line-clamp-7 h-[140px] mb-4 overflow-hidden">
+                          {/* Content text with improved overflow handling - IMPROVED CONTRAST */}
+                          <blockquote className="text-foreground/90 leading-relaxed text-sm line-clamp-7 h-[140px] mb-4 overflow-hidden">
                             &ldquo;{testimonial.content}&rdquo;
                           </blockquote>
 
