@@ -233,11 +233,6 @@ export function UnifiedThemeToggle({
   );
 }
 
-/**
- * Legacy compatibility exports
- * These will be deprecated in future versions
- */
-export const ThemeToggle = UnifiedThemeToggle;
-export const ThemeSwitch = (props: Omit<UnifiedThemeToggleProps, 'iconType'>) => (
-  <UnifiedThemeToggle {...props} iconType="radix" />
-);
+// Legacy compatibility exports removed to prevent naming conflicts
+// Use UnifiedThemeToggle directly instead
+// For backward compatibility, import LegacyThemeToggle or LegacyThemeSwitch from '@/components/ui/theme'
