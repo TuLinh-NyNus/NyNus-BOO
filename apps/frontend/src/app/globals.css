@@ -38,9 +38,9 @@
   --background-rgb: 255, 255, 255;
 }
 
-/* Force light background for body in light mode */
+/* Body background - auto-switches based on theme */
 body {
-  background-color: #FDF2F8 !important;
+  background-color: var(--color-background);
 }
 
 .dark {
@@ -48,10 +48,7 @@ body {
   --background-rgb: 15, 20, 34;
 }
 
-/* Force dark background for body in dark mode */
-.dark body {
-  background-color: var(--color-dark-bg) !important;
-}
+/* No need for .dark body override - CSS cascade handles it automatically */
 
 /* Custom utilities for modern carousel */
 .scrollbar-hide {
@@ -88,15 +85,15 @@ body {
 
 /* Custom CSS classes for theme-aware components */
 .theme-bg {
-  background-color: var(--color-background) !important;
+  background-color: var(--color-background);
 }
 
 .theme-fg {
-  color: var(--color-foreground) !important;
+  color: var(--color-foreground);
 }
 
 .theme-border {
-  border-color: var(--color-border) !important;
+  border-color: var(--color-border);
 }
 
 .theme-muted-bg {

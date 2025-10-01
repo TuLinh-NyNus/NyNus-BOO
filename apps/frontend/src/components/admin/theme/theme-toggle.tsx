@@ -1,11 +1,14 @@
 /**
  * Theme Toggle Component
  * Component để chuyển đổi giữa light và dark theme trong admin interface
+ *
+ * @version 2.0 - Migrated to next-themes for unified theme management
  */
 
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,60 +23,33 @@ interface ThemeToggleProps {
 
 /**
  * Theme Toggle Component
- * 
+ *
  * Features:
- * - Toggle between light and dark themes
- * - Persists theme preference in localStorage
+ * - Toggle between light and dark themes using next-themes
+ * - Persists theme preference in localStorage (key: 'nynus-theme')
  * - Smooth transitions
  * - Accessible with keyboard navigation
  * - Multiple sizes and variants
+ * - Synced with global theme state
  */
-export function ThemeToggle({ 
-  className, 
-  size = 'md', 
-  variant = 'default' 
+export function ThemeToggle({
+  className,
+  size = 'md',
+  variant = 'default'
 }: ThemeToggleProps) {
-  const [isDark, setIsDark] = useState(false);
+  const { theme, setTheme } = useTheme(); // ✅ Use next-themes
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch
   useEffect(() => {
     setMounted(true);
-    
-    // Check initial theme
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
-    setIsDark(shouldBeDark);
-    
-    // Apply theme to document
-    if (shouldBeDark) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-    } else {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-    }
   }, []);
 
   /**
-   * Toggle theme
+   * Toggle theme using next-themes
    */
   const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-    
-    // Update document classes
-    if (newIsDark) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.remove('light');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.add('light');
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    setTheme(theme === 'light' ? 'dark' : 'light'); // ✅ Use setTheme from next-themes
   };
 
   /**
@@ -158,10 +134,10 @@ export function ThemeToggle({
       onClick={toggleTheme}
       className={getButtonClasses()}
       style={getButtonStyles()}
-      aria-label={isDark ? 'Chuyển sang light mode' : 'Chuyển sang dark mode'}
-      title={isDark ? 'Chuyển sang light mode' : 'Chuyển sang dark mode'}
+      aria-label={theme === 'dark' ? 'Chuyển sang light mode' : 'Chuyển sang dark mode'}
+      title={theme === 'dark' ? 'Chuyển sang light mode' : 'Chuyển sang dark mode'}
     >
-      {isDark ? (
+      {theme === 'dark' ? (
         <Sun className="h-4 w-4 transition-transform duration-200 rotate-0 scale-100" />
       ) : (
         <Moon className="h-4 w-4 transition-transform duration-200 rotate-0 scale-100" />
@@ -179,24 +155,21 @@ interface ThemeToggleWithLabelProps extends ThemeToggleProps {
   labelPosition?: 'left' | 'right';
 }
 
-export function ThemeToggleWithLabel({ 
-  showLabel = true, 
+export function ThemeToggleWithLabel({
+  showLabel = true,
   labelPosition = 'right',
-  ...props 
+  ...props
 }: ThemeToggleWithLabelProps) {
-  const [isDark, setIsDark] = useState(false);
+  const { theme } = useTheme(); // ✅ Use next-themes
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem('theme');
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setIsDark(savedTheme === 'dark' || (!savedTheme && systemPrefersDark));
   }, []);
 
   if (!mounted) return null;
 
-  const label = isDark ? 'Dark Mode' : 'Light Mode';
+  const label = theme === 'dark' ? 'Dark Mode' : 'Light Mode';
 
   return (
     <div className="flex items-center space-x-2">
@@ -205,9 +178,9 @@ export function ThemeToggleWithLabel({
           {label}
         </span>
       )}
-      
+
       <ThemeToggle {...props} />
-      
+
       {showLabel && labelPosition === 'right' && (
         <span className="text-sm font-medium" style={{ color: 'var(--color-foreground)' }}>
           {label}

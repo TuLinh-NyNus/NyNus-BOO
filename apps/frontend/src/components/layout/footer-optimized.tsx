@@ -12,7 +12,7 @@ import {
   Loader2
 } from "lucide-react";
 import Link from "next/link";
-import { useNewsletter } from '@/hooks';
+import { useNewsletter } from '@/hooks/homepage/use-newsletter';
 
 // Lazy load components
 const SocialLinks = dynamic(() => import("./social-links"), {

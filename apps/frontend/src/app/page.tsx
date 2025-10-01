@@ -1,9 +1,13 @@
 import { Metadata } from "next";
 import dynamic from 'next/dynamic';
 
-// Import home components từ index files
-import { Hero, Features, FAQ, ProgressScrollIndicator } from "@/components/features/home";
-import { HeroForcer } from "@/components/ui/theme";
+// Direct imports for client components (Next.js 15 best practice)
+// Avoid barrel exports for client components to prevent module resolution issues
+import Hero from "@/components/features/home/hero";
+import Features from "@/components/features/home/features";
+import FAQ from "@/components/features/home/faq";
+import ProgressScrollIndicator from "@/components/features/home/progress-scroll-indicator";
+import { HeroForcer } from "@/components/ui/theme/hero-forcer";
 
 // Dynamic imports cho performance optimization
 const AILearning = dynamic(() => import('@/components/features/home/ai-learning'), {

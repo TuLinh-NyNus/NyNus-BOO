@@ -1,3 +1,19 @@
+/**
+ * @deprecated Use UnifiedThemeToggle instead
+ * This component will be removed in v2.0
+ *
+ * Migration guide:
+ * ```typescript
+ * // Old
+ * import { ThemeToggle } from '@/components/ui/theme';
+ * <ThemeToggle isScrolled={true} />
+ *
+ * // New
+ * import { UnifiedThemeToggle } from '@/components/ui/theme';
+ * <UnifiedThemeToggle variant="ghost" size="md" />
+ * ```
+ */
+
 'use client';
 
 import { motion } from "framer-motion";
@@ -9,6 +25,9 @@ interface ThemeToggleProps {
   isScrolled?: boolean;
 }
 
+/**
+ * @deprecated Use UnifiedThemeToggle instead
+ */
 export function ThemeToggle({ isScrolled = true }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);

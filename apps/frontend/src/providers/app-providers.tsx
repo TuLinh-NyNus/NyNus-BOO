@@ -4,18 +4,12 @@ import React from 'react';
 
 import { ReactNode } from 'react';
 import { ThemeProvider } from 'next-themes';
-import dynamic from 'next/dynamic';
 import { NotificationProvider } from '@/contexts/notification-context';
 import { ModalProvider } from '@/contexts/modal-context';
 import { QueryProvider } from './query-provider';
 import { ToastContainer } from '@/components/ui/toast-container';
 import { ModalContainer } from '@/components/ui/modal-container';
-
-// Dynamic import to avoid SSR issues with protobuf
-const AuthProvider = dynamic(
-  () => import('@/contexts/auth-context-grpc').then(mod => ({ default: mod.AuthProvider })),
-  { ssr: false }
-);
+import { AuthProvider } from '@/contexts/auth-context-grpc';
 
 // Interface cho props của AppProviders
 interface AppProvidersProps {

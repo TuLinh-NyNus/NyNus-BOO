@@ -1,6 +1,0 @@
-ignoredBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - cypress
-  - grpc-tools
-  - sharp
-  - unrs-resolver

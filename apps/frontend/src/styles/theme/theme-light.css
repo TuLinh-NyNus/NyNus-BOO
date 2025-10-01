@@ -18,9 +18,9 @@
   --color-foreground: var(--color-light-navy);
   --color-surface: var(--color-light-surface);
   --color-surface-hover: var(--color-light-muted);
-  
-  /* Force light background for body */
-  --color-background: #FDF2F8 !important;
+
+  /* Light background - use CSS variable reference */
+  --color-background: var(--color-light-bg);
   
   /* Light mode gradient tokens */
   --gradient-1: 330 100% 98%;   /* #FDF2F8 - Very light pink */
@@ -151,19 +151,16 @@
 }
 
 /* ===== QUESTIONS PAGE LIGHT MODE OVERRIDES ===== */
-/* Force light background for questions page */
+/* Light background for questions page - use CSS variables */
 .questions-section {
-  background-color: #FDF2F8 !important;
-  background: #FDF2F8 !important;
+  background-color: var(--color-background);
 }
 
 .questions-section.bg-background {
-  background-color: #FDF2F8 !important;
-  background: #FDF2F8 !important;
+  background-color: var(--color-background);
 }
 
-/* Force light background for questions page body */
+/* Light background for questions page body */
 body .questions-section {
-  background-color: #FDF2F8 !important;
-  background: #FDF2F8 !important;
+  background-color: var(--color-background);
 }

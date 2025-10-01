@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ThemeToggle } from "@/components/ui/theme";
+import { UnifiedThemeToggle } from "@/components/ui/theme";
 import { SearchDropdown } from "./search-dropdown";
 import { AuthModal } from "./auth-modal";
 
@@ -308,7 +308,10 @@ const Navbar = () => {
           {/* Right side actions */}
           <div className="flex items-center gap-3 flex-shrink-0">
             {/* Theme Toggle */}
-            <ThemeToggle isScrolled={scrollOpacity > 0.5} />
+            <UnifiedThemeToggle
+              variant="ghost"
+              size="md"
+            />
 
             {/* Enhanced Search Button */}
             <div className="relative">

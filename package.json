@@ -1,4 +1,20 @@
 {
+	"name": "exam-bank-system",
+	"version": "1.0.0",
+	"private": true,
+	"description": "NyNus Exam Bank System - Monorepo",
+	"scripts": {
+		"dev": "pnpm --filter @nynus/web dev",
+		"dev:frontend": "pnpm --filter @nynus/web dev",
+		"build": "pnpm --filter @nynus/web build",
+		"build:frontend": "pnpm --filter @nynus/web build",
+		"lint": "pnpm --filter @nynus/web lint",
+		"lint:frontend": "pnpm --filter @nynus/web lint",
+		"typecheck": "pnpm --filter @nynus/web type-check",
+		"typecheck:frontend": "pnpm --filter @nynus/web type-check",
+		"clean": "pnpm --filter @nynus/web clean",
+		"test": "pnpm --filter @nynus/web test"
+	},
 	"dependencies": {
 		"gsap": "^3.13.0",
 		"keen-slider": "^6.8.6"

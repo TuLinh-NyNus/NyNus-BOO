@@ -1,2 +1,5 @@
+packages:
+  - 'apps/frontend'
+
 ignoredBuiltDependencies:
   - '@bufbuild/buf'

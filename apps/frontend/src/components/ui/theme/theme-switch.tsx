@@ -1,3 +1,19 @@
+/**
+ * @deprecated Use UnifiedThemeToggle instead
+ * This component will be removed in v2.0
+ *
+ * Migration guide:
+ * ```typescript
+ * // Old
+ * import ThemeSwitch from '@/components/ui/theme/theme-switch';
+ * <ThemeSwitch />
+ *
+ * // New
+ * import { UnifiedThemeToggle } from '@/components/ui/theme';
+ * <UnifiedThemeToggle variant="default" size="md" iconType="radix" />
+ * ```
+ */
+
 "use client";
 
 import { SunIcon, MoonIcon } from "@radix-ui/react-icons";
@@ -5,6 +21,9 @@ import { motion } from "framer-motion";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
+/**
+ * @deprecated Use UnifiedThemeToggle instead
+ */
 const ThemeSwitch = () => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();

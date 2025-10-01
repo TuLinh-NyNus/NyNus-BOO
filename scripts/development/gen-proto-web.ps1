@@ -174,15 +174,16 @@ $indexContent = @"
 "@
 
 # Find all generated files and create exports
-$generatedFiles = Get-ChildItem -Path $OUT_DIR -Filter "*.js" -Recurse
+$generatedFiles = Get-ChildItem -Path $OUT_DIR -Filter "*.js" -Recurse -ErrorAction SilentlyContinue
 foreach ($file in $generatedFiles) {
     if ($file.Name -notlike "*_pb.js") { continue }
-    
+
     $relativePath = $file.FullName.Substring($OUT_DIR.Length + 1).Replace('\', '/')
     $importPath = "./" + $relativePath.Replace('.js', '')
     $moduleName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name).Replace('_pb', '')
-    
-    $indexContent += "export * from '$importPath';`n"
+
+    # Use double quotes and escape properly
+    $indexContent += "export * from `"$importPath`";`n"
 }
 
 $indexPath = Join-Path $OUT_DIR "index.ts"
@@ -199,4 +200,4 @@ Write-Host "`n📊 Summary:" -ForegroundColor Cyan
 Write-Host "  - JavaScript files: $jsFiles" -ForegroundColor White
 Write-Host "  - TypeScript definitions: $tsFiles" -ForegroundColor White
 Write-Host "`n🎉 You can now import the generated code in your TypeScript files!" -ForegroundColor Green
-Write-Host "Example: import { UserServiceClient } from '@/generated/v1/user_grpc_web_pb'" -ForegroundColor Gray
+Write-Host 'Example: import { UserServiceClient } from "@/generated/v1/UserServiceClientPb"' -ForegroundColor Gray
