@@ -20,7 +20,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const isHomepage = pathname === '/';
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col" suppressHydrationWarning>
       <PageErrorBoundary>
         {/* Nền dark thống nhất cho tất cả trang (trừ home/admin) khi theme=dark */}
         <DarkBackground />
@@ -30,7 +30,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
               <Navbar />
             </ComponentErrorBoundary>
           )}
-          <main className={`flex-1 ${isHomepage ? 'pt-0' : 'pt-16'}`}>
+          <main className={`flex-1 ${isHomepage ? 'pt-0' : 'pt-16'}`} suppressHydrationWarning>
             {children}
           </main>
           {!isAdminPage && (
