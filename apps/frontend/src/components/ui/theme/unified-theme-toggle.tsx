@@ -180,13 +180,26 @@ export function UnifiedThemeToggle({
 
   // Don't render until mounted to prevent hydration mismatch
   if (!mounted) {
+    // Return a placeholder button with same dimensions to prevent layout shift
     return (
-      <div className={cn(
-        'inline-flex items-center justify-center rounded-md',
-        size === 'sm' ? 'h-8 w-8' : size === 'lg' ? 'h-12 w-12' : 'h-10 w-10'
-      )}>
-        <div className="animate-pulse bg-muted rounded-full h-4 w-4" />
-      </div>
+      <button
+        type="button"
+        disabled
+        className={cn(
+          'inline-flex items-center justify-center rounded-md transition-colors',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          'disabled:pointer-events-none disabled:opacity-50',
+          variant === 'default' && 'bg-primary text-primary-foreground hover:bg-primary/90',
+          variant === 'outline' && 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+          variant === 'ghost' && 'hover:bg-accent hover:text-accent-foreground',
+          variant === 'icon' && 'hover:bg-accent hover:text-accent-foreground',
+          size === 'sm' ? 'h-8 w-8' : size === 'lg' ? 'h-12 w-12' : 'h-10 w-10',
+          className
+        )}
+        aria-label="Loading theme toggle"
+      >
+        <div className="h-4 w-4 animate-pulse bg-current opacity-50 rounded-full" />
+      </button>
     );
   }
 
