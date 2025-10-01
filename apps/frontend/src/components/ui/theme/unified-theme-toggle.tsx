@@ -207,6 +207,14 @@ export function UnifiedThemeToggle({
     setTheme(theme === "light" ? "dark" : "light");
   };
 
+  // Get icon container classes based on size
+  const getIconContainerClasses = () => {
+    return cn(
+      'relative inline-flex items-center justify-center',
+      size === 'sm' ? 'h-4 w-4' : size === 'lg' ? 'h-6 w-6' : 'h-5 w-5'
+    );
+  };
+
   // With label
   if (showLabel) {
     return (
@@ -221,7 +229,7 @@ export function UnifiedThemeToggle({
           aria-label={theme === 'light' ? 'Chuyển sang chế độ tối' : 'Chuyển sang chế độ sáng'}
           data-theme-toggle
         >
-          <div className="relative">
+          <div className={getIconContainerClasses()}>
             {renderIcon()}
           </div>
         </button>
@@ -239,7 +247,7 @@ export function UnifiedThemeToggle({
       aria-label={theme === 'light' ? 'Chuyển sang chế độ tối' : 'Chuyển sang chế độ sáng'}
       data-theme-toggle
     >
-      <div className="relative">
+      <div className={getIconContainerClasses()}>
         {renderIcon()}
       </div>
     </button>
