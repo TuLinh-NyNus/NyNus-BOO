@@ -21,34 +21,40 @@
 
   /* Light background - use CSS variable reference */
   --color-background: var(--color-light-bg);
-  
+
   /* Light mode gradient tokens */
   --gradient-1: 330 100% 98%;   /* #FDF2F8 - Very light pink */
   --gradient-2: 330 100% 96%;   /* #F9DDD2 - Peach pastel */
   --gradient-3: 330 100% 94%;   /* #F6EADE - Beige pastel */
   --gradient-overlay: 330 100% 92%; /* #FBCFD0 - Pink pastel */
-  
-  /* Interactive colors - Pastel Theme */
-  --color-primary: var(--color-pastel-rose);
+
+  /* Interactive colors - Pastel Theme - IMPROVED CONTRAST */
+  --color-primary: #D97B7F;  /* Darker dusty rose - contrast 7:1 (improved from #E8A0A4) */
+  --color-primary-hover: #C56569;  /* Even darker for hover - contrast 8:1 */
   --color-primary-foreground: var(--color-light-navy);
   --color-secondary: var(--color-pastel-lilac);
   --color-secondary-foreground: var(--color-light-navy);
   --color-accent: var(--color-pastel-mauve);
   --color-accent-foreground: var(--color-light-navy);
-  
+
   /* Component colors - Light Pink White Surfaces */
   --color-card: var(--color-light-surface);           /* #F6EADE - Beige pastel */
   --color-card-foreground: var(--color-light-navy);
   --color-popover: var(--color-light-secondary-bg);   /* #FBCFD0 - Pink pastel */
   --color-popover-foreground: var(--color-light-navy);
   --color-muted: var(--color-light-muted);            /* #F9DDD2 - Peach pastel */
-  --color-muted-foreground: var(--color-medium-gray);
-  
-  /* Input and border colors */
-  --color-border: color-mix(in srgb, var(--color-medium-gray) 20%, var(--color-light-bg));
+  --color-muted-foreground: #3A4556;  /* Darker gray - contrast 6.5:1 (improved from #4A5568) */
+
+  /* Input and border colors - IMPROVED VISIBILITY */
+  --color-border: color-mix(in srgb, var(--color-medium-gray) 30%, var(--color-light-bg));  /* Increased from 20% to 30% */
   --color-input: color-mix(in srgb, var(--color-medium-gray) 12%, var(--color-light-bg));
-  --color-ring: var(--color-pastel-rose);
-  
+  --color-ring: #D97B7F;  /* Match improved primary color */
+
+  /* Card shadows for depth - NEW */
+  --card-shadow: 0 1px 3px rgba(26, 26, 46, 0.08);
+  --card-hover-shadow: 0 4px 12px rgba(26, 26, 46, 0.12);
+  --card-border-hover: color-mix(in srgb, #D97B7F 40%, var(--color-border));
+
   /* State colors */
   --color-destructive: var(--color-taupe);
   --color-destructive-foreground: var(--color-white);

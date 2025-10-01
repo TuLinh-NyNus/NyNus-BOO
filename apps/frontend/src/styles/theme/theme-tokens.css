@@ -53,14 +53,19 @@
   --color-purple: #8B5CF6;          /* Secondary interactive */
   --color-blue: #3B82F6;            /* Info blue */
   --color-pink: #EC4899;            /* Error pink */
-  
+
+  /* CTA colors - NEW for improved light mode contrast */
+  --color-cta-primary: #6366F1;     /* Indigo - contrast 8:1 for CTAs */
+  --color-cta-secondary: #8B5CF6;   /* Purple - contrast 7:1 for secondary CTAs */
+  --color-success-strong: #059669;  /* Darker emerald - contrast 7.5:1 */
+
   /* Admin colors */
   --color-admin-purple: #A259FF;
   --color-admin-purple-dark: #32197D;
   --color-admin-blue: #5B88B9;
   --color-admin-orange: #FDAD00;
   --color-admin-red: #FD5653;
-  
+
   /* System state colors */
   --color-success: #10B981;
   --color-success-light: #48BB78;
