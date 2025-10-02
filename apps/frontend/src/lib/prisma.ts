@@ -1,0 +1,38 @@
+/**
+ * Prisma Client Instance for NyNus Exam Bank System
+ * 
+ * This file creates a singleton instance of Prisma Client to prevent
+ * multiple instances in development (hot reload) and production.
+ * 
+ * Usage:
+ * ```typescript
+ * import { prisma } from '@/lib/prisma';
+ * 
+ * const users = await prisma.user.findMany();
+ * ```
+ */
+
+import { PrismaClient } from '../../generated/prisma';
+
+// Prevent multiple instances of Prisma Client in development
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  });
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
+
+// Graceful shutdown
+if (typeof window === 'undefined') {
+  process.on('beforeExit', async () => {
+    await prisma.$disconnect();
+  });
+}
+

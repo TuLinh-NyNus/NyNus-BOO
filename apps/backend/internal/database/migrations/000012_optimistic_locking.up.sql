@@ -5,13 +5,13 @@
 
 -- Add version fields for optimistic locking
 ALTER TABLE exams ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
-ALTER TABLE questions ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
+ALTER TABLE question ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
 ALTER TABLE exam_attempts ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
 
 -- Create indexes for version-based queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_exams_id_version ON exams(id, version);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_questions_id_version ON questions(id, version);
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_exam_attempts_id_version ON exam_attempts(id, version);
+CREATE INDEX IF NOT EXISTS idx_exams_id_version ON exams(id, version);
+CREATE INDEX IF NOT EXISTS idx_question_id_version ON question(id, version);
+CREATE INDEX IF NOT EXISTS idx_exam_attempts_id_version ON exam_attempts(id, version);
 
 -- ========================================
 -- OPTIMISTIC LOCKING FUNCTIONS
@@ -83,8 +83,8 @@ DECLARE
     v_new_version INT;
 BEGIN
     -- Get current version
-    SELECT version INTO v_current_version 
-    FROM questions 
+    SELECT version INTO v_current_version
+    FROM question
     WHERE id = p_question_id;
     
     -- Check if question exists
@@ -103,8 +103,8 @@ BEGIN
     v_new_version := v_current_version + 1;
     
     -- Update question with new version
-    UPDATE questions 
-    SET 
+    UPDATE question
+    SET
         content = p_content,
         type = p_type::question_type,
         difficulty = p_difficulty::difficulty_unified,
@@ -128,7 +128,7 @@ $$ LANGUAGE plpgsql;
 -- Create usage tracking queue table
 CREATE TABLE IF NOT EXISTS question_usage_queue (
     id SERIAL PRIMARY KEY,
-    question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+    question_id TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
     increment_value INT DEFAULT 1,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     processed BOOLEAN DEFAULT FALSE
@@ -160,13 +160,13 @@ BEGIN
         GROUP BY question_id
     ),
     updated_questions AS (
-        UPDATE questions
-        SET 
+        UPDATE question
+        SET
             usage_count = usage_count + ua.total_increment,
             updated_at = CURRENT_TIMESTAMP
         FROM usage_aggregates ua
-        WHERE questions.id = ua.question_id
-        RETURNING questions.id
+        WHERE question.id = ua.question_id
+        RETURNING question.id
     )
     SELECT COUNT(*) INTO v_questions_updated FROM updated_questions;
     

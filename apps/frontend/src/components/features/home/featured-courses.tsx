@@ -26,58 +26,58 @@ type Palette = {
 function getPalette(color?: string) {
   const palette = {
     orange: {
-      star: "text-amber-300",
-      starFill: "fill-amber-300",
-      levelBg: "bg-amber-500/15",
-      levelBorder: "border-amber-400/30",
-      levelText: "text-amber-300",
-      chipBg: "bg-amber-400/15",
-      chipBorder: "border-amber-400/25",
-      chipText: "text-amber-200",
+      star: "text-amber-700 dark:text-amber-300",
+      starFill: "fill-amber-700 dark:fill-amber-300",
+      levelBg: "bg-amber-500/25 dark:bg-amber-500/15",
+      levelBorder: "border-amber-400/40 dark:border-amber-400/30",
+      levelText: "text-amber-700 dark:text-amber-300",
+      chipBg: "bg-amber-400/25 dark:bg-amber-400/15",
+      chipBorder: "border-amber-400/35 dark:border-amber-400/25",
+      chipText: "text-amber-700 dark:text-amber-200",
       hoverShadow: "hover:shadow-amber-300/20"
     },
     green: {
-      star: "text-emerald-300",
-      starFill: "fill-emerald-300",
-      levelBg: "bg-emerald-500/15",
-      levelBorder: "border-emerald-400/30",
-      levelText: "text-emerald-300",
-      chipBg: "bg-emerald-400/15",
-      chipBorder: "border-emerald-400/25",
-      chipText: "text-emerald-200",
+      star: "text-emerald-700 dark:text-emerald-300",
+      starFill: "fill-emerald-700 dark:fill-emerald-300",
+      levelBg: "bg-emerald-500/25 dark:bg-emerald-500/15",
+      levelBorder: "border-emerald-400/40 dark:border-emerald-400/30",
+      levelText: "text-emerald-700 dark:text-emerald-300",
+      chipBg: "bg-emerald-400/25 dark:bg-emerald-400/15",
+      chipBorder: "border-emerald-400/35 dark:border-emerald-400/25",
+      chipText: "text-emerald-700 dark:text-emerald-200",
       hoverShadow: "hover:shadow-emerald-300/20"
     },
     indigo: {
-      star: "text-indigo-300",
-      starFill: "fill-indigo-300",
-      levelBg: "bg-indigo-500/15",
-      levelBorder: "border-indigo-400/30",
-      levelText: "text-indigo-300",
-      chipBg: "bg-indigo-400/15",
-      chipBorder: "border-indigo-400/25",
-      chipText: "text-indigo-200",
+      star: "text-indigo-700 dark:text-indigo-300",
+      starFill: "fill-indigo-700 dark:fill-indigo-300",
+      levelBg: "bg-indigo-500/25 dark:bg-indigo-500/15",
+      levelBorder: "border-indigo-400/40 dark:border-indigo-400/30",
+      levelText: "text-indigo-700 dark:text-indigo-300",
+      chipBg: "bg-indigo-400/25 dark:bg-indigo-400/15",
+      chipBorder: "border-indigo-400/35 dark:border-indigo-400/25",
+      chipText: "text-indigo-700 dark:text-indigo-200",
       hoverShadow: "hover:shadow-indigo-300/20"
     },
     purple: {
-      star: "text-purple-300",
-      starFill: "fill-purple-300",
-      levelBg: "bg-purple-500/15",
-      levelBorder: "border-purple-400/30",
-      levelText: "text-purple-300",
-      chipBg: "bg-purple-400/15",
-      chipBorder: "border-purple-400/25",
-      chipText: "text-purple-200",
+      star: "text-purple-700 dark:text-purple-300",
+      starFill: "fill-purple-700 dark:fill-purple-300",
+      levelBg: "bg-purple-500/25 dark:bg-purple-500/15",
+      levelBorder: "border-purple-400/40 dark:border-purple-400/30",
+      levelText: "text-purple-700 dark:text-purple-300",
+      chipBg: "bg-purple-400/25 dark:bg-purple-400/15",
+      chipBorder: "border-purple-400/35 dark:border-purple-400/25",
+      chipText: "text-purple-700 dark:text-purple-200",
       hoverShadow: "hover:shadow-purple-300/20"
     },
     blue: {
-      star: "text-blue-300",
-      starFill: "fill-blue-300",
-      levelBg: "bg-blue-500/15",
-      levelBorder: "border-blue-400/30",
-      levelText: "text-blue-300",
-      chipBg: "bg-blue-400/15",
-      chipBorder: "border-blue-400/25",
-      chipText: "text-blue-200",
+      star: "text-blue-700 dark:text-blue-300",
+      starFill: "fill-blue-700 dark:fill-blue-300",
+      levelBg: "bg-blue-500/25 dark:bg-blue-500/15",
+      levelBorder: "border-blue-400/40 dark:border-blue-400/30",
+      levelText: "text-blue-700 dark:text-blue-300",
+      chipBg: "bg-blue-400/25 dark:bg-blue-400/15",
+      chipBorder: "border-blue-400/35 dark:border-blue-400/25",
+      chipText: "text-blue-700 dark:text-blue-200",
       hoverShadow: "hover:shadow-blue-300/20"
     }
   } as const;
@@ -87,15 +87,15 @@ function getPalette(color?: string) {
 function getChipPalette(color?: string) {
   switch (color) {
     case "amber":
-      return { bg: "bg-amber-400/15", border: "border-amber-400/25", text: "text-amber-300" };
+      return { bg: "bg-amber-400/25 dark:bg-amber-400/15", border: "border-amber-400/35 dark:border-amber-400/25", text: "text-amber-700 dark:text-amber-300" };
     case "emerald":
-      return { bg: "bg-emerald-400/15", border: "border-emerald-400/25", text: "text-emerald-300" };
+      return { bg: "bg-emerald-400/25 dark:bg-emerald-400/15", border: "border-emerald-400/35 dark:border-emerald-400/25", text: "text-emerald-700 dark:text-emerald-300" };
     case "indigo":
-      return { bg: "bg-indigo-400/15", border: "border-indigo-400/25", text: "text-indigo-300" };
+      return { bg: "bg-indigo-400/25 dark:bg-indigo-400/15", border: "border-indigo-400/35 dark:border-indigo-400/25", text: "text-indigo-700 dark:text-indigo-300" };
     case "purple":
-      return { bg: "bg-purple-400/15", border: "border-purple-400/25", text: "text-purple-300" };
+      return { bg: "bg-purple-400/25 dark:bg-purple-400/15", border: "border-purple-400/35 dark:border-purple-400/25", text: "text-purple-700 dark:text-purple-300" };
     default:
-      return { bg: "bg-white/10", border: "border-white/20", text: "text-foreground/95" };
+      return { bg: "bg-muted/30 dark:bg-white/10", border: "border-border/40 dark:border-white/20", text: "text-foreground dark:text-foreground" };
   }
 }
 
@@ -120,7 +120,7 @@ const CourseCard = ({ course }: { course: FeaturedCourse }) => {
       </div>
       <div className="p-5 flex flex-col h-full">
         <h3 className="text-foreground font-semibold text-base leading-tight mb-1 line-clamp-2">{course.title}</h3>
-        <p className="text-foreground/80 text-sm leading-relaxed mb-3 line-clamp-3">{course.description}</p>
+        <p className="text-foreground text-sm leading-relaxed mb-3 line-clamp-3">{course.description}</p>
         {course.topics && course.topics.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
             {course.topics.slice(0, 3).map((topic, idx) => {
@@ -136,7 +136,7 @@ const CourseCard = ({ course }: { course: FeaturedCourse }) => {
             })}
           </div>
         )}
-        <div className="flex items-center gap-4 text-xs text-foreground/80 mb-4">
+        <div className="flex items-center gap-4 text-xs text-foreground mb-4">
           <div className="flex items-center gap-1">
             <span className="inline-block w-3.5 h-3.5 rounded-full bg-white/60" />
             <span>{course.students ? course.students.toLocaleString() : '0'} học viên</span>
@@ -198,12 +198,12 @@ const FeaturedCourses = () => {
             {/* Icon with glow */}
             <div className="relative z-10 mr-2">
               <div className="relative">
-                <BookOpen className="h-5 w-5 text-blue-300" />
-                <div className="absolute inset-0 h-5 w-5 bg-blue-300 rounded-full opacity-20 blur-sm"></div>
+                <BookOpen className="h-5 w-5 text-blue-700 dark:text-blue-300" />
+                <div className="absolute inset-0 h-5 w-5 bg-blue-700 dark:bg-blue-300 rounded-full opacity-20 blur-sm"></div>
               </div>
             </div>
 
-            <span className="font-semibold text-blue-300 text-base tracking-wide relative z-10">
+            <span className="font-bold text-blue-700 dark:text-blue-300 text-base tracking-wide relative z-10 bg-blue-700/15 dark:bg-blue-300/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-300/30 shadow-md shadow-blue-700/20 dark:shadow-blue-300/20">
               Khóa học nổi bật
             </span>
 
@@ -221,7 +221,7 @@ const FeaturedCourses = () => {
           </h2>
           
           {/* Subtitle (synced with Features) */}
-          <p className="text-foreground/95 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+          <p className="text-foreground text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
             Lựa chọn khóa học phù hợp với trình độ và mục tiêu của bạn từ lớp 9 đến lớp 12
           </p>
         </div>

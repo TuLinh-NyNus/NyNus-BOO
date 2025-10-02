@@ -241,19 +241,20 @@ const Navbar = () => {
                   className={`text-sm font-semibold tracking-wide transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md px-2 py-1 ${
                     pathname === item.href
                       ? scrollOpacity > 0.5
-                        ? "text-foreground font-bold"
+                        ? "font-bold"
                         : "text-white font-bold drop-shadow-lg"
                       : item.isHighlight
                       ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
                       : scrollOpacity > 0.5
-                      ? "text-foreground/80 hover:text-foreground"
+                      ? ""
                       : "text-white/90 hover:text-white drop-shadow-md"
                   } font-sans`}
                   style={{
-                    textShadow: item.isHighlight 
-                      ? "0 0 20px rgba(168, 85, 247, 0.2)" 
-                      : scrollOpacity < 0.5 
-                        ? "0 0 10px rgba(0, 0, 0, 0.5)" 
+                    color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined,
+                    textShadow: item.isHighlight
+                      ? "0 0 20px rgba(168, 85, 247, 0.2)"
+                      : scrollOpacity < 0.5
+                        ? "0 0 10px rgba(0, 0, 0, 0.5)"
                         : "none",
                     letterSpacing: "0.05em"
                   }}
@@ -272,9 +273,12 @@ const Navbar = () => {
                   size="icon"
                   className={`h-11 w-11 transition-all duration-300 ${
                     scrollOpacity > 0.5
-                      ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                      ? 'hover:bg-muted'
                       : 'text-white/90 hover:text-white hover:bg-white/10'
                   }`}
+                  style={{
+                    color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                  }}
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
                 >
                   <MoreHorizontal className="h-5 w-5" />
@@ -292,7 +296,8 @@ const Navbar = () => {
                         <Link
                           key={item.href}
                           href={item.href}
-                          className="block px-4 py-2 text-sm text-foreground/80 hover:text-foreground hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg"
+                          className="block px-4 py-2 text-sm hover:bg-muted transition-colors first:rounded-t-lg last:rounded-b-lg"
+                          style={{ color: '#E8A0A4' }}
                           onClick={() => setShowMoreMenu(false)}
                         >
                           {item.title}
@@ -320,9 +325,12 @@ const Navbar = () => {
                 size="icon"
                 className={`relative h-11 w-11 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                   scrollOpacity > 0.5
-                    ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                    ? 'hover:bg-muted'
                     : 'text-white/90 hover:text-white hover:bg-white/10'
                 }`}
+                style={{
+                  color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                }}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 aria-label="Mở tìm kiếm"
               >
@@ -341,11 +349,16 @@ const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-11 w-11 rounded-full">
-                      <div className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-                        scrollOpacity > 0.5
-                          ? 'bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80'
-                          : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
-                      }`}>
+                      <div
+                        className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          scrollOpacity > 0.5
+                            ? 'bg-muted hover:bg-muted/80'
+                            : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
+                        }`}
+                        style={{
+                          color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                        }}
+                      >
                         <User className="h-5 w-5" />
                       </div>
                     </Button>
@@ -387,9 +400,12 @@ const Navbar = () => {
                   size="icon"
                   className={`h-11 w-11 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                     scrollOpacity > 0.5
-                      ? 'bg-muted text-foreground/80 hover:text-foreground hover:bg-muted/80'
+                      ? 'bg-muted hover:bg-muted/80'
                       : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
                   }`}
+                  style={{
+                    color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                  }}
                   onClick={() => setIsAuthModalOpen(true)}
                   aria-label="Tài khoản người dùng"
                 >
@@ -404,9 +420,12 @@ const Navbar = () => {
               size="icon"
               className={`md:hidden transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                 scrollOpacity > 0.5
-                  ? 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                  ? 'hover:bg-muted'
                   : 'text-white/90 hover:text-white hover:bg-white/10'
               }`}
+              style={{
+                color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+              }}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Menu điều hướng"
             >
@@ -442,7 +461,8 @@ const Navbar = () => {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="text-foreground/80 hover:text-foreground font-medium transition-colors"
+                      className="font-medium transition-colors"
+                      style={{ color: '#E8A0A4' }}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.title}
@@ -456,7 +476,8 @@ const Navbar = () => {
                           setIsAuthModalOpen(true);
                           setIsMenuOpen(false);
                         }}
-                        className="justify-start text-foreground/80 hover:text-foreground hover:bg-muted"
+                        className="justify-start hover:bg-muted"
+                        style={{ color: '#E8A0A4' }}
                       >
                         Đăng nhập / Đăng ký
                       </Button>

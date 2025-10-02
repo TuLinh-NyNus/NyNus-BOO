@@ -103,12 +103,12 @@ const AILearning = () => {
                 <div className="relative">
                   <Zap className="h-4 w-4 text-blue-300 drop-shadow-lg filter drop-shadow-blue-300/50" />
                   {/* Glow effect */}
-                  <div className="absolute inset-0 h-4 w-4 bg-blue-300 rounded-full opacity-20 blur-sm animate-pulse"></div>
+                  <div className="absolute inset-0 h-4 w-4 bg-blue-700 dark:bg-blue-300 rounded-full opacity-20 blur-sm animate-pulse"></div>
                 </div>
               </motion.div>
-              
-              {/* Enhanced text with better typography */}
-              <span className="font-semibold text-blue-300 text-sm tracking-wide relative z-10 drop-shadow-sm">
+
+              {/* Enhanced text with better typography and solid background */}
+              <span className="font-bold text-blue-700 dark:text-blue-300 text-sm tracking-wide relative z-10 bg-blue-700/15 dark:bg-blue-300/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-300/30 shadow-md shadow-blue-700/20 dark:shadow-blue-300/20">
                 {aiLearningData.badge.text}
               </span>
               
@@ -122,7 +122,7 @@ const AILearning = () => {
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 leading-relaxed py-1">
               {aiLearningData.title}
             </h2>
-            <p className="text-foreground/80 text-sm max-w-2xl mx-auto leading-relaxed">
+            <p className="text-foreground text-sm max-w-2xl mx-auto leading-relaxed">
               {aiLearningData.subtitle}
             </p>
           </div>
@@ -159,7 +159,7 @@ const AILearning = () => {
                           <h3 className="font-semibold text-sm text-foreground mb-1 group-hover:text-blue-300 transition-colors duration-300">
                             {feature.title}
                           </h3>
-                          <p className="text-foreground/80 text-xs leading-relaxed">
+                          <p className="text-foreground text-xs leading-relaxed">
                             {feature.description}
                           </p>
                         </div>
@@ -224,7 +224,7 @@ const AILearning = () => {
                     </div>
 
                     {/* Labels */}
-                    <div className="mt-2 flex justify-between text-xs text-foreground/70">
+                    <div className="mt-2 flex justify-between text-xs text-foreground">
                       {learningProgressData.map((point, index) => (
                         <span key={index} className="text-center flex-1 truncate">
                           {point.label}
@@ -328,7 +328,7 @@ const AILearning = () => {
                     </div>
 
                     {/* Labels */}
-                    <div className="mt-2 flex justify-between text-xs text-foreground/70">
+                    <div className="mt-2 flex justify-between text-xs text-foreground">
                       {realProgressData.map((point, index) => (
                         <span key={index} className="text-center flex-1 truncate">
                           {point.label}
@@ -354,7 +354,7 @@ const AILearning = () => {
                         <div key={index} className="bg-muted/50 rounded-md p-2 border border-border">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-lg">{achievement.icon}</span>
-                            <span className="text-xs text-foreground/80 flex-1 truncate">{achievement.title}</span>
+                            <span className="text-xs text-foreground flex-1 truncate">{achievement.title}</span>
                           </div>
                           <div className="text-xs text-amber-400 font-medium">+{achievement.points} điểm</div>
                         </div>
@@ -381,7 +381,7 @@ const AILearning = () => {
                           }`}>
                             {chapter.current}/{chapter.target}
                           </div>
-                          <div className="text-sm text-foreground/70 truncate">{chapter.label}</div>
+                          <div className="text-sm text-foreground truncate">{chapter.label}</div>
                         </div>
                       ))}
                     </div>

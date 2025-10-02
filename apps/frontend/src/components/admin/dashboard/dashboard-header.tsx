@@ -28,7 +28,11 @@ export interface DashboardHeaderProps {
  * Format time ago
  * Format thời gian thành "X phút trước"
  */
-function formatTimeAgo(date: Date): string {
+function formatTimeAgo(date: Date | null): string {
+  if (!date) {
+    return 'Chưa cập nhật';
+  }
+
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMinutes = Math.floor(diffMs / (1000 * 60));
@@ -95,10 +99,6 @@ export function DashboardHeader({
    * Lấy text hiển thị thời gian update cuối
    */
   const getLastUpdatedText = () => {
-    if (!lastUpdated) {
-      return 'Chưa cập nhật';
-    }
-
     return formatTimeAgo(lastUpdated);
   };
 

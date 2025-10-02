@@ -26,7 +26,7 @@
   --color-medium-gray: #4A5568;     /* Muted text */
   
   /* Dark theme base colors */
-  --color-dark-bg: #0F1422;         /* Unified dark background (requested) */
+  --color-dark-bg: #1F1F46;         /* Unified dark background (user requested #1F1F46) */
   --color-dark-surface: #162338;    /* Dark surface/card */
   --color-dark-surface-hover: #1E2A42; /* Dark hover states */
   --color-dark-surface-muted: #13203A; /* Dark muted surfaces */

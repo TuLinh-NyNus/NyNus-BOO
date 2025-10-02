@@ -1,0 +1,828 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model account_locks {
+  id                                     String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id                                String    @unique
+  locked_at                              DateTime? @default(now()) @db.Timestamptz(6)
+  locked_until                           DateTime  @db.Timestamptz(6)
+  lock_reason                            String?   @db.VarChar(255)
+  failed_attempts                        Int?      @default(0)
+  unlocked_at                            DateTime? @db.Timestamptz(6)
+  unlocked_by                            String?
+  users_account_locks_unlocked_byTousers users?    @relation("account_locks_unlocked_byTousers", fields: [unlocked_by], references: [id], onUpdate: NoAction, map: "fk_account_lock_unlocker")
+  users_account_locks_user_idTousers     users     @relation("account_locks_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_account_lock_user")
+
+  @@index([user_id], map: "idx_account_locks_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model audit_logs {
+  id            String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id       String?
+  action        String
+  resource      String?
+  resource_id   String?
+  old_values    Json?
+  new_values    Json?
+  ip_address    String
+  user_agent    String?
+  session_id    String?
+  success       Boolean  @default(true)
+  error_message String?
+  metadata      Json?
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  users         users?   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([action], map: "idx_audit_logs_action")
+  @@index([created_at], map: "idx_audit_logs_created")
+  @@index([user_id], map: "idx_audit_logs_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model connection_pool_stats {
+  id                      Int       @id @default(autoincrement())
+  active_connections      Int
+  idle_connections        Int
+  total_connections       Int
+  max_connections         Int
+  connection_wait_time_ms Decimal?  @db.Decimal(10, 4)
+  recorded_at             DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([recorded_at(sort: Desc)], map: "idx_connection_pool_stats_time")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model course_enrollments {
+  id                String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id           String
+  course_id         String
+  status            String    @default("ACTIVE")
+  access_level      String    @default("BASIC")
+  max_downloads     Int?
+  current_downloads Int       @default(0)
+  max_streams       Int?
+  expires_at        DateTime? @db.Timestamptz(6)
+  progress          Int       @default(0)
+  completed_at      DateTime? @db.Timestamptz(6)
+  last_accessed_at  DateTime? @db.Timestamptz(6)
+  enrolled_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime  @default(now()) @db.Timestamptz(6)
+  users             users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, course_id], map: "idx_course_enrollments_user_course")
+  @@index([status], map: "idx_course_enrollments_status")
+}
+
+model email_verification_tokens {
+  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id    String
+  token      String    @unique @db.VarChar(255)
+  expires_at DateTime  @db.Timestamptz(6)
+  used       Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([token], map: "idx_verification_token")
+  @@index([user_id], map: "idx_verification_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_activity_log {
+  id            Int           @id @default(autoincrement())
+  session_id    String        @db.VarChar(32)
+  attempt_id    String        @db.Uuid
+  activity_type String        @db.VarChar(50)
+  question_id   String?
+  activity_data Json?
+  timestamp     DateTime      @default(now()) @db.Timestamptz(6)
+  duration_ms   Int?
+  exam_attempts exam_attempts @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exam_sessions exam_sessions @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([attempt_id, timestamp(sort: Desc)], map: "idx_exam_activity_log_attempt")
+  @@index([session_id, timestamp(sort: Desc)], map: "idx_exam_activity_log_session")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_answers {
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  attempt_id         String        @db.Uuid
+  question_id        String
+  answer_data        Json?
+  is_correct         Boolean?
+  points_earned      Decimal?      @default(0) @db.Decimal(5, 2)
+  time_spent_seconds Int?
+  answered_at        DateTime?     @default(now()) @db.Timestamptz(6)
+  exam_attempts      exam_attempts @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  question           question      @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([attempt_id, question_id])
+  @@index([attempt_id], map: "idx_exam_answers_attempt_id")
+  @@index([is_correct], map: "idx_exam_answers_is_correct")
+  @@index([question_id], map: "idx_exam_answers_question_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_attempts {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  exam_id             String              @db.Uuid
+  user_id             String
+  attempt_number      Int                 @default(1)
+  status              attempt_status?     @default(in_progress)
+  score               Decimal?            @db.Decimal(5, 2)
+  total_points        Int?
+  percentage          Decimal?            @db.Decimal(5, 2)
+  passed              Boolean?
+  started_at          DateTime            @default(now()) @db.Timestamptz(6)
+  submitted_at        DateTime?           @db.Timestamptz(6)
+  time_spent_seconds  Int?
+  ip_address          String?             @db.Inet
+  user_agent          String?
+  notes               String?
+  security_score      Int?                @default(100)
+  security_violations Int?                @default(0)
+  is_flagged          Boolean?            @default(false)
+  flag_reason         String?
+  version             Int?                @default(1)
+  exam_activity_log   exam_activity_log[]
+  exam_answers        exam_answers[]
+  exams               exams               @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users               users               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exam_feedback       exam_feedback[]
+  exam_results        exam_results?
+  exam_sessions       exam_sessions[]
+
+  @@unique([exam_id, user_id, attempt_number])
+  @@index([exam_id], map: "idx_exam_attempts_exam_id")
+  @@index([id, version], map: "idx_exam_attempts_id_version")
+  @@index([started_at(sort: Desc)], map: "idx_exam_attempts_started_at")
+  @@index([status], map: "idx_exam_attempts_status")
+  @@index([user_id], map: "idx_exam_attempts_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_browser_info {
+  id            Int           @id @default(autoincrement())
+  session_id    String        @db.VarChar(32)
+  is_fullscreen Boolean       @default(false)
+  tab_count     Int?
+  has_devtools  Boolean       @default(false)
+  window_size   String?       @db.VarChar(20)
+  screen_size   String?       @db.VarChar(20)
+  timezone      String?       @db.VarChar(50)
+  language      String?       @db.VarChar(10)
+  recorded_at   DateTime      @default(now()) @db.Timestamptz(6)
+  exam_sessions exam_sessions @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([session_id, recorded_at(sort: Desc)], map: "idx_exam_browser_info_session")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_feedback {
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  exam_id           String         @db.Uuid
+  user_id           String
+  attempt_id        String?        @db.Uuid
+  rating            Int?
+  difficulty_rating Int?
+  content           String?
+  created_at        DateTime       @default(now()) @db.Timestamptz(6)
+  exam_attempts     exam_attempts? @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exams             exams          @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users             users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at(sort: Desc)], map: "idx_exam_feedback_created_at")
+  @@index([exam_id], map: "idx_exam_feedback_exam_id")
+  @@index([user_id, created_at(sort: Desc)], map: "idx_exam_feedback_user_created")
+  @@index([user_id], map: "idx_exam_feedback_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_questions {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  exam_id      String   @db.Uuid
+  question_id  String
+  order_number Int
+  points       Int?     @default(1)
+  is_bonus     Boolean? @default(false)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  exams        exams    @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  question     question @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([exam_id, order_number])
+  @@unique([exam_id, question_id])
+  @@index([exam_id], map: "idx_exam_questions_exam_id")
+  @@index([exam_id, order_number], map: "idx_exam_questions_order")
+  @@index([question_id], map: "idx_exam_questions_question_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_rate_limits {
+  id           Int      @id @default(autoincrement())
+  user_id      String   @db.VarChar(255)
+  exam_id      String   @db.Uuid
+  action_type  String   @db.VarChar(50)
+  action_count Int      @default(1)
+  window_start DateTime @default(now()) @db.Timestamptz(6)
+  window_end   DateTime @db.Timestamptz(6)
+  max_actions  Int
+  is_blocked   Boolean  @default(false)
+  exams        exams    @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, exam_id, action_type, window_start])
+  @@index([user_id, exam_id, action_type], map: "idx_exam_rate_limits_user_exam")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_results {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  attempt_id            String        @unique @db.Uuid
+  total_questions       Int
+  correct_answers       Int?          @default(0)
+  incorrect_answers     Int?          @default(0)
+  unanswered            Int?          @default(0)
+  score_breakdown       Json?
+  accuracy_percentage   Decimal?      @db.Decimal(5, 2)
+  avg_time_per_question Decimal?      @db.Decimal(8, 2)
+  feedback              String?
+  grade                 String?       @db.VarChar(2)
+  created_at            DateTime      @default(now()) @db.Timestamptz(6)
+  exam_attempts         exam_attempts @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([attempt_id], map: "idx_exam_results_attempt_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_security_config {
+  exam_id                     String   @id @db.Uuid
+  require_fullscreen          Boolean  @default(true)
+  block_copy_paste            Boolean  @default(true)
+  block_right_click           Boolean  @default(true)
+  detect_devtools             Boolean  @default(true)
+  monitor_tab_switching       Boolean  @default(true)
+  max_violations              Int      @default(5)
+  allowed_violations_per_hour Int      @default(3)
+  session_timeout_minutes     Int      @default(120)
+  activity_timeout_minutes    Int      @default(30)
+  require_webcam              Boolean  @default(false)
+  require_microphone          Boolean  @default(false)
+  record_screen               Boolean  @default(false)
+  created_at                  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                  DateTime @default(now()) @db.Timestamptz(6)
+  exams                       exams    @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_security_events {
+  event_id      String        @id @db.VarChar(32)
+  session_id    String        @db.VarChar(32)
+  event_type    String        @db.VarChar(50)
+  severity      String        @db.VarChar(20)
+  description   String
+  metadata      Json?
+  timestamp     DateTime      @default(now()) @db.Timestamptz(6)
+  exam_sessions exam_sessions @relation(fields: [session_id], references: [session_id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([session_id, timestamp(sort: Desc)], map: "idx_exam_security_events_session")
+  @@index([timestamp(sort: Desc)], map: "idx_exam_security_events_timestamp")
+  @@index([event_type, severity, timestamp(sort: Desc)], map: "idx_exam_security_events_type_severity")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exam_sessions {
+  session_id           String                 @id @db.VarChar(32)
+  exam_id              String                 @db.Uuid
+  user_id              String                 @db.VarChar(255)
+  attempt_id           String                 @db.Uuid
+  start_time           DateTime               @default(now()) @db.Timestamptz(6)
+  expiry_time          DateTime               @db.Timestamptz(6)
+  last_activity        DateTime               @default(now()) @db.Timestamptz(6)
+  is_active            Boolean                @default(true)
+  is_locked            Boolean                @default(false)
+  security_token       String                 @db.VarChar(64)
+  ip_address           String?                @db.Inet
+  user_agent           String?
+  violations           Int                    @default(0)
+  terminated_at        DateTime?              @db.Timestamptz(6)
+  termination_reason   String?
+  lock_reason          String?
+  created_at           DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime               @default(now()) @db.Timestamptz(6)
+  exam_activity_log    exam_activity_log[]
+  exam_browser_info    exam_browser_info[]
+  exam_security_events exam_security_events[]
+  exam_attempts        exam_attempts          @relation(fields: [attempt_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exams                exams                  @relation(fields: [exam_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([exam_id, user_id], map: "idx_exam_sessions_exam_user")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model exams {
+  id                            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                         String                @db.VarChar(500)
+  description                   String?
+  instructions                  String?
+  duration_minutes              Int                   @default(60)
+  total_points                  Int?                  @default(0)
+  pass_percentage               Int?                  @default(60)
+  exam_type                     exam_type?            @default(generated)
+  status                        exam_status?          @default(PENDING)
+  shuffle_questions             Boolean?              @default(false)
+  shuffle_answers               Boolean?              @default(false)
+  show_results                  Boolean?              @default(true)
+  show_answers                  Boolean?              @default(false)
+  allow_review                  Boolean?              @default(true)
+  max_attempts                  Int?                  @default(1)
+  tags                          String[]
+  grade                         Int?
+  subject                       String?               @db.VarChar(50)
+  chapter                       String?               @db.VarChar(50)
+  difficulty                    difficulty_unified?   @default(MEDIUM)
+  exam_year                     String?               @db.VarChar(10)
+  source_institution            String?               @db.VarChar(255)
+  exam_code                     String?               @db.VarChar(50)
+  file_url                      String?
+  version                       Int?                  @default(1)
+  created_by                    String?
+  updated_by                    String?
+  published_at                  DateTime?             @db.Timestamptz(6)
+  created_at                    DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at                    DateTime              @default(now()) @db.Timestamptz(6)
+  exam_attempts                 exam_attempts[]
+  exam_feedback                 exam_feedback[]
+  exam_questions                exam_questions[]
+  exam_rate_limits              exam_rate_limits[]
+  exam_security_config          exam_security_config?
+  exam_sessions                 exam_sessions[]
+  users_exams_created_byTousers users?                @relation("exams_created_byTousers", fields: [created_by], references: [id], onUpdate: NoAction)
+  users_exams_updated_byTousers users?                @relation("exams_updated_byTousers", fields: [updated_by], references: [id], onUpdate: NoAction)
+
+  @@index([created_by], map: "idx_exams_created_by")
+  @@index([difficulty], map: "idx_exams_difficulty")
+  @@index([exam_type], map: "idx_exams_exam_type")
+  @@index([grade, subject], map: "idx_exams_grade_subject")
+  @@index([id, version], map: "idx_exams_id_version")
+  @@index([published_at(sort: Desc)], map: "idx_exams_published_at")
+  @@index([status], map: "idx_exams_status")
+  @@index([tags], map: "idx_exams_tags", type: Gin)
+}
+
+model login_attempts {
+  id             String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id        String?
+  email          String
+  ip_address     String
+  user_agent     String?
+  success        Boolean  @default(false)
+  failure_reason String?
+  attempted_at   DateTime @default(now()) @db.Timestamptz(6)
+  users          users?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_login_attempt_user")
+
+  @@index([attempted_at(sort: Desc)], map: "idx_login_attempts_attempted_at")
+  @@index([email], map: "idx_login_attempts_email")
+  @@index([ip_address], map: "idx_login_attempts_ip")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notifications {
+  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id    String
+  type       String
+  title      String
+  message    String
+  data       Json?
+  is_read    Boolean   @default(false)
+  read_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at DateTime? @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_notifications_created")
+  @@index([expires_at], map: "idx_notifications_expires")
+  @@index([type], map: "idx_notifications_type")
+  @@index([user_id, is_read], map: "idx_notifications_user_read")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oauth_accounts {
+  id                  String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id             String
+  provider            String
+  provider_account_id String
+  type                String   @default("oauth")
+  scope               String?
+  access_token        String?
+  refresh_token       String?
+  id_token            String?
+  expires_at          Int?
+  token_type          String?
+  created_at          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime @default(now()) @db.Timestamptz(6)
+  users               users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([provider, provider_account_id], map: "idx_oauth_provider_account")
+  @@index([user_id], map: "idx_oauth_user_id")
+}
+
+model password_reset_tokens {
+  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id    String
+  token      String    @unique @db.VarChar(255)
+  expires_at DateTime  @db.Timestamptz(6)
+  used       Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([token], map: "idx_password_reset_token")
+  @@index([user_id], map: "idx_password_reset_user_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model performance_metrics {
+  id           Int       @id @default(autoincrement())
+  metric_name  String    @db.VarChar(100)
+  metric_value Decimal   @db.Decimal(10, 4)
+  metric_unit  String    @db.VarChar(20)
+  context      Json?
+  recorded_at  DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([context], map: "idx_performance_metrics_context", type: Gin)
+  @@index([metric_name, recorded_at(sort: Desc)], map: "idx_performance_metrics_name_time")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model question {
+  id                   String                 @id
+  raw_content          String
+  content              String
+  subcount             String?                @db.VarChar(10)
+  type                 questiontype
+  source               String?
+  answers              Json?
+  correct_answer       Json?
+  solution             String?
+  tag                  String[]               @default([])
+  usage_count          Int?                   @default(0)
+  creator              String?                @default("ADMIN")
+  status               questionstatus?        @default(ACTIVE)
+  feedback             Int?                   @default(0)
+  difficulty           questiondifficulty?    @default(MEDIUM)
+  grade                String?                @db.Char(1)
+  subject              String?                @db.Char(1)
+  chapter              String?                @db.Char(1)
+  level                String?                @db.Char(1)
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  question_code_id     String                 @db.VarChar(7)
+  version              Int?                   @default(1)
+  exam_answers         exam_answers[]
+  exam_questions       exam_questions[]
+  question_code        question_code          @relation(fields: [question_code_id], references: [code], onUpdate: NoAction)
+  question_feedback    question_feedback[]
+  question_image       question_image[]
+  question_tag         question_tag[]
+  question_usage_queue question_usage_queue[]
+
+  @@index([chapter], map: "idx_question_chapter")
+  @@index([creator], map: "idx_question_creator")
+  @@index([difficulty], map: "idx_question_difficulty")
+  @@index([grade], map: "idx_question_grade")
+  @@index([grade, level], map: "idx_question_grade_level")
+  @@index([grade, subject], map: "idx_question_grade_subject")
+  @@index([grade, subject, chapter], map: "idx_question_grade_subject_chapter")
+  @@index([grade, subject, chapter, level], map: "idx_question_grade_subject_chapter_level")
+  @@index([grade, subject, level], map: "idx_question_grade_subject_level")
+  @@index([id, version], map: "idx_question_id_version")
+  @@index([level], map: "idx_question_level")
+  @@index([question_code_id], map: "idx_question_question_code_id")
+  @@index([status], map: "idx_question_status")
+  @@index([subject], map: "idx_question_subject")
+  @@index([type], map: "idx_question_type")
+  @@index([usage_count], map: "idx_question_usage_count")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model question_code {
+  code       String     @id @db.VarChar(7)
+  format     codeformat
+  grade      String     @db.Char(1)
+  subject    String     @db.Char(1)
+  chapter    String     @db.Char(1)
+  lesson     String     @db.Char(1)
+  form       String?    @db.Char(1)
+  level      String     @db.Char(1)
+  created_at DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime?  @default(now()) @db.Timestamptz(6)
+  question   question[]
+
+  @@index([grade, subject, chapter, level], map: "idx_question_code_full_filter")
+  @@index([grade], map: "idx_question_code_grade")
+  @@index([grade, level], map: "idx_question_code_grade_level")
+  @@index([grade, subject], map: "idx_question_code_grade_subject")
+  @@index([grade, subject, chapter], map: "idx_question_code_grade_subject_chapter")
+  @@index([grade, subject, level], map: "idx_question_code_grade_subject_level")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model question_feedback {
+  id            String       @id
+  question_id   String
+  user_id       String?
+  feedback_type feedbacktype
+  content       String?
+  rating        Int?
+  created_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  question      question     @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([created_at], map: "idx_question_feedback_created_at")
+  @@index([feedback_type], map: "idx_question_feedback_feedback_type")
+  @@index([question_id], map: "idx_question_feedback_question_id")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model question_image {
+  id            String       @id
+  question_id   String
+  image_type    imagetype
+  image_path    String?
+  drive_url     String?
+  drive_file_id String?      @db.VarChar(100)
+  status        imagestatus? @default(PENDING)
+  created_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime?    @default(now()) @db.Timestamptz(6)
+  question      question     @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([image_type], map: "idx_question_image_image_type")
+  @@index([question_id], map: "idx_question_image_question_id")
+  @@index([status], map: "idx_question_image_status")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model question_tag {
+  id          String    @id
+  question_id String
+  tag_name    String    @db.VarChar(100)
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  question    question  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([question_id, tag_name])
+  @@index([question_id], map: "idx_question_tag_question_id")
+  @@index([tag_name], map: "idx_question_tag_tag_name")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model question_usage_queue {
+  id              Int       @id @default(autoincrement())
+  question_id     String
+  increment_value Int?      @default(1)
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  processed       Boolean?  @default(false)
+  question        question  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([question_id], map: "idx_question_usage_queue_question_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model refresh_tokens {
+  id                 String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id            String
+  token_hash         String    @unique
+  token_family       String
+  is_active          Boolean   @default(true)
+  ip_address         String
+  user_agent         String?
+  device_fingerprint String?
+  parent_token_hash  String?
+  revoked_at         DateTime? @db.Timestamptz(6)
+  revoked_reason     String?
+  last_used_at       DateTime? @db.Timestamptz(6)
+  expires_at         DateTime  @db.Timestamptz(6)
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  users              users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([is_active], map: "idx_refresh_tokens_active")
+  @@index([expires_at], map: "idx_refresh_tokens_expires")
+  @@index([token_family], map: "idx_refresh_tokens_family")
+  @@index([token_hash], map: "idx_refresh_tokens_token_hash")
+  @@index([user_id], map: "idx_refresh_tokens_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model resource_access {
+  id              String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id         String
+  resource_type   String
+  resource_id     String
+  action          String
+  ip_address      String
+  user_agent      String?
+  session_token   String?
+  is_valid_access Boolean  @default(true)
+  risk_score      Int      @default(0)
+  duration        Int?
+  metadata        Json?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  users           users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([resource_type, resource_id], map: "idx_resource_access_resource")
+  @@index([risk_score], map: "idx_resource_access_risk")
+  @@index([user_id], map: "idx_resource_access_user_id")
+}
+
+model schema_migrations {
+  version    BigInt    @id
+  dirty      Boolean   @default(false)
+  applied_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_preferences {
+  id                    String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id               String   @unique
+  email_notifications   Boolean  @default(true)
+  push_notifications    Boolean  @default(true)
+  sms_notifications     Boolean  @default(false)
+  auto_play_videos      Boolean  @default(true)
+  default_video_quality String   @default("720p")
+  playback_speed        Decimal  @default(1.0) @db.Decimal(3, 2)
+  profile_visibility    String   @default("PUBLIC")
+  show_online_status    Boolean  @default(true)
+  allow_direct_messages Boolean  @default(true)
+  timezone              String   @default("Asia/Ho_Chi_Minh")
+  language              String   @default("vi")
+  date_format           String   @default("DD/MM/YYYY")
+  updated_at            DateTime @default(now()) @db.Timestamptz(6)
+  users                 users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_sessions {
+  id                 String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  user_id            String
+  session_token      String   @unique
+  ip_address         String
+  user_agent         String?
+  device_fingerprint String?
+  location           String?
+  is_active          Boolean  @default(true)
+  last_activity      DateTime @default(now()) @db.Timestamptz(6)
+  expires_at         DateTime @db.Timestamptz(6)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+  users              users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([is_active], map: "idx_user_sessions_active")
+  @@index([expires_at], map: "idx_user_sessions_expires")
+  @@index([session_token], map: "idx_user_sessions_token")
+  @@index([user_id], map: "idx_user_sessions_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  id                                             String                      @id
+  email                                          String                      @unique
+  password_hash                                  String
+  first_name                                     String
+  last_name                                      String
+  google_id                                      String?                     @unique
+  username                                       String?                     @unique
+  avatar                                         String?
+  bio                                            String?
+  phone                                          String?
+  address                                        String?
+  school                                         String?
+  date_of_birth                                  DateTime?                   @db.Date
+  gender                                         String?
+  role                                           String                      @default("STUDENT")
+  level                                          Int?
+  status                                         String                      @default("ACTIVE")
+  email_verified                                 Boolean                     @default(false)
+  max_concurrent_sessions                        Int                         @default(3)
+  last_login_at                                  DateTime?                   @db.Timestamptz(6)
+  last_login_ip                                  String?
+  login_attempts                                 Int                         @default(0)
+  locked_until                                   DateTime?                   @db.Timestamptz(6)
+  is_active                                      Boolean                     @default(true)
+  resource_path                                  String?
+  created_at                                     DateTime                    @default(now()) @db.Timestamptz(6)
+  updated_at                                     DateTime                    @default(now()) @db.Timestamptz(6)
+  account_locks_account_locks_unlocked_byTousers account_locks[]             @relation("account_locks_unlocked_byTousers")
+  account_locks_account_locks_user_idTousers     account_locks?              @relation("account_locks_user_idTousers")
+  audit_logs                                     audit_logs[]
+  course_enrollments                             course_enrollments[]
+  email_verification_tokens                      email_verification_tokens[]
+  exam_attempts                                  exam_attempts[]
+  exam_feedback                                  exam_feedback[]
+  exams_exams_created_byTousers                  exams[]                     @relation("exams_created_byTousers")
+  exams_exams_updated_byTousers                  exams[]                     @relation("exams_updated_byTousers")
+  login_attempts_relation                        login_attempts[]
+  notifications                                  notifications[]
+  oauth_accounts                                 oauth_accounts[]
+  password_reset_tokens                          password_reset_tokens[]
+  refresh_tokens                                 refresh_tokens[]
+  resource_access                                resource_access[]
+  user_preferences                               user_preferences?
+  user_sessions                                  user_sessions[]
+
+  @@index([email], map: "idx_users_email")
+  @@index([last_login_at(sort: Desc)], map: "idx_users_last_login")
+  @@index([role, level], map: "idx_users_role_level")
+  @@index([role, status], map: "idx_users_role_status")
+  @@index([status], map: "idx_users_status")
+}
+
+enum attempt_status {
+  in_progress
+  submitted
+  graded
+  cancelled
+}
+
+enum codeformat {
+  ID5
+  ID6
+}
+
+enum difficulty_unified {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum exam_status {
+  ACTIVE
+  PENDING
+  INACTIVE
+  ARCHIVED
+}
+
+enum exam_type {
+  generated
+  official
+}
+
+enum exam_type_new {
+  generated
+  official
+}
+
+enum feedbacktype {
+  LIKE
+  DISLIKE
+  REPORT
+  SUGGESTION
+}
+
+enum imagestatus {
+  PENDING
+  UPLOADING
+  UPLOADED
+  FAILED
+}
+
+enum imagetype {
+  QUESTION
+  SOLUTION
+}
+
+enum questiondifficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum questionstatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+  ARCHIVED
+}
+
+enum questiontype {
+  MC
+  TF
+  SA
+  ES
+  MA
+}

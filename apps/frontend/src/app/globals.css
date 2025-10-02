@@ -45,10 +45,19 @@ body {
 
 .dark {
   color-scheme: dark;
-  --background-rgb: 15, 20, 34;
+  --background-rgb: 31, 31, 70; /* #1F1F46 in RGB */
 }
 
-/* No need for .dark body override - CSS cascade handles it automatically */
+/* Dark mode body background override - ensure dark background */
+.dark body {
+  background-color: var(--color-background) !important;
+}
+
+/* Ensure sections with bg-background class use correct dark background */
+.dark section.bg-background,
+.dark div.bg-background {
+  background-color: var(--color-background) !important;
+}
 
 /* Custom utilities for modern carousel */
 .scrollbar-hide {

@@ -84,49 +84,49 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
     }
   }, [showDetails, analytics, feature.title]);
 
-  // Semantic color schemes based on feature purpose - IMPROVED CONTRAST
+  // Semantic color schemes based on feature purpose - IMPROVED CONTRAST FOR LIGHT MODE
   const semanticColorSchemes = {
     // Học tập/Kiến thức - Xanh dương (Blue)
     learning: {
-      bg: 'bg-gradient-to-br from-blue-500/20 via-blue-400/10 to-indigo-500/20',  // Increased from /10 to /20
-      icon: 'text-blue-400',
-      border: 'border-blue-500/50',  // Increased from /20 to /50
-      iconBg: 'bg-blue-500/20'  // Increased from /15 to /20
+      bg: 'bg-gradient-to-br from-blue-500/30 dark:from-blue-500/20 via-blue-400/15 dark:via-blue-400/10 to-indigo-500/30 dark:to-indigo-500/20',
+      icon: 'text-blue-700 dark:text-blue-400',
+      border: 'border-blue-500/60 dark:border-blue-500/50',
+      iconBg: 'bg-blue-500/30 dark:bg-blue-500/20'
     },
     // AI/Hỗ trợ thông minh - Tím (Purple)
     ai: {
-      bg: 'bg-gradient-to-br from-purple-500/20 via-purple-400/10 to-violet-500/20',  // Increased from /10 to /20
-      icon: 'text-purple-400',
-      border: 'border-purple-500/50',  // Increased from /20 to /50
-      iconBg: 'bg-purple-500/20'  // Increased from /15 to /20
+      bg: 'bg-gradient-to-br from-purple-500/30 dark:from-purple-500/20 via-purple-400/15 dark:via-purple-400/10 to-violet-500/30 dark:to-violet-500/20',
+      icon: 'text-purple-700 dark:text-purple-400',
+      border: 'border-purple-500/60 dark:border-purple-500/50',
+      iconBg: 'bg-purple-500/30 dark:bg-purple-500/20'
     },
     // Đánh giá/Thi cử - Lục (Green)
     assessment: {
-      bg: 'bg-gradient-to-br from-emerald-500/20 via-emerald-400/10 to-teal-500/20',  // Increased from /10 to /20
-      icon: 'text-emerald-400',
-      border: 'border-emerald-500/50',  // Increased from /20 to /50
-      iconBg: 'bg-emerald-500/20'  // Increased from /15 to /20
+      bg: 'bg-gradient-to-br from-emerald-500/30 dark:from-emerald-500/20 via-emerald-400/15 dark:via-emerald-400/10 to-teal-500/30 dark:to-teal-500/20',
+      icon: 'text-emerald-700 dark:text-emerald-400',
+      border: 'border-emerald-500/60 dark:border-emerald-500/50',
+      iconBg: 'bg-emerald-500/30 dark:bg-emerald-500/20'
     },
     // Theo dõi/Tiến bộ - Hổ phách (Amber)
     progress: {
-      bg: 'bg-gradient-to-br from-amber-500/20 via-amber-400/10 to-orange-500/20',  // Increased from /10 to /20
-      icon: 'text-amber-400',
-      border: 'border-amber-500/50',  // Increased from /20 to /50
-      iconBg: 'bg-amber-500/20'  // Increased from /15 to /20
+      bg: 'bg-gradient-to-br from-amber-500/30 dark:from-amber-500/20 via-amber-400/15 dark:via-amber-400/10 to-orange-500/30 dark:to-orange-500/20',
+      icon: 'text-amber-700 dark:text-amber-400',
+      border: 'border-amber-500/60 dark:border-amber-500/50',
+      iconBg: 'bg-amber-500/30 dark:bg-amber-500/20'
     },
     // Nội dung/Video - Hồng (Pink)
     content: {
-      bg: 'bg-gradient-to-br from-pink-500/20 via-pink-400/10 to-rose-500/20',  // Increased from /10 to /20
-      icon: 'text-pink-400',
-      border: 'border-pink-500/50',  // Increased from /20 to /50
-      iconBg: 'bg-pink-500/20'  // Increased from /15 to /20
+      bg: 'bg-gradient-to-br from-pink-500/30 dark:from-pink-500/20 via-pink-400/15 dark:via-pink-400/10 to-rose-500/30 dark:to-rose-500/20',
+      icon: 'text-pink-700 dark:text-pink-400',
+      border: 'border-pink-500/60 dark:border-pink-500/50',
+      iconBg: 'bg-pink-500/30 dark:bg-pink-500/20'
     },
     // Giáo viên/Quản lý - Xanh lam (Cyan)
     teacher: {
-      bg: 'bg-gradient-to-br from-cyan-500/20 via-cyan-400/10 to-sky-500/20',  // Increased from /10 to /20
-      icon: 'text-cyan-400',
-      border: 'border-cyan-500/50',  // Increased from /20 to /50
-      iconBg: 'bg-cyan-500/20'  // Increased from /15 to /20
+      bg: 'bg-gradient-to-br from-cyan-500/30 dark:from-cyan-500/20 via-cyan-400/15 dark:via-cyan-400/10 to-sky-500/30 dark:to-sky-500/20',
+      icon: 'text-cyan-700 dark:text-cyan-400',
+      border: 'border-cyan-500/60 dark:border-cyan-500/50',
+      iconBg: 'bg-cyan-500/30 dark:bg-cyan-500/20'
     }
   };
 
@@ -220,7 +220,7 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
                 </span>
                 {getTrendIcon(feature.stats.trend)}
               </div>
-              <p className="text-xs text-foreground/80">{feature.stats.label}</p>
+              <p className="text-xs text-foreground">{feature.stats.label}</p>
             </motion.div>
           )}
         </div>
@@ -229,14 +229,14 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
         <div className="flex-grow">
           {/* Enhanced typography with accessibility */}
           <h3
-            className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-foreground group-hover:text-foreground/95 transition-colors duration-300 leading-tight"
+            className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-foreground transition-colors duration-300 leading-tight"
             id={`feature-${feature.id}-title`}
           >
             {feature.title}
           </h3>
 
           <p
-            className="text-foreground/90 mb-4 sm:mb-5 transition-colors duration-300 leading-relaxed text-sm sm:text-base"
+            className="text-foreground mb-4 sm:mb-5 transition-colors duration-300 leading-relaxed text-sm sm:text-base"
             id={`feature-${feature.id}-description`}
           >
             {feature.description}
@@ -247,7 +247,7 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
             {feature.highlights.map((highlight, idx) => (
               <motion.span
                 key={idx}
-                className="px-2 py-1 text-xs bg-muted/50 text-foreground/95 rounded-full"
+                className="px-2 py-1 text-xs bg-muted/50 text-foreground rounded-full"
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.05 }}
@@ -272,7 +272,7 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
                   category: 'feature_engagement'
                 });
               }}
-              className="text-xs text-foreground/80 hover:text-foreground/95 underline underline-offset-4 decoration-1 transition-colors duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2 p-2 rounded-lg"
+              className="text-xs text-foreground hover:text-foreground underline underline-offset-4 decoration-1 transition-colors duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2 p-2 rounded-lg"
             >
               Chi tiết
             </button>
@@ -314,7 +314,7 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
               transition={{ duration: 0.3 }}
               className="mt-4 pt-4 border-t border-border"
             >
-              <h4 className="text-sm font-medium text-foreground/95 mb-2">Lợi ích chính:</h4>
+              <h4 className="text-sm font-medium text-foreground mb-2">Lợi ích chính:</h4>
               <ul className="space-y-1">
                 {feature.benefits.map((benefit, idx) => (
                   <motion.li
@@ -443,7 +443,7 @@ const Features = () => {
           >
             {/* Enhanced badge */}
             <motion.div
-              className="inline-flex items-center px-6 py-3 rounded-full bg-muted/50 border border-border text-foreground/90 mb-6 transition-all duration-300"
+              className="inline-flex items-center px-6 py-3 rounded-full bg-muted/50 border border-border text-foreground mb-6 transition-all duration-300"
               whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
             >
               <Info className="h-4 w-4 mr-2 text-blue-400" />
@@ -459,7 +459,7 @@ const Features = () => {
             </h2>
 
             {/* Enhanced subtitle */}
-            <p className="text-foreground/95 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+            <p className="text-foreground text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
               {featuresData.subtitle}
             </p>
           </motion.div>

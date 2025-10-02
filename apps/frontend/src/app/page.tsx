@@ -29,14 +29,14 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div>
+    <div className="bg-background">
       <HeroForcer>
         <Hero />
       </HeroForcer>
       <Features />
       <AILearning />
       <FeaturedCourses />
-      <Testimonials />  
+      <Testimonials />
       <FAQ />
       <ProgressScrollIndicator />
     </div>

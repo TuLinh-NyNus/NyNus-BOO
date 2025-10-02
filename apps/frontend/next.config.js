@@ -46,44 +46,6 @@ const nextConfig = {
 
   // Webpack optimizations
   webpack: (config, { dev, isServer }) => {
-    // Production optimizations
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        moduleIds: 'deterministic',
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-              priority: 10,
-            },
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              priority: 5,
-              reuseExistingChunk: true,
-            },
-            auth: {
-              test: /[\\/]src[\\/](contexts|hooks|services)[\\/].*auth/,
-              name: 'auth',
-              chunks: 'all',
-              priority: 20,
-            },
-            ui: {
-              test: /[\\/]src[\\/]components[\\/]ui[\\/]/,
-              name: 'ui',
-              chunks: 'all',
-              priority: 15,
-            },
-          },
-        },
-      };
-    }
-
     // Bundle analyzer
     if (process.env.ANALYZE === 'true') {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');

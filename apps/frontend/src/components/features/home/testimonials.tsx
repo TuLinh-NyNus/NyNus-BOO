@@ -136,11 +136,11 @@ const Testimonials = () => {
 
             <div className="relative z-10 mr-3">
               <div className="relative">
-                <Users className="h-5 w-5 text-blue-300" />
-                <div className="absolute inset-0 h-5 w-5 bg-blue-300 rounded-full opacity-20 blur-sm"></div>
+                <Users className="h-5 w-5 text-blue-700 dark:text-blue-300" />
+                <div className="absolute inset-0 h-5 w-5 bg-blue-700 dark:bg-blue-300 rounded-full opacity-20 blur-sm"></div>
               </div>
             </div>
-            <span className="font-semibold text-blue-300 text-base tracking-wide relative z-10">
+            <span className="font-bold text-blue-700 dark:text-blue-300 text-base tracking-wide relative z-10 bg-blue-700/15 dark:bg-blue-300/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-300/30 shadow-md shadow-blue-700/20 dark:shadow-blue-300/20">
               Cảm nhận học viên
             </span>
             <div className="absolute inset-0 rounded-full border border-transparent bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -318,7 +318,7 @@ const Testimonials = () => {
                         {/* Content Section - Flex grow with fixed heights */}
                         <div className="flex-grow flex flex-col justify-between">
                           {/* Content text with improved overflow handling - IMPROVED CONTRAST */}
-                          <blockquote className="text-foreground/90 leading-relaxed text-sm line-clamp-7 h-[140px] mb-4 overflow-hidden">
+                          <blockquote className="text-foreground leading-relaxed text-sm line-clamp-7 h-[140px] mb-4 overflow-hidden">
                             &ldquo;{testimonial.content}&rdquo;
                           </blockquote>
 
@@ -406,58 +406,58 @@ const Testimonials = () => {
 
           {/* Grid Layout 4 columns cho stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-            <motion.div 
+            <motion.div
               className="text-center group"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-300 mb-2 group-hover:text-gray-200 transition-colors">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
                 {testimonialsStats.totalStudents.toLocaleString()}+
               </div>
-              <div className="text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
-                <Users className="h-4 w-4 text-gray-400" />
+              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
+                <Users className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
                 Học viên tin tưởng
               </div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className="text-center group"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-300 mb-2 group-hover:text-gray-200 transition-colors">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
                 {testimonialsStats.averageRating}/5
               </div>
-              <div className="text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
+              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 Đánh giá trung bình
               </div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className="text-center group"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-300 mb-2 group-hover:text-gray-200 transition-colors">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
                 {testimonialsStats.improvementRate}%
               </div>
-              <div className="text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
-                <Target className="h-4 w-4 text-gray-400" />
+              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
+                <Target className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
                 Cải thiện điểm số
               </div>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               className="text-center group"
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-300 mb-2 group-hover:text-gray-200 transition-colors">
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
                 {testimonialsStats.totalStudyTime}
               </div>
-              <div className="text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
-                <Clock className="h-4 w-4 text-gray-400" />
+              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
                 Tổng thời gian học
               </div>
             </motion.div>

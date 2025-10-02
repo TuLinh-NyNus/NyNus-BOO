@@ -203,6 +203,13 @@ body.nynus-gradient-bg {
 /* Dark mode gradient - giữ consistency */
 .dark .nynus-gradient-bg {
   /* Unified plain background for dark mode */
-  background: var(--color-dark-bg);
+  background: var(--color-dark-bg) !important;
+  background-color: var(--color-dark-bg) !important;
   min-height: 100vh;
+}
+
+/* Dark mode body override - ensure dark background */
+.dark body.nynus-gradient-bg {
+  background: var(--color-dark-bg) !important;
+  background-color: var(--color-dark-bg) !important;
 }

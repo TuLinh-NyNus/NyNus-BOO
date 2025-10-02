@@ -24,9 +24,9 @@ const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
     >
       <button
         className={`w-full p-5 md:p-6 flex items-center justify-between text-left font-semibold transition-all duration-300 ${
-          isOpen 
-            ? "bg-muted/50 text-foreground" 
-            : "bg-transparent text-foreground/80 hover:bg-muted/30"
+          isOpen
+            ? "bg-muted/50 text-foreground"
+            : "bg-transparent text-foreground hover:bg-muted/30"
         }`}
         onClick={toggleOpen}
       >
@@ -58,7 +58,7 @@ const FAQItem = ({ question, answer, isOpen, toggleOpen }: FAQItemProps) => {
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="px-5 md:px-6 pb-5 md:pb-6 text-foreground/80 leading-relaxed text-sm md:text-base"
+          className="px-5 md:px-6 pb-5 md:pb-6 text-foreground leading-relaxed text-sm md:text-base"
         >
           {answer}
         </motion.div>
@@ -111,19 +111,19 @@ const FAQ = () => {
               transition={{ duration: 0.3 }}
             >
               <div className="relative mr-2 md:mr-3">
-                <HelpCircle className="h-4 md:h-5 w-4 md:w-5 text-blue-300" />
-                <div className="absolute inset-0 h-4 md:h-5 w-4 md:w-5 bg-blue-300 rounded-full opacity-30 blur-md animate-pulse" />
+                <HelpCircle className="h-4 md:h-5 w-4 md:w-5 text-blue-700 dark:text-blue-300" />
+                <div className="absolute inset-0 h-4 md:h-5 w-4 md:w-5 bg-blue-700 dark:bg-blue-300 rounded-full opacity-30 blur-md animate-pulse" />
               </div>
-              <span className="font-bold text-blue-200 text-sm md:text-base tracking-wide">
+              <span className="font-bold text-blue-700 dark:text-blue-200 text-sm md:text-base tracking-wide bg-blue-700/15 dark:bg-blue-200/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-200/30 shadow-md shadow-blue-700/20 dark:shadow-blue-200/20">
                 Hỗ trợ & Hướng dẫn
               </span>
             </motion.div>
 
-            {/* Enhanced Typography */}
-            <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent leading-relaxed py-1">
+            {/* Enhanced Typography - IMPROVED CONTRAST: Darker gradient for Light Mode */}
+            <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 dark:from-white dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent leading-relaxed py-1">
               Câu hỏi thường gặp
             </h2>
-            <p className="text-base md:text-lg lg:text-xl text-foreground/80 max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8">
+            <p className="text-base md:text-lg lg:text-xl text-foreground max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8">
               Những thắc mắc phổ biến về nền tảng học tập NyNus
             </p>
           </motion.div>
@@ -174,7 +174,7 @@ const FAQ = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <p className="text-foreground/70 text-sm md:text-base lg:text-lg mb-3 md:mb-4 transition-colors duration-300">
+            <p className="text-foreground text-sm md:text-base lg:text-lg mb-3 md:mb-4 transition-colors duration-300">
               Không tìm thấy câu trả lời bạn cần?
             </p>
             

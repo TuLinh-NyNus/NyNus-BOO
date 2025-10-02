@@ -15,7 +15,7 @@
 :root {
   /* Base semantic color overrides for light mode */
   --color-background: var(--color-light-bg);
-  --color-foreground: var(--color-light-navy);
+  --color-foreground: #E8A0A4;  /* Changed from var(--color-light-navy) to pastel rose for navbar */
   --color-surface: var(--color-light-surface);
   --color-surface-hover: var(--color-light-muted);
 
@@ -28,13 +28,13 @@
   --gradient-3: 330 100% 94%;   /* #F6EADE - Beige pastel */
   --gradient-overlay: 330 100% 92%; /* #FBCFD0 - Pink pastel */
 
-  /* Interactive colors - Pastel Theme - IMPROVED CONTRAST */
-  --color-primary: #D97B7F;  /* Darker dusty rose - contrast 7:1 (improved from #E8A0A4) */
-  --color-primary-hover: #C56569;  /* Even darker for hover - contrast 8:1 */
-  --color-primary-foreground: var(--color-light-navy);
-  --color-secondary: var(--color-pastel-lilac);
-  --color-secondary-foreground: var(--color-light-navy);
-  --color-accent: var(--color-pastel-mauve);
+  /* Interactive colors - Enhanced for Better Visibility */
+  --color-primary: #6366F1;  /* Indigo CTA - contrast 8:1 for better button visibility */
+  --color-primary-hover: #4F46E5;  /* Darker indigo for hover - contrast 9:1 */
+  --color-primary-foreground: #FFFFFF;  /* White text on primary buttons */
+  --color-secondary: #8B5CF6;  /* Purple secondary - contrast 7:1 */
+  --color-secondary-foreground: #FFFFFF;  /* White text on secondary buttons */
+  --color-accent: #D97B7F;  /* Dusty rose accent - softer for decorative elements */
   --color-accent-foreground: var(--color-light-navy);
 
   /* Component colors - Light Pink White Surfaces */
@@ -45,15 +45,15 @@
   --color-muted: var(--color-light-muted);            /* #F9DDD2 - Peach pastel */
   --color-muted-foreground: #3A4556;  /* Darker gray - contrast 6.5:1 (improved from #4A5568) */
 
-  /* Input and border colors - IMPROVED VISIBILITY */
-  --color-border: color-mix(in srgb, var(--color-medium-gray) 30%, var(--color-light-bg));  /* Increased from 20% to 30% */
-  --color-input: color-mix(in srgb, var(--color-medium-gray) 12%, var(--color-light-bg));
+  /* Input and border colors - IMPROVED VISIBILITY v2.0 */
+  --color-border: color-mix(in srgb, var(--color-medium-gray) 35%, var(--color-light-bg));  /* Increased from 30% to 35% for better visibility */
+  --color-input: color-mix(in srgb, var(--color-medium-gray) 18%, var(--color-light-bg));  /* Increased from 12% to 18% for clearer input borders */
   --color-ring: #D97B7F;  /* Match improved primary color */
 
-  /* Card shadows for depth - NEW */
-  --card-shadow: 0 1px 3px rgba(26, 26, 46, 0.08);
-  --card-hover-shadow: 0 4px 12px rgba(26, 26, 46, 0.12);
-  --card-border-hover: color-mix(in srgb, #D97B7F 40%, var(--color-border));
+  /* Card shadows for depth - Enhanced for Better Visibility v2.0 */
+  --card-shadow: 0 2px 6px rgba(26, 26, 46, 0.15);  /* Increased from 0.12 to 0.15 for better depth perception */
+  --card-hover-shadow: 0 8px 20px rgba(26, 26, 46, 0.20);  /* Increased from 0.16 to 0.20 for stronger hover effect */
+  --card-border-hover: color-mix(in srgb, #6366F1 50%, var(--color-border));  /* Indigo border on hover */
 
   /* State colors */
   --color-destructive: var(--color-taupe);

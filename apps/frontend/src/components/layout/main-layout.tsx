@@ -20,7 +20,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const isHomepage = pathname === '/';
 
   return (
-    <div className="min-h-screen flex flex-col" suppressHydrationWarning>
+    <div className="min-h-screen flex flex-col bg-background" suppressHydrationWarning>
       <PageErrorBoundary>
         {/* Nền dark thống nhất cho tất cả trang (trừ home/admin) khi theme=dark */}
         <DarkBackground />

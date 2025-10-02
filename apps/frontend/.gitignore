@@ -15,3 +15,5 @@ next-env.d.ts
 .next/
 /out/
 .turbo/
+
+/generated/prisma
