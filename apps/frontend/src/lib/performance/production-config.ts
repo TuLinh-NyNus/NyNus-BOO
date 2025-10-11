@@ -25,20 +25,22 @@ export const PERFORMANCE_CONFIG = {
     maxLocalStorageSize: 5 * 1024 * 1024, // 5MB
   },
   
-  // Network settings
+  // Enhanced network settings for production
   network: {
-    // Request timeouts (in milliseconds)
-    apiTimeout: 10000, // 10 seconds
-    authTimeout: 5000, // 5 seconds
-    uploadTimeout: 30000, // 30 seconds
-    
-    // Retry settings
+    // Optimized request timeouts (in milliseconds)
+    apiTimeout: 15000, // 15 seconds for production stability
+    authTimeout: 8000, // 8 seconds for auth operations
+    uploadTimeout: 60000, // 60 seconds for large uploads
+
+    // Enhanced retry settings
     maxRetries: 3,
-    retryDelay: 1000, // 1 second
-    
-    // Connection settings
+    retryDelay: 2000, // 2 seconds retry delay
+    exponentialBackoff: true, // Enable exponential backoff
+
+    // Optimized connection settings
     keepAlive: true,
-    maxConnections: 6,
+    maxConnections: 20, // Increased for production load
+    keepAliveTimeout: 30000, // 30 seconds
   },
   
   // Bundle optimization

@@ -100,27 +100,69 @@ const FAQ = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
           >
-            {/* Enhanced Badge */}
+            {/* Enhanced Badge - Unified to AI Learning Style */}
             <motion.div
-              className="inline-flex items-center px-6 md:px-8 py-3 md:py-4 rounded-2xl bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-emerald-500/20 border border-white/20 backdrop-blur-xl shadow-2xl mb-4 md:mb-5"
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 25px 50px -12px rgba(59, 130, 246, 0.25)"
-              }}
+              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 text-blue-400 backdrop-blur-sm mb-4 transition-all duration-500 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 relative overflow-hidden group"
+              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.3 }}
+              style={{
+                background: `linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 50%, rgba(16, 185, 129, 0.15) 100%), radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)`
+              }}
             >
-              <div className="relative mr-2 md:mr-3">
-                <HelpCircle className="h-4 md:h-5 w-4 md:w-5 text-blue-700 dark:text-blue-300" />
-                <div className="absolute inset-0 h-4 md:h-5 w-4 md:w-5 bg-blue-700 dark:bg-blue-300 rounded-full opacity-30 blur-md animate-pulse" />
+              {/* Subtle background pattern for badge */}
+              <div className="absolute inset-0 opacity-30">
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 25% 25%, rgba(147, 197, 253, 0.4) 1px, transparent 1px), radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.4) 1px, transparent 1px)`,
+                    backgroundSize: '20px 20px, 30px 30px',
+                    animation: 'float-subtle 8s ease-in-out infinite'
+                  }}
+                />
               </div>
-              <span className="font-bold text-blue-700 dark:text-blue-200 text-sm md:text-base tracking-wide bg-blue-700/15 dark:bg-blue-200/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-200/30 shadow-md shadow-blue-700/20 dark:shadow-blue-200/20">
+
+              {/* Enhanced icon with glow effect and animation */}
+              <motion.div
+                className="relative z-10 mr-2"
+                animate={{
+                  scale: [1, 1.05, 1],
+                  transition: {
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }
+                }}
+              >
+                <div className="relative">
+                  <HelpCircle className="h-4 w-4 text-badge-light drop-shadow-lg" />
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 h-4 w-4 bg-badge-light rounded-full opacity-20 blur-sm animate-pulse"></div>
+                </div>
+              </motion.div>
+
+              {/* Enhanced text with better typography */}
+              <span className="font-bold text-badge-light text-sm tracking-wide relative z-10">
                 Hỗ trợ & Hướng dẫn
               </span>
+
+              {/* Subtle border glow effect */}
+              <div className="absolute inset-0 rounded-full border border-transparent bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+              {/* Hover shine effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
             </motion.div>
 
-            {/* Enhanced Typography - IMPROVED CONTRAST: Darker gradient for Light Mode */}
-            <h2 className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 bg-gradient-to-r from-blue-900 via-purple-900 to-pink-900 dark:from-white dark:via-blue-100 dark:to-purple-100 bg-clip-text text-transparent leading-relaxed py-1">
+            {/* Enhanced Typography - VIBRANT GRADIENT: Brighter colors for better visibility */}
+            <h2
+              className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-bold mb-2 md:mb-3 lg:mb-4 leading-relaxed py-1"
+              style={{
+                background: 'linear-gradient(to right, #2563EB, #9333EA, #DB2777)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
               Câu hỏi thường gặp
             </h2>
             <p className="text-base md:text-lg lg:text-xl text-foreground max-w-2xl mx-auto leading-relaxed mb-6 md:mb-8">
@@ -189,30 +231,6 @@ const FAQ = () => {
             </button>
           </motion.div>
         </div>
-
-
-        {/* Enhanced CSS Animations */}
-        <style jsx>{`
-          @keyframes float-subtle {
-            0%, 100% { 
-              transform: translateY(0px) scale(1); 
-              opacity: 0.5;
-            }
-            50% { 
-              transform: translateY(-4px) scale(1.02); 
-              opacity: 0.8;
-            }
-          }
-          
-          @keyframes glow-pulse {
-            0%, 100% { 
-              box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-            }
-            50% { 
-              box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
-            }
-          }
-        `}</style>
       </section>
       </>
     );

@@ -12,12 +12,21 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/jackc/pgtype"
 	"golang.org/x/crypto/bcrypt"
 )
 
-// AuthService handles authentication business logic following the clean pattern
+// DEPRECATED: AuthService is being phased out in favor of EnhancedUserServiceServer
+// All authentication functionality has been consolidated into the gRPC service layer
+// This service is kept temporarily for backward compatibility during migration
+//
+// Migration Status:
+// - Account locking logic: ✅ MIGRATED to EnhancedUserServiceServer.Login()
+// - Login attempts tracking: ✅ MIGRATED to EnhancedUserServiceServer.Login()
+// - Bcrypt cost configuration: ✅ MIGRATED to EnhancedUserServiceServer
+// - JWT token generation: ✅ MIGRATED to UnifiedJWTService
+//
+// TODO: Remove this service completely after all references are updated
 type AuthService struct {
 	userRepo interface {
 		Create(ctx context.Context, db database.QueryExecer, user *entity.User) error
@@ -34,24 +43,36 @@ type AuthService struct {
 	}
 	preferenceRepo      repository.UserPreferenceRepository
 	notificationService *notification.NotificationService
-	jwtSecret           string
-	bcryptCost          int // Configurable bcrypt cost for password hashing
+	jwtService          IJWTService // REFACTORED: Use IJWTService interface instead of concrete type
+	bcryptCost          int         // Configurable bcrypt cost for password hashing
 }
 
-// Claims represents JWT token claims
-type Claims struct {
-	UserID string `json:"user_id"`
-	Email  string `json:"email"`
-	Role   string `json:"role"`
-	jwt.RegisteredClaims
-}
+// Claims represents JWT token claims (DEPRECATED: Use UnifiedClaims instead)
+// Kept for backward compatibility
+type Claims = UnifiedClaims
 
-// NewAuthService creates a new auth service with dependency injection
+// NewAuthService creates a new auth service with dependency injection (DEPRECATED)
+// Use NewAuthServiceWithJWT instead
 func NewAuthService(jwtSecret string) *AuthService {
+	// Create a basic UnifiedJWTService for backward compatibility
+	unifiedJWT, err := NewUnifiedJWTService(jwtSecret, nil, nil)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to create JWT service: %v", err))
+	}
 	return &AuthService{
 		userRepo:       &repository.UserRepository{},
 		preferenceRepo: repository.NewUserPreferenceRepository(nil), // Will be properly injected from container
-		jwtSecret:      jwtSecret,
+		jwtService:     unifiedJWT,
+		bcryptCost:     12, // Default to secure cost
+	}
+}
+
+// NewAuthServiceWithJWT creates a new auth service with IJWTService
+func NewAuthServiceWithJWT(jwtService IJWTService) *AuthService {
+	return &AuthService{
+		userRepo:       &repository.UserRepository{},
+		preferenceRepo: repository.NewUserPreferenceRepository(nil), // Will be properly injected from container
+		jwtService:     jwtService,
 		bcryptCost:     12, // Default to secure cost
 	}
 }
@@ -61,7 +82,7 @@ func NewEnhancedAuthService(
 	enhancedUserRepo repository.IUserRepository,
 	preferenceRepo repository.UserPreferenceRepository,
 	notificationService *notification.NotificationService,
-	jwtSecret string,
+	jwtService IJWTService,
 	bcryptCost int,
 ) *AuthService {
 	if bcryptCost < 10 {
@@ -72,7 +93,7 @@ func NewEnhancedAuthService(
 		enhancedUserRepo:    enhancedUserRepo,
 		preferenceRepo:      preferenceRepo,
 		notificationService: notificationService,
-		jwtSecret:           jwtSecret,
+		jwtService:          jwtService,
 		bcryptCost:          bcryptCost,
 	}
 }
@@ -142,8 +163,8 @@ func (s *AuthService) Login(db database.QueryExecer, email, password string) (*e
 		// Note: IP address will be updated in OAuth service or calling service
 	}
 
-	// Generate JWT token
-	token, err := s.generateToken(user)
+	// Generate JWT token using IJWTService
+	token, err := s.jwtService.GenerateToken(user)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to generate token: %w", err)
 	}
@@ -254,23 +275,8 @@ func (s *AuthService) Register(db database.QueryExecer, email, password, firstNa
 }
 
 // ValidateToken validates a JWT token and returns claims
-func (s *AuthService) ValidateToken(tokenString string) (*Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(s.jwtSecret), nil
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("invalid token: %w", err)
-	}
-
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
-	}
-
-	return nil, fmt.Errorf("invalid token claims")
+func (s *AuthService) ValidateToken(tokenString string) (*UnifiedClaims, error) {
+	return s.jwtService.ValidateToken(tokenString)
 }
 
 // IsAdmin checks if a user is an admin
@@ -350,25 +356,8 @@ func (s *AuthService) GetUserRole(db database.QueryExecer, userID string) (strin
 	return util.PgTextToString(user.Role), nil
 }
 
-// generateToken generates a JWT token for a user
+// generateToken generates a JWT token for a user (DEPRECATED: Use IJWTService.GenerateToken instead)
+// Kept for backward compatibility
 func (s *AuthService) generateToken(user *entity.User) (string, error) {
-	userID := util.PgTextToString(user.ID)
-	email := util.PgTextToString(user.Email)
-	role := util.PgTextToString(user.Role)
-
-	claims := &Claims{
-		UserID: userID,
-		Email:  email,
-		Role:   role,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			NotBefore: jwt.NewNumericDate(time.Now()),
-			Issuer:    "exam-bank-system",
-			Subject:   userID,
-		},
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(s.jwtSecret))
+	return s.jwtService.GenerateToken(user)
 }

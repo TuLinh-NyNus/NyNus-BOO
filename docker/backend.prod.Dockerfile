@@ -51,12 +51,19 @@ COPY --from=builder /app/internal/database/migrations /internal/database/migrati
 # Create non-root user (even in scratch)
 # Note: In scratch, we can't create users, so we rely on Kubernetes security context
 
-# Set environment variables for production
+# Set optimized environment variables for production
 ENV ENV=production
 ENV HTTP_GATEWAY_ENABLED=false
 ENV LOG_LEVEL=info
 ENV LOG_FORMAT=json
 ENV TLS_ENABLED=true
+# Enhanced performance settings
+ENV MAX_CONCURRENT_STREAMS=2000
+ENV MAX_RECEIVE_MESSAGE_SIZE=8388608
+ENV MAX_SEND_MESSAGE_SIZE=8388608
+ENV CONNECTION_TIMEOUT=60
+ENV KEEPALIVE_TIME=30
+ENV KEEPALIVE_TIMEOUT=5
 
 # Only expose gRPC port in production (no HTTP gateway)
 EXPOSE 8080
@@ -96,12 +103,19 @@ COPY --from=builder /app/internal/database/migrations ./internal/database/migrat
 # Set ownership
 RUN chown -R nynus:nynus /app
 
-# Set environment variables for production
+# Set optimized environment variables for production
 ENV ENV=production
 ENV HTTP_GATEWAY_ENABLED=false
 ENV LOG_LEVEL=info
 ENV LOG_FORMAT=json
 ENV TLS_ENABLED=true
+# Enhanced performance settings
+ENV MAX_CONCURRENT_STREAMS=2000
+ENV MAX_RECEIVE_MESSAGE_SIZE=8388608
+ENV MAX_SEND_MESSAGE_SIZE=8388608
+ENV CONNECTION_TIMEOUT=60
+ENV KEEPALIVE_TIME=30
+ENV KEEPALIVE_TIMEOUT=5
 
 # Only expose gRPC port in production
 EXPOSE 8080

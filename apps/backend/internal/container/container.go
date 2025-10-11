@@ -2,8 +2,10 @@ package container
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/cache"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
@@ -75,8 +77,7 @@ type Container struct {
 	NewsletterMgmt        *newsletter_mgmt.NewsletterMgmt
 	MapCodeMgmt           *mapcode_mgmt.MapCodeMgmt
 	AutoGradingService    *scoring.AutoGradingService // NEW: Auto-grading service for exams
-	JWTService            *auth.JWTService
-	EnhancedJWTService    *auth.EnhancedJWTService // NEW: JWT service with refresh token rotation
+	UnifiedJWTService     *auth.UnifiedJWTService     // UNIFIED: Single JWT service replacing JWTService and EnhancedJWTService
 	OAuthService          *oauth.OAuthService
 	SessionService        *session.SessionService
 	NotificationSvc       *notification.NotificationService
@@ -99,6 +100,7 @@ type Container struct {
 	SessionInterceptor            *middleware.SessionInterceptor
 	RoleLevelInterceptor          *middleware.RoleLevelInterceptor
 	RateLimitInterceptor          *middleware.RateLimitInterceptor
+	CSRFInterceptor               *middleware.CSRFInterceptor // NEW: CSRF protection
 	AuditLogInterceptor           *middleware.AuditLogInterceptor
 	ResourceProtectionInterceptor *middleware.ResourceProtectionInterceptor
 
@@ -115,6 +117,7 @@ type Container struct {
 	MapCodeGRPCService        *grpc.MapCodeServiceServer
 
 	// Configuration
+	Config    *config.Config
 	JWTSecret string
 }
 
@@ -122,6 +125,7 @@ type Container struct {
 func NewContainer(db *sql.DB, jwtSecret string, cfg *config.Config) *Container {
 	container := &Container{
 		DB:        db,
+		Config:    cfg,
 		JWTSecret: jwtSecret,
 	}
 
@@ -214,8 +218,30 @@ func (c *Container) initRepositories() {
 
 // initServices initializes all service dependencies
 func (c *Container) initServices() {
-	// Auth management service following the new clean pattern
-	c.AuthMgmt = auth.NewAuthMgmt(c.DB, c.JWTSecret)
+	// Initialize Unified JWT Service first (needed by AuthMgmt)
+	accessSecret := getEnvOrDefault("JWT_ACCESS_SECRET", c.JWTSecret)
+
+	// Create logger for JWT service
+	jwtLogger := logrus.New()
+	jwtLogger.SetLevel(logrus.InfoLevel)
+	jwtLogger.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339,
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyTime:  "timestamp",
+			logrus.FieldKeyLevel: "level",
+			logrus.FieldKeyMsg:   "message",
+		},
+	})
+
+	// Initialize Unified JWT Service với logger
+	var err error
+	c.UnifiedJWTService, err = auth.NewUnifiedJWTService(accessSecret, c.RefreshTokenRepo, jwtLogger)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to initialize JWT service: %v", err))
+	}
+
+	// Auth management service using UnifiedJWTService
+	c.AuthMgmt = auth.NewAuthMgmt(c.DB, c.UnifiedJWTService)
 
 	// Initialize QuestionMgmt with repositories
 	// Note: Image processing is optional, pass nil if not configured
@@ -286,16 +312,8 @@ func (c *Container) initServices() {
 	// Initialize MapCodeMgmt with repositories
 	c.MapCodeMgmt = mapcode_mgmt.NewMapCodeMgmt(c.MapCodeRepo, c.MapCodeTranslationRepo)
 
-	// Initialize JWT Service
-	accessSecret := getEnvOrDefault("JWT_ACCESS_SECRET", c.JWTSecret)
-	refreshSecret := getEnvOrDefault("JWT_REFRESH_SECRET", c.JWTSecret)
-	c.JWTService = auth.NewJWTService(accessSecret, refreshSecret)
-
-	// Initialize Enhanced JWT Service with refresh token rotation
-	c.EnhancedJWTService = auth.NewEnhancedJWTService(accessSecret, refreshSecret, c.RefreshTokenRepo)
-
-	// Create JWT Adapter for OAuth service
-	jwtAdapter := auth.NewJWTAdapter(c.JWTService)
+	// Create JWT Adapter for OAuth service using unified service (already initialized above)
+	jwtAdapter := auth.NewJWTAdapter(c.UnifiedJWTService)
 
 	// Initialize Notification and Session services first (needed by OAuth)
 	c.NotificationSvc = notification.NewNotificationService(c.NotificationRepo, c.UserPreferenceRepo)
@@ -306,6 +324,18 @@ func (c *Container) initServices() {
 	googleClientSecret := getEnvOrDefault("GOOGLE_CLIENT_SECRET", "")
 	googleRedirectURI := getEnvOrDefault("GOOGLE_REDIRECT_URI", "http://localhost:3000/api/auth/callback/google")
 
+	// Create logger for OAuth service
+	oauthLogger := logrus.New()
+	oauthLogger.SetLevel(logrus.InfoLevel)
+	oauthLogger.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339,
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyTime:  "timestamp",
+			logrus.FieldKeyLevel: "level",
+			logrus.FieldKeyMsg:   "message",
+		},
+	})
+
 	c.OAuthService = oauth.NewOAuthService(
 		c.UserRepoWrapper,
 		c.OAuthAccountRepo,
@@ -315,6 +345,7 @@ func (c *Container) initServices() {
 		googleClientID,
 		googleClientSecret,
 		googleRedirectURI,
+		oauthLogger, // Inject logger
 	)
 
 	// Initialize Email Service (uses environment variables internally)
@@ -349,6 +380,7 @@ func (c *Container) initMiddleware() {
 	c.SessionInterceptor = middleware.NewSessionInterceptor(c.SessionService, c.SessionRepo)
 	c.RoleLevelInterceptor = middleware.NewRoleLevelInterceptor()
 	c.RateLimitInterceptor = middleware.NewRateLimitInterceptor()
+	c.CSRFInterceptor = middleware.NewCSRFInterceptor(c.Config.Auth.Security.EnableCSRF) // NEW: CSRF protection
 	c.AuditLogInterceptor = middleware.NewAuditLogInterceptor(c.AuditLogRepo)
 	c.ResourceProtectionInterceptor = middleware.NewResourceProtectionInterceptor(c.ResourceProtectionSvc)
 }
@@ -367,7 +399,7 @@ func (c *Container) initGRPCServices() {
 	c.EnhancedUserGRPCService = grpc.NewEnhancedUserServiceServer(
 		c.OAuthService,
 		c.SessionService,
-		c.EnhancedJWTService, // Use Enhanced JWT Service instead of basic JWT Service
+		c.UnifiedJWTService, // Use Unified JWT Service
 		c.UserRepoWrapper,
 		c.EmailService,
 		bcryptCost,
@@ -461,6 +493,7 @@ func (c *Container) GetExamGRPCService() *grpc.ExamServiceServer {
 // InterceptorSet holds all interceptors
 type InterceptorSet struct {
 	RateLimit          *middleware.RateLimitInterceptor
+	CSRF               *middleware.CSRFInterceptor // NEW: CSRF protection
 	Auth               *middleware.AuthInterceptor
 	Session            *middleware.SessionInterceptor
 	RoleLevel          *middleware.RoleLevelInterceptor
@@ -472,6 +505,7 @@ type InterceptorSet struct {
 func (c *Container) GetAllInterceptors() *InterceptorSet {
 	return &InterceptorSet{
 		RateLimit:          c.RateLimitInterceptor,
+		CSRF:               c.CSRFInterceptor, // NEW: CSRF protection
 		Auth:               c.AuthInterceptor,
 		Session:            c.SessionInterceptor,
 		RoleLevel:          c.RoleLevelInterceptor,

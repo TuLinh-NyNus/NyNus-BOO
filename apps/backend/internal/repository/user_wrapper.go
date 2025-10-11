@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 )
 
@@ -23,9 +24,23 @@ func NewUserRepositoryWrapper(db *sql.DB) IUserRepository {
 
 // Create creates a new user
 func (w *userRepositoryWrapper) Create(ctx context.Context, user *User) error {
+	// Generate ID if not provided (fix for duplicate key issue)
+	if user.ID == "" {
+		user.ID = util.ULIDNow()
+	}
+
+	// Set timestamps if not provided
+	now := time.Now()
+	if user.CreatedAt.IsZero() {
+		user.CreatedAt = now
+	}
+	if user.UpdatedAt.IsZero() {
+		user.UpdatedAt = now
+	}
+
 	query := `
 		INSERT INTO users (
-			id, email, first_name, last_name, password_hash, role, level, 
+			id, email, first_name, last_name, password_hash, role, level,
 			username, avatar, google_id, status, email_verified,
 			max_concurrent_sessions, is_active, created_at, updated_at
 		) VALUES (

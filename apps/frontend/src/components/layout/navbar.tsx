@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Menu, X, User, Settings, LogOut, MoreHorizontal } from "lucide-react";
+import { Search, Menu, X, User, Settings, LogOut, MoreHorizontal, Eye } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
@@ -16,9 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+// Avatar components now handled by UserDisplay
 import { UnifiedThemeToggle } from "@/components/ui/theme";
 import { SearchDropdown } from "./search-dropdown";
-import { AuthModal } from "./auth-modal";
+import { AuthModal, useAuthModal } from "@/components/features/auth";
+import { useAuth } from "@/contexts/auth-context-grpc";
+import { UserDisplay } from "@/components/features/auth/UserDisplay";
+import { useNotifications } from "@/hooks/useNotifications";
+import { NotificationDropdown } from "@/components/features/notifications/NotificationDropdown";
 
 // Navigation items
 const navItems = [
@@ -59,24 +64,19 @@ const navItems = [
   }
 ];
 
-// Mock user data
-const mockUser = {
-  firstName: "Nguyễn",
-  lastName: "Văn A",
-  email: "user@nynus.edu.vn",
-  role: "student"
-};
-
 const Navbar = () => {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isAuthenticated] = useState(false); // Mock auth state
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const authModal = useAuthModal();
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [scrollOpacity, setScrollOpacity] = useState(0);
   const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  // Real authentication state from AuthContext
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
+  const { unreadCount } = useNotifications();
 
   // Responsive logic - hide items when screen gets smaller
   const [visibleItems, setVisibleItems] = useState(navItems);
@@ -173,18 +173,13 @@ const Navbar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMounted]);
 
-  const handleLogin = () => {
-    console.log("Login clicked");
-    setIsAuthModalOpen(false);
-  };
-
-  const handleRegister = () => {
-    console.log("Register clicked");
-    setIsAuthModalOpen(false);
-  };
-
-  const handleLogout = () => {
-    console.log("Logout clicked");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      console.log("User logged out successfully");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // Calculate dynamic background based on scroll position
@@ -212,7 +207,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link
             href="/"
-            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text py-1 logo-gradient-text"
+            className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight transition-all duration-300 text-transparent bg-clip-text py-1 logo-gradient-text mr-8 lg:mr-12"
             style={{
               fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
               fontWeight: 900,
@@ -240,22 +235,14 @@ const Navbar = () => {
                   href={item.href}
                   className={`text-sm font-semibold tracking-wide transition-all duration-300 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-md px-2 py-1 ${
                     pathname === item.href
-                      ? scrollOpacity > 0.5
-                        ? "font-bold"
-                        : "text-white font-bold drop-shadow-lg"
+                      ? "font-bold"
                       : item.isHighlight
                       ? "text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                      : scrollOpacity > 0.5
-                      ? ""
-                      : "text-white/90 hover:text-white drop-shadow-md"
+                      : ""
                   } font-sans`}
                   style={{
-                    color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined,
-                    textShadow: item.isHighlight
-                      ? "0 0 20px rgba(168, 85, 247, 0.2)"
-                      : scrollOpacity < 0.5
-                        ? "0 0 10px rgba(0, 0, 0, 0.5)"
-                        : "none",
+                    color: item.isHighlight ? undefined : '#E8A0A4',
+                    textShadow: item.isHighlight ? "0 0 20px rgba(168, 85, 247, 0.2)" : "none",
                     letterSpacing: "0.05em"
                   }}
                   aria-current={pathname === item.href ? 'page' : undefined}
@@ -271,13 +258,9 @@ const Navbar = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`h-11 w-11 transition-all duration-300 ${
-                    scrollOpacity > 0.5
-                      ? 'hover:bg-muted'
-                      : 'text-white/90 hover:text-white hover:bg-white/10'
-                  }`}
+                  className="h-11 w-11 transition-all duration-300 hover:bg-muted"
                   style={{
-                    color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                    color: '#E8A0A4'
                   }}
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
                 >
@@ -323,13 +306,9 @@ const Navbar = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className={`relative h-11 w-11 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                  scrollOpacity > 0.5
-                    ? 'hover:bg-muted'
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                }`}
+                className="relative h-11 w-11 transition-all duration-300 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 style={{
-                  color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                  color: '#E8A0A4'
                 }}
                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                 aria-label="Mở tìm kiếm"
@@ -343,34 +322,45 @@ const Navbar = () => {
               />
             </div>
 
-            {/* Auth Section - Transparent Icon */}
+            {/* Notifications and Auth Section */}
             <div className="flex items-center gap-4">
-              {isAuthenticated ? (
+              {/* Notification Dropdown - Only show when authenticated */}
+              {isMounted && isAuthenticated && (
+                <NotificationDropdown className="hidden md:flex" />
+              )}
+
+              {/* User Display */}
+              {!isMounted ? (
+                // Server-side fallback: Always show loading state
+                <div className="h-11 w-11 rounded-full bg-muted animate-pulse" suppressHydrationWarning={true} />
+              ) : isAuthenticated && user ? (
+                // Client-side: Authenticated user dropdown with UserDisplay
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-11 w-11 rounded-full">
-                      <div
-                        className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-                          scrollOpacity > 0.5
-                            ? 'bg-muted hover:bg-muted/80'
-                            : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
-                        }`}
-                        style={{
-                          color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
-                        }}
-                      >
-                        <User className="h-5 w-5" />
-                      </div>
-                    </Button>
+                    <div suppressHydrationWarning={true}>
+                      <UserDisplay
+                        user={user}
+                        variant="compact"
+                        size="md"
+                        showRole={false}
+                        showLevel={false}
+                        showAvatar={true}
+                        showNotificationBadge={true}
+                        notificationCount={unreadCount}
+                        onClick={() => {}} // Handled by DropdownMenuTrigger
+                        className="h-11 w-11 rounded-full hover:bg-accent/10 transition-colors duration-150"
+                        ariaLabel={`User menu for ${user.firstName} ${user.lastName}`}
+                      />
+                    </div>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">
-                          {mockUser.firstName} {mockUser.lastName}
+                          {user.firstName} {user.lastName}
                         </p>
                         <p className="text-xs leading-none text-muted-foreground">
-                          {mockUser.email}
+                          {user.email}
                         </p>
                       </div>
                     </DropdownMenuLabel>
@@ -387,6 +377,12 @@ const Navbar = () => {
                         Cài đặt
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/accessibility" className="flex items-center">
+                        <Eye className="mr-2 h-4 w-4" />
+                        Accessibility
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="flex items-center">
                       <LogOut className="mr-2 h-4 w-4" />
@@ -394,20 +390,21 @@ const Navbar = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              ) : isLoading ? (
+                // Client-side: Loading state
+                <div className="h-11 w-11 rounded-full bg-muted animate-pulse" suppressHydrationWarning={true} />
               ) : (
+                // Client-side: Unauthenticated user button
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`h-11 w-11 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                    scrollOpacity > 0.5
-                      ? 'bg-muted hover:bg-muted/80'
-                      : 'bg-white/10 text-white/90 hover:text-white hover:bg-white/20'
-                  }`}
+                  className="h-11 w-11 rounded-full transition-all duration-300 bg-muted hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   style={{
-                    color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                    color: '#E8A0A4'
                   }}
-                  onClick={() => setIsAuthModalOpen(true)}
+                  onClick={authModal.openLogin}
                   aria-label="Tài khoản người dùng"
+                  suppressHydrationWarning={true}
                 >
                   <User className="h-5 w-5" />
                 </Button>
@@ -418,13 +415,9 @@ const Navbar = () => {
             <Button
               variant="ghost"
               size="icon"
-              className={`md:hidden transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                scrollOpacity > 0.5
-                  ? 'hover:bg-muted'
-                  : 'text-white/90 hover:text-white hover:bg-white/10'
-              }`}
+              className="md:hidden transition-all duration-300 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               style={{
-                color: scrollOpacity > 0.5 ? '#E8A0A4' : undefined
+                color: '#E8A0A4'
               }}
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label="Menu điều hướng"
@@ -434,12 +427,14 @@ const Navbar = () => {
           </div>
         </nav>
 
-        {/* Auth Modal */}
         <AuthModal
-          isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
-          onLogin={handleLogin}
-          onRegister={handleRegister}
+          isOpen={authModal.isOpen}
+          onClose={authModal.close}
+          initialMode={authModal.mode}
+          onSuccess={() => {
+            authModal.close();
+            // Optionally redirect or show success message
+          }}
         />
 
         {/* Mobile Menu */}
@@ -468,19 +463,74 @@ const Navbar = () => {
                       {item.title}
                     </Link>
                   ))}
-                  {!isAuthenticated && (
+                  {isMounted && (
                     <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setIsAuthModalOpen(true);
-                          setIsMenuOpen(false);
-                        }}
-                        className="justify-start hover:bg-muted"
-                        style={{ color: '#E8A0A4' }}
-                      >
-                        Đăng nhập / Đăng ký
-                      </Button>
+                      {isAuthenticated && user ? (
+                        // Mobile: Authenticated user display
+                        <div className="space-y-3" suppressHydrationWarning={true}>
+                          <UserDisplay
+                            user={user}
+                            variant="full"
+                            size="lg"
+                            showRole={true}
+                            showLevel={true}
+                            showAvatar={true}
+                            showNotificationBadge={true}
+                            notificationCount={unreadCount}
+                            className="p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors duration-150"
+                            ariaLabel={`User profile for ${user.firstName} ${user.lastName}`}
+                          />
+                          <div className="flex flex-col gap-2">
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                window.location.href = '/profile';
+                                setIsMenuOpen(false);
+                              }}
+                              className="justify-start hover:bg-muted"
+                            >
+                              <User className="mr-2 h-4 w-4" />
+                              Hồ sơ cá nhân
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                window.location.href = '/settings';
+                                setIsMenuOpen(false);
+                              }}
+                              className="justify-start hover:bg-muted"
+                            >
+                              <Settings className="mr-2 h-4 w-4" />
+                              Cài đặt
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                handleLogout();
+                                setIsMenuOpen(false);
+                              }}
+                              className="justify-start hover:bg-muted text-destructive hover:text-destructive"
+                            >
+                              <LogOut className="mr-2 h-4 w-4" />
+                              Đăng xuất
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        // Mobile: Unauthenticated login button
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            authModal.openLogin();
+                            setIsMenuOpen(false);
+                          }}
+                          className="justify-start hover:bg-muted"
+                          style={{ color: '#E8A0A4' }}
+                          suppressHydrationWarning={true}
+                        >
+                          Đăng nhập / Đăng ký
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>

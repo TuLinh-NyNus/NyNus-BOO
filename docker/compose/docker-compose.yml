@@ -58,18 +58,25 @@ services:
 
   frontend:
     build:
-      context: ../..
-      dockerfile: ${FRONTEND_DOCKERFILE:-docker/frontend.Dockerfile}
+      context: ../../apps/frontend
+      dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile}
     container_name: ${FRONTEND_CONTAINER_NAME:-exam_bank_frontend}
     environment:
+      # Next.js Public Environment Variables
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080}
       - NEXT_PUBLIC_GRPC_URL=${NEXT_PUBLIC_GRPC_URL:-http://localhost:8080}
+      # NextAuth Configuration
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-nextauth-secret-here}
+      # Prisma Database URL (required for Prisma Client)
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-exam_bank_user}:${POSTGRES_PASSWORD:-exam_bank_password}@postgres:5432/${POSTGRES_DB:-exam_bank_db}?schema=public&sslmode=disable
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
-      - backend
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - exam_bank_network
     restart: unless-stopped

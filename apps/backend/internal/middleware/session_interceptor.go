@@ -14,19 +14,18 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// SessionInterceptor validates sessions and enforces session limits
+// SessionInterceptor validates sessions - SIMPLIFIED
 type SessionInterceptor struct {
 	sessionService *session.SessionService
 	sessionRepo    repository.SessionRepository
-	maxSessions    int
 }
 
-// NewSessionInterceptor creates a new session interceptor
+// NewSessionInterceptor creates a new session interceptor - SIMPLIFIED
 func NewSessionInterceptor(sessionService *session.SessionService, sessionRepo repository.SessionRepository) *SessionInterceptor {
 	return &SessionInterceptor{
 		sessionService: sessionService,
 		sessionRepo:    sessionRepo,
-		maxSessions:    3, // Default max concurrent sessions
+		// SIMPLIFIED: Remove maxSessions limit enforcement
 	}
 }
 
@@ -93,15 +92,8 @@ func (s *SessionInterceptor) Unary() grpc.UnaryServerInterceptor {
 			return nil, status.Errorf(codes.Unauthenticated, "session has expired")
 		}
 
-		// Update last activity
-		session.LastActivity = time.Now()
-		// Update asynchronously using UpdateLastActivity method
-		go func() {
-			if err := s.sessionRepo.UpdateLastActivity(context.Background(), session.ID); err != nil {
-				// Log error but don't fail the request
-				fmt.Printf("Failed to update session activity: %v\n", err)
-			}
-		}()
+		// SIMPLIFIED: Remove complex last activity tracking
+		// Basic session validation is sufficient
 
 		// Extract client info for logging
 		clientIP := extractClientIP(md)

@@ -77,6 +77,17 @@ yarn.lock
 package-lock.json
 .pnpm-store/
 
+# Workspace lockfiles (only root lockfile allowed in monorepo)
+# This prevents Turbopack "Next.js package not found" error
+apps/*/package-lock.json
+apps/*/yarn.lock
+apps/*/pnpm-lock.yaml
+apps/*/bun.lockb
+packages/*/package-lock.json
+packages/*/yarn.lock
+packages/*/pnpm-lock.yaml
+packages/*/bun.lockb
+
 # =============================================================================
 # ENVIRONMENT & CONFIGURATION
 # =============================================================================

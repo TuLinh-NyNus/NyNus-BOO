@@ -1,4 +1,16 @@
-# Cấu hình pnpm để khắc phục vấn đề module resolution với Next.js
-shamefully-hoist=true
+# pnpm configuration for Windows MAX_PATH workaround
+# This configuration flattens node_modules structure to avoid deep .pnpm directory nesting
+
+# Use hoisted node-linker to avoid .pnpm directory with long nested paths
+# This is the RECOMMENDED solution for Windows MAX_PATH issues
 node-linker=hoisted
+
+# Hoist all packages to root node_modules (flatten structure)
+public-hoist-pattern[]=*
+
+# Auto install peer dependencies
 auto-install-peers=true
+
+# Shamefully hoist to avoid module resolution issues
+shamefully-hoist=true
+

@@ -15,6 +15,8 @@ declare module "next-auth" {
     googleAccessToken?: string;
     backendAccessToken?: string;
     backendRefreshToken?: string;
+    role?: string;  // User role for middleware permission checks
+    level?: number; // User level for middleware permission checks
     user: {
       id: string;
     } & DefaultSession["user"];
@@ -37,5 +39,7 @@ declare module "next-auth/jwt" {
     googleAccessToken?: string;
     backendAccessToken?: string;
     backendRefreshToken?: string;
+    role?: string;  // User role stored in JWT token
+    level?: number; // User level stored in JWT token
   }
 }

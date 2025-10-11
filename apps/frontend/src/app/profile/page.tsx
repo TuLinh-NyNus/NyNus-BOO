@@ -13,11 +13,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
   School,
   Calendar,
   Shield,
@@ -27,8 +27,13 @@ import {
   LogOut,
   Edit,
   Save,
-  X
+  X,
+  RefreshCw,
+  Loader2
 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { AuthService } from '@/services/grpc/auth.service';
+import { convertProtobufSendVerificationEmailResponse } from '@/lib/utils/protobuf-converters';
 
 // Mock sessions data
 const mockSessions = [
@@ -63,7 +68,9 @@ const mockSessions = [
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [formData, setFormData] = useState({
     firstName: user?.firstName || '',
     lastName: user?.lastName || '',
@@ -104,6 +111,45 @@ export default function ProfilePage() {
     // TODO: Call API to terminate all sessions
     console.log('Terminating all sessions');
     logout();
+  };
+
+  const handleResendVerification = async () => {
+    if (!user?.id) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể gửi email xác thực. Vui lòng đăng nhập lại.',
+        variant: 'error',
+      });
+      return;
+    }
+
+    try {
+      setIsResendingVerification(true);
+
+      const protobufResponse = await AuthService.sendVerificationEmail(user.id);
+      const response = convertProtobufSendVerificationEmailResponse(protobufResponse);
+
+      if (response.success) {
+        toast({
+          title: 'Email đã được gửi!',
+          description: 'Vui lòng kiểm tra hộp thư để nhận email xác thực.',
+        });
+      } else {
+        toast({
+          title: 'Không thể gửi email',
+          description: response.message || 'Đã xảy ra lỗi khi gửi email xác thực.',
+          variant: 'error',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: (error as Error).message || 'Không thể gửi email xác thực.',
+        variant: 'error',
+      });
+    } finally {
+      setIsResendingVerification(false);
+    }
   };
 
   const getDeviceIcon = (deviceType: string) => {
@@ -202,15 +248,53 @@ export default function ProfilePage() {
                         Cấp độ {user.level}
                       </Badge>
                     )}
-                    {user.emailVerified && (
+                    {user.emailVerified ? (
                       <Badge variant="default" className="bg-green-100 text-green-800">
                         <Shield className="h-3 w-3 mr-1" />
                         Đã xác thực
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                        <Mail className="h-3 w-3 mr-1" />
+                        Chưa xác thực
                       </Badge>
                     )}
                   </div>
                 </div>
               </div>
+
+              {/* Email verification section */}
+              {!user.emailVerified && (
+                <div className="mt-4 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-orange-800 mb-1">Email chưa được xác thực</h4>
+                      <p className="text-sm text-orange-700 mb-3">
+                        Vui lòng xác thực email để sử dụng đầy đủ tính năng của hệ thống.
+                      </p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleResendVerification}
+                      disabled={isResendingVerification}
+                      className="ml-4 border-orange-300 text-orange-700 hover:bg-orange-100"
+                    >
+                      {isResendingVerification ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Đang gửi...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Gửi lại email
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Editable fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

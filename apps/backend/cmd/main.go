@@ -21,10 +21,17 @@ func main() {
 	// Load configuration
 	cfg := config.LoadConfig()
 
-	// Validate configuration (skip JWT validation for development)
-	if cfg.Database.Host == "" || cfg.Database.Port == "" || cfg.Database.User == "" {
-		log.Fatal("Database configuration is incomplete")
+	// Comprehensive configuration validation
+	if err := cfg.Validate(); err != nil {
+		log.Fatalf("Configuration validation failed: %v", err)
 	}
+
+	// Validate auth configuration
+	if err := cfg.Auth.ValidateAuthConfig(); err != nil {
+		log.Fatalf("Authentication configuration validation failed: %v", err)
+	}
+
+	log.Println("✅ Configuration validation passed")
 
 	// Create application
 	application, err := app.NewApp(cfg)

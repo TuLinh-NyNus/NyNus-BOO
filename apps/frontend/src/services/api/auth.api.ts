@@ -173,9 +173,13 @@ function mapProtoRoleToFrontend(role: unknown): FrontendRole {
     if (r.includes('STUDENT')) return 'student';
   }
   if (typeof role === 'number') {
-    // Guess common mapping: 1-STUDENT, 2-TEACHER, 3-ADMIN
-    if (role === 3) return 'admin';
-    if (role === 2) return 'teacher';
+    // FIXED: Correct protobuf enum mapping
+    // USER_ROLE_GUEST = 1, USER_ROLE_STUDENT = 2, USER_ROLE_TUTOR = 3, USER_ROLE_TEACHER = 4, USER_ROLE_ADMIN = 5
+    if (role === 5) return 'admin';    // FIXED: 3 → 5 (USER_ROLE_ADMIN)
+    if (role === 4) return 'teacher';  // FIXED: 2 → 4 (USER_ROLE_TEACHER)
+    if (role === 3) return 'teacher';  // TUTOR maps to teacher for now (legacy compatibility)
+    if (role === 2) return 'student';  // USER_ROLE_STUDENT
+    if (role === 1) return 'student';  // GUEST maps to student for now (legacy compatibility)
     return 'student';
   }
   return 'student';

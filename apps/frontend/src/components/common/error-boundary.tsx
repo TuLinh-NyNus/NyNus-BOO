@@ -139,10 +139,10 @@ function DefaultErrorFallback({ error, resetErrorBoundary }: DefaultErrorFallbac
           </button>
         </div>
         
-        {process.env.NODE_ENV === 'development' && error && (
+        {error && (
           <details className="mt-4 text-left">
             <summary className="cursor-pointer text-sm text-red-600 dark:text-red-400">
-              Chi tiết lỗi (Development)
+              Chi tiết lỗi
             </summary>
             <pre className="mt-2 p-2 text-xs bg-red-100 dark:bg-red-900/40 rounded overflow-auto">
               {error.stack}

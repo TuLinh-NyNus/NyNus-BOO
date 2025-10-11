@@ -30,7 +30,10 @@ Document này đã được cập nhật để tích hợp các fields từ thi�
 
 Tất cả các fields này đã được comment rõ ràng ý nghĩa trong các bảng dưới đây.
 
-## Database Schema
+## Database Schema (Raw SQL Migrations)
+
+> **Note**: Hệ thống sử dụng **Raw SQL migrations** với **golang-migrate**, KHÔNG sử dụng Prisma migrations.
+> Migration files: `apps/backend/internal/database/migrations/000004_exam_management_system.up.sql`
 
 ### Database Schema Overview
 
@@ -87,7 +90,10 @@ CREATE TABLE exams (
 
     -- Basic Settings (SIMPLIFIED)
     shuffle_questions BOOLEAN DEFAULT false,  -- Xáo trộn câu hỏi
+    shuffle_answers BOOLEAN DEFAULT false,    -- Xáo trộn đáp án (for MC/TF questions)
     show_results BOOLEAN DEFAULT true,        -- Hiển thị kết quả
+    show_answers BOOLEAN DEFAULT false,       -- Hiển thị đáp án đúng sau khi nộp
+    allow_review BOOLEAN DEFAULT true,        -- Cho phép xem lại bài làm
     max_attempts INT DEFAULT 1,               -- Số lần làm tối đa
 
     -- Official Exam Fields (OPTIONAL - chỉ cho exam_type = 'official')
@@ -101,9 +107,12 @@ CREATE TABLE exams (
 
     -- Metadata (MINIMAL)
     tags TEXT[],                              -- Tags tìm kiếm
+    chapter VARCHAR(50),                      -- Chương học (optional classification)
 
     -- Timestamps and ownership
-    created_by UUID REFERENCES users(id),     -- Người tạo
+    created_by TEXT REFERENCES users(id),     -- Người tạo (TEXT type for consistency with users table)
+    updated_by TEXT REFERENCES users(id),     -- Người cập nhật cuối cùng
+    published_at TIMESTAMPTZ,                 -- Thời gian xuất bản (when status changed to ACTIVE)
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
 
@@ -166,6 +175,17 @@ CREATE INDEX idx_exams_tags_gin ON exams USING gin(tags) WHERE tags IS NOT NULL;
 CREATE INDEX idx_exams_official ON exams(exam_type, exam_year) WHERE exam_type = 'official';
 CREATE INDEX idx_exams_source_institution ON exams(source_institution)
     WHERE source_institution IS NOT NULL;
+
+-- Chapter classification index
+CREATE INDEX idx_exams_chapter ON exams(chapter) WHERE chapter IS NOT NULL;
+
+-- Comments for field documentation
+COMMENT ON COLUMN exams.shuffle_answers IS 'Xáo trộn thứ tự đáp án (for MC/TF questions)';
+COMMENT ON COLUMN exams.show_answers IS 'Hiển thị đáp án đúng sau khi nộp bài';
+COMMENT ON COLUMN exams.allow_review IS 'Cho phép học sinh xem lại bài làm sau khi nộp';
+COMMENT ON COLUMN exams.chapter IS 'Chương học (optional classification for academic organization)';
+COMMENT ON COLUMN exams.updated_by IS 'User ID của người cập nhật cuối cùng';
+COMMENT ON COLUMN exams.published_at IS 'Timestamp khi exam được publish (status changed to ACTIVE)';
 ```
 
 ### 2. Bảng `exam_questions`
@@ -220,7 +240,7 @@ Theo dõi từng lần thi của người dùng.
 CREATE TABLE exam_attempts (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     exam_id UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     attempt_number INT NOT NULL DEFAULT 1,
     status attempt_status DEFAULT 'in_progress',
 
@@ -470,7 +490,7 @@ Lưu trữ phản hồi và đánh giá từ người dùng về bài thi.
 CREATE TABLE exam_feedback (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     exam_id UUID NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     attempt_id UUID REFERENCES exam_attempts(id) ON DELETE CASCADE,
 
     rating INT CHECK (rating >= 1 AND rating <= 5),
@@ -703,27 +723,64 @@ QuestionDifficulty: 'EASY', 'MEDIUM', 'HARD', 'EXPERT' → difficulty aligned
 | **Indexes** | ✅ Optimized | Performance Ready |
 | **Constraints** | ✅ Added | Data Integrity Ensured |
 
-### **📋 MIGRATION REQUIRED**
+### **📋 ACTUAL MIGRATION FILES**
 
-**For Existing Databases:**
+**Migration Files Structure**:
+```
+apps/backend/internal/database/migrations/
+├── 000001_foundation_system.up.sql       # Users table + Auth foundation
+├── 000002_question_system.up.sql         # Question Bank System
+├── 000003_auth_security_system.up.sql    # Sessions, OAuth, Security
+├── 000004_exam_management_system.up.sql  # Exam System (THIS FILE)
+│   ├── PART 1: Exam System Enums
+│   ├── PART 2: exams table
+│   ├── PART 3: exam_questions table
+│   ├── PART 4: exam_attempts table
+│   ├── PART 5: exam_answers table
+│   ├── PART 6: exam_results table
+│   ├── PART 7: exam_feedback table
+│   ├── PART 8: Triggers (updated_at)
+│   └── PART 9: Sample data
+└── 000008_align_exam_schema_with_design.up.sql  # Alignment fixes
+    ├── Fix exam_type enum (generated/official)
+    ├── Rename fields (school_name → source_institution)
+    └── Remove fields not in design
+```
+
+**Running Migrations**:
+```bash
+# Using golang-migrate CLI (Recommended)
+cd apps/backend
+migrate -path internal/database/migrations -database "postgresql://user:pass@localhost:5432/nynus?sslmode=disable" up
+
+# Using Go migrate command (if integrated)
+cd apps/backend
+go run cmd/migrate/main.go up
+
+# Manual execution (development only)
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000001_foundation_system.up.sql
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000002_question_system.up.sql
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000003_auth_security_system.up.sql
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000004_exam_management_system.up.sql
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000008_align_exam_schema_with_design.up.sql
+```
+
+**Migration 000008 Alignment Fixes** (Already Applied):
 ```sql
--- 1. Update exam status values
-UPDATE exams SET status = 'PENDING' WHERE status = 'draft';
-UPDATE exams SET status = 'ACTIVE' WHERE status = 'published';
-UPDATE exams SET status = 'ARCHIVED' WHERE status = 'archived';
+-- 1. Fix exam_type enum to match design
+ALTER TYPE exam_type RENAME TO exam_type_old;
+CREATE TYPE exam_type AS ENUM ('generated', 'official');
+ALTER TABLE exams ALTER COLUMN exam_type TYPE exam_type USING exam_type::text::exam_type;
+DROP TYPE exam_type_old;
 
--- 2. Update difficulty values
-UPDATE exams SET difficulty = 'EASY' WHERE difficulty = 'easy';
-UPDATE exams SET difficulty = 'MEDIUM' WHERE difficulty = 'medium';
-UPDATE exams SET difficulty = 'HARD' WHERE difficulty = 'hard';
+-- 2. Rename fields to match design
+ALTER TABLE exams RENAME COLUMN school_name TO source_institution;
+ALTER TABLE exams RENAME COLUMN source_file_path TO file_url;
 
--- 3. Add version field
-ALTER TABLE exams ADD COLUMN version INT DEFAULT 1;
-
--- 4. Update enum types
-ALTER TYPE exam_status RENAME TO exam_status_old;
-CREATE TYPE exam_status AS ENUM ('ACTIVE', 'PENDING', 'INACTIVE', 'ARCHIVED');
--- (Complete migration script in Integration Specifications section above)
+-- 3. Remove fields not in design
+ALTER TABLE exams DROP COLUMN IF EXISTS shuffle_answers;
+ALTER TABLE exams DROP COLUMN IF EXISTS show_answers;
+ALTER TABLE exams DROP COLUMN IF EXISTS allow_review;
 ```
 
 **Result**: Database schemas are now **100% compatible** between Question and Exam systems! 🎉
@@ -743,11 +800,22 @@ CREATE TYPE exam_status AS ENUM ('ACTIVE', 'PENDING', 'INACTIVE', 'ARCHIVED');
 ALTER TABLE Question RENAME TO questions;
 ```
 
-**2. Primary Key Type Standardization:**
+**2. User ID Type Standardization:**
 ```sql
--- All systems must use UUID for consistency
--- Question system currently uses TEXT, needs migration to UUID
-ALTER TABLE questions ALTER COLUMN id TYPE UUID USING id::UUID;
+-- ✅ DECISION: Use TEXT type for all user_id and created_by fields
+-- Rationale:
+-- 1. Consistency: users.id is TEXT PRIMARY KEY (defined in migration 000001)
+-- 2. Flexibility: TEXT supports both UUID and CUID formats
+-- 3. No migration needed: All existing foreign keys already use TEXT
+-- 4. Performance: TEXT vs UUID performance difference is negligible for user IDs
+
+-- All user references in exam system use TEXT:
+-- - exams.created_by TEXT REFERENCES users(id)
+-- - exam_attempts.user_id TEXT REFERENCES users(id)
+-- - exam_feedback.user_id TEXT REFERENCES users(id)
+-- - exam_groups.created_by TEXT REFERENCES users(id)
+-- - exam_group_members.user_id TEXT REFERENCES users(id)
+-- - exam_leaderboard.user_id TEXT REFERENCES users(id)
 ```
 
 **3. Foreign Key Alignment:**
@@ -1465,7 +1533,7 @@ CREATE TABLE exam_groups (
     group_code VARCHAR(20) UNIQUE,                         -- Mã nhóm để join
 
     -- Ownership
-    created_by UUID NOT NULL REFERENCES users(id),
+    created_by TEXT NOT NULL REFERENCES users(id),
 
     -- Settings
     is_public BOOLEAN DEFAULT false,                       -- Công khai cho mọi người join
@@ -1514,7 +1582,7 @@ CREATE INDEX idx_exam_groups_name_gin ON exam_groups USING gin(to_tsvector('engl
 ```sql
 CREATE TABLE exam_group_members (
     group_id UUID REFERENCES exam_groups(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
 
     -- Role & Status
     role VARCHAR(20) DEFAULT 'member',                     -- 'admin', 'moderator', 'member'
@@ -1555,7 +1623,7 @@ CREATE INDEX idx_group_members_last_active ON exam_group_members(last_active_at 
 ```sql
 CREATE TABLE exam_leaderboard (
     exam_id UUID REFERENCES exams(id) ON DELETE CASCADE,
-    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
 
     -- Best Attempt Reference
     best_attempt_id UUID REFERENCES exam_attempts(id),

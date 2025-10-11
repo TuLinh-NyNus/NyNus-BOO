@@ -1,76 +1,105 @@
 /**
  * Users API Routes
- * 
+ *
  * GET /api/users - Lấy danh sách users với filtering
  * POST /api/users - Tạo user mới
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { executePrismaOperation } from '@/lib/prisma/error-handler';
+import {
+  successResponseWithPagination,
+  createdResponse,
+  errorResponse,
+  validationErrorResponse,
+  conflictResponse,
+  calculatePagination,
+} from '@/lib/api/response-helper';
+import { hashPassword } from '@/lib/auth/password';
+import { createUserSchema, userQuerySchema, formatZodErrors } from '@/lib/validation/schemas';
 
 // GET /api/users - Lấy danh sách users
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const role = searchParams.get('role');
-    const status = searchParams.get('status');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+
+    // Validate query params với Zod
+    const queryValidation = userQuerySchema.safeParse({
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+      role: searchParams.get('role'),
+      status: searchParams.get('status'),
+      search: searchParams.get('search'),
+    });
+
+    if (!queryValidation.success) {
+      const { errors, failedFields } = formatZodErrors(queryValidation.error);
+      return validationErrorResponse('Query parameters không hợp lệ', {
+        errors,
+        failedFields,
+      });
+    }
+
+    const { page, limit, role, status, search } = queryValidation.data;
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
+    const where: {
+      role?: string;
+      status?: string;
+      OR?: Array<{ email?: { contains: string }; first_name?: { contains: string }; last_name?: { contains: string } }>;
+    } = {};
+
     if (role) where.role = role;
     if (status) where.status = status;
 
-    // Get users with pagination
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          username: true,
-          avatar: true,
-          role: true,
-          status: true,
-          emailVerified: true,
-          lastLoginAt: true,
-          createdAt: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.user.count({ where }),
-    ]);
+    // Add search filter
+    if (search) {
+      where.OR = [
+        { email: { contains: search } },
+        { first_name: { contains: search } },
+        { last_name: { contains: search } },
+      ];
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        users,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Lỗi khi lấy danh sách users',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    // Execute Prisma operation with error handling and retry logic
+    const [users, total] = await executePrismaOperation(() =>
+      Promise.all([
+        prisma.users.findMany({
+          where,
+          select: {
+            id: true,
+            email: true,
+            first_name: true,
+            last_name: true,
+            username: true,
+            avatar: true,
+            role: true,
+            status: true,
+            email_verified: true,
+            last_login_at: true,
+            created_at: true,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+          skip,
+          take: limit,
+        }),
+        prisma.users.count({ where }),
+      ])
     );
+
+    // Calculate pagination metadata
+    const pagination = calculatePagination(page, limit, total);
+
+    return successResponseWithPagination(users, pagination);
+  } catch (error) {
+    return errorResponse({
+      error,
+      customMessage: 'Lỗi khi lấy danh sách users',
+    });
   }
 }
 
@@ -78,78 +107,92 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, firstName, lastName, role = 'STUDENT' } = body;
 
-    // Validate required fields
-    if (!email || !password || !firstName || !lastName) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Thiếu thông tin bắt buộc',
-        },
-        { status: 400 }
-      );
+    // Validate request body với Zod
+    const validation = createUserSchema.safeParse(body);
+
+    if (!validation.success) {
+      const { errors, failedFields } = formatZodErrors(validation.error);
+      return validationErrorResponse('Dữ liệu không hợp lệ', {
+        errors,
+        failedFields,
+      });
     }
+
+    const { email, password, firstName, lastName, username, role, phone, avatar } = validation.data;
 
     // Check if email already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await executePrismaOperation(() =>
+      prisma.users.findUnique({
+        where: { email },
+      })
+    );
 
     if (existingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Email đã tồn tại',
-        },
-        { status: 409 }
-      );
+      return conflictResponse('Email đã tồn tại', {
+        field: 'email',
+        value: email,
+      });
     }
 
-    // TODO: Hash password properly (using bcrypt)
-    // For now, just store as-is (NOT SECURE - for demo only)
-    const passwordHash = password;
+    // Check if username already exists (if provided)
+    if (username) {
+      const existingUsername = await executePrismaOperation(() =>
+        prisma.users.findFirst({
+          where: { username },
+        })
+      );
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        id: crypto.randomUUID(),
-        email,
-        passwordHash,
-        firstName,
-        lastName,
-        role,
-        status: 'ACTIVE',
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        status: true,
-        createdAt: true,
-      },
-    });
+      if (existingUsername) {
+        return conflictResponse('Username đã tồn tại', {
+          field: 'username',
+          value: username,
+        });
+      }
+    }
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Tạo user thành công',
-        data: { user },
-      },
-      { status: 201 }
+    // Hash password với bcrypt
+    const passwordHash = await hashPassword(password);
+
+    // Create user with error handling
+    const user = await executePrismaOperation(() =>
+      prisma.users.create({
+        data: {
+          id: crypto.randomUUID(),
+          email,
+          password_hash: passwordHash,
+          first_name: firstName,
+          last_name: lastName,
+          username,
+          phone,
+          avatar,
+          role,
+          status: 'ACTIVE',
+        },
+        select: {
+          id: true,
+          email: true,
+          first_name: true,
+          last_name: true,
+          username: true,
+          phone: true,
+          avatar: true,
+          role: true,
+          status: true,
+          created_at: true,
+        },
+      })
+    );
+
+    return createdResponse(
+      { user },
+      'Tạo user thành công'
     );
   } catch (error) {
-    console.error('Error creating user:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Lỗi khi tạo user',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return errorResponse({
+      error,
+      customMessage: 'Lỗi khi tạo user',
+    });
   }
 }
 

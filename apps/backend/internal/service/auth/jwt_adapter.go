@@ -1,12 +1,23 @@
 package auth
 
-// JWTAdapter adapts JWTService to OAuth's JWTService interface
+// JWTAdapter adapts IJWTService to OAuth's JWTService interface
+//
+// Business Logic:
+// - Adapter pattern để bridge IJWTService với OAuth's JWTService interface
+// - OAuth interface không pass email và level, nên sử dụng defaults
+// - Actual email và level should come from user data in OAuthService
 type JWTAdapter struct {
-	jwtService *JWTService
+	jwtService IJWTService
 }
 
 // NewJWTAdapter creates a new JWT adapter
-func NewJWTAdapter(jwtService *JWTService) *JWTAdapter {
+//
+// Parameters:
+//   - jwtService: IJWTService implementation
+//
+// Returns:
+//   - *JWTAdapter: Configured adapter instance
+func NewJWTAdapter(jwtService IJWTService) *JWTAdapter {
 	return &JWTAdapter{
 		jwtService: jwtService,
 	}

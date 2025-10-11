@@ -244,7 +244,7 @@ export function ConnectedAdminDashboard() {
                 className="max-w-sm"
               />
             </div>
-            <Select value={roleFilter !== undefined ? roleFilter.toString() : ""} onValueChange={(value) => setRoleFilter(value ? parseInt(value) as UserRoleType : undefined)}>
+            <Select value={roleFilter?.toString() ?? ""} onValueChange={(value) => setRoleFilter(value ? parseInt(value) as UserRoleType : undefined)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Lọc theo vai trò" />
               </SelectTrigger>
@@ -256,7 +256,7 @@ export function ConnectedAdminDashboard() {
                 <SelectItem value={UserRole.USER_ROLE_STUDENT.toString()}>Student</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter !== undefined ? statusFilter.toString() : ""} onValueChange={(value) => setStatusFilter(value ? parseInt(value) as UserStatusType : undefined)}>
+            <Select value={statusFilter?.toString() ?? ""} onValueChange={(value) => setStatusFilter(value ? parseInt(value) as UserStatusType : undefined)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Lọc theo trạng thái" />
               </SelectTrigger>

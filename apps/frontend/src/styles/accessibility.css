@@ -1,0 +1,349 @@
+/**
+ * Accessibility Styles
+ * CSS styles cho accessibility features trong NyNus
+ * 
+ * @author NyNus Team
+ * @version 1.0.0
+ */
+
+/* ===== BASE ACCESSIBILITY STYLES ===== */
+
+/* Font scaling support */
+:root {
+  --accessibility-font-scale: 1;
+  --accessibility-click-delay: 0ms;
+}
+
+/* Apply font scaling to all text elements */
+.accessibility-font-scaling {
+  font-size: calc(1rem * var(--accessibility-font-scale));
+}
+
+/* ===== HIGH CONTRAST MODE ===== */
+
+.high-contrast {
+  /* Override theme colors with high contrast variants */
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --popover: #111111;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #333333;
+  --secondary-foreground: #ffffff;
+  --muted: #222222;
+  --muted-foreground: #cccccc;
+  --accent: #444444;
+  --accent-foreground: #ffffff;
+  --destructive: #ff0000;
+  --destructive-foreground: #ffffff;
+  --border: #666666;
+  --input: #333333;
+  --ring: #ffffff;
+}
+
+.high-contrast * {
+  /* Force high contrast on all elements */
+  border-color: var(--border) !important;
+  outline-color: var(--ring) !important;
+}
+
+.high-contrast img,
+.high-contrast svg {
+  /* Increase contrast for images and icons */
+  filter: contrast(150%) brightness(120%);
+}
+
+.high-contrast .text-muted-foreground {
+  /* Make muted text more visible */
+  color: var(--muted-foreground) !important;
+  opacity: 1 !important;
+}
+
+/* ===== REDUCED MOTION ===== */
+
+.reduce-motion,
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+.reduce-motion .animate-spin {
+  animation: none !important;
+}
+
+.reduce-motion .animate-pulse {
+  animation: none !important;
+  opacity: 0.7;
+}
+
+.reduce-motion .animate-bounce {
+  animation: none !important;
+}
+
+/* ===== ENHANCED FOCUS INDICATORS ===== */
+
+.enhanced-focus *:focus,
+.enhanced-focus *:focus-visible {
+  outline: 3px solid var(--ring) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px var(--ring) !important;
+}
+
+.enhanced-focus button:focus,
+.enhanced-focus a:focus,
+.enhanced-focus input:focus,
+.enhanced-focus textarea:focus,
+.enhanced-focus select:focus {
+  outline: 3px solid #0066cc !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.3) !important;
+}
+
+.enhanced-focus .focus-ring {
+  /* Custom focus ring for complex components */
+  position: relative;
+}
+
+.enhanced-focus .focus-ring:focus::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border: 3px solid var(--ring);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ===== SIMPLIFIED UI ===== */
+
+.simplified-ui {
+  /* Reduce visual complexity */
+  --border-radius: 4px;
+}
+
+.simplified-ui .shadow-lg,
+.simplified-ui .shadow-xl,
+.simplified-ui .shadow-2xl {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.simplified-ui .gradient-bg {
+  background: var(--background) !important;
+}
+
+.simplified-ui .backdrop-blur {
+  backdrop-filter: none !important;
+}
+
+.simplified-ui .opacity-50,
+.simplified-ui .opacity-60,
+.simplified-ui .opacity-70 {
+  opacity: 1 !important;
+}
+
+/* ===== SKIP ANIMATIONS ===== */
+
+.skip-animations * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.skip-animations .loading-spinner {
+  display: none !important;
+}
+
+.skip-animations .loading-skeleton {
+  background: var(--muted) !important;
+}
+
+/* ===== KEYBOARD NAVIGATION ENHANCEMENTS ===== */
+
+.keyboard-navigation {
+  /* Ensure all interactive elements are keyboard accessible */
+}
+
+.keyboard-navigation [tabindex="-1"]:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.keyboard-navigation .skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1000;
+  transition: top 0.3s;
+}
+
+.keyboard-navigation .skip-link:focus {
+  top: 6px;
+}
+
+/* ===== SCREEN READER ENHANCEMENTS ===== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ===== TOUCH ENHANCEMENTS ===== */
+
+.touch-friendly {
+  /* Ensure minimum touch target sizes */
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-friendly button,
+.touch-friendly a,
+.touch-friendly input,
+.touch-friendly select {
+  min-height: 44px;
+  padding: 12px 16px;
+}
+
+.touch-friendly .touch-target {
+  position: relative;
+}
+
+.touch-friendly .touch-target::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 44px;
+  min-height: 44px;
+  pointer-events: none;
+}
+
+/* ===== CLICK DELAY SUPPORT ===== */
+
+.click-delay {
+  transition-delay: var(--accessibility-click-delay);
+}
+
+.click-delay:hover {
+  transition-delay: 0ms;
+}
+
+/* ===== RESPONSIVE ACCESSIBILITY ===== */
+
+@media (max-width: 768px) {
+  .enhanced-focus *:focus {
+    outline-width: 4px !important;
+    outline-offset: 3px !important;
+  }
+  
+  .touch-friendly button,
+  .touch-friendly a {
+    min-height: 48px;
+    padding: 14px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .respect-motion-preference * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .respect-contrast-preference {
+    filter: contrast(150%);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .high-contrast {
+    --background: #000000;
+    --foreground: #ffffff;
+  }
+}
+
+/* ===== PRINT ACCESSIBILITY ===== */
+
+@media print {
+  .high-contrast {
+    -webkit-print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  
+  .skip-animations * {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+.accessibility-hidden {
+  display: none !important;
+}
+
+.accessibility-visible {
+  display: block !important;
+}
+
+.accessibility-focus-trap {
+  /* For modal focus trapping */
+  position: relative;
+}
+
+.accessibility-focus-trap::before,
+.accessibility-focus-trap::after {
+  content: '';
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.accessibility-landmark {
+  /* For ARIA landmarks */
+  position: relative;
+}
+
+.accessibility-live-region {
+  /* For ARIA live regions */
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}

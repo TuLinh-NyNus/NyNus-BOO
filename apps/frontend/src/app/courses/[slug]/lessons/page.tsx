@@ -7,7 +7,8 @@ import {
   CheckCircle,
   Lock,
   BookOpen,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -20,22 +21,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/displa
 import { getChaptersByCourseId } from '@/lib/mockdata/courses/course-details';
 import { getCourseBySlug } from '@/lib/mockdata';
 import { MockCourse, MockChapter, MockLesson } from '@/lib/mockdata/courses/courses-types';
+import { useAuth } from '@/contexts/auth-context-grpc';
 
 export default function CourseLearningPage(): JSX.Element {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug as string;
+  const { user, isLoading: authLoading, isAuthenticated } = useAuth();
 
   const [course, setCourse] = useState<MockCourse | null>(null);
   const [chapters, setChapters] = useState<MockChapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedChapter, setSelectedChapter] = useState<string>('');
 
+  // Client-side authentication check
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      // Redirect to login with return URL
+      router.push(`/login?callbackUrl=${encodeURIComponent(`/courses/${slug}/lessons`)}`);
+    }
+  }, [authLoading, isAuthenticated, router, slug]);
+
   useEffect(() => {
     const loadCourseData = async () => {
+      // Don't load course data if not authenticated
+      if (!isAuthenticated) return;
+
       try {
         setIsLoading(true);
-        
+
         await new Promise(resolve => setTimeout(resolve, 800));
         
         const courseData = getCourseBySlug(slug);
@@ -61,10 +75,10 @@ export default function CourseLearningPage(): JSX.Element {
       }
     };
 
-    if (slug) {
+    if (slug && isAuthenticated) {
       loadCourseData();
     }
-  }, [slug, router]);
+  }, [slug, router, isAuthenticated]);
 
   const handleLessonClick = (lessonId: string) => {
     router.push(`/courses/${slug}/lessons/${lessonId}`);
@@ -89,12 +103,69 @@ export default function CourseLearningPage(): JSX.Element {
     return null;
   };
 
+  // Authentication loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen relative">
+        <MathBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-white mx-auto" />
+            <div className="text-white text-xl">Đang xác thực...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthenticated state (will redirect, but show message briefly)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen relative">
+        <MathBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-4">
+            <Lock className="h-12 w-12 text-white mx-auto" />
+            <div className="text-white text-xl">Yêu cầu đăng nhập</div>
+            <div className="text-white/80">Đang chuyển hướng đến trang đăng nhập...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Role-based access check
+  if (user && !['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'].includes(user.role.toString())) {
+    return (
+      <div className="min-h-screen relative">
+        <MathBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-4">
+            <Lock className="h-12 w-12 text-red-400 mx-auto" />
+            <div className="text-white text-xl">Không có quyền truy cập</div>
+            <div className="text-white/80">Bạn cần có tài khoản học viên để truy cập khóa học.</div>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="mt-4 px-6 py-2 bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Quay về Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Course loading state
   if (isLoading) {
     return (
       <div className="min-h-screen relative">
         <MathBackground />
         <div className="relative z-10 flex items-center justify-center min-h-screen">
-          <div className="text-white text-xl">Đang tải khóa học...</div>
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-white mx-auto" />
+            <div className="text-white text-xl">Đang tải khóa học...</div>
+          </div>
         </div>
       </div>
     );

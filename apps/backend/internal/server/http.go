@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/rs/cors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -18,13 +19,14 @@ import (
 
 // HTTPServer wraps the gRPC-Gateway server
 type HTTPServer struct {
-	httpPort string
-	grpcPort string
-	mux      *runtime.ServeMux
+	httpPort   string
+	grpcPort   string
+	mux        *runtime.ServeMux
+	grpcServer *grpc.Server
 }
 
 // NewHTTPServer creates a new HTTP server with gRPC-Gateway
-func NewHTTPServer(httpPort, grpcPort string) *HTTPServer {
+func NewHTTPServer(httpPort, grpcPort string, grpcServer *grpc.Server) *HTTPServer {
 	// Create gRPC-Gateway mux with custom settings
 	mux := runtime.NewServeMux(
 		// Pass auth header to gRPC
@@ -60,9 +62,10 @@ func NewHTTPServer(httpPort, grpcPort string) *HTTPServer {
 	)
 
 	return &HTTPServer{
-		httpPort: httpPort,
-		grpcPort: grpcPort,
-		mux:      mux,
+		httpPort:   httpPort,
+		grpcPort:   grpcPort,
+		mux:        mux,
+		grpcServer: grpcServer,
 	}
 }
 
@@ -112,15 +115,46 @@ func (s *HTTPServer) Start() error {
 		MaxAge:           86400, // 24 hours
 	})
 
-	// Create HTTP handler with CORS for gRPC-Gateway
-	grpcHandler := corsHandler.Handler(s.mux)
+	// Create gRPC-Web wrapper for the gRPC server
+	// This allows frontend gRPC-Web clients to communicate with the backend
+	grpcWebWrapper := grpcweb.WrapServer(s.grpcServer,
+		grpcweb.WithOriginFunc(func(origin string) bool {
+			// Allow requests from frontend origins
+			allowedOrigins := []string{
+				"http://localhost:3000",
+				"http://localhost:3001",
+				"https://nynus.edu.vn",
+			}
+			for _, allowed := range allowedOrigins {
+				if origin == allowed {
+					return true
+				}
+			}
+			return false
+		}),
+		grpcweb.WithCorsForRegisteredEndpointsOnly(false),
+	)
 
-	// Wrap gRPC handler with gRPC-Web support
-	grpcWebHandler := wrapGrpcWeb(grpcHandler)
+	// Create HTTP handler with CORS for gRPC-Gateway
+	grpcGatewayHandler := corsHandler.Handler(s.mux)
+
+	// Create a multiplexer that routes requests to either gRPC-Web or gRPC-Gateway
+	// gRPC-Web requests go to grpcWebWrapper
+	// Other requests go to gRPC-Gateway
+	combinedHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Check if this is a gRPC-Web request
+		if isGrpcWebRequest(r) {
+			fmt.Printf("DEBUG: Routing to gRPC-Web wrapper - URL: %s\n", r.URL.Path)
+			grpcWebWrapper.ServeHTTP(w, r)
+		} else {
+			fmt.Printf("DEBUG: Routing to gRPC-Gateway - URL: %s\n", r.URL.Path)
+			grpcGatewayHandler.ServeHTTP(w, r)
+		}
+	})
 
 	// Start HTTP server
 	addr := fmt.Sprintf(":%s", s.httpPort)
-	fmt.Printf("🌐 Starting HTTP/gRPC-Gateway server on %s\n", addr)
+	fmt.Printf("🌐 Starting HTTP/gRPC-Gateway + gRPC-Web server on %s\n", addr)
 
 	// Create a simple handler that routes requests
 	return http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -136,9 +170,9 @@ func (s *HTTPServer) Start() error {
 			return
 		}
 
-		// Handle all other requests with gRPC-Gateway
-		fmt.Printf("DEBUG: *** FORWARDING TO GRPC-GATEWAY *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
-		grpcWebHandler.ServeHTTP(w, r)
+		// Handle all other requests with combined handler (gRPC-Web + gRPC-Gateway)
+		fmt.Printf("DEBUG: *** FORWARDING TO COMBINED HANDLER *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
+		combinedHandler.ServeHTTP(w, r)
 	}))
 }
 
@@ -216,50 +250,6 @@ func (s *HTTPServer) registerServices(ctx context.Context, endpoint string, opts
 	// }
 
 	return nil
-}
-
-// wrapGrpcWeb wraps the handler to support gRPC-Web
-func wrapGrpcWeb(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Debug logging
-		fmt.Printf("DEBUG: Request URL: %s\n", r.URL.Path)
-		fmt.Printf("DEBUG: Request Method: %s\n", r.Method)
-		fmt.Printf("DEBUG: Content-Type: %s\n", r.Header.Get("Content-Type"))
-		fmt.Printf("DEBUG: X-Grpc-Web: %s\n", r.Header.Get("X-Grpc-Web"))
-
-		// Check if this is a gRPC-Web request
-		if isGrpcWebRequest(r) {
-			fmt.Printf("DEBUG: Detected gRPC-Web request\n")
-
-			// Set CORS headers first
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-Grpc-Web, X-User-Agent")
-			w.Header().Set("Access-Control-Expose-Headers", "Grpc-Status, Grpc-Message")
-
-			// Handle preflight OPTIONS request
-			if r.Method == "OPTIONS" {
-				fmt.Printf("DEBUG: Handling OPTIONS preflight request\n")
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-
-			// Convert gRPC-Web content-type to application/json for gRPC Gateway
-			originalContentType := r.Header.Get("Content-Type")
-			if strings.HasPrefix(originalContentType, "application/grpc-web") {
-				fmt.Printf("DEBUG: Converting gRPC-Web content-type to application/json\n")
-				r.Header.Set("Content-Type", "application/json")
-			}
-
-			// Set response content-type for gRPC-Web
-			w.Header().Set("Content-Type", "application/grpc-web+proto")
-		} else {
-			fmt.Printf("DEBUG: Not a gRPC-Web request\n")
-		}
-
-		// Serve the request
-		h.ServeHTTP(w, r)
-	})
 }
 
 // isGrpcWebRequest checks if the request is a gRPC-Web request

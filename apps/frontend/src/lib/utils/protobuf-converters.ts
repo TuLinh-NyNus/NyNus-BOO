@@ -193,6 +193,108 @@ export function convertProtobufResetPasswordResponse(protobufResponse: ProtobufR
   return convertProtobufForgotPasswordResponse(protobufResponse); // Same structure
 }
 
+interface ProtobufVerifyEmailResponse {
+  getResponse?(): { getSuccess?(): boolean; getMessage?(): string } | undefined;
+  getVerified?(): boolean;
+  // Fallback properties
+  response?: { success?: boolean; message?: string; getSuccess?(): boolean; getMessage?(): string };
+  verified?: boolean;
+}
+
+/**
+ * Convert protobuf VerifyEmailResponse thành local format
+ */
+export function convertProtobufVerifyEmailResponse(protobufResponse: ProtobufVerifyEmailResponse): {
+  success: boolean;
+  message: string;
+  verified: boolean;
+} {
+  if (!protobufResponse) {
+    return {
+      success: false,
+      message: 'Invalid response',
+      verified: false
+    };
+  }
+
+  const response = protobufResponse.getResponse?.() || protobufResponse.response;
+  let success = false;
+  let message = '';
+
+  if (response) {
+    if (typeof response.getSuccess === 'function') {
+      success = response.getSuccess() || false;
+    } else if ('success' in response) {
+      success = (response as { success?: boolean }).success || false;
+    }
+
+    if (typeof response.getMessage === 'function') {
+      message = response.getMessage() || '';
+    } else if ('message' in response) {
+      message = (response as { message?: string }).message || '';
+    }
+  }
+
+  const verified = protobufResponse.getVerified?.() || protobufResponse.verified || false;
+
+  return {
+    success,
+    message,
+    verified
+  };
+}
+
+interface ProtobufSendVerificationEmailResponse {
+  getResponse?(): { getSuccess?(): boolean; getMessage?(): string } | undefined;
+  getMessage?(): string;
+  // Fallback properties
+  response?: { success?: boolean; message?: string; getSuccess?(): boolean; getMessage?(): string };
+  message?: string;
+}
+
+/**
+ * Convert protobuf SendVerificationEmailResponse thành local format
+ */
+export function convertProtobufSendVerificationEmailResponse(protobufResponse: ProtobufSendVerificationEmailResponse): {
+  success: boolean;
+  message: string;
+} {
+  if (!protobufResponse) {
+    return {
+      success: false,
+      message: 'Invalid response'
+    };
+  }
+
+  const response = protobufResponse.getResponse?.() || protobufResponse.response;
+  let success = false;
+  let message = '';
+
+  if (response) {
+    if (typeof response.getSuccess === 'function') {
+      success = response.getSuccess() || false;
+    } else if ('success' in response) {
+      success = (response as { success?: boolean }).success || false;
+    }
+
+    if (typeof response.getMessage === 'function') {
+      message = response.getMessage() || '';
+    } else if ('message' in response) {
+      message = (response as { message?: string }).message || '';
+    }
+  }
+
+  // Fallback to direct message from response
+  if (!message) {
+    message = protobufResponse.getMessage?.() || protobufResponse.message || '';
+  }
+
+  return {
+    success,
+    message
+  };
+}
+
 /**
  * Helper function để ensure UserRole compatibility
  */

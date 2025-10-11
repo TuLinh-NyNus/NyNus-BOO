@@ -103,14 +103,7 @@ const Footer = () => {
         <span className="relative">
           {text}{highlight && " "}
           {highlight && (
-            <span 
-              className="text-transparent bg-clip-text font-semibold tracking-tight"
-              style={{
-                background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text"
-              }}
-            >
+            <span className="logo-gradient-text font-semibold tracking-tight">
               {highlight}
             </span>
           )}
@@ -228,7 +221,7 @@ const Footer = () => {
                   <input
                     type="email"
                     placeholder="Email của bạn"
-                    className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 text-foreground placeholder-muted-foreground transition-all duration-300 backdrop-blur-sm"
+                    className="w-full px-4 py-3 bg-white/10 border-2 border-foreground/20 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 text-foreground placeholder-foreground/50 transition-all duration-300 backdrop-blur-sm"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -267,13 +260,9 @@ const Footer = () => {
           {/* Company Info */}
           <motion.div variants={itemVariants}>
             <Link href="/" className="text-3xl font-bold mb-6 inline-block group">
-              <motion.span 
-                className="text-transparent bg-clip-text font-black tracking-tight transition-all duration-300"
+              <motion.span
+                className="logo-gradient-text font-black tracking-tight transition-all duration-300"
                 style={{
-                  background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
-                  backgroundClip: "text",
-                  WebkitBackgroundClip: "text",
-                  textShadow: "0 0 30px rgba(255, 184, 105, 0.4), 0 0 60px rgba(248, 97, 102, 0.3), 0 0 90px rgba(171, 110, 228, 0.2)",
                   fontFamily: "'Nunito', 'Segoe UI', system-ui, sans-serif",
                   letterSpacing: "-0.02em",
                   lineHeight: "1.3",
@@ -444,7 +433,7 @@ const Footer = () => {
 
           {/* Enhanced Contact Info */}
           <motion.div variants={itemVariants}>
-            <h3 className="font-bold text-xl text-white mb-6">
+            <h3 className="font-bold text-xl text-foreground mb-6">
               Liên hệ
             </h3>
             <ul className="space-y-5">
@@ -461,23 +450,23 @@ const Footer = () => {
                   transition={{ delay: index * 0.1 }}
                   viewport={{ once: true }}
                 >
-                  <motion.div 
+                  <motion.div
                     className={`w-10 h-10 flex items-center justify-center rounded-full bg-white/10 ${contact.color} transition-all duration-300 border border-white/20 group-hover:border-white/40`}
                     whileHover={{ scale: 1.1, rotate: 5 }}
                   >
-                    <contact.icon className="h-5 w-5 text-slate-300 group-hover:text-white" />
+                    <contact.icon className="h-5 w-5 text-muted-foreground group-hover:text-foreground" />
                   </motion.div>
                   <div>
-                    <p className="text-slate-400 text-sm font-medium">{contact.label}</p>
+                    <p className="text-foreground text-sm font-semibold">{contact.label}</p>
                     {contact.href ? (
-                      <Link 
-                        href={contact.href} 
-                        className="text-blue-400 hover:text-blue-300 transition-all duration-300 font-medium"
+                      <Link
+                        href={contact.href}
+                        className="text-primary hover:text-primary/80 transition-all duration-300 font-medium"
                       >
                         {contact.value}
                       </Link>
                     ) : (
-                      <p className="text-slate-300 font-medium">{contact.value}</p>
+                      <p className="text-foreground font-medium">{contact.value}</p>
                     )}
                   </div>
                 </motion.li>
@@ -495,16 +484,9 @@ const Footer = () => {
           viewport={{ once: true }}
         >
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="text-slate-400 text-base font-medium">
+            <div className="text-foreground text-base font-medium">
               © {currentYear}{" "}
-              <span 
-                className="text-transparent bg-clip-text font-semibold tracking-tight"
-                style={{
-                  background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
-                  backgroundClip: "text",
-                  WebkitBackgroundClip: "text"
-                }}
-              >
+              <span className="logo-gradient-text font-semibold tracking-tight">
                 NyNus
               </span>
               . Tất cả quyền được bảo lưu.

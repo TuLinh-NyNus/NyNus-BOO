@@ -15,7 +15,7 @@
 :root {
   /* Base semantic color overrides for light mode */
   --color-background: var(--color-light-bg);
-  --color-foreground: #E8A0A4;  /* Changed from var(--color-light-navy) to pastel rose for navbar */
+  --color-foreground: var(--color-light-navy);  /* #1A1A2E - Dark text for light mode */
   --color-surface: var(--color-light-surface);
   --color-surface-hover: var(--color-light-muted);
 
@@ -146,14 +146,14 @@
 }
 
 /* ===== LOGO COLORS FOR LIGHT THEME ===== */
-/* Softer pastel colors for light backgrounds */
+/* Use same vibrant colors as dark theme for consistency */
 :root {
-  --logo-gradient-start: #F9A8D4;    /* Pastel pink */
-  --logo-gradient-middle: #FDA4AF;   /* Pastel coral */
-  --logo-gradient-end: #C084FC;      /* Pastel purple */
-  --logo-shadow-1: rgba(249, 168, 212, 0.3);
-  --logo-shadow-2: rgba(253, 164, 175, 0.25);
-  --logo-shadow-3: rgba(192, 132, 252, 0.15);
+  --logo-gradient-start: #FFB869;    /* Orange - same as dark theme */
+  --logo-gradient-middle: #F86166;   /* Coral - same as dark theme */
+  --logo-gradient-end: #AB6EE4;      /* Purple - same as dark theme */
+  --logo-shadow-1: rgba(255, 184, 105, 0.4);
+  --logo-shadow-2: rgba(248, 97, 102, 0.3);
+  --logo-shadow-3: rgba(171, 110, 228, 0.2);
 }
 
 /* ===== QUESTIONS PAGE LIGHT MODE OVERRIDES ===== */

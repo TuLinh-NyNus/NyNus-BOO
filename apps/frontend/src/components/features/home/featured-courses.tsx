@@ -176,7 +176,7 @@ const FeaturedCourses = () => {
         <div className="text-center max-w-3xl mx-auto mb-8">
           {/* Enhanced Badge (new style) */}
           <motion.div
-            className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 border border-gradient-to-r from-blue-400/40 via-purple-400/40 to-emerald-400/40 text-blue-300 backdrop-blur-sm mb-6 transition-all duration-500 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden group"
+            className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 text-blue-300 backdrop-blur-sm mb-6 transition-all duration-500 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden group"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{
@@ -195,15 +195,26 @@ const FeaturedCourses = () => {
               />
             </div>
 
-            {/* Icon with glow */}
-            <div className="relative z-10 mr-2">
+            {/* Enhanced icon with glow effect and animation */}
+            <motion.div
+              className="relative z-10 mr-2"
+              animate={{
+                scale: [1, 1.05, 1],
+                transition: {
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }
+              }}
+            >
               <div className="relative">
-                <BookOpen className="h-5 w-5 text-blue-700 dark:text-blue-300" />
-                <div className="absolute inset-0 h-5 w-5 bg-blue-700 dark:bg-blue-300 rounded-full opacity-20 blur-sm"></div>
+                <BookOpen className="h-5 w-5 text-badge-light drop-shadow-lg" />
+                {/* Glow effect */}
+                <div className="absolute inset-0 h-5 w-5 bg-badge-light rounded-full opacity-20 blur-sm animate-pulse"></div>
               </div>
-            </div>
+            </motion.div>
 
-            <span className="font-bold text-blue-700 dark:text-blue-300 text-base tracking-wide relative z-10 bg-blue-700/15 dark:bg-blue-300/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-300/30 shadow-md shadow-blue-700/20 dark:shadow-blue-300/20">
+            <span className="font-bold text-badge-light text-base tracking-wide relative z-10">
               Khóa học nổi bật
             </span>
 

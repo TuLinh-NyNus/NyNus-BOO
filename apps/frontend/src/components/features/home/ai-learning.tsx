@@ -69,7 +69,7 @@ const AILearning = () => {
           <div className="text-center">
             {/* Enhanced badge with modern design similar to Features component */}
             <motion.div
-              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 border border-gradient-to-r from-blue-400/40 via-purple-400/40 to-emerald-400/40 text-blue-400 backdrop-blur-sm mb-4 transition-all duration-500 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 relative overflow-hidden group"
+              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 text-blue-400 backdrop-blur-sm mb-4 transition-all duration-500 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 relative overflow-hidden group"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{
@@ -91,24 +91,24 @@ const AILearning = () => {
               {/* Enhanced icon with glow effect */}
               <motion.div
                 className="relative z-10 mr-2"
-                animate={{ 
+                animate={{
                   scale: [1, 1.05, 1],
-                  transition: { 
-                    duration: 2, 
-                    repeat: Infinity, 
-                    repeatType: "reverse" 
-                  } 
+                  transition: {
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }
                 }}
               >
                 <div className="relative">
-                  <Zap className="h-4 w-4 text-blue-300 drop-shadow-lg filter drop-shadow-blue-300/50" />
+                  <Zap className="h-4 w-4 text-badge-light drop-shadow-lg" />
                   {/* Glow effect */}
-                  <div className="absolute inset-0 h-4 w-4 bg-blue-700 dark:bg-blue-300 rounded-full opacity-20 blur-sm animate-pulse"></div>
+                  <div className="absolute inset-0 h-4 w-4 bg-badge-light rounded-full opacity-20 blur-sm animate-pulse"></div>
                 </div>
               </motion.div>
 
-              {/* Enhanced text with better typography and solid background */}
-              <span className="font-bold text-blue-700 dark:text-blue-300 text-sm tracking-wide relative z-10 bg-blue-700/15 dark:bg-blue-300/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-300/30 shadow-md shadow-blue-700/20 dark:shadow-blue-300/20">
+              {/* Enhanced text with better typography - Improved Light mode contrast */}
+              <span className="font-bold text-badge-light text-sm tracking-wide relative z-10">
                 {aiLearningData.badge.text}
               </span>
               

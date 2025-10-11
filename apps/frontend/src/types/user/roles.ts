@@ -12,14 +12,16 @@ export type { UserRoleType, UserStatusType };
 
 /**
  * Role hierarchy levels for permission checking
+ * FIXED: Match backend hierarchy (apps/backend/internal/constant/roles.go)
+ * Hierarchy: GUEST(1) < STUDENT(2) < TUTOR(3) < TEACHER(4) < ADMIN(5)
  */
 export const ROLE_HIERARCHY: Record<UserRoleType, number> = {
   [UserRole.USER_ROLE_UNSPECIFIED]: -1,
-  [UserRole.USER_ROLE_GUEST]: 0,
-  [UserRole.USER_ROLE_STUDENT]: 1,
-  [UserRole.USER_ROLE_TUTOR]: 2,
-  [UserRole.USER_ROLE_TEACHER]: 3,
-  [UserRole.USER_ROLE_ADMIN]: 4
+  [UserRole.USER_ROLE_GUEST]: 1,      // FIXED: 0 → 1
+  [UserRole.USER_ROLE_STUDENT]: 2,    // FIXED: 1 → 2
+  [UserRole.USER_ROLE_TUTOR]: 3,      // FIXED: 2 → 3
+  [UserRole.USER_ROLE_TEACHER]: 4,    // FIXED: 3 → 4
+  [UserRole.USER_ROLE_ADMIN]: 5       // FIXED: 4 → 5
 };
 
 /**

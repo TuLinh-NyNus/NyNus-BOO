@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // Config holds all configuration values
@@ -14,8 +15,11 @@ type Config struct {
 	// Server configuration
 	Server ServerConfig
 
-	// JWT configuration
+	// JWT configuration (legacy - use Auth.JWT instead)
 	JWT JWTConfig
+
+	// Authentication configuration (unified)
+	Auth *AuthConfig
 
 	// Image Processing configuration
 	ImageProcessing ImageProcessingConfig
@@ -104,6 +108,7 @@ func LoadConfig() *Config {
 		JWT: JWTConfig{
 			Secret: getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
 		},
+		Auth: LoadAuthConfig(), // Load unified auth configuration
 		ImageProcessing: ImageProcessingConfig{
 			Enabled:        getEnv("IMAGE_PROCESSING_ENABLED", "true") == "true",
 			TexLiveBin:     getEnv("TEXLIVE_BIN", "C:\\texlive\\2024\\bin\\windows"),
@@ -150,26 +155,180 @@ func (c *Config) GetDatabaseConnectionString() string {
 	return connStr
 }
 
-// Validate validates the configuration
+// Validate validates the configuration comprehensively
 func (c *Config) Validate() error {
+	// Validate database configuration
+	if err := c.validateDatabase(); err != nil {
+		return fmt.Errorf("database validation failed: %w", err)
+	}
+
+	// Validate server configuration
+	if err := c.validateServer(); err != nil {
+		return fmt.Errorf("server validation failed: %w", err)
+	}
+
+	// Validate JWT configuration (legacy - auth config is validated separately)
+	if err := c.validateJWT(); err != nil {
+		return fmt.Errorf("JWT validation failed: %w", err)
+	}
+
+	// Validate image processing configuration
+	if err := c.validateImageProcessing(); err != nil {
+		return fmt.Errorf("image processing validation failed: %w", err)
+	}
+
+	// Validate Google Drive configuration
+	if err := c.validateGoogleDrive(); err != nil {
+		return fmt.Errorf("Google Drive validation failed: %w", err)
+	}
+
+	return nil
+}
+
+// validateDatabase validates database configuration
+func (c *Config) validateDatabase() error {
 	if c.Database.Host == "" {
-		return fmt.Errorf("database host is required")
+		return fmt.Errorf("DB_HOST is required")
 	}
 	if c.Database.Port == "" {
-		return fmt.Errorf("database port is required")
+		return fmt.Errorf("DB_PORT is required")
 	}
 	if c.Database.User == "" {
-		return fmt.Errorf("database user is required")
+		return fmt.Errorf("DB_USER is required")
 	}
 	if c.Database.Password == "" {
-		return fmt.Errorf("database password is required")
+		return fmt.Errorf("DB_PASSWORD is required")
 	}
 	if c.Database.Name == "" {
-		return fmt.Errorf("database name is required")
+		return fmt.Errorf("DB_NAME is required")
 	}
+
+	// Validate port format
+	if _, err := strconv.Atoi(c.Database.Port); err != nil {
+		return fmt.Errorf("DB_PORT must be a valid integer, got: %s", c.Database.Port)
+	}
+
+	// Validate SSL mode
+	validSSLModes := []string{"disable", "require", "verify-ca", "verify-full"}
+	isValidSSL := false
+	for _, mode := range validSSLModes {
+		if c.Database.SSLMode == mode {
+			isValidSSL = true
+			break
+		}
+	}
+	if !isValidSSL {
+		return fmt.Errorf("DB_SSLMODE must be one of: %v, got: %s", validSSLModes, c.Database.SSLMode)
+	}
+
+	return nil
+}
+
+// validateServer validates server configuration
+func (c *Config) validateServer() error {
+	if c.Server.GRPCPort == "" {
+		return fmt.Errorf("GRPC_PORT is required")
+	}
+	if c.Server.HTTPPort == "" {
+		return fmt.Errorf("HTTP_PORT is required")
+	}
+
+	// Validate port formats
+	if _, err := strconv.Atoi(c.Server.GRPCPort); err != nil {
+		return fmt.Errorf("GRPC_PORT must be a valid integer, got: %s", c.Server.GRPCPort)
+	}
+	if _, err := strconv.Atoi(c.Server.HTTPPort); err != nil {
+		return fmt.Errorf("HTTP_PORT must be a valid integer, got: %s", c.Server.HTTPPort)
+	}
+
+	// Validate environment
+	validEnvs := []string{"development", "dev", "staging", "stage", "production", "prod", "test"}
+	isValidEnv := false
+	for _, env := range validEnvs {
+		if strings.ToLower(c.Server.Environment) == env {
+			isValidEnv = true
+			break
+		}
+	}
+	if !isValidEnv {
+		return fmt.Errorf("ENV must be one of: %v, got: %s", validEnvs, c.Server.Environment)
+	}
+
+	return nil
+}
+
+// validateJWT validates JWT configuration (legacy)
+func (c *Config) validateJWT() error {
 	if c.JWT.Secret == "" || c.JWT.Secret == "your-secret-key-change-in-production" {
-		return fmt.Errorf("JWT secret must be set and not use default value")
+		return fmt.Errorf("JWT_SECRET must be set and not use default value")
 	}
+
+	// Validate JWT secret strength
+	if len(c.JWT.Secret) < 32 {
+		return fmt.Errorf("JWT_SECRET must be at least 32 characters long for security, got: %d characters", len(c.JWT.Secret))
+	}
+
+	return nil
+}
+
+// validateImageProcessing validates image processing configuration
+func (c *Config) validateImageProcessing() error {
+	if !c.ImageProcessing.Enabled {
+		return nil // Skip validation if disabled
+	}
+
+	if c.ImageProcessing.TexLiveBin == "" {
+		return fmt.Errorf("TEXLIVE_BIN is required when image processing is enabled")
+	}
+
+	// Validate LaTeX engine
+	validEngines := []string{"lualatex", "xelatex", "pdflatex"}
+	isValidEngine := false
+	for _, engine := range validEngines {
+		if c.ImageProcessing.LatexEngine == engine {
+			isValidEngine = true
+			break
+		}
+	}
+	if !isValidEngine {
+		return fmt.Errorf("LATEX_ENGINE must be one of: %v, got: %s", validEngines, c.ImageProcessing.LatexEngine)
+	}
+
+	// Validate image converter
+	validConverters := []string{"magick", "cwebp"}
+	isValidConverter := false
+	for _, converter := range validConverters {
+		if c.ImageProcessing.ImageConverter == converter {
+			isValidConverter = true
+			break
+		}
+	}
+	if !isValidConverter {
+		return fmt.Errorf("IMAGE_CONVERTER must be one of: %v, got: %s", validConverters, c.ImageProcessing.ImageConverter)
+	}
+
+	return nil
+}
+
+// validateGoogleDrive validates Google Drive configuration
+func (c *Config) validateGoogleDrive() error {
+	if !c.GoogleDrive.Enabled {
+		return nil // Skip validation if disabled
+	}
+
+	if c.GoogleDrive.ClientID == "" {
+		return fmt.Errorf("DRIVE_CLIENT_ID is required when Google Drive is enabled")
+	}
+	if c.GoogleDrive.ClientSecret == "" {
+		return fmt.Errorf("DRIVE_CLIENT_SECRET is required when Google Drive is enabled")
+	}
+	if c.GoogleDrive.RefreshToken == "" {
+		return fmt.Errorf("DRIVE_REFRESH_TOKEN is required when Google Drive is enabled")
+	}
+	if c.GoogleDrive.RootFolderID == "" {
+		return fmt.Errorf("DRIVE_ROOT_FOLDER_ID is required when Google Drive is enabled")
+	}
+
 	return nil
 }
 

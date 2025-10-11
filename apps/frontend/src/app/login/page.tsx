@@ -1,60 +1,69 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
-import { AuthService } from '@/services/grpc/auth.service';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { BackendHealthAlert } from '@/components/features/auth/BackendHealthIndicator';
 
 export default function LoginPage() {
-  const router = useRouter();
+  const _router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [callbackUrl, setCallbackUrl] = useState<string>('/dashboard');
+
+  // Extract callbackUrl from URL parameters
+  useEffect(() => {
+    const callback = searchParams.get('callbackUrl');
+    if (callback) {
+      setCallbackUrl(callback);
+    }
+  }, [searchParams]);
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[LOGIN_PAGE] Form submitted with email:', email);
     setError('');
     setLoading(true);
 
     try {
-      // Use gRPC AuthService instead of REST
-      const response = await AuthService.login(email, password);
+      console.log('[LOGIN_PAGE] Calling signIn with credentials');
+      // Use NextAuth signIn with credentials provider
+      const result = await signIn('credentials', {
+        email,
+        password,
+        callbackUrl, // Include callbackUrl for proper redirect
+        redirect: false, // Don't auto-redirect, handle manually
+      });
 
-      // gRPC response - tokens are auto-saved by AuthService
-      if (response.getAccessToken() && response.getUser()) {
-        // Store user info from gRPC response
-        if (typeof window !== 'undefined') {
-          const user = response.getUser();
-          if (user) {
-            localStorage.setItem('nynus-user', JSON.stringify({
-              id: user.getId(),
-              email: user.getEmail(),
-              firstName: user.getFirstName(),
-              lastName: user.getLastName(),
-              role: user.getRole(),
-              status: user.getStatus(),
-              level: user.getLevel(),
-              avatar: user.getAvatar(),
-              emailVerified: user.getEmailVerified()
-            }));
-          }
-        }
+      console.log('[LOGIN_PAGE] signIn result:', result);
 
-        // Redirect to dashboard
-        router.push('/dashboard');
-      } else {
+      if (result?.error) {
+        console.log('[LOGIN_PAGE] Login error:', result.error);
         setError('Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
+      } else if (result?.ok) {
+        console.log('[LOGIN_PAGE] Login successful, redirecting to:', callbackUrl);
+        // ✅ FIX: Use window.location.href instead of router.push()
+        // This forces a full page reload, ensuring NextAuth session is properly set
+        // before middleware checks authentication
+        window.location.href = callbackUrl;
+      } else {
+        console.log('[LOGIN_PAGE] Unexpected result:', result);
+        setError('Đã xảy ra lỗi. Vui lòng thử lại.');
       }
     } catch (err) {
+      console.error('[LOGIN_PAGE] Exception during login:', err);
       const errorMessage = err instanceof Error ? err.message : 'Đã xảy ra lỗi. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
@@ -101,6 +110,9 @@ export default function LoginPage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* Backend Health Alert */}
+          <BackendHealthAlert />
+
           {/* Google Login Button */}
           <Button
             variant="outline"
@@ -134,7 +146,7 @@ export default function LoginPage() {
               <Separator />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-muted-foreground">Hoặc</span>
+              <span className="bg-background px-2 text-muted-foreground">Hoặc</span>
             </div>
           </div>
 

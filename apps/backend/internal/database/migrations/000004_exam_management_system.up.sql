@@ -12,8 +12,9 @@
 -- Exam status enum (UPPERCASE, aligned with Question system)
 CREATE TYPE exam_status AS ENUM ('ACTIVE', 'PENDING', 'INACTIVE', 'ARCHIVED');
 
--- Exam type enum (UPPERCASE, aligned with ExamSystem.md)
-CREATE TYPE exam_type AS ENUM ('PRACTICE', 'QUIZ', 'MIDTERM', 'FINAL', 'CUSTOM', 'GENERATED');
+-- Exam type enum (lowercase, aligned with ExamSystem.md design)
+-- Design specifies: 'generated' (from question bank), 'official' (real exams from schools)
+CREATE TYPE exam_type AS ENUM ('generated', 'official');
 
 -- Attempt status enum
 CREATE TYPE attempt_status AS ENUM ('in_progress', 'submitted', 'graded', 'cancelled');
@@ -33,7 +34,7 @@ CREATE TABLE exams (
     duration_minutes INT NOT NULL DEFAULT 60,
     total_points INT DEFAULT 0,
     pass_percentage INT DEFAULT 60 CHECK (pass_percentage >= 0 AND pass_percentage <= 100),
-    exam_type exam_type DEFAULT 'PRACTICE',
+    exam_type exam_type DEFAULT 'generated',
     status exam_status DEFAULT 'PENDING',
     
     -- Settings
@@ -265,6 +266,7 @@ COMMENT ON TABLE exam_answers IS 'Stores user answers for each question in an at
 COMMENT ON TABLE exam_results IS 'Summary statistics and results for completed attempts';
 COMMENT ON TABLE exam_feedback IS 'User feedback and ratings for exams';
 
+COMMENT ON COLUMN exams.exam_type IS 'Exam type: generated (from question bank), official (real exams from schools)';
 COMMENT ON COLUMN exams.grade IS 'Khối lớp (1-12) - INT type for proper sorting and filtering';
 COMMENT ON COLUMN exams.difficulty IS 'Difficulty level enum: EASY, MEDIUM, HARD, EXPERT';
 COMMENT ON COLUMN exams.status IS 'Exam status: PENDING (draft), ACTIVE (published), INACTIVE (paused), ARCHIVED';

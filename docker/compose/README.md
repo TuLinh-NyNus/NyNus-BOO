@@ -30,7 +30,6 @@ Automatically loaded in development, adds:
 - **redis**: Redis cache service
 - **opensearch**: OpenSearch search engine
 - **opensearch-dashboards**: OpenSearch UI
-- **adminer**: Database management tool
 
 ### **Production Overrides** (`docker-compose.prod.yml`)
 Production-specific configurations:
@@ -65,7 +64,7 @@ docker-compose up -d --build
 - Redis: localhost:6379
 - OpenSearch: http://localhost:9200
 - OpenSearch Dashboards: http://localhost:5601
-- Adminer: http://localhost:8082
+- Prisma Studio: http://localhost:5555 (run `pnpm prisma:studio` in apps/frontend)
 
 ### **Production Environment**
 

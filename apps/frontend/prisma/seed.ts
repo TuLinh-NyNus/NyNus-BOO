@@ -11,7 +11,7 @@
  * Usage: pnpm prisma:seed
  */
 
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient, Prisma } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { seedQuestionsAndExams } from './seed-questions-exams';
 
@@ -490,7 +490,7 @@ async function main() {
           id: generateId(),
           attempt_id: attempt1.id,
           question_id: eq.question_id,
-          answer_data: eq.question.correct_answer,
+          answer_data: eq.question.correct_answer as Prisma.InputJsonValue,
           is_correct: isCorrect,
           points_earned: isCorrect ? eq.points : 0,
           time_spent_seconds: 1000 + i * 200,

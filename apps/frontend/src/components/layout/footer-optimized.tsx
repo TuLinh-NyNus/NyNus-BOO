@@ -145,7 +145,7 @@ const FooterOptimized = () => {
           {/* Company Info */}
           <div>
             <Link href="/" className="text-2xl font-bold mb-6 inline-block">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary transition-colors duration-300">
+              <span className="logo-gradient-text transition-colors duration-300" style={{ color: 'transparent', WebkitTextFillColor: 'transparent' }}>
                 NyNus
               </span>
             </Link>

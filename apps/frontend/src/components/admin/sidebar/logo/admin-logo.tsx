@@ -88,7 +88,7 @@ export function AdminLogo({
 
     return (
       <div className="ml-3 flex flex-col" suppressHydrationWarning={true}>
-        <span className="text-lg font-bold text-foreground">
+        <span className="text-lg font-bold logo-gradient-text" style={{ color: 'transparent', WebkitTextFillColor: 'transparent' }}>
           NyNus
         </span>
         <span className="text-xs text-muted-foreground -mt-1">
@@ -264,7 +264,7 @@ export function CustomAdminLogo({
 
     return (
       <div className="ml-3 flex flex-col">
-        <span className="text-lg font-bold text-foreground">
+        <span className="text-lg font-bold logo-gradient-text" style={{ color: 'transparent', WebkitTextFillColor: 'transparent' }}>
           {title}
         </span>
         {subtitle && (

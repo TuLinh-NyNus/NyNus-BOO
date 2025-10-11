@@ -41,173 +41,201 @@ NyNus sử dụng **OpenSearch** làm search engine chính với specialized Vie
 3. **Tính toàn vẹn**: Foreign key relationships chuẩn
 4. **Khả năng mở rộng**: Thiết kế cho tương lai
 
-## 📊 Database Schema
+## 📊 Database Schema (Raw SQL Migrations)
 
-### 1. QuestionCode Model - Bảng phân loại tối ưu
-```prisma
-model QuestionCode {
-  code      String      @id @db.VarChar(7)  // "0P1VH1" - Primary key
-  format    CodeFormat                      // ID5 hoặc ID6
-  grade     String      @db.Char(1)         // Lớp (0-9, A, B, C)
-  subject   String      @db.Char(1)         // Môn học (P=Toán, L=Vật lý, H=Hóa học...)
-  chapter   String      @db.Char(1)         // Chương (1-9)
-  lesson    String      @db.Char(1)         // Bài học (1-9, A-Z)
-  form      String?     @db.Char(1)         // Dạng bài (1-9, chỉ ID6)
-  level     String      @db.Char(1)         // Mức độ (N,H,V,C,T,M)
+> **Note**: Hệ thống sử dụng **Raw SQL migrations** với **golang-migrate**, KHÔNG sử dụng Prisma migrations.
+> Migration files: `apps/backend/internal/database/migrations/000002_question_system.up.sql`
 
-  // Relations
-  questions Question[]                      // Một code có nhiều câu hỏi
+### 1. QuestionCode Table - Bảng phân loại tối ưu
 
-  // Indexes tối ưu cho filtering
-  @@index([grade])                          // Lọc theo lớp
-  @@index([grade, subject])                 // Lớp + môn (70% queries)
-  @@index([grade, subject, chapter])        // Lớp + môn + chương (50%)
-  @@index([grade, level])                   // Lớp + mức độ (60%)
-  @@index([grade, subject, level])          // Lớp + môn + mức độ (40%)
-  @@index([grade, subject, chapter, level]) // Full filtering (20%)
-}
+```sql
+-- Migration: 000002_question_system.up.sql
+-- Enum definitions
+CREATE TYPE CodeFormat AS ENUM ('ID5', 'ID6');
 
-enum CodeFormat {
-  ID5  // [XXXXX] - 5 ký tự
-  ID6  // [XXXXX-X] - 7 ký tự
-}
+-- QuestionCode table
+CREATE TABLE question_code (
+    code        VARCHAR(7) PRIMARY KEY,     -- "0P1VH1" - Primary key
+    format      CodeFormat NOT NULL,        -- ID5 hoặc ID6
+    grade       CHAR(1) NOT NULL,           -- Lớp (0-9, A, B, C)
+    subject     CHAR(1) NOT NULL,           -- Môn học (P=Toán, L=Vật lý, H=Hóa học...)
+    chapter     CHAR(1) NOT NULL,           -- Chương (1-9)
+    lesson      CHAR(1) NOT NULL,           -- Bài học (1-9, A-Z)
+    form        CHAR(1),                    -- Dạng bài (1-9, chỉ ID6) - Optional
+    level       CHAR(1) NOT NULL,           -- Mức độ (N,H,V,C,T,M)
+    created_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes tối ưu cho filtering
+CREATE INDEX idx_question_code_grade ON question_code(grade);                          -- Lọc theo lớp
+CREATE INDEX idx_question_code_grade_subject ON question_code(grade, subject);         -- Lớp + môn (70% queries)
+CREATE INDEX idx_question_code_grade_subject_chapter ON question_code(grade, subject, chapter);  -- Lớp + môn + chương (50%)
+CREATE INDEX idx_question_code_grade_level ON question_code(grade, level);             -- Lớp + mức độ (60%)
+CREATE INDEX idx_question_code_grade_subject_level ON question_code(grade, subject, level);      -- Lớp + môn + mức độ (40%)
+CREATE INDEX idx_question_code_full_filter ON question_code(grade, subject, chapter, level);     -- Full filtering (20%)
 ```
 
-### 2. Question Model - Bảng câu hỏi chính
-```prisma
-model Question {
-  id              String         @id @default(cuid())
-  rawContent      String         @db.Text        // LaTeX gốc từ user
-  content         String         @db.Text        // Nội dung đã xử lý
-  subcount        String?        @db.VarChar(10) // [XX.N] format
-  type            QuestionType                   // MC, TF, SA, ES, MA
-  source          String?        @db.Text        // Nguồn câu hỏi
-  
-  // Dữ liệu câu hỏi
-  answers         Json?                          // Danh sách đáp án
-  correctAnswer   Json?                          // Đáp án đúng
-  solution        String?        @db.Text        // Lời giải chi tiết
-  
-  // Metadata & Classification (optional, for filtering purposes only)
-  tag             String[]       @default([])    // Tags tự do
-  grade           String?        @db.Char(1)     // Lớp (0,1,2) - Optional classification
-  subject         String?        @db.Char(1)     // Môn học (P,L,H) - Optional classification  
-  chapter         String?        @db.Char(1)     // Chương (1-9) - Optional classification
-  level           String?        @db.Char(1)     // Mức độ (N,H,V,C,T,M) - Optional classification
-  difficulty      QuestionDifficulty @default(MEDIUM) // Độ khó standardized
-  
-  // Usage tracking
-  usageCount      Int            @default(0)     // Số lần sử dụng
-  creator         String         @default("ADMIN") // Người tạo
-  status          QuestionStatus @default(ACTIVE) // Trạng thái
-  feedback        Int            @default(0)     // Điểm feedback
+**CodeFormat Enum Values**:
+- `ID5`: [XXXXX] - 5 ký tự
+- `ID6`: [XXXXX-X] - 7 ký tự
 
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  // Relations
-  questionImages  QuestionImage[]
-  questionTags    QuestionTag[]
-  feedbacks       QuestionFeedback[]
+### 2. Question Table - Bảng câu hỏi chính
 
-  // Indexes tối ưu
-  @@index([type])            // Lọc theo loại câu hỏi
-  @@index([status])          // Lọc theo trạng thái
-  @@index([grade, subject])  // Lọc theo lớp + môn
-  @@index([difficulty])      // Lọc theo độ khó
-  @@index([usageCount])      // Sắp xếp theo độ phổ biến
-  @@index([creator])         // Lọc theo người tạo
-  @@fulltext([content])      // Tìm kiếm toàn văn
-}
+```sql
+-- Migration: 000002_question_system.up.sql
+-- Enum definitions
+CREATE TYPE QuestionType AS ENUM ('MC', 'TF', 'SA', 'ES', 'MA');
+CREATE TYPE QuestionStatus AS ENUM ('ACTIVE', 'PENDING', 'INACTIVE', 'ARCHIVED');
+CREATE TYPE QuestionDifficulty AS ENUM ('EASY', 'MEDIUM', 'HARD', 'EXPERT');
 
-enum QuestionType {
-  MC  // Multiple Choice - Trắc nghiệm 1 đáp án
-  TF  // True/False - Đúng/Sai nhiều đáp án
-  SA  // Short Answer - Trả lời ngắn
-  ES  // Essay - Tự luận
-  MA  // Matching - Ghép đôi
-}
+-- Question table
+CREATE TABLE question (
+    id                TEXT PRIMARY KEY,           -- CUID generated ID
+    raw_content       TEXT NOT NULL,              -- LaTeX gốc từ user
+    content           TEXT NOT NULL,              -- Nội dung đã xử lý
+    subcount          VARCHAR(10),                -- [XX.N] format - Optional
+    type              QuestionType NOT NULL,      -- MC, TF, SA, ES, MA
+    source            TEXT,                       -- Nguồn câu hỏi - Optional
 
-enum QuestionStatus {
-  ACTIVE      // Đang sử dụng - Chỉ ACTIVE mới public cho users
-  PENDING     // Chờ duyệt - ADMIN review và approve
-  INACTIVE    // Tạm ngưng - ADMIN quản lý
-  ARCHIVED    // Đã lưu trữ - ADMIN quản lý
-}
+    -- Dữ liệu câu hỏi
+    answers           JSONB,                      -- Danh sách đáp án
+    correct_answer    JSONB,                      -- Đáp án đúng
+    solution          TEXT,                       -- Lời giải chi tiết
 
-enum QuestionDifficulty {
-  EASY        // Dễ
-  MEDIUM      // Trung bình
-  HARD        // Khó
-  EXPERT      // Chuyên gia/Rất khó
-}
+    -- Metadata & Classification (optional, for filtering purposes only)
+    tag               TEXT[] DEFAULT '{}',        -- Tags tự do
+    grade             CHAR(1),                    -- Lớp (0,1,2) - Optional classification
+    subject           CHAR(1),                    -- Môn học (P,L,H) - Optional classification
+    chapter           CHAR(1),                    -- Chương (1-9) - Optional classification
+    level             CHAR(1),                    -- Mức độ (N,H,V,C,T,M) - Optional classification
+    difficulty        QuestionDifficulty DEFAULT 'MEDIUM', -- Độ khó standardized
+
+    -- Usage tracking
+    usage_count       INT DEFAULT 0,              -- Số lần sử dụng
+    creator           TEXT DEFAULT 'ADMIN',       -- Người tạo
+    status            QuestionStatus DEFAULT 'ACTIVE', -- Trạng thái
+    feedback          INT DEFAULT 0,              -- Điểm feedback
+
+    -- Timestamps
+    created_at        TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at        TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+
+    -- Foreign key
+    question_code_id  VARCHAR(7) NOT NULL REFERENCES question_code(code) ON DELETE RESTRICT
+);
+
+-- Indexes tối ưu
+CREATE INDEX idx_question_question_code_id ON question(question_code_id);  -- Foreign key index
+CREATE INDEX idx_question_type ON question(type);                          -- Lọc theo loại câu hỏi
+CREATE INDEX idx_question_status ON question(status);                      -- Lọc theo trạng thái
+CREATE INDEX idx_question_usage_count ON question(usage_count);            -- Sắp xếp theo độ phổ biến
+CREATE INDEX idx_question_creator ON question(creator);                    -- Lọc theo người tạo
+CREATE INDEX idx_question_difficulty ON question(difficulty);              -- Lọc theo độ khó
+CREATE INDEX idx_question_content_fts ON question USING GIN (to_tsvector('simple', content));  -- Full-text search
+
+-- Classification field indexes
+CREATE INDEX idx_question_grade ON question(grade);
+CREATE INDEX idx_question_subject ON question(subject);
+CREATE INDEX idx_question_chapter ON question(chapter);
+CREATE INDEX idx_question_level ON question(level);
 ```
 
-### 3. Supporting Models - Bảng hỗ trợ
+**QuestionType Enum Values**:
+- `MC`: Multiple Choice - Trắc nghiệm 1 đáp án
+- `TF`: True/False - Đúng/Sai nhiều đáp án
+- `SA`: Short Answer - Trả lời ngắn
+- `ES`: Essay - Tự luận
+- `MA`: Matching - Ghép đôi
 
-```prisma
-// Hình ảnh đính kèm câu hỏi
-model QuestionImage {
-  id          String      @id @default(cuid())
-  questionId  String
-  imageType   ImageType   // QUESTION hoặc SOLUTION
-  imagePath   String?     @db.Text    // Local path (temporary)
-  driveUrl    String?     @db.Text    // Google Drive URL
-  driveFileId String?     @db.VarChar(100) // Google Drive file ID
-  status      ImageStatus @default(PENDING) // Upload status
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+**QuestionStatus Enum Values**:
+- `ACTIVE`: Đang sử dụng - Chỉ ACTIVE mới public cho users
+- `PENDING`: Chờ duyệt - ADMIN review và approve
+- `INACTIVE`: Tạm ngưng - ADMIN quản lý
+- `ARCHIVED`: Đã lưu trữ - ADMIN quản lý
 
-  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  @@index([questionId])
-  @@index([status])       // Index for status filtering
-}
+**QuestionDifficulty Enum Values**:
+- `EASY`: Dễ
+- `MEDIUM`: Trung bình
+- `HARD`: Khó
+- `EXPERT`: Chuyên gia/Rất khó
 
-// Tags tự do cho câu hỏi
-model QuestionTag {
-  id         String   @id @default(cuid())
-  questionId String
-  tagName    String   @db.VarChar(100)
-  createdAt  DateTime @default(now())
-  
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  @@unique([questionId, tagName])
-  @@index([tagName])
-}
+### 3. Supporting Tables - Bảng hỗ trợ
 
-// Feedback từ người dùng
-model QuestionFeedback {
-  id           String       @id @default(cuid())
-  questionId   String
-  userId       String?      // Tùy chọn
-  feedbackType FeedbackType
-  content      String?      @db.Text
-  rating       Int?         // 1-5 sao
-  createdAt    DateTime     @default(now())
-  
-  question     Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  @@index([questionId])
-}
+```sql
+-- Migration: 000002_question_system.up.sql
+-- Enum definitions
+CREATE TYPE ImageType AS ENUM ('QUESTION', 'SOLUTION');
+CREATE TYPE ImageStatus AS ENUM ('PENDING', 'UPLOADING', 'UPLOADED', 'FAILED');
+CREATE TYPE FeedbackType AS ENUM ('LIKE', 'DISLIKE', 'REPORT', 'SUGGESTION');
 
-enum ImageType {
-  QUESTION  // Hình trong đề bài
-  SOLUTION  // Hình trong lời giải
-}
+-- QuestionImage table - Hình ảnh đính kèm câu hỏi
+CREATE TABLE question_image (
+    id              TEXT PRIMARY KEY,           -- CUID generated ID
+    question_id     TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    image_type      ImageType NOT NULL,         -- QUESTION hoặc SOLUTION
+    image_path      TEXT,                       -- Local path (temporary)
+    drive_url       TEXT,                       -- Google Drive URL
+    drive_file_id   VARCHAR(100),               -- Google Drive file ID
+    status          ImageStatus DEFAULT 'PENDING', -- Upload status
+    created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
 
-enum ImageStatus {
-  PENDING     // Chưa upload
-  UPLOADING   // Đang upload
-  UPLOADED    // Đã upload thành công
-  FAILED      // Upload thất bại
-}
+-- Indexes for question_image
+CREATE INDEX idx_question_image_question_id ON question_image(question_id);
+CREATE INDEX idx_question_image_status ON question_image(status);
+CREATE INDEX idx_question_image_image_type ON question_image(image_type);
+CREATE INDEX idx_question_image_drive_file_id ON question_image(drive_file_id) WHERE drive_file_id IS NOT NULL;
 
-enum FeedbackType {
-  LIKE        // Thích
-  DISLIKE     // Không thích
-  REPORT      // Báo cáo lỗi
-  SUGGESTION  // Góp ý
-}
+-- QuestionTag table - Tags tự do cho câu hỏi
+CREATE TABLE question_tag (
+    id           TEXT PRIMARY KEY,              -- CUID generated ID
+    question_id  TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    tag_name     VARCHAR(100) NOT NULL,
+    created_at   TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (question_id, tag_name)
+);
+
+-- Indexes for question_tag
+CREATE INDEX idx_question_tag_question_id ON question_tag(question_id);
+CREATE INDEX idx_question_tag_tag_name ON question_tag(tag_name);
+CREATE INDEX idx_question_tag_tag_name_lower ON question_tag(LOWER(tag_name)); -- Case-insensitive search
+
+-- QuestionFeedback table - Feedback từ người dùng
+CREATE TABLE question_feedback (
+    id             TEXT PRIMARY KEY,            -- CUID generated ID
+    question_id    TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
+    user_id        TEXT,                        -- Optional, can be null for anonymous feedback
+    feedback_type  FeedbackType NOT NULL,
+    content        TEXT,                        -- Feedback text content
+    rating         INT CHECK (rating >= 1 AND rating <= 5), -- 1-5 stars
+    created_at     TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for question_feedback
+CREATE INDEX idx_question_feedback_question_id ON question_feedback(question_id);
+CREATE INDEX idx_question_feedback_user_id ON question_feedback(user_id) WHERE user_id IS NOT NULL;
+CREATE INDEX idx_question_feedback_feedback_type ON question_feedback(feedback_type);
+CREATE INDEX idx_question_feedback_rating ON question_feedback(rating) WHERE rating IS NOT NULL;
+CREATE INDEX idx_question_feedback_created_at ON question_feedback(created_at);
 ```
+
+**ImageType Enum Values**:
+- `QUESTION`: Hình trong đề bài
+- `SOLUTION`: Hình trong lời giải
+
+**ImageStatus Enum Values**:
+- `PENDING`: Chưa upload
+- `UPLOADING`: Đang upload
+- `UPLOADED`: Đã upload thành công
+- `FAILED`: Upload thất bại
+
+**FeedbackType Enum Values**:
+- `LIKE`: Thích
+- `DISLIKE`: Không thích
+- `REPORT`: Báo cáo lỗi
+- `SUGGESTION`: Góp ý
 
 ## � LaTeX Question Formats
 
@@ -326,21 +354,51 @@ enum FeedbackType {
 
 ## �🔧 Hướng dẫn triển khai
 
-### 1. Tạo Database Schema
-```bash
-# Database sử dụng Raw SQL + migrations (giống phần Auth)
-# Đặt các file .sql trong packages/database/migrations
+### 1. Tạo Database Schema với Raw SQL Migrations
 
-# Option A: dùng migrator nội bộ (Go) nếu đã tích hợp
-# ví dụ: go run ./apps/backend/cmd/migrate
-
-# Option B: dùng psql để chạy tuần tự các migration
-psql $DATABASE_URL -f packages/database/migrations/000001_initial_schema.up.sql
-psql $DATABASE_URL -f packages/database/migrations/000002_question_bank_system.up.sql
-psql $DATABASE_URL -f packages/database/migrations/000004_enhanced_auth_system.up.sql
+**Migration Files Structure**:
+```
+apps/backend/internal/database/migrations/
+├── 000001_foundation_system.up.sql       # Users table + Auth foundation
+├── 000002_question_system.up.sql         # Question Bank System (THIS FILE)
+│   ├── PART 1: Question System Enums
+│   ├── PART 2: question_code table
+│   ├── PART 3: question table
+│   ├── PART 4: question_image table
+│   ├── PART 5: question_tag table
+│   ├── PART 6: question_feedback table
+│   ├── PART 7: Triggers (updated_at)
+│   └── PART 8: Sample data
+├── 000003_auth_security_system.up.sql    # Sessions, OAuth, Security
+├── 000004_exam_management_system.up.sql  # Exam System
+└── 000008_align_exam_schema_with_design.up.sql  # Alignment fixes
 ```
 
-Ghi chú: Tất cả tham chiếu đến Prisma trong tài liệu này đã được thay thế bằng Raw SQL migrations. Transport giữa FE và BE hoàn toàn sử dụng gRPC/gRPC‑Web, không có REST API.
+**Running Migrations**:
+
+```bash
+# Option A: Using golang-migrate CLI (Recommended)
+cd apps/backend
+migrate -path internal/database/migrations -database "postgresql://user:pass@localhost:5432/nynus?sslmode=disable" up
+
+# Option B: Using Go migrate command (if integrated in backend)
+cd apps/backend
+go run cmd/migrate/main.go up
+
+# Option C: Manual execution with psql (for development)
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000001_foundation_system.up.sql
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000002_question_system.up.sql
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000003_auth_security_system.up.sql
+psql $DATABASE_URL -f apps/backend/internal/database/migrations/000004_exam_management_system.up.sql
+```
+
+**Important Notes**:
+- ✅ **Raw SQL Migrations**: Hệ thống sử dụng **golang-migrate** với Raw SQL, KHÔNG sử dụng Prisma migrations
+- ✅ **Migration Order**: Phải chạy theo thứ tự 000001 → 000002 → 000003 → 000004 (dependencies)
+- ✅ **Idempotent**: Mỗi migration có thể chạy nhiều lần an toàn (sử dụng IF NOT EXISTS)
+- ✅ **Rollback**: Mỗi .up.sql có file .down.sql tương ứng để rollback
+- ✅ **Transport**: Frontend ↔ Backend communication hoàn toàn sử dụng **gRPC/gRPC-Web**, KHÔNG có REST API
+- ✅ **Type Generation**: Prisma chỉ dùng để introspect database và generate TypeScript types cho frontend
 
 ### 2. Google Drive API Setup
 ```bash

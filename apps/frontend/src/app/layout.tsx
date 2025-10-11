@@ -5,6 +5,7 @@ import { AppProviders } from "@/providers/app-providers";
 import { MainLayout } from "@/components/layout";
 import { defaultThemePreloader } from "@/lib/theme-preloader";
 import { BrowserExtensionCleanup } from "@/components/common/browser-extension-cleanup";
+import { ErrorBoundary } from "@/components/common/error-boundary";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -30,19 +31,22 @@ export default function RootLayout({
             __html: defaultThemePreloader.getPreloadScript(),
           }}
         />
+
         {/* ✅ Browser extension cleanup đã được di chuyển sang safe component */}
       </head>
       <body
         className={`${inter.variable} font-sans antialiased nynus-gradient-bg text-foreground`}
         suppressHydrationWarning
       >
-        <AppProviders>
-          <MainLayout>
-            {children}
-          </MainLayout>
-          {/* ✅ Safe cleanup component thay thế cho dangerous script */}
-          <BrowserExtensionCleanup />
-        </AppProviders>
+        <ErrorBoundary>
+          <AppProviders>
+            <MainLayout>
+              {children}
+            </MainLayout>
+            {/* ✅ Safe cleanup component thay thế cho dangerous script */}
+            <BrowserExtensionCleanup />
+          </AppProviders>
+        </ErrorBoundary>
       </body>
     </html>
   );

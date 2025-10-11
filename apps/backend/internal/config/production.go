@@ -50,33 +50,33 @@ func LoadProductionConfig() *ProductionConfig {
 		// gRPC Gateway - DISABLED in production by default
 		HTTPGatewayEnabled: getBoolEnv("HTTP_GATEWAY_ENABLED", false),
 
-		// Security Settings
+		// Security Settings - Enhanced for production
 		TLSEnabled:  getBoolEnv("TLS_ENABLED", true), // Enable TLS in production
 		TLSCertFile: getEnv("TLS_CERT_FILE", "/etc/ssl/certs/server.crt"),
 		TLSKeyFile:  getEnv("TLS_KEY_FILE", "/etc/ssl/private/server.key"),
 
-		// Performance Settings - Optimized for production
-		MaxConcurrentStreams:  getUint32Env("MAX_CONCURRENT_STREAMS", 1000),
-		MaxReceiveMessageSize: getIntEnv("MAX_RECEIVE_MESSAGE_SIZE", 4*1024*1024), // 4MB
-		MaxSendMessageSize:    getIntEnv("MAX_SEND_MESSAGE_SIZE", 4*1024*1024),    // 4MB
-		ConnectionTimeout:     getIntEnv("CONNECTION_TIMEOUT", 30),                // 30 seconds
+		// Performance Settings - Optimized for production workload
+		MaxConcurrentStreams:  getUint32Env("MAX_CONCURRENT_STREAMS", 2000),       // Increased for higher load
+		MaxReceiveMessageSize: getIntEnv("MAX_RECEIVE_MESSAGE_SIZE", 8*1024*1024), // 8MB for larger payloads
+		MaxSendMessageSize:    getIntEnv("MAX_SEND_MESSAGE_SIZE", 8*1024*1024),    // 8MB for larger responses
+		ConnectionTimeout:     getIntEnv("CONNECTION_TIMEOUT", 60),                // 60 seconds for production stability
 
-		// Logging Settings - Structured logging for production
-		LogLevel:        getEnv("LOG_LEVEL", "info"),
-		LogFormat:       getEnv("LOG_FORMAT", "json"), // JSON format for production
+		// Logging Settings - Optimized structured logging for production
+		LogLevel:        getEnv("LOG_LEVEL", "info"),  // Info level for production
+		LogFormat:       getEnv("LOG_FORMAT", "json"), // JSON format for log aggregation
 		EnableAccessLog: getBoolEnv("ENABLE_ACCESS_LOG", true),
 		EnableErrorLog:  getBoolEnv("ENABLE_ERROR_LOG", true),
 
-		// Rate Limiting - Enabled in production
+		// Rate Limiting - Enhanced for production traffic
 		EnableRateLimit: getBoolEnv("ENABLE_RATE_LIMIT", true),
-		RateLimitRPS:    getIntEnv("RATE_LIMIT_RPS", 100),   // 100 RPS per client
-		RateLimitBurst:  getIntEnv("RATE_LIMIT_BURST", 200), // Burst of 200
+		RateLimitRPS:    getIntEnv("RATE_LIMIT_RPS", 200),   // 200 RPS per client for higher throughput
+		RateLimitBurst:  getIntEnv("RATE_LIMIT_BURST", 500), // Burst of 500 for traffic spikes
 
-		// Health Check
+		// Health Check - Enhanced monitoring
 		EnableHealthCheck: getBoolEnv("ENABLE_HEALTH_CHECK", true),
 		HealthCheckPath:   getEnv("HEALTH_CHECK_PATH", "/health"),
 
-		// Monitoring
+		// Monitoring - Comprehensive production monitoring
 		EnableMetrics: getBoolEnv("ENABLE_METRICS", true),
 		MetricsPort:   getEnv("METRICS_PORT", "9090"),
 		EnableTracing: getBoolEnv("ENABLE_TRACING", true),
@@ -166,18 +166,40 @@ func GetOptimizedGRPCOptions(cfg *ProductionConfig) map[string]interface{} {
 	return options
 }
 
-// LogProductionSettings logs the current production settings
+// LogProductionSettings logs the current production settings with enhanced details
 func LogProductionSettings(cfg *ProductionConfig) {
 	if IsProduction() {
-		log.Println("🚀 Production Configuration:")
-		log.Printf("   HTTP Gateway: %v", cfg.HTTPGatewayEnabled)
-		log.Printf("   TLS Enabled: %v", cfg.TLSEnabled)
-		log.Printf("   Rate Limiting: %v (RPS: %d, Burst: %d)", cfg.EnableRateLimit, cfg.RateLimitRPS, cfg.RateLimitBurst)
-		log.Printf("   Health Check: %v", cfg.EnableHealthCheck)
-		log.Printf("   Metrics: %v", cfg.EnableMetrics)
-		log.Printf("   Tracing: %v", cfg.EnableTracing)
-		log.Printf("   Log Level: %s", cfg.LogLevel)
-		log.Printf("   Log Format: %s", cfg.LogFormat)
+		log.Println("🚀 Production Configuration - Optimized Settings:")
+		log.Printf("   🔒 Security:")
+		log.Printf("      HTTP Gateway: %v (Disabled for security)", cfg.HTTPGatewayEnabled)
+		log.Printf("      TLS Enabled: %v", cfg.TLSEnabled)
+		if cfg.TLSEnabled {
+			log.Printf("      TLS Cert: %s", cfg.TLSCertFile)
+			log.Printf("      TLS Key: %s", cfg.TLSKeyFile)
+		}
+
+		log.Printf("   ⚡ Performance:")
+		log.Printf("      Max Concurrent Streams: %d", cfg.MaxConcurrentStreams)
+		log.Printf("      Max Message Size: %d MB", cfg.MaxReceiveMessageSize/(1024*1024))
+		log.Printf("      Connection Timeout: %d seconds", cfg.ConnectionTimeout)
+
+		log.Printf("   📊 Logging:")
+		log.Printf("      Log Level: %s", cfg.LogLevel)
+		log.Printf("      Log Format: %s (Structured for aggregation)", cfg.LogFormat)
+		log.Printf("      Access Log: %v", cfg.EnableAccessLog)
+		log.Printf("      Error Log: %v", cfg.EnableErrorLog)
+
+		log.Printf("   🛡️  Rate Limiting:")
+		log.Printf("      Enabled: %v", cfg.EnableRateLimit)
+		if cfg.EnableRateLimit {
+			log.Printf("      RPS Limit: %d requests/second", cfg.RateLimitRPS)
+			log.Printf("      Burst Capacity: %d requests", cfg.RateLimitBurst)
+		}
+
+		log.Printf("   🔍 Monitoring:")
+		log.Printf("      Health Check: %v (Path: %s)", cfg.EnableHealthCheck, cfg.HealthCheckPath)
+		log.Printf("      Metrics: %v (Port: %s)", cfg.EnableMetrics, cfg.MetricsPort)
+		log.Printf("      Tracing: %v", cfg.EnableTracing)
 	} else if IsDevelopment() {
 		log.Println("🔧 Development Configuration:")
 		log.Printf("   HTTP Gateway: %v", cfg.HTTPGatewayEnabled)

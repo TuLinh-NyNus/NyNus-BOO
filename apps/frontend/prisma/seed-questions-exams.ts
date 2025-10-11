@@ -4,7 +4,7 @@
  * This script creates sample questions and exams
  */
 
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

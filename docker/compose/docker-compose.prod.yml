@@ -24,6 +24,17 @@ services:
       - ENV=production
       - LOG_LEVEL=info
       - LOG_FORMAT=json
+      # Enhanced performance settings
+      - MAX_CONCURRENT_STREAMS=2000
+      - MAX_RECEIVE_MESSAGE_SIZE=8388608
+      - MAX_SEND_MESSAGE_SIZE=8388608
+      - CONNECTION_TIMEOUT=60
+      - KEEPALIVE_TIME=30
+      - KEEPALIVE_TIMEOUT=5
+      # Enhanced rate limiting
+      - ENABLE_RATE_LIMIT=true
+      - RATE_LIMIT_RPS=200
+      - RATE_LIMIT_BURST=500
 
   # Production Frontend Configuration
   frontend:

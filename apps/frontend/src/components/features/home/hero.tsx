@@ -433,7 +433,7 @@ const Hero = () => {
                   <div className="flex items-center justify-between">
                     {/* Left - Logo with Gradient */}
                     <motion.div
-                      className="font-bold text-lg bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent py-0.5"
+                      className="font-bold text-lg logo-gradient-text py-0.5"
                       style={{ lineHeight: "1.3" }}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}

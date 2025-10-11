@@ -50,35 +50,35 @@ func (s *Seeder) seedDefaultUsers() error {
 			Password:  "admin123",
 			FirstName: "System",
 			LastName:  "Administrator",
-			Role:      "admin",
+			Role:      "ADMIN",
 		},
 		{
 			Email:     "teacher@exambank.com",
 			Password:  "teacher123",
 			FirstName: "John",
 			LastName:  "Teacher",
-			Role:      "teacher",
+			Role:      "TEACHER",
 		},
 		{
 			Email:     "student@exambank.com",
 			Password:  "student123",
 			FirstName: "Jane",
 			LastName:  "Student",
-			Role:      "student",
+			Role:      "STUDENT",
 		},
 		{
 			Email:     "demo.teacher@exambank.com",
 			Password:  "demo123",
 			FirstName: "Demo",
 			LastName:  "Teacher",
-			Role:      "teacher",
+			Role:      "TEACHER",
 		},
 		{
 			Email:     "demo.student@exambank.com",
 			Password:  "demo123",
 			FirstName: "Demo",
 			LastName:  "Student",
-			Role:      "student",
+			Role:      "STUDENT",
 		},
 	}
 
@@ -104,17 +104,24 @@ func (s *Seeder) seedDefaultUsers() error {
 		// Generate ULID for user ID
 		userID := util.ULIDNow()
 
-		// Insert user
+		role := strings.ToUpper(user.Role)
+		status := "ACTIVE"
+		maxConcurrentSessions := 3
+
+		// Insert user with normalized role/status and verified email to avoid login issues
 		query := `
-			INSERT INTO users (id, email, password_hash, first_name, last_name, role, is_active)
-			VALUES ($1, $2, $3, $4, $5, $6, true)
+			INSERT INTO users (
+				id, email, password_hash, first_name, last_name,
+				role, status, is_active, email_verified, max_concurrent_sessions
+			)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, TRUE, $8)
 		`
-		_, err = s.db.Exec(query, userID, user.Email, string(hashedPassword), user.FirstName, user.LastName, user.Role)
+		_, err = s.db.Exec(query, userID, user.Email, string(hashedPassword), user.FirstName, user.LastName, role, status, maxConcurrentSessions)
 		if err != nil {
 			return fmt.Errorf("failed to insert user %s: %w", user.Email, err)
 		}
 
-		log.Printf("   ✅ Created user: %s (%s)", user.Email, user.Role)
+		log.Printf("   ✅ Created user: %s (%s)", user.Email, role)
 	}
 
 	return nil

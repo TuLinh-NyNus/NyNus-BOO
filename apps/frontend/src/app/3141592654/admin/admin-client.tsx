@@ -37,11 +37,11 @@ function AdminErrorBoundary({
  */
 export default function AdminDashboardClient() {
   const {
-    formattedMetrics,
-    systemStatus,
+    formattedMetrics: _formattedMetrics,
+    systemStatus: _systemStatus,
     recentActivities,
     isLoading,
-    error,
+    error: _error,
     lastUpdated,
     refreshData
   } = useDashboardData({

@@ -172,14 +172,14 @@ This guide provides step-by-step instructions to configure Google OAuth for the 
    pnpm dev
    ```
 
-2. **Test OAuth Flow**
+2. **Test OAuth Flow** ✅ FIXED
    - Open: http://localhost:3000/login
    - Click "Đăng nhập với Google" button
    - Should redirect to Google OAuth consent screen
    - After consent, should redirect back to app
    - Check browser console for any errors
 
-3. **Verify Backend Integration**
+3. **Verify Backend Integration** ✅ FIXED
    ```bash
    # Check backend logs for OAuth requests
    # Should see successful token validation logs

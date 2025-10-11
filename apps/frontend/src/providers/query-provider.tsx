@@ -34,10 +34,10 @@ export function QueryProvider({ children }: QueryProviderProps) {
         queries: {
           // Stale time: Thời gian data được coi là "fresh"
           staleTime: 5 * 60 * 1000, // 5 minutes
-          
+
           // Cache time: Thời gian data được giữ trong cache sau khi không sử dụng
           gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
-          
+
           // Retry configuration
           retry: (failureCount, error: unknown) => {
             // Không retry cho 404 errors
@@ -45,10 +45,10 @@ export function QueryProvider({ children }: QueryProviderProps) {
             // Retry tối đa 3 lần cho các lỗi khác
             return failureCount < 3;
           },
-          
+
           // Retry delay với exponential backoff
           retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-          
+
           // Refetch configuration
           refetchOnWindowFocus: false, // Không refetch khi focus window
           refetchOnReconnect: true,    // Refetch khi reconnect internet

@@ -1,13 +1,22 @@
 /**
  * User Detail API Routes
- * 
+ *
  * GET /api/users/[id] - Lấy thông tin chi tiết user
  * PUT /api/users/[id] - Cập nhật thông tin user
  * DELETE /api/users/[id] - Xóa user
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { executePrismaOperation } from '@/lib/prisma/error-handler';
+import {
+  successResponse,
+  noContentResponse,
+  errorResponse,
+  validationErrorResponse,
+  notFoundResponse,
+} from '@/lib/api/response-helper';
+import { updateUserSchema, formatZodErrors } from '@/lib/validation/schemas';
 
 // GET /api/users/[id] - Lấy thông tin chi tiết user
 export async function GET(
@@ -15,63 +24,51 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: params.id,
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        avatar: true,
-        bio: true,
-        phone: true,
-        address: true,
-        school: true,
-        dateOfBirth: true,
-        gender: true,
-        role: true,
-        level: true,
-        status: true,
-        emailVerified: true,
-        lastLoginAt: true,
-        createdAt: true,
-        updatedAt: true,
-        _count: {
-          select: {
-            examAttempts: true,
-            notifications: true,
+    const user = await executePrismaOperation(() =>
+      prisma.users.findUnique({
+        where: {
+          id: params.id,
+        },
+        select: {
+          id: true,
+          email: true,
+          first_name: true,
+          last_name: true,
+          username: true,
+          avatar: true,
+          bio: true,
+          phone: true,
+          address: true,
+          school: true,
+          date_of_birth: true,
+          gender: true,
+          role: true,
+          level: true,
+          status: true,
+          email_verified: true,
+          last_login_at: true,
+          created_at: true,
+          updated_at: true,
+          _count: {
+            select: {
+              exam_attempts: true,
+              notifications: true,
+            },
           },
         },
-      },
-    });
+      })
+    );
 
     if (!user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Không tìm thấy user',
-        },
-        { status: 404 }
-      );
+      return notFoundResponse('Không tìm thấy user');
     }
 
-    return NextResponse.json({
-      success: true,
-      data: { user },
-    });
+    return successResponse({ data: { user } });
   } catch (error) {
-    console.error('Error fetching user:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Lỗi khi lấy thông tin user',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return errorResponse({
+      error,
+      customMessage: 'Lỗi khi lấy thông tin user',
+    });
   }
 }
 
@@ -82,6 +79,18 @@ export async function PUT(
 ) {
   try {
     const body = await request.json();
+
+    // Validate request body với Zod
+    const validation = updateUserSchema.safeParse(body);
+
+    if (!validation.success) {
+      const { errors, failedFields } = formatZodErrors(validation.error);
+      return validationErrorResponse('Dữ liệu không hợp lệ', {
+        errors,
+        failedFields,
+      });
+    }
+
     const {
       firstName,
       lastName,
@@ -92,70 +101,62 @@ export async function PUT(
       school,
       dateOfBirth,
       gender,
-    } = body;
+    } = validation.data;
 
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { id: params.id },
-    });
+    const existingUser = await executePrismaOperation(() =>
+      prisma.users.findUnique({
+        where: { id: params.id },
+      })
+    );
 
     if (!existingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Không tìm thấy user',
-        },
-        { status: 404 }
-      );
+      return notFoundResponse('Không tìm thấy user');
     }
 
-    // Update user
-    const user = await prisma.user.update({
-      where: {
-        id: params.id,
-      },
-      data: {
-        firstName,
-        lastName,
-        username,
-        bio,
-        phone,
-        address,
-        school,
-        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-        gender,
-      },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        username: true,
-        bio: true,
-        phone: true,
-        address: true,
-        school: true,
-        dateOfBirth: true,
-        gender: true,
-        updatedAt: true,
-      },
-    });
+    // Update user using error handler
+    const user = await executePrismaOperation(() =>
+      prisma.users.update({
+        where: {
+          id: params.id,
+        },
+        data: {
+          first_name: firstName,
+          last_name: lastName,
+          username,
+          bio,
+          phone,
+          address,
+          school,
+          date_of_birth: dateOfBirth ? new Date(dateOfBirth) : undefined,
+          gender,
+        },
+        select: {
+          id: true,
+          email: true,
+          first_name: true,
+          last_name: true,
+          username: true,
+          bio: true,
+          phone: true,
+          address: true,
+          school: true,
+          date_of_birth: true,
+          gender: true,
+          updated_at: true,
+        },
+      })
+    );
 
-    return NextResponse.json({
-      success: true,
-      message: 'Cập nhật user thành công',
+    return successResponse({
       data: { user },
+      message: 'Cập nhật user thành công',
     });
   } catch (error) {
-    console.error('Error updating user:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Lỗi khi cập nhật user',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return errorResponse({
+      error,
+      customMessage: 'Lỗi khi cập nhật user',
+    });
   }
 }
 
@@ -166,41 +167,31 @@ export async function DELETE(
 ) {
   try {
     // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { id: params.id },
-    });
+    const existingUser = await executePrismaOperation(() =>
+      prisma.users.findUnique({
+        where: { id: params.id },
+      })
+    );
 
     if (!existingUser) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Không tìm thấy user',
-        },
-        { status: 404 }
-      );
+      return notFoundResponse('Không tìm thấy user');
     }
 
-    // Delete user (cascade will delete related records)
-    await prisma.user.delete({
-      where: {
-        id: params.id,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: 'Xóa user thành công',
-    });
-  } catch (error) {
-    console.error('Error deleting user:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Lỗi khi xóa user',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+    // Delete user (cascade will delete related records) using error handler
+    await executePrismaOperation(() =>
+      prisma.users.delete({
+        where: {
+          id: params.id,
+        },
+      })
     );
+
+    return noContentResponse();
+  } catch (error) {
+    return errorResponse({
+      error,
+      customMessage: 'Lỗi khi xóa user',
+    });
   }
 }
 

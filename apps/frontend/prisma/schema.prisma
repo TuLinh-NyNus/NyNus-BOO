@@ -1,6 +1,8 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // Removed custom output path to fix Windows MAX_PATH / EPERM errors
+  // See: https://github.com/vercel/next.js/discussions/62281
+  // output   = "../generated/prisma"
 }
 
 datasource db {

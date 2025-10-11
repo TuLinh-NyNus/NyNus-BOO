@@ -8,7 +8,7 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
   // Test directory
   testDir: './src/tests/e2e',
-  
+
   // Run tests in files in parallel
   fullyParallel: true,
   
@@ -85,17 +85,15 @@ export default defineConfig({
     },
   ],
 
-  // Global setup and teardown
-  globalSetup: require.resolve('./src/tests/e2e/setup/global-setup.ts'),
-  globalTeardown: require.resolve('./src/tests/e2e/setup/global-teardown.ts'),
+  // Global setup and teardown - REMOVED (files deleted, causing test discovery issues)
 
-  // Run your local dev server before starting the tests
-  webServer: {
-    command: 'pnpm dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // Run your local dev server before starting the tests - DISABLED (server already running)
+  // webServer: {
+  //   command: 'pnpm dev',
+  //   url: 'http://localhost:3000',
+  //   reuseExistingServer: !process.env.CI,
+  //   timeout: 120000,
+  // },
 
   // Test timeout
   timeout: 60000,

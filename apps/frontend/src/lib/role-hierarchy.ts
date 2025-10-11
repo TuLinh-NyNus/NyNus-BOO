@@ -3,35 +3,65 @@
  * Quản lý hệ thống phân cấp vai trò với visualization support
  */
 
-import { UserRole } from "@/lib/mockdata/core-types";
+// FIXED: Use protobuf UserRole instead of mockdata
+import { UserRole, type UserRole as UserRoleType } from "@/types/user/roles";
 
-// Import labels and colors from mockdata for compatibility
-const USER_ROLE_LABELS: Record<UserRole, string> = {
-  GUEST: "Khách",
-  STUDENT: "Học viên",
-  TUTOR: "Gia sư",
-  TEACHER: "Giáo viên",
-  ADMIN: "Quản trị viên",
-};
+/**
+ * Role labels in Vietnamese
+ * Nhãn hiển thị cho các vai trò
+ */
+export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: "Không xác định",
+  [UserRole.USER_ROLE_GUEST]: "Khách",
+  [UserRole.USER_ROLE_STUDENT]: "Học viên",
+  [UserRole.USER_ROLE_TUTOR]: "Gia sư",
+  [UserRole.USER_ROLE_TEACHER]: "Giáo viên",
+  [UserRole.USER_ROLE_ADMIN]: "Quản trị viên",
+} as const;
 
-const USER_ROLE_COLORS: Record<UserRole, string> = {
-  ADMIN: "destructive",
-  TEACHER: "default",
-  TUTOR: "secondary",
-  STUDENT: "outline",
-  GUEST: "secondary",
-};
+/**
+ * Role badge colors for UI
+ * Màu sắc badge cho các vai trò
+ */
+export const USER_ROLE_COLORS: Record<UserRoleType, string> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: "secondary",
+  [UserRole.USER_ROLE_ADMIN]: "destructive",
+  [UserRole.USER_ROLE_TEACHER]: "default",
+  [UserRole.USER_ROLE_TUTOR]: "secondary",
+  [UserRole.USER_ROLE_STUDENT]: "outline",
+  [UserRole.USER_ROLE_GUEST]: "secondary",
+} as const;
+
+/**
+ * All roles in hierarchy order (lowest to highest)
+ * Tất cả vai trò theo thứ tự phân cấp
+ */
+export const ROLES_IN_ORDER: readonly UserRoleType[] = [
+  UserRole.USER_ROLE_GUEST,
+  UserRole.USER_ROLE_STUDENT,
+  UserRole.USER_ROLE_TUTOR,
+  UserRole.USER_ROLE_TEACHER,
+  UserRole.USER_ROLE_ADMIN,
+] as const;
+
+/**
+ * Maximum promotion levels allowed
+ * Số cấp tối đa có thể thăng tiến
+ */
+export const MAX_PROMOTION_LEVELS = 2;
 
 /**
  * Role hierarchy levels
- * Cấp độ phân cấp vai trò
+ * FIXED: Match backend hierarchy (apps/backend/internal/constant/roles.go)
+ * Hierarchy: GUEST(1) < STUDENT(2) < TUTOR(3) < TEACHER(4) < ADMIN(5)
  */
-export const ROLE_LEVELS: Record<UserRole, number> = {
-  GUEST: 0,
-  STUDENT: 1,
-  TUTOR: 2,
-  TEACHER: 3,
-  ADMIN: 4,
+export const ROLE_LEVELS: Record<UserRoleType, number> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: -1,
+  [UserRole.USER_ROLE_GUEST]: 1,      // FIXED: 0 → 1
+  [UserRole.USER_ROLE_STUDENT]: 2,    // FIXED: 1 → 2
+  [UserRole.USER_ROLE_TUTOR]: 3,      // FIXED: 2 → 3
+  [UserRole.USER_ROLE_TEACHER]: 4,    // FIXED: 3 → 4
+  [UserRole.USER_ROLE_ADMIN]: 5,      // FIXED: 4 → 5
 } as const;
 
 /**
@@ -48,17 +78,17 @@ export interface RolePermission {
 
 /**
  * Role hierarchy node interface
- * Interface cho node trong role hierarchy
+ * FIXED: Use protobuf UserRoleType
  */
 export interface RoleHierarchyNode {
-  role: UserRole;
+  role: UserRoleType;
   level: number;
   label: string;
   color: string;
   permissions: RolePermission[];
   children: RoleHierarchyNode[];
   parent?: RoleHierarchyNode;
-  promotionPaths: UserRole[];
+  promotionPaths: UserRoleType[];
   restrictions: string[];
   description: string;
   userCount?: number;
@@ -66,10 +96,11 @@ export interface RoleHierarchyNode {
 
 /**
  * Role permissions mapping
- * Mapping permissions cho từng role
+ * FIXED: Use protobuf UserRole enum values
  */
-export const ROLE_PERMISSIONS: Record<UserRole, RolePermission[]> = {
-  GUEST: [
+export const ROLE_PERMISSIONS: Record<UserRoleType, RolePermission[]> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: [],
+  [UserRole.USER_ROLE_GUEST]: [
     {
       id: "view_public_content",
       name: "Xem nội dung công khai",
@@ -85,7 +116,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermission[]> = {
       level: "write",
     },
   ],
-  STUDENT: [
+  [UserRole.USER_ROLE_STUDENT]: [
     {
       id: "view_public_content",
       name: "Xem nội dung công khai",
@@ -115,7 +146,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermission[]> = {
       level: "read",
     },
   ],
-  TUTOR: [
+  [UserRole.USER_ROLE_TUTOR]: [
     {
       id: "view_public_content",
       name: "Xem nội dung công khai",
@@ -152,7 +183,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermission[]> = {
       level: "write",
     },
   ],
-  TEACHER: [
+  [UserRole.USER_ROLE_TEACHER]: [
     {
       id: "view_public_content",
       name: "Xem nội dung công khai",
@@ -170,15 +201,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermission[]> = {
     {
       id: "manage_students",
       name: "Quản lý học viên",
-      description: "Có thể quản lý học viên trong khóa học",
+      description: "Có thể xem và quản lý thông tin học viên",
       category: "user",
-      level: "write",
-    },
-    {
-      id: "grade_assignments",
-      name: "Chấm bài tập",
-      description: "Có thể chấm điểm bài tập của học viên",
-      category: "content",
       level: "write",
     },
     {
@@ -203,7 +227,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermission[]> = {
       level: "write",
     },
   ],
-  ADMIN: [
+  [UserRole.USER_ROLE_ADMIN]: [
     {
       id: "full_system_access",
       name: "Truy cập toàn hệ thống",
@@ -251,42 +275,47 @@ export const ROLE_PERMISSIONS: Record<UserRole, RolePermission[]> = {
 
 /**
  * Role descriptions
- * Mô tả chi tiết cho từng role
+ * FIXED: Use protobuf UserRole enum values
  */
-export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
-  GUEST: "Người dùng chưa đăng ký, chỉ có thể xem nội dung công khai và đăng ký tài khoản.",
-  STUDENT: "Học viên đã đăng ký, có thể tham gia khóa học, nộp bài tập và xem tiến độ học tập.",
-  TUTOR: "Trợ giảng hỗ trợ học viên, có thể chấm bài và tạo tài liệu học tập bổ sung.",
-  TEACHER: "Giảng viên tạo và quản lý khóa học, chấm điểm và theo dõi tiến độ học viên.",
-  ADMIN: "Quản trị viên có quyền truy cập toàn bộ hệ thống và quản lý tất cả người dùng.",
+export const ROLE_DESCRIPTIONS: Record<UserRoleType, string> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: "Vai trò không xác định.",
+  [UserRole.USER_ROLE_GUEST]: "Người dùng chưa đăng ký, chỉ có thể xem nội dung công khai và đăng ký tài khoản.",
+  [UserRole.USER_ROLE_STUDENT]: "Học viên đã đăng ký, có thể tham gia khóa học, nộp bài tập và xem tiến độ học tập.",
+  [UserRole.USER_ROLE_TUTOR]: "Trợ giảng hỗ trợ học viên, có thể chấm bài và tạo tài liệu học tập bổ sung.",
+  [UserRole.USER_ROLE_TEACHER]: "Giảng viên tạo và quản lý khóa học, chấm điểm và theo dõi tiến độ học viên.",
+  [UserRole.USER_ROLE_ADMIN]: "Quản trị viên có quyền truy cập toàn bộ hệ thống và quản lý tất cả người dùng.",
 };
 
 /**
  * Role restrictions
- * Các hạn chế cho từng role
+ * FIXED: Use protobuf UserRole enum values
  */
-export const ROLE_RESTRICTIONS: Record<UserRole, string[]> = {
-  GUEST: [
+export const ROLE_RESTRICTIONS: Record<UserRoleType, string[]> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: [
+    "Không có quyền truy cập",
+    "Cần xác định vai trò",
+  ],
+  [UserRole.USER_ROLE_GUEST]: [
     "Không thể truy cập nội dung premium",
     "Không thể tương tác với hệ thống",
     "Phiên làm việc có thời hạn",
   ],
-  STUDENT: [
+  [UserRole.USER_ROLE_STUDENT]: [
     "Chỉ có thể truy cập khóa học đã đăng ký",
     "Không thể tạo nội dung giảng dạy",
     "Không thể xem thông tin học viên khác",
   ],
-  TUTOR: [
+  [UserRole.USER_ROLE_TUTOR]: [
     "Chỉ có thể hỗ trợ trong khóa học được phân công",
     "Không thể thay đổi cấu trúc khóa học",
     "Cần sự phê duyệt từ giảng viên",
   ],
-  TEACHER: [
+  [UserRole.USER_ROLE_TEACHER]: [
     "Chỉ có thể quản lý khóa học của mình",
     "Không thể truy cập dữ liệu hệ thống",
     "Cần tuân thủ chính sách nội dung",
   ],
-  ADMIN: [
+  [UserRole.USER_ROLE_ADMIN]: [
     "Chịu trách nhiệm về tất cả hoạt động",
     "Phải tuân thủ chính sách bảo mật",
     "Cần xác thực đa yếu tố cho các thao tác quan trọng",
@@ -295,38 +324,74 @@ export const ROLE_RESTRICTIONS: Record<UserRole, string[]> = {
 
 /**
  * Get promotion paths for a role
- * Lấy đường dẫn thăng tiến cho role
+ *
+ * Business Logic:
+ * - User can only be promoted up to MAX_PROMOTION_LEVELS (2) levels higher
+ * - Example: STUDENT (level 2) can be promoted to TUTOR (3) or TEACHER (4), but not ADMIN (5)
+ *
+ * @param role - Current user role
+ * @returns Array of roles that user can be promoted to
+ *
+ * @example
+ * ```typescript
+ * const paths = getPromotionPaths(UserRole.USER_ROLE_STUDENT);
+ * // Returns: [USER_ROLE_TUTOR, USER_ROLE_TEACHER]
+ * ```
  */
-export function getPromotionPaths(role: UserRole): UserRole[] {
+export function getPromotionPaths(role: UserRoleType): UserRoleType[] {
   const currentLevel = ROLE_LEVELS[role];
-  const availableRoles = Object.keys(ROLE_LEVELS) as UserRole[];
 
-  return availableRoles.filter((targetRole) => {
+  return ROLES_IN_ORDER.filter((targetRole) => {
     const targetLevel = ROLE_LEVELS[targetRole];
-    return targetLevel > currentLevel && targetLevel <= currentLevel + 2; // Chỉ có thể thăng tiến tối đa 2 cấp
+    return targetLevel > currentLevel && targetLevel <= currentLevel + MAX_PROMOTION_LEVELS;
   });
 }
 
 /**
  * Check if role can be promoted to target role
- * Kiểm tra xem role có thể thăng tiến lên target role không
+ *
+ * Business Logic:
+ * - Promotion is only allowed if target role is higher
+ * - Maximum promotion gap is MAX_PROMOTION_LEVELS (2) levels
+ *
+ * @param fromRole - Current role
+ * @param toRole - Target role to promote to
+ * @returns true if promotion is allowed
+ *
+ * @example
+ * ```typescript
+ * canPromoteToRole(UserRole.USER_ROLE_STUDENT, UserRole.USER_ROLE_TEACHER); // true
+ * canPromoteToRole(UserRole.USER_ROLE_STUDENT, UserRole.USER_ROLE_ADMIN); // false (too many levels)
+ * ```
  */
-export function canPromoteToRole(fromRole: UserRole, toRole: UserRole): boolean {
+export function canPromoteToRole(fromRole: UserRoleType, toRole: UserRoleType): boolean {
   const fromLevel = ROLE_LEVELS[fromRole];
   const toLevel = ROLE_LEVELS[toRole];
 
-  return toLevel > fromLevel && toLevel <= fromLevel + 2;
+  return toLevel > fromLevel && toLevel <= fromLevel + MAX_PROMOTION_LEVELS;
 }
 
 /**
  * Get role hierarchy tree structure
- * Lấy cấu trúc cây phân cấp role
+ *
+ * Business Logic:
+ * - Builds a tree structure with GUEST as root
+ * - Each role has children representing higher roles
+ * - Includes permissions, restrictions, and promotion paths
+ *
+ * @returns Root node of role hierarchy tree (GUEST role)
+ *
+ * @example
+ * ```typescript
+ * const tree = getRoleHierarchyTree();
+ * console.log(tree.role); // USER_ROLE_GUEST
+ * console.log(tree.children[0].role); // USER_ROLE_STUDENT
+ * ```
  */
 export function getRoleHierarchyTree(): RoleHierarchyNode {
-  const roles = Object.keys(ROLE_LEVELS) as UserRole[];
-  const sortedRoles = roles.sort((a, b) => ROLE_LEVELS[a] - ROLE_LEVELS[b]);
+  const sortedRoles = [...ROLES_IN_ORDER]; // Use shared constant
 
-  const createNode = (role: UserRole, parent?: RoleHierarchyNode): RoleHierarchyNode => {
+  const createNode = (role: UserRoleType, parent?: RoleHierarchyNode): RoleHierarchyNode => {
     const node: RoleHierarchyNode = {
       role,
       level: ROLE_LEVELS[role],
@@ -344,10 +409,10 @@ export function getRoleHierarchyTree(): RoleHierarchyNode {
   };
 
   // Create root node (GUEST)
-  const root = createNode(UserRole.GUEST);
+  const root = createNode(UserRole.USER_ROLE_GUEST);
 
   // Build tree structure
-  const nodes: Partial<Record<UserRole, RoleHierarchyNode>> = { GUEST: root };
+  const nodes: Partial<Record<UserRoleType, RoleHierarchyNode>> = { [UserRole.USER_ROLE_GUEST]: root };
 
   for (let i = 1; i < sortedRoles.length; i++) {
     const role = sortedRoles[i];
@@ -366,27 +431,55 @@ export function getRoleHierarchyTree(): RoleHierarchyNode {
 
 /**
  * Get all roles in hierarchy order
- * Lấy tất cả roles theo thứ tự phân cấp
+ *
+ * @returns Array of all roles sorted from lowest to highest level
+ *
+ * @example
+ * ```typescript
+ * const roles = getAllRolesInOrder();
+ * // Returns: [GUEST, STUDENT, TUTOR, TEACHER, ADMIN]
+ * ```
  */
-export function getAllRolesInOrder(): UserRole[] {
-  const roles = Object.keys(ROLE_LEVELS) as UserRole[];
-  return roles.sort((a, b) => ROLE_LEVELS[a] - ROLE_LEVELS[b]);
+export function getAllRolesInOrder(): readonly UserRoleType[] {
+  return ROLES_IN_ORDER; // Use shared constant
 }
 
 /**
- * Get role by level
- * Lấy role theo level
+ * Get role by level number
+ *
+ * @param level - Role level number (1-5)
+ * @returns Role matching the level, or undefined if not found
+ *
+ * @example
+ * ```typescript
+ * getRoleByLevel(1); // Returns: USER_ROLE_GUEST
+ * getRoleByLevel(5); // Returns: USER_ROLE_ADMIN
+ * getRoleByLevel(99); // Returns: undefined
+ * ```
  */
-export function getRoleByLevel(level: number): UserRole | undefined {
-  const roles = Object.keys(ROLE_LEVELS) as UserRole[];
-  return roles.find((role) => ROLE_LEVELS[role] === level);
+export function getRoleByLevel(level: number): UserRoleType | undefined {
+  return ROLES_IN_ORDER.find((role) => ROLE_LEVELS[role] === level);
 }
 
 /**
- * Get permissions by category
- * Lấy permissions theo category
+ * Get permissions grouped by category
+ *
+ * Business Logic:
+ * - Groups all permissions for a role by their category
+ * - Categories: user, content, system, security, admin
+ * - Useful for displaying permissions in organized UI
+ *
+ * @param role - User role to get permissions for
+ * @returns Object with permissions grouped by category
+ *
+ * @example
+ * ```typescript
+ * const grouped = getPermissionsByCategory(UserRole.USER_ROLE_TEACHER);
+ * console.log(grouped.content); // All content-related permissions
+ * console.log(grouped.user); // All user-related permissions
+ * ```
  */
-export function getPermissionsByCategory(role: UserRole): Record<string, RolePermission[]> {
+export function getPermissionsByCategory(role: UserRoleType): Record<string, RolePermission[]> {
   const permissions = ROLE_PERMISSIONS[role];
   const grouped: Record<string, RolePermission[]> = {};
 

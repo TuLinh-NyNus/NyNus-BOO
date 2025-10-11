@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import { BackendHealthAlert } from '@/components/features/auth/BackendHealthIndicator';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -213,6 +214,9 @@ export default function RegisterPage() {
         </CardHeader>
 
         <CardContent className="space-y-6">
+          {/* Backend Health Alert */}
+          <BackendHealthAlert />
+
           {/* Progress Steps */}
           <div className="flex justify-between mb-8">
             {steps.map((step, index) => (

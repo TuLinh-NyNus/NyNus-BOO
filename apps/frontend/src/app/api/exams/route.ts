@@ -1,40 +1,58 @@
 /**
  * Exams API Routes
- * 
+ *
  * GET /api/exams - Lấy danh sách đề thi với filtering
  * POST /api/exams - Tạo đề thi mới
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
+import { executePrismaOperation } from '@/lib/prisma/error-handler';
+import {
+  successResponseWithPagination,
+  createdResponse,
+  errorResponse,
+  validationErrorResponse,
+  calculatePagination,
+} from '@/lib/api/response-helper';
+import { createExamSchema, examQuerySchema, formatZodErrors } from '@/lib/validation/schemas';
 
 // GET /api/exams - Lấy danh sách đề thi
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    
-    // Filters
-    const examType = searchParams.get('examType');
-    const status = searchParams.get('status') || 'ACTIVE';
-    const difficulty = searchParams.get('difficulty');
-    const grade = searchParams.get('grade');
-    const subject = searchParams.get('subject');
-    const search = searchParams.get('search');
-    
-    // Pagination
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+
+    // Validate query parameters với Zod
+    const queryValidation = examQuerySchema.safeParse({
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+      status: searchParams.get('status'),
+      subject: searchParams.get('subject'),
+      grade: searchParams.get('grade'),
+      difficulty: searchParams.get('difficulty'),
+      search: searchParams.get('search'),
+    });
+
+    if (!queryValidation.success) {
+      const { errors, failedFields } = formatZodErrors(queryValidation.error);
+      return validationErrorResponse('Query parameters không hợp lệ', {
+        errors,
+        failedFields,
+      });
+    }
+
+    const { page, limit, status, subject, grade, difficulty, search } = queryValidation.data;
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {};
-    
-    if (examType) where.examType = examType;
-    if (status) where.status = status;
-    if (difficulty) where.difficulty = difficulty;
+    const where: Prisma.examsWhereInput = {};
+
+    if (status) where.status = status as 'ACTIVE' | 'PENDING' | 'INACTIVE' | 'ARCHIVED';
+    if (difficulty) where.difficulty = difficulty as 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
     if (grade) where.grade = parseInt(grade);
     if (subject) where.subject = subject;
-    
+
     // Text search in title and description
     if (search) {
       where.OR = [
@@ -43,71 +61,58 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // Get exams with pagination
-    const [exams, total] = await Promise.all([
-      prisma.exam.findMany({
-        where,
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          durationMinutes: true,
-          totalPoints: true,
-          passPercentage: true,
-          examType: true,
-          status: true,
-          difficulty: true,
-          grade: true,
-          subject: true,
-          chapter: true,
-          examYear: true,
-          sourceInstitution: true,
-          publishedAt: true,
-          createdAt: true,
-          creator: {
-            select: {
-              firstName: true,
-              lastName: true,
+    // Get exams with pagination using error handler
+    const [exams, total] = await executePrismaOperation(() =>
+      Promise.all([
+        prisma.exams.findMany({
+          where,
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            duration_minutes: true,
+            total_points: true,
+            pass_percentage: true,
+            exam_type: true,
+            status: true,
+            difficulty: true,
+            grade: true,
+            subject: true,
+            chapter: true,
+            exam_year: true,
+            source_institution: true,
+            published_at: true,
+            created_at: true,
+            users_exams_created_byTousers: {
+              select: {
+                first_name: true,
+                last_name: true,
+              },
+            },
+            _count: {
+              select: {
+                exam_questions: true,
+                exam_attempts: true,
+              },
             },
           },
-          _count: {
-            select: {
-              examQuestions: true,
-              examAttempts: true,
-            },
+          orderBy: {
+            created_at: 'desc',
           },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.exam.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        exams,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-        },
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching exams:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Lỗi khi lấy danh sách đề thi',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
+          skip,
+          take: limit,
+        }),
+        prisma.exams.count({ where }),
+      ])
     );
+
+    const pagination = calculatePagination(page, limit, total);
+    return successResponseWithPagination(exams, pagination);
+  } catch (error) {
+    return errorResponse({
+      error,
+      customMessage: 'Lỗi khi lấy danh sách đề thi',
+    });
   }
 }
 
@@ -115,124 +120,122 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    // Validate request body với Zod
+    const validation = createExamSchema.safeParse(body);
+
+    if (!validation.success) {
+      const { errors, failedFields } = formatZodErrors(validation.error);
+      return validationErrorResponse('Dữ liệu không hợp lệ', {
+        errors,
+        failedFields,
+      });
+    }
+
     const {
       title,
       description,
       instructions,
-      durationMinutes = 60,
-      passPercentage = 60,
-      examType = 'generated',
-      difficulty = 'MEDIUM',
-      grade,
+      durationMinutes,
+      passPercentage,
+      totalPoints,
+      examType,
+      status,
       subject,
-      chapter,
-      questionIds = [],
-      createdBy,
-    } = body;
+      grade,
+      difficulty,
+      tags,
+      shuffleQuestions,
+      showResults,
+      maxAttempts,
+      questionIds,
+    } = validation.data;
 
-    // Validate required fields
-    if (!title || !createdBy) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Thiếu thông tin bắt buộc (title, createdBy)',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate questions exist
+    // Validate questions exist if provided
     if (questionIds.length > 0) {
-      const questions = await prisma.question.findMany({
-        where: {
-          id: { in: questionIds },
-          status: 'ACTIVE',
-        },
-      });
+      const questions = await executePrismaOperation(() =>
+        prisma.question.findMany({
+          where: {
+            id: { in: questionIds },
+            status: 'ACTIVE',
+          },
+        })
+      );
 
       if (questions.length !== questionIds.length) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Một số câu hỏi không tồn tại hoặc không active',
-          },
-          { status: 400 }
-        );
+        return validationErrorResponse('Một số câu hỏi không tồn tại hoặc không active', {
+          providedCount: questionIds.length,
+          foundCount: questions.length,
+        });
       }
     }
 
-    // Create exam with questions in a transaction
-    const exam = await prisma.$transaction(async (tx) => {
-      // Create exam
-      const newExam = await tx.exam.create({
-        data: {
-          id: crypto.randomUUID(),
-          title,
-          description,
-          instructions,
-          durationMinutes,
-          passPercentage,
-          examType,
-          difficulty,
-          grade: grade ? parseInt(grade) : undefined,
-          subject,
-          chapter,
-          status: 'PENDING',
-          createdBy,
-        },
-      });
-
-      // Add questions to exam
-      if (questionIds.length > 0) {
-        await tx.examQuestion.createMany({
-          data: questionIds.map((questionId: string, index: number) => ({
+    // Create exam with questions in a transaction using error handler
+    const exam = await executePrismaOperation(() =>
+      prisma.$transaction(async (tx) => {
+        // Create exam
+        const newExam = await tx.exams.create({
+          data: {
             id: crypto.randomUUID(),
-            examId: newExam.id,
-            questionId,
-            order: index + 1,
-            points: 5, // Default 5 points per question
-          })),
+            title,
+            description,
+            instructions,
+            duration_minutes: durationMinutes,
+            total_points: totalPoints,
+            pass_percentage: passPercentage,
+            exam_type: examType,
+            difficulty,
+            grade: grade ? parseInt(grade) : undefined,
+            subject,
+            status,
+            tags,
+            shuffle_questions: shuffleQuestions,
+            show_results: showResults,
+            max_attempts: maxAttempts,
+            created_by: crypto.randomUUID(), // TODO: Get from auth session
+          },
         });
-      }
 
-      // Get exam with questions
-      return await tx.exam.findUnique({
-        where: { id: newExam.id },
-        include: {
-          examQuestions: {
-            include: {
-              question: {
-                select: {
-                  id: true,
-                  content: true,
-                  type: true,
-                  difficulty: true,
+        // Add questions to exam
+        if (questionIds.length > 0) {
+          await tx.exam_questions.createMany({
+            data: questionIds.map((questionId: string, index: number) => ({
+              id: crypto.randomUUID(),
+              exam_id: newExam.id,
+              question_id: questionId,
+              order_number: index + 1,
+              points: 5, // Default 5 points per question
+            })),
+          });
+        }
+
+        // Get exam with questions
+        return await tx.exams.findUnique({
+          where: { id: newExam.id },
+          include: {
+            exam_questions: {
+              include: {
+                question: {
+                  select: {
+                    id: true,
+                    content: true,
+                    type: true,
+                    difficulty: true,
+                  },
                 },
               },
             },
           },
-        },
-      });
-    });
+        });
+      })
+    );
 
-    return NextResponse.json(
-      {
-        success: true,
-        message: 'Tạo đề thi thành công',
-        data: { exam },
-      },
-      { status: 201 }
-    );
+    return createdResponse({ exam }, 'Tạo đề thi thành công');
   } catch (error) {
-    console.error('Error creating exam:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Lỗi khi tạo đề thi',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    return errorResponse({
+      error,
+      customMessage: 'Lỗi khi tạo đề thi',
+    });
   }
 }
 

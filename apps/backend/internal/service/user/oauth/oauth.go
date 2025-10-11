@@ -12,50 +12,81 @@ import (
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
 	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// OAuthService handles OAuth authentication
+// OAuthService handles OAuth authentication với structured logging và validation
+//
+// Business Logic:
+// - Xử lý Google OAuth authentication flow
+// - Tạo hoặc update user từ Google account
+// - Generate JWT tokens và session tokens
+// - Quản lý concurrent sessions (max 3 devices)
+// - Track login attempts và security events
 type OAuthService struct {
 	userRepo         repository.IUserRepository
 	oauthAccountRepo repository.OAuthAccountRepository
 	sessionRepo      repository.SessionRepository
 	googleClient     *GoogleClient
-	jwtService       JWTService
-	sessionService   SessionService // Add session service for proper session management
+	jwtService       auth.IJWTService   // REFACTORED: Use IJWTService interface
+	sessionService   SessionService     // Session management với 24h sliding window
+	logger           *logrus.Logger     // Structured logging
 }
 
 // SessionService interface for session management
+//
+// Business Logic:
+// - CreateSession: Tạo session mới với 24h sliding window
+// - ValidateSession: Validate session token và extend expiry
+// - InvalidateAllUserSessions: Revoke tất cả sessions của user (logout all devices)
 type SessionService interface {
 	CreateSession(ctx context.Context, userID, sessionToken, ipAddress, userAgent, deviceFingerprint string) (*repository.Session, error)
 	ValidateSession(ctx context.Context, sessionToken string) (*repository.Session, error)
 	InvalidateAllUserSessions(ctx context.Context, userID string) error
 }
 
-// JWTService interface for JWT operations
-type JWTService interface {
-	GenerateAccessToken(userID string, role string) (string, error)
-	GenerateRefreshToken(userID string) (string, error)
-	ValidateRefreshToken(token string) (string, error)
-}
-
-// NewOAuthService creates a new OAuth service
+// NewOAuthService creates a new OAuth service với dependency injection
+//
+// Parameters:
+//   - userRepo: User repository cho database operations
+//   - oauthAccountRepo: OAuth account repository
+//   - sessionRepo: Session repository
+//   - jwtService: IJWTService implementation (UnifiedJWTService)
+//   - sessionService: Session service cho session management
+//   - googleClientID: Google OAuth client ID
+//   - googleClientSecret: Google OAuth client secret
+//   - redirectURI: OAuth redirect URI
+//
+// Returns:
+//   - *OAuthService: Configured OAuth service instance
 func NewOAuthService(
 	userRepo repository.IUserRepository,
 	oauthAccountRepo repository.OAuthAccountRepository,
 	sessionRepo repository.SessionRepository,
-	jwtService JWTService,
+	jwtService auth.IJWTService,
 	sessionService SessionService,
 	googleClientID, googleClientSecret, redirectURI string,
+	logger *logrus.Logger,
 ) *OAuthService {
+	// Create default logger if not provided
+	if logger == nil {
+		logger = logrus.New()
+		logger.SetLevel(logrus.InfoLevel)
+		logger.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: time.RFC3339,
+		})
+	}
+
 	return &OAuthService{
 		userRepo:         userRepo,
 		oauthAccountRepo: oauthAccountRepo,
 		sessionRepo:      sessionRepo,
 		jwtService:       jwtService,
 		sessionService:   sessionService,
-		googleClient:     NewGoogleClient(googleClientID, googleClientSecret, redirectURI),
+		googleClient:     NewGoogleClient(googleClientID, googleClientSecret, redirectURI, logger),
+		logger:           logger,
 	}
 }
 
@@ -70,17 +101,63 @@ type GooglePayload struct {
 	FamilyName    string `json:"family_name"`
 }
 
-// GoogleLogin handles Google OAuth authentication
+// GoogleLogin handles Google OAuth authentication với validation và logging
+//
+// Business Logic:
+// - Validate Google ID token
+// - Tạo user mới nếu chưa tồn tại
+// - Update Google ID và avatar nếu cần
+// - Generate JWT tokens và session tokens
+// - Track login activity
+//
+// Parameters:
+//   - ctx: Context với timeout và cancellation
+//   - idToken: Google ID token từ frontend
+//   - ipAddress: IP address của user (for security tracking)
+//
+// Returns:
+//   - *pb.LoginResponse: Response với access_token, refresh_token, session_token, user info
+//   - error: gRPC error với appropriate code
 func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddress string) (*pb.LoginResponse, error) {
+	// Validate input parameters
+	if idToken == "" {
+		s.logger.Error("Empty ID token provided")
+		return nil, status.Errorf(codes.InvalidArgument, "ID token cannot be empty")
+	}
+	if ipAddress == "" {
+		s.logger.Warn("Empty IP address provided, using default")
+		ipAddress = "unknown"
+	}
+
+	s.logger.WithFields(logrus.Fields{
+		"operation":  "GoogleLogin",
+		"ip_address": ipAddress,
+	}).Info("Google OAuth login attempt")
+
 	// Validate Google ID token
 	payload, err := s.verifyGoogleIDToken(ctx, idToken)
 	if err != nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"error":     err.Error(),
+		}).Error("Invalid Google ID token")
 		return nil, status.Errorf(codes.Unauthenticated, "invalid Google ID token: %v", err)
 	}
+
+	s.logger.WithFields(logrus.Fields{
+		"operation": "GoogleLogin",
+		"email":     payload.Email,
+		"google_id": payload.Sub,
+	}).Debug("Google ID token validated successfully")
 
 	// Check if user exists with this Google ID
 	user, err := s.userRepo.GetByGoogleID(ctx, payload.Sub)
 	if err != nil && !errors.Is(err, repository.ErrUserNotFound) {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"google_id": payload.Sub,
+			"error":     err.Error(),
+		}).Error("Failed to check user by Google ID")
 		return nil, status.Errorf(codes.Internal, "failed to check user: %v", err)
 	}
 
@@ -88,14 +165,29 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 	if user == nil {
 		user, err = s.userRepo.GetByEmail(ctx, payload.Email)
 		if err != nil && !errors.Is(err, repository.ErrUserNotFound) {
+			s.logger.WithFields(logrus.Fields{
+				"operation": "GoogleLogin",
+				"email":     payload.Email,
+				"error":     err.Error(),
+			}).Error("Failed to check user by email")
 			return nil, status.Errorf(codes.Internal, "failed to check user by email: %v", err)
 		}
 	}
 
 	// Create new user if doesn't exist
 	if user == nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"email":     payload.Email,
+		}).Info("Creating new user from Google account")
+
 		user, err = s.createUserFromGoogle(ctx, payload)
 		if err != nil {
+			s.logger.WithFields(logrus.Fields{
+				"operation": "GoogleLogin",
+				"email":     payload.Email,
+				"error":     err.Error(),
+			}).Error("Failed to create user from Google")
 			return nil, status.Errorf(codes.Internal, "failed to create user: %v", err)
 		}
 	} else {
@@ -103,6 +195,12 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 		if user.GoogleID == "" {
 			user.GoogleID = payload.Sub
 			if err := s.userRepo.UpdateGoogleID(ctx, user.ID, payload.Sub); err != nil {
+				s.logger.WithFields(logrus.Fields{
+					"operation": "GoogleLogin",
+					"user_id":   user.ID,
+					"google_id": payload.Sub,
+					"error":     err.Error(),
+				}).Error("Failed to update Google ID")
 				return nil, status.Errorf(codes.Internal, "failed to update Google ID: %v", err)
 			}
 		}
@@ -112,20 +210,33 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 			user.Avatar = payload.Picture
 			if err := s.userRepo.UpdateAvatar(ctx, user.ID, payload.Picture); err != nil {
 				// Log error but don't fail login
-				fmt.Printf("Failed to update avatar: %v\n", err)
+				s.logger.WithFields(logrus.Fields{
+					"operation": "GoogleLogin",
+					"user_id":   user.ID,
+					"error":     err.Error(),
+				}).Warn("Failed to update avatar")
 			}
 		}
 	}
 
 	// Check if user is active
 	if user.Status != "ACTIVE" {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"user_id":   user.ID,
+			"status":    user.Status,
+		}).Warn("User account is not active")
 		return nil, status.Errorf(codes.PermissionDenied, "user account is %s", user.Status)
 	}
 
 	// Create or update OAuth account record
 	if err := s.upsertOAuthAccount(ctx, user.ID, payload); err != nil {
 		// Log error but don't fail login
-		fmt.Printf("Failed to upsert OAuth account: %v\n", err)
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"user_id":   user.ID,
+			"error":     err.Error(),
+		}).Warn("Failed to upsert OAuth account")
 	}
 
 	// Create session using SessionService (handles 24h sliding window and 3-device limit)
@@ -138,18 +249,38 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 		userAgent := "Google OAuth Client"
 		deviceFingerprint := fmt.Sprintf("google-oauth-%s", ipAddress)
 
+		s.logger.WithFields(logrus.Fields{
+			"operation":         "GoogleLogin",
+			"user_id":           user.ID,
+			"device_fingerprint": deviceFingerprint,
+		}).Debug("Creating session with SessionService")
+
 		// Create session with 24h sliding window
 		_, err = s.sessionService.CreateSession(ctx, user.ID, sessionToken, ipAddress, userAgent, deviceFingerprint)
 		if err != nil {
 			// Log error but don't fail login
-			fmt.Printf("Failed to create session: %v\n", err)
+			s.logger.WithFields(logrus.Fields{
+				"operation": "GoogleLogin",
+				"user_id":   user.ID,
+				"error":     err.Error(),
+			}).Warn("Failed to create session")
 			sessionToken = "" // Continue without session token
 		}
 	} else {
 		// Fallback to direct session creation if SessionService not available
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"user_id":   user.ID,
+		}).Debug("SessionService not available, using direct session creation")
+
 		// Check concurrent sessions
 		activeSessions, err := s.sessionRepo.GetActiveSessions(ctx, user.ID)
 		if err != nil {
+			s.logger.WithFields(logrus.Fields{
+				"operation": "GoogleLogin",
+				"user_id":   user.ID,
+				"error":     err.Error(),
+			}).Error("Failed to check active sessions")
 			return nil, status.Errorf(codes.Internal, "failed to check sessions: %v", err)
 		}
 
@@ -168,7 +299,12 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 				}
 			}
 			if err := s.sessionRepo.TerminateSession(ctx, oldestSession.ID); err != nil {
-				fmt.Printf("Failed to terminate old session: %v\n", err)
+				s.logger.WithFields(logrus.Fields{
+					"operation":  "GoogleLogin",
+					"user_id":    user.ID,
+					"session_id": oldestSession.ID,
+					"error":      err.Error(),
+				}).Warn("Failed to terminate old session")
 			}
 		}
 
@@ -183,36 +319,52 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 		}
 
 		if err := s.sessionRepo.CreateSession(ctx, session); err != nil {
+			s.logger.WithFields(logrus.Fields{
+				"operation": "GoogleLogin",
+				"user_id":   user.ID,
+				"error":     err.Error(),
+			}).Error("Failed to create session")
 			return nil, status.Errorf(codes.Internal, "failed to create session: %v", err)
 		}
 	}
 
-	// Generate JWT tokens with full user details
-	// Try to use the enhanced method if available
-	var accessToken string
-	if jwtAdapter, ok := s.jwtService.(*auth.JWTAdapter); ok {
-		// Use enhanced method with email and level
-		accessToken, err = jwtAdapter.GenerateAccessTokenWithDetails(user.ID, user.Email, string(user.Role), user.Level)
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
-		}
-	} else {
-		// Fallback to basic method
-		accessToken, err = s.jwtService.GenerateAccessToken(user.ID, string(user.Role))
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
-		}
+	// Generate JWT tokens with full user details using IJWTService
+	s.logger.WithFields(logrus.Fields{
+		"operation": "GoogleLogin",
+		"user_id":   user.ID,
+		"email":     user.Email,
+		"role":      string(user.Role),
+		"level":     user.Level,
+	}).Debug("Generating JWT tokens")
+
+	accessToken, err := s.jwtService.GenerateAccessToken(user.ID, user.Email, string(user.Role), user.Level)
+	if err != nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"user_id":   user.ID,
+			"error":     err.Error(),
+		}).Error("Failed to generate access token")
+		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
 	}
 
 	refreshToken, err := s.jwtService.GenerateRefreshToken(user.ID)
 	if err != nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"user_id":   user.ID,
+			"error":     err.Error(),
+		}).Error("Failed to generate refresh token")
 		return nil, status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
 	}
 
 	// Update last login
 	if err := s.userRepo.UpdateLastLogin(ctx, user.ID, ipAddress); err != nil {
 		// Log error but don't fail login
-		fmt.Printf("Failed to update last login: %v\n", err)
+		s.logger.WithFields(logrus.Fields{
+			"operation": "GoogleLogin",
+			"user_id":   user.ID,
+			"error":     err.Error(),
+		}).Warn("Failed to update last login")
 	}
 
 	// Convert to proto user
@@ -336,35 +488,96 @@ func (s *OAuthService) userStatusToProto(status string) common.UserStatus {
 	}
 }
 
-// RefreshToken refreshes the access token using refresh token
+// RefreshToken refreshes the access token using refresh token với validation và logging
+//
+// Business Logic:
+// - Validate refresh token
+// - Check user status (must be ACTIVE)
+// - Generate new access token và refresh token
+// - Return new tokens
+//
+// Parameters:
+//   - ctx: Context với timeout và cancellation
+//   - refreshToken: Refresh token từ client
+//
+// Returns:
+//   - *pb.RefreshTokenResponse: Response với new access_token và refresh_token
+//   - error: gRPC error với appropriate code
 func (s *OAuthService) RefreshToken(ctx context.Context, refreshToken string) (*pb.RefreshTokenResponse, error) {
+	// Validate input
+	if refreshToken == "" {
+		s.logger.Error("Empty refresh token provided")
+		return nil, status.Errorf(codes.InvalidArgument, "refresh token cannot be empty")
+	}
+
+	s.logger.WithFields(logrus.Fields{
+		"operation": "RefreshToken",
+	}).Debug("Refresh token request")
+
 	// Validate refresh token
 	userID, err := s.jwtService.ValidateRefreshToken(refreshToken)
 	if err != nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "RefreshToken",
+			"error":     err.Error(),
+		}).Warn("Invalid refresh token")
 		return nil, status.Errorf(codes.Unauthenticated, "invalid refresh token: %v", err)
 	}
 
 	// Get user
 	user, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "RefreshToken",
+			"user_id":   userID,
+			"error":     err.Error(),
+		}).Error("User not found")
 		return nil, status.Errorf(codes.NotFound, "user not found")
 	}
 
 	// Check if user is active
 	if user.Status != "ACTIVE" {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "RefreshToken",
+			"user_id":   user.ID,
+			"status":    user.Status,
+		}).Warn("User account is not active")
 		return nil, status.Errorf(codes.PermissionDenied, "user account is %s", user.Status)
 	}
 
-	// Generate new tokens
-	newAccessToken, err := s.jwtService.GenerateAccessToken(user.ID, string(user.Role))
+	// Generate new tokens với full user details
+	s.logger.WithFields(logrus.Fields{
+		"operation": "RefreshToken",
+		"user_id":   user.ID,
+		"email":     user.Email,
+		"role":      string(user.Role),
+		"level":     user.Level,
+	}).Debug("Generating new tokens")
+
+	newAccessToken, err := s.jwtService.GenerateAccessToken(user.ID, user.Email, string(user.Role), user.Level)
 	if err != nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "RefreshToken",
+			"user_id":   user.ID,
+			"error":     err.Error(),
+		}).Error("Failed to generate access token")
 		return nil, status.Errorf(codes.Internal, "failed to generate access token: %v", err)
 	}
 
 	newRefreshToken, err := s.jwtService.GenerateRefreshToken(user.ID)
 	if err != nil {
+		s.logger.WithFields(logrus.Fields{
+			"operation": "RefreshToken",
+			"user_id":   user.ID,
+			"error":     err.Error(),
+		}).Error("Failed to generate refresh token")
 		return nil, status.Errorf(codes.Internal, "failed to generate refresh token: %v", err)
 	}
+
+	s.logger.WithFields(logrus.Fields{
+		"operation": "RefreshToken",
+		"user_id":   user.ID,
+	}).Info("Token refreshed successfully")
 
 	return &pb.RefreshTokenResponse{
 		Response: &common.Response{

@@ -27,42 +27,46 @@ import {
   getAllRolesInOrder,
   RoleHierarchyNode,
 } from "../../../lib/role-hierarchy";
-import { UserRole } from "@/lib/mockdata/core-types";
+// FIXED: Use protobuf UserRole instead of mockdata
+import { UserRole, type UserRole as UserRoleType } from "@/types/user/roles";
 
-const USER_ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "Khách",
-  [UserRole.STUDENT]: "Học viên",
-  [UserRole.TUTOR]: "Trợ giảng",
-  [UserRole.TEACHER]: "Giảng viên",
-  [UserRole.ADMIN]: "Quản trị viên",
+// FIXED: Use protobuf UserRole enum values
+const USER_ROLE_LABELS: Record<UserRoleType, string> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: "Không xác định",
+  [UserRole.USER_ROLE_GUEST]: "Khách",
+  [UserRole.USER_ROLE_STUDENT]: "Học viên",
+  [UserRole.USER_ROLE_TUTOR]: "Trợ giảng",
+  [UserRole.USER_ROLE_TEACHER]: "Giảng viên",
+  [UserRole.USER_ROLE_ADMIN]: "Quản trị viên",
 };
 
 /**
  * Role Hierarchy Tree Props
  * Props cho Role Hierarchy Tree component
  */
+// FIXED: Use protobuf UserRoleType
 interface RoleHierarchyTreeProps {
-  onRoleSelect?: (role: UserRole) => void;
-  selectedRole?: UserRole;
+  onRoleSelect?: (role: UserRoleType) => void;
+  selectedRole?: UserRoleType;
   showPermissions?: boolean;
   className?: string;
 }
 
 /**
  * Get role icon
- * Lấy icon cho role
+ * FIXED: Use protobuf UserRole enum values
  */
-function getRoleIcon(role: UserRole) {
+function getRoleIcon(role: UserRoleType) {
   switch (role) {
-    case "ADMIN":
+    case UserRole.USER_ROLE_ADMIN:
       return <Crown className="h-5 w-5" />;
-    case "TEACHER":
+    case UserRole.USER_ROLE_TEACHER:
       return <GraduationCap className="h-5 w-5" />;
-    case "TUTOR":
+    case UserRole.USER_ROLE_TUTOR:
       return <UserCheck className="h-5 w-5" />;
-    case "STUDENT":
+    case UserRole.USER_ROLE_STUDENT:
       return <User className="h-5 w-5" />;
-    case "GUEST":
+    case UserRole.USER_ROLE_GUEST:
       return <Users className="h-5 w-5" />;
     default:
       return <User className="h-5 w-5" />;
@@ -271,8 +275,8 @@ export function RoleHierarchyTree({
   className = "",
 }: RoleHierarchyTreeProps) {
   const [hierarchyTree, setHierarchyTree] = useState<RoleHierarchyNode | null>(null);
-  const [expandedRoles, setExpandedRoles] = useState<Set<UserRole>>(new Set([UserRole.GUEST]));
-  const [selectedRoleState, setSelectedRoleState] = useState<UserRole | undefined>(selectedRole);
+  const [expandedRoles, setExpandedRoles] = useState<Set<UserRoleType>>(new Set([UserRole.USER_ROLE_GUEST]));
+  const [selectedRoleState, setSelectedRoleState] = useState<UserRoleType | undefined>(selectedRole);
 
   /**
    * Initialize hierarchy tree
@@ -324,7 +328,7 @@ export function RoleHierarchyTree({
    * Thu gọn tất cả roles
    */
   const collapseAll = () => {
-    setExpandedRoles(new Set([UserRole.GUEST]));
+    setExpandedRoles(new Set([UserRole.USER_ROLE_GUEST]));
   };
 
   if (!hierarchyTree) {

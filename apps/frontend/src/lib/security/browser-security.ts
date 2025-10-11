@@ -1,7 +1,65 @@
 /**
  * Browser Security Service for Exam Anti-Cheating
  * Implements client-side security measures to prevent cheating during exams
+ *
+ * @author NyNus Development Team
+ * @version 2.0.0 - Refactored with Clean Architecture
  */
+
+import { logger } from '@/lib/utils/logger';
+
+// ===== CONSTANTS =====
+
+/**
+ * Default maximum violations before action
+ */
+export const DEFAULT_MAX_VIOLATIONS = 5;
+
+/**
+ * Default security check intervals (milliseconds)
+ */
+export const SECURITY_CHECK_INTERVALS = {
+  DEV_TOOLS_DETECTION: 1000, // 1 second
+  SESSION_VALIDATION: 30000, // 30 seconds
+} as const;
+
+/**
+ * Blocked keyboard combinations for exam security
+ * Các tổ hợp phím bị chặn để bảo mật thi
+ */
+export const BLOCKED_KEY_COMBINATIONS: Array<{
+  key: string;
+  ctrl?: boolean;
+  shift?: boolean;
+  alt?: boolean;
+  description: string;
+}> = [
+  // Developer tools
+  { key: 'F12', description: 'DevTools' },
+  { key: 'I', ctrl: true, shift: true, description: 'DevTools (Ctrl+Shift+I)' },
+  { key: 'J', ctrl: true, shift: true, description: 'Console (Ctrl+Shift+J)' },
+  { key: 'C', ctrl: true, shift: true, description: 'Inspect (Ctrl+Shift+C)' },
+
+  // Copy/paste
+  { key: 'C', ctrl: true, description: 'Copy (Ctrl+C)' },
+  { key: 'V', ctrl: true, description: 'Paste (Ctrl+V)' },
+  { key: 'X', ctrl: true, description: 'Cut (Ctrl+X)' },
+  { key: 'A', ctrl: true, description: 'Select All (Ctrl+A)' },
+
+  // Navigation
+  { key: 'R', ctrl: true, description: 'Refresh (Ctrl+R)' },
+  { key: 'F5', description: 'Refresh (F5)' },
+  { key: 'W', ctrl: true, description: 'Close Tab (Ctrl+W)' },
+  { key: 'T', ctrl: true, description: 'New Tab (Ctrl+T)' },
+  { key: 'N', ctrl: true, description: 'New Window (Ctrl+N)' },
+
+  // Browser functions
+  { key: 'U', ctrl: true, description: 'View Source (Ctrl+U)' },
+  { key: 'S', ctrl: true, description: 'Save (Ctrl+S)' },
+  { key: 'P', ctrl: true, description: 'Print (Ctrl+P)' },
+] as const;
+
+// ===== INTERFACES =====
 
 export interface SecurityEvent {
   type: SecurityEventType;
@@ -45,6 +103,22 @@ export class BrowserSecurityService {
   private copyPasteAttempts: number = 0;
   private rightClickAttempts: number = 0;
 
+  /**
+   * Create new BrowserSecurityService instance
+   *
+   * @param config - Security configuration options
+   *
+   * @example
+   * ```typescript
+   * const security = new BrowserSecurityService({
+   *   requireFullscreen: true,
+   *   maxViolations: 3,
+   *   onViolationLimitReached: () => {
+   *     // Handle violation limit
+   *   }
+   * });
+   * ```
+   */
   constructor(config: BrowserSecurityConfig) {
     // Set defaults first, then override with user config
     const defaults: BrowserSecurityConfig = {
@@ -54,7 +128,7 @@ export class BrowserSecurityService {
       detectDevTools: true,
       monitorTabSwitching: true,
       blockKeyboardShortcuts: true,
-      maxViolations: 5
+      maxViolations: DEFAULT_MAX_VIOLATIONS,
     };
 
     this.config = { ...defaults, ...config };
@@ -65,7 +139,7 @@ export class BrowserSecurityService {
    */
   public start(): void {
     if (this.isActive) {
-      console.warn('Browser security is already active');
+      logger.warn('[BrowserSecurity] Browser security is already active');
       return;
     }
 
@@ -85,7 +159,7 @@ export class BrowserSecurityService {
       this.startDevToolsDetection();
     }
 
-    console.log('Browser security monitoring started');
+    logger.info('[BrowserSecurity] Browser security monitoring started');
   }
 
   /**
@@ -107,7 +181,7 @@ export class BrowserSecurityService {
       this.devToolsDetector = undefined;
     }
 
-    console.log('Browser security monitoring stopped');
+    logger.info('[BrowserSecurity] Browser security monitoring stopped');
   }
 
   /**
@@ -135,7 +209,9 @@ export class BrowserSecurityService {
         await document.documentElement.requestFullscreen();
       }
     } catch (error) {
-      console.error('Failed to enable fullscreen:', error);
+      logger.error('[BrowserSecurity] Failed to enable fullscreen', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       this.recordSecurityEvent('fullscreen_exit', 'medium', {
         reason: 'Failed to enable fullscreen',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -214,7 +290,7 @@ export class BrowserSecurityService {
    */
   private handleWindowFocus(): void {
     // Log focus return but don't count as violation
-    console.log('Window focus returned');
+    logger.debug('[BrowserSecurity] Window focus returned');
   }
 
   /**
@@ -259,40 +335,14 @@ export class BrowserSecurityService {
 
   /**
    * Handle keyboard shortcuts
+   *
+   * Business Logic:
+   * - Blocks specific keyboard combinations during exam
+   * - Prevents access to developer tools, copy/paste, and navigation
+   * - Records security events for blocked attempts
    */
   private handleKeyDown(event: KeyboardEvent): void {
-    const blockedCombinations: Array<{
-      key: string;
-      ctrl?: boolean;
-      shift?: boolean;
-      alt?: boolean;
-    }> = [
-      // Developer tools
-      { key: 'F12' },
-      { key: 'I', ctrl: true, shift: true }, // Ctrl+Shift+I
-      { key: 'J', ctrl: true, shift: true }, // Ctrl+Shift+J
-      { key: 'C', ctrl: true, shift: true }, // Ctrl+Shift+C
-
-      // Copy/paste
-      { key: 'C', ctrl: true }, // Ctrl+C
-      { key: 'V', ctrl: true }, // Ctrl+V
-      { key: 'X', ctrl: true }, // Ctrl+X
-      { key: 'A', ctrl: true }, // Ctrl+A
-
-      // Navigation
-      { key: 'R', ctrl: true }, // Ctrl+R (refresh)
-      { key: 'F5' }, // F5 (refresh)
-      { key: 'W', ctrl: true }, // Ctrl+W (close tab)
-      { key: 'T', ctrl: true }, // Ctrl+T (new tab)
-      { key: 'N', ctrl: true }, // Ctrl+N (new window)
-
-      // Browser functions
-      { key: 'U', ctrl: true }, // Ctrl+U (view source)
-      { key: 'S', ctrl: true }, // Ctrl+S (save)
-      { key: 'P', ctrl: true }, // Ctrl+P (print)
-    ];
-
-    const isBlocked = blockedCombinations.some(combo => {
+    const isBlocked = BLOCKED_KEY_COMBINATIONS.some(combo => {
       return combo.key === event.key &&
              (!combo.ctrl || event.ctrlKey) &&
              (!combo.shift || event.shiftKey) &&
@@ -397,7 +447,11 @@ export class BrowserSecurityService {
       this.config.onViolationLimitReached();
     }
 
-    console.warn(`Security event: ${type} (${severity})`, data);
+    logger.warn(`[BrowserSecurity] Security event: ${type} (${severity})`, {
+      type,
+      severity,
+      data,
+    });
   }
 }
 

@@ -4,6 +4,7 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  // Note: swcMinify is default in Next.js 15+ and deprecated as config option
 
   // Production optimizations
   ...(process.env.NODE_ENV === 'production' && process.env.ENABLE_STANDALONE === 'true' && {
@@ -27,6 +28,9 @@ const nextConfig = {
     ],
     optimizeCss: true,
     scrollRestoration: true,
+    // Memory optimization: Reduce worker threads and CPU usage
+    workerThreads: false,  // Disable worker threads to reduce memory
+    cpus: 1,               // Limit to 1 CPU to reduce memory footprint
     ...(process.env.NODE_ENV === 'production' && {
       webpackBuildWorker: true,
       parallelServerCompiles: true,
@@ -34,19 +38,88 @@ const nextConfig = {
     }),
   },
 
-  // Enhanced image optimization
+  // Enhanced image optimization (memory-optimized)
   images: {
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 31536000, // 1 year
+    formats: ['image/webp'], // Only WebP for smaller memory footprint
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920], // Reduced sizes
+    imageSizes: [16, 32, 48, 64, 96, 128, 256], // Reduced sizes
+    minimumCacheTTL: 60, // Shorter cache for development (reduce memory)
     dangerouslyAllowSVG: false,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  // Webpack optimizations
+  // Turbopack configuration (Next.js 15+)
+  // Note: Turbopack has built-in optimizations and doesn't need webpack loaders
+  // This config suppresses the "Webpack is configured while Turbopack is not" warning
+  turbopack: {
+    // Turbopack works great with defaults
+    // No custom configuration needed for our use case
+    // Future: Add custom loaders here if needed (e.g., @svgr/webpack)
+  },
+
+  // Webpack optimizations (only when NOT using Turbopack)
+  // Note: Turbopack doesn't support webpack plugins
+  // For bundle analysis with Turbopack, use: next build --turbo && du -sh .next
   webpack: (config, { dev, isServer }) => {
-    // Bundle analyzer
+    // Skip webpack customizations when using Turbopack
+    // Turbopack is enabled via --turbo flag in dev:fast and build:turbo scripts
+    if (process.env.TURBOPACK) {
+      return config;
+    }
+
+    // Memory optimization: Configure webpack cache to use filesystem instead of memory
+    config.cache = {
+      type: 'filesystem',
+      buildDependencies: {
+        config: [__filename]
+      },
+      // Reduce memory usage by limiting cache size
+      maxMemoryGenerations: 1,
+    };
+
+    // Fix Windows permission errors with pnpm node_modules structure
+    // Exclude pnpm internal directories from webpack file watching and glob scanning
+    config.watchOptions = config.watchOptions || {};
+    config.watchOptions.ignored = config.watchOptions.ignored || [];
+
+    // Add pnpm-specific ignore patterns
+    const pnpmIgnorePatterns = [
+      '**/node_modules/.pnpm/**',
+      '**/node_modules/.ignored/**',
+      '**/node_modules/.ignored_*/**',
+      '**/node_modules/**/.ignored/**',
+      '**/node_modules/**/.ignored_*/**',
+    ];
+
+    if (Array.isArray(config.watchOptions.ignored)) {
+      config.watchOptions.ignored.push(...pnpmIgnorePatterns);
+    } else if (typeof config.watchOptions.ignored === 'string') {
+      config.watchOptions.ignored = [config.watchOptions.ignored, ...pnpmIgnorePatterns];
+    } else {
+      config.watchOptions.ignored = pnpmIgnorePatterns;
+    }
+
+    // Fix Windows EPERM errors - exclude Windows system directories from webpack scanning
+    // These are symbolic links that webpack should not try to access
+    config.resolve = config.resolve || {};
+    config.resolve.symlinks = false; // Don't follow symbolic links (also reduces memory)
+
+    // Add module resolution exclusions for Windows system directories
+    const originalResolveModules = config.resolve.modules || [];
+    config.resolve.modules = originalResolveModules.filter(modulePath => {
+      // Exclude Windows system directories
+      const excludedPaths = [
+        'Application Data',
+        'AppData',
+        'ProgramData',
+        'Program Files',
+        'Program Files (x86)',
+        'Windows'
+      ];
+      return !excludedPaths.some(excluded => modulePath && modulePath.includes(excluded));
+    });
+
+    // Bundle analyzer (Webpack only)
     if (process.env.ANALYZE === 'true') {
       const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
       config.plugins.push(
@@ -60,6 +133,10 @@ const nextConfig = {
 
     return config;
   },
+
+  // Note: File watching for Docker is configured via environment variables
+  // WATCHPACK_POLLING=true and CHOKIDAR_USEPOLLING=true in docker-compose.override.yml
+  // Turbopack (Next.js 15+) does not support watchOptions - use env vars instead
 
   // Enhanced security headers
   async headers() {

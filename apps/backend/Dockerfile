@@ -5,9 +5,8 @@ WORKDIR /app
 COPY apps/backend .
 COPY packages/database ./packages/database
 
-# Install dependencies
+# Install dependencies (no need for go mod tidy - go.mod is already correct)
 RUN go mod download
-RUN go mod tidy
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/main.go

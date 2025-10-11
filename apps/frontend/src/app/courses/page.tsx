@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from "framer-motion";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { MathBackground } from "@/components/features/courses/ui";
 import { AdvancedSearchBar, SearchFilters, SortOption } from "@/components/features/courses/search/advanced-search-bar";
@@ -12,6 +13,8 @@ import { MockTutorial, MockCourse } from "@/lib/mockdata/courses/courses-types";
 import { useTutorials } from '@/hooks';
 import { Button } from "@/components/ui/form/button";
 import { ThemeForcer } from "@/components/ui/theme";
+import { useAuth } from '@/contexts/auth-context-grpc';
+import { Loader2, Lock } from 'lucide-react';
 
 // Helper function to map tutorials to courses by category
 function getTutorialsForCourse(course: MockCourse, allTutorials: MockTutorial[]): MockTutorial[] {
@@ -31,20 +34,86 @@ function getTutorialsForCourse(course: MockCourse, allTutorials: MockTutorial[])
 /**
  * Courses Page - Trang danh sách khóa học hoàn chỉnh
  * Sử dụng tất cả layout components và tích hợp mockdata
+ * 🔒 Protected Route: Yêu cầu đăng nhập với role STUDENT trở lên
  */
 export default function CoursesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  const { user, isLoading, isAuthenticated } = useAuth();
 
-  // Fetch math courses (Toán học category)
+  // Fetch math courses (Toán học category) - MUST be before early returns
   const mathCourses = getCoursesByCategory('Toán học');
 
-  // Memoize params để tránh tạo object mới mỗi render
+  // Memoize params để tránh tạo object mới mỗi render - MUST be before early returns
   const tutorialsParams = useMemo(() => ({
     limit: 50 // Get all tutorials
   }), []);
 
-  // Fetch all tutorials for mapping to courses
+  // Fetch all tutorials for mapping to courses - MUST be before early returns
   const { data: allTutorials, isLoading: isLoadingTutorials } = useTutorials(tutorialsParams);
+
+  // Client-side authentication check
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      // Redirect to login with return URL
+      router.push(`/login?callbackUrl=${encodeURIComponent('/courses')}`);
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <MathBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+            <h2 className="text-xl font-semibold text-foreground">Đang tải...</h2>
+            <p className="text-muted-foreground">Vui lòng chờ trong giây lát</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Unauthenticated state (will redirect, but show message briefly)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <MathBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-4">
+            <Lock className="h-12 w-12 text-muted-foreground mx-auto" />
+            <h2 className="text-xl font-semibold text-foreground">Yêu cầu đăng nhập</h2>
+            <p className="text-muted-foreground">Đang chuyển hướng đến trang đăng nhập...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Role-based access check
+  if (user && !['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'].includes(user.role.toString())) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <MathBackground />
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="text-center space-y-4">
+            <Lock className="h-12 w-12 text-destructive mx-auto" />
+            <h2 className="text-xl font-semibold text-foreground">Không có quyền truy cập</h2>
+            <p className="text-muted-foreground">
+              Bạn cần có tài khoản học viên để truy cập khóa học.
+            </p>
+            <Button onClick={() => router.push('/dashboard')} className="mt-4">
+              Quay về Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // These lines were moved up before early returns
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

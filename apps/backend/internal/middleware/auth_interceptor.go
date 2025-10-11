@@ -160,26 +160,26 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		// Extract token from metadata
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
+			return nil, status.Errorf(codes.Unauthenticated, ErrMetadataNotProvided)
 		}
 
-		values := md["authorization"]
+		values := md[AuthorizationHeader]
 		if len(values) == 0 {
-			return nil, status.Errorf(codes.Unauthenticated, "authorization token is not provided")
+			return nil, status.Errorf(codes.Unauthenticated, ErrAuthTokenNotProvided)
 		}
 
 		accessToken := values[0]
-		if !strings.HasPrefix(accessToken, "Bearer ") {
-			return nil, status.Errorf(codes.Unauthenticated, "invalid authorization token format")
+		if !strings.HasPrefix(accessToken, BearerPrefix) {
+			return nil, status.Errorf(codes.Unauthenticated, ErrInvalidAuthTokenFormat)
 		}
 
 		// Remove "Bearer " prefix
-		token := strings.TrimPrefix(accessToken, "Bearer ")
+		token := strings.TrimPrefix(accessToken, BearerPrefix)
 
 		// Validate token
 		claims, err := interceptor.authService.ValidateToken(token)
 		if err != nil {
-			return nil, status.Errorf(codes.Unauthenticated, "invalid token: %v", err)
+			return nil, status.Errorf(codes.Unauthenticated, ErrInvalidToken, err)
 		}
 
 		// Check role-based authorization
@@ -196,9 +196,7 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 			}
 
 			if !hasPermission {
-				return nil, status.Errorf(codes.PermissionDenied,
-					"insufficient permissions: user role '%s' is not allowed to access '%s'",
-					userRole, info.FullMethod)
+				return nil, status.Errorf(codes.PermissionDenied, ErrInsufficientPermissions, userRole, info.FullMethod)
 			}
 		}
 
@@ -221,37 +219,41 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 }
 
 // GetUserIDFromContext extracts user ID from context
+// Trích xuất user ID từ context (được inject bởi auth interceptor)
 func GetUserIDFromContext(ctx context.Context) (string, error) {
 	userID, ok := ctx.Value(userIDKey).(string)
 	if !ok {
-		return "", status.Errorf(codes.Internal, "user ID not found in context")
+		return "", status.Errorf(codes.Internal, ErrUserIDNotFoundInContext)
 	}
 	return userID, nil
 }
 
 // GetUserEmailFromContext extracts user email from context
+// Trích xuất user email từ context (được inject bởi auth interceptor)
 func GetUserEmailFromContext(ctx context.Context) (string, error) {
 	email, ok := ctx.Value(userEmailKey).(string)
 	if !ok {
-		return "", status.Errorf(codes.Internal, "user email not found in context")
+		return "", status.Errorf(codes.Internal, ErrUserEmailNotFoundInContext)
 	}
 	return email, nil
 }
 
 // GetUserRoleFromContext extracts user role from context
+// Trích xuất user role từ context (được inject bởi auth interceptor)
 func GetUserRoleFromContext(ctx context.Context) (string, error) {
 	role, ok := ctx.Value(userRoleKey).(string)
 	if !ok {
-		return "", status.Errorf(codes.Internal, "user role not found in context")
+		return "", status.Errorf(codes.Internal, ErrUserRoleNotFoundInContext)
 	}
 	return role, nil
 }
 
 // GetUserLevelFromContext extracts user level from context
+// Trích xuất user level từ context (được inject bởi auth interceptor)
 func GetUserLevelFromContext(ctx context.Context) (int, error) {
 	level, ok := ctx.Value(userLevelKey).(int)
 	if !ok {
-		return 0, status.Errorf(codes.Internal, "user level not found in context")
+		return 0, status.Errorf(codes.Internal, ErrUserLevelNotFoundInContext)
 	}
 	return level, nil
 }

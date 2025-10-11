@@ -31,31 +31,37 @@ import {
   ROLE_RESTRICTIONS,
   getPromotionPaths,
 } from "../../../lib/role-hierarchy";
-import { UserRole } from "@/lib/mockdata/core-types";
+// FIXED: Use protobuf UserRole instead of mockdata
+import { UserRole, type UserRole as UserRoleType } from "@/types/user/roles";
 
-const USER_ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "Khách",
-  [UserRole.STUDENT]: "Học viên",
-  [UserRole.TUTOR]: "Trợ giảng",
-  [UserRole.TEACHER]: "Giảng viên",
-  [UserRole.ADMIN]: "Quản trị viên",
+// FIXED: Use protobuf UserRole enum values
+const USER_ROLE_LABELS: Record<UserRoleType, string> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: "Không xác định",
+  [UserRole.USER_ROLE_GUEST]: "Khách",
+  [UserRole.USER_ROLE_STUDENT]: "Học viên",
+  [UserRole.USER_ROLE_TUTOR]: "Trợ giảng",
+  [UserRole.USER_ROLE_TEACHER]: "Giảng viên",
+  [UserRole.USER_ROLE_ADMIN]: "Quản trị viên",
 };
 
-const USER_ROLE_COLORS: Record<UserRole, string> = {
-  [UserRole.GUEST]: "bg-secondary text-secondary-foreground",
-  [UserRole.STUDENT]: "bg-primary text-primary-foreground",
-  [UserRole.TUTOR]: "bg-badge-success text-badge-success-foreground",
-  [UserRole.TEACHER]: "bg-accent text-accent-foreground",
-  [UserRole.ADMIN]: "bg-destructive text-destructive-foreground",
+// FIXED: Use protobuf UserRole enum values
+const USER_ROLE_COLORS: Record<UserRoleType, string> = {
+  [UserRole.USER_ROLE_UNSPECIFIED]: "bg-gray-100 text-gray-800",
+  [UserRole.USER_ROLE_GUEST]: "bg-secondary text-secondary-foreground",
+  [UserRole.USER_ROLE_STUDENT]: "bg-primary text-primary-foreground",
+  [UserRole.USER_ROLE_TUTOR]: "bg-badge-success text-badge-success-foreground",
+  [UserRole.USER_ROLE_TEACHER]: "bg-accent text-accent-foreground",
+  [UserRole.USER_ROLE_ADMIN]: "bg-destructive text-destructive-foreground",
 };
 
 /**
  * Role Permissions Panel Props
  * Props cho Role Permissions Panel component
  */
+// FIXED: Use protobuf UserRoleType
 interface RolePermissionsPanelProps {
-  selectedRole?: UserRole;
-  compareWithRole?: UserRole;
+  selectedRole?: UserRoleType;
+  compareWithRole?: UserRoleType;
   className?: string;
 }
 

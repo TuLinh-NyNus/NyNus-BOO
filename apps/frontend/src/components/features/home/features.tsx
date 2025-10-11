@@ -441,13 +441,56 @@ const Features = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.3 }}
           >
-            {/* Enhanced badge */}
+            {/* Enhanced badge - Unified to AI Learning Style */}
             <motion.div
-              className="inline-flex items-center px-6 py-3 rounded-full bg-muted/50 border border-border text-foreground mb-6 transition-all duration-300"
-              whileHover={shouldReduceMotion ? {} : { scale: 1.02 }}
+              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 text-blue-400 backdrop-blur-sm mb-6 transition-all duration-500 shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 relative overflow-hidden group"
+              whileHover={shouldReduceMotion ? {} : { scale: 1.05 }}
+              whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
+              style={{
+                background: `linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 51, 234, 0.15) 50%, rgba(16, 185, 129, 0.15) 100%), radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)`
+              }}
             >
-              <Info className="h-4 w-4 mr-2 text-blue-400" />
-              <span className="font-medium">{featuresData.badge.text}</span>
+              {/* Subtle background pattern for badge */}
+              <div className="absolute inset-0 opacity-30">
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 25% 25%, rgba(147, 197, 253, 0.4) 1px, transparent 1px), radial-gradient(circle at 75% 75%, rgba(16, 185, 129, 0.4) 1px, transparent 1px)`,
+                    backgroundSize: '20px 20px, 30px 30px',
+                    animation: 'float-subtle 8s ease-in-out infinite'
+                  }}
+                />
+              </div>
+
+              {/* Enhanced icon with glow effect and animation */}
+              <motion.div
+                className="relative z-10 mr-2"
+                animate={shouldReduceMotion ? {} : {
+                  scale: [1, 1.05, 1],
+                  transition: {
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }
+                }}
+              >
+                <div className="relative">
+                  <Info className="h-4 w-4 text-badge-light drop-shadow-lg" />
+                  {/* Glow effect */}
+                  <div className="absolute inset-0 h-4 w-4 bg-badge-light rounded-full opacity-20 blur-sm animate-pulse"></div>
+                </div>
+              </motion.div>
+
+              {/* Enhanced text with better typography */}
+              <span className="font-bold text-badge-light text-sm tracking-wide relative z-10">
+                {featuresData.badge.text}
+              </span>
+
+              {/* Subtle border glow effect */}
+              <div className="absolute inset-0 rounded-full border border-transparent bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+              {/* Hover shine effect */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%]"></div>
             </motion.div>
 
             {/* Enhanced title with better gradient */}

@@ -59,13 +59,13 @@ func (s *SecurityInterceptor) Unary() grpc.UnaryServerInterceptor {
 		// Extract metadata
 		md, ok := metadata.FromIncomingContext(ctx)
 		if !ok {
-			return nil, status.Errorf(codes.InvalidArgument, "missing metadata")
+			return nil, status.Errorf(codes.InvalidArgument, ErrMissingMetadata)
 		}
 
 		// Get user ID from context (set by auth interceptor)
 		userID, err := GetUserIDFromContext(ctx)
 		if err != nil {
-			return nil, status.Errorf(codes.Unauthenticated, "user not authenticated")
+			return nil, status.Errorf(codes.Unauthenticated, ErrUserNotAuthenticated)
 		}
 
 		// Check rate limiting for exam actions
@@ -88,13 +88,14 @@ func (s *SecurityInterceptor) Unary() grpc.UnaryServerInterceptor {
 }
 
 // isExamEndpoint checks if the endpoint is exam-related
+// Kiểm tra xem endpoint có liên quan đến exam không
 func (s *SecurityInterceptor) isExamEndpoint(method string) bool {
 	examMethods := []string{
-		"/exam.ExamService/StartExam",
-		"/exam.ExamService/SubmitAnswer",
-		"/exam.ExamService/SubmitExam",
-		"/exam.ExamService/GetExamAttempt",
-		"/exam.ExamService/GetExamQuestions",
+		ExamMethodStartExam,
+		ExamMethodSubmitAnswer,
+		ExamMethodSubmitExam,
+		ExamMethodGetExamAttempt,
+		ExamMethodGetExamQuestions,
 	}
 
 	for _, examMethod := range examMethods {

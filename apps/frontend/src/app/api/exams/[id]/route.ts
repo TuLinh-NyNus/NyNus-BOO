@@ -13,20 +13,20 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const exam = await prisma.exam.findUnique({
+    const exam = await prisma.exams.findUnique({
       where: {
         id: params.id,
       },
       include: {
-        creator: {
+        users_exams_created_byTousers: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
+            first_name: true,
+            last_name: true,
             email: true,
           },
         },
-        examQuestions: {
+        exam_questions: {
           include: {
             question: {
               select: {
@@ -35,18 +35,18 @@ export async function GET(
                 type: true,
                 difficulty: true,
                 answers: true,
-                // Don't return correctAnswer for security
+                // Don't return correct_answer for security
               },
             },
           },
           orderBy: {
-            order: 'asc',
+            order_number: 'asc',
           },
         },
         _count: {
           select: {
-            examAttempts: true,
-            examFeedback: true,
+            exam_attempts: true,
+            exam_feedback: true,
           },
         },
       },
@@ -63,8 +63,8 @@ export async function GET(
     }
 
     // Calculate total points
-    const totalPoints = exam.examQuestions.reduce(
-      (sum, eq) => sum + eq.points,
+    const totalPoints = exam.exam_questions.reduce(
+      (sum, eq) => sum + (eq.points ?? 0),
       0
     );
 

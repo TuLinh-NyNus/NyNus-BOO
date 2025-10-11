@@ -64,11 +64,22 @@ func (a *App) initDatabase() error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	// Configure connection pool for optimal performance
-	a.db.SetMaxOpenConns(25)     // Maximum number of open connections
-	a.db.SetMaxIdleConns(10)     // Maximum number of idle connections
-	a.db.SetConnMaxLifetime(300) // Maximum connection lifetime (5 minutes)
-	a.db.SetConnMaxIdleTime(60)  // Maximum idle time (1 minute)
+	// Configure optimized connection pool based on environment
+	if config.IsProduction() {
+		// Production settings - optimized for high concurrency and stability
+		a.db.SetMaxOpenConns(50)      // Increased for production load
+		a.db.SetMaxIdleConns(20)      // Higher idle connections for faster response
+		a.db.SetConnMaxLifetime(600)  // 10 minutes for production stability
+		a.db.SetConnMaxIdleTime(120)  // 2 minutes idle time for better resource utilization
+		log.Println("🔧 Database connection pool optimized for production")
+	} else {
+		// Development settings - conservative resource usage
+		a.db.SetMaxOpenConns(25)     // Standard development setting
+		a.db.SetMaxIdleConns(10)     // Lower idle connections for development
+		a.db.SetConnMaxLifetime(300) // 5 minutes for development
+		a.db.SetConnMaxIdleTime(60)  // 1 minute idle time for development
+		log.Println("🔧 Database connection pool configured for development")
+	}
 
 	log.Printf("✅ Connected to PostgreSQL: %s@%s:%s/%s",
 		a.config.Database.User,
@@ -94,17 +105,19 @@ func (a *App) initDatabase() error {
 func (a *App) initGRPCServer() error {
 	// Get all interceptors in the correct order:
 	// 1. Rate Limit (first to prevent abuse)
-	// 2. Auth (authenticate user)
-	// 3. Session (validate session)
-	// 4. Role Level (authorize based on role/level)
-	// 5. Resource Protection (track and validate resource access)
-	// 6. Audit Log (log after authorization)
+	// 2. CSRF (validate CSRF token before authentication)
+	// 3. Auth (authenticate user)
+	// 4. Session (validate session)
+	// 5. Role Level (authorize based on role/level)
+	// 6. Resource Protection (track and validate resource access)
+	// 7. Audit Log (log after authorization)
 	interceptors := a.container.GetAllInterceptors()
 
 	// Create gRPC server with chained interceptors
 	a.grpcServer = grpcServer.NewServer(
 		grpcServer.ChainUnaryInterceptor(
 			interceptors.RateLimit.Unary(),
+			interceptors.CSRF.Unary(), // NEW: CSRF protection
 			interceptors.Auth.Unary(),
 			interceptors.Session.Unary(),
 			interceptors.RoleLevel.Unary(),
@@ -144,8 +157,8 @@ func (a *App) Run() error {
 
 	// Conditionally start HTTP server based on production settings
 	if a.config.Production.HTTPGatewayEnabled {
-		// Initialize HTTP server with gRPC-Gateway
-		a.httpServer = server.NewHTTPServer(a.config.Server.HTTPPort, a.config.Server.GRPCPort)
+		// Initialize HTTP server with gRPC-Gateway and gRPC-Web support
+		a.httpServer = server.NewHTTPServer(a.config.Server.HTTPPort, a.config.Server.GRPCPort, a.grpcServer)
 
 		// Start HTTP server in a goroutine
 		go func() {
@@ -154,7 +167,7 @@ func (a *App) Run() error {
 			}
 		}()
 
-		log.Printf("🌐 HTTP Gateway enabled on port %s", a.config.Server.HTTPPort)
+		log.Printf("🌐 HTTP Gateway + gRPC-Web enabled on port %s", a.config.Server.HTTPPort)
 	} else {
 		log.Println("🔒 HTTP Gateway disabled for production security")
 	}

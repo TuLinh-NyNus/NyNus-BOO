@@ -78,13 +78,55 @@ Set-Location $projectRoot
 Write-ColorOutput "`n🐳 NyNus Docker Production Environment" "Cyan"
 Write-ColorOutput "======================================" "Cyan"
 
-# Check for required environment variables
-$requiredEnvVars = @("DB_PASSWORD", "JWT_SECRET", "NEXTAUTH_SECRET")
-$missingVars = @()
+# Run comprehensive environment validation
+Write-ColorOutput "`n[VALIDATION] Running environment variable validation..." "Yellow"
+$validationScript = "scripts/validate-env-config.ps1"
 
-foreach ($var in $requiredEnvVars) {
-    if (-not (Get-ChildItem Env: | Where-Object Name -eq $var)) {
-        $missingVars += $var
+if (Test-Path $validationScript) {
+    try {
+        & $validationScript -Environment "production" -Strict
+        if ($LASTEXITCODE -ne 0) {
+            Write-ColorOutput "[ERROR] Environment validation failed" "Red"
+            Write-ColorOutput "Please fix the environment variable issues before proceeding" "Yellow"
+            exit 1
+        }
+        Write-ColorOutput "[OK] Environment validation passed" "Green"
+    } catch {
+        Write-ColorOutput "[WARNING] Could not run environment validation: $($_.Exception.Message)" "Yellow"
+        Write-ColorOutput "Falling back to basic validation..." "Yellow"
+
+        # Fallback to basic validation
+        $requiredEnvVars = @("DB_PASSWORD", "JWT_SECRET", "NEXTAUTH_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET")
+        $missingVars = @()
+
+        foreach ($var in $requiredEnvVars) {
+            if (-not (Get-ChildItem Env: | Where-Object Name -eq $var)) {
+                $missingVars += $var
+            }
+        }
+
+        if ($missingVars.Count -gt 0) {
+            Write-ColorOutput "[ERROR] Missing required environment variables: $($missingVars -join ', ')" "Red"
+            exit 1
+        }
+    }
+} else {
+    Write-ColorOutput "[WARNING] Validation script not found: $validationScript" "Yellow"
+    Write-ColorOutput "Running basic validation..." "Yellow"
+
+    # Basic validation
+    $requiredEnvVars = @("DB_PASSWORD", "JWT_SECRET", "NEXTAUTH_SECRET")
+    $missingVars = @()
+
+    foreach ($var in $requiredEnvVars) {
+        if (-not (Get-ChildItem Env: | Where-Object Name -eq $var)) {
+            $missingVars += $var
+        }
+    }
+
+    if ($missingVars.Count -gt 0) {
+        Write-ColorOutput "[ERROR] Missing required environment variables: $($missingVars -join ', ')" "Red"
+        exit 1
     }
 }
 

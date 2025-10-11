@@ -12,7 +12,9 @@
  * ```
  */
 
-import { PrismaClient } from '../../generated/prisma';
+// Changed from '../../generated/prisma' to '@prisma/client' to fix Windows MAX_PATH / EPERM errors
+// See: https://github.com/vercel/next.js/discussions/62281
+import { PrismaClient } from '@prisma/client';
 
 // Prevent multiple instances of Prisma Client in development
 const globalForPrisma = globalThis as unknown as {

@@ -12,17 +12,19 @@ import {
   convertProtobufLoginResponse,
   convertProtobufRegisterResponse
 } from '@/lib/utils/protobuf-converters';
+import { devLogger } from '@/lib/utils/dev-logger';
 
 /**
- * Auth Context Types - Split State and Actions for Performance
+ * Unified Auth Context Types - SIMPLIFIED
+ * Removed split contexts as they were over-engineering (not used by any components)
  */
-interface AuthState {
+interface AuthContextType {
+  // State
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-}
 
-interface AuthActions {
+  // Actions
   login: (email: string, password: string) => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   register: (email: string, password: string, firstName: string, lastName: string) => Promise<void>;
@@ -33,52 +35,58 @@ interface AuthActions {
   updateUser: (userData: Partial<User>) => void;
 }
 
-// Legacy interface for backwards compatibility
-interface AuthContextType extends AuthState, AuthActions {}
-
 /**
- * Split Contexts for Performance Optimization
+ * Single Unified Auth Context - SIMPLIFIED
  */
-const AuthStateContext = createContext<AuthState | undefined>(undefined);
-const AuthActionsContext = createContext<AuthActions | undefined>(undefined);
-
-// Legacy context for backwards compatibility
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
- * Internal Auth Provider Component
+ * Internal Auth Provider with enhanced token validation
  */
 function InternalAuthProvider({ children }: { children: React.ReactNode }) {
+  console.log('[AUTH] Initializing InternalAuthProvider with enhanced token validation');
+
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingUser, setIsFetchingUser] = useState(false); // ✅ Guard against multiple calls
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  // Memoize state object to prevent unnecessary re-renders
-  const authState = useMemo((): AuthState => ({
-    user,
-    isLoading,
-    isAuthenticated: !!user
-  }), [user, isLoading]);
 
-  // Sync with NextAuth session
+
+  // NextAuth session sync with enhanced token validation
   useEffect(() => {
-    if (status === 'loading') return;
-    
+    devLogger.debug('[AUTH] NextAuth sync effect - status:', status, 'session:', !!session?.user);
+
     if (session?.user) {
       // Store backend tokens if available
       if (session.backendAccessToken) {
-        AuthHelpers.saveTokens(
-          session.backendAccessToken,
-          session.backendRefreshToken
-        );
+        devLogger.debug('[AUTH] Found backendAccessToken in session, checking validity...');
+        // Check token expiry before restoring from NextAuth session
+        // This prevents expired tokens from overwriting fresh tokens in localStorage
+        const isValid = AuthHelpers.isTokenValid(session.backendAccessToken);
+        devLogger.debug('[AUTH] Token validity check result:', isValid);
+
+        if (isValid) {
+          // Token is still valid, restore it to localStorage
+          devLogger.debug('[AUTH] Restoring valid token to localStorage');
+          AuthHelpers.saveAccessToken(session.backendAccessToken);
+        } else {
+          // Token expired, clear it from localStorage
+          devLogger.warn('[AUTH] NextAuth session contains expired token, clearing localStorage');
+          AuthHelpers.clearTokens();
+          // NextAuth session will handle token refresh automatically
+        }
+      } else {
+        devLogger.debug('[AUTH] No backendAccessToken in session');
       }
-      
+
       // If we have a NextAuth session but no gRPC user, fetch user data
-      if (!user && session.backendAccessToken) {
+      // Only fetch if token is valid
+      if (!user && session.backendAccessToken && AuthHelpers.isTokenValid(session.backendAccessToken)) {
         fetchCurrentUser();
       } else if (!session.backendAccessToken) {
-        // No backend token, use session data directly
+        // No backend token, use session data directly (Google OAuth case)
         setUser({
           id: session.user.id || session.user.email || '',
           email: session.user.email || '',
@@ -97,7 +105,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, status, user]); // fetchCurrentUser will be defined below
+  }, [session, status, user]); // fetchCurrentUser and refreshToken will be defined below
 
   /**
    * Check authentication status
@@ -105,13 +113,18 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthStatus = useCallback(async () => {
     try {
       setIsLoading(true);
-      
-      // Check if we have a token
-      if (AuthHelpers.isTokenValid()) {
+
+      // ✅ CRITICAL FIX: Kiểm tra token trước khi gọi fetchCurrentUser
+      const token = AuthHelpers.getAccessToken();
+      if (token && AuthHelpers.isTokenValid(token)) {
         await fetchCurrentUser();
+      } else {
+        // Không có token hoặc token không hợp lệ - đây là trạng thái bình thường
+        // Không log error, chỉ set loading = false
+        devLogger.debug('[AUTH] No valid token found, user remains unauthenticated');
       }
     } catch (error) {
-      console.error('Auth check failed:', error);
+      devLogger.error('Auth check failed:', error);
       AuthHelpers.clearTokens();
     } finally {
       setIsLoading(false);
@@ -119,28 +132,67 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // fetchCurrentUser is stable, no need to include in deps
 
-  // Check authentication status on mount
+  // Check auth status on mount with enhanced token validation
   useEffect(() => {
+    console.log('[AUTH] Checking auth status on mount');
     checkAuthStatus();
   }, [checkAuthStatus]);
 
   /**
-   * Fetch current user data
+   * Fetch current user with enhanced error handling and token validation
    */
   const fetchCurrentUser = useCallback(async () => {
-    try {
-      const response = await AuthService.getCurrentUser();
-      const userData = response.getUser();
-
-      if (userData) {
-        const localUser = convertProtobufUserToLocal(userData);
-        setUser(localUser);
-      }
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-      throw error;
+    // Prevent multiple concurrent calls
+    if (isFetchingUser) {
+      console.debug('[AUTH] fetchCurrentUser already in progress, skipping');
+      return;
     }
-  }, []);
+
+    try {
+      setIsFetchingUser(true);
+      devLogger.debug('[AUTH] Fetching current user...');
+
+      // ✅ CRITICAL: Check token validity before making API call
+      const token = AuthHelpers.getAccessToken();
+      if (!token || !AuthHelpers.isTokenValid(token)) {
+        devLogger.debug('[AUTH] No valid token available, cannot fetch user');
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await AuthService.getCurrentUser();
+      const userData = convertProtobufUserToLocal(response.getUser()!);
+
+      devLogger.info('[AUTH] Successfully fetched user:', userData.email);
+      setUser(userData);
+
+      // Store user data in localStorage for persistence
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
+      }
+    } catch (error: unknown) {
+      console.error('[AUTH] Failed to fetch current user:', error);
+
+      // Categorized error handling
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage?.includes('401') || errorMessage?.includes('Unauthorized')) {
+        console.warn('[AUTH] Token expired or invalid, clearing auth state');
+        AuthHelpers.clearTokens();
+        setUser(null);
+      } else if (errorMessage?.includes('Network') || errorMessage?.includes('fetch')) {
+        console.warn('[AUTH] Network error, keeping current auth state');
+        // Don't clear user state on network errors
+      } else {
+        console.error('[AUTH] Unexpected error, clearing auth state');
+        AuthHelpers.clearTokens();
+        setUser(null);
+      }
+    } finally {
+      setIsFetchingUser(false);
+      setIsLoading(false);
+    }
+  }, [isFetchingUser]);
 
   /**
    * Login with email and password
@@ -271,23 +323,14 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   /**
-   * Refresh access token
+   * SIMPLIFIED: Token refresh handled by NextAuth
+   * This is kept for backward compatibility but simplified
    */
   const refreshToken = useCallback(async () => {
     try {
-      const currentRefreshToken = AuthHelpers.getRefreshToken();
-      if (!currentRefreshToken) {
-        throw new Error('No refresh token available');
-      }
-      
-      const response = await AuthService.refreshToken(currentRefreshToken);
-      
-      // Update tokens
-      const newAccessToken = response.getAccessToken();
-      const newRefreshToken = response.getRefreshToken();
-      AuthHelpers.saveTokens(newAccessToken, newRefreshToken);
-      
-      // Fetch updated user data
+      console.log('[AUTH] Token refresh requested - delegating to NextAuth session');
+      // In simplified approach, NextAuth handles token refresh automatically
+      // We just need to fetch updated user data
       await fetchCurrentUser();
     } catch (error) {
       console.error('Token refresh failed:', error);
@@ -362,20 +405,17 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Setup token refresh interval
-  useEffect(() => {
-    if (!user) return;
-    
-    // Refresh token every 20 minutes (before 24-hour expiry)
-    const interval = setInterval(() => {
-      refreshToken().catch(console.error);
-    }, 20 * 60 * 1000);
-    
-    return () => clearInterval(interval);
-  }, [user, refreshToken]);
+  // SIMPLIFIED: Remove complex token refresh interval
+  // NextAuth handles token refresh automatically
 
-  // Memoize actions object to prevent unnecessary re-renders
-  const authActions = useMemo((): AuthActions => ({
+  // Memoize unified context value to prevent unnecessary re-renders
+  const contextValue = useMemo((): AuthContextType => ({
+    // State
+    user,
+    isLoading,
+    isAuthenticated: !!user,
+
+    // Actions
     login,
     loginWithGoogle,
     register,
@@ -384,22 +424,12 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     forgotPassword,
     resetPassword,
     updateUser,
-  }), [login, loginWithGoogle, register, logout, refreshToken, forgotPassword, resetPassword, updateUser]);
-
-  // Legacy value for backwards compatibility
-  const value: AuthContextType = {
-    ...authState,
-    ...authActions,
-  };
+  }), [user, isLoading, login, loginWithGoogle, register, logout, refreshToken, forgotPassword, resetPassword, updateUser]);
 
   return (
-    <AuthStateContext.Provider value={authState}>
-      <AuthActionsContext.Provider value={authActions}>
-        <AuthContext.Provider value={value}>
-          {children}
-        </AuthContext.Provider>
-      </AuthActionsContext.Provider>
-    </AuthStateContext.Provider>
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
   );
 }
 
@@ -415,26 +445,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Optimized hooks for state and actions
- */
-export function useAuthState(): AuthState {
-  const context = useContext(AuthStateContext);
-  if (context === undefined) {
-    throw new Error('useAuthState must be used within an AuthProvider');
-  }
-  return context;
-}
-
-export function useAuthActions(): AuthActions {
-  const context = useContext(AuthActionsContext);
-  if (context === undefined) {
-    throw new Error('useAuthActions must be used within an AuthProvider');
-  }
-  return context;
-}
-
-/**
- * Legacy hook for backwards compatibility
+ * Unified Auth Hook - SIMPLIFIED
+ * Single hook for all auth state and actions
  */
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext);
@@ -445,4 +457,4 @@ export function useAuth(): AuthContextType {
 }
 
 // Export types for external use
-export type { AuthState, AuthActions, AuthContextType };
+export type { AuthContextType };

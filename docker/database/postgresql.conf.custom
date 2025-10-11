@@ -1,0 +1,24 @@
+# PostgreSQL Configuration - NyNus Exam Bank System
+# Custom settings for development
+
+# Password encryption method - use md5 for Prisma compatibility
+password_encryption = md5
+
+# Connection settings
+listen_addresses = '*'
+max_connections = 100
+
+# Logging
+log_destination = 'stderr'
+logging_collector = on
+log_directory = 'log'
+log_filename = 'postgresql-%Y-%m-%d_%H%M%S.log'
+log_statement = 'all'
+log_duration = on
+
+# Performance
+shared_buffers = 128MB
+effective_cache_size = 512MB
+maintenance_work_mem = 64MB
+work_mem = 4MB
+

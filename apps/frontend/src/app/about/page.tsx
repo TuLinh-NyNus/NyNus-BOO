@@ -93,7 +93,7 @@ export default function AboutPage() {
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
               Về{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+              <span className="logo-gradient-text" style={{ color: 'transparent', WebkitTextFillColor: 'transparent' }}>
                 NyNus
               </span>
             </h1>

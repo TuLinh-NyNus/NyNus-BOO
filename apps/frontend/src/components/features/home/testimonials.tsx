@@ -116,7 +116,7 @@ const Testimonials = () => {
         >
           {/* New badge */}
           <motion.div
-            className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 border border-gradient-to-r from-blue-400/40 via-purple-400/40 to-emerald-400/40 text-blue-300 backdrop-blur-sm mb-8 transition-all duration-500 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden group w-fit mx-auto"
+            className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-500/15 via-purple-500/15 to-emerald-500/15 text-blue-300 backdrop-blur-sm mb-8 transition-all duration-500 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden group w-fit mx-auto"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             style={{
@@ -134,13 +134,25 @@ const Testimonials = () => {
               />
             </div>
 
-            <div className="relative z-10 mr-3">
+            {/* Enhanced icon with glow effect and animation */}
+            <motion.div
+              className="relative z-10 mr-3"
+              animate={{
+                scale: [1, 1.05, 1],
+                transition: {
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }
+              }}
+            >
               <div className="relative">
-                <Users className="h-5 w-5 text-blue-700 dark:text-blue-300" />
-                <div className="absolute inset-0 h-5 w-5 bg-blue-700 dark:bg-blue-300 rounded-full opacity-20 blur-sm"></div>
+                <Users className="h-5 w-5 text-badge-light drop-shadow-lg" />
+                {/* Glow effect */}
+                <div className="absolute inset-0 h-5 w-5 bg-badge-light rounded-full opacity-20 blur-sm animate-pulse"></div>
               </div>
-            </div>
-            <span className="font-bold text-blue-700 dark:text-blue-300 text-base tracking-wide relative z-10 bg-blue-700/15 dark:bg-blue-300/15 px-4 py-2 rounded-full border border-blue-700/30 dark:border-blue-300/30 shadow-md shadow-blue-700/20 dark:shadow-blue-300/20">
+            </motion.div>
+            <span className="font-bold text-badge-light text-base tracking-wide relative z-10">
               Cảm nhận học viên
             </span>
             <div className="absolute inset-0 rounded-full border border-transparent bg-gradient-to-r from-blue-400/20 via-purple-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -148,28 +160,13 @@ const Testimonials = () => {
           </motion.div>
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
             Học viên nói gì về{" "}
-            <span 
-              className="text-transparent bg-clip-text font-black tracking-tight"
-              style={{
-                background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text",
-                textShadow: "0 0 30px rgba(255, 184, 105, 0.4), 0 0 60px rgba(248, 97, 102, 0.3), 0 0 90px rgba(171, 110, 228, 0.2)"
-              }}
-            >
+            <span className="logo-gradient-text font-black tracking-tight">
               NyNus
             </span>
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
             Hơn {testimonialsStats.totalStudents.toLocaleString()} học viên đã trải nghiệm và đạt được kết quả tích cực với{" "}
-            <span 
-              className="text-transparent bg-clip-text font-bold tracking-tight"
-              style={{
-                background: "linear-gradient(135deg, #FFB869 0%, #F86166 50%, #AB6EE4 100%)",
-                backgroundClip: "text",
-                WebkitBackgroundClip: "text"
-              }}
-            >
+            <span className="logo-gradient-text font-bold tracking-tight">
               NyNus
             </span>
           </p>
@@ -399,7 +396,7 @@ const Testimonials = () => {
             <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
               Thống kê ấn tượng
             </h3>
-            <p className="text-muted-foreground text-base">
+            <p className="text-foreground text-base">
               Những con số chứng minh hiệu quả học tập với NyNus
             </p>
           </div>
@@ -411,11 +408,11 @@ const Testimonials = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 transition-colors" style={{ color: 'hsl(var(--foreground))' }}>
                 {testimonialsStats.totalStudents.toLocaleString()}+
               </div>
-              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
-                <Users className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
+              <div className="text-sm md:text-base flex items-center justify-center gap-2" style={{ color: 'hsl(var(--foreground))' }}>
+                <Users className="h-4 w-4" style={{ color: 'hsl(var(--foreground))' }} />
                 Học viên tin tưởng
               </div>
             </motion.div>
@@ -425,10 +422,10 @@ const Testimonials = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 transition-colors" style={{ color: 'hsl(var(--foreground))' }}>
                 {testimonialsStats.averageRating}/5
               </div>
-              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
+              <div className="text-sm md:text-base flex items-center justify-center gap-2" style={{ color: 'hsl(var(--foreground))' }}>
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 Đánh giá trung bình
               </div>
@@ -439,11 +436,11 @@ const Testimonials = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 transition-colors" style={{ color: 'hsl(var(--foreground))' }}>
                 {testimonialsStats.improvementRate}%
               </div>
-              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
-                <Target className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
+              <div className="text-sm md:text-base flex items-center justify-center gap-2" style={{ color: 'hsl(var(--foreground))' }}>
+                <Target className="h-4 w-4" style={{ color: 'hsl(var(--foreground))' }} />
                 Cải thiện điểm số
               </div>
             </motion.div>
@@ -453,11 +450,11 @@ const Testimonials = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 0.2 }}
             >
-              <div className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground dark:text-gray-300 mb-2 group-hover:text-primary dark:group-hover:text-gray-200 transition-colors">
+              <div className="text-xl md:text-2xl lg:text-3xl font-bold mb-2 transition-colors" style={{ color: 'hsl(var(--foreground))' }}>
                 {testimonialsStats.totalStudyTime}
               </div>
-              <div className="text-muted-foreground dark:text-gray-400 text-sm md:text-base flex items-center justify-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground dark:text-gray-400" />
+              <div className="text-sm md:text-base flex items-center justify-center gap-2" style={{ color: 'hsl(var(--foreground))' }}>
+                <Clock className="h-4 w-4" style={{ color: 'hsl(var(--foreground))' }} />
                 Tổng thời gian học
               </div>
             </motion.div>
