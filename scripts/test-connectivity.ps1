@@ -81,7 +81,7 @@ Write-Host ""
 Write-Host "4. DATABASE CONNECTION TEST" -ForegroundColor Yellow
 Write-Host "----------------------------" -ForegroundColor Yellow
 try {
-    $dbTest = docker exec NyNus-postgres psql -U exam_bank_user -d exam_bank_db -c "SELECT COUNT(*) as total_users FROM users;" 2>&1
+    $dbTest = docker exec exam_bank_postgres psql -U exam_bank_user -d exam_bank_db -c "SELECT COUNT(*) as total_users FROM users;" 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✅ Database Query: SUCCESS" -ForegroundColor Green
         Write-Host "   $dbTest" -ForegroundColor Gray
@@ -111,7 +111,7 @@ Write-Host ""
 
 Write-Host "6. BACKEND LOGS (Last 10 lines)" -ForegroundColor Yellow
 Write-Host "----------------------------" -ForegroundColor Yellow
-docker logs NyNus-backend --tail 10 2>&1 | Write-Host -ForegroundColor Gray
+docker logs exam_bank_backend --tail 10 2>&1 | Write-Host -ForegroundColor Gray
 Write-Host ""
 
 Write-Host "========================================" -ForegroundColor Cyan
@@ -148,14 +148,14 @@ if (-not $portResults["Frontend Next.js"]) {
 if (-not $portResults["Backend gRPC Server"] -or -not $portResults["Backend HTTP Gateway"]) {
     Write-Host "❌ Backend is not fully operational" -ForegroundColor Red
     Write-Host "   Check backend logs:" -ForegroundColor Yellow
-    Write-Host "   docker logs NyNus-backend" -ForegroundColor Gray
+    Write-Host "   docker logs exam_bank_backend" -ForegroundColor Gray
     Write-Host ""
 }
 
 if (-not $portResults["PostgreSQL Database"]) {
     Write-Host "❌ Database is not accessible" -ForegroundColor Red
     Write-Host "   Check database logs:" -ForegroundColor Yellow
-    Write-Host "   docker logs NyNus-postgres" -ForegroundColor Gray
+    Write-Host "   docker logs exam_bank_postgres" -ForegroundColor Gray
     Write-Host ""
 }
 

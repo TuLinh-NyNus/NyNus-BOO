@@ -1,6 +1,19 @@
 # Docker Compose configuration for Prisma Studio
 # =================================================
+# ⚠️ DEPRECATION WARNING: Prisma Studio is being phased out
+# Please migrate to pgAdmin 4 for database management
+#
+# Why deprecated:
+#   - Creates dual database access anti-pattern
+#   - Direct database access bypasses backend security layers
+#   - Limited features compared to pgAdmin 4
+#   - Increases frontend bundle size
+#
+# Migration Guide: docs/database/PGADMIN_SETUP.md
+# Use pgAdmin 4 instead: .\scripts\pgadmin.ps1 start
+#
 # Prisma Studio provides a GUI to inspect and manage database data
+# This file is kept for backward compatibility only
 #
 # Usage:
 #   Start: docker-compose -f docker/compose/docker-compose.yml -f docker/compose/docker-compose.prisma-studio.yml up prisma-studio
@@ -15,8 +28,8 @@ services:
     working_dir: /app
     command: sh -c "npm install -g pnpm && pnpm install && pnpm prisma generate && pnpm prisma studio --port 5555 --browser none"
     environment:
-      # Connect to existing PostgreSQL container (NyNus-postgres)
-      - DATABASE_URL=postgresql://exam_bank_user:exam_bank_password@NyNus-postgres:5432/exam_bank_db?schema=public&sslmode=disable
+      # Connect to existing PostgreSQL container (exam_bank_postgres)
+      - DATABASE_URL=postgresql://exam_bank_user:exam_bank_password@postgres:5432/exam_bank_db?schema=public&sslmode=disable
       - NODE_ENV=development
     ports:
       - "5555:5555"

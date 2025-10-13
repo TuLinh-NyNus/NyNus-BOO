@@ -64,7 +64,8 @@ docker-compose up -d --build
 - Redis: localhost:6379
 - OpenSearch: http://localhost:9200
 - OpenSearch Dashboards: http://localhost:5601
-- Prisma Studio: http://localhost:5555 (run `pnpm prisma:studio` in apps/frontend)
+- **pgAdmin 4**: http://localhost:5050 (recommended database management tool)
+- Prisma Studio: http://localhost:5555 (deprecated, use pgAdmin 4 instead)
 
 ### **Production Environment**
 
@@ -182,13 +183,69 @@ docker-compose down -v
 docker-compose up -d --build
 ```
 
+## 🗄️ Database Management Tools
+
+### **pgAdmin 4 (Recommended)**
+
+pgAdmin 4 is the official PostgreSQL management tool, replacing Prisma Studio to solve dual database access anti-pattern.
+
+**Start pgAdmin 4:**
+```bash
+# Using management script (recommended)
+.\scripts\pgadmin.ps1 start
+
+# Or using docker-compose
+docker-compose -f docker-compose.yml -f docker-compose.pgadmin.yml up -d pgadmin
+```
+
+**Access:**
+- URL: http://localhost:5050
+- Login: `admin@nynus.com` / `admin123`
+
+**Add PostgreSQL Server:**
+- Host: `postgres`
+- Port: `5432`
+- Database: `exam_bank_db`
+- Username: `exam_bank_user`
+- Password: `exam_bank_password`
+
+**Features:**
+- ✅ Full SQL editor với syntax highlighting
+- ✅ ER diagrams để visualize schema
+- ✅ Backup/restore tools
+- ✅ Query analysis và EXPLAIN plans
+- ✅ Data export (CSV, JSON, Excel, SQL)
+
+**Documentation:** `docs/database/PGADMIN_SETUP.md`
+
+**Management Commands:**
+```bash
+.\scripts\pgadmin.ps1 start   # Start pgAdmin
+.\scripts\pgadmin.ps1 stop    # Stop pgAdmin
+.\scripts\pgadmin.ps1 status  # Check status
+.\scripts\pgadmin.ps1 logs    # View logs
+```
+
+### **Prisma Studio (Deprecated)**
+
+⚠️ **Deprecated**: Prisma Studio is being phased out. Please migrate to pgAdmin 4.
+
+**Why deprecated:**
+- Creates dual database access anti-pattern
+- Direct database access bypasses backend security layers
+- Limited features compared to pgAdmin 4
+- Increases frontend bundle size
+
+**Migration:** See `docs/database/PGADMIN_SETUP.md` for pgAdmin setup guide.
+
 ## 📝 Best Practices
 
 1. **Never commit `.env` file** - Use `.env.example` as template
-2. **Use strong secrets in production** - Update `JWT_SECRET`, `NEXTAUTH_SECRET`, `DB_PASSWORD`
+2. **Use strong secrets in production** - Update `JWT_SECRET`, `NEXTAUTH_SECRET`, `DB_PASSWORD`, `PGADMIN_DEFAULT_PASSWORD`
 3. **Review logs regularly** - `docker-compose logs -f`
-4. **Backup volumes** - Especially `postgres_data` in production
+4. **Backup volumes** - Especially `postgres_data` and `pgadmin_data` in production
 5. **Use specific image tags** - Avoid `latest` in production
+6. **Use pgAdmin 4 for database management** - Avoid direct database access from frontend
 
 ## 🔒 Security Notes
 

@@ -1,4 +1,18 @@
 # Dockerfile for running Prisma Studio in Docker
+# =================================================
+# ⚠️ DEPRECATION WARNING: Prisma Studio is being phased out
+# Please migrate to pgAdmin 4 for database management
+#
+# Why deprecated:
+#   - Creates dual database access anti-pattern
+#   - Direct database access bypasses backend security layers
+#   - Limited features compared to pgAdmin 4
+#   - Increases frontend bundle size
+#
+# Migration Guide: docs/database/PGADMIN_SETUP.md
+# Use pgAdmin 4 instead: .\scripts\pgadmin.ps1 start
+#
+# This file is kept for backward compatibility only
 # This allows Prisma Studio to run inside Docker network and connect to PostgreSQL container
 
 FROM node:20-alpine

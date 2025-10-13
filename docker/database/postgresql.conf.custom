@@ -1,8 +1,9 @@
 # PostgreSQL Configuration - NyNus Exam Bank System
 # Custom settings for development
 
-# Password encryption method - use md5 for Prisma compatibility
-password_encryption = md5
+# Password encryption method - use scram-sha-256 for better security
+# PostgreSQL 14+ recommends scram-sha-256 over deprecated md5
+password_encryption = scram-sha-256
 
 # Connection settings
 listen_addresses = '*'

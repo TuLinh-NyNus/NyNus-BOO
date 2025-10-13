@@ -1,0 +1,61 @@
+# Docker Compose configuration for pgAdmin 4
+# =================================================
+# pgAdmin 4 là công cụ quản lý PostgreSQL database với đầy đủ features
+# Thay thế Prisma Studio để giải quyết dual database access anti-pattern
+#
+# Advantages over Prisma Studio:
+#   - Full SQL editor với syntax highlighting và autocomplete
+#   - ER diagrams để visualize database schema
+#   - Backup/restore tools
+#   - Query analysis và explain plans
+#   - Data export multiple formats (CSV, JSON, SQL)
+#   - No direct database access từ frontend (maintain security layers)
+#
+# Usage:
+#   Start: docker-compose -f docker/compose/docker-compose.yml -f docker/compose/docker-compose.pgadmin.yml up -d pgadmin
+#   Stop:  docker-compose -f docker/compose/docker-compose.yml -f docker/compose/docker-compose.pgadmin.yml down
+#   Or use management script: .\scripts\pgadmin.ps1 start
+#
+# Access: http://localhost:5050
+# Login: admin@nynus.com / admin123 (change in production)
+
+services:
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ${PGADMIN_CONTAINER_NAME:-nynus-pgadmin}
+    environment:
+      # pgAdmin login credentials - used to access web interface
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@nynus.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin123}
+      # pgAdmin listens on port 80 inside container, mapped to 5050 on host
+      - PGADMIN_LISTEN_PORT=${PGADMIN_LISTEN_PORT:-80}
+      # Disable pgAdmin's built-in server mode for development
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      # Disable master password requirement for development
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      # Persist pgAdmin configuration và server connections
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - exam_bank_network
+    restart: unless-stopped
+    healthcheck:
+      # Verify pgAdmin web interface is accessible
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:80/misc/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - postgres
+
+networks:
+  exam_bank_network:
+    name: compose_exam_bank_network
+    external: true
+
+volumes:
+  pgadmin_data:
+    name: nynus_pgadmin_data
+

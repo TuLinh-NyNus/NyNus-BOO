@@ -1,5 +1,23 @@
 # Pull Prisma Schema from Database
+# =================================================
+# ⚠️ DEPRECATION WARNING: Prisma is being phased out in NyNus system
+# Backend uses Go with raw SQL, not Prisma ORM
+# Frontend should NOT have direct database access
+#
+# This script is kept for backward compatibility only
+# For database schema inspection, use pgAdmin 4 instead:
+#   .\scripts\pgadmin.ps1 start
+#   Migration guide: docs/database/PGADMIN_SETUP.md
+#
 # This script pulls the actual database schema into Prisma schema file
+
+Write-Host ""
+Write-Host "⚠️  DEPRECATION WARNING ⚠️" -ForegroundColor Yellow
+Write-Host "Prisma is being phased out in NyNus system." -ForegroundColor Yellow
+Write-Host "Please use pgAdmin 4 for database management:" -ForegroundColor Cyan
+Write-Host "  .\scripts\pgadmin.ps1 start" -ForegroundColor Green
+Write-Host "  Migration guide: docs/database/PGADMIN_SETUP.md" -ForegroundColor Cyan
+Write-Host ""
 
 Write-Host "Pulling Prisma Schema from Database..." -ForegroundColor Cyan
 

@@ -51,6 +51,12 @@ function Test-DockerRunning {
 
 # Start Prisma Studio
 function Start-PrismaStudio {
+    Write-ColorOutput "`n⚠️  DEPRECATION WARNING ⚠️" "Yellow"
+    Write-ColorOutput "Prisma Studio is being phased out. Please migrate to pgAdmin 4." "Yellow"
+    Write-ColorOutput "Migration guide: docs/database/PGADMIN_SETUP.md" "Cyan"
+    Write-ColorOutput "Start pgAdmin 4: .\scripts\pgadmin.ps1 start" "Cyan"
+    Write-ColorOutput "" "White"
+
     Write-ColorOutput "`n[START] Starting Prisma Studio..." "Blue"
 
     if (-not (Test-DockerRunning)) {
@@ -70,16 +76,16 @@ function Start-PrismaStudio {
     # Ensure PostgreSQL is connected to exam_bank_network
     Write-ColorOutput "[INFO] Ensuring PostgreSQL is connected to compose_exam_bank_network..." "Cyan"
     $networkCheck = docker network inspect compose_exam_bank_network --format "{{range .Containers}}{{.Name}} {{end}}" 2>$null
-    if ($networkCheck -notmatch "NyNus-postgres") {
-        Write-ColorOutput "[FIX] Connecting NyNus-postgres to compose_exam_bank_network..." "Yellow"
-        docker network connect compose_exam_bank_network NyNus-postgres 2>$null
+    if ($networkCheck -notmatch "exam_bank_postgres") {
+        Write-ColorOutput "[FIX] Connecting exam_bank_postgres to compose_exam_bank_network..." "Yellow"
+        docker network connect compose_exam_bank_network exam_bank_postgres 2>$null
         if ($LASTEXITCODE -eq 0) {
-            Write-ColorOutput "[SUCCESS] NyNus-postgres connected to network" "Green"
+            Write-ColorOutput "[SUCCESS] exam_bank_postgres connected to network" "Green"
         } else {
             Write-ColorOutput "[WARNING] Failed to connect network (may already be connected)" "Yellow"
         }
     } else {
-        Write-ColorOutput "[OK] NyNus-postgres already in compose_exam_bank_network" "Green"
+        Write-ColorOutput "[OK] exam_bank_postgres already in compose_exam_bank_network" "Green"
     }
 
     # Start Prisma Studio
@@ -158,8 +164,23 @@ function Show-Status {
 
 # Show help
 function Show-Help {
-    Write-ColorOutput "`nPrisma Studio Management Script" "Cyan"
-    Write-ColorOutput "================================" "Cyan"
+    Write-ColorOutput "`n⚠️  DEPRECATION WARNING ⚠️" "Yellow"
+    Write-ColorOutput "Prisma Studio is being phased out in NyNus system." "Yellow"
+    Write-ColorOutput "" "White"
+    Write-ColorOutput "Please migrate to pgAdmin 4 for database management:" "Cyan"
+    Write-ColorOutput "  .\scripts\pgadmin.ps1 start" "Green"
+    Write-ColorOutput "  Migration guide: docs/database/PGADMIN_SETUP.md" "Cyan"
+    Write-ColorOutput "" "White"
+    Write-ColorOutput "Why pgAdmin 4?" "White"
+    Write-ColorOutput "  ✅ Full SQL editor với syntax highlighting" "Gray"
+    Write-ColorOutput "  ✅ ER diagrams để visualize schema" "Gray"
+    Write-ColorOutput "  ✅ Backup/restore tools" "Gray"
+    Write-ColorOutput "  ✅ Query analysis và EXPLAIN plans" "Gray"
+    Write-ColorOutput "  ✅ No dual database access anti-pattern" "Gray"
+    Write-ColorOutput "" "White"
+
+    Write-ColorOutput "`nPrisma Studio Management Script (Deprecated)" "Cyan"
+    Write-ColorOutput "=============================================" "Cyan"
     Write-ColorOutput "`nUsage:" "White"
     Write-ColorOutput "  .\scripts\prisma-studio.ps1 <action>" "Yellow"
     Write-ColorOutput "`nActions:" "White"

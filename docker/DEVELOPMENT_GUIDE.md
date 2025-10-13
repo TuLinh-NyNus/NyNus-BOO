@@ -161,18 +161,38 @@ docker-compose exec frontend sh
 # DATABASE_URL is already set
 ```
 
-### Prisma Studio (Database GUI)
+### pgAdmin 4 (Database Management Tool) - Recommended
+
+⚠️ **Note**: Prisma Studio is deprecated. Use pgAdmin 4 instead.
 
 ```bash
-# Run Prisma Studio từ frontend container
-docker-compose exec frontend pnpm prisma:studio
+# Start pgAdmin 4 using management script (recommended)
+.\scripts\pgadmin.ps1 start
 
-# Hoặc từ host machine
-cd apps/frontend
-pnpm prisma:studio
+# Or using docker-compose
+docker-compose -f docker/compose/docker-compose.yml -f docker/compose/docker-compose.pgadmin.yml up -d pgadmin
 ```
 
-**URL:** http://localhost:5555
+**Access:**
+- **URL:** http://localhost:5050
+- **Login:** admin@nynus.com / admin123
+
+**Add PostgreSQL Server:**
+- Host: `postgres`
+- Port: `5432`
+- Database: `exam_bank_db`
+- Username: `exam_bank_user`
+- Password: `exam_bank_password`
+
+**Documentation:** `docs/database/PGADMIN_SETUP.md`
+
+**Management Commands:**
+```bash
+.\scripts\pgadmin.ps1 start   # Start pgAdmin
+.\scripts\pgadmin.ps1 stop    # Stop pgAdmin
+.\scripts\pgadmin.ps1 status  # Check status
+.\scripts\pgadmin.ps1 logs    # View logs
+```
 
 ---
 
