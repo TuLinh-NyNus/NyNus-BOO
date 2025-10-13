@@ -1,8 +1,24 @@
 /**
  * Exams API Routes
+ * =================================================
+ * ⚠️ DEPRECATION WARNING - DUAL DATABASE ACCESS ANTI-PATTERN
  *
+ * This API route uses Prisma ORM for direct database access.
+ * This creates a security risk and architectural anti-pattern.
+ *
+ * TODO: Migrate to gRPC services
+ * - Backend (Go) should handle all database operations
+ * - Frontend should call gRPC services, not database directly
+ * - Migration guide: docs/database/PGADMIN_SETUP.md
+ *
+ * Current implementation (TEMPORARY):
  * GET /api/exams - Lấy danh sách đề thi với filtering
  * POST /api/exams - Tạo đề thi mới
+ *
+ * Target implementation (FUTURE):
+ * - Use gRPC ExamService from Backend
+ * - Remove Prisma imports
+ * - Remove direct database access
  */
 
 import { NextRequest } from 'next/server';

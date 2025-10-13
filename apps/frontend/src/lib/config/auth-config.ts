@@ -106,7 +106,8 @@ export const OAUTH_CONFIG = {
 
 export const SECURITY_CONFIG = {
   // CSRF Protection
-  CSRF_ENABLED: isProduction,
+  // SECURITY: Enable CSRF protection in all environments for early testing
+  CSRF_ENABLED: true,
   TRUST_HOST: isDevelopment, // Only trust host in development
   
   // Cookie security

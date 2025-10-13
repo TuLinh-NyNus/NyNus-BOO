@@ -1,13 +1,32 @@
 /**
  * Prisma Error Handler
+ * =================================================
+ * ⚠️ USAGE RESTRICTION WARNING
+ *
+ * This error handler should ONLY be used for:
+ * - Database seeding scripts (prisma/seed.ts)
+ * - Integration testing
+ * - Development utilities
+ *
+ * ❌ DO NOT USE in production API routes!
+ * Production API routes should use gRPC services instead.
+ *
+ * Why restricted:
+ * - Prisma creates dual database access anti-pattern
+ * - Backend uses Go with raw SQL, not Prisma ORM
+ * - Direct database access bypasses security layers
+ *
+ * For production, use gRPC error handling instead.
+ *
  * Centralized error handling cho Prisma Client operations
- * 
+ *
  * @author NyNus Development Team
  * @version 1.0.0
  */
 
 import { Prisma } from '@prisma/client';
 import { retryWithBackoff, CircuitBreaker, type ErrorRecoveryOptions } from '@/lib/utils/error-recovery';
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -238,9 +257,15 @@ export function handlePrismaError(
     errorDetails.userMessage = customMessage;
   }
 
-  // Log error in development
+  /**
+   * Log error in development
+   * Business Logic: Development-only logging để debug Prisma errors
+   * - Chỉ log trong development environment
+   * - Structured logging với contextual fields
+   */
   if (logError && process.env.NODE_ENV === 'development') {
-    console.error('[Prisma Error]', {
+    logger.debug('[PrismaError] Database error occurred', {
+      operation: 'prismaError',
       type: errorDetails.type,
       code: errorDetails.code,
       message: errorDetails.message,

@@ -1,10 +1,12 @@
 /**
  * Error Recovery Utilities
  * Utilities cho error recovery và graceful degradation
- * 
+ *
  * @author NyNus Team
  * @version 1.0.0
  */
+
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -304,6 +306,10 @@ export class CircuitBreaker {
 
 /**
  * Graceful degradation wrapper
+ * Business Logic: Thử primary function trước, nếu fail thì fallback
+ * - Retry với exponential backoff
+ * - Nếu tất cả retries fail, sử dụng fallback function
+ * - Log warning khi phải dùng fallback
  */
 export async function withGracefulDegradation<T>(
   primaryFn: () => Promise<T>,
@@ -317,7 +323,10 @@ export async function withGracefulDegradation<T>(
     }
     throw result.error!;
   } catch (error) {
-    console.warn('[GracefulDegradation] Primary function failed, using fallback:', error);
+    logger.warn('[ErrorRecovery] Primary function failed, using fallback', {
+      operation: 'gracefulDegradation',
+      error: error instanceof Error ? error.message : String(error),
+    });
     return await fallbackFn();
   }
 }

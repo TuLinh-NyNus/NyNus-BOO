@@ -4,6 +4,8 @@
  * Centralized feature flags to control feature visibility
  */
 
+import { logger } from '@/lib/utils/logger';
+
 /**
  * Environment-based configuration
  */
@@ -156,15 +158,23 @@ export const useFeatureFlag = (feature: keyof FeatureFlags): boolean => {
 
 /**
  * Debug utility to log all feature flags (development only)
+ * Business Logic: Hiển thị tất cả feature flags trong development mode
+ * - Giúp developers kiểm tra feature flags đang enabled/disabled
  */
 export const logFeatureFlags = (): void => {
   if (isDevelopment) {
-    console.group('🚩 Feature Flags');
-    Object.entries(featureFlags).forEach(([key, value]) => {
-      const icon = value ? '✅' : '❌';
-      console.log(`${icon} ${key}: ${value}`);
+    const flagsWithStatus = Object.entries(featureFlags).map(([key, value]) => ({
+      flag: key,
+      enabled: value,
+    }));
+
+    logger.debug('[FeatureFlags] Current feature flags configuration', {
+      operation: 'logFeatureFlags',
+      environment: process.env.NODE_ENV,
+      totalFlags: flagsWithStatus.length,
+      enabledFlags: flagsWithStatus.filter(f => f.enabled).length,
+      flags: flagsWithStatus,
     });
-    console.groupEnd();
   }
 };
 

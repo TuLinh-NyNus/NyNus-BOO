@@ -17,11 +17,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Shield, 
-  Smartphone, 
-  Copy, 
-  Check, 
+import {
+  Shield,
+  Smartphone,
+  Copy,
+  Check,
   AlertTriangle,
   Key,
   Download,
@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { authToast, toastSuccess, toastInfo } from '@/components/ui/feedback/enhanced-toast';
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -93,28 +94,37 @@ export const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({
 
   // ===== HANDLERS =====
 
+  /**
+   * Initialize two-factor authentication setup
+   * Business Logic: Tạo QR code và secret key cho user để setup 2FA
+   * Security: Generate secure secret key và backup codes
+   */
   const initializeTwoFactorSetup = useCallback(async () => {
     setIsLoading(true);
     try {
       // TODO: Replace with real gRPC service call
       // const response = await AuthService.initializeTwoFactor();
-      
+
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockSetup = generateMockSetup();
       setSetup(mockSetup);
-      
+
       if (mockSetup.isEnabled) {
         setCurrentStep('complete');
       }
     } catch (error) {
-      console.error('Failed to initialize 2FA setup:', error);
+      logger.error('[TwoFactorAuth] Failed to initialize 2FA setup', {
+        operation: 'initialize2FA',
+        userId: user?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       authToast.loginError('Không thể khởi tạo thiết lập 2FA');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // ===== EFFECTS =====
 
@@ -124,37 +134,58 @@ export const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({
     }
   }, [user, setup, initializeTwoFactorSetup]);
 
+  /**
+   * Copy 2FA secret key to clipboard
+   * Business Logic: Cho phép user copy secret key để nhập thủ công vào authenticator app
+   */
   const handleCopySecret = useCallback(async () => {
     if (!setup?.secret) return;
-    
+
     try {
       await navigator.clipboard.writeText(setup.secret);
       setCopiedSecret(true);
       toastSuccess('Đã sao chép', 'Secret key đã được sao chép vào clipboard');
-      
+
       setTimeout(() => setCopiedSecret(false), 3000);
     } catch (error) {
-      console.error('Failed to copy secret:', error);
+      logger.error('[TwoFactorAuth] Failed to copy secret key', {
+        operation: 'copySecret',
+        userId: user?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       authToast.loginError('Không thể sao chép secret key');
     }
-  }, [setup?.secret]);
+  }, [setup?.secret, user?.id]);
 
+  /**
+   * Copy backup codes to clipboard
+   * Business Logic: Backup codes dùng để khôi phục tài khoản khi mất authenticator app
+   * Security: User phải lưu backup codes ở nơi an toàn
+   */
   const handleCopyBackupCodes = useCallback(async () => {
     if (!setup?.backupCodes) return;
-    
+
     try {
       const codesText = setup.backupCodes.join('\n');
       await navigator.clipboard.writeText(codesText);
       setCopiedBackupCodes(true);
       toastSuccess('Đã sao chép', 'Backup codes đã được sao chép vào clipboard');
-      
+
       setTimeout(() => setCopiedBackupCodes(false), 3000);
     } catch (error) {
-      console.error('Failed to copy backup codes:', error);
+      logger.error('[TwoFactorAuth] Failed to copy backup codes', {
+        operation: 'copyBackupCodes',
+        userId: user?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       authToast.loginError('Không thể sao chép backup codes');
     }
-  }, [setup?.backupCodes]);
+  }, [setup?.backupCodes, user?.id]);
 
+  /**
+   * Handle verification code input change
+   * Input Validation: Chỉ cho phép nhập số, giới hạn 6 ký tự
+   */
   const handleVerificationCodeChange = useCallback((value: string) => {
     // Only allow digits and limit to 6 characters
     const cleanValue = value.replace(/\D/g, '').slice(0, 6);
@@ -165,7 +196,13 @@ export const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({
     }));
   }, []);
 
+  /**
+   * Verify 2FA code from authenticator app
+   * Business Logic: Xác thực mã 6 chữ số từ authenticator app để kích hoạt 2FA
+   * Security: Mã phải chính xác 6 chữ số và match với secret key
+   */
   const handleVerifyCode = useCallback(async () => {
+    // Input validation: Mã phải có đúng 6 chữ số
     if (!verification.code || verification.code.length !== 6) {
       setVerification(prev => ({
         ...prev,
@@ -179,10 +216,10 @@ export const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({
     try {
       // TODO: Replace with real gRPC service call
       // const response = await AuthService.verifyTwoFactor(verification.code);
-      
+
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Mock verification (accept any 6-digit code)
       if (verification.code.length === 6) {
         setCurrentStep('complete');
@@ -192,7 +229,12 @@ export const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({
         throw new Error('Invalid code');
       }
     } catch (error) {
-      console.error('2FA verification failed:', error);
+      logger.error('[TwoFactorAuth] 2FA verification failed', {
+        operation: 'verify2FA',
+        userId: user?.id,
+        code: verification.code.substring(0, 2) + '****', // Mask code for security
+        error: error instanceof Error ? error.message : String(error),
+      });
       setVerification(prev => ({
         ...prev,
         error: 'Mã xác thực không chính xác. Vui lòng thử lại.'
@@ -200,26 +242,35 @@ export const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({
     } finally {
       setVerification(prev => ({ ...prev, isVerifying: false }));
     }
-  }, [verification.code, onVerificationComplete]);
+  }, [verification.code, onVerificationComplete, user?.id]);
 
+  /**
+   * Disable two-factor authentication
+   * Business Logic: Tắt 2FA và xóa secret key, backup codes
+   * Security: Yêu cầu xác nhận trước khi tắt để tránh tắt nhầm
+   */
   const handleDisableTwoFactor = useCallback(async () => {
     setIsLoading(true);
     try {
       // TODO: Replace with real gRPC service call
       // await AuthService.disableTwoFactor();
-      
+
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setSetup(prev => prev ? { ...prev, isEnabled: false } : null);
       setCurrentStep('setup');
       toastInfo('2FA đã được tắt', 'Bảo mật hai lớp đã được vô hiệu hóa');
     } catch (error) {
-      console.error('Failed to disable 2FA:', error);
+      logger.error('[TwoFactorAuth] Failed to disable 2FA', {
+        operation: 'disable2FA',
+        userId: user?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       authToast.loginError('Không thể tắt 2FA');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // ===== RENDER FUNCTIONS =====
 

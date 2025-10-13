@@ -42,8 +42,9 @@ export { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './
 export { ScrollArea } from './layout/scroll-area';
 
 // Feedback Components
-export { ErrorBoundary } from './feedback/error-boundary';
-export type { ErrorFallbackProps } from './feedback/error-boundary';
+// ErrorBoundary moved to @/components/common/error-boundary to avoid duplicate
+// export { ErrorBoundary } from './feedback/error-boundary';
+// export type { ErrorFallbackProps } from './feedback/error-boundary';
 
 // Display Components (additional)
 export { LoadingSpinner } from './display/loading-spinner';

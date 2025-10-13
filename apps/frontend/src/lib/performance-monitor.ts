@@ -4,6 +4,7 @@
  */
 
 import { hasMemoryAPI, isNumber, PerformanceMemory } from './type-guards';
+import { logger } from './utils/logger';
 
 interface PerformanceMetrics {
   // Core Web Vitals
@@ -163,7 +164,10 @@ class PerformanceMonitor {
 
     // Log trong development
     if (process.env.NODE_ENV === 'development') {
-      console.log('📊 Performance Metric:', metric);
+      logger.debug('[PerformanceMonitor] Performance metric recorded', {
+        operation: 'recordMetric',
+        ...metric,
+      });
     }
   }
 

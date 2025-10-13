@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Hook để handle client-side only rendering
@@ -60,9 +61,16 @@ export const BROWSER_EXTENSION_ATTRIBUTES = [
 
 /**
  * Utility để log hydration warnings trong development
+ * Business Logic: Log hydration mismatch warnings
+ * - Chỉ log trong development mode
+ * - Giúp developers debug hydration issues
  */
 export function logHydrationWarning(componentName: string, reason: string) {
   if (process.env.NODE_ENV === 'development') {
-    console.warn(`[Hydration Warning] ${componentName}: ${reason}`);
+    logger.warn('[Hydration] Hydration warning detected', {
+      operation: 'hydrationWarning',
+      component: componentName,
+      reason,
+    });
   }
 }

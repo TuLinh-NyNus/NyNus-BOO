@@ -21,6 +21,7 @@ import {
   HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/utils/logger";
 
 // ===== TYPES =====
 
@@ -305,15 +306,28 @@ export class PublicQuestionErrorBoundary extends Component<
     };
   }
 
+  /**
+   * Component Did Catch
+   * Business Logic: Catches errors trong question components
+   * - Log error details với structured logging
+   * - Update state để hiển thị error UI
+   * - Call custom error handler nếu có
+   */
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('[PublicQuestionErrorBoundary] Error caught:', error);
-    console.error('[PublicQuestionErrorBoundary] Error info:', errorInfo);
-    
+    // Log error với structured logging
+    logger.error('[PublicQuestionErrorBoundary] Error caught in question component', {
+      operation: 'questionErrorBoundary',
+      errorName: error.name,
+      errorMessage: error.message,
+      componentStack: errorInfo.componentStack,
+      stack: error.stack,
+    });
+
     this.setState({
       error,
       errorInfo
     });
-    
+
     // Call custom error handler
     this.props.onError?.(error, errorInfo);
     

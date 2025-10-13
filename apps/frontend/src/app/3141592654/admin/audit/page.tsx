@@ -42,6 +42,7 @@ import {
   type AuditLog,
   type AuditStats
 } from "@/lib/mockdata";
+import { logger } from "@/lib/utils/logger";
 
 /**
  * Audit Trail Page
@@ -81,8 +82,15 @@ export default function AuditTrailPage() {
       setAuditLogs(logsResponse.auditLogs);
       setStats(statsData);
     } catch (error) {
-      console.error("Failed to fetch audit logs data:", error);
-      
+      logger.error("[AdminAuditPage] Failed to fetch audit logs data", {
+        operation: "fetchAuditLogs",
+        searchTerm,
+        filterAction,
+        filterResource,
+        filterSuccess,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
       // Fallback to empty data
       setStats({
         totalLogsToday: 0,

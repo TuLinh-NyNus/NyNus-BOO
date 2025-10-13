@@ -13,6 +13,7 @@ import { AlertTriangle, RefreshCw, LogIn, Home, Wifi, WifiOff } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -208,7 +209,11 @@ export class AuthErrorBoundary extends Component<AuthErrorBoundaryProps, AuthErr
     this.props.onError?.(error, errorInfo);
 
     // Log error for monitoring
-    console.error('[AuthErrorBoundary] Error caught:', error, errorInfo);
+    logger.error('[AuthErrorBoundary] Error caught', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+    });
 
     // Report to error tracking service
     if (typeof window !== 'undefined' && 'gtag' in window) {
@@ -249,11 +254,20 @@ export class AuthErrorBoundary extends Component<AuthErrorBoundaryProps, AuthErr
     }
   };
 
+  /**
+   * Handle retry logic with exponential backoff
+   * Business Logic: Cho phép user retry khi gặp lỗi, tối đa 3 lần
+   * Security: Exponential backoff để tránh spam retry
+   */
   handleRetry = () => {
-    const { retryCount } = this.state;
-    
+    const { retryCount, error } = this.state;
+
     if (retryCount >= MAX_RETRY_COUNT) {
-      console.warn('[AuthErrorBoundary] Max retry count reached');
+      logger.warn('[AuthErrorBoundary] Max retry count reached', {
+        operation: 'handleRetry',
+        retryCount: MAX_RETRY_COUNT,
+        errorType: error?.message,
+      });
       return;
     }
 

@@ -13,6 +13,7 @@ import {
   convertProtobufRegisterResponse
 } from '@/lib/utils/protobuf-converters';
 import { devLogger } from '@/lib/utils/dev-logger';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Unified Auth Context Types - SIMPLIFIED
@@ -44,11 +45,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * Internal Auth Provider with enhanced token validation
  */
 function InternalAuthProvider({ children }: { children: React.ReactNode }) {
-  console.log('[AUTH] Initializing InternalAuthProvider with enhanced token validation');
+  logger.debug('[AuthContext] Initializing InternalAuthProvider with enhanced token validation');
 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingUser, setIsFetchingUser] = useState(false); // ✅ Guard against multiple calls
+  const hasInitializedRef = React.useRef(false); // ✅ FIX: Track if user has been initialized
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -56,7 +58,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
   // NextAuth session sync with enhanced token validation
   useEffect(() => {
-    devLogger.debug('[AUTH] NextAuth sync effect - status:', status, 'session:', !!session?.user);
+    devLogger.debug('[AUTH] NextAuth sync effect - status:', status, 'session:', !!session?.user, 'hasInitialized:', hasInitializedRef.current);
 
     if (session?.user) {
       // Store backend tokens if available
@@ -81,12 +83,14 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
         devLogger.debug('[AUTH] No backendAccessToken in session');
       }
 
-      // If we have a NextAuth session but no gRPC user, fetch user data
-      // Only fetch if token is valid
-      if (!user && session.backendAccessToken && AuthHelpers.isTokenValid(session.backendAccessToken)) {
+      // ✅ FIX: Only fetch user once when session is available
+      // Check hasInitializedRef to prevent infinite loop
+      if (!hasInitializedRef.current && session.backendAccessToken && AuthHelpers.isTokenValid(session.backendAccessToken)) {
+        hasInitializedRef.current = true; // Mark as initialized
         fetchCurrentUser();
-      } else if (!session.backendAccessToken) {
+      } else if (!session.backendAccessToken && !hasInitializedRef.current) {
         // No backend token, use session data directly (Google OAuth case)
+        hasInitializedRef.current = true; // Mark as initialized
         setUser({
           id: session.user.id || session.user.email || '',
           email: session.user.email || '',
@@ -104,8 +108,9 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       setIsLoading(false);
     }
+  // ✅ FIX: Remove 'user' from dependencies to prevent infinite loop
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, status, user]); // fetchCurrentUser and refreshToken will be defined below
+  }, [session, status]); // fetchCurrentUser is stable via useCallback
 
   /**
    * Check authentication status
@@ -134,7 +139,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check auth status on mount with enhanced token validation
   useEffect(() => {
-    console.log('[AUTH] Checking auth status on mount');
+    logger.debug('[AuthContext] Checking auth status on mount');
     checkAuthStatus();
   }, [checkAuthStatus]);
 
@@ -144,7 +149,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   const fetchCurrentUser = useCallback(async () => {
     // Prevent multiple concurrent calls
     if (isFetchingUser) {
-      console.debug('[AUTH] fetchCurrentUser already in progress, skipping');
+      logger.debug('[AuthContext] fetchCurrentUser already in progress, skipping');
       return;
     }
 
@@ -172,19 +177,23 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
       }
     } catch (error: unknown) {
-      console.error('[AUTH] Failed to fetch current user:', error);
+      logger.error('[AuthContext] Failed to fetch current user', {
+        error: error instanceof Error ? error.message : String(error),
+      });
 
       // Categorized error handling
       const errorMessage = error instanceof Error ? error.message : String(error);
       if (errorMessage?.includes('401') || errorMessage?.includes('Unauthorized')) {
-        console.warn('[AUTH] Token expired or invalid, clearing auth state');
+        logger.warn('[AuthContext] Token expired or invalid, clearing auth state');
         AuthHelpers.clearTokens();
         setUser(null);
       } else if (errorMessage?.includes('Network') || errorMessage?.includes('fetch')) {
-        console.warn('[AUTH] Network error, keeping current auth state');
+        logger.warn('[AuthContext] Network error, keeping current auth state');
         // Don't clear user state on network errors
       } else {
-        console.error('[AUTH] Unexpected error, clearing auth state');
+        logger.error('[AuthContext] Unexpected error, clearing auth state', {
+          error: errorMessage,
+        });
         AuthHelpers.clearTokens();
         setUser(null);
       }
@@ -217,7 +226,9 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
-      console.error('Login failed:', error);
+      logger.error('[AuthContext] Login failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -230,17 +241,17 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   const loginWithGoogle = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // Use NextAuth to get Google ID token
-      const result = await signIn('google', { 
+      const result = await signIn('google', {
         redirect: false,
-        callbackUrl: '/dashboard' 
+        callbackUrl: '/dashboard'
       });
-      
+
       if (result?.error) {
         throw new Error(result.error);
       }
-      
+
       // After NextAuth handles OAuth, we need to exchange the token with our backend
       // This would typically be done in the NextAuth callback
       // For now, we'll fetch the current user after NextAuth completes
@@ -249,7 +260,9 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
         router.push('/dashboard');
       }
     } catch (error) {
-      console.error('Google login failed:', error);
+      logger.error('[AuthContext] Google login failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -290,7 +303,9 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       // Redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
-      console.error('Registration failed:', error);
+      logger.error('[AuthContext] Registration failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -303,20 +318,22 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
-      
+
       // Clear tokens
       AuthHelpers.clearTokens();
-      
+
       // Clear user state
       setUser(null);
-      
+
       // Sign out from NextAuth
       await nextAuthSignOut({ redirect: false });
-      
+
       // Redirect to home
       router.push('/');
     } catch (error) {
-      console.error('Logout failed:', error);
+      logger.error('[AuthContext] Logout failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setIsLoading(false);
     }
@@ -328,12 +345,14 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
    */
   const refreshToken = useCallback(async () => {
     try {
-      console.log('[AUTH] Token refresh requested - delegating to NextAuth session');
+      logger.debug('[AuthContext] Token refresh requested - delegating to NextAuth session');
       // In simplified approach, NextAuth handles token refresh automatically
       // We just need to fetch updated user data
       await fetchCurrentUser();
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      logger.error('[AuthContext] Token refresh failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       // If refresh fails, logout user
       await logout();
       throw error;
@@ -347,11 +366,13 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       // TODO: Implement forgot password gRPC call
-      console.log('Forgot password for:', email);
+      logger.info('[AuthContext] Forgot password requested', { email });
       // For now, just simulate the request
       await new Promise(resolve => setTimeout(resolve, 1000));
     } catch (error) {
-      console.error('Forgot password failed:', error);
+      logger.error('[AuthContext] Forgot password failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -377,9 +398,11 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Password reset successful - user needs to login again
-      console.log('Password reset successful');
+      logger.info('[AuthContext] Password reset successful');
     } catch (error) {
-      console.error('Reset password failed:', error);
+      logger.error('[AuthContext] Reset password failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       throw error;
     } finally {
       setIsLoading(false);

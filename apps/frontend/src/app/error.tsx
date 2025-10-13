@@ -1,7 +1,15 @@
 'use client';
 
 import { useEffect } from 'react';
+import { logger } from '@/lib/utils/logger';
 
+/**
+ * Global Error Page
+ * Business Logic: Catches unhandled errors trong Next.js application
+ * - Log error details với structured logging
+ * - Hiển thị user-friendly error message
+ * - Cung cấp retry functionality
+ */
 export default function Error({
   error,
   reset,
@@ -10,7 +18,14 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    // Log error với structured logging
+    logger.error('[GlobalError] Unhandled error caught', {
+      operation: 'globalError',
+      errorName: error.name,
+      errorMessage: error.message,
+      digest: error.digest,
+      stack: error.stack,
+    });
   }, [error]);
 
   return (

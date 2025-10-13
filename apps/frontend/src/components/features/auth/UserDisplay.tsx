@@ -289,11 +289,13 @@ export const UserDisplay = memo<UserDisplayProps>(({
 
   // ===== LOADING STATE =====
 
-  // Start performance tracking
+  // Start performance tracking - chỉ chạy một lần khi component mount
+  // ✅ FIX: Thêm empty dependency array để tránh infinite re-render loop
   React.useEffect(() => {
     startRender();
     return () => endRender();
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty array = chỉ chạy khi mount/unmount
 
   if (isLoading || !isHydrated) {
     return (

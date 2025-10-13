@@ -32,7 +32,7 @@ import {
   TableRow
 } from '@/components/ui';
 import { useToast } from '@/components/ui/feedback/use-toast';
-import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
+import { ErrorBoundary } from '@/components/common/error-boundary';
 
 import { QuestionCode } from '@/types/question';
 import { MockQuestionsService } from '@/services/mock/questions';

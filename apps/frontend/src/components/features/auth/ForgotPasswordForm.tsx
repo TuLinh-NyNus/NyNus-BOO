@@ -20,6 +20,7 @@ import {
 import { useAuth } from "@/contexts/auth-context-grpc";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/lib/validation/auth-schemas";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/utils/logger";
 
 interface ForgotPasswordFormProps {
   onSuccess?: () => void;
@@ -62,7 +63,10 @@ export function ForgotPasswordForm({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Không thể gửi email đặt lại mật khẩu";
       setError(errorMessage);
-      console.error("Forgot password error:", err);
+      logger.error("[ForgotPasswordForm] Failed to send reset email", {
+        error: err instanceof Error ? err.message : String(err),
+        email: data.email,
+      });
     } finally {
       setIsLoading(false);
     }

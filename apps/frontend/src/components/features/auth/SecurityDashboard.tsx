@@ -15,12 +15,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Shield, 
-  AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  MapPin, 
+import {
+  Shield,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  MapPin,
   Smartphone,
   Monitor,
   Tablet,
@@ -33,6 +33,7 @@ import {
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { authToast, toastSuccess } from '@/components/ui/feedback/enhanced-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { logger } from '@/lib/utils/logger';
 import { vi } from 'date-fns/locale';
 
 // ===== TYPES =====
@@ -160,6 +161,11 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
 
   // ===== HANDLERS =====
 
+  /**
+   * Load security data from backend
+   * Business Logic: Tải security events, active sessions, và security metrics
+   * Security: Hiển thị lịch sử đăng nhập, thiết bị đang hoạt động, và mức độ rủi ro
+   */
   const loadSecurityData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -177,12 +183,16 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
       setActiveSessions(generateMockActiveSessions());
       setSecurityMetrics(generateMockSecurityMetrics());
     } catch (error) {
-      console.error('Failed to load security data:', error);
+      logger.error('[SecurityDashboard] Failed to load security data', {
+        operation: 'loadSecurityData',
+        userId: user?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
       authToast.loginError('Không thể tải dữ liệu bảo mật');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // ===== EFFECTS =====
 
@@ -192,6 +202,11 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
     }
   }, [user, loadSecurityData]);
 
+  /**
+   * Terminate an active session
+   * Business Logic: Kết thúc phiên đăng nhập trên thiết bị khác
+   * Security: User có thể logout các thiết bị không nhận ra để bảo vệ tài khoản
+   */
   const handleTerminateSession = useCallback(async (sessionId: string) => {
     try {
       // TODO: Replace with real gRPC service call
@@ -200,10 +215,15 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
       setActiveSessions(prev => prev.filter(session => session.id !== sessionId));
       toastSuccess('Đã kết thúc phiên', 'Phiên đăng nhập đã được kết thúc');
     } catch (error) {
-      console.error('Failed to terminate session:', error);
+      logger.error('[SecurityDashboard] Failed to terminate session', {
+        operation: 'terminateSession',
+        userId: user?.id,
+        sessionId,
+        error: error instanceof Error ? error.message : String(error),
+      });
       authToast.loginError('Không thể kết thúc phiên đăng nhập');
     }
-  }, []);
+  }, [user?.id]);
 
   // ===== RENDER FUNCTIONS =====
 

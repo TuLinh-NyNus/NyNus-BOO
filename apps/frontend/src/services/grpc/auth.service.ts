@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Auth Service gRPC Client (Clean Implementation)
  * ================================================
  * Production-ready gRPC-Web auth service implementation
@@ -29,6 +29,9 @@ import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
 import { getGrpcUrl } from '@/lib/config/endpoints';
+import { logger } from '@/lib/utils/logger';
+// âœ… FIX: Import getAuthMetadata for CSRF token support
+import { getAuthMetadata } from './client';
 
 /**
  * gRPC client configuration
@@ -38,7 +41,7 @@ const GRPC_ENDPOINT = getGrpcUrl();
 // PRODUCTION: Fetch override code removed for clean production build
 
 /*
-// ✅ TEMPORARY: Override XMLHttpRequest to log ALL requests
+// âœ… TEMPORARY: Override XMLHttpRequest to log ALL requests
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (typeof window !== 'undefined' && !(window as any).originalXMLHttpRequest) {
   console.log('[OVERRIDE] Setting up XMLHttpRequest override...');
@@ -64,10 +67,16 @@ if (typeof window !== 'undefined' && !(window as any).originalXMLHttpRequest) {
 
 /**
  * Create UserService client instance with client-side only initialization
- * ✅ FIX: Lazy initialization to prevent server-side rendering issues
+ * âœ… FIX: Lazy initialization to prevent server-side rendering issues
  */
 let userServiceClient: UserServiceClient | null = null;
 
+/**
+ * Get or initialize UserServiceClient
+ * Business Logic: Lazy initialization cá»§a gRPC client
+ * - Chá»‰ khá»Ÿi táº¡o khi cáº§n thiáº¿t (performance optimization)
+ * - Client-side only (gRPC-Web khÃ´ng cháº¡y trÃªn server)
+ */
 function getUserServiceClient(): UserServiceClient {
   // Only initialize on client-side
   if (typeof window === 'undefined') {
@@ -76,7 +85,10 @@ function getUserServiceClient(): UserServiceClient {
 
   // Lazy initialization - create client only when needed
   if (!userServiceClient) {
-    console.log('[AUTH_SERVICE] Initializing gRPC client for first time');
+    logger.debug('[AuthService] Initializing gRPC client', {
+      operation: 'initializeClient',
+      endpoint: GRPC_ENDPOINT,
+    });
     userServiceClient = new UserServiceClient(GRPC_ENDPOINT, null, {
       format: 'text', // Use text format for JSON compatibility with gRPC Gateway
       withCredentials: false,
@@ -90,12 +102,16 @@ function getUserServiceClient(): UserServiceClient {
 
 /**
  * Handle gRPC errors and convert to user-friendly messages
- * 
+ * Business Logic: Convert gRPC error codes thÃ nh Vietnamese error messages
+ * - Map gRPC status codes sang user-friendly messages
+ * - Handle specific error cases (locked account, suspended, etc.)
+ *
  * @param error - RpcError from gRPC call
  * @returns User-friendly error message in Vietnamese
  */
 function handleGrpcError(error: RpcError): string {
-  console.error('[AUTH_SERVICE] gRPC Error:', {
+  logger.error('[AuthService] gRPC Error occurred', {
+    operation: 'handleGrpcError',
     code: error.code,
     message: error.message,
     metadata: error.metadata,
@@ -103,25 +119,25 @@ function handleGrpcError(error: RpcError): string {
   
   switch (error.code) {
     case 3: // INVALID_ARGUMENT
-      return 'Thông tin đầu vào không hợp lệ. Vui lòng kiểm tra lại.';
+      return 'ThÃ´ng tin Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡. Vui lÃ²ng kiá»ƒm tra láº¡i.';
     case 7: // PERMISSION_DENIED
       // Could be account locked or suspended
       if (error.message?.toLowerCase().includes('locked')) {
-        return 'Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.';
+        return 'TÃ i khoáº£n Ä‘Ã£ bá»‹ khÃ³a do Ä‘Äƒng nháº­p sai quÃ¡ nhiá»u láº§n. Vui lÃ²ng thá»­ láº¡i sau 30 phÃºt.';
       }
       if (error.message?.toLowerCase().includes('suspended')) {
-        return 'Tài khoản đã bị tạm ngưng. Vui lòng liên hệ quản trị viên.';
+        return 'TÃ i khoáº£n Ä‘Ã£ bá»‹ táº¡m ngÆ°ng. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn.';
       }
-      return 'Không có quyền truy cập. Vui lòng kiểm tra thông tin đăng nhập.';
+      return 'KhÃ´ng cÃ³ quyá»n truy cáº­p. Vui lÃ²ng kiá»ƒm tra thÃ´ng tin Ä‘Äƒng nháº­p.';
     case 14: // UNAVAILABLE
-      return 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.';
+      return 'KhÃ´ng thá»ƒ káº¿t ná»‘i Ä‘áº¿n mÃ¡y chá»§. Vui lÃ²ng kiá»ƒm tra káº¿t ná»‘i máº¡ng vÃ  thá»­ láº¡i.';
     case 16: // UNAUTHENTICATED
       if (error.message?.toLowerCase().includes('invalid credentials')) {
-        return 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
+        return 'Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng. Vui lÃ²ng thá»­ láº¡i.';
       }
-      return 'Xác thực thất bại. Vui lòng đăng nhập lại.';
+      return 'XÃ¡c thá»±c tháº¥t báº¡i. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.';
     default:
-      return error.message || 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
+      return error.message || 'ÄÃ£ xáº£y ra lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh. Vui lÃ²ng thá»­ láº¡i.';
   }
 }
 
@@ -131,13 +147,27 @@ function handleGrpcError(error: RpcError): string {
 export class AuthService {
   /**
    * Login with email and password using gRPC Gateway JSON API
+   * Business Logic: XÃ¡c thá»±c user credentials qua gRPC Gateway
+   * - Call gRPC Login endpoint vá»›i email/password
+   * - Auto-save tokens náº¿u login thÃ nh cÃ´ng
+   * - Return LoginResponse vá»›i user info vÃ  tokens
    */
   static async login(email: string, password: string): Promise<LoginResponse> {
-    console.log('[AUTH_SERVICE] Login attempt for:', email);
-    console.log('[AUTH_SERVICE] Using endpoint:', `${GRPC_ENDPOINT}/v1.UserService/Login`);
+    // Mask email for logging
+    const maskedEmail = email.length > 2
+      ? `${email.substring(0, 2)}***@${email.split('@')[1] || '***'}`
+      : '***';
+
+    const endpoint = `${GRPC_ENDPOINT}/v1.UserService/Login`;
+
+    logger.debug('[AuthService] Login attempt', {
+      operation: 'login',
+      email: maskedEmail,
+      endpoint,
+    });
 
     try {
-      const response = await fetch(`${GRPC_ENDPOINT}/v1.UserService/Login`, {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,7 +178,11 @@ export class AuthService {
         })
       });
 
-      console.log('[AUTH_SERVICE] Response status:', response.status);
+      logger.debug('[AuthService] Login response received', {
+        operation: 'login',
+        status: response.status,
+        ok: response.ok,
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -159,19 +193,19 @@ export class AuthService {
         
         // Handle specific error cases
         if (response.status === 401) {
-          errorMessage = 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
+          errorMessage = 'Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng. Vui lÃ²ng thá»­ láº¡i.';
         } else if (response.status === 403) {
           if (errorMessage.toLowerCase().includes('locked')) {
-            errorMessage = 'Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.';
+            errorMessage = 'TÃ i khoáº£n Ä‘Ã£ bá»‹ khÃ³a do Ä‘Äƒng nháº­p sai quÃ¡ nhiá»u láº§n. Vui lÃ²ng thá»­ láº¡i sau 30 phÃºt.';
           } else if (errorMessage.toLowerCase().includes('inactive') || errorMessage.toLowerCase().includes('suspended')) {
-            errorMessage = 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
+            errorMessage = 'TÃ i khoáº£n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn.';
           } else {
-            errorMessage = 'Không có quyền truy cập. Vui lòng kiểm tra tài khoản của bạn.';
+            errorMessage = 'KhÃ´ng cÃ³ quyá»n truy cáº­p. Vui lÃ²ng kiá»ƒm tra tÃ i khoáº£n cá»§a báº¡n.';
           }
         } else if (response.status === 500) {
-          errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau ít phút.';
+          errorMessage = 'Lá»—i mÃ¡y chá»§. Vui lÃ²ng thá»­ láº¡i sau Ã­t phÃºt.';
         } else if (response.status === 503) {
-          errorMessage = 'Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau.';
+          errorMessage = 'Dá»‹ch vá»¥ táº¡m thá»i khÃ´ng kháº£ dá»¥ng. Vui lÃ²ng thá»­ láº¡i sau.';
         }
         
         throw new Error(errorMessage);
@@ -186,8 +220,8 @@ export class AuthService {
         loginResponse.setAccessToken(data.accessToken);
         loginResponse.setRefreshToken(data.refreshToken || '');
 
-        // ✅ SECURITY: Tokens will be stored in NextAuth httpOnly cookies automatically
-        // ❌ REMOVED: localStorage token storage (XSS vulnerability)
+        // âœ… SECURITY: Tokens will be stored in NextAuth httpOnly cookies automatically
+        // âŒ REMOVED: localStorage token storage (XSS vulnerability)
         // AuthHelpers.saveTokens(data.accessToken, data.refreshToken);
         console.log('[AUTH_SERVICE] Tokens will be managed by NextAuth session (httpOnly cookies)');
       }
@@ -218,7 +252,7 @@ export class AuthService {
         }
         user.setRole(roleValue as 0 | 1 | 2 | 3 | 4 | 5);
 
-        console.log('[AUTH_SERVICE] 📊 Processing status - input:', data.user.status, 'type:', typeof data.user.status);
+        console.log('[AUTH_SERVICE] ðŸ“Š Processing status - input:', data.user.status, 'type:', typeof data.user.status);
 
         // Backend returns status as NUMBER (protobuf enum), not string
         // If it's already a number, use it directly
@@ -226,7 +260,7 @@ export class AuthService {
         let statusValue: number;
         if (typeof data.user.status === 'number') {
           statusValue = data.user.status;
-          console.log('[AUTH_SERVICE] ✅ Status is number:', statusValue);
+          console.log('[AUTH_SERVICE] âœ… Status is number:', statusValue);
         } else if (typeof data.user.status === 'string') {
           const statusMap: Record<string, number> = {
             'USER_STATUS_UNSPECIFIED': UserStatus.USER_STATUS_UNSPECIFIED,
@@ -235,10 +269,10 @@ export class AuthService {
             'USER_STATUS_INACTIVE': UserStatus.USER_STATUS_INACTIVE
           };
           statusValue = statusMap[data.user.status] || UserStatus.USER_STATUS_ACTIVE;
-          console.log('[AUTH_SERVICE] ✅ Status converted from string:', data.user.status, '→', statusValue);
+          console.log('[AUTH_SERVICE] âœ… Status converted from string:', data.user.status, 'â†’', statusValue);
         } else {
           statusValue = UserStatus.USER_STATUS_ACTIVE;
-          console.log('[AUTH_SERVICE] ✅ Status defaulted to ACTIVE:', statusValue);
+          console.log('[AUTH_SERVICE] âœ… Status defaulted to ACTIVE:', statusValue);
         }
         user.setStatus(statusValue as 0 | 1 | 2 | 3);
 
@@ -246,7 +280,7 @@ export class AuthService {
         user.setAvatar(data.user.avatar || '');
         user.setEmailVerified(data.user.emailVerified || false);
 
-        console.log('[AUTH_SERVICE] ✅ User object created successfully');
+        console.log('[AUTH_SERVICE] âœ… User object created successfully');
         console.log('[AUTH_SERVICE] User details:', {
           id: user.getId(),
           email: user.getEmail(),
@@ -259,10 +293,10 @@ export class AuthService {
         // Set user to response
         loginResponse.setUser(user);
       } else {
-        console.log('[AUTH_SERVICE] ❌ No user data in response!');
+        console.log('[AUTH_SERVICE] âŒ No user data in response!');
       }
 
-      console.log('[AUTH_SERVICE] 🎉 Login process completed successfully!');
+      console.log('[AUTH_SERVICE] ðŸŽ‰ Login process completed successfully!');
       console.log('[AUTH_SERVICE] Final LoginResponse:', {
         hasAccessToken: !!loginResponse.getAccessToken(),
         accessToken: loginResponse.getAccessToken(),
@@ -273,7 +307,7 @@ export class AuthService {
 
       return loginResponse;
     } catch (error) {
-      console.log('[AUTH_SERVICE] 💥 OUTER CATCH - Login process failed!');
+      console.log('[AUTH_SERVICE] ðŸ’¥ OUTER CATCH - Login process failed!');
       console.log('[AUTH_SERVICE] Error details:', error);
       console.log('[AUTH_SERVICE] Error type:', typeof error);
       console.log('[AUTH_SERVICE] Error message:', error instanceof Error ? error.message : String(error));
@@ -302,7 +336,8 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      const response = await client.register(request);
+      // âœ… FIX: Pass metadata with CSRF token
+      const response = await client.register(request, getAuthMetadata());
       return response;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
@@ -319,7 +354,8 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      const response = await client.googleLogin(request);
+      // âœ… FIX: Pass metadata with CSRF token
+      const response = await client.googleLogin(request, getAuthMetadata());
 
       // Auto-save tokens on successful login
       if (response.getAccessToken()) {
@@ -328,7 +364,7 @@ export class AuthService {
           response.getRefreshToken()
         );
       }
-      
+
       return response;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
@@ -354,7 +390,8 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      const response = await client.refreshToken(request);
+      // âœ… FIX: Pass metadata with CSRF token
+      const response = await client.refreshToken(request, getAuthMetadata());
 
       // SIMPLIFIED: Update only access token in localStorage
       if (response.getAccessToken()) {
@@ -379,7 +416,8 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      const response = await client.verifyEmail(request);
+      // âœ… FIX: Pass metadata with CSRF token
+      const response = await client.verifyEmail(request, getAuthMetadata());
       return response;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
@@ -399,9 +437,9 @@ export class AuthService {
     const mockResponse = {
       getResponse: () => ({
         getSuccess: () => true,
-        getMessage: () => 'Email xác thực đã được gửi thành công'
+        getMessage: () => 'Email xÃ¡c thá»±c Ä‘Ã£ Ä‘Æ°á»£c gá»­i thÃ nh cÃ´ng'
       }),
-      getMessage: () => 'Email xác thực đã được gửi thành công'
+      getMessage: () => 'Email xÃ¡c thá»±c Ä‘Ã£ Ä‘Æ°á»£c gá»­i thÃ nh cÃ´ng'
     } as SendVerificationEmailResponse;
 
     return Promise.resolve(mockResponse);
@@ -430,7 +468,8 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      const response = await client.forgotPassword(request);
+      // âœ… FIX: Pass metadata with CSRF token
+      const response = await client.forgotPassword(request, getAuthMetadata());
       return response;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
@@ -451,7 +490,8 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      const response = await client.resetPassword(request);
+      // âœ… FIX: Pass metadata with CSRF token
+      const response = await client.resetPassword(request, getAuthMetadata());
       return response;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
@@ -475,11 +515,20 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      const response = await client.getCurrentUser(request);
-      console.log('[AUTH_SERVICE] Successfully retrieved current user');
+      // âœ… FIX: Pass metadata with CSRF token - THIS WAS THE MISSING PIECE!
+      const response = await client.getCurrentUser(request, getAuthMetadata());
+
+      logger.debug('[AuthService] Successfully retrieved current user', {
+        operation: 'getCurrentUser',
+        userId: response.getUser()?.getId() || 'unknown',
+      });
+
       return response;
     } catch (error) {
-      console.error('[AUTH_SERVICE] Failed to get current user:', error);
+      logger.error('[AuthService] Failed to get current user', {
+        operation: 'getCurrentUser',
+        error: error instanceof Error ? error.message : String(error),
+      });
       const errorMessage = handleGrpcError(error as RpcError);
       throw new Error(errorMessage);
     }
@@ -501,3 +550,4 @@ export { AuthHelpers } from '@/lib/utils/auth-helpers';
 
 // Export commonly used enums for convenience
 export { UserRole, UserStatus };
+

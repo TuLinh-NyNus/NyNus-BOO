@@ -234,6 +234,7 @@ export function usePerformanceOptimization(config: Partial<PerformanceConfig> = 
 /**
  * useUserDisplayOptimization
  * Specialized hook for UserDisplay component optimization
+ * ✅ FIX: Tối ưu để tránh re-render loop do optimization object dependency
  */
 export function useUserDisplayOptimization() {
   const { user, isAuthenticated } = useAuth();
@@ -243,22 +244,28 @@ export function useUserDisplayOptimization() {
     enableLazyLoading: false // User display should always be visible
   });
 
+  // Extract stable functions từ optimization
+  const { getCache, setCache, startRender, endRender } = optimization;
+
   // Cache user display data
+  // ✅ FIX: Chỉ depend vào user và isAuthenticated, không depend vào optimization object
   const cachedUserData = useMemo(() => {
     if (!user || !isAuthenticated) return null;
 
     const cacheKey = `user-display-${user.id}`;
-    const cached = optimization.getCache<typeof user>(cacheKey);
-    
+    const cached = getCache<typeof user>(cacheKey);
+
     if (cached) return cached;
 
     // Cache the user data
-    optimization.setCache(cacheKey, user);
+    setCache(cacheKey, user);
     return user;
-  }, [user, isAuthenticated, optimization]);
+  }, [user, isAuthenticated, getCache, setCache]);
 
+  // ✅ FIX: Return chỉ những gì cần thiết, không spread optimization object
   return {
-    ...optimization,
+    startRender,
+    endRender,
     cachedUserData
   };
 }

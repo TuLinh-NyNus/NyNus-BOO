@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { BackendHealthAlert } from '@/components/features/auth/BackendHealthIndicator';
+import { logger } from '@/lib/utils/logger';
 
 export default function LoginPage() {
   const _router = useRouter();
@@ -31,14 +32,36 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
+  /**
+   * Handle email/password login
+   * Business Logic: Xử lý đăng nhập bằng email và password qua NextAuth
+   * - Validate credentials với backend
+   * - Redirect đến callbackUrl sau khi đăng nhập thành công
+   * - Full page reload để đảm bảo NextAuth session được set đúng
+   */
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[LOGIN_PAGE] Form submitted with email:', email);
+
+    // Mask email for logging (show only first 2 chars + domain)
+    const maskedEmail = email.length > 2
+      ? `${email.substring(0, 2)}***@${email.split('@')[1] || '***'}`
+      : '***';
+
+    logger.debug('[LoginPage] Form submitted', {
+      operation: 'emailLogin',
+      email: maskedEmail,
+    });
+
     setError('');
     setLoading(true);
 
     try {
-      console.log('[LOGIN_PAGE] Calling signIn with credentials');
+      logger.debug('[LoginPage] Calling NextAuth signIn', {
+        operation: 'emailLogin',
+        provider: 'credentials',
+        callbackUrl,
+      });
+
       // Use NextAuth signIn with credentials provider
       const result = await signIn('credentials', {
         email,
@@ -47,23 +70,42 @@ export default function LoginPage() {
         redirect: false, // Don't auto-redirect, handle manually
       });
 
-      console.log('[LOGIN_PAGE] signIn result:', result);
+      logger.debug('[LoginPage] NextAuth signIn result received', {
+        operation: 'emailLogin',
+        success: result?.ok || false,
+        hasError: !!result?.error,
+      });
 
       if (result?.error) {
-        console.log('[LOGIN_PAGE] Login error:', result.error);
+        logger.warn('[LoginPage] Login failed', {
+          operation: 'emailLogin',
+          email: maskedEmail,
+          error: result.error,
+        });
         setError('Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
       } else if (result?.ok) {
-        console.log('[LOGIN_PAGE] Login successful, redirecting to:', callbackUrl);
+        logger.info('[LoginPage] Login successful, redirecting', {
+          operation: 'emailLogin',
+          email: maskedEmail,
+          callbackUrl,
+        });
         // ✅ FIX: Use window.location.href instead of router.push()
         // This forces a full page reload, ensuring NextAuth session is properly set
         // before middleware checks authentication
         window.location.href = callbackUrl;
       } else {
-        console.log('[LOGIN_PAGE] Unexpected result:', result);
+        logger.warn('[LoginPage] Unexpected signIn result', {
+          operation: 'emailLogin',
+          result: JSON.stringify(result),
+        });
         setError('Đã xảy ra lỗi. Vui lòng thử lại.');
       }
     } catch (err) {
-      console.error('[LOGIN_PAGE] Exception during login:', err);
+      logger.error('[LoginPage] Exception during login', {
+        operation: 'emailLogin',
+        email: maskedEmail,
+        error: err instanceof Error ? err.message : String(err),
+      });
       const errorMessage = err instanceof Error ? err.message : 'Đã xảy ra lỗi. Vui lòng thử lại.';
       setError(errorMessage);
     } finally {
@@ -71,16 +113,27 @@ export default function LoginPage() {
     }
   };
 
+  /**
+   * Handle Google OAuth login
+   * Business Logic: Xử lý đăng nhập bằng Google OAuth
+   * - Hiện tại chưa được cấu hình (TODO)
+   * - Sẽ implement khi có Google OAuth credentials
+   */
   const handleGoogleLogin = async () => {
     setError('');
     setLoading(true);
 
     try {
+      logger.debug('[LoginPage] Google login attempted', {
+        operation: 'googleLogin',
+        status: 'not_configured',
+      });
+
       // TODO: Implement Google OAuth flow when credentials are configured
       // For now, show a message that Google login is not available
       setError('Google login chưa được cấu hình. Vui lòng sử dụng email/password.');
       setLoading(false);
-      
+
       // Sample implementation for when Google OAuth is ready:
       // const googleToken = await getGoogleIdToken(); // Get from Google OAuth flow
       // const result = await AuthService.googleLogin(googleToken);
@@ -93,6 +146,10 @@ export default function LoginPage() {
       //   setError('Google login failed');
       // }
     } catch (err) {
+      logger.error('[LoginPage] Google login error', {
+        operation: 'googleLogin',
+        error: err instanceof Error ? err.message : String(err),
+      });
       const errorMessage = err instanceof Error ? err.message : 'Không thể đăng nhập với Google';
       setError(errorMessage);
       setLoading(false);
@@ -203,7 +260,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" role="alert" aria-live="polite">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}

@@ -1,9 +1,11 @@
 /**
  * Frontend Environment Variable Validation Utility
- * 
+ *
  * Validates critical environment variables at runtime and build time
  * Provides clear error messages for missing or invalid configurations
  */
+
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -268,32 +270,49 @@ function performCrossValidation(): ValidationError[] {
 }
 
 /**
- * Log validation results to console
+ * Log validation results
+ * Business Logic: Hiển thị kết quả validation environment variables
+ * - Log info nếu tất cả valid
+ * - Log warnings cho các biến có vấn đề nhỏ
+ * - Log errors cho các biến critical bị thiếu hoặc invalid
  */
 export function logValidationResults(result: ValidationResult): void {
   if (result.isValid && result.warnings.length === 0) {
-    console.log('✅ All environment variables are valid');
+    logger.info('[EnvValidation] All environment variables are valid', {
+      operation: 'validateEnvironment',
+      status: 'success',
+    });
     return;
   }
-  
+
   if (result.warnings.length > 0) {
-    console.warn('⚠️  Environment variable warnings:');
-    result.warnings.forEach(warning => {
-      console.warn(`   - ${warning.variable}: ${warning.message}`);
-      if (warning.suggestion) {
-        console.warn(`     Suggestion: ${warning.suggestion}`);
-      }
+    logger.warn('[EnvValidation] Environment variable warnings detected', {
+      operation: 'validateEnvironment',
+      warningCount: result.warnings.length,
+      warnings: result.warnings.map(w => ({
+        variable: w.variable,
+        message: w.message,
+        suggestion: w.suggestion,
+      })),
     });
   }
-  
+
   if (result.errors.length > 0) {
-    console.error('❌ Environment variable errors:');
-    result.errors.forEach(error => {
-      console.error(`   - ${error.variable}: ${error.message}`);
+    logger.error('[EnvValidation] Environment variable errors detected', {
+      operation: 'validateEnvironment',
+      errorCount: result.errors.length,
+      errors: result.errors.map(e => ({
+        variable: e.variable,
+        message: e.message,
+      })),
+      environment: isProduction ? 'production' : 'development',
     });
-    
+
     if (isProduction) {
-      console.error('🚨 Application may not function correctly in production with these errors');
+      logger.error('[EnvValidation] Application may not function correctly in production', {
+        operation: 'validateEnvironment',
+        severity: 'critical',
+      });
     }
   }
 }
@@ -317,14 +336,18 @@ export function validateEnvironmentOrThrow(): void {
   
   // In development, only throw for critical errors
   if (!result.isValid && isDevelopment) {
-    const criticalErrors = result.errors.filter(error => 
-      error.variable.includes('NEXTAUTH') || 
+    const criticalErrors = result.errors.filter(error =>
+      error.variable.includes('NEXTAUTH') ||
       error.variable.includes('API_URL') ||
       error.variable.includes('GRPC_URL')
     );
-    
+
     if (criticalErrors.length > 0) {
-      console.warn('⚠️  Critical environment variable errors detected. Application may not function correctly.');
+      logger.warn('[EnvValidation] Critical environment variable errors detected', {
+        operation: 'validateEnvironment',
+        criticalErrorCount: criticalErrors.length,
+        criticalErrors: criticalErrors.map(e => e.variable),
+      });
     }
   }
 }

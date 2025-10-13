@@ -18,6 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { logger } from "@/lib/utils/logger";
 
 import { useAuth } from "@/contexts/auth-context-grpc";
 import { registerSchema, type RegisterFormData, checkPasswordStrength } from "@/lib/validation/auth-schemas";
@@ -66,7 +67,10 @@ export function RegisterForm({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Đăng ký thất bại";
       setError(errorMessage);
-      console.error("Register error:", err);
+      logger.error("[RegisterForm] Registration failed", {
+        error: err instanceof Error ? err.message : String(err),
+        email: data.email,
+      });
     }
   };
 
@@ -79,7 +83,9 @@ export function RegisterForm({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Đăng nhập Google thất bại";
       setError(errorMessage);
-      console.error("Google login error:", err);
+      logger.error("[RegisterForm] Google login failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setIsGoogleLoading(false);
     }

@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -77,28 +78,38 @@ export class PerformanceMonitor {
 
   /**
    * Start measuring an operation
+   * Business Logic: Bắt đầu đo performance cho một operation
    */
   start(name: string, _metadata?: Record<string, unknown>): void {
     const startTime = performance.now();
     this.activeOperations.set(name, startTime);
-    
+
     if (this.options.enableLogging) {
-      console.time(`[Performance] ${name}`);
+      logger.debug('[PerformanceMonitor] Started measuring operation', {
+        operation: name,
+        startTime,
+      });
     }
   }
 
   /**
    * End measuring an operation
+   * Business Logic: Kết thúc đo performance và log kết quả
+   * - Tính duration
+   * - Detect slow operations (> threshold)
+   * - Auto-clear old entries nếu vượt quá maxEntries
    */
   end(name: string, metadata?: Record<string, unknown>): PerformanceEntry | null {
     const endTime = performance.now();
     const startTime = this.activeOperations.get(name);
-    
+
     if (!startTime) {
-      console.warn(`[Performance] No start time found for operation: ${name}`);
+      logger.warn('[PerformanceMonitor] No start time found for operation', {
+        operation: name,
+      });
       return null;
     }
-    
+
     const duration = endTime - startTime;
     const entry: PerformanceEntry = {
       name,
@@ -107,29 +118,36 @@ export class PerformanceMonitor {
       duration,
       metadata
     };
-    
+
     // Add to entries
     this.entries.push(entry);
-    
+
     // Remove from active operations
     this.activeOperations.delete(name);
-    
+
     // Auto-clear nếu needed
     if (this.options.autoClear && this.entries.length > this.options.maxEntries) {
       this.entries = this.entries.slice(-this.options.maxEntries);
     }
-    
+
     // Log nếu enabled
     if (this.options.enableLogging) {
-      console.timeEnd(`[Performance] ${name}`);
-      
+      logger.debug('[PerformanceMonitor] Completed measuring operation', {
+        operation: name,
+        duration: `${duration.toFixed(2)}ms`,
+        ...metadata,
+      });
+
       if (duration > this.options.slowThreshold) {
-        console.warn(
-          `[Performance] Slow operation detected: ${name} took ${duration.toFixed(2)}ms`
-        );
+        logger.warn('[PerformanceMonitor] Slow operation detected', {
+          operation: name,
+          duration: `${duration.toFixed(2)}ms`,
+          threshold: `${this.options.slowThreshold}ms`,
+          ...metadata,
+        });
       }
     }
-    
+
     return entry;
   }
 

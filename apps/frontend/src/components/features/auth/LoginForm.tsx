@@ -22,6 +22,7 @@ import {
 import { useAuth } from "@/contexts/auth-context-grpc";
 import { loginSchema, type LoginFormData } from "@/lib/validation/auth-schemas";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/utils/logger";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -65,7 +66,10 @@ export function LoginForm({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Đăng nhập thất bại";
       setError(errorMessage);
-      console.error("Login error:", err);
+      logger.error("[LoginForm] Login failed", {
+        error: err instanceof Error ? err.message : String(err),
+        email: data.email,
+      });
     }
   };
 
@@ -78,7 +82,9 @@ export function LoginForm({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Đăng nhập Google thất bại";
       setError(errorMessage);
-      console.error("Google login error:", err);
+      logger.error("[LoginForm] Google login failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
     } finally {
       setIsGoogleLoading(false);
     }

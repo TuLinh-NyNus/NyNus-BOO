@@ -33,6 +33,7 @@ import { useAuth } from '@/contexts/auth-context-grpc';
 import { UserDisplay } from '@/components/features/auth/UserDisplay';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useTheme } from 'next-themes';
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -111,12 +112,20 @@ export function MobileUserMenu({ isOpen, onClose, className }: MobileUserMenuPro
     }
   };
 
+  /**
+   * Handle user logout
+   * Business Logic: Đăng xuất user và đóng mobile menu
+   */
   const handleLogout = async () => {
     try {
       await logout();
       onClose();
     } catch (error) {
-      console.error('Logout failed:', error);
+      logger.error('[MobileUserMenu] Logout failed', {
+        operation: 'logout',
+        userId: user?.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   };
 
@@ -152,7 +161,10 @@ export function MobileUserMenu({ isOpen, onClose, className }: MobileUserMenuPro
           icon: Camera,
           onClick: () => {
             // Handle avatar change
-            console.log('Change avatar clicked');
+            logger.debug('[MobileUserMenu] Change avatar clicked', {
+              operation: 'changeAvatar',
+              userId: user?.id,
+            });
           }
         }
       ]
@@ -192,7 +204,10 @@ export function MobileUserMenu({ isOpen, onClose, className }: MobileUserMenuPro
           icon: Globe,
           onClick: () => {
             // Handle language change
-            console.log('Language settings clicked');
+            logger.debug('[MobileUserMenu] Language settings clicked', {
+              operation: 'changeLanguage',
+              userId: user?.id,
+            });
           }
         }
       ]
