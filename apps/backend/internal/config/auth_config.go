@@ -209,8 +209,8 @@ func LoadAuthConfig() *AuthConfig {
 			}
 			return 10 // Lower cost in development for speed
 		}()),
-		
-		EnableCSRF:            isProduction,
+
+		EnableCSRF:            true, // SECURITY: Enable CSRF protection in all environments
 		EnableHSTS:            isProduction,
 		EnableXSSProtection:   true,
 		EnableSessionRotation: true,

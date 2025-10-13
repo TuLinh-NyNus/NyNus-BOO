@@ -61,7 +61,7 @@ func NewAuthService(jwtSecret string) *AuthService {
 	}
 	return &AuthService{
 		userRepo:       &repository.UserRepository{},
-		preferenceRepo: repository.NewUserPreferenceRepository(nil), // Will be properly injected from container
+		preferenceRepo: repository.NewUserPreferenceRepository(nil, nil), // Will be properly injected from container
 		jwtService:     unifiedJWT,
 		bcryptCost:     12, // Default to secure cost
 	}
@@ -71,7 +71,7 @@ func NewAuthService(jwtSecret string) *AuthService {
 func NewAuthServiceWithJWT(jwtService IJWTService) *AuthService {
 	return &AuthService{
 		userRepo:       &repository.UserRepository{},
-		preferenceRepo: repository.NewUserPreferenceRepository(nil), // Will be properly injected from container
+		preferenceRepo: repository.NewUserPreferenceRepository(nil, nil), // Will be properly injected from container
 		jwtService:     jwtService,
 		bcryptCost:     12, // Default to secure cost
 	}

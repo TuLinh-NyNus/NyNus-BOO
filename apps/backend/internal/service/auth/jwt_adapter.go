@@ -1,5 +1,7 @@
 package auth
 
+import "context"
+
 // JWTAdapter adapts IJWTService to OAuth's JWTService interface
 //
 // Business Logic:
@@ -43,4 +45,9 @@ func (a *JWTAdapter) GenerateRefreshToken(userID string) (string, error) {
 // ValidateRefreshToken validates refresh token
 func (a *JWTAdapter) ValidateRefreshToken(token string) (string, error) {
 	return a.jwtService.ValidateRefreshToken(token)
+}
+
+// CleanupExpiredTokens removes expired and old revoked tokens
+func (a *JWTAdapter) CleanupExpiredTokens(ctx context.Context) (int, error) {
+	return a.jwtService.CleanupExpiredTokens(ctx)
 }

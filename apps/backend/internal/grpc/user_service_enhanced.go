@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"errors"
+	"log"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -98,19 +99,28 @@ func NewEnhancedUserServiceServer(
 func (s *EnhancedUserServiceServer) Login(ctx context.Context, req *v1.LoginRequest) (*v1.LoginResponse, error) {
 	// Validate input
 	if req.Email == "" || req.Password == "" {
+		log.Printf("DEBUG: Login - Missing email or password")
 		return nil, status.Errorf(codes.InvalidArgument, ErrEmailRequired)
 	}
+
+	log.Printf("DEBUG: Login - Starting login for email: %s", req.Email)
 
 	// Validate credentials
 	user, err := s.loginHandler.ValidateCredentials(ctx, req.Email, req.Password)
 	if err != nil {
+		log.Printf("DEBUG: Login - ValidateCredentials failed: %v", err)
 		return nil, err
 	}
 
+	log.Printf("DEBUG: Login - Credentials validated successfully for user: %s", user.ID)
+
 	// Check account security (locked, inactive, suspended)
 	if err := s.loginHandler.CheckAccountSecurity(ctx, user); err != nil {
+		log.Printf("DEBUG: Login - CheckAccountSecurity failed: %v", err)
 		return nil, err
 	}
+
+	log.Printf("DEBUG: Login - Account security check passed")
 
 	// Reset login attempts after successful authentication
 	_ = s.loginHandler.ResetLoginAttempts(ctx, user.ID)
@@ -120,17 +130,26 @@ func (s *EnhancedUserServiceServer) Login(ctx context.Context, req *v1.LoginRequ
 	userAgent := getUserAgent(ctx)
 	deviceFingerprint := generateDeviceFingerprint(userAgent)
 
+	log.Printf("DEBUG: Login - Generating tokens for user: %s, IP: %s", user.ID, ipAddress)
+
 	// Generate tokens
 	tokenResponse, err := s.loginHandler.GenerateTokens(ctx, user, ipAddress, userAgent, deviceFingerprint)
 	if err != nil {
+		log.Printf("DEBUG: Login - GenerateTokens failed: %v", err)
 		return nil, err
 	}
+
+	log.Printf("DEBUG: Login - Tokens generated successfully")
 
 	// Create session
 	sessionToken, _ := s.loginHandler.CreateSession(ctx, user, ipAddress, userAgent, deviceFingerprint)
 
+	log.Printf("DEBUG: Login - Session created: %s", sessionToken)
+
 	// Update last login
 	_ = s.loginHandler.UpdateLastLogin(ctx, user.ID, ipAddress)
+
+	log.Printf("DEBUG: Login - Building response")
 
 	// Build response
 	return &v1.LoginResponse{

@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
@@ -570,7 +569,7 @@ func (s *UnifiedJWTService) GenerateRefreshTokenPair(
 				"token_family": tokenFamily,
 				"error":        err.Error(),
 			}).Error("Failed to store refresh token in database")
-			return nil, &JWTError{Op: "GenerateRefreshTokenPair", UserID: userID, Err: ErrRefreshTokenStorageFailed}
+			return nil, &JWTError{Op: "GenerateRefreshTokenPair", UserID: userID, Err: errors.New("failed to store refresh token in database")}
 		}
 
 		s.logger.WithFields(logrus.Fields{
@@ -700,7 +699,7 @@ func (s *UnifiedJWTService) RefreshTokenWithRotation(
 		return nil, &JWTError{
 			Op:     "RefreshTokenWithRotation",
 			UserID: tokenRecord.UserID,
-			Err:    ErrUserNotFound,
+			Err:    errors.New("user not found"),
 		}
 	}
 
@@ -773,7 +772,7 @@ func (s *UnifiedJWTService) RefreshTokenWithRotation(
 		return nil, &JWTError{
 			Op:     "RefreshTokenWithRotation",
 			UserID: user.ID,
-			Err:    ErrRefreshTokenRotationFailed,
+			Err:    errors.New("failed to rotate refresh token"),
 		}
 	}
 

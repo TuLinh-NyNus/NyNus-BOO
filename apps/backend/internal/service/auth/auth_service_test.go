@@ -83,7 +83,7 @@ func (m *MockEnhancedUserRepository) UpdateLastLogin(ctx context.Context, userID
 func createTestAuthService(t *testing.T) (*AuthService, *MockUserRepository, *MockEnhancedUserRepository) {
 	mockUserRepo := &MockUserRepository{}
 	mockEnhancedRepo := &MockEnhancedUserRepository{}
-	mockPreferenceRepo := repository.NewUserPreferenceRepository(nil)
+	mockPreferenceRepo := repository.NewUserPreferenceRepository(nil, nil)
 
 	// Create test logger
 	testLogger := logrus.New()

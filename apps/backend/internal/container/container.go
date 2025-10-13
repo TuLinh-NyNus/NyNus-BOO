@@ -194,18 +194,30 @@ func (c *Container) initOpenSearch() {
 
 // initRepositories initializes all repository dependencies
 func (c *Container) initRepositories() {
+	// Create logger for repositories
+	repoLogger := logrus.New()
+	repoLogger.SetLevel(logrus.InfoLevel)
+	repoLogger.SetFormatter(&logrus.JSONFormatter{
+		TimestampFormat: time.RFC3339,
+		FieldMap: logrus.FieldMap{
+			logrus.FieldKeyTime:  "timestamp",
+			logrus.FieldKeyLevel: "level",
+			logrus.FieldKeyMsg:   "message",
+		},
+	})
+
 	// Initialize all repositories with database connection
-	c.UserRepo = &repository.UserRepository{}                     // Legacy implementation
-	c.UserRepoWrapper = repository.NewUserRepositoryWrapper(c.DB) // Interface wrapper
+	c.UserRepo = &repository.UserRepository{}                            // Legacy implementation
+	c.UserRepoWrapper = repository.NewUserRepositoryWrapper(c.DB, repoLogger) // Interface wrapper with logger
 	c.AnswerRepo = &repository.AnswerRepository{}
-	c.SessionRepo = repository.NewSessionRepository(c.DB)
-	c.OAuthAccountRepo = repository.NewOAuthAccountRepository(c.DB)
-	c.ResourceAccessRepo = repository.NewResourceAccessRepository(c.DB)
+	c.SessionRepo = repository.NewSessionRepository(c.DB, repoLogger)    // Session repository with logger
+	c.OAuthAccountRepo = repository.NewOAuthAccountRepository(c.DB, repoLogger) // OAuth account repository with logger
+	c.ResourceAccessRepo = repository.NewResourceAccessRepository(c.DB, repoLogger) // Resource access repository with logger
 	c.EnrollmentRepo = repository.NewEnrollmentRepository(c.DB)
 	c.NotificationRepo = repository.NewNotificationRepository(c.DB)
-	c.UserPreferenceRepo = repository.NewUserPreferenceRepository(c.DB)
-	c.AuditLogRepo = repository.NewAuditLogRepository(c.DB)
-	c.RefreshTokenRepo = repository.NewRefreshTokenRepository(c.DB) // NEW: Refresh token repository
+	c.UserPreferenceRepo = repository.NewUserPreferenceRepository(c.DB, repoLogger) // User preference repository with logger
+	c.AuditLogRepo = repository.NewAuditLogRepository(c.DB, repoLogger) // Audit log repository with logger
+	c.RefreshTokenRepo = repository.NewRefreshTokenRepository(c.DB, repoLogger) // Refresh token repository with logger
 	c.QuestionRepo = repository.NewQuestionRepository(c.DB)
 	c.QuestionCodeRepo = repository.NewQuestionCodeRepository(c.DB)
 	c.QuestionImageRepo = repository.NewQuestionImageRepository(c.DB)
@@ -312,9 +324,6 @@ func (c *Container) initServices() {
 	// Initialize MapCodeMgmt with repositories
 	c.MapCodeMgmt = mapcode_mgmt.NewMapCodeMgmt(c.MapCodeRepo, c.MapCodeTranslationRepo)
 
-	// Create JWT Adapter for OAuth service using unified service (already initialized above)
-	jwtAdapter := auth.NewJWTAdapter(c.UnifiedJWTService)
-
 	// Initialize Notification and Session services first (needed by OAuth)
 	c.NotificationSvc = notification.NewNotificationService(c.NotificationRepo, c.UserPreferenceRepo)
 	c.SessionService = session.NewSessionService(c.SessionRepo, c.UserRepoWrapper, c.NotificationSvc)
@@ -340,7 +349,7 @@ func (c *Container) initServices() {
 		c.UserRepoWrapper,
 		c.OAuthAccountRepo,
 		c.SessionRepo,
-		jwtAdapter,
+		c.UnifiedJWTService, // Use UnifiedJWTService directly (implements IJWTService)
 		c.SessionService, // Pass the SessionService
 		googleClientID,
 		googleClientSecret,

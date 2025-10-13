@@ -109,14 +109,6 @@ var (
 	// Nếu repo = nil, chỉ có thể dùng JWT-based tokens (less secure)
 	ErrRefreshTokenRepoNil = errors.New("refresh token repository is not configured")
 
-	// ErrRefreshTokenStorageFailed indicates failed to store refresh token
-	// Database Error: Insert operation failed
-	ErrRefreshTokenStorageFailed = errors.New("failed to store refresh token in database")
-
-	// ErrRefreshTokenRotationFailed indicates failed to rotate refresh token
-	// Database Error: Transaction failed during rotation
-	ErrRefreshTokenRotationFailed = errors.New("failed to rotate refresh token")
-
 	// ErrRefreshTokenRevocationFailed indicates failed to revoke refresh token
 	// Database Error: Update operation failed
 	ErrRefreshTokenRevocationFailed = errors.New("failed to revoke refresh token")
@@ -126,10 +118,6 @@ var (
 // Errors liên quan đến user operations
 
 var (
-	// ErrUserNotFound indicates user not found in database
-	// Business Rule: User phải tồn tại để generate/refresh tokens
-	ErrUserNotFound = errors.New("user not found")
-
 	// ErrUserInactive indicates user account is inactive
 	// Business Rule: Chỉ ACTIVE users mới có thể login/refresh tokens
 	// Status: ACTIVE, INACTIVE, SUSPENDED, BANNED

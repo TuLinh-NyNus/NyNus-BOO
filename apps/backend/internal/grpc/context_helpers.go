@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -71,25 +72,21 @@ func getUserAgent(ctx context.Context) string {
 	return "unknown"
 }
 
-// generateDeviceFingerprint creates a simple device fingerprint from user agent
-// Tạo device fingerprint đơn giản từ user agent
+// generateDeviceFingerprint creates a device fingerprint from user agent and IP
+// Tạo device fingerprint từ user agent và IP address
 //
 // Parameters:
 //   - userAgent: User agent string
 //
 // Returns:
-//   - string: Device fingerprint, or empty string if user agent is unknown
+//   - string: Device fingerprint (always non-empty, uses fallback if needed)
 //
-// Note: Đây là phiên bản đơn giản. Trong production, nên sử dụng
-// fingerprinting phức tạp hơn (browser info, OS, screen resolution, etc.)
+// Note: Sử dụng util.GenerateDeviceFingerprint() để tạo fingerprint
+// từ user agent. Nếu user agent là "unknown", vẫn tạo fingerprint
+// để tránh lỗi validation.
 func generateDeviceFingerprint(userAgent string) string {
-	// Simple fingerprint based on user agent
-	// In production, you might want to use more sophisticated fingerprinting
-	if userAgent == "" || userAgent == "unknown" {
-		return ""
-	}
-
-	// For now, just use the user agent as fingerprint
-	// TODO: Implement more sophisticated fingerprinting in future
-	return userAgent
+	// Use util.GenerateDeviceFingerprint() to create a proper fingerprint
+	// Even if userAgent is "unknown", this will generate a valid fingerprint
+	// to avoid validation errors
+	return util.GenerateDeviceFingerprint(userAgent, "", "")
 }

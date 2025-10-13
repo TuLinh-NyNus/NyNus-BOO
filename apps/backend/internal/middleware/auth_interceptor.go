@@ -177,7 +177,7 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		token := strings.TrimPrefix(accessToken, BearerPrefix)
 
 		// Validate token
-		claims, err := interceptor.authService.ValidateToken(token)
+		claims, err := interceptor.authService.AuthService.ValidateToken(token)
 		if err != nil {
 			return nil, status.Errorf(codes.Unauthenticated, ErrInvalidToken, err)
 		}

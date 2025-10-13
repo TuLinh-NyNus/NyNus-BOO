@@ -72,15 +72,21 @@ func (h *LoginHandler) ValidateCredentials(ctx context.Context, email, password 
 		return nil, status.Errorf(codes.Unauthenticated, ErrInvalidCredentials)
 	}
 
+	// DEBUG: Log password details
+	log.Printf("DEBUG: ValidateCredentials - Email: %s, Password length: %d, Password: %s, Hash: %s",
+		email, len(password), password, user.PasswordHash)
+
 	// Check password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
 		// Password is wrong - handle failed login
+		log.Printf("DEBUG: bcrypt.CompareHashAndPassword failed: %v", err)
 		if handleErr := h.HandleFailedLogin(ctx, user); handleErr != nil {
 			log.Printf("Failed to handle failed login for user %s: %v", user.Email, handleErr)
 		}
 		return nil, status.Errorf(codes.Unauthenticated, ErrInvalidCredentials)
 	}
 
+	log.Printf("DEBUG: Password validation successful for user: %s", email)
 	return user, nil
 }
 
@@ -177,11 +183,17 @@ func (h *LoginHandler) GenerateTokens(
 	user *repository.User,
 	ipAddress, userAgent, deviceFingerprint string,
 ) (*auth.RefreshTokenResponse, error) {
+	// Convert protobuf enum to string for JWT
+	roleStr := convertProtoRoleToString(user.Role)
+
+	log.Printf("DEBUG: GenerateTokens - User ID: %s, Email: %s, Role enum: %v, Role string: '%s', Level: %d",
+		user.ID, user.Email, user.Role, roleStr, user.Level)
+
 	tokenResponse, err := h.jwtService.GenerateRefreshTokenPair(
 		ctx,
 		user.ID,
 		user.Email,
-		string(user.Role),
+		roleStr,
 		user.Level,
 		ipAddress,
 		userAgent,

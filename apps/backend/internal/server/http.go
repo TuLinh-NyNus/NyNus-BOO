@@ -138,6 +138,18 @@ func (s *HTTPServer) Start() error {
 	// Create HTTP handler with CORS for gRPC-Gateway
 	grpcGatewayHandler := corsHandler.Handler(s.mux)
 
+	// Create health check handler
+	healthHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("DEBUG: *** HEALTH CHECK ENDPOINT MATCHED *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"healthy","service":"exam-bank-backend","timestamp":"` +
+			fmt.Sprintf("%d", time.Now().Unix()) + `"}`))
+	})
+
+	// Wrap health handler with CORS
+	healthHandlerWithCORS := corsHandler.Handler(healthHandler)
+
 	// Create a multiplexer that routes requests to either gRPC-Web or gRPC-Gateway
 	// gRPC-Web requests go to grpcWebWrapper
 	// Other requests go to gRPC-Gateway
@@ -160,13 +172,9 @@ func (s *HTTPServer) Start() error {
 	return http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("DEBUG: *** MAIN HANDLER CALLED *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
 
-		// Handle health check endpoint
+		// Handle health check endpoint with CORS
 		if r.URL.Path == "/health" {
-			fmt.Printf("DEBUG: *** HEALTH CHECK ENDPOINT MATCHED *** - URL: %s, Method: %s\n", r.URL.Path, r.Method)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"status":"healthy","service":"exam-bank-backend","timestamp":"` +
-				fmt.Sprintf("%d", time.Now().Unix()) + `"}`))
+			healthHandlerWithCORS.ServeHTTP(w, r)
 			return
 		}
 

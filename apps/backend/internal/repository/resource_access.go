@@ -3,10 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"github.com/sirupsen/logrus"
 )
 
 // ResourceAccess represents a resource access record
@@ -42,23 +44,147 @@ type ResourceAccessRepository interface {
 	GetRecentAccess(ctx context.Context, limit, offset int) ([]*ResourceAccess, error)
 }
 
-// resourceAccessRepository implementation
-type resourceAccessRepository struct {
-	db database.QueryExecer
+var (
+	// Validation regex patterns
+	ulidRegexResource = regexp.MustCompile(`^[0-9A-HJKMNP-TV-Z]{26}$`)
+)
+
+// Validation helpers for resource access repository
+func validateResourceAccessID(accessID string) error {
+	if accessID == "" {
+		return fmt.Errorf("resource access ID cannot be empty")
+	}
+	if !ulidRegexResource.MatchString(accessID) {
+		return fmt.Errorf("invalid resource access ID format: must be ULID")
+	}
+	return nil
 }
 
-// NewResourceAccessRepository creates a new resource access repository
-func NewResourceAccessRepository(db database.QueryExecer) ResourceAccessRepository {
-	return &resourceAccessRepository{db: db}
+func validateResourceUserID(userID string) error {
+	if userID == "" {
+		return fmt.Errorf("user ID cannot be empty")
+	}
+	if !ulidRegexResource.MatchString(userID) {
+		return fmt.Errorf("invalid user ID format: must be ULID")
+	}
+	return nil
+}
+
+func validateResourceType(resourceType string) error {
+	if resourceType == "" {
+		return fmt.Errorf("resource type cannot be empty")
+	}
+	if len(resourceType) < 3 {
+		return fmt.Errorf("resource type too short: minimum 3 characters")
+	}
+	return nil
+}
+
+func validateResourceAction(action string) error {
+	if action == "" {
+		return fmt.Errorf("action cannot be empty")
+	}
+	if len(action) < 3 {
+		return fmt.Errorf("action too short: minimum 3 characters")
+	}
+	return nil
+}
+
+func validateResourceLimit(limit int) error {
+	if limit <= 0 {
+		return fmt.Errorf("limit must be positive")
+	}
+	if limit > 1000 {
+		return fmt.Errorf("limit too large: maximum 1000")
+	}
+	return nil
+}
+
+func validateResourceRiskScore(riskScore int) error {
+	if riskScore < 0 {
+		return fmt.Errorf("risk score cannot be negative")
+	}
+	if riskScore > 100 {
+		return fmt.Errorf("risk score cannot exceed 100")
+	}
+	return nil
+}
+
+// resourceAccessRepository implementation
+type resourceAccessRepository struct {
+	db     database.QueryExecer
+	logger *logrus.Logger
+}
+
+// NewResourceAccessRepository creates a new resource access repository with logger injection
+func NewResourceAccessRepository(db database.QueryExecer, logger *logrus.Logger) ResourceAccessRepository {
+	// Create default logger if not provided
+	if logger == nil {
+		logger = logrus.New()
+		logger.SetLevel(logrus.InfoLevel)
+		logger.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: time.RFC3339,
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyTime:  "timestamp",
+				logrus.FieldKeyLevel: "level",
+				logrus.FieldKeyMsg:   "message",
+			},
+		})
+	}
+
+	return &resourceAccessRepository{
+		db:     db,
+		logger: logger,
+	}
 }
 
 // Create creates a new resource access record
 func (r *resourceAccessRepository) Create(ctx context.Context, access *ResourceAccess) error {
+	// Validate input
+	if err := validateResourceUserID(access.UserID); err != nil {
+		r.logger.WithFields(logrus.Fields{
+			"operation": "Create",
+			"user_id":   access.UserID,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+	if err := validateResourceType(access.ResourceType); err != nil {
+		r.logger.WithFields(logrus.Fields{
+			"operation":     "Create",
+			"resource_type": access.ResourceType,
+		}).Error("Invalid resource type")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+	if err := validateResourceAction(access.Action); err != nil {
+		r.logger.WithFields(logrus.Fields{
+			"operation": "Create",
+			"action":    access.Action,
+		}).Error("Invalid action")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
 	access.ID = util.ULIDNow()
 	access.CreatedAt = time.Now()
 
 	// Calculate risk score based on patterns
 	access.RiskScore = r.calculateAccessRiskScore(ctx, access)
+
+	// Log at Warn level if high risk score
+	logLevel := logrus.InfoLevel
+	if access.RiskScore >= 50 {
+		logLevel = logrus.WarnLevel
+	}
+
+	r.logger.WithFields(logrus.Fields{
+		"operation":     "Create",
+		"access_id":     access.ID,
+		"user_id":       access.UserID,
+		"resource_type": access.ResourceType,
+		"resource_id":   access.ResourceID,
+		"action":        access.Action,
+		"risk_score":    access.RiskScore,
+		"ip_address":    access.IPAddress,
+	}).Log(logLevel, "Creating resource access record")
 
 	query := `
 		INSERT INTO resource_access (
@@ -84,14 +210,31 @@ func (r *resourceAccessRepository) Create(ctx context.Context, access *ResourceA
 	)
 
 	if err != nil {
+		r.logger.WithFields(logrus.Fields{
+			"operation": "Create",
+			"access_id": access.ID,
+		}).WithError(err).Error("Failed to create resource access record")
 		return fmt.Errorf("failed to create resource access: %w", err)
 	}
+
+	r.logger.WithFields(logrus.Fields{
+		"operation":  "Create",
+		"access_id":  access.ID,
+		"risk_score": access.RiskScore,
+	}).Log(logLevel, "Resource access record created successfully")
 
 	return nil
 }
 
 // GetByID gets a resource access by ID
 func (r *resourceAccessRepository) GetByID(ctx context.Context, id string) (*ResourceAccess, error) {
+	if err := validateResourceAccessID(id); err != nil {
+		r.logger.WithError(err).Error("Invalid resource access ID")
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	r.logger.WithField("access_id", id).Debug("Fetching resource access by ID")
+
 	query := `
 		SELECT id, user_id, resource_type, resource_id, action,
 			   ip_address, user_agent, session_token, is_valid_access,
@@ -117,9 +260,11 @@ func (r *resourceAccessRepository) GetByID(ctx context.Context, id string) (*Res
 	)
 
 	if err != nil {
+		r.logger.WithError(err).Error("Failed to get resource access")
 		return nil, fmt.Errorf("failed to get resource access: %w", err)
 	}
 
+	r.logger.WithFields(logrus.Fields{"access_id": access.ID, "risk_score": access.RiskScore}).Debug("Resource access fetched")
 	return access, nil
 }
 

@@ -8,22 +8,72 @@ import (
 
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
 	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
+	"github.com/sirupsen/logrus"
 )
 
 // userRepositoryWrapper wraps UserRepository to implement IUserRepository
 type userRepositoryWrapper struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *logrus.Logger
 }
 
-// NewUserRepositoryWrapper creates a new wrapper
-func NewUserRepositoryWrapper(db *sql.DB) IUserRepository {
-	return &userRepositoryWrapper{
-		db: db,
+// NewUserRepositoryWrapper creates a new wrapper with logger injection
+func NewUserRepositoryWrapper(db *sql.DB, logger *logrus.Logger) IUserRepository {
+	// Create default logger if not provided
+	if logger == nil {
+		logger = logrus.New()
+		logger.SetLevel(logrus.InfoLevel)
+		logger.SetFormatter(&logrus.JSONFormatter{
+			TimestampFormat: time.RFC3339,
+			FieldMap: logrus.FieldMap{
+				logrus.FieldKeyTime:  "timestamp",
+				logrus.FieldKeyLevel: "level",
+				logrus.FieldKeyMsg:   "message",
+			},
+		})
 	}
+
+	return &userRepositoryWrapper{
+		db:     db,
+		logger: logger,
+	}
+}
+
+// Validation helpers are now in validation.go to avoid duplication
+
+// validateGoogleID validates Google ID format
+func validateGoogleID(googleID string) error {
+	if googleID == "" {
+		return fmt.Errorf("Google ID cannot be empty")
+	}
+	if len(googleID) < 10 || len(googleID) > 255 {
+		return fmt.Errorf("invalid Google ID length")
+	}
+	return nil
+}
+
+// validateUsername validates username format
+func validateUsername(username string) error {
+	if username == "" {
+		return fmt.Errorf("username cannot be empty")
+	}
+	if len(username) < 3 || len(username) > 30 {
+		return fmt.Errorf("username must be 3-30 characters")
+	}
+	return nil
 }
 
 // Create creates a new user
 func (w *userRepositoryWrapper) Create(ctx context.Context, user *User) error {
+	// Validate input
+	if err := validateEmail(user.Email); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "Create",
+			"email":     user.Email,
+		}).Error("Invalid email format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
 	// Generate ID if not provided (fix for duplicate key issue)
 	if user.ID == "" {
 		user.ID = util.ULIDNow()
@@ -37,6 +87,13 @@ func (w *userRepositoryWrapper) Create(ctx context.Context, user *User) error {
 	if user.UpdatedAt.IsZero() {
 		user.UpdatedAt = now
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "Create",
+		"user_id":   user.ID,
+		"email":     user.Email,
+		"role":      user.Role.String(),
+	}).Info("Creating new user")
 
 	query := `
 		INSERT INTO users (
@@ -74,16 +131,41 @@ func (w *userRepositoryWrapper) Create(ctx context.Context, user *User) error {
 	)
 
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "Create",
+			"user_id":   user.ID,
+			"email":     user.Email,
+		}).WithError(err).Error("Failed to create user")
 		return fmt.Errorf("failed to create user: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "Create",
+		"user_id":   user.ID,
+		"email":     user.Email,
+	}).Info("User created successfully")
 
 	return nil
 }
 
 // GetByID gets user by ID
 func (w *userRepositoryWrapper) GetByID(ctx context.Context, id string) (*User, error) {
+	// Validate input
+	if err := validateUserID(id); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByID",
+			"user_id":   id,
+		}).Error("Invalid user ID format")
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByID",
+		"user_id":   id,
+	}).Debug("Fetching user by ID")
+
 	query := `
-		SELECT 
+		SELECT
 			id, email, first_name, last_name, password_hash, role, level,
 			username, avatar, google_id, status, email_verified,
 			max_concurrent_sessions, last_login_at, last_login_ip,
@@ -110,8 +192,16 @@ func (w *userRepositoryWrapper) GetByID(ctx context.Context, id string) (*User, 
 
 	if err != nil {
 		if err == sql.ErrNoRows {
+			w.logger.WithFields(logrus.Fields{
+				"operation": "GetByID",
+				"user_id":   id,
+			}).Warn("User not found")
 			return nil, ErrUserNotFound
 		}
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByID",
+			"user_id":   id,
+		}).WithError(err).Error("Failed to get user by ID")
 		return nil, fmt.Errorf("failed to get user by ID: %w", err)
 	}
 
@@ -142,13 +232,33 @@ func (w *userRepositoryWrapper) GetByID(ctx context.Context, id string) (*User, 
 		user.LockedUntil = &lockedUntil.Time
 	}
 
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByID",
+		"user_id":   user.ID,
+		"email":     user.Email,
+	}).Debug("User fetched successfully")
+
 	return &user, nil
 }
 
 // GetByEmail gets user by email
 func (w *userRepositoryWrapper) GetByEmail(ctx context.Context, email string) (*User, error) {
+	// Validate input
+	if err := validateEmail(email); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByEmail",
+			"email":     email,
+		}).Error("Invalid email format")
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByEmail",
+		"email":     email,
+	}).Debug("Fetching user by email")
+
 	query := `
-		SELECT 
+		SELECT
 			id, email, first_name, last_name, password_hash, role, level,
 			username, avatar, google_id, status, email_verified,
 			max_concurrent_sessions, last_login_at, last_login_ip,
@@ -175,8 +285,16 @@ func (w *userRepositoryWrapper) GetByEmail(ctx context.Context, email string) (*
 
 	if err != nil {
 		if err == sql.ErrNoRows {
+			w.logger.WithFields(logrus.Fields{
+				"operation": "GetByEmail",
+				"email":     email,
+			}).Warn("User not found")
 			return nil, ErrUserNotFound
 		}
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByEmail",
+			"email":     email,
+		}).WithError(err).Error("Failed to get user by email")
 		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
@@ -207,13 +325,33 @@ func (w *userRepositoryWrapper) GetByEmail(ctx context.Context, email string) (*
 		user.LockedUntil = &lockedUntil.Time
 	}
 
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByEmail",
+		"user_id":   user.ID,
+		"email":     user.Email,
+	}).Debug("User fetched successfully")
+
 	return &user, nil
 }
 
 // GetByGoogleID gets user by Google ID
 func (w *userRepositoryWrapper) GetByGoogleID(ctx context.Context, googleID string) (*User, error) {
+	// Validate input
+	if err := validateGoogleID(googleID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByGoogleID",
+			"google_id": googleID,
+		}).Error("Invalid Google ID format")
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByGoogleID",
+		"google_id": googleID,
+	}).Debug("Fetching user by Google ID")
+
 	query := `
-		SELECT 
+		SELECT
 			id, email, first_name, last_name, password_hash, role, level,
 			username, avatar, google_id, status, email_verified,
 			max_concurrent_sessions, last_login_at, last_login_ip,
@@ -240,8 +378,16 @@ func (w *userRepositoryWrapper) GetByGoogleID(ctx context.Context, googleID stri
 
 	if err != nil {
 		if err == sql.ErrNoRows {
+			w.logger.WithFields(logrus.Fields{
+				"operation": "GetByGoogleID",
+				"google_id": googleID,
+			}).Warn("User not found")
 			return nil, ErrUserNotFound
 		}
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByGoogleID",
+			"google_id": googleID,
+		}).WithError(err).Error("Failed to get user by Google ID")
 		return nil, fmt.Errorf("failed to get user by Google ID: %w", err)
 	}
 
@@ -272,13 +418,33 @@ func (w *userRepositoryWrapper) GetByGoogleID(ctx context.Context, googleID stri
 		user.LockedUntil = &lockedUntil.Time
 	}
 
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByGoogleID",
+		"user_id":   user.ID,
+		"google_id": googleID,
+	}).Debug("User fetched successfully")
+
 	return &user, nil
 }
 
 // GetByUsername gets user by username
 func (w *userRepositoryWrapper) GetByUsername(ctx context.Context, username string) (*User, error) {
+	// Validate input
+	if err := validateUsername(username); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByUsername",
+			"username":  username,
+		}).Error("Invalid username format")
+		return nil, fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByUsername",
+		"username":  username,
+	}).Debug("Fetching user by username")
+
 	query := `
-		SELECT 
+		SELECT
 			id, email, first_name, last_name, password_hash, role, level,
 			username, avatar, google_id, status, email_verified,
 			max_concurrent_sessions, last_login_at, last_login_ip,
@@ -305,8 +471,16 @@ func (w *userRepositoryWrapper) GetByUsername(ctx context.Context, username stri
 
 	if err != nil {
 		if err == sql.ErrNoRows {
+			w.logger.WithFields(logrus.Fields{
+				"operation": "GetByUsername",
+				"username":  username,
+			}).Warn("User not found")
 			return nil, ErrUserNotFound
 		}
+		w.logger.WithFields(logrus.Fields{
+			"operation": "GetByUsername",
+			"username":  username,
+		}).WithError(err).Error("Failed to get user by username")
 		return nil, fmt.Errorf("failed to get user by username: %w", err)
 	}
 
@@ -337,11 +511,40 @@ func (w *userRepositoryWrapper) GetByUsername(ctx context.Context, username stri
 		user.LockedUntil = &lockedUntil.Time
 	}
 
+	w.logger.WithFields(logrus.Fields{
+		"operation": "GetByUsername",
+		"user_id":   user.ID,
+		"username":  username,
+	}).Debug("User fetched successfully")
+
 	return &user, nil
 }
 
 // Update updates a user
 func (w *userRepositoryWrapper) Update(ctx context.Context, user *User) error {
+	// Validate input
+	if err := validateUserID(user.ID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "Update",
+			"user_id":   user.ID,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+	if err := validateEmail(user.Email); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "Update",
+			"user_id":   user.ID,
+			"email":     user.Email,
+		}).Error("Invalid email format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "Update",
+		"user_id":   user.ID,
+		"email":     user.Email,
+	}).Info("Updating user")
+
 	query := `
 		UPDATE users SET
 			email = $2,
@@ -386,16 +589,50 @@ func (w *userRepositoryWrapper) Update(ctx context.Context, user *User) error {
 	)
 
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "Update",
+			"user_id":   user.ID,
+		}).WithError(err).Error("Failed to update user")
 		return fmt.Errorf("failed to update user: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "Update",
+		"user_id":   user.ID,
+	}).Info("User updated successfully")
 
 	return nil
 }
 
 // UpdateGoogleID updates user's Google ID
 func (w *userRepositoryWrapper) UpdateGoogleID(ctx context.Context, userID, googleID string) error {
+	// Validate input
+	if err := validateUserID(userID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "UpdateGoogleID",
+			"user_id":   userID,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+	if googleID != "" {
+		if err := validateGoogleID(googleID); err != nil {
+			w.logger.WithFields(logrus.Fields{
+				"operation": "UpdateGoogleID",
+				"user_id":   userID,
+				"google_id": googleID,
+			}).Error("Invalid Google ID format")
+			return fmt.Errorf("validation failed: %w", err)
+		}
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "UpdateGoogleID",
+		"user_id":   userID,
+		"google_id": googleID,
+	}).Info("Updating Google ID")
+
 	query := `
-		UPDATE users 
+		UPDATE users
 		SET google_id = $2, updated_at = NOW()
 		WHERE id = $1
 	`
@@ -407,16 +644,39 @@ func (w *userRepositoryWrapper) UpdateGoogleID(ctx context.Context, userID, goog
 
 	_, err := w.db.ExecContext(ctx, query, userID, googleIDNull)
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "UpdateGoogleID",
+			"user_id":   userID,
+		}).WithError(err).Error("Failed to update Google ID")
 		return fmt.Errorf("failed to update Google ID: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "UpdateGoogleID",
+		"user_id":   userID,
+	}).Info("Google ID updated successfully")
 
 	return nil
 }
 
 // UpdateAvatar updates user's avatar
 func (w *userRepositoryWrapper) UpdateAvatar(ctx context.Context, userID, avatar string) error {
+	// Validate input
+	if err := validateUserID(userID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "UpdateAvatar",
+			"user_id":   userID,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "UpdateAvatar",
+		"user_id":   userID,
+	}).Info("Updating avatar")
+
 	query := `
-		UPDATE users 
+		UPDATE users
 		SET avatar = $2, updated_at = NOW()
 		WHERE id = $1
 	`
@@ -428,17 +688,42 @@ func (w *userRepositoryWrapper) UpdateAvatar(ctx context.Context, userID, avatar
 
 	_, err := w.db.ExecContext(ctx, query, userID, avatarNull)
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "UpdateAvatar",
+			"user_id":   userID,
+		}).WithError(err).Error("Failed to update avatar")
 		return fmt.Errorf("failed to update avatar: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "UpdateAvatar",
+		"user_id":   userID,
+	}).Info("Avatar updated successfully")
 
 	return nil
 }
 
 // UpdateLastLogin updates last login info
 func (w *userRepositoryWrapper) UpdateLastLogin(ctx context.Context, userID, ipAddress string) error {
+	// Validate input
+	if err := validateUserID(userID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation":  "UpdateLastLogin",
+			"user_id":    userID,
+			"ip_address": ipAddress,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation":  "UpdateLastLogin",
+		"user_id":    userID,
+		"ip_address": ipAddress,
+	}).Info("Updating last login")
+
 	query := `
-		UPDATE users 
-		SET 
+		UPDATE users
+		SET
 			last_login_at = NOW(),
 			last_login_ip = $2,
 			login_attempts = 0,
@@ -448,17 +733,40 @@ func (w *userRepositoryWrapper) UpdateLastLogin(ctx context.Context, userID, ipA
 
 	_, err := w.db.ExecContext(ctx, query, userID, ipAddress)
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "UpdateLastLogin",
+			"user_id":   userID,
+		}).WithError(err).Error("Failed to update last login")
 		return fmt.Errorf("failed to update last login: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "UpdateLastLogin",
+		"user_id":   userID,
+	}).Info("Last login updated successfully")
 
 	return nil
 }
 
 // IncrementLoginAttempts increments login attempts
 func (w *userRepositoryWrapper) IncrementLoginAttempts(ctx context.Context, userID string) error {
+	// Validate input
+	if err := validateUserID(userID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "IncrementLoginAttempts",
+			"user_id":   userID,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "IncrementLoginAttempts",
+		"user_id":   userID,
+	}).Warn("Incrementing login attempts")
+
 	query := `
-		UPDATE users 
-		SET 
+		UPDATE users
+		SET
 			login_attempts = login_attempts + 1,
 			updated_at = NOW()
 		WHERE id = $1
@@ -466,17 +774,40 @@ func (w *userRepositoryWrapper) IncrementLoginAttempts(ctx context.Context, user
 
 	_, err := w.db.ExecContext(ctx, query, userID)
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "IncrementLoginAttempts",
+			"user_id":   userID,
+		}).WithError(err).Error("Failed to increment login attempts")
 		return fmt.Errorf("failed to increment login attempts: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "IncrementLoginAttempts",
+		"user_id":   userID,
+	}).Info("Login attempts incremented")
 
 	return nil
 }
 
 // ResetLoginAttempts resets login attempts
 func (w *userRepositoryWrapper) ResetLoginAttempts(ctx context.Context, userID string) error {
+	// Validate input
+	if err := validateUserID(userID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "ResetLoginAttempts",
+			"user_id":   userID,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "ResetLoginAttempts",
+		"user_id":   userID,
+	}).Info("Resetting login attempts")
+
 	query := `
-		UPDATE users 
-		SET 
+		UPDATE users
+		SET
 			login_attempts = 0,
 			locked_until = NULL,
 			updated_at = NOW()
@@ -485,17 +816,41 @@ func (w *userRepositoryWrapper) ResetLoginAttempts(ctx context.Context, userID s
 
 	_, err := w.db.ExecContext(ctx, query, userID)
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "ResetLoginAttempts",
+			"user_id":   userID,
+		}).WithError(err).Error("Failed to reset login attempts")
 		return fmt.Errorf("failed to reset login attempts: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "ResetLoginAttempts",
+		"user_id":   userID,
+	}).Info("Login attempts reset successfully")
 
 	return nil
 }
 
 // LockAccount locks user account
 func (w *userRepositoryWrapper) LockAccount(ctx context.Context, userID string, until time.Time) error {
+	// Validate input
+	if err := validateUserID(userID); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "LockAccount",
+			"user_id":   userID,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation":    "LockAccount",
+		"user_id":      userID,
+		"locked_until": until,
+	}).Warn("Locking user account")
+
 	query := `
-		UPDATE users 
-		SET 
+		UPDATE users
+		SET
 			locked_until = $2,
 			updated_at = NOW()
 		WHERE id = $1
@@ -503,20 +858,52 @@ func (w *userRepositoryWrapper) LockAccount(ctx context.Context, userID string, 
 
 	_, err := w.db.ExecContext(ctx, query, userID, until)
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "LockAccount",
+			"user_id":   userID,
+		}).WithError(err).Error("Failed to lock account")
 		return fmt.Errorf("failed to lock account: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "LockAccount",
+		"user_id":   userID,
+	}).Warn("Account locked successfully")
 
 	return nil
 }
 
 // Delete deletes a user
 func (w *userRepositoryWrapper) Delete(ctx context.Context, id string) error {
+	// Validate input
+	if err := validateUserID(id); err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "Delete",
+			"user_id":   id,
+		}).Error("Invalid user ID format")
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "Delete",
+		"user_id":   id,
+	}).Warn("Deleting user")
+
 	query := `DELETE FROM users WHERE id = $1`
 
 	_, err := w.db.ExecContext(ctx, query, id)
 	if err != nil {
+		w.logger.WithFields(logrus.Fields{
+			"operation": "Delete",
+			"user_id":   id,
+		}).WithError(err).Error("Failed to delete user")
 		return fmt.Errorf("failed to delete user: %w", err)
 	}
+
+	w.logger.WithFields(logrus.Fields{
+		"operation": "Delete",
+		"user_id":   id,
+	}).Warn("User deleted successfully")
 
 	return nil
 }
