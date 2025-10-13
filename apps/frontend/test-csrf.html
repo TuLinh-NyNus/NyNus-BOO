@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CSRF Token Test</title>
+</head>
+<body>
+    <h1>CSRF Token Test</h1>
+    <button onclick="testCSRF()">Test CSRF Token Extraction</button>
+    <pre id="output"></pre>
+
+    <script>
+        function testCSRF() {
+            const output = document.getElementById('output');
+            let result = '';
+
+            // 1. Check all cookies
+            result += '=== ALL COOKIES ===\n';
+            result += document.cookie + '\n\n';
+
+            // 2. Find CSRF cookie
+            result += '=== CSRF COOKIE SEARCH ===\n';
+            const csrfCookie = document.cookie
+                .split('; ')
+                .find(row => 
+                    row.startsWith('next-auth.csrf-token=') || 
+                    row.startsWith('__Host-next-auth.csrf-token=')
+                );
+
+            if (!csrfCookie) {
+                result += 'ERROR: No CSRF cookie found!\n\n';
+                output.textContent = result;
+                return;
+            }
+
+            result += 'Found: ' + csrfCookie.substring(0, 100) + '...\n\n';
+
+            // 3. Extract token value
+            result += '=== TOKEN EXTRACTION ===\n';
+            const tokenValue = csrfCookie.split('=')[1];
+            result += 'Raw value: ' + tokenValue.substring(0, 100) + '...\n';
+
+            const decodedToken = decodeURIComponent(tokenValue);
+            result += 'Decoded: ' + decodedToken.substring(0, 100) + '...\n\n';
+
+            // 4. Split by pipe
+            result += '=== SPLIT BY PIPE ===\n';
+            const tokenParts = decodedToken.split('|');
+            result += 'Token part (before |): ' + tokenParts[0] + '\n';
+            result += 'Hash part (after |): ' + (tokenParts[1] || 'N/A').substring(0, 50) + '...\n\n';
+
+            // 5. Final result
+            result += '=== FINAL CSRF TOKEN ===\n';
+            result += tokenParts[0] + '\n';
+
+            output.textContent = result;
+        }
+    </script>
+</body>
+</html>
+
