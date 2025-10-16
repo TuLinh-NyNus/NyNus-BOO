@@ -143,6 +143,33 @@ func local_request_UserService_VerifyEmail_0(ctx context.Context, marshaler runt
 	return msg, metadata, err
 }
 
+func request_UserService_SendVerificationEmail_0(ctx context.Context, marshaler runtime.Marshaler, client UserServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq SendVerificationEmailRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	msg, err := client.SendVerificationEmail(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_UserService_SendVerificationEmail_0(ctx context.Context, marshaler runtime.Marshaler, server UserServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq SendVerificationEmailRequest
+		metadata runtime.ServerMetadata
+	)
+	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.SendVerificationEmail(ctx, &protoReq)
+	return msg, metadata, err
+}
+
 func request_UserService_ForgotPassword_0(ctx context.Context, marshaler runtime.Marshaler, client UserServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ForgotPasswordRequest
@@ -445,6 +472,26 @@ func RegisterUserServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 		}
 		forward_UserService_VerifyEmail_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_UserService_SendVerificationEmail_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/v1.UserService/SendVerificationEmail", runtime.WithHTTPPathPattern("/v1.UserService/SendVerificationEmail"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_UserService_SendVerificationEmail_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_UserService_SendVerificationEmail_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodPost, pattern_UserService_ForgotPassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -713,6 +760,23 @@ func RegisterUserServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 		}
 		forward_UserService_VerifyEmail_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodPost, pattern_UserService_SendVerificationEmail_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/v1.UserService/SendVerificationEmail", runtime.WithHTTPPathPattern("/v1.UserService/SendVerificationEmail"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_UserService_SendVerificationEmail_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_UserService_SendVerificationEmail_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodPost, pattern_UserService_ForgotPassword_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -853,31 +917,33 @@ func RegisterUserServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 }
 
 var (
-	pattern_UserService_Login_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "Login"}, ""))
-	pattern_UserService_GoogleLogin_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GoogleLogin"}, ""))
-	pattern_UserService_RefreshToken_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "RefreshToken"}, ""))
-	pattern_UserService_VerifyEmail_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "VerifyEmail"}, ""))
-	pattern_UserService_ForgotPassword_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "ForgotPassword"}, ""))
-	pattern_UserService_ResetPassword_0  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "ResetPassword"}, ""))
-	pattern_UserService_Register_0       = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "Register"}, ""))
-	pattern_UserService_GetUser_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GetUser"}, ""))
-	pattern_UserService_ListUsers_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "ListUsers"}, ""))
-	pattern_UserService_GetStudentList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GetStudentList"}, ""))
-	pattern_UserService_GetCurrentUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GetCurrentUser"}, ""))
-	pattern_UserService_UpdateUser_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "UpdateUser"}, ""))
+	pattern_UserService_Login_0                 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "Login"}, ""))
+	pattern_UserService_GoogleLogin_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GoogleLogin"}, ""))
+	pattern_UserService_RefreshToken_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "RefreshToken"}, ""))
+	pattern_UserService_VerifyEmail_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "VerifyEmail"}, ""))
+	pattern_UserService_SendVerificationEmail_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "SendVerificationEmail"}, ""))
+	pattern_UserService_ForgotPassword_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "ForgotPassword"}, ""))
+	pattern_UserService_ResetPassword_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "ResetPassword"}, ""))
+	pattern_UserService_Register_0              = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "Register"}, ""))
+	pattern_UserService_GetUser_0               = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GetUser"}, ""))
+	pattern_UserService_ListUsers_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "ListUsers"}, ""))
+	pattern_UserService_GetStudentList_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GetStudentList"}, ""))
+	pattern_UserService_GetCurrentUser_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "GetCurrentUser"}, ""))
+	pattern_UserService_UpdateUser_0            = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1.UserService", "UpdateUser"}, ""))
 )
 
 var (
-	forward_UserService_Login_0          = runtime.ForwardResponseMessage
-	forward_UserService_GoogleLogin_0    = runtime.ForwardResponseMessage
-	forward_UserService_RefreshToken_0   = runtime.ForwardResponseMessage
-	forward_UserService_VerifyEmail_0    = runtime.ForwardResponseMessage
-	forward_UserService_ForgotPassword_0 = runtime.ForwardResponseMessage
-	forward_UserService_ResetPassword_0  = runtime.ForwardResponseMessage
-	forward_UserService_Register_0       = runtime.ForwardResponseMessage
-	forward_UserService_GetUser_0        = runtime.ForwardResponseMessage
-	forward_UserService_ListUsers_0      = runtime.ForwardResponseMessage
-	forward_UserService_GetStudentList_0 = runtime.ForwardResponseMessage
-	forward_UserService_GetCurrentUser_0 = runtime.ForwardResponseMessage
-	forward_UserService_UpdateUser_0     = runtime.ForwardResponseMessage
+	forward_UserService_Login_0                 = runtime.ForwardResponseMessage
+	forward_UserService_GoogleLogin_0           = runtime.ForwardResponseMessage
+	forward_UserService_RefreshToken_0          = runtime.ForwardResponseMessage
+	forward_UserService_VerifyEmail_0           = runtime.ForwardResponseMessage
+	forward_UserService_SendVerificationEmail_0 = runtime.ForwardResponseMessage
+	forward_UserService_ForgotPassword_0        = runtime.ForwardResponseMessage
+	forward_UserService_ResetPassword_0         = runtime.ForwardResponseMessage
+	forward_UserService_Register_0              = runtime.ForwardResponseMessage
+	forward_UserService_GetUser_0               = runtime.ForwardResponseMessage
+	forward_UserService_ListUsers_0             = runtime.ForwardResponseMessage
+	forward_UserService_GetStudentList_0        = runtime.ForwardResponseMessage
+	forward_UserService_GetCurrentUser_0        = runtime.ForwardResponseMessage
+	forward_UserService_UpdateUser_0            = runtime.ForwardResponseMessage
 )

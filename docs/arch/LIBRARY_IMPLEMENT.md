@@ -1,7 +1,7 @@
 # 📚 Hướng dẫn Triển khai Hệ thống Thư viện (Library System)
 **Tích hợp với Hệ thống Ngân hàng Đề thi - Go gRPC Backend + React Frontend**
 
-## � Integration với Hệ thống Hiện tại
+## Integration với Hệ thống Hiện tại
 
 ### Công nghệ Sử dụng (Tech Stack)
 - **Backend**: Go gRPC (tương thích với hệ thống hiện tại)
@@ -15,7 +15,7 @@
 - **Tích hợp với JWT authentication** đã có
 - **Phân quyền dựa trên vai trò và cấp độ** hiện tại (Cấp độ 1-9 cho STUDENT/TUTOR/TEACHER)
 
-## �🗄️ Database Schema Design (PostgreSQL)
+## 🗄️ Database Schema Design (PostgreSQL)
 
 ### Core Tables
 

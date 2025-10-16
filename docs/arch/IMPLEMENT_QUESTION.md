@@ -7,7 +7,7 @@
 
 Hệ thống quản lý câu hỏi NyNus với **OpenSearch integration** cho enhanced Vietnamese search capabilities. Tập trung vào **hiệu suất lọc dữ liệu**, **kiến trúc mở rộng**, và **tìm kiếm tiếng Việt tối ưu**. Hỗ trợ LaTeX, phân loại thông minh và tìm kiếm nhanh với specialized Vietnamese plugins.
 
-## � **OpenSearch Vietnamese Search Engine**
+## **OpenSearch Vietnamese Search Engine**
 
 NyNus sử dụng **OpenSearch** làm search engine chính với specialized Vietnamese plugins cho education domain. Hệ thống đạt 95%+ accuracy trong tìm kiếm tiếng Việt và hỗ trợ 10,000+ concurrent users với <200ms response time.
 
@@ -237,7 +237,7 @@ CREATE INDEX idx_question_feedback_created_at ON question_feedback(created_at);
 - `REPORT`: Báo cáo lỗi
 - `SUGGESTION`: Góp ý
 
-## � LaTeX Question Formats
+## LaTeX Question Formats
 
 ### Định dạng câu hỏi cơ bản
 
@@ -352,7 +352,7 @@ CREATE INDEX idx_question_feedback_created_at ON question_feedback(created_at);
 \end{ex}
 ```
 
-## �🔧 Hướng dẫn triển khai
+## 🔧 Hướng dẫn triển khai
 
 ### 1. Tạo Database Schema với Raw SQL Migrations
 

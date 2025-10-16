@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Auth Service gRPC Client (Clean Implementation)
  * ================================================
  * Production-ready gRPC-Web auth service implementation
@@ -30,7 +30,7 @@ import { RpcError } from 'grpc-web';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
 import { getGrpcUrl } from '@/lib/config/endpoints';
 import { logger } from '@/lib/utils/logger';
-// âœ… FIX: Import getAuthMetadata for CSRF token support
+// ✅ FIX: Import getAuthMetadata for CSRF token support
 import { getAuthMetadata } from './client';
 
 /**
@@ -41,7 +41,7 @@ const GRPC_ENDPOINT = getGrpcUrl();
 // PRODUCTION: Fetch override code removed for clean production build
 
 /*
-// âœ… TEMPORARY: Override XMLHttpRequest to log ALL requests
+// ✅ TEMPORARY: Override XMLHttpRequest to log ALL requests
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 if (typeof window !== 'undefined' && !(window as any).originalXMLHttpRequest) {
   console.log('[OVERRIDE] Setting up XMLHttpRequest override...');
@@ -67,15 +67,15 @@ if (typeof window !== 'undefined' && !(window as any).originalXMLHttpRequest) {
 
 /**
  * Create UserService client instance with client-side only initialization
- * âœ… FIX: Lazy initialization to prevent server-side rendering issues
+ * ✅ FIX: Lazy initialization to prevent server-side rendering issues
  */
 let userServiceClient: UserServiceClient | null = null;
 
 /**
  * Get or initialize UserServiceClient
- * Business Logic: Lazy initialization cá»§a gRPC client
- * - Chá»‰ khá»Ÿi táº¡o khi cáº§n thiáº¿t (performance optimization)
- * - Client-side only (gRPC-Web khÃ´ng cháº¡y trÃªn server)
+ * Business Logic: Lazy initialization của gRPC client
+ * - Chỉ khởi tạo khi cần thiết (performance optimization)
+ * - Client-side only (gRPC-Web không chạy trên server)
  */
 function getUserServiceClient(): UserServiceClient {
   // Only initialize on client-side
@@ -102,7 +102,7 @@ function getUserServiceClient(): UserServiceClient {
 
 /**
  * Handle gRPC errors and convert to user-friendly messages
- * Business Logic: Convert gRPC error codes thÃ nh Vietnamese error messages
+ * Business Logic: Convert gRPC error codes thành Vietnamese error messages
  * - Map gRPC status codes sang user-friendly messages
  * - Handle specific error cases (locked account, suspended, etc.)
  *
@@ -119,25 +119,25 @@ function handleGrpcError(error: RpcError): string {
   
   switch (error.code) {
     case 3: // INVALID_ARGUMENT
-      return 'ThÃ´ng tin Ä‘áº§u vÃ o khÃ´ng há»£p lá»‡. Vui lÃ²ng kiá»ƒm tra láº¡i.';
+      return 'Thông tin đầu vào không hợp lệ. Vui lòng kiểm tra lại.';
     case 7: // PERMISSION_DENIED
       // Could be account locked or suspended
       if (error.message?.toLowerCase().includes('locked')) {
-        return 'TÃ i khoáº£n Ä‘Ã£ bá»‹ khÃ³a do Ä‘Äƒng nháº­p sai quÃ¡ nhiá»u láº§n. Vui lÃ²ng thá»­ láº¡i sau 30 phÃºt.';
+        return 'Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.';
       }
       if (error.message?.toLowerCase().includes('suspended')) {
-        return 'TÃ i khoáº£n Ä‘Ã£ bá»‹ táº¡m ngÆ°ng. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn.';
+        return 'Tài khoản đã bị tạm ngưng. Vui lòng liên hệ quản trị viên.';
       }
-      return 'KhÃ´ng cÃ³ quyá»n truy cáº­p. Vui lÃ²ng kiá»ƒm tra thÃ´ng tin Ä‘Äƒng nháº­p.';
+      return 'Không có quyền truy cập. Vui lòng kiểm tra thông tin đăng nhập.';
     case 14: // UNAVAILABLE
-      return 'KhÃ´ng thá»ƒ káº¿t ná»‘i Ä‘áº¿n mÃ¡y chá»§. Vui lÃ²ng kiá»ƒm tra káº¿t ná»‘i máº¡ng vÃ  thá»­ láº¡i.';
+      return 'Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.';
     case 16: // UNAUTHENTICATED
       if (error.message?.toLowerCase().includes('invalid credentials')) {
-        return 'Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng. Vui lÃ²ng thá»­ láº¡i.';
+        return 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
       }
-      return 'XÃ¡c thá»±c tháº¥t báº¡i. Vui lÃ²ng Ä‘Äƒng nháº­p láº¡i.';
+      return 'Xác thực thất bại. Vui lòng đăng nhập lại.';
     default:
-      return error.message || 'ÄÃ£ xáº£y ra lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh. Vui lÃ²ng thá»­ láº¡i.';
+      return error.message || 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
   }
 }
 
@@ -147,10 +147,10 @@ function handleGrpcError(error: RpcError): string {
 export class AuthService {
   /**
    * Login with email and password using gRPC Gateway JSON API
-   * Business Logic: XÃ¡c thá»±c user credentials qua gRPC Gateway
-   * - Call gRPC Login endpoint vá»›i email/password
-   * - Auto-save tokens náº¿u login thÃ nh cÃ´ng
-   * - Return LoginResponse vá»›i user info vÃ  tokens
+   * Business Logic: Xác thực user credentials qua gRPC Gateway
+   * - Call gRPC Login endpoint với email/password
+   * - Auto-save tokens nếu login thành công
+   * - Return LoginResponse với user info và tokens
    */
   static async login(email: string, password: string): Promise<LoginResponse> {
     // Mask email for logging
@@ -193,19 +193,19 @@ export class AuthService {
         
         // Handle specific error cases
         if (response.status === 401) {
-          errorMessage = 'Email hoáº·c máº­t kháº©u khÃ´ng Ä‘Ãºng. Vui lÃ²ng thá»­ láº¡i.';
+          errorMessage = 'Email hoặc mật khẩu không đúng. Vui lòng thử lại.';
         } else if (response.status === 403) {
           if (errorMessage.toLowerCase().includes('locked')) {
-            errorMessage = 'TÃ i khoáº£n Ä‘Ã£ bá»‹ khÃ³a do Ä‘Äƒng nháº­p sai quÃ¡ nhiá»u láº§n. Vui lÃ²ng thá»­ láº¡i sau 30 phÃºt.';
+            errorMessage = 'Tài khoản đã bị khóa do đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 30 phút.';
           } else if (errorMessage.toLowerCase().includes('inactive') || errorMessage.toLowerCase().includes('suspended')) {
-            errorMessage = 'TÃ i khoáº£n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn.';
+            errorMessage = 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.';
           } else {
-            errorMessage = 'KhÃ´ng cÃ³ quyá»n truy cáº­p. Vui lÃ²ng kiá»ƒm tra tÃ i khoáº£n cá»§a báº¡n.';
+            errorMessage = 'Không có quyền truy cập. Vui lòng kiểm tra tài khoản của bạn.';
           }
         } else if (response.status === 500) {
-          errorMessage = 'Lá»—i mÃ¡y chá»§. Vui lÃ²ng thá»­ láº¡i sau Ã­t phÃºt.';
+          errorMessage = 'Lỗi máy chủ. Vui lòng thử lại sau ít phút.';
         } else if (response.status === 503) {
-          errorMessage = 'Dá»‹ch vá»¥ táº¡m thá»i khÃ´ng kháº£ dá»¥ng. Vui lÃ²ng thá»­ láº¡i sau.';
+          errorMessage = 'Dịch vụ tạm thời không khả dụng. Vui lòng thử lại sau.';
         }
         
         throw new Error(errorMessage);
@@ -220,8 +220,8 @@ export class AuthService {
         loginResponse.setAccessToken(data.accessToken);
         loginResponse.setRefreshToken(data.refreshToken || '');
 
-        // âœ… SECURITY: Tokens will be stored in NextAuth httpOnly cookies automatically
-        // âŒ REMOVED: localStorage token storage (XSS vulnerability)
+        // ✅ SECURITY: Tokens will be stored in NextAuth httpOnly cookies automatically
+        // ❌ REMOVED: localStorage token storage (XSS vulnerability)
         // AuthHelpers.saveTokens(data.accessToken, data.refreshToken);
         console.log('[AUTH_SERVICE] Tokens will be managed by NextAuth session (httpOnly cookies)');
       }
@@ -252,7 +252,7 @@ export class AuthService {
         }
         user.setRole(roleValue as 0 | 1 | 2 | 3 | 4 | 5);
 
-        console.log('[AUTH_SERVICE] ðŸ“Š Processing status - input:', data.user.status, 'type:', typeof data.user.status);
+        console.log('[AUTH_SERVICE] 📊 Processing status - input:', data.user.status, 'type:', typeof data.user.status);
 
         // Backend returns status as NUMBER (protobuf enum), not string
         // If it's already a number, use it directly
@@ -260,7 +260,7 @@ export class AuthService {
         let statusValue: number;
         if (typeof data.user.status === 'number') {
           statusValue = data.user.status;
-          console.log('[AUTH_SERVICE] âœ… Status is number:', statusValue);
+          console.log('[AUTH_SERVICE] ✅ Status is number:', statusValue);
         } else if (typeof data.user.status === 'string') {
           const statusMap: Record<string, number> = {
             'USER_STATUS_UNSPECIFIED': UserStatus.USER_STATUS_UNSPECIFIED,
@@ -269,10 +269,10 @@ export class AuthService {
             'USER_STATUS_INACTIVE': UserStatus.USER_STATUS_INACTIVE
           };
           statusValue = statusMap[data.user.status] || UserStatus.USER_STATUS_ACTIVE;
-          console.log('[AUTH_SERVICE] âœ… Status converted from string:', data.user.status, 'â†’', statusValue);
+          console.log('[AUTH_SERVICE] ✅ Status converted from string:', data.user.status, '→', statusValue);
         } else {
           statusValue = UserStatus.USER_STATUS_ACTIVE;
-          console.log('[AUTH_SERVICE] âœ… Status defaulted to ACTIVE:', statusValue);
+          console.log('[AUTH_SERVICE] ✅ Status defaulted to ACTIVE:', statusValue);
         }
         user.setStatus(statusValue as 0 | 1 | 2 | 3);
 
@@ -280,7 +280,7 @@ export class AuthService {
         user.setAvatar(data.user.avatar || '');
         user.setEmailVerified(data.user.emailVerified || false);
 
-        console.log('[AUTH_SERVICE] âœ… User object created successfully');
+        console.log('[AUTH_SERVICE] ✅ User object created successfully');
         console.log('[AUTH_SERVICE] User details:', {
           id: user.getId(),
           email: user.getEmail(),
@@ -293,10 +293,10 @@ export class AuthService {
         // Set user to response
         loginResponse.setUser(user);
       } else {
-        console.log('[AUTH_SERVICE] âŒ No user data in response!');
+        console.log('[AUTH_SERVICE] ❌ No user data in response!');
       }
 
-      console.log('[AUTH_SERVICE] ðŸŽ‰ Login process completed successfully!');
+      console.log('[AUTH_SERVICE] 🎉 Login process completed successfully!');
       console.log('[AUTH_SERVICE] Final LoginResponse:', {
         hasAccessToken: !!loginResponse.getAccessToken(),
         accessToken: loginResponse.getAccessToken(),
@@ -307,7 +307,7 @@ export class AuthService {
 
       return loginResponse;
     } catch (error) {
-      console.log('[AUTH_SERVICE] ðŸ’¥ OUTER CATCH - Login process failed!');
+      console.log('[AUTH_SERVICE] 💥 OUTER CATCH - Login process failed!');
       console.log('[AUTH_SERVICE] Error details:', error);
       console.log('[AUTH_SERVICE] Error type:', typeof error);
       console.log('[AUTH_SERVICE] Error message:', error instanceof Error ? error.message : String(error));
@@ -336,7 +336,7 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      // âœ… FIX: Pass metadata with CSRF token
+      // ✅ FIX: Pass metadata with CSRF token
       const response = await client.register(request, getAuthMetadata());
       return response;
     } catch (error) {
@@ -354,7 +354,7 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      // âœ… FIX: Pass metadata with CSRF token
+      // ✅ FIX: Pass metadata with CSRF token
       const response = await client.googleLogin(request, getAuthMetadata());
 
       // Auto-save tokens on successful login
@@ -390,7 +390,7 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      // âœ… FIX: Pass metadata with CSRF token
+      // ✅ FIX: Pass metadata with CSRF token
       const response = await client.refreshToken(request, getAuthMetadata());
 
       // SIMPLIFIED: Update only access token in localStorage
@@ -416,7 +416,7 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      // âœ… FIX: Pass metadata with CSRF token
+      // ✅ FIX: Pass metadata with CSRF token
       const response = await client.verifyEmail(request, getAuthMetadata());
       return response;
     } catch (error) {
@@ -437,9 +437,9 @@ export class AuthService {
     const mockResponse = {
       getResponse: () => ({
         getSuccess: () => true,
-        getMessage: () => 'Email xÃ¡c thá»±c Ä‘Ã£ Ä‘Æ°á»£c gá»­i thÃ nh cÃ´ng'
+        getMessage: () => 'Email xác thực đã được gửi thành công'
       }),
-      getMessage: () => 'Email xÃ¡c thá»±c Ä‘Ã£ Ä‘Æ°á»£c gá»­i thÃ nh cÃ´ng'
+      getMessage: () => 'Email xác thực đã được gửi thành công'
     } as SendVerificationEmailResponse;
 
     return Promise.resolve(mockResponse);
@@ -468,7 +468,7 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      // âœ… FIX: Pass metadata with CSRF token
+      // ✅ FIX: Pass metadata with CSRF token
       const response = await client.forgotPassword(request, getAuthMetadata());
       return response;
     } catch (error) {
@@ -490,7 +490,7 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      // âœ… FIX: Pass metadata with CSRF token
+      // ✅ FIX: Pass metadata with CSRF token
       const response = await client.resetPassword(request, getAuthMetadata());
       return response;
     } catch (error) {
@@ -515,7 +515,7 @@ export class AuthService {
 
     try {
       const client = getUserServiceClient();
-      // âœ… FIX: Pass metadata with CSRF token - THIS WAS THE MISSING PIECE!
+      // ✅ FIX: Pass metadata with CSRF token - THIS WAS THE MISSING PIECE!
       const response = await client.getCurrentUser(request, getAuthMetadata());
 
       logger.debug('[AuthService] Successfully retrieved current user', {

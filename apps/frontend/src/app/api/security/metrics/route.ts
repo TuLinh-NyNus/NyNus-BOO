@@ -48,7 +48,7 @@ interface SecurityAlert {
  * GET /api/security/metrics
  * Fetch current security metrics
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Run security check script
     const scriptPath = path.join(process.cwd(), 'scripts', 'security-check.js');
@@ -119,22 +119,25 @@ export async function GET(request: NextRequest) {
 /**
  * Calculate security score based on vulnerabilities
  */
-function calculateSecurityScore(auditData: any): number {
+function calculateSecurityScore(auditData: {
+  metadata?: { vulnerabilities?: Record<string, number> };
+  acceptableCount?: number;
+}): number {
   const vulnerabilities = auditData.metadata?.vulnerabilities || {};
-  
+
   // Base score
   let score = 100;
-  
+
   // Deduct points based on severity
   score -= (vulnerabilities.critical || 0) * 25; // -25 per critical
   score -= (vulnerabilities.high || 0) * 10;     // -10 per high
   score -= (vulnerabilities.moderate || 0) * 5;  // -5 per moderate
   score -= (vulnerabilities.low || 0) * 1;       // -1 per low
-  
+
   // Add points for acceptable vulnerabilities with mitigation
   const acceptableCount = auditData.acceptableCount || 0;
   score += acceptableCount * 2; // +2 per mitigated vulnerability
-  
+
   // Ensure score is between 0 and 100
   return Math.max(0, Math.min(100, score));
 }
@@ -212,17 +215,42 @@ async function getDependencyStats(): Promise<{ total: number; outdated: number; 
   }
 }
 
+interface VulnerabilityData {
+  severity?: string;
+  title?: string;
+  description?: string;
+  package?: string;
+  version?: string;
+  fixedIn?: string;
+  cve?: string;
+  acceptable?: boolean;
+}
+
+interface AuditData {
+  vulnerabilities?: VulnerabilityData[];
+}
+
 /**
  * Build security alerts from audit data
  */
-function buildSecurityAlerts(auditData: any): SecurityAlert[] {
+function buildSecurityAlerts(auditData: AuditData): SecurityAlert[] {
   const alerts: SecurityAlert[] = [];
-  
+
   if (auditData.vulnerabilities) {
-    auditData.vulnerabilities.forEach((vuln: any, index: number) => {
+    auditData.vulnerabilities.forEach((vuln: VulnerabilityData, index: number) => {
+      // Map medium to moderate for consistency
+      const severityMap: Record<string, 'critical' | 'high' | 'moderate' | 'low'> = {
+        'critical': 'critical',
+        'high': 'high',
+        'medium': 'moderate',
+        'moderate': 'moderate',
+        'low': 'low'
+      };
+      const severity = severityMap[vuln.severity || 'low'] || 'low';
+
       alerts.push({
         id: String(index + 1),
-        severity: vuln.severity as any,
+        severity,
         title: vuln.title || 'Unknown Vulnerability',
         description: vuln.description || 'No description available',
         package: vuln.package || 'unknown',

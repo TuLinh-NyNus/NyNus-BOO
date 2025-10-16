@@ -76,7 +76,7 @@ export {
   getPopularCourses,
   // Admin courses
   getMockCoursesResponse
-} from './courses/';
+} from './courses';
 
 // Export homepage featured courses
 export type { FeaturedCourse } from './homepage-featured-courses';
@@ -422,7 +422,7 @@ import { MOCK_DATA_CONSTANTS } from './core-types';
 // Import all mockdata for default export
 import { mockUsers } from './users';
 import { mockQuestions } from './questions';
-import { mockCourses } from './courses/';
+import { mockCourses } from './courses';
 import { mockAnalytics } from './analytics/analytics';
 import { mockSessions } from './sessions';
 import { mockSystemNotifications, mockNotificationStats } from './notifications';

@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// FAQ data model
+message FAQ {
+  string id = 1;
+  string question = 2;
+  string answer = 3;
+  string category = 4;
+  repeated string tags = 5;
+  bool is_published = 6;
+  int32 view_count = 7;
+  int32 helpful_count = 8;
+  int32 order_number = 9;
+  string created_by = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// List FAQs request
+message ListFAQsRequest {
+  common.PaginationRequest pagination = 1;
+  string category = 2;      // Filter by category
+  bool is_published = 3;    // Filter by published status
+  string search = 4;        // Search in question, answer
+  string sort_by = 5;       // Sort field: order_number, created_at, view_count, helpful_count
+  string sort_order = 6;    // Sort order: asc, desc
+}
+
+// List FAQs response
+message ListFAQsResponse {
+  common.Response response = 1;
+  repeated FAQ faqs = 2;
+  common.PaginationResponse pagination = 3;
+  int32 total_published = 4;
+}
+
+// Get FAQ request
+message GetFAQRequest {
+  string id = 1;
+}
+
+// Get FAQ response
+message GetFAQResponse {
+  common.Response response = 1;
+  FAQ faq = 2;
+}
+
+// Create FAQ request
+message CreateFAQRequest {
+  string question = 1;
+  string answer = 2;
+  string category = 3;
+  repeated string tags = 4;
+  bool is_published = 5;
+  int32 order_number = 6;
+}
+
+// Create FAQ response
+message CreateFAQResponse {
+  common.Response response = 1;
+  FAQ faq = 2;
+}
+
+// Update FAQ request
+message UpdateFAQRequest {
+  string id = 1;
+  string question = 2;
+  string answer = 3;
+  string category = 4;
+  repeated string tags = 5;
+  bool is_published = 6;
+  int32 order_number = 7;
+}
+
+// Update FAQ response
+message UpdateFAQResponse {
+  common.Response response = 1;
+  FAQ faq = 2;
+}
+
+// Delete FAQ request
+message DeleteFAQRequest {
+  string id = 1;
+}
+
+// Delete FAQ response
+message DeleteFAQResponse {
+  common.Response response = 1;
+}
+
+// Increment view count request
+message IncrementViewCountRequest {
+  string id = 1;
+}
+
+// Increment view count response
+message IncrementViewCountResponse {
+  common.Response response = 1;
+  int32 view_count = 2;
+}
+
+// Increment helpful count request
+message IncrementHelpfulCountRequest {
+  string id = 1;
+}
+
+// Increment helpful count response
+message IncrementHelpfulCountResponse {
+  common.Response response = 1;
+  int32 helpful_count = 2;
+}
+
+// FAQ service definition
+service FAQService {
+  // List FAQs with filters and pagination
+  rpc ListFAQs(ListFAQsRequest) returns (ListFAQsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/faqs"
+    };
+  }
+  
+  // Get single FAQ
+  rpc GetFAQ(GetFAQRequest) returns (GetFAQResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/faqs/{id}"
+    };
+  }
+  
+  // Create new FAQ (admin only)
+  rpc CreateFAQ(CreateFAQRequest) returns (CreateFAQResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/admin/faqs"
+      body: "*"
+    };
+  }
+  
+  // Update FAQ (admin only)
+  rpc UpdateFAQ(UpdateFAQRequest) returns (UpdateFAQResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/faqs/{id}"
+      body: "*"
+    };
+  }
+  
+  // Delete FAQ (admin only)
+  rpc DeleteFAQ(DeleteFAQRequest) returns (DeleteFAQResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/faqs/{id}"
+    };
+  }
+  
+  // Increment view count (public)
+  rpc IncrementViewCount(IncrementViewCountRequest) returns (IncrementViewCountResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/faqs/{id}/view"
+      body: "*"
+    };
+  }
+  
+  // Increment helpful count (public)
+  rpc IncrementHelpfulCount(IncrementHelpfulCountRequest) returns (IncrementHelpfulCountResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/faqs/{id}/helpful"
+      body: "*"
+    };
+  }
+}
+

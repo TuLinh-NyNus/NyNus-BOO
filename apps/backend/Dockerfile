@@ -14,14 +14,28 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main cmd/main.go
 # Final stage
 FROM alpine:latest
 
+# Install runtime dependencies
 RUN apk --no-cache add ca-certificates tzdata
-WORKDIR /root/
+
+# Create non-root user for security
+# Using UID/GID 1001 to avoid conflicts with system users
+RUN addgroup -g 1001 -S nynus && \
+    adduser -u 1001 -S nynus -G nynus
+
+# Set working directory
+WORKDIR /app
 
 # Copy the binary from builder stage
 COPY --from=builder /app/main .
 
 # Copy migration files
 COPY --from=builder /app/internal/database/migrations ./internal/database/migrations
+
+# Set ownership to non-root user
+RUN chown -R nynus:nynus /app
+
+# Switch to non-root user
+USER nynus:nynus
 
 # Expose ports
 EXPOSE 50051 8080

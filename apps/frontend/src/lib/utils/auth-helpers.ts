@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Auth Helpers - Hybrid Token Storage for gRPC Authentication
  * ===========================================================
  *
@@ -150,7 +150,7 @@ export class AuthHelpers {
       const tokenValue = csrfCookie.split('=')[1];
       const decodedToken = decodeURIComponent(tokenValue);
 
-      // âœ… FIX: NextAuth CSRF token format is "token|hash"
+      // ✅ FIX: NextAuth CSRF token format is "token|hash"
       // We only need the token part (before the pipe)
       const tokenParts = decodedToken.split('|');
       return tokenParts[0];
@@ -289,7 +289,7 @@ export class AuthHelpers {
   /**
    * Save access token to localStorage
    *
-   * âš ï¸ SECURITY WARNING:
+   * ⚠️ SECURITY WARNING:
    * - localStorage is vulnerable to XSS attacks
    * - Only use for client-side gRPC authentication
    * - Tokens have short expiry (15 minutes)
@@ -358,7 +358,7 @@ export class AuthHelpers {
   /**
    * Save both access and refresh tokens to localStorage
    *
-   * âš ï¸ SECURITY WARNING: See saveAccessToken() documentation
+   * ⚠️ SECURITY WARNING: See saveAccessToken() documentation
    *
    * @param accessToken - JWT access token
    * @param refreshToken - JWT refresh token

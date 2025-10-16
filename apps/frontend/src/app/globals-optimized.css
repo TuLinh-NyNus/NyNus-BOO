@@ -11,8 +11,7 @@
 /* Import Tailwind CSS base */
 @import "tailwindcss";
 
-/* Enable animate-* utilities for Tailwind v4 */
-@plugin "tailwindcss-animate";
+/* Note: tailwindcss-animate plugin is loaded via tailwind.config.js */
 
 /* ===== BASE LAYER ===== */
 /* Base styles, design tokens, and theme mappings */

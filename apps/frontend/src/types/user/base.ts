@@ -3,19 +3,9 @@
  * Core user interfaces for the application
  */
 
-// Import protobuf generated types
-import { UserRole as ProtobufUserRole, UserStatus as ProtobufUserStatus, UserRoleMap, UserStatusMap } from '@/generated/common/common_pb';
-
-// Export protobuf constants for value access (UserRole.USER_ROLE_ADMIN)
-export const UserRole = ProtobufUserRole;
-export const UserStatus = ProtobufUserStatus;
-
-// Export type definitions for TypeScript type checking
-export type UserRole = UserRoleMap[keyof UserRoleMap];
-export type UserStatus = UserStatusMap[keyof UserStatusMap];
-
-// Export the Map interfaces for compatibility
-export type { UserRoleMap, UserStatusMap };
+// Import and re-export protobuf generated types
+import type { UserRole, UserStatus } from '@/generated/common/common_pb';
+export { UserRole, UserStatus } from '@/generated/common/common_pb';
 
 /**
  * Core User interface

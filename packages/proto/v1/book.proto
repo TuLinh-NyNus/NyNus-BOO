@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Book data model
+message Book {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string author = 4;
+  string isbn = 5;
+  string publisher = 6;
+  google.protobuf.Timestamp published_date = 7;
+  string category = 8;
+  repeated string tags = 9;
+  string cover_image = 10;
+  string file_url = 11;
+  string file_size = 12;
+  string file_type = 13;  // pdf, epub, doc, ppt
+  bool is_active = 14;
+  int32 download_count = 15;
+  float rating = 16;
+  int32 reviews = 17;
+  google.protobuf.Timestamp created_at = 18;
+  google.protobuf.Timestamp updated_at = 19;
+}
+
+// List books request
+message ListBooksRequest {
+  common.PaginationRequest pagination = 1;
+  string category = 2;      // Filter by category
+  string author = 3;        // Filter by author
+  string file_type = 4;     // Filter by file type
+  bool is_active = 5;       // Filter by active status
+  string search = 6;        // Search in title, description, author
+  string sort_by = 7;       // Sort field: created_at, rating, download_count, title
+  string sort_order = 8;    // Sort order: asc, desc
+}
+
+// List books response
+message ListBooksResponse {
+  common.Response response = 1;
+  repeated Book books = 2;
+  common.PaginationResponse pagination = 3;
+  int32 total_active = 4;
+}
+
+// Get book request
+message GetBookRequest {
+  string id = 1;
+}
+
+// Get book response
+message GetBookResponse {
+  common.Response response = 1;
+  Book book = 2;
+}
+
+// Create book request
+message CreateBookRequest {
+  string title = 1;
+  string description = 2;
+  string author = 3;
+  string isbn = 4;
+  string publisher = 5;
+  google.protobuf.Timestamp published_date = 6;
+  string category = 7;
+  repeated string tags = 8;
+  string cover_image = 9;
+  string file_url = 10;
+  string file_size = 11;
+  string file_type = 12;
+  bool is_active = 13;
+}
+
+// Create book response
+message CreateBookResponse {
+  common.Response response = 1;
+  Book book = 2;
+}
+
+// Update book request
+message UpdateBookRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string author = 4;
+  string isbn = 5;
+  string publisher = 6;
+  google.protobuf.Timestamp published_date = 7;
+  string category = 8;
+  repeated string tags = 9;
+  string cover_image = 10;
+  string file_url = 11;
+  string file_size = 12;
+  string file_type = 13;
+  bool is_active = 14;
+}
+
+// Update book response
+message UpdateBookResponse {
+  common.Response response = 1;
+  Book book = 2;
+}
+
+// Delete book request
+message DeleteBookRequest {
+  string id = 1;
+}
+
+// Delete book response
+message DeleteBookResponse {
+  common.Response response = 1;
+}
+
+// Increment download count request
+message IncrementDownloadCountRequest {
+  string id = 1;
+}
+
+// Increment download count response
+message IncrementDownloadCountResponse {
+  common.Response response = 1;
+  int32 download_count = 2;
+}
+
+// Book service definition
+service BookService {
+  // List books with filters and pagination
+  rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/books"
+    };
+  }
+  
+  // Get single book
+  rpc GetBook(GetBookRequest) returns (GetBookResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/books/{id}"
+    };
+  }
+  
+  // Create new book (admin only)
+  rpc CreateBook(CreateBookRequest) returns (CreateBookResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/admin/books"
+      body: "*"
+    };
+  }
+  
+  // Update book (admin only)
+  rpc UpdateBook(UpdateBookRequest) returns (UpdateBookResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/admin/books/{id}"
+      body: "*"
+    };
+  }
+  
+  // Delete book (admin only)
+  rpc DeleteBook(DeleteBookRequest) returns (DeleteBookResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/admin/books/{id}"
+    };
+  }
+  
+  // Increment download count (public)
+  rpc IncrementDownloadCount(IncrementDownloadCountRequest) returns (IncrementDownloadCountResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/books/{id}/download"
+      body: "*"
+    };
+  }
+}
+

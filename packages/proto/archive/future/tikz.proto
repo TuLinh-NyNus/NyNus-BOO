@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Định dạng ảnh đầu ra cho TikZ. Được ấn định bởi template.
+enum OutputFormat {
+  OUTPUT_FORMAT_UNSPECIFIED = 0;
+  OUTPUT_FORMAT_WEBP = 1;
+  OUTPUT_FORMAT_PNG = 2;
+  OUTPUT_FORMAT_JPG = 3;
+  OUTPUT_FORMAT_SVG = 4;
+}
+
+// Mẫu (template) biên dịch TikZ. Thiết lập định dạng và preamble cố định.
+message TikzTemplate {
+  string id = 1;
+  string name = 2;
+  string engine = 3;           // ví dụ: "pdflatex"
+  OutputFormat output_format = 4; // Định dạng ảnh cố định theo template
+  string preamble = 5;         // LaTeX preamble (header) cho biên dịch
+  bool is_active = 6;
+  int64 created_at = 7;
+  int64 updated_at = 8;
+  string created_by = 9;
+}
+
+// Nguồn TikZ cần biên dịch. Không truyền options — tuân thủ template.
+message TikzSource {
+  string template_id = 1;  // Chọn template xác định format/preamble
+  string code = 2;         // Nội dung tikzpicture
+}
+
+// Tham chiếu tài nguyên (ảnh đã upload lên Cloudinary/CDN)
+message AssetRef {
+  string asset_id = 1;     // ID trong hệ thống (DB)
+  string url = 2;          // URL CDN/Cloudinary
+  string public_id = 3;    // Cloudinary public_id
+  string hash = 4;         // sha256(template_id + code [+ template version])
+  string format = 5;       // webp/png/jpg/svg (chuỗi để linh hoạt)
+  int32 width = 6;
+  int32 height = 7;
+}
+
+message CompileTikzRequest {
+  TikzSource source = 1;   // Không giới hạn độ dài input theo yêu cầu
+}
+
+message CompileTikzResponse {
+  common.Response response = 1;
+  AssetRef asset = 2;
+  string log = 3;          // Log rút gọn khi cần debug
+}
+
+message ListTikzTemplatesRequest {}
+
+message ListTikzTemplatesResponse {
+  common.Response response = 1;
+  repeated TikzTemplate templates = 2;
+}
+
+service TikzCompilerService {
+  // Biên dịch TikZ theo template (định dạng ảnh do template quyết định)
+  rpc CompileTikz(CompileTikzRequest) returns (CompileTikzResponse);
+
+  // Danh sách template khả dụng để chọn trong UI
+  rpc ListTemplates(ListTikzTemplatesRequest) returns (ListTikzTemplatesResponse);
+}

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Nguồn nhập liệu
+enum ImportSourceType {
+  IMPORT_SOURCE_TYPE_UNSPECIFIED = 0;
+  IMPORT_SOURCE_TYPE_DOCX = 1;
+  IMPORT_SOURCE_TYPE_GOOGLE_DOCS = 2;
+  IMPORT_SOURCE_TYPE_PDF = 3;
+}
+
+// Trạng thái job import
+enum ImportStatus {
+  IMPORT_STATUS_UNSPECIFIED = 0;
+  IMPORT_STATUS_PENDING = 1;
+  IMPORT_STATUS_PROCESSING = 2;
+  IMPORT_STATUS_SUCCESS = 3;
+  IMPORT_STATUS_FAILED = 4;
+}
+
+// Upload file nhập liệu theo dạng client-streaming
+message FileChunk {
+  string file_name = 1;   // tên file gốc
+  bytes data = 2;         // dữ liệu nhị phân
+}
+
+message UploadImportFileResponse {
+  common.Response response = 1;
+  string upload_asset_id = 2; // ID asset đã lưu (Cloudinary/Storage)
+}
+
+message CreateImportJobRequest {
+  ImportSourceType source_type = 1;   // DOCX/GOOGLE_DOCS/PDF
+  string source_url = 2;              // nếu nhập từ URL (Google Docs public/export)
+  string upload_asset_id = 3;         // nếu đã upload file qua UploadImportFile
+  string options_json = 4;            // cấu hình tách bài, mapping category...
+}
+
+message ImportJob {
+  string id = 1;
+  ImportStatus status = 2;
+  string error_log = 3;
+  int64 created_at = 4;
+  int64 updated_at = 5;
+}
+
+message CreateImportJobResponse {
+  common.Response response = 1;
+  ImportJob job = 2;
+}
+
+message GetImportStatusRequest { string import_job_id = 1; }
+message GetImportStatusResponse { common.Response response = 1; ImportJob job = 2; }
+
+message ImportResult {
+  string id = 1;
+  string import_job_id = 2;
+  string post_id = 3;    // bài viết tạo ra
+  string section = 4;    // phần/heading tương ứng (nếu có)
+  string note = 5;
+}
+
+message ListImportResultsRequest { string import_job_id = 1; }
+message ListImportResultsResponse { common.Response response = 1; repeated ImportResult results = 2; }
+
+service ImportService {
+  // Tải file lớn (DOCX/PDF) bằng client-streaming
+  rpc UploadImportFile(stream FileChunk) returns (UploadImportFileResponse);
+
+  // Tạo job import từ file đã upload hoặc từ URL
+  rpc CreateImportJob(CreateImportJobRequest) returns (CreateImportJobResponse);
+
+  // Theo dõi trạng thái job
+  rpc GetImportStatus(GetImportStatusRequest) returns (GetImportStatusResponse);
+
+  // Kết quả import (nhiều bài/section)
+  rpc ListImportResults(ListImportResultsRequest) returns (ListImportResultsResponse);
+}

@@ -8,8 +8,10 @@ import { BrowserExtensionCleanup } from "@/components/common/browser-extension-c
 import { ErrorBoundary } from "@/components/common/error-boundary";
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "vietnamese"],
   variable: "--font-sans",
+  display: "swap",
+  fallback: ["Segoe UI", "system-ui", "sans-serif"],
 });
 
 export const metadata: Metadata = {

@@ -1,0 +1,118 @@
+# Docker Compose Configuration - Backend Only
+# NyNus Exam Bank System - Backend API + PostgreSQL
+# Frontend Web (Next.js) runs locally, NOT in Docker
+#
+# Usage:
+#   docker-compose -f docker-compose.backend-only.yml up -d
+#   docker-compose -f docker-compose.backend-only.yml down
+#
+# Services:
+#   - postgres: PostgreSQL 15 database
+#   - backend: Go gRPC API server with HTTP gateway
+#
+# Frontend local connection:
+#   - NEXT_PUBLIC_GRPC_URL=http://localhost:8080
+#   - DATABASE_URL=postgresql://exam_bank_user:exam_bank_password@localhost:5433/exam_bank_db
+
+services:
+  # PostgreSQL Database Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: ${POSTGRES_CONTAINER_NAME:-nynus_postgres}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-exam_bank_db}
+      POSTGRES_USER: ${POSTGRES_USER:-exam_bank_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-exam_bank_password}
+    ports:
+      # Port 5432 is used by local PostgreSQL, so we use 5433 for Docker
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - ${POSTGRES_VOLUME:-postgres_data}:/var/lib/postgresql/data
+      - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - exam_bank_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-exam_bank_user} -d ${POSTGRES_DB:-exam_bank_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Resource limits to prevent excessive resource consumption
+    # Based on development usage: ~16MB RAM typical
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'        # Max 50% of one CPU core
+          memory: 512M       # Max 512MB RAM (generous for development)
+        reservations:
+          cpus: '0.1'        # Reserve 10% of one CPU core
+          memory: 128M       # Reserve 128MB RAM
+
+  # Backend API Service (Go gRPC + HTTP Gateway)
+  backend:
+    build:
+      context: ../..
+      dockerfile: ${BACKEND_DOCKERFILE:-docker/backend.Dockerfile}
+    container_name: ${BACKEND_CONTAINER_NAME:-nynus_backend}
+    environment:
+      # Database connection (connect to postgres container)
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${POSTGRES_DB:-exam_bank_db}
+      - DB_USER=${POSTGRES_USER:-exam_bank_user}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-exam_bank_password}
+      - DB_SSLMODE=disable
+      
+      # JWT Configuration
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key-here}
+      - JWT_ACCESS_TOKEN_EXPIRY=${JWT_ACCESS_EXPIRY:-15m}
+      - JWT_REFRESH_TOKEN_EXPIRY=${JWT_REFRESH_EXPIRY:-7d}
+      
+      # Server Configuration
+      - HTTP_GATEWAY_ENABLED=${HTTP_GATEWAY_ENABLED:-true}
+      - ENV=${APP_ENV:-development}
+      - GRPC_PORT=50051
+      - HTTP_PORT=8080
+      
+      # Development Settings
+      - ENABLE_GRPC_REFLECTION=true
+      - ENABLE_CORS=true
+      - LOG_LEVEL=debug
+
+      # Disable Redis and OpenSearch in development (not needed for basic functionality)
+      # These services can be enabled later when needed for caching and full-text search
+      - REDIS_ENABLED=false
+      - OPENSEARCH_ENABLED=false
+    ports:
+      - "${BACKEND_GRPC_PORT:-50051}:50051"  # gRPC port
+      - "${BACKEND_HTTP_PORT:-8080}:8080"    # HTTP Gateway port (for gRPC-Web)
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - exam_bank_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Resource limits to prevent excessive resource consumption
+    # Based on development usage: ~16MB RAM typical
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'        # Max 50% of one CPU core
+          memory: 256M       # Max 256MB RAM (sufficient for Go backend)
+        reservations:
+          cpus: '0.1'        # Reserve 10% of one CPU core
+          memory: 64M        # Reserve 64MB RAM
+
+networks:
+  exam_bank_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    name: nynus_postgres_data
+

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Lặp lại PostType để tránh phụ thuộc chéo giữa file proto
+enum PostTypeForSearch {
+  POST_TYPE_FOR_SEARCH_UNSPECIFIED = 0;
+  POST_TYPE_FOR_SEARCH_ARTICLE = 1;
+  POST_TYPE_FOR_SEARCH_THEORY = 2;
+  POST_TYPE_FOR_SEARCH_MATH_NOTE = 3;
+}
+
+message SearchRequest {
+  string query = 1;                      // từ khóa
+  string category = 2;                   // lọc theo category
+  repeated string tags = 3;              // lọc theo tags
+  PostTypeForSearch type = 4;            // lọc theo loại bài
+  int32 limit = 5;                       // số kết quả tối đa
+  int32 offset = 6;                      // phân trang (nếu không dùng streaming)
+}
+
+message SearchHit {
+  string id = 1;
+  string slug = 2;
+  string title = 3;
+  string snippet = 4;
+  PostTypeForSearch type = 5;
+  float score = 6;
+  int64 published_at = 7;
+}
+
+service SearchService {
+  // Trả kết quả dạng streaming để hiển thị dần
+  rpc Search(SearchRequest) returns (stream SearchHit);
+}

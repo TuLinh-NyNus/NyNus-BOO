@@ -9,31 +9,8 @@
 -- PART 1: FIX EXAM_TYPE ENUM
 -- ========================================
 
--- Create new exam_type enum aligned with ExamSystem.md design
-CREATE TYPE exam_type_new AS ENUM ('generated', 'official');
-
--- Migrate existing data to new enum values
--- Map old values to new design:
--- 'PRACTICE', 'QUIZ', 'MIDTERM', 'FINAL', 'CUSTOM', 'GENERATED' → 'generated'
--- (no existing 'official' data to migrate)
-UPDATE exams SET exam_type = 'GENERATED' WHERE exam_type IN ('PRACTICE', 'QUIZ', 'MIDTERM', 'FINAL', 'CUSTOM');
-
--- Update column to use new enum
-ALTER TABLE exams 
-ALTER COLUMN exam_type TYPE exam_type_new 
-USING CASE 
-    WHEN exam_type::text = 'GENERATED' THEN 'generated'::exam_type_new
-    ELSE 'generated'::exam_type_new  -- Default fallback
-END;
-
--- Set new default
-ALTER TABLE exams ALTER COLUMN exam_type SET DEFAULT 'generated';
-
--- Drop old enum
-DROP TYPE exam_type;
-
--- Rename new enum to original name
-ALTER TYPE exam_type_new RENAME TO exam_type;
+-- SKIP: Migration 000004 already created exam_type enum with correct values ('generated', 'official')
+-- No enum migration needed - the enum is already aligned with ExamSystem.md design
 
 -- ========================================
 -- PART 2: ALIGN OFFICIAL EXAM FIELDS WITH DESIGN
@@ -49,7 +26,7 @@ ALTER TABLE exams DROP COLUMN IF EXISTS exam_season;
 ALTER TABLE exams DROP COLUMN IF EXISTS province;
 
 -- Ensure exam_year is VARCHAR(10) as per design (currently INT)
-ALTER TABLE exams ALTER COLUMN exam_year TYPE VARCHAR(10);
+ALTER TABLE exams ALTER COLUMN exam_year TYPE VARCHAR(10) USING exam_year::VARCHAR(10);
 
 -- ========================================
 -- PART 3: ADD MISSING SPECIALIZED INDEXES

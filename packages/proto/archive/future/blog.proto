@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package v1;
+
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// Loại bài viết
+enum PostType {
+  POST_TYPE_UNSPECIFIED = 0;
+  POST_TYPE_ARTICLE = 1;     // Bài blog chung
+  POST_TYPE_THEORY = 2;      // Lý thuyết
+  POST_TYPE_MATH_NOTE = 3;   // Ghi chú toán
+}
+
+// Trạng thái bài viết (quy trình duyệt)
+enum PostStatus {
+  POST_STATUS_UNSPECIFIED = 0;
+  POST_STATUS_DRAFT = 1;
+  POST_STATUS_PENDING_REVIEW = 2;
+  POST_STATUS_APPROVED = 3;
+  POST_STATUS_PUBLISHED = 4;
+  POST_STATUS_ARCHIVED = 5;
+}
+
+message PostMetadata {
+  string id = 1;
+  string slug = 2;                 // ASCII unique
+  string title = 3;                // Tiêu đề hiển thị (có dấu)
+  repeated string tags = 4;
+  string category = 5;
+  PostType type = 6;
+  string author_id = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+  string hero_asset_id = 10;       // Tham chiếu ảnh bìa (assets)
+  bool math_enabled = 11;          // Bật KaTeX/MathML phía client
+  PostStatus status = 12;          // Trạng thái hiện tại
+  int32 reading_time = 13;         // phút (ước lượng)
+  int64 published_at = 14;         // thời điểm publish (nếu đã publish)
+}
+
+message PostContent {
+  PostMetadata meta = 1;
+  string markdown = 2;             // Nội dung gốc
+  string macros_json = 3;          // Macro KaTeX theo bài (JSON)
+}
+
+message CreatePostRequest { PostContent content = 1; }
+message CreatePostResponse { common.Response response = 1; PostMetadata meta = 2; }
+
+message UpdatePostRequest { PostContent content = 1; }
+message UpdatePostResponse { common.Response response = 1; PostMetadata meta = 2; }
+
+message GetPostRequest { oneof key { string id = 1; string slug = 2; } }
+message GetPostResponse { common.Response response = 1; PostContent content = 2; }
+
+message ListPostsRequest {
+  common.PaginationRequest pagination = 1;
+  string category = 2;
+  PostType type = 3;
+  repeated string tags = 4;
+  PostStatus status = 5;
+  string author_id = 6;
+}
+
+message ListPostsResponse {
+  common.Response response = 1;
+  repeated PostMetadata items = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+message SubmitForReviewRequest { string post_id = 1; }
+message SubmitForReviewResponse { common.Response response = 1; PostMetadata meta = 2; }
+
+message ApprovePostRequest { string post_id = 1; string comment = 2; }
+message ApprovePostResponse { common.Response response = 1; PostMetadata meta = 2; }
+
+message PublishPostRequest { string post_id = 1; int64 schedule_at = 2; }
+message PublishPostResponse { common.Response response = 1; PostMetadata meta = 2; }
+
+message UnpublishPostRequest { string post_id = 1; }
+message UnpublishPostResponse { common.Response response = 1; PostMetadata meta = 2; }
+
+message DeletePostRequest { string post_id = 1; }
+message DeletePostResponse { common.Response response = 1; }
+
+service BlogService {
+  // CRUD cơ bản
+  rpc CreatePost(CreatePostRequest) returns (CreatePostResponse);
+  rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse);
+  rpc GetPost(GetPostRequest) returns (GetPostResponse);
+  rpc ListPosts(ListPostsRequest) returns (ListPostsResponse);
+
+  // Quy trình duyệt và xuất bản (tạm thời chỉ ADMIN mới được publish)
+  rpc SubmitForReview(SubmitForReviewRequest) returns (SubmitForReviewResponse);
+  rpc ApprovePost(ApprovePostRequest) returns (ApprovePostResponse);
+  rpc PublishPost(PublishPostRequest) returns (PublishPostResponse);
+  rpc UnpublishPost(UnpublishPostRequest) returns (UnpublishPostResponse);
+  rpc DeletePost(DeletePostRequest) returns (DeletePostResponse);
+}

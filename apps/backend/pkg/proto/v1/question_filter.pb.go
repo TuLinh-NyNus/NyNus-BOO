@@ -2039,7 +2039,8 @@ const file_v1_question_filter_proto_rawDesc = "" +
 	"\x15QuestionFilterService\x12\\\n" +
 	"\x15ListQuestionsByFilter\x12 .v1.ListQuestionsByFilterRequest\x1a!.v1.ListQuestionsByFilterResponse\x12J\n" +
 	"\x0fSearchQuestions\x12\x1a.v1.SearchQuestionsRequest\x1a\x1b.v1.SearchQuestionsResponse\x12k\n" +
-	"\x1aGetQuestionsByQuestionCode\x12%.v1.GetQuestionsByQuestionCodeRequest\x1a&.v1.GetQuestionsByQuestionCodeResponseBAZ?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1b\x06proto3"
+	"\x1aGetQuestionsByQuestionCode\x12%.v1.GetQuestionsByQuestionCodeRequest\x1a&.v1.GetQuestionsByQuestionCodeResponseB\x86\x01\n" +
+	"\x06com.v1B\x13QuestionFilterProtoP\x01Z?github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1\xa2\x02\x03VXX\xaa\x02\x02V1\xca\x02\x02V1\xe2\x02\x0eV1\\GPBMetadata\xea\x02\x02V1b\x06proto3"
 
 var (
 	file_v1_question_filter_proto_rawDescOnce sync.Once

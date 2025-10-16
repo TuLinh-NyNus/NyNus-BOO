@@ -371,7 +371,7 @@
 - **Phase 4.2**: Search UI Components ✅ COMPLETED (2025-08-17)
 - **Phase 4.3**: Search Features ✅ COMPLETED (2025-08-17)
 
-### � Current Phase
+### Current Phase
 - **Phase 5**: Advanced Theory Features 📋 NEXT
   - Theory content management system
   - Advanced theory navigation
