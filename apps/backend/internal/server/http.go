@@ -29,21 +29,50 @@ type HTTPServer struct {
 func NewHTTPServer(httpPort, grpcPort string, grpcServer *grpc.Server) *HTTPServer {
 	// Create gRPC-Gateway mux with custom settings
 	mux := runtime.NewServeMux(
-		// Pass auth header to gRPC
+		// Pass auth header and IP-related headers to gRPC
 		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
 			switch strings.ToLower(key) {
-			case "authorization":
+			case "authorization", "x-forwarded-for", "x-real-ip", "x-client-ip", "user-agent":
 				return key, true
 			default:
 				return runtime.DefaultHeaderMatcher(key)
 			}
 		}),
-		// Pass metadata from context
+		// Pass metadata from context including IP address and user agent
 		runtime.WithMetadata(func(ctx context.Context, req *http.Request) metadata.MD {
 			md := metadata.New(nil)
+
+			// Authorization header
 			if auth := req.Header.Get("Authorization"); auth != "" {
 				md.Set("authorization", auth)
 			}
+
+			// IP address headers (for JWT token generation)
+			if xForwardedFor := req.Header.Get("X-Forwarded-For"); xForwardedFor != "" {
+				md.Set("x-forwarded-for", xForwardedFor)
+			}
+			if xRealIP := req.Header.Get("X-Real-IP"); xRealIP != "" {
+				md.Set("x-real-ip", xRealIP)
+			}
+			if xClientIP := req.Header.Get("X-Client-IP"); xClientIP != "" {
+				md.Set("x-client-ip", xClientIP)
+			}
+
+			// User agent header
+			if userAgent := req.Header.Get("User-Agent"); userAgent != "" {
+				md.Set("user-agent", userAgent)
+			}
+
+			// Fallback: Use RemoteAddr if no IP headers present
+			if req.Header.Get("X-Forwarded-For") == "" && req.Header.Get("X-Real-IP") == "" {
+				// Extract IP from RemoteAddr (format: "ip:port")
+				remoteAddr := req.RemoteAddr
+				if idx := strings.LastIndex(remoteAddr, ":"); idx != -1 {
+					ip := remoteAddr[:idx]
+					md.Set("x-real-ip", ip)
+				}
+			}
+
 			return md
 		}),
 		// Enable CORS headers in responses

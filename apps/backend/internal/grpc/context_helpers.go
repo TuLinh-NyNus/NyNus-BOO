@@ -34,14 +34,26 @@ func getClientIP(ctx context.Context) string {
 		if values := md.Get(header); len(values) > 0 {
 			// For x-forwarded-for, take the first IP (original client)
 			ip := strings.Split(values[0], ",")[0]
-			return strings.TrimSpace(ip)
+			ip = strings.TrimSpace(ip)
+			// Remove brackets from IPv6 addresses (e.g., [::1] -> ::1)
+			ip = strings.Trim(ip, "[]")
+			return ip
 		}
 	}
 
 	// Check grpc peer address as fallback
 	if values := md.Get(":authority"); len(values) > 0 {
-		// Extract IP from authority (format: "ip:port")
-		parts := strings.Split(values[0], ":")
+		// Extract IP from authority (format: "ip:port" or "[ipv6]:port")
+		authority := values[0]
+		// Handle IPv6 format: [::1]:port
+		if strings.HasPrefix(authority, "[") {
+			endIdx := strings.Index(authority, "]")
+			if endIdx > 0 {
+				return authority[1:endIdx]
+			}
+		}
+		// Handle IPv4 format: ip:port
+		parts := strings.Split(authority, ":")
 		if len(parts) > 0 {
 			return parts[0]
 		}

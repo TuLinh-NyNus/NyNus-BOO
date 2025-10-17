@@ -52,8 +52,10 @@ const (
 	MinRefreshTokenLength = 40
 
 	// MinIPAddressLength là độ dài tối thiểu của IP address
+	// IPv6 compressed: 2 characters (e.g., "::")
+	// IPv6 localhost: 3 characters (e.g., "::1")
 	// IPv4: 7 characters (e.g., "1.1.1.1")
-	MinIPAddressLength = 7
+	MinIPAddressLength = 2
 
 	// MaxIPAddressLength là độ dài tối đa của IP address
 	// IPv6: 45 characters (e.g., "2001:0db8:85a3:0000:0000:8a2e:0370:7334")
@@ -84,9 +86,13 @@ var (
 	// Pattern: xxx.xxx.xxx.xxx (0-255 for each octet)
 	ipv4Regex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
 
-	// ipv6Regex validates IPv6 address format (simplified)
-	// Pattern: xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx
-	ipv6Regex = regexp.MustCompile(`^([0-9a-fA-F]{0,4}:){7}[0-9a-fA-F]{0,4}$`)
+	// ipv6Regex validates IPv6 address format (supports compressed format)
+	// Pattern: Supports both full format (xxxx:xxxx:...:xxxx) and compressed format (::1, ::ffff:192.0.2.1)
+	// This regex accepts:
+	// - Full IPv6: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+	// - Compressed: ::1, ::, 2001:db8::1
+	// - IPv4-mapped IPv6: ::ffff:192.0.2.1
+	ipv6Regex = regexp.MustCompile(`^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|::)$`)
 )
 
 // ===== VALIDATION FUNCTIONS =====

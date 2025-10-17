@@ -205,25 +205,49 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Login with email and password
+   *
+   * Business Logic:
+   * 1. Call gRPC backend to authenticate user
+   * 2. Save tokens from gRPC response
+   * 3. Call NextAuth signIn to create NextAuth session (CRITICAL for middleware)
+   * 4. Redirect to dashboard after successful authentication
    */
   const login = useCallback(async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      
+
+      // Step 1: Authenticate with gRPC backend
       const protobufResponse = await AuthService.login(email, password);
       const response = convertProtobufLoginResponse(protobufResponse);
 
-      // Save tokens
+      // Step 2: Save tokens from gRPC response
       if (response.accessToken && response.refreshToken) {
         AuthHelpers.saveTokens(response.accessToken, response.refreshToken);
       }
 
-      // Set user data
+      // Step 3: Set user data
       if (response.user) {
         setUser(response.user);
       }
 
-      // ✅ FIX: Use window.location.href instead of router.push()
+      // Step 4: ✅ CRITICAL FIX - Call NextAuth signIn to create session
+      // This is required for middleware authentication check
+      // Without this, middleware will redirect to /login because no NextAuth session exists
+      logger.debug('[AuthContext] Creating NextAuth session after gRPC login');
+      const nextAuthResult = await signIn('credentials', {
+        email,
+        password,
+        redirect: false, // Don't auto-redirect, we handle it manually
+      });
+
+      if (nextAuthResult?.error) {
+        logger.error('[AuthContext] NextAuth session creation failed', {
+          error: nextAuthResult.error,
+        });
+        // Continue anyway - gRPC login was successful
+      }
+
+      // Step 5: ✅ FIX: Use window.location.href instead of router.push()
       // This forces a full page reload, ensuring NextAuth session is properly set
       // before middleware checks authentication (same fix as login page)
       window.location.href = '/dashboard';
@@ -276,6 +300,12 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Register new user
+   *
+   * Business Logic:
+   * 1. Call gRPC backend to register user
+   * 2. Save tokens from gRPC response
+   * 3. Call NextAuth signIn to create NextAuth session (CRITICAL for middleware)
+   * 4. Redirect to dashboard after successful registration
    */
   const register = useCallback(async (
     email: string,
@@ -285,7 +315,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       setIsLoading(true);
-      
+
+      // Step 1: Register with gRPC backend
       const protobufResponse = await AuthService.register({
         email,
         password,
@@ -295,17 +326,34 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
       const response = convertProtobufRegisterResponse(protobufResponse);
 
-      // Save tokens
+      // Step 2: Save tokens from gRPC response
       if (response.accessToken && response.refreshToken) {
         AuthHelpers.saveTokens(response.accessToken, response.refreshToken);
       }
 
-      // Set user data
+      // Step 3: Set user data
       if (response.user) {
         setUser(response.user);
       }
 
-      // ✅ FIX: Use window.location.href instead of router.push()
+      // Step 4: ✅ CRITICAL FIX - Call NextAuth signIn to create session
+      // This is required for middleware authentication check
+      // Without this, middleware will redirect to /login because no NextAuth session exists
+      logger.debug('[AuthContext] Creating NextAuth session after gRPC registration');
+      const nextAuthResult = await signIn('credentials', {
+        email,
+        password,
+        redirect: false, // Don't auto-redirect, we handle it manually
+      });
+
+      if (nextAuthResult?.error) {
+        logger.error('[AuthContext] NextAuth session creation failed', {
+          error: nextAuthResult.error,
+        });
+        // Continue anyway - gRPC registration was successful
+      }
+
+      // Step 5: ✅ FIX: Use window.location.href instead of router.push()
       // This forces a full page reload, ensuring NextAuth session is properly set
       // before middleware checks authentication (same fix as login page)
       window.location.href = '/dashboard';
