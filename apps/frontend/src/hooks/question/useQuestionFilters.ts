@@ -1,16 +1,16 @@
 /**
  * useQuestionFilters Hook
- * Custom hook cho real-time filter application với MockQuestionsService
+ * Custom hook cho real-time filter application với QuestionService
  * Tự động sync store changes với API calls và debounced search
- * 
+ *
  * @author NyNus Team
- * @version 1.0.0
+ * @version 2.0.0
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
-import { MockQuestionsService } from '@/services/mock/questions';
-import { Question, QuestionFilters, QuestionListResponse } from '@/types/question';
+import { QuestionService } from '@/services/grpc/question.service';
+import { Question, QuestionFilters, QuestionListResponse, QuestionType, QuestionStatus, QuestionDifficulty } from '@/types/question';
 import { useDebounce } from '../performance/useDebounce';
 
 // ===== INTERFACES =====
@@ -134,7 +134,7 @@ export function useQuestionFilters(
   const debouncedOtherFilters = useDebounce(otherFilters, filterDebounceDelay);
 
   /**
-   * Fetch questions từ MockQuestionsService
+   * Fetch questions from QuestionService via gRPC
    */
   const fetchQuestions = useCallback(async (
     currentFilters: QuestionFilters,
@@ -144,10 +144,10 @@ export function useQuestionFilters(
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     // Create new abort controller
     abortControllerRef.current = new AbortController();
-    
+
     try {
       if (isSearchRequest) {
         setIsSearching(true);
@@ -160,19 +160,54 @@ export function useQuestionFilters(
           setIsLoading(false);
         }, 10000);
       }
-      
+
       const startTime = performance.now();
-      
-      // Gọi MockQuestionsService với current filters
-      const response = await MockQuestionsService.listQuestions(currentFilters);
-      
+
+      // Call QuestionService.listQuestions with pagination
+      const response = await QuestionService.listQuestions({
+        pagination: {
+          page: currentFilters.page || 1,
+          limit: currentFilters.pageSize || 20
+        }
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fetch questions');
+      }
+
+      // Map protobuf questions to frontend Question type
+      const mappedQuestions: Question[] = (response.questions || []).map(q => ({
+        id: q.id,
+        content: q.content,
+        rawContent: q.raw_content,
+        type: q.type as QuestionType,
+        tag: q.tag || [],
+        questionCodeId: q.question_code_id,
+        status: q.status as QuestionStatus,
+        difficulty: q.difficulty as QuestionDifficulty,
+        source: q.source || '',
+        solution: q.solution || '',
+        subcount: q.subcount || '',
+        usageCount: q.usage_count || 0,
+        creator: q.creator || '',
+        feedback: q.feedback || 0,
+        createdAt: q.created_at || new Date().toISOString(),
+        updatedAt: q.updated_at || new Date().toISOString(),
+        answers: q.structured_answers?.map(a => ({
+          id: a.id,
+          content: a.content,
+          isCorrect: a.is_correct,
+          explanation: a.explanation || ''
+        })) || []
+      }));
+
       // Update state
-      setQuestions(response.data);
+      setQuestions(mappedQuestions);
       setPagination({
-        page: response.pagination.page,
-        pageSize: response.pagination.pageSize,
-        total: response.pagination.total,
-        totalPages: response.pagination.totalPages || Math.ceil(response.pagination.total / response.pagination.pageSize)
+        page: response.pagination?.page || 1,
+        pageSize: response.pagination?.limit || 20,
+        total: response.pagination?.total || 0,
+        totalPages: response.pagination?.totalPages || 0
       });
       
       // Performance tracking

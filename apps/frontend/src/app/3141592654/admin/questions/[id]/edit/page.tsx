@@ -13,13 +13,13 @@ import { ErrorBoundary } from '@/components/common/error-boundary';
 // Import IntegratedQuestionForm từ components
 import { IntegratedQuestionForm } from '@/components/admin/questions/forms';
 
-import { 
+import {
   Question,
   QuestionStatus,
   QuestionType,
   QuestionDifficulty
 } from '@/types/question';
-import { MockQuestionsService } from '@/services/mock/questions';
+import { QuestionService } from '@/services/grpc/question.service';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**
@@ -39,30 +39,68 @@ export default function EditQuestionPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   /**
-   * Load question data từ mock service
+   * Load question data from QuestionService
    */
   const loadQuestionData = useCallback(async () => {
     try {
       setIsLoading(true);
       setLoadError(null);
 
-      const response = await MockQuestionsService.getQuestion(questionId);
+      const response = await QuestionService.getQuestion({ id: questionId });
 
-      if (response.error) {
-        setLoadError(response.error);
+      if (!response.success) {
+        setLoadError(response.message || 'Không thể tải câu hỏi');
+        toast({
+          title: 'Lỗi',
+          description: response.message || 'Không thể tải câu hỏi',
+          variant: 'destructive'
+        });
         return;
       }
 
-      if (response.data) {
-        setOriginalQuestion(response.data);
+      if (response.question) {
+        // Map protobuf question to frontend Question type
+        const mappedQuestion: Question = {
+          id: response.question.id,
+          content: response.question.content,
+          rawContent: response.question.raw_content,
+          type: response.question.type as QuestionType,
+          tag: response.question.tag || [],
+          questionCodeId: response.question.question_code_id,
+          status: response.question.status as QuestionStatus,
+          difficulty: response.question.difficulty as QuestionDifficulty,
+          source: response.question.source || '',
+          solution: response.question.solution || '',
+          subcount: response.question.subcount || '',
+          usageCount: response.question.usage_count || 0,
+          creator: response.question.creator || '',
+          feedback: response.question.feedback || 0,
+          createdAt: response.question.created_at || new Date().toISOString(),
+          updatedAt: response.question.updated_at || new Date().toISOString(),
+          // Map structured_answers to answers
+          answers: response.question.structured_answers?.map(a => ({
+            id: a.id,
+            content: a.content,
+            isCorrect: a.is_correct,
+            explanation: a.explanation || ''
+          })) || []
+        };
+
+        setOriginalQuestion(mappedQuestion);
       }
     } catch (error) {
       console.error('Lỗi khi tải câu hỏi:', error);
-      setLoadError('Không thể tải dữ liệu câu hỏi');
+      const errorMessage = error instanceof Error ? error.message : 'Không thể tải dữ liệu câu hỏi';
+      setLoadError(errorMessage);
+      toast({
+        title: 'Lỗi',
+        description: errorMessage,
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [questionId]);
+  }, [questionId, toast]);
 
   /**
    * Load question data khi component mount
@@ -73,6 +111,7 @@ export default function EditQuestionPage() {
 
   /**
    * Handle submit form - cập nhật câu hỏi
+   * Uses QuestionService.updateQuestion to update question via gRPC
    */
   const handleSubmit = async (data: {
     content: string;
@@ -91,43 +130,45 @@ export default function EditQuestionPage() {
     try {
       // Chuyển đổi answers để đảm bảo có id cho mỗi answer
       const answersWithId = data.answers.map((answer, index) => ({
-        ...answer,
-        id: answer.id || `answer-${index + 1}`
+        id: answer.id || `answer-${index + 1}`,
+        content: answer.content,
+        is_correct: answer.isCorrect,
+        explanation: answer.explanation || ''
       }));
-      
-      // Prepare update data cho MockQuestionsService
+
+      // Prepare update data for QuestionService
       const updateData = {
-        ...originalQuestion,
+        id: questionId,
+        raw_content: data.content,
         content: data.content,
-        rawContent: data.content,
+        subcount: originalQuestion?.subcount || '',
         type: data.type,
-        answers: answersWithId,
+        source: data.source || '',
+        structured_answers: answersWithId,
+        solution: data.solution || '',
         tag: data.tag || [],
-        questionCodeId: data.questionCodeId || originalQuestion?.questionCodeId || 'AUTO_GENERATED',
+        question_code_id: data.questionCodeId || originalQuestion?.questionCodeId || '',
         status: data.status || QuestionStatus.PENDING,
-        difficulty: data.difficulty || originalQuestion?.difficulty || QuestionDifficulty.MEDIUM,
-        explanation: data.explanation || "",
-        solution: data.solution || "",
-        source: data.source || "",
-        timeLimit: data.timeLimit || 0,
-        points: data.points || 1,
-        updatedAt: new Date().toISOString()
+        difficulty: data.difficulty || originalQuestion?.difficulty || QuestionDifficulty.MEDIUM
       };
 
-      await MockQuestionsService.updateQuestion(questionId, updateData);
+      const response = await QuestionService.updateQuestion(updateData);
 
-      toast({
-        title: 'Thành công',
-        description: 'Câu hỏi đã được cập nhật thành công',
-        variant: 'success'
-      });
-
-      router.push(ADMIN_PATHS.QUESTIONS);
+      if (response.success) {
+        toast({
+          title: 'Thành công',
+          description: response.message || 'Câu hỏi đã được cập nhật thành công',
+          variant: 'success'
+        });
+        router.push(ADMIN_PATHS.QUESTIONS);
+      } else {
+        throw new Error(response.message || 'Không thể cập nhật câu hỏi');
+      }
     } catch (error) {
       console.error('Lỗi khi cập nhật câu hỏi:', error);
       toast({
         title: 'Lỗi',
-        description: 'Không thể cập nhật câu hỏi',
+        description: error instanceof Error ? error.message : 'Không thể cập nhật câu hỏi',
         variant: 'destructive'
       });
       throw error; // Re-throw để form xử lý loading state

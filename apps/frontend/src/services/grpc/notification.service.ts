@@ -1,12 +1,36 @@
-/**
- * Notification gRPC Service
- * Service để kết nối với backend notification system
+﻿/**
+ * Notification Service Client (gRPC-Web)
+ * ======================
+ * Real gRPC client implementation for NotificationService
+ * Replaces mock implementation with actual backend calls
+ * 
+ * @author NyNus Development Team
+ * @version 2.0.0 - Real gRPC Implementation
+ * @created 2025-01-19
  */
 
-// import { GRPC_WEB_HOST, getAuthMetadata } from './client';
-import { AuthHelpers } from '@/lib/utils/auth-helpers';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-// Notification interfaces matching backend structure
+// gRPC-Web imports
+import { NotificationServiceClient } from '@/generated/v1/NotificationServiceClientPb';
+import {
+  Notification as PbNotification,
+  GetNotificationsRequest,
+  GetNotificationRequest,
+  MarkAsReadRequest,
+  MarkAllAsReadRequest,
+  DeleteNotificationRequest,
+  DeleteAllNotificationsRequest,
+  CreateNotificationRequest,
+} from '@/generated/v1/notification_pb';
+import { RpcError } from 'grpc-web';
+
+// gRPC client utilities
+import { getGrpcUrl } from '@/lib/config/endpoints';
+import { getAuthMetadata } from './client';
+
+// ===== FRONTEND TYPES =====
+
 export interface BackendNotification {
   id: string;
   userId: string;
@@ -26,17 +50,13 @@ export interface NotificationListResponse {
   unreadCount: number;
 }
 
-export interface CreateNotificationRequest {
+export interface CreateNotificationRequestData {
   userId: string;
   type: string;
   title: string;
   message: string;
   data?: Record<string, string>;
   expiresAt?: string;
-}
-
-export interface MarkAsReadRequest {
-  notificationId: string;
 }
 
 export interface NotificationPreferences {
@@ -49,15 +69,62 @@ export interface NotificationPreferences {
   marketingEmails: boolean;
 }
 
-/**
- * Notification Service Class
- */
-export class NotificationService {
-  // TODO: Initialize gRPC client when protobuf files are generated
-  // private static client = new GrpcWebClient();
+// ===== gRPC CLIENT INITIALIZATION =====
 
+const GRPC_ENDPOINT = getGrpcUrl();
+const notificationServiceClient = new NotificationServiceClient(GRPC_ENDPOINT);
+
+// ===== OBJECT MAPPERS =====
+
+/**
+ * Map protobuf Notification to frontend BackendNotification
+ */
+function mapNotificationFromPb(pbNotification: PbNotification): BackendNotification {
+  const notificationObj = pbNotification.toObject();
+  
+  // Convert dataMap array to Record<string, string>
+  const dataMap: Record<string, string> = {};
+  notificationObj.dataMap.forEach(([key, value]) => {
+    dataMap[key] = value;
+  });
+  
+  return {
+    id: notificationObj.id,
+    userId: notificationObj.userId,
+    type: notificationObj.type,
+    title: notificationObj.title,
+    message: notificationObj.message,
+    data: dataMap,
+    isRead: notificationObj.isRead,
+    readAt: notificationObj.readAt || undefined,
+    createdAt: notificationObj.createdAt,
+    expiresAt: notificationObj.expiresAt || undefined,
+  };
+}
+
+// ===== ERROR HANDLING =====
+
+/**
+ * Handle gRPC errors and convert to user-friendly messages
+ */
+function handleGrpcError(error: RpcError): string {
+  console.error('gRPC Error:', error);
+  switch (error.code) {
+    case 3: return error.message || 'Dữ liệu không hợp lệ';
+    case 5: return 'Không tìm thấy thông báo';
+    case 7: return 'Bạn không có quyền thực hiện thao tác này';
+    case 14: return 'Dịch vụ tạm thời không khả dụng';
+    case 16: return 'Vui lòng đăng nhập để tiếp tục';
+    default: return error.message || 'Đã xảy ra lỗi không xác định';
+  }
+}
+
+// ===== NOTIFICATION SERVICE IMPLEMENTATION =====
+
+export class NotificationService {
   /**
    * Get user notifications with pagination
+   * Lấy danh sách thông báo của user
    */
   static async getUserNotifications(params: {
     page?: number;
@@ -65,316 +132,213 @@ export class NotificationService {
     unreadOnly?: boolean;
   } = {}): Promise<NotificationListResponse> {
     try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
-      }
-
       const { page = 1, limit = 20, unreadOnly = false } = params;
+      const offset = (page - 1) * limit;
 
-      // Mock implementation - replace with actual gRPC call
-      // const response = await this.client.notificationService.getUserNotifications({
-      //   page,
-      //   limit,
-      //   unreadOnly
-      // }, { authorization: `Bearer ${accessToken}` });
+      const request = new GetNotificationsRequest();
+      request.setLimit(limit);
+      request.setOffset(offset);
+      request.setUnreadOnly(unreadOnly);
 
-      // Mock data for now
-      const mockNotifications: BackendNotification[] = [
-        {
-          id: '1',
-          userId: 'current-user',
-          type: 'SECURITY_ALERT',
-          title: 'Đăng nhập từ thiết bị mới',
-          message: 'Tài khoản của bạn vừa được đăng nhập từ thiết bị mới tại TP.HCM',
-          data: {
-            deviceType: 'desktop',
-            location: 'Ho Chi Minh City',
-            ipAddress: '192.168.1.100'
-          },
-          isRead: false,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          userId: 'current-user',
-          type: 'SYSTEM_MESSAGE',
-          title: 'Cập nhật hệ thống',
-          message: 'Hệ thống sẽ bảo trì từ 2:00 - 4:00 sáng ngày mai',
-          data: {
-            maintenanceStart: '2024-01-16T02:00:00Z',
-            maintenanceEnd: '2024-01-16T04:00:00Z'
-          },
-          isRead: true,
-          readAt: new Date(Date.now() - 3600000).toISOString(),
-          createdAt: new Date(Date.now() - 7200000).toISOString(),
-        },
-        {
-          id: '3',
-          userId: 'current-user',
-          type: 'COURSE_UPDATE',
-          title: 'Khóa học mới được thêm',
-          message: 'Khóa học "Advanced React Patterns" đã được thêm vào thư viện',
-          data: {
-            courseId: 'course-123',
-            courseName: 'Advanced React Patterns'
-          },
-          isRead: false,
-          createdAt: new Date(Date.now() - 1800000).toISOString(),
-        }
-      ];
-
-      // Apply filters
-      let filteredNotifications = mockNotifications;
-      if (unreadOnly) {
-        filteredNotifications = filteredNotifications.filter(n => !n.isRead);
-      }
-
-      // Apply pagination
-      const startIndex = (page - 1) * limit;
-      const paginatedNotifications = filteredNotifications.slice(startIndex, startIndex + limit);
-
-      const unreadCount = mockNotifications.filter(n => !n.isRead).length;
-
+      const response = await notificationServiceClient.getNotifications(request, getAuthMetadata());
+      const notifications = response.getNotificationsList().map(mapNotificationFromPb);
+      
       return {
-        notifications: paginatedNotifications,
-        total: filteredNotifications.length,
-        unreadCount
+        notifications,
+        total: response.getTotal(),
+        unreadCount: response.getUnreadCount(),
       };
     } catch (error) {
-      console.error('Failed to get user notifications:', error);
-      throw new Error('Không thể tải thông báo');
-    }
-  }
-
-  /**
-   * Mark notification as read
-   */
-  static async markAsRead(notificationId: string): Promise<boolean> {
-    try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
-      }
-
-      // Mock implementation
-      // const response = await this.client.notificationService.markAsRead({
-      //   notificationId
-      // }, { authorization: `Bearer ${accessToken}` });
-
-      console.log(`Marked notification ${notificationId} as read`);
-      return true;
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Mark all notifications as read
-   */
-  static async markAllAsRead(): Promise<boolean> {
-    try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
-      }
-
-      // Mock implementation
-      // const response = await this.client.notificationService.markAllAsRead({}, {
-      //   authorization: `Bearer ${accessToken}`
-      // });
-
-      console.log('Marked all notifications as read');
-      return true;
-    } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Delete notification
-   */
-  static async deleteNotification(notificationId: string): Promise<boolean> {
-    try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
-      }
-
-      // Mock implementation
-      // const response = await this.client.notificationService.deleteNotification({
-      //   notificationId
-      // }, { authorization: `Bearer ${accessToken}` });
-
-      console.log(`Deleted notification ${notificationId}`);
-      return true;
-    } catch (error) {
-      console.error('Failed to delete notification:', error);
-      return false;
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
     }
   }
 
   /**
    * Get unread count
+   * Lấy số lượng thông báo chưa đọc
    */
   static async getUnreadCount(): Promise<number> {
     try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        return 0;
-      }
+      const request = new GetNotificationsRequest();
+      request.setLimit(1);
+      request.setOffset(0);
+      request.setUnreadOnly(true);
 
-      // Mock implementation
-      // const response = await this.client.notificationService.getUnreadCount({}, {
-      //   authorization: `Bearer ${accessToken}`
-      // });
-
-      // Mock unread count
-      return 2;
+      const response = await notificationServiceClient.getNotifications(request, getAuthMetadata());
+      return response.getUnreadCount();
     } catch (error) {
-      console.error('Failed to get unread count:', error);
-      return 0;
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Mark notification as read
+   * Đánh dấu thông báo đã đọc
+   */
+  static async markAsRead(notificationId: string): Promise<boolean> {
+    try {
+      const request = new MarkAsReadRequest();
+      request.setId(notificationId);
+
+      const response = await notificationServiceClient.markAsRead(request, getAuthMetadata());
+      return response.getSuccess();
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Mark all notifications as read
+   * Đánh dấu tất cả thông báo đã đọc
+   */
+  static async markAllAsRead(): Promise<boolean> {
+    try {
+      const request = new MarkAllAsReadRequest();
+
+      const response = await notificationServiceClient.markAllAsRead(request, getAuthMetadata());
+      return response.getMarkedCount() > 0;
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Delete notification
+   * Xóa thông báo
+   */
+  static async deleteNotification(notificationId: string): Promise<boolean> {
+    try {
+      const request = new DeleteNotificationRequest();
+      request.setId(notificationId);
+
+      const response = await notificationServiceClient.deleteNotification(request, getAuthMetadata());
+      return response.getSuccess();
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Delete all notifications
+   * Xóa tất cả thông báo
+   */
+  static async deleteAllNotifications(): Promise<number> {
+    try {
+      const request = new DeleteAllNotificationsRequest();
+
+      const response = await notificationServiceClient.deleteAllNotifications(request, getAuthMetadata());
+      return response.getDeletedCount();
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
     }
   }
 
   /**
    * Create notification (admin only)
+   * Tạo thông báo (chỉ admin)
    */
-  static async createNotification(request: CreateNotificationRequest): Promise<BackendNotification | null> {
+  static async createNotification(requestData: CreateNotificationRequestData): Promise<BackendNotification | null> {
     try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
+      const request = new CreateNotificationRequest();
+      request.setUserId(requestData.userId);
+      request.setType(requestData.type);
+      request.setTitle(requestData.title);
+      request.setMessage(requestData.message);
+      
+      if (requestData.data) {
+        const dataMap = request.getDataMap();
+        Object.entries(requestData.data).forEach(([key, value]) => {
+          dataMap.set(key, value);
+        });
+      }
+      
+      if (requestData.expiresAt) {
+        request.setExpiresAt(requestData.expiresAt);
       }
 
-      // Mock implementation
-      // const response = await this.client.notificationService.createNotification(request, {
-      //   authorization: `Bearer ${accessToken}`
-      // });
-
-      // Mock created notification
-      const mockNotification: BackendNotification = {
-        id: `notif-${Date.now()}`,
-        userId: request.userId,
-        type: request.type,
-        title: request.title,
-        message: request.message,
-        data: request.data || {},
-        isRead: false,
-        createdAt: new Date().toISOString(),
-        expiresAt: request.expiresAt
-      };
-
-      return mockNotification;
+      const response = await notificationServiceClient.createNotification(request, getAuthMetadata());
+      const notification = response.getNotification();
+      
+      return notification ? mapNotificationFromPb(notification) : null;
     } catch (error) {
-      console.error('Failed to create notification:', error);
-      return null;
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
     }
   }
 
   /**
-   * Get notification preferences
+   * Get notification preferences (mock - not in protobuf)
+   * Lấy cài đặt thông báo
    */
   static async getNotificationPreferences(): Promise<NotificationPreferences | null> {
-    try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
-      }
-
-      // Mock implementation
-      // const response = await this.client.notificationService.getPreferences({}, {
-      //   authorization: `Bearer ${accessToken}`
-      // });
-
-      // Mock preferences
-      return {
-        userId: 'current-user',
-        emailNotifications: true,
-        pushNotifications: true,
-        smsNotifications: false,
-        securityAlerts: true,
-        productUpdates: true,
-        marketingEmails: false
-      };
-    } catch (error) {
-      console.error('Failed to get notification preferences:', error);
-      return null;
-    }
+    // Mock implementation - preferences not in protobuf yet
+    console.warn('getNotificationPreferences: Mock implementation - preferences not in protobuf');
+    return {
+      userId: 'current-user',
+      emailNotifications: true,
+      pushNotifications: true,
+      smsNotifications: false,
+      securityAlerts: true,
+      productUpdates: true,
+      marketingEmails: false
+    };
   }
 
   /**
-   * Update notification preferences
+   * Update notification preferences (mock - not in protobuf)
+   * Cập nhật cài đặt thông báo
    */
   static async updateNotificationPreferences(preferences: Partial<NotificationPreferences>): Promise<boolean> {
-    try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
-      }
-
-      // Mock implementation
-      // const response = await this.client.notificationService.updatePreferences(preferences, {
-      //   authorization: `Bearer ${accessToken}`
-      // });
-
-      console.log('Updated notification preferences:', preferences);
-      return true;
-    } catch (error) {
-      console.error('Failed to update notification preferences:', error);
-      return false;
-    }
+    // Mock implementation - preferences not in protobuf yet
+    console.warn('updateNotificationPreferences: Mock implementation - preferences not in protobuf');
+    console.log('Updated notification preferences:', preferences);
+    return true;
   }
 
   /**
-   * Subscribe to real-time notifications (WebSocket/SSE)
+   * Subscribe to real-time notifications (mock - WebSocket not implemented)
+   * Đăng ký nhận thông báo real-time
    */
   static subscribeToNotifications(
     onNotification: (notification: BackendNotification) => void,
-    onError?: (error: Error) => void
+    onError: (error: Error) => void
   ): () => void {
-    try {
-      const accessToken = AuthHelpers.getAccessToken();
-      if (!accessToken) {
-        throw new Error('Không có quyền truy cập');
+    // Mock WebSocket connection
+    console.warn('subscribeToNotifications: Mock implementation - WebSocket not implemented');
+    console.log('Subscribing to real-time notifications...');
+
+    // Simulate receiving notifications
+    const interval = setInterval(() => {
+      if (Math.random() > 0.8) { // 20% chance every 10 seconds
+        const mockNotification: BackendNotification = {
+          id: `notif-${Date.now()}`,
+          userId: 'current-user',
+          type: 'SECURITY_ALERT',
+          title: 'Hoạt động đáng nghi ngờ',
+          message: 'Phát hiện nhiều lần đăng nhập thất bại từ IP lạ',
+          data: {
+            ipAddress: '10.0.0.50',
+            attempts: '5'
+          },
+          isRead: false,
+          createdAt: new Date().toISOString()
+        };
+        onNotification(mockNotification);
       }
+    }, 10000);
 
-      // Mock WebSocket connection
-      console.log('Subscribing to real-time notifications...');
-
-      // Simulate receiving notifications
-      const interval = setInterval(() => {
-        if (Math.random() > 0.8) { // 20% chance every 10 seconds
-          const mockNotification: BackendNotification = {
-            id: `notif-${Date.now()}`,
-            userId: 'current-user',
-            type: 'SECURITY_ALERT',
-            title: 'Hoạt động đáng nghi ngờ',
-            message: 'Phát hiện nhiều lần đăng nhập thất bại từ IP lạ',
-            data: {
-              ipAddress: '10.0.0.50',
-              attempts: '5'
-            },
-            isRead: false,
-            createdAt: new Date().toISOString()
-          };
-          onNotification(mockNotification);
-        }
-      }, 10000);
-
-      // Return cleanup function
-      return () => {
-        clearInterval(interval);
-        console.log('Unsubscribed from real-time notifications');
-      };
-    } catch (error) {
-      console.error('Failed to subscribe to notifications:', error);
-      if (onError) {
-        onError(error as Error);
-      }
-      return () => {}; // No-op cleanup
-    }
+    // Return cleanup function
+    return () => {
+      clearInterval(interval);
+      console.log('Unsubscribed from real-time notifications');
+    };
   }
 }
+
+export default NotificationService;

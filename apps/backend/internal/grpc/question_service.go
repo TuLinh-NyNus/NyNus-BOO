@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -41,15 +42,78 @@ func (s *QuestionServiceServer) CreateQuestion(ctx context.Context, req *v1.Crea
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
 
-	// TODO: Implement create question logic
-	_ = userID // Use userID for audit trail
+	// Validate required fields
+	if req.GetContent() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "content is required")
+	}
+	if req.GetType() == common.QuestionType_QUESTION_TYPE_UNSPECIFIED {
+		return nil, status.Errorf(codes.InvalidArgument, "question type is required")
+	}
+	if req.GetQuestionCodeId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "question_code_id is required")
+	}
+
+	// Convert protobuf request to entity.Question
+	entityQuestion := &entity.Question{
+		ID:         util.StringToPgText(uuid.New().String()),
+		RawContent: util.StringToPgText(req.GetRawContent()),
+		Content:    util.StringToPgText(req.GetContent()),
+		Subcount:   util.StringToPgText(req.GetSubcount()),
+		Type:       util.StringToPgText(convertProtoQuestionTypeToString(req.GetType())),
+		Source:     util.StringToPgText(req.GetSource()),
+		Solution:   util.StringToPgText(req.GetSolution()),
+		Tag:        util.StringSliceToPgTextArray(req.GetTag()),
+
+		// Optional classification fields
+		Grade:   util.StringToPgText(req.GetGrade()),
+		Subject: util.StringToPgText(req.GetSubject()),
+		Chapter: util.StringToPgText(req.GetChapter()),
+		Level:   util.StringToPgText(req.GetLevel()),
+
+		// Usage tracking
+		Creator:        util.StringToPgText(req.GetCreator()),
+		Status:         util.StringToPgText(convertProtoQuestionStatusToString(req.GetStatus())),
+		Difficulty:     util.StringToPgText(convertProtoDifficultyToString(req.GetDifficulty())),
+		QuestionCodeID: util.StringToPgText(req.GetQuestionCodeId()),
+	}
+
+	// Convert answers (oneof field)
+	entityQuestion.Answers = convertAnswersToJSONB(req)
+
+	// Convert correct answer (oneof field)
+	entityQuestion.CorrectAnswer = convertCorrectAnswerToJSONB(req)
+
+	// Override creator with authenticated userID
+	if userID != "" {
+		entityQuestion.Creator = util.StringToPgText(userID)
+	}
+
+	// Create question through service layer
+	err = s.questionService.CreateQuestion(ctx, entityQuestion)
+	if err != nil {
+		// Check for specific errors
+		if strings.Contains(err.Error(), "does not exist") {
+			return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		}
+		return nil, status.Errorf(codes.Internal, "failed to create question: %v", err)
+	}
+
+	// Get created question to return with all fields populated
+	createdQuestion, err := s.questionService.GetQuestionByID(ctx, entityQuestion.ID.String)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get created question: %v", err)
+	}
+
+	// Convert entity back to proto
+	protoQuestion := convertQuestionToProto(&createdQuestion)
 
 	return &v1.CreateQuestionResponse{
 		Response: &common.Response{
-			Success: false,
-			Message: "CreateQuestion not yet implemented",
+			Success: true,
+			Message: "Question created successfully",
 		},
-	}, status.Errorf(codes.Unimplemented, "CreateQuestion not yet implemented")
+		Question: protoQuestion,
+	}, nil
 }
 
 // GetQuestion retrieves a question by ID
@@ -80,6 +144,158 @@ func (s *QuestionServiceServer) GetQuestion(ctx context.Context, req *v1.GetQues
 			Message: "Question retrieved successfully",
 		},
 		Question: protoQuestion,
+	}, nil
+}
+
+// UpdateQuestion updates an existing question
+func (s *QuestionServiceServer) UpdateQuestion(ctx context.Context, req *v1.UpdateQuestionRequest) (*v1.UpdateQuestionResponse, error) {
+	// Get user from context for authorization
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
+	}
+
+	// Validate required fields
+	if req.GetId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "question ID is required")
+	}
+
+	// Get existing question
+	existingQuestion, err := s.questionService.GetQuestionByID(ctx, req.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "question not found: %v", err)
+	}
+
+	// Convert protobuf request to entity.Question for update
+	// Start with existing question and update fields from request
+	updatedQuestion := &existingQuestion
+
+	// Update content fields
+	if req.GetRawContent() != "" {
+		updatedQuestion.RawContent = util.StringToPgText(req.GetRawContent())
+	}
+	if req.GetContent() != "" {
+		updatedQuestion.Content = util.StringToPgText(req.GetContent())
+	}
+	if req.GetSubcount() != "" {
+		updatedQuestion.Subcount = util.StringToPgText(req.GetSubcount())
+	}
+	if req.GetType() != common.QuestionType_QUESTION_TYPE_UNSPECIFIED {
+		updatedQuestion.Type = util.StringToPgText(convertProtoQuestionTypeToString(req.GetType()))
+	}
+	if req.GetSource() != "" {
+		updatedQuestion.Source = util.StringToPgText(req.GetSource())
+	}
+	if req.GetSolution() != "" {
+		updatedQuestion.Solution = util.StringToPgText(req.GetSolution())
+	}
+
+	// Update answers if provided
+	if req.GetAnswerData() != nil {
+		updatedQuestion.Answers = convertAnswersToJSONBForUpdate(req)
+	}
+
+	// Update correct answer if provided
+	if req.GetCorrectAnswerData() != nil {
+		updatedQuestion.CorrectAnswer = convertCorrectAnswerToJSONBForUpdate(req)
+	}
+
+	// Update tags if provided
+	if len(req.GetTag()) > 0 {
+		updatedQuestion.Tag = util.StringSliceToPgTextArray(req.GetTag())
+	}
+
+	// Update optional classification fields
+	if req.GetGrade() != "" {
+		updatedQuestion.Grade = util.StringToPgText(req.GetGrade())
+	}
+	if req.GetSubject() != "" {
+		updatedQuestion.Subject = util.StringToPgText(req.GetSubject())
+	}
+	if req.GetChapter() != "" {
+		updatedQuestion.Chapter = util.StringToPgText(req.GetChapter())
+	}
+	if req.GetLevel() != "" {
+		updatedQuestion.Level = util.StringToPgText(req.GetLevel())
+	}
+
+	// Update question code if provided
+	if req.GetQuestionCodeId() != "" {
+		updatedQuestion.QuestionCodeID = util.StringToPgText(req.GetQuestionCodeId())
+	}
+
+	// Update status if provided
+	if req.GetStatus() != common.QuestionStatus_QUESTION_STATUS_UNSPECIFIED {
+		updatedQuestion.Status = util.StringToPgText(convertProtoQuestionStatusToString(req.GetStatus()))
+	}
+
+	// Update difficulty if provided
+	if req.GetDifficulty() != common.DifficultyLevel_DIFFICULTY_LEVEL_UNSPECIFIED {
+		updatedQuestion.Difficulty = util.StringToPgText(convertProtoDifficultyToString(req.GetDifficulty()))
+	}
+
+	// Note: Creator is not updated - preserve original creator
+	_ = userID // userID is for audit trail, not for updating creator field
+
+	// Update question through service layer
+	err = s.questionService.UpdateQuestion(ctx, updatedQuestion)
+	if err != nil {
+		// Check for specific errors
+		if strings.Contains(err.Error(), "not found") {
+			return nil, status.Errorf(codes.NotFound, err.Error())
+		}
+		if strings.Contains(err.Error(), "does not exist") {
+			return nil, status.Errorf(codes.InvalidArgument, err.Error())
+		}
+		return nil, status.Errorf(codes.Internal, "failed to update question: %v", err)
+	}
+
+	// Get updated question to return with all fields populated
+	updatedQuestionEntity, err := s.questionService.GetQuestionByID(ctx, req.GetId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get updated question: %v", err)
+	}
+
+	// Convert entity back to proto
+	protoQuestion := convertQuestionToProto(&updatedQuestionEntity)
+
+	return &v1.UpdateQuestionResponse{
+		Response: &common.Response{
+			Success: true,
+			Message: "Question updated successfully",
+		},
+		Question: protoQuestion,
+	}, nil
+}
+
+// DeleteQuestion deletes a question
+func (s *QuestionServiceServer) DeleteQuestion(ctx context.Context, req *v1.DeleteQuestionRequest) (*v1.DeleteQuestionResponse, error) {
+	// Get user from context for authorization
+	_, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
+	}
+
+	// Validate request
+	if req.GetId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "question ID is required")
+	}
+
+	// Delete question through service layer
+	err = s.questionService.DeleteQuestion(ctx, req.GetId())
+	if err != nil {
+		// Check for specific errors
+		if strings.Contains(err.Error(), "not found") {
+			return nil, status.Errorf(codes.NotFound, err.Error())
+		}
+		return nil, status.Errorf(codes.Internal, "failed to delete question: %v", err)
+	}
+
+	return &v1.DeleteQuestionResponse{
+		Response: &common.Response{
+			Success: true,
+			Message: "Question deleted successfully",
+		},
 	}, nil
 }
 
@@ -762,4 +978,160 @@ func (s *QuestionServiceServer) ImportLatex(ctx context.Context, req *v1.ImportL
 		QuestionCodesCreated: createdCodesList,
 		Summary:              summary,
 	}, nil
+}
+
+// Helper functions for converting protobuf enums to strings
+
+// convertProtoQuestionTypeToString converts protobuf QuestionType to string
+func convertProtoQuestionTypeToString(t common.QuestionType) string {
+	switch t {
+	case common.QuestionType_QUESTION_TYPE_MULTIPLE_CHOICE:
+		return "MC"
+	case common.QuestionType_QUESTION_TYPE_TRUE_FALSE:
+		return "TF"
+	case common.QuestionType_QUESTION_TYPE_SHORT_ANSWER:
+		return "SA"
+	case common.QuestionType_QUESTION_TYPE_ESSAY:
+		return "ES"
+	case common.QuestionType_QUESTION_TYPE_MATCHING:
+		return "MA"
+	default:
+		return "MC" // Default to MC if unspecified
+	}
+}
+
+// convertProtoQuestionStatusToString converts protobuf QuestionStatus to string
+func convertProtoQuestionStatusToString(s common.QuestionStatus) string {
+	switch s {
+	case common.QuestionStatus_QUESTION_STATUS_ACTIVE:
+		return "ACTIVE"
+	case common.QuestionStatus_QUESTION_STATUS_PENDING:
+		return "PENDING"
+	case common.QuestionStatus_QUESTION_STATUS_INACTIVE:
+		return "INACTIVE"
+	case common.QuestionStatus_QUESTION_STATUS_ARCHIVED:
+		return "ARCHIVED"
+	default:
+		return "PENDING" // Default to PENDING if unspecified
+	}
+}
+
+// convertProtoDifficultyToString converts protobuf DifficultyLevel to string
+func convertProtoDifficultyToString(d common.DifficultyLevel) string {
+	switch d {
+	case common.DifficultyLevel_DIFFICULTY_LEVEL_EASY:
+		return "EASY"
+	case common.DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM:
+		return "MEDIUM"
+	case common.DifficultyLevel_DIFFICULTY_LEVEL_HARD:
+		return "HARD"
+	case common.DifficultyLevel_DIFFICULTY_LEVEL_EXPERT:
+		return "EXPERT"
+	default:
+		return "MEDIUM" // Default to MEDIUM if unspecified
+	}
+}
+
+// convertAnswersToJSONB converts protobuf answer data to pgtype.JSONB
+func convertAnswersToJSONB(req *v1.CreateQuestionRequest) pgtype.JSONB {
+	switch answerData := req.GetAnswerData().(type) {
+	case *v1.CreateQuestionRequest_StructuredAnswers:
+		// Convert AnswerList to JSON bytes
+		if answerData.StructuredAnswers != nil {
+			jsonBytes, err := json.Marshal(answerData.StructuredAnswers)
+			if err != nil {
+				return pgtype.JSONB{Status: pgtype.Null}
+			}
+			return util.BytesToPgJSONB(jsonBytes)
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	case *v1.CreateQuestionRequest_JsonAnswers:
+		// Use JSON string directly
+		if answerData.JsonAnswers != "" {
+			return util.BytesToPgJSONB([]byte(answerData.JsonAnswers))
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	default:
+		return pgtype.JSONB{Status: pgtype.Null}
+	}
+}
+
+// convertCorrectAnswerToJSONB converts protobuf correct answer data to pgtype.JSONB
+func convertCorrectAnswerToJSONB(req *v1.CreateQuestionRequest) pgtype.JSONB {
+	switch correctData := req.GetCorrectAnswerData().(type) {
+	case *v1.CreateQuestionRequest_StructuredCorrect:
+		// Convert CorrectAnswer to JSON bytes
+		if correctData.StructuredCorrect != nil {
+			jsonBytes, err := json.Marshal(correctData.StructuredCorrect)
+			if err != nil {
+				return pgtype.JSONB{Status: pgtype.Null}
+			}
+			return util.BytesToPgJSONB(jsonBytes)
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	case *v1.CreateQuestionRequest_JsonCorrectAnswer:
+		// Use JSON string directly
+		if correctData.JsonCorrectAnswer != "" {
+			return util.BytesToPgJSONB([]byte(correctData.JsonCorrectAnswer))
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	default:
+		return pgtype.JSONB{Status: pgtype.Null}
+	}
+}
+
+// convertAnswersToJSONBForUpdate converts protobuf answer data to pgtype.JSONB for UpdateQuestionRequest
+func convertAnswersToJSONBForUpdate(req *v1.UpdateQuestionRequest) pgtype.JSONB {
+	switch answerData := req.GetAnswerData().(type) {
+	case *v1.UpdateQuestionRequest_StructuredAnswers:
+		// Convert AnswerList to JSON bytes
+		if answerData.StructuredAnswers != nil {
+			jsonBytes, err := json.Marshal(answerData.StructuredAnswers)
+			if err != nil {
+				return pgtype.JSONB{Status: pgtype.Null}
+			}
+			return util.BytesToPgJSONB(jsonBytes)
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	case *v1.UpdateQuestionRequest_JsonAnswers:
+		// Use JSON string directly
+		if answerData.JsonAnswers != "" {
+			return util.BytesToPgJSONB([]byte(answerData.JsonAnswers))
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	default:
+		return pgtype.JSONB{Status: pgtype.Null}
+	}
+}
+
+// convertCorrectAnswerToJSONBForUpdate converts protobuf correct answer data to pgtype.JSONB for UpdateQuestionRequest
+func convertCorrectAnswerToJSONBForUpdate(req *v1.UpdateQuestionRequest) pgtype.JSONB {
+	switch correctData := req.GetCorrectAnswerData().(type) {
+	case *v1.UpdateQuestionRequest_StructuredCorrect:
+		// Convert CorrectAnswer to JSON bytes
+		if correctData.StructuredCorrect != nil {
+			jsonBytes, err := json.Marshal(correctData.StructuredCorrect)
+			if err != nil {
+				return pgtype.JSONB{Status: pgtype.Null}
+			}
+			return util.BytesToPgJSONB(jsonBytes)
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	case *v1.UpdateQuestionRequest_JsonCorrectAnswer:
+		// Use JSON string directly
+		if correctData.JsonCorrectAnswer != "" {
+			return util.BytesToPgJSONB([]byte(correctData.JsonCorrectAnswer))
+		}
+		return pgtype.JSONB{Status: pgtype.Null}
+
+	default:
+		return pgtype.JSONB{Status: pgtype.Null}
+	}
 }

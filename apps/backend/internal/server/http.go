@@ -247,15 +247,19 @@ func (s *HTTPServer) registerServices(ctx context.Context, endpoint string, opts
 	}
 
 	// Register MapCodeService
-	// TODO: MapCodeService registration disabled - service not available yet
-	// if err := v1.RegisterMapCodeServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
-	//     return fmt.Errorf("failed to register MapCodeService: %w", err)
-	// }
+	if err := v1.RegisterMapCodeServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+		return fmt.Errorf("failed to register MapCodeService: %w", err)
+	}
 
-	// Register ExamService (when available)
-	// if err := v1.RegisterExamServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
-	//     return fmt.Errorf("failed to register ExamService: %w", err)
-	// }
+	// Register NotificationService
+	if err := v1.RegisterNotificationServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+		return fmt.Errorf("failed to register NotificationService: %w", err)
+	}
+
+	// Register ExamService
+	if err := v1.RegisterExamServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+		return fmt.Errorf("failed to register ExamService: %w", err)
+	}
 
 	return nil
 }

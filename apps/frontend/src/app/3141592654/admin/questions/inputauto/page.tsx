@@ -39,7 +39,7 @@ import {
   QuestionType,
   QuestionStatus
 } from '@/types/question';
-import { MockQuestionsService } from '@/services/mock/questions';
+import { QuestionLatexService, ImportLatexResponse } from '@/services/grpc/question-latex.service';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**
@@ -55,7 +55,7 @@ export default function InputAutoQuestionsPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [parsedQuestions, setParsedQuestions] = useState<Question[]>([]);
+  const [importResult, setImportResult] = useState<ImportLatexResponse | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   /**
@@ -90,11 +90,12 @@ export default function InputAutoQuestionsPage() {
 
     setSelectedFile(file);
     setUploadError(null);
-    setParsedQuestions([]);
+    setImportResult(null);
   };
 
   /**
    * Handle file upload and processing
+   * Uses QuestionLatexService.importLatex to import all questions at once
    */
   const handleUploadFile = async () => {
     if (!selectedFile) return;
@@ -115,71 +116,59 @@ export default function InputAutoQuestionsPage() {
         });
       }, 200);
 
-      const result = await MockQuestionsService.uploadAutoFile(selectedFile);
+      // Read file content
+      const fileContent = await selectedFile.text();
+
+      // Import questions using QuestionLatexService
+      const result = await QuestionLatexService.importLatex(
+        { latex: fileContent },
+        {
+          upsertMode: false,      // Don't update existing questions
+          autoCreateCodes: true,  // Auto-create question codes
+        }
+      );
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (result.error) {
-        setUploadError(result.error);
-        setParsedQuestions([]);
-      } else if (result.data) {
-        setParsedQuestions(result.data);
+      if (result.error_count > 0) {
+        const errorMessages = result.errors.map(e =>
+          `Question ${e.index}: ${e.error}`
+        ).join('\n');
+        setUploadError(errorMessages);
+        setImportResult(result);
+
+        toast({
+          title: 'Hoàn thành với lỗi',
+          description: `Đã import ${result.created_count}/${result.total_processed} câu hỏi. ${result.error_count} lỗi.`,
+          variant: 'destructive'
+        });
+      } else {
+        setImportResult(result);
         setUploadError(null);
+
+        const warningMessage = result.warnings.length > 0
+          ? ` Cảnh báo: ${result.warnings.join(', ')}`
+          : '';
+
         toast({
           title: 'Thành công',
-          description: `Đã phân tích ${result.data.length} câu hỏi từ file`,
+          description: `Đã import ${result.created_count} câu hỏi từ file.${warningMessage}`,
           variant: 'success'
         });
+
+        // Redirect to questions list after successful import
+        setTimeout(() => {
+          router.push(ADMIN_PATHS.QUESTIONS);
+        }, 2000);
       }
     } catch (error) {
       console.error('Lỗi khi upload file:', error);
-      setUploadError('Không thể xử lý file');
-      setParsedQuestions([]);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  /**
-   * Handle save all questions
-   */
-  const handleSaveAllQuestions = async () => {
-    if (parsedQuestions.length === 0) return;
-
-    try {
-      setIsUploading(true);
-
-      // Save each question
-      for (const question of parsedQuestions) {
-        await MockQuestionsService.createQuestion({
-          ...question,
-          status: QuestionStatus.PENDING,
-          usageCount: 0,
-          creator: 'current-user'
-        });
-      }
-
-      toast({
-        title: 'Thành công',
-        description: `Đã lưu ${parsedQuestions.length} câu hỏi thành công`,
-        variant: 'success'
-      });
-
-      // Reset form
-      setSelectedFile(null);
-      setParsedQuestions([]);
-      setUploadProgress(0);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-
-      router.push(ADMIN_PATHS.QUESTIONS);
-    } catch (error) {
-      console.error('Lỗi khi lưu câu hỏi:', error);
+      setUploadError(error instanceof Error ? error.message : 'Không thể xử lý file');
+      setImportResult(null);
       toast({
         title: 'Lỗi',
-        description: 'Không thể lưu câu hỏi',
+        description: error instanceof Error ? error.message : 'Không thể xử lý file',
         variant: 'destructive'
       });
     } finally {
@@ -188,11 +177,28 @@ export default function InputAutoQuestionsPage() {
   };
 
   /**
+   * Handle save all questions
+   * Note: Questions are already imported by handleUploadFile
+   * This function just redirects to questions list
+   */
+  const handleSaveAllQuestions = async () => {
+    if (!importResult) return;
+
+    toast({
+      title: 'Thành công',
+      description: `Đã import ${importResult.created_count} câu hỏi thành công`,
+      variant: 'success'
+    });
+
+    router.push(ADMIN_PATHS.QUESTIONS);
+  };
+
+  /**
    * Handle clear all
    */
   const handleClearAll = () => {
     setSelectedFile(null);
-    setParsedQuestions([]);
+    setImportResult(null);
     setUploadProgress(0);
     setUploadError(null);
     if (fileInputRef.current) {
@@ -361,106 +367,102 @@ export default function InputAutoQuestionsPage() {
           </CardContent>
         </Card>
 
-        {/* Parsed questions preview */}
-        {parsedQuestions.length > 0 && (
+        {/* Import Result Summary */}
+        {importResult && (
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  Kết quả phân tích ({parsedQuestions.length} câu hỏi)
+                  {importResult.error_count === 0 ? (
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                  ) : (
+                    <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                  )}
+                  Kết quả import
                 </CardTitle>
                 <div className="flex gap-2">
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={handleClearAll}
                   >
-                    Xóa tất cả
+                    Xóa kết quả
                   </Button>
-                  <Button 
+                  <Button
                     onClick={handleSaveAllQuestions}
-                    disabled={isUploading}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
-                    {isUploading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    Lưu tất cả
+                    Xem danh sách câu hỏi
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">#</TableHead>
-                      <TableHead>Nội dung</TableHead>
-                      <TableHead>Loại</TableHead>
-                      <TableHead>Mã câu hỏi</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead className="w-12"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {parsedQuestions.map((question, index) => (
-                      <TableRow key={question.id}>
-                        <TableCell className="font-medium">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-md">
-                            <p className="font-medium text-foreground truncate">
-                              {question.content}
-                            </p>
-                            {question.source && (
-                              <p className="text-sm text-gray-500 truncate">
-                                Nguồn: {question.source}
-                              </p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {renderQuestionTypeBadge(question.type)}
-                        </TableCell>
-                        <TableCell>
-                          <code className="text-sm bg-gray-100 px-2 py-1 rounded">
-                            {question.questionCodeId}
-                          </code>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {question.tag.slice(0, 2).map((tag, tagIndex) => (
-                              <Badge key={tagIndex} variant="outline" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {question.tag.length > 2 && (
-                              <Badge variant="outline" className="text-xs">
-                                +{question.tag.length - 2}
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => {
-                              // Preview question logic
-                              console.log('Preview question:', question.id);
-                            }}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="space-y-4">
+                {/* Summary Statistics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Tổng số</p>
+                    <p className="text-2xl font-bold text-blue-600">{importResult.total_processed}</p>
+                  </div>
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Đã tạo</p>
+                    <p className="text-2xl font-bold text-green-600">{importResult.created_count}</p>
+                  </div>
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Đã cập nhật</p>
+                    <p className="text-2xl font-bold text-yellow-600">{importResult.updated_count}</p>
+                  </div>
+                  <div className="p-4 bg-red-50 rounded-lg">
+                    <p className="text-sm text-gray-600">Lỗi</p>
+                    <p className="text-2xl font-bold text-red-600">{importResult.error_count}</p>
+                  </div>
+                </div>
+
+                {/* Created Question Codes */}
+                {importResult.created_codes.length > 0 && (
+                  <div>
+                    <h3 className="font-medium mb-2">Mã câu hỏi đã tạo:</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {importResult.created_codes.map((code, index) => (
+                        <Badge key={index} variant="outline">
+                          {code}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Warnings */}
+                {importResult.warnings.length > 0 && (
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Cảnh báo:</strong>
+                      <ul className="list-disc list-inside mt-2 text-sm space-y-1">
+                        {importResult.warnings.map((warning, index) => (
+                          <li key={index}>{warning}</li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Errors */}
+                {importResult.errors.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Lỗi:</strong>
+                      <ul className="list-disc list-inside mt-2 text-sm space-y-1">
+                        {importResult.errors.map((error, index) => (
+                          <li key={index}>
+                            Question {error.index}: {error.error}
+                          </li>
+                        ))}
+                      </ul>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
             </CardContent>
           </Card>

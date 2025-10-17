@@ -31,7 +31,7 @@ import {
   QuestionStatus,
   AnswerOption
 } from '@/types/question';
-import { MockQuestionsService } from '@/services/mock/questions';
+import { QuestionLatexService } from '@/services/grpc/question-latex.service';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**
@@ -67,7 +67,8 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
 \\end{ex}`;
 
   /**
-   * Handle LaTeX parsing
+   * Handle LaTeX parsing and creation
+   * Uses QuestionLatexService.createFromLatex to parse and create in one step
    */
   const handleParseLatex = async () => {
     if (!latexContent.trim()) {
@@ -83,24 +84,53 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
       setIsLoading(true);
       setParseError(null);
 
-      const result = await MockQuestionsService.parseLatexContent(latexContent);
-      
-      if (result.error) {
-        setParseError(result.error);
+      // Use createFromLatex to parse and create question in one step
+      const result = await QuestionLatexService.createFromLatex(
+        latexContent,
+        true // auto_create_code = true
+      );
+
+      if (!result.success) {
+        setParseError(result.error || 'Không thể phân tích LaTeX');
         setParsedQuestion(null);
-      } else if (result.data) {
-        setParsedQuestion(result.data);
+        toast({
+          title: 'Lỗi',
+          description: result.error || 'Không thể phân tích và tạo câu hỏi từ LaTeX',
+          variant: 'destructive'
+        });
+      } else {
+        // Question created successfully
+        setParsedQuestion({
+          id: result.question_id,
+          questionCodeId: result.question_code,
+          rawContent: latexContent
+        } as Partial<Question>);
         setParseError(null);
+
+        const warningMessage = result.warnings.length > 0
+          ? `Đã tạo câu hỏi thành công. Cảnh báo: ${result.warnings.join(', ')}`
+          : 'Đã phân tích và tạo câu hỏi từ LaTeX thành công';
+
         toast({
           title: 'Thành công',
-          description: 'Đã phân tích LaTeX thành công',
+          description: warningMessage,
           variant: 'success'
         });
+
+        // Redirect to questions list after successful creation
+        setTimeout(() => {
+          router.push(ADMIN_PATHS.QUESTIONS);
+        }, 1500);
       }
     } catch (error) {
       console.error('Lỗi khi phân tích LaTeX:', error);
       setParseError('Không thể phân tích nội dung LaTeX');
       setParsedQuestion(null);
+      toast({
+        title: 'Lỗi',
+        description: error instanceof Error ? error.message : 'Không thể phân tích LaTeX',
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +138,8 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
 
   /**
    * Handle save parsed question
+   * Note: This is now redundant since handleParseLatex creates the question directly
+   * Keeping for backward compatibility
    */
   const handleSaveQuestion = async () => {
     if (!parsedQuestion) {
@@ -119,48 +151,15 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
       return;
     }
 
-    try {
-      setIsLoading(true);
+    // Question already created by handleParseLatex, just redirect
+    toast({
+      title: 'Thành công',
+      description: 'Câu hỏi đã được lưu thành công',
+      variant: 'success'
+    });
 
-      const questionData = {
-        content: parsedQuestion?.content || 'Nội dung từ LaTeX',
-        rawContent: latexContent,
-        type: parsedQuestion?.type || QuestionType.MC,
-        tag: parsedQuestion?.tag || ['LaTeX'],
-        questionCodeId: parsedQuestion?.questionCodeId || 'AUTO_GENERATED',
-        status: QuestionStatus.PENDING,
-        usageCount: 0,
-        creator: 'current-user',
-        answers: parsedQuestion?.answers,
-        correctAnswer: parsedQuestion?.correctAnswer,
-        solution: parsedQuestion?.solution,
-        source: parsedQuestion?.source,
-        difficulty: parsedQuestion?.difficulty,
-        subcount: parsedQuestion?.subcount
-      };
-
-      await MockQuestionsService.createQuestion(questionData);
-
-      toast({
-        title: 'Thành công',
-        description: 'Câu hỏi đã được lưu thành công',
-        variant: 'success'
-      });
-
-      // Reset form
-      setLatexContent('');
-      setParsedQuestion(null);
-      setParseError(null);
-    } catch (error) {
-      console.error('Lỗi khi lưu câu hỏi:', error);
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể lưu câu hỏi',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // Redirect to questions list
+    router.push(ADMIN_PATHS.QUESTIONS);
   };
 
   /**

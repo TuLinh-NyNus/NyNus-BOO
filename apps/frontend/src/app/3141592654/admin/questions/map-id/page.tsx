@@ -35,7 +35,7 @@ import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/common/error-boundary';
 
 import { QuestionCode } from '@/types/question';
-import { MockQuestionsService } from '@/services/mock/questions';
+import { MapCodeService } from '@/services/grpc/mapcode.service';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 /**
@@ -69,24 +69,42 @@ export default function MapIdQuestionsPage() {
       setIsDecoding(true);
       setDecodeError(null);
 
-      const result = await MockQuestionsService.decodeMapId(inputCode.trim());
-      
-      if (result.error) {
-        setDecodeError(result.error);
-        setDecodedResult(null);
-      } else if (result.data) {
-        setDecodedResult(result.data);
-        setDecodeError(null);
-        toast({
-          title: 'Thành công',
-          description: 'Đã giải mã thành công',
-          variant: 'success'
-        });
-      }
+      // Call MapCodeService to translate the question code
+      const translationData = await MapCodeService.translateCode(inputCode.trim());
+
+      // Determine format based on code length
+      const cleanCode = inputCode.trim().toUpperCase();
+      const format: 'ID5' | 'ID6' = cleanCode.includes('-') ? 'ID6' : 'ID5';
+
+      // Map MapCodeTranslationData to QuestionCode
+      const questionCode: QuestionCode = {
+        code: translationData.questionCode,
+        format,
+        grade: translationData.grade || '',
+        subject: translationData.subject || '',
+        chapter: translationData.chapter || '',
+        lesson: translationData.lesson || '',
+        form: translationData.form,
+        level: translationData.level || ''
+      };
+
+      setDecodedResult(questionCode);
+      setDecodeError(null);
+      toast({
+        title: 'Thành công',
+        description: 'Đã giải mã thành công',
+        variant: 'success'
+      });
     } catch (error) {
       console.error('Lỗi khi giải mã Map ID:', error);
-      setDecodeError('Không thể giải mã mã câu hỏi');
+      const errorMessage = error instanceof Error ? error.message : 'Không thể giải mã mã câu hỏi';
+      setDecodeError(errorMessage);
       setDecodedResult(null);
+      toast({
+        title: 'Lỗi',
+        description: errorMessage,
+        variant: 'destructive'
+      });
     } finally {
       setIsDecoding(false);
     }
