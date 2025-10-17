@@ -28,7 +28,6 @@ import {
   Question,
   QuestionType,
   QuestionDifficulty,
-  QuestionStatus,
   AnswerOption
 } from '@/types/question';
 import { QuestionLatexService } from '@/services/grpc/question-latex.service';

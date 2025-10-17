@@ -176,7 +176,25 @@ export function useQuestionFilters(
       }
 
       // Map protobuf questions to frontend Question type
-      const mappedQuestions: Question[] = (response.questions || []).map(q => ({
+      const mappedQuestions: Question[] = (response.questions || []).map((q: {
+        id: string;
+        content: string;
+        raw_content: string;
+        type: string;
+        tag: string[];
+        question_code_id: string;
+        status: string;
+        difficulty: string;
+        source?: string;
+        solution?: string;
+        subcount?: string;
+        usage_count?: number;
+        creator?: string;
+        feedback?: number;
+        created_at?: string;
+        updated_at?: string;
+        structured_answers?: Array<{ id: string; content: string; is_correct: boolean; explanation?: string }>;
+      }) => ({
         id: q.id,
         content: q.content,
         rawContent: q.raw_content,
@@ -193,7 +211,7 @@ export function useQuestionFilters(
         feedback: q.feedback || 0,
         createdAt: q.created_at || new Date().toISOString(),
         updatedAt: q.updated_at || new Date().toISOString(),
-        answers: q.structured_answers?.map(a => ({
+        answers: q.structured_answers?.map((a: { id: string; content: string; is_correct: boolean; explanation?: string }) => ({
           id: a.id,
           content: a.content,
           isCorrect: a.is_correct,

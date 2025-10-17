@@ -233,7 +233,7 @@ export function useBackendNotifications(): UseBackendNotificationsReturn {
   const updatePreferences = useCallback(async (newPreferences: Partial<NotificationPreferences>): Promise<boolean> => {
     try {
       // Map NotificationPreferences format to ProfileService format
-      const profilePrefs: any = {};
+      const profilePrefs: Record<string, boolean | string> = {};
 
       if (newPreferences.emailNotifications !== undefined) {
         profilePrefs.email_notifications = newPreferences.emailNotifications;

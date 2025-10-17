@@ -43,6 +43,20 @@ export const DEFAULT_OPTIMIZATION_CONFIG: OptimizationConfig = {
 
 /**
  * Memoized question list với smart comparison
+ *
+ * @description
+ * Hook này tối ưu hóa performance bằng cách memoize question list và chỉ re-render
+ * khi questions hoặc dependencies thay đổi. Sử dụng deep comparison để đảm bảo
+ * object references nhất quán.
+ *
+ * @param {Question[]} questions - Danh sách câu hỏi cần memoize
+ * @param {unknown[]} dependencies - Dependencies bổ sung để trigger re-memoization
+ * @returns {Question[]} Memoized question list với consistent object references
+ *
+ * @example
+ * ```typescript
+ * const memoizedQuestions = useMemoizedQuestions(questions, [filters, sortOrder]);
+ * ```
  */
 export function useMemoizedQuestions(
   questions: Question[],
@@ -219,6 +233,26 @@ export function useLazyQuestionImages(_questions: Question[]): {
 
 /**
  * Batch processing cho large operations
+ *
+ * @description
+ * Hook này xử lý large datasets theo batches để tránh blocking UI thread.
+ * Sử dụng requestAnimationFrame để đảm bảo smooth rendering và cho phép
+ * cancel operation bất kỳ lúc nào.
+ *
+ * @template T - Type của items cần process
+ * @param {T[]} items - Danh sách items cần xử lý
+ * @param {number} batchSize - Số lượng items xử lý mỗi batch (default: 50)
+ * @param {number} processingDelay - Delay giữa các batches in ms (default: 10)
+ * @returns {Object} Object chứa processed items, processing state và control functions
+ *
+ * @example
+ * ```typescript
+ * const { processedItems, isProcessing, progress, startProcessing } =
+ *   useBatchProcessor(largeQuestionList, 100, 20);
+ *
+ * // Start processing
+ * startProcessing();
+ * ```
  */
 export function useBatchProcessor<T>(
   items: T[],

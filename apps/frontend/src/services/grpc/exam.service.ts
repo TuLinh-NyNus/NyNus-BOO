@@ -67,26 +67,6 @@ const examServiceClient = new ExamServiceClient(GRPC_ENDPOINT);
 // ===== ENUM MAPPERS =====
 
 /**
- * Map frontend ExamStatus to protobuf ExamStatus
- * Frontend: 'ACTIVE' | 'PENDING' | 'INACTIVE' | 'ARCHIVED'
- * Protobuf: EXAM_STATUS_ACTIVE | EXAM_STATUS_PENDING | EXAM_STATUS_INACTIVE | EXAM_STATUS_ARCHIVED
- */
-function mapExamStatusToPb(status: ExamStatus): PbExamStatus {
-  switch (status) {
-    case ExamStatus.ACTIVE:
-      return PbExamStatus.EXAM_STATUS_ACTIVE;
-    case ExamStatus.PENDING:
-      return PbExamStatus.EXAM_STATUS_PENDING;
-    case ExamStatus.INACTIVE:
-      return PbExamStatus.EXAM_STATUS_INACTIVE;
-    case ExamStatus.ARCHIVED:
-      return PbExamStatus.EXAM_STATUS_ARCHIVED;
-    default:
-      return PbExamStatus.EXAM_STATUS_UNSPECIFIED;
-  }
-}
-
-/**
  * Map protobuf ExamStatus to frontend ExamStatus
  */
 function mapExamStatusFromPb(status: PbExamStatus): ExamStatus {
@@ -165,24 +145,6 @@ function mapDifficultyFromPb(difficulty: PbDifficulty): QuestionDifficulty {
       return QuestionDifficulty.EXPERT;
     default:
       return QuestionDifficulty.MEDIUM;
-  }
-}
-
-/**
- * Map frontend AttemptStatus to protobuf AttemptStatus
- */
-function mapAttemptStatusToPb(status: AttemptStatus): PbAttemptStatus {
-  switch (status) {
-    case AttemptStatus.IN_PROGRESS:
-      return PbAttemptStatus.ATTEMPT_STATUS_IN_PROGRESS;
-    case AttemptStatus.SUBMITTED:
-      return PbAttemptStatus.ATTEMPT_STATUS_SUBMITTED;
-    case AttemptStatus.GRADED:
-      return PbAttemptStatus.ATTEMPT_STATUS_GRADED;
-    case AttemptStatus.CANCELLED:
-      return PbAttemptStatus.ATTEMPT_STATUS_CANCELLED;
-    default:
-      return PbAttemptStatus.ATTEMPT_STATUS_UNSPECIFIED;
   }
 }
 

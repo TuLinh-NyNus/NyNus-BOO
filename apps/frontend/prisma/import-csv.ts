@@ -13,18 +13,24 @@ import path from 'path';
 
 const prisma = new PrismaClient();
 
+// Type for parsed answer
+interface ParsedAnswer {
+  id: string;
+  content: string;
+}
+
 // Helper function to generate UUID
 function generateId(): string {
   return crypto.randomUUID();
 }
 
 // Helper function to parse answers for TF type
-function parseTFAnswers(answersStr: string): any[] {
+function parseTFAnswers(answersStr: string): ParsedAnswer[] {
   if (!answersStr) return [];
-  
+
   // Split by semicolon
   const parts = answersStr.split(';').map(s => s.trim()).filter(s => s);
-  
+
   return parts.map((content, index) => ({
     id: (index + 1).toString(),
     content: content
@@ -32,12 +38,12 @@ function parseTFAnswers(answersStr: string): any[] {
 }
 
 // Helper function to parse correct answers for TF type
-function parseTFCorrectAnswers(correctStr: string): any[] {
+function parseTFCorrectAnswers(correctStr: string): ParsedAnswer[] {
   if (!correctStr) return [];
-  
+
   // Split by semicolon
   const parts = correctStr.split(';').map(s => s.trim()).filter(s => s);
-  
+
   return parts.map((content, index) => ({
     id: (index + 1).toString(),
     content: content
@@ -45,12 +51,12 @@ function parseTFCorrectAnswers(correctStr: string): any[] {
 }
 
 // Helper function to parse answers for MC type
-function parseMCAnswers(answersStr: string): any[] {
+function parseMCAnswers(answersStr: string): ParsedAnswer[] {
   if (!answersStr) return [];
-  
+
   // Split by semicolon
   const parts = answersStr.split(';').map(s => s.trim()).filter(s => s);
-  
+
   return parts.map((content, index) => ({
     id: (index + 1).toString(),
     content: content

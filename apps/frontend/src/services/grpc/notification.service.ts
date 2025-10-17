@@ -3,20 +3,17 @@
  * ======================
  * Real gRPC client implementation for NotificationService
  * Replaces mock implementation with actual backend calls
- * 
+ *
  * @author NyNus Development Team
  * @version 2.0.0 - Real gRPC Implementation
  * @created 2025-01-19
  */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // gRPC-Web imports
 import { NotificationServiceClient } from '@/generated/v1/NotificationServiceClientPb';
 import {
   Notification as PbNotification,
   GetNotificationsRequest,
-  GetNotificationRequest,
   MarkAsReadRequest,
   MarkAllAsReadRequest,
   DeleteNotificationRequest,
@@ -272,7 +269,7 @@ export class NotificationService {
    */
   static subscribeToNotifications(
     onNotification: (notification: BackendNotification) => void,
-    onError: (error: Error) => void
+    _onError: (error: Error) => void
   ): () => void {
     // Mock WebSocket connection
     console.warn('subscribeToNotifications: Mock implementation - WebSocket not implemented');

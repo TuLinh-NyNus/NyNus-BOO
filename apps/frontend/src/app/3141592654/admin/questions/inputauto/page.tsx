@@ -2,16 +2,14 @@
 
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  ArrowLeft, 
-  Upload, 
-  FileText, 
-  CheckCircle, 
-  AlertTriangle, 
+import {
+  ArrowLeft,
+  Upload,
+  FileText,
+  CheckCircle,
+  AlertTriangle,
   Loader2,
-  Download,
-  Eye,
-  Save
+  Download
 } from 'lucide-react';
 
 import {
@@ -23,22 +21,11 @@ import {
   Alert,
   AlertDescription,
   Badge,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   Progress
 } from '@/components/ui';
 import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/common/error-boundary';
 
-import {
-  Question,
-  QuestionType,
-  QuestionStatus
-} from '@/types/question';
 import { QuestionLatexService, ImportLatexResponse } from '@/services/grpc/question-latex.service';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 
@@ -204,35 +191,6 @@ export default function InputAutoQuestionsPage() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  /**
-   * Render question type badge
-   */
-  const renderQuestionTypeBadge = (type: QuestionType) => {
-    const typeLabels = {
-      [QuestionType.MC]: 'Trắc nghiệm',
-      [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
-      [QuestionType.TF]: 'Đúng/Sai',
-      [QuestionType.SA]: 'Tự luận ngắn',
-      [QuestionType.ES]: 'Tự luận',
-      [QuestionType.MA]: 'Ghép đôi'
-    };
-
-    const typeColors = {
-      [QuestionType.MC]: 'bg-blue-100 text-blue-800',
-      [QuestionType.MULTIPLE_CHOICE]: 'bg-blue-100 text-blue-800',
-      [QuestionType.TF]: 'bg-green-100 text-green-800',
-      [QuestionType.SA]: 'bg-yellow-100 text-yellow-800',
-      [QuestionType.ES]: 'bg-purple-100 text-purple-800',
-      [QuestionType.MA]: 'bg-pink-100 text-pink-800'
-    };
-
-    return (
-      <Badge className={typeColors[type]}>
-        {typeLabels[type]}
-      </Badge>
-    );
   };
 
   return (

@@ -8,9 +8,6 @@
  * @updated 2025-01-19 - Consolidated service structure
  */
 
-// ===== MOCK SERVICES =====
-export * from './mock/questions';
-
 // ===== PUBLIC SERVICES =====
 export * from './public';
 

@@ -119,19 +119,24 @@ const environmentOverrides: Partial<FeatureFlags> = {
 
 /**
  * Merge environment overrides with defaults
+ *
+ * @description
+ * Merges default feature flags with environment-specific overrides.
+ * Only applies overrides that are explicitly set (not undefined).
+ *
+ * @returns {FeatureFlags} Merged feature flags configuration
  */
 const mergeFlags = (): FeatureFlags => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const merged: any = { ...defaultFlags };
-  
+  const merged: Partial<FeatureFlags> = { ...defaultFlags };
+
   // Apply environment overrides only if explicitly set
   Object.keys(environmentOverrides).forEach(key => {
     const envValue = environmentOverrides[key as keyof FeatureFlags];
     if (envValue !== undefined) {
-      merged[key] = envValue;
+      merged[key as keyof FeatureFlags] = envValue;
     }
   });
-  
+
   return merged as FeatureFlags;
 };
 

@@ -327,7 +327,7 @@ export const useExamAttemptStore = create<ExamAttemptStoreState>()(
 
         // Submit exam attempt
         submitAttempt: async () => {
-          const { currentAttempt, answers } = get();
+          const { currentAttempt, answers: _answers } = get();
           if (!currentAttempt) {
             return null;
           }
@@ -344,7 +344,7 @@ export const useExamAttemptStore = create<ExamAttemptStoreState>()(
             // Force save any unsaved answers
             await get().forceAutoSave();
 
-            const result = await ExamService.submitExam(currentAttempt.id, answers.answers);
+            const result = await ExamService.submitExam(currentAttempt.id);
 
             set((state) => {
               state.submittedResult = result;
@@ -541,7 +541,7 @@ export const useExamAttemptStore = create<ExamAttemptStoreState>()(
           }
 
           try {
-            await ExamService.saveAnswer(currentAttempt.id, questionId, answer);
+            await ExamService.saveAnswer(currentAttempt.id, questionId, typeof answer === 'string' ? answer : JSON.stringify(answer));
 
             set((state) => {
               // Update answer

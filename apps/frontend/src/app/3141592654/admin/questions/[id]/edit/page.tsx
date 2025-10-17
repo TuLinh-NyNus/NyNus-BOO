@@ -78,7 +78,7 @@ export default function EditQuestionPage() {
           createdAt: response.question.created_at || new Date().toISOString(),
           updatedAt: response.question.updated_at || new Date().toISOString(),
           // Map structured_answers to answers
-          answers: response.question.structured_answers?.map(a => ({
+          answers: response.question.structured_answers?.map((a: { id: string; content: string; is_correct: boolean; explanation?: string }) => ({
             id: a.id,
             content: a.content,
             isCorrect: a.is_correct,

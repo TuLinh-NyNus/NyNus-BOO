@@ -3,16 +3,14 @@
  * ======================
  * Real gRPC client implementation for MapCodeService
  * Replaces stub implementation with actual backend calls
- * 
+ *
  * @author NyNus Development Team
  * @version 2.0.0 - Real gRPC Implementation
  * @created 2025-01-19
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // gRPC-Web imports
-import { MapcodeServiceClient } from '@/generated/v1/MapcodeServiceClientPb';
+import { MapCodeServiceClient } from '@/generated/v1/MapcodeServiceClientPb';
 import {
   MapCodeVersion as PbMapCodeVersion,
   MapCodeTranslation as PbMapCodeTranslation,
@@ -89,7 +87,7 @@ export interface StorageInfoData {
 // ===== gRPC CLIENT INITIALIZATION =====
 
 const GRPC_ENDPOINT = getGrpcUrl();
-const mapcodeServiceClient = new MapcodeServiceClient(GRPC_ENDPOINT);
+const mapcodeServiceClient = new MapCodeServiceClient(GRPC_ENDPOINT);
 
 // ===== OBJECT MAPPERS =====
 

@@ -961,7 +961,10 @@ export const useExamStore = create<ExamStoreState>()(
         // Question management operations
         addQuestionToExam: async (examId, questionId, orderNumber) => {
           try {
-            await ExamService.addQuestionToExam(examId, questionId, orderNumber);
+            // Default points to 1 if not specified
+            const points = 1;
+            const order = orderNumber || 0;
+            await ExamService.addQuestionToExam(examId, questionId, points, order);
 
             // Update exam in state
             set((state) => {
@@ -1093,7 +1096,7 @@ export const useExamStore = create<ExamStoreState>()(
           }
 
           try {
-            await ExamService.saveAnswer(currentAttempt.id, questionId, answer);
+            await ExamService.saveAnswer(currentAttempt.id, questionId, typeof answer === 'string' ? answer : JSON.stringify(answer));
 
             set((state) => {
               state.examTaking.answers[questionId] = answer as ExamAnswerInput;
@@ -1108,7 +1111,7 @@ export const useExamStore = create<ExamStoreState>()(
         },
 
         submitExam: async () => {
-          const { currentAttempt, answers } = get().examTaking;
+          const { currentAttempt, answers: _answers } = get().examTaking;
           if (!currentAttempt) {
             return null;
           }
@@ -1117,7 +1120,7 @@ export const useExamStore = create<ExamStoreState>()(
             // Stop timer
             get().stopTimer();
 
-            const result = await ExamService.submitExam(currentAttempt.id, answers);
+            const result = await ExamService.submitExam(currentAttempt.id);
 
             set((state) => {
               state.examResults.push(result);
@@ -1537,7 +1540,14 @@ export const useExamStore = create<ExamStoreState>()(
         // Results actions
         fetchExamResults: async (attemptId) => {
           try {
-            const result = await ExamService.getExamResults(attemptId);
+            const results = await ExamService.getExamResults(attemptId);
+
+            // Get first result or null
+            const result = results.length > 0 ? results[0] : null;
+
+            if (!result) {
+              return null;
+            }
 
             set((state) => {
               const existingIndex = state.examResults.findIndex(r => r.attemptId === attemptId);
