@@ -6,8 +6,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useBackendNotifications } from '@/hooks';
-import type { NotificationPreferences } from '@/services/grpc/notification.service';
+import { useBackendNotifications, type NotificationPreferences } from '@/hooks';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';

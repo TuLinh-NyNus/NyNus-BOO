@@ -59,16 +59,6 @@ export interface CreateNotificationRequestData {
   expiresAt?: string;
 }
 
-export interface NotificationPreferences {
-  userId: string;
-  emailNotifications: boolean;
-  pushNotifications: boolean;
-  smsNotifications: boolean;
-  securityAlerts: boolean;
-  productUpdates: boolean;
-  marketingEmails: boolean;
-}
-
 // ===== gRPC CLIENT INITIALIZATION =====
 
 const GRPC_ENDPOINT = getGrpcUrl();
@@ -272,34 +262,9 @@ export class NotificationService {
     }
   }
 
-  /**
-   * Get notification preferences (mock - not in protobuf)
-   * Lấy cài đặt thông báo
-   */
-  static async getNotificationPreferences(): Promise<NotificationPreferences | null> {
-    // Mock implementation - preferences not in protobuf yet
-    console.warn('getNotificationPreferences: Mock implementation - preferences not in protobuf');
-    return {
-      userId: 'current-user',
-      emailNotifications: true,
-      pushNotifications: true,
-      smsNotifications: false,
-      securityAlerts: true,
-      productUpdates: true,
-      marketingEmails: false
-    };
-  }
-
-  /**
-   * Update notification preferences (mock - not in protobuf)
-   * Cập nhật cài đặt thông báo
-   */
-  static async updateNotificationPreferences(preferences: Partial<NotificationPreferences>): Promise<boolean> {
-    // Mock implementation - preferences not in protobuf yet
-    console.warn('updateNotificationPreferences: Mock implementation - preferences not in protobuf');
-    console.log('Updated notification preferences:', preferences);
-    return true;
-  }
+  // NOTE: Notification preferences have been migrated to ProfileService
+  // Use ProfileService.getPreferences() and ProfileService.updatePreferences() instead
+  // See: apps/frontend/src/hooks/notifications/use-backend-notifications.ts
 
   /**
    * Subscribe to real-time notifications (mock - WebSocket not implemented)

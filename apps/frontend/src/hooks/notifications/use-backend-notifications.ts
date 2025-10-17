@@ -4,8 +4,20 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { NotificationService, BackendNotification, NotificationPreferences } from '@/services/grpc/notification.service';
+import { NotificationService, BackendNotification } from '@/services/grpc/notification.service';
+import { ProfileService } from '@/services/grpc/profile.service';
 import { useAuth } from '@/contexts/auth-context-grpc';
+
+// NotificationPreferences type - mapped from ProfileService UserPreferences
+export interface NotificationPreferences {
+  userId: string;
+  emailNotifications: boolean;
+  pushNotifications: boolean;
+  smsNotifications: boolean;
+  securityAlerts: boolean;
+  productUpdates: boolean;
+  marketingEmails: boolean;
+}
 
 export interface UseBackendNotificationsReturn {
   // Notifications data
@@ -180,6 +192,7 @@ export function useBackendNotifications(): UseBackendNotificationsReturn {
 
   /**
    * Load notification preferences
+   * Migrated from NotificationService mock to ProfileService real gRPC
    */
   const loadPreferences = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -187,10 +200,27 @@ export function useBackendNotifications(): UseBackendNotificationsReturn {
     setPreferencesLoading(true);
 
     try {
-      const prefs = await NotificationService.getNotificationPreferences();
-      setPreferences(prefs);
+      const response = await ProfileService.getPreferences();
+
+      if (response.success && response.preferences) {
+        // Map ProfileService preferences to NotificationPreferences format
+        const mappedPrefs: NotificationPreferences = {
+          userId: 'current-user', // Will be replaced with actual user ID from auth context
+          emailNotifications: response.preferences.email_notifications ?? true,
+          pushNotifications: response.preferences.push_notifications ?? true,
+          smsNotifications: response.preferences.sms_notifications ?? false,
+          securityAlerts: response.preferences.security_alerts ?? true,
+          productUpdates: response.preferences.product_updates ?? true,
+          marketingEmails: response.preferences.marketing_emails ?? false,
+        };
+        setPreferences(mappedPrefs);
+      } else {
+        console.error('Failed to load preferences:', response.message);
+        setPreferences(null);
+      }
     } catch (error) {
       console.error('Failed to load notification preferences:', error);
+      setPreferences(null);
     } finally {
       setPreferencesLoading(false);
     }
@@ -198,17 +228,42 @@ export function useBackendNotifications(): UseBackendNotificationsReturn {
 
   /**
    * Update notification preferences
+   * Migrated from NotificationService mock to ProfileService real gRPC
    */
   const updatePreferences = useCallback(async (newPreferences: Partial<NotificationPreferences>): Promise<boolean> => {
     try {
-      const success = await NotificationService.updateNotificationPreferences(newPreferences);
-      
-      if (success && preferences) {
+      // Map NotificationPreferences format to ProfileService format
+      const profilePrefs: any = {};
+
+      if (newPreferences.emailNotifications !== undefined) {
+        profilePrefs.email_notifications = newPreferences.emailNotifications;
+      }
+      if (newPreferences.pushNotifications !== undefined) {
+        profilePrefs.push_notifications = newPreferences.pushNotifications;
+      }
+      if (newPreferences.smsNotifications !== undefined) {
+        profilePrefs.sms_notifications = newPreferences.smsNotifications;
+      }
+      if (newPreferences.securityAlerts !== undefined) {
+        profilePrefs.security_alerts = newPreferences.securityAlerts;
+      }
+      if (newPreferences.productUpdates !== undefined) {
+        profilePrefs.product_updates = newPreferences.productUpdates;
+      }
+      if (newPreferences.marketingEmails !== undefined) {
+        profilePrefs.marketing_emails = newPreferences.marketingEmails;
+      }
+
+      const response = await ProfileService.updatePreferences(profilePrefs);
+
+      if (response.success && preferences) {
         // Update local state
         setPreferences(prev => prev ? { ...prev, ...newPreferences } : null);
+        return true;
       }
-      
-      return success;
+
+      console.error('Failed to update preferences:', response.message);
+      return false;
     } catch (error) {
       console.error('Failed to update notification preferences:', error);
       return false;
