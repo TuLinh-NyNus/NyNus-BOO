@@ -222,9 +222,11 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       if (response.user) {
         setUser(response.user);
       }
-      
-      // Redirect to dashboard
-      router.push('/dashboard');
+
+      // ✅ FIX: Use window.location.href instead of router.push()
+      // This forces a full page reload, ensuring NextAuth session is properly set
+      // before middleware checks authentication (same fix as login page)
+      window.location.href = '/dashboard';
     } catch (error) {
       logger.error('[AuthContext] Login failed', {
         error: error instanceof Error ? error.message : String(error),
@@ -233,7 +235,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, []); // No dependencies needed - window.location.href doesn't require router
 
   /**
    * Login with Google OAuth
@@ -257,7 +259,10 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       // For now, we'll fetch the current user after NextAuth completes
       if (result?.ok) {
         await fetchCurrentUser();
-        router.push('/dashboard');
+        // ✅ FIX: Use window.location.href instead of router.push()
+        // This forces a full page reload, ensuring NextAuth session is properly set
+        // before middleware checks authentication
+        window.location.href = '/dashboard';
       }
     } catch (error) {
       logger.error('[AuthContext] Google login failed', {
@@ -267,7 +272,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchCurrentUser, router]);
+  }, [fetchCurrentUser]); // Removed router - window.location.href doesn't require it
 
   /**
    * Register new user
@@ -299,9 +304,11 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       if (response.user) {
         setUser(response.user);
       }
-      
-      // Redirect to dashboard
-      router.push('/dashboard');
+
+      // ✅ FIX: Use window.location.href instead of router.push()
+      // This forces a full page reload, ensuring NextAuth session is properly set
+      // before middleware checks authentication (same fix as login page)
+      window.location.href = '/dashboard';
     } catch (error) {
       logger.error('[AuthContext] Registration failed', {
         error: error instanceof Error ? error.message : String(error),
@@ -310,7 +317,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, []); // No dependencies needed - window.location.href doesn't require router
 
   /**
    * Logout
