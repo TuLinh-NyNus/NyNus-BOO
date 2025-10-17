@@ -1,15 +1,46 @@
 /**
  * Question LaTeX Service Client
  * ==============================
- * Mock implementation for LaTeX parsing and creation
+ * Real gRPC implementation for LaTeX parsing and creation
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { QuestionServiceClient } from '@/generated/v1/QuestionServiceClientPb';
+import {
+  ParseLatexQuestionRequest,
+  ParseLatexQuestionResponse,
+  CreateQuestionFromLatexRequest,
+  CreateQuestionFromLatexResponse,
+  ImportLatexRequest as ImportLatexRequestPb,
+  ImportLatexResponse as ImportLatexResponsePb,
+  Question,
+  QuestionCode,
+} from '@/generated/v1/question_pb';
+import { RpcError } from 'grpc-web';
+import { getGrpcUrl } from '@/lib/config/endpoints';
+import { getAuthMetadata } from './client';
 
+// gRPC client configuration
+const GRPC_ENDPOINT = getGrpcUrl();
+const questionServiceClient = new QuestionServiceClient(GRPC_ENDPOINT);
 
-// Types for LaTeX operations
+// Helper to handle gRPC errors
+function handleGrpcError(error: RpcError): string {
+  console.error('gRPC Error:', error);
+  switch (error.code) {
+    case 3: return error.message || 'Dữ liệu không hợp lệ';
+    case 5: return 'Không tìm thấy câu hỏi';
+    case 7: return 'Bạn không có quyền thực hiện thao tác này';
+    case 14: return 'Dịch vụ tạm thời không khả dụng';
+    case 16: return 'Vui lòng đăng nhập để tiếp tục';
+    default: return error.message || 'Đã xảy ra lỗi không xác định';
+  }
+}
+
+// Types for LaTeX operations (Frontend interfaces)
 export interface ParseLatexRequest {
   latex_content: string;
+  is_base64?: boolean;
 }
 
 export interface ParsedQuestion {
@@ -27,31 +58,47 @@ export interface ParsedQuestion {
 
 export interface ParseLatexResponse {
   success: boolean;
-  question?: ParsedQuestion;
+  questions: ParsedQuestion[];
+  question_codes: Array<{
+    id: string;
+    prefix: string;
+    main_code: string;
+    extend_code: string;
+    num_part: string;
+    description: string;
+  }>;
   errors: string[];
   warnings: string[];
 }
 
 export interface CreateFromLatexRequest {
   latex_content: string;
-  auto_create_code: boolean;
-  creator?: string;
+  is_base64?: boolean;
+  auto_create_codes: boolean;
 }
 
 export interface CreateFromLatexResponse {
   success: boolean;
-  question_id?: string;
-  question_code?: string;
+  created_questions: ParsedQuestion[];
+  created_codes: Array<{
+    id: string;
+    prefix: string;
+    main_code: string;
+    extend_code: string;
+    num_part: string;
+    description: string;
+  }>;
+  created_count: number;
+  failed_count: number;
   warnings: string[];
   error?: string;
 }
 
 export interface ImportLatexRequest {
   latex_content?: string;
-  latex_base64?: string;
+  is_base64?: boolean;
   upsert_mode: boolean;
   auto_create_codes: boolean;
-  creator?: string;
 }
 
 export interface ImportLatexResponse {
@@ -71,92 +118,146 @@ export interface ImportError {
   error: string;
 }
 
-// Mock client (will be replaced with real gRPC client when protobuf is generated)
-class QuestionLatexServiceClient {
-  private endpoint: string;
-  
-  constructor(endpoint: string) {
-    this.endpoint = endpoint;
-  }
-  
-  private getAuthHeaders(): Headers {
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/json');
-    
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('nynus-auth-token');
-      if (token) {
-        headers.append('Authorization', `Bearer ${token}`);
-      }
-    }
-    
-    return headers;
-  }
-  
-  async parseLatex(request: ParseLatexRequest): Promise<ParseLatexResponse> {
+// Helper functions to map proto to frontend types
+function mapQuestionFromPb(q: Question): ParsedQuestion {
+  return {
+    raw_content: q.getRawContent(),
+    content: q.getContent(),
+    subcount: q.getSubcount() || undefined,
+    type: q.getType().toString(),
+    source: q.getSource() || undefined,
+    answers: q.getJsonAnswers() || undefined,
+    correct_answer: q.getJsonCorrectAnswer() || undefined,
+    solution: q.getSolution() || undefined,
+    question_code: q.getQuestionCodeId() || undefined,
+    warnings: [],
+  };
+}
+
+function mapQuestionCodeFromPb(qc: QuestionCode) {
+  return {
+    id: qc.getId(),
+    prefix: qc.getPrefix(),
+    main_code: qc.getMainCode(),
+    extend_code: qc.getExtendCode(),
+    num_part: qc.getNumPart(),
+    description: qc.getDescription(),
+  };
+}
+
+// Export service functions
+export const QuestionLatexService = {
+  /**
+   * Parse LaTeX content to extract question data
+   */
+  parseLatex: async (params: ParseLatexRequest): Promise<ParseLatexResponse> => {
     try {
-      // Mock implementation - will be replaced with real gRPC call
-      const response = await fetch(`${this.endpoint}/api/question/parse-latex`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(request),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return await response.json();
+      const request = new ParseLatexQuestionRequest();
+      request.setLatexContent(params.latex_content);
+      request.setIsBase64(params.is_base64 || false);
+
+      const response: ParseLatexQuestionResponse = await questionServiceClient.parseLatexQuestion(
+        request,
+        getAuthMetadata()
+      );
+
+      const responseObj = response.getResponse();
+      const success = responseObj?.getSuccess() || false;
+      const message = responseObj?.getMessage() || '';
+
+      return {
+        success,
+        questions: response.getQuestionsList().map(mapQuestionFromPb),
+        question_codes: response.getQuestionCodesList().map(mapQuestionCodeFromPb),
+        errors: success ? [] : [message],
+        warnings: response.getWarningsList(),
+      };
     } catch (error) {
-      console.error('Parse LaTeX error:', error);
+      const errorMessage = handleGrpcError(error as RpcError);
       return {
         success: false,
-        errors: [error instanceof Error ? error.message : 'Unknown error'],
+        questions: [],
+        question_codes: [],
+        errors: [errorMessage],
         warnings: [],
       };
     }
-  }
-  
-  async createFromLatex(request: CreateFromLatexRequest): Promise<CreateFromLatexResponse> {
+  },
+
+  /**
+   * Create a question from LaTeX content
+   */
+  createFromLatex: async (params: CreateFromLatexRequest): Promise<CreateFromLatexResponse> => {
     try {
-      // Mock implementation - will be replaced with real gRPC call
-      const response = await fetch(`${this.endpoint}/api/question/create-from-latex`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(request),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return await response.json();
+      const request = new CreateQuestionFromLatexRequest();
+      request.setLatexContent(params.latex_content);
+      request.setIsBase64(params.is_base64 || false);
+      request.setAutoCreateCodes(params.auto_create_codes);
+
+      const response: CreateQuestionFromLatexResponse = await questionServiceClient.createQuestionFromLatex(
+        request,
+        getAuthMetadata()
+      );
+
+      const responseObj = response.getResponse();
+      const success = responseObj?.getSuccess() || false;
+      const message = responseObj?.getMessage() || '';
+
+      return {
+        success,
+        created_questions: response.getCreatedQuestionsList().map(mapQuestionFromPb),
+        created_codes: response.getCreatedCodesList().map(mapQuestionCodeFromPb),
+        created_count: response.getCreatedCount(),
+        failed_count: response.getFailedCount(),
+        warnings: response.getWarningsList(),
+        error: success ? undefined : message,
+      };
     } catch (error) {
-      console.error('Create from LaTeX error:', error);
+      const errorMessage = handleGrpcError(error as RpcError);
       return {
         success: false,
+        created_questions: [],
+        created_codes: [],
+        created_count: 0,
+        failed_count: 0,
         warnings: [],
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
       };
     }
-  }
-  
-  async importLatex(request: ImportLatexRequest): Promise<ImportLatexResponse> {
+  },
+
+  /**
+   * Import multiple questions from LaTeX content
+   */
+  importLatex: async (params: ImportLatexRequest): Promise<ImportLatexResponse> => {
     try {
-      // Mock implementation - will be replaced with real gRPC call
-      const response = await fetch(`${this.endpoint}/api/question/import-latex`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(),
-        body: JSON.stringify(request),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      return await response.json();
+      const request = new ImportLatexRequestPb();
+      request.setLatexContent(params.latex_content || '');
+      request.setIsBase64(params.is_base64 || false);
+      request.setUpsertMode(params.upsert_mode);
+      request.setAutoCreateCodes(params.auto_create_codes);
+
+      const response: ImportLatexResponsePb = await questionServiceClient.importLatex(
+        request,
+        getAuthMetadata()
+      );
+
+      return {
+        total_processed: response.getTotalProcessed(),
+        created_count: response.getCreatedCount(),
+        updated_count: response.getUpdatedCount(),
+        skipped_count: response.getSkippedCount(),
+        error_count: response.getErrorCount(),
+        errors: response.getErrorsList().map((err) => ({
+          index: err.getIndex(),
+          subcount: err.getSubcount() || undefined,
+          error: err.getError(),
+        })),
+        created_codes: response.getCreatedCodesList(),
+        warnings: response.getWarningsList(),
+      };
     } catch (error) {
-      console.error('Import LaTeX error:', error);
+      const errorMessage = handleGrpcError(error as RpcError);
       return {
         total_processed: 0,
         created_count: 0,
@@ -165,61 +266,12 @@ class QuestionLatexServiceClient {
         error_count: 1,
         errors: [{
           index: 0,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage,
         }],
         created_codes: [],
         warnings: [],
       };
     }
-  }
-}
-
-// Singleton instance
-const GRPC_ENDPOINT = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
-export const questionLatexService = new QuestionLatexServiceClient(GRPC_ENDPOINT);
-
-// Export service functions
-export const QuestionLatexService = {
-  /**
-   * Parse LaTeX content to extract question data
-   */
-  parseLatex: async (latexContent: string): Promise<ParseLatexResponse> => {
-    return questionLatexService.parseLatex({ latex_content: latexContent });
-  },
-  
-  /**
-   * Create a question from LaTeX content
-   */
-  createFromLatex: async (
-    latexContent: string,
-    autoCreateCode: boolean = false,
-    creator?: string
-  ): Promise<CreateFromLatexResponse> => {
-    return questionLatexService.createFromLatex({
-      latex_content: latexContent,
-      auto_create_code: autoCreateCode,
-      creator,
-    });
-  },
-  
-  /**
-   * Import multiple questions from LaTeX content
-   */
-  importLatex: async (
-    content: { latex?: string; base64?: string },
-    options: {
-      upsertMode?: boolean;
-      autoCreateCodes?: boolean;
-      creator?: string;
-    } = {}
-  ): Promise<ImportLatexResponse> => {
-    return questionLatexService.importLatex({
-      latex_content: content.latex,
-      latex_base64: content.base64,
-      upsert_mode: options.upsertMode || false,
-      auto_create_codes: options.autoCreateCodes || false,
-      creator: options.creator,
-    });
   },
 };
 

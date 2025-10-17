@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "common/common.proto";
+
+option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+
+// ===== ANALYTICS SERVICE =====
+// Teacher-specific analytics for dashboard, students, and exams
+
+service AnalyticsService {
+  // Get teacher dashboard overview with stats and trends
+  rpc GetTeacherDashboard(GetTeacherDashboardRequest) returns (GetTeacherDashboardResponse) {
+    option (google.api.http) = {
+      get: "/v1/analytics/teacher/{teacher_id}/dashboard"
+    };
+  }
+  
+  // Get list of students enrolled in teacher's courses
+  rpc GetTeacherStudents(GetTeacherStudentsRequest) returns (GetTeacherStudentsResponse) {
+    option (google.api.http) = {
+      get: "/v1/analytics/teacher/{teacher_id}/students"
+    };
+  }
+  
+  // Get list of exams created by teacher
+  rpc GetTeacherExams(GetTeacherExamsRequest) returns (GetTeacherExamsResponse) {
+    option (google.api.http) = {
+      get: "/v1/analytics/teacher/{teacher_id}/exams"
+    };
+  }
+}
+
+// ===== TEACHER DASHBOARD =====
+
+message GetTeacherDashboardRequest {
+  string teacher_id = 1;
+  string time_range = 2; // "7d", "30d", "90d", "1y", "all"
+}
+
+message GetTeacherDashboardResponse {
+  common.Response response = 1;
+  TeacherDashboardData data = 2;
+}
+
+message TeacherDashboardData {
+  // Overview stats
+  int32 total_exams = 1;
+  int32 total_students = 2;
+  double average_score = 3;
+  double pass_rate = 4;
+  int32 active_students = 5;
+  double completion_rate = 6;
+  
+  // Trends and performance
+  repeated PerformanceTrend trends = 7;
+  repeated ExamPerformance top_exams = 8;
+}
+
+message PerformanceTrend {
+  string date = 1; // YYYY-MM-DD format
+  double average_score = 2;
+  double pass_rate = 3;
+  int32 attempt_count = 4;
+}
+
+message ExamPerformance {
+  string exam_id = 1;
+  string exam_title = 2;
+  int32 attempt_count = 3;
+  double average_score = 4;
+  double pass_rate = 5;
+}
+
+// ===== TEACHER STUDENTS =====
+
+message GetTeacherStudentsRequest {
+  string teacher_id = 1;
+  int32 page = 2;
+  int32 page_size = 3;
+  string sort_by = 4; // "name", "score", "activity", "progress"
+  string sort_order = 5; // "asc", "desc"
+}
+
+message GetTeacherStudentsResponse {
+  common.Response response = 1;
+  repeated StudentData students = 2;
+  int32 total = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message StudentData {
+  string user_id = 1;
+  string email = 2;
+  string first_name = 3;
+  string last_name = 4;
+  int32 total_courses = 5;
+  int32 total_exam_results = 6;
+  double average_score = 7;
+  double completion_rate = 8;
+  string status = 9; // "active", "inactive"
+  google.protobuf.Timestamp last_activity = 10;
+}
+
+// ===== TEACHER EXAMS =====
+
+message GetTeacherExamsRequest {
+  string teacher_id = 1;
+  string status = 2; // "all", "active", "draft", "archived"
+  int32 page = 3;
+  int32 page_size = 4;
+  string sort_by = 5; // "created_at", "title", "attempts", "score"
+  string sort_order = 6; // "asc", "desc"
+}
+
+message GetTeacherExamsResponse {
+  common.Response response = 1;
+  repeated ExamData exams = 2;
+  int32 total = 3;
+  int32 page = 4;
+  int32 page_size = 5;
+}
+
+message ExamData {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string subject = 4;
+  int32 grade = 5;
+  string difficulty = 6;
+  string exam_type = 7;
+  string status = 8;
+  int32 duration_minutes = 9;
+  int32 total_points = 10;
+  int32 pass_percentage = 11;
+  int32 question_count = 12;
+  int32 attempt_count = 13;
+  double average_score = 14;
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp published_at = 16;
+}
+

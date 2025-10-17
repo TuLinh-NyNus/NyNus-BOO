@@ -172,14 +172,67 @@ func convertStringToQuestionStatus(s string) common.QuestionStatus {
 
 // ListQuestionsByFilter performs comprehensive question filtering with proto conversion
 func (qfm *QuestionFilterService) ListQuestionsByFilter(ctx context.Context, req *v1.ListQuestionsByFilterRequest) (*v1.ListQuestionsByFilterResponse, error) {
-	// TODO: Implement filtering logic using QuestionRepository
-	return &v1.ListQuestionsByFilterResponse{
-		Questions:  []*v1.QuestionDetail{},
-		TotalCount: 0,
-		Page:       1,
-		Limit:      20,
-		TotalPages: 0,
-	}, nil
+	qfm.logger.WithFields(logrus.Fields{
+		"has_question_code_filter": req.QuestionCodeFilter != nil,
+		"has_metadata_filter":      req.MetadataFilter != nil,
+		"has_date_filter":          req.DateFilter != nil,
+		"has_content_filter":       req.ContentFilter != nil,
+	}).Info("ListQuestionsByFilter called")
+
+	// Build filter criteria from request
+	filterCriteria := qfm.buildListFilterCriteria(req)
+
+	// Calculate pagination
+	page := req.Pagination.GetPage()
+	if page < 1 {
+		page = 1
+	}
+	limit := req.Pagination.GetLimit()
+	if limit < 1 {
+		limit = 20
+	}
+	offset := (page - 1) * limit
+
+	// Determine sort column and order from pagination.sort array
+	sortColumn := "created_at" // Default sort column
+	sortOrder := "DESC"        // Default sort order
+	if req.Pagination != nil && len(req.Pagination.Sort) > 0 {
+		// Use first sort option
+		firstSort := req.Pagination.Sort[0]
+		sortColumn = convertSortFieldToColumn(firstSort.Field)
+		sortOrder = convertSortOrderToString(firstSort.Order)
+	}
+
+	// Call repository to find questions with filters
+	questions, total, err := qfm.questionRepo.FindWithFilters(ctx, filterCriteria, int(offset), int(limit), sortColumn, sortOrder)
+	if err != nil {
+		qfm.logger.WithError(err).Error("Failed to find questions with filters")
+		return nil, err
+	}
+
+	// Convert to proto response
+	protoQuestions := make([]*v1.QuestionDetail, len(questions))
+	for i, question := range questions {
+		protoQuestions[i] = qfm.convertQuestionToProto(question)
+	}
+
+	totalPages := (total + int(limit) - 1) / int(limit)
+
+	response := &v1.ListQuestionsByFilterResponse{
+		Questions:  protoQuestions,
+		TotalCount: int32(total),
+		Page:       page,
+		Limit:      limit,
+		TotalPages: int32(totalPages),
+	}
+
+	qfm.logger.WithFields(logrus.Fields{
+		"total_results":  total,
+		"returned_count": len(protoQuestions),
+		"total_pages":    totalPages,
+	}).Info("ListQuestionsByFilter completed successfully")
+
+	return response, nil
 }
 
 // SearchQuestions performs full-text search with filters
@@ -364,6 +417,124 @@ func (qfm *QuestionFilterService) buildFilterCriteria(req *v1.SearchQuestionsReq
 	}
 
 	return criteria
+}
+
+// buildListFilterCriteria builds filter criteria from ListQuestionsByFilterRequest
+func (qfm *QuestionFilterService) buildListFilterCriteria(req *v1.ListQuestionsByFilterRequest) *interfaces.FilterCriteria {
+	criteria := &interfaces.FilterCriteria{}
+
+	// Question code filters
+	if req.QuestionCodeFilter != nil {
+		if len(req.QuestionCodeFilter.Grades) > 0 {
+			criteria.Grades = req.QuestionCodeFilter.Grades
+		}
+		if len(req.QuestionCodeFilter.Subjects) > 0 {
+			criteria.Subjects = req.QuestionCodeFilter.Subjects
+		}
+		if len(req.QuestionCodeFilter.Chapters) > 0 {
+			criteria.Chapters = req.QuestionCodeFilter.Chapters
+		}
+		if len(req.QuestionCodeFilter.Levels) > 0 {
+			criteria.Levels = req.QuestionCodeFilter.Levels
+		}
+		if len(req.QuestionCodeFilter.Lessons) > 0 {
+			criteria.Lessons = req.QuestionCodeFilter.Lessons
+		}
+		if len(req.QuestionCodeFilter.Forms) > 0 {
+			criteria.Forms = req.QuestionCodeFilter.Forms
+		}
+	}
+
+	// Metadata filters
+	if req.MetadataFilter != nil {
+		if len(req.MetadataFilter.Types) > 0 {
+			criteria.Types = convertQuestionTypesToStrings(req.MetadataFilter.Types)
+		}
+		if len(req.MetadataFilter.Difficulties) > 0 {
+			criteria.Difficulties = convertDifficultyLevelsToStrings(req.MetadataFilter.Difficulties)
+		}
+		if len(req.MetadataFilter.Statuses) > 0 {
+			criteria.Statuses = convertQuestionStatusesToStrings(req.MetadataFilter.Statuses)
+		}
+		if len(req.MetadataFilter.Creators) > 0 {
+			criteria.Creators = req.MetadataFilter.Creators
+		}
+		if len(req.MetadataFilter.Tags) > 0 {
+			criteria.Tags = req.MetadataFilter.Tags
+			criteria.TagMatchAll = req.MetadataFilter.RequireAllTags
+		}
+
+		// Numeric ranges
+		if req.MetadataFilter.MinUsageCount > 0 {
+			criteria.MinUsageCount = req.MetadataFilter.MinUsageCount
+		}
+		if req.MetadataFilter.MaxUsageCount > 0 {
+			criteria.MaxUsageCount = req.MetadataFilter.MaxUsageCount
+		}
+		if req.MetadataFilter.MinFeedback > 0 {
+			criteria.MinFeedback = req.MetadataFilter.MinFeedback
+		}
+		if req.MetadataFilter.MaxFeedback > 0 {
+			criteria.MaxFeedback = req.MetadataFilter.MaxFeedback
+		}
+	}
+
+	// Date filters
+	if req.DateFilter != nil {
+		if req.DateFilter.CreatedAfter != nil {
+			criteria.CreatedAfter = req.DateFilter.CreatedAfter.AsTime().Format("2006-01-02T15:04:05Z07:00")
+		}
+		if req.DateFilter.CreatedBefore != nil {
+			criteria.CreatedBefore = req.DateFilter.CreatedBefore.AsTime().Format("2006-01-02T15:04:05Z07:00")
+		}
+		if req.DateFilter.UpdatedAfter != nil {
+			criteria.UpdatedAfter = req.DateFilter.UpdatedAfter.AsTime().Format("2006-01-02T15:04:05Z07:00")
+		}
+		if req.DateFilter.UpdatedBefore != nil {
+			criteria.UpdatedBefore = req.DateFilter.UpdatedBefore.AsTime().Format("2006-01-02T15:04:05Z07:00")
+		}
+	}
+
+	// Content filters
+	if req.ContentFilter != nil {
+		if req.ContentFilter.HasSolution {
+			hasTrue := true
+			criteria.HasSolution = &hasTrue
+		}
+		// Note: HasSource is not in ContentFilter proto, using HasSolution only
+	}
+
+	return criteria
+}
+
+// convertSortFieldToColumn converts proto SortField to database column name
+func convertSortFieldToColumn(field v1.SortField) string {
+	switch field {
+	case v1.SortField_SORT_FIELD_CREATED_AT:
+		return "created_at"
+	case v1.SortField_SORT_FIELD_UPDATED_AT:
+		return "updated_at"
+	case v1.SortField_SORT_FIELD_USAGE_COUNT:
+		return "usage_count"
+	case v1.SortField_SORT_FIELD_FEEDBACK:
+		return "feedback"
+	case v1.SortField_SORT_FIELD_DIFFICULTY:
+		return "difficulty"
+	default:
+		return "created_at" // Default
+	}
+}
+
+// convertSortOrderToString converts proto SortOrder to SQL string
+func convertSortOrderToString(order v1.SortOrder) string {
+	switch order {
+	case v1.SortOrder_SORT_ORDER_ASC:
+		return "ASC"
+	case v1.SortOrder_SORT_ORDER_DESC:
+		return "DESC"
+	default:
+		return "DESC" // Default
+	}
 }
 
 // convertToProtoSearchResult converts search result to proto format

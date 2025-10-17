@@ -86,9 +86,10 @@ type Container struct {
 	PerformanceService    *performance.PerformanceService
 
 	// Analytics Services
-	AnalyticsService  *analytics.AnalyticsService
-	MonitoringService *analytics.MonitoringService
-	DashboardService  *analytics.DashboardService
+	AnalyticsService        *analytics.AnalyticsService
+	MonitoringService       *analytics.MonitoringService
+	DashboardService        *analytics.DashboardService
+	TeacherAnalyticsService *analytics.TeacherAnalyticsService // NEW: Teacher-specific analytics
 
 	// Security Services
 	ExamSessionSecurity  *security.ExamSessionSecurity
@@ -115,6 +116,7 @@ type Container struct {
 	NewsletterGRPCService     *grpc.NewsletterServiceServer
 	NotificationGRPCService   *grpc.NotificationServiceServer
 	MapCodeGRPCService        *grpc.MapCodeServiceServer
+	AnalyticsGRPCService      *grpc.AnalyticsServiceServer // NEW: Analytics gRPC service
 
 	// Configuration
 	Config    *config.Config
@@ -376,6 +378,7 @@ func (c *Container) initServices() {
 	c.AnalyticsService = analytics.NewAnalyticsService(c.ExamRepo, logger)
 	c.MonitoringService = analytics.NewMonitoringService(c.DB, c.ExamRepo, logger)
 	c.DashboardService = analytics.NewDashboardService(c.DB, c.ExamRepo, logger)
+	c.TeacherAnalyticsService = analytics.NewTeacherAnalyticsService(c.DB, c.ExamRepo, c.EnrollmentRepo, logger)
 
 	// Security Services
 	c.ExamSessionSecurity = security.NewExamSessionSecurity(c.DB, logger)
@@ -432,6 +435,7 @@ func (c *Container) initGRPCServices() {
 		c.UserPreferenceRepo,
 	)
 	c.MapCodeGRPCService = grpc.NewMapCodeServiceServer(c.MapCodeMgmt)
+	c.AnalyticsGRPCService = grpc.NewAnalyticsServiceServer(c.TeacherAnalyticsService)
 }
 
 // GetUserRepository returns the user repository
@@ -581,6 +585,11 @@ func (c *Container) GetAntiCheatService() *security.AntiCheatService {
 // GetExamRateLimitService returns the exam rate limit service
 func (c *Container) GetExamRateLimitService() *security.ExamRateLimitService {
 	return c.ExamRateLimitService
+}
+
+// GetAnalyticsGRPCService returns the analytics gRPC service
+func (c *Container) GetAnalyticsGRPCService() *grpc.AnalyticsServiceServer {
+	return c.AnalyticsGRPCService
 }
 
 // Cleanup performs cleanup operations

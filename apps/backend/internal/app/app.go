@@ -138,6 +138,7 @@ func (a *App) initGRPCServer() error {
 	v1.RegisterNewsletterServiceServer(a.grpcServer, a.container.GetNewsletterGRPCService())
 	v1.RegisterNotificationServiceServer(a.grpcServer, a.container.GetNotificationGRPCService())
 	v1.RegisterMapCodeServiceServer(a.grpcServer, a.container.GetMapCodeGRPCService())
+	v1.RegisterAnalyticsServiceServer(a.grpcServer, a.container.GetAnalyticsGRPCService())
 
 	// Enable reflection for grpcurl
 	reflection.Register(a.grpcServer)
