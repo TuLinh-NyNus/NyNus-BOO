@@ -44,16 +44,13 @@ import {
 import { useAuth } from '@/contexts/auth-context-grpc';
 
 // Types
-import { ExamResult, ExamAttempt } from '@/types/exam';
-
-// Services
-import { ExamService } from '@/services/grpc/exam.service';
+import { ExamResult } from '@/types/exam';
 
 // Utils
-import { formatDate, formatDateTime } from '@/lib/utils';
+import { formatDate } from '@/lib/utils';
 
 // Paths
-import { EXAM_ROUTES, EXAM_DYNAMIC_ROUTES } from '@/lib/exam-paths';
+import { EXAM_ROUTES } from '@/lib/exam-paths';
 
 // ===== TYPES =====
 
@@ -126,7 +123,7 @@ function getPassBadge(passed: boolean) {
  */
 export default function MyResultsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
 
   // ===== STATE =====
 
@@ -179,7 +176,7 @@ export default function MyResultsPage() {
 
   // ===== HANDLERS =====
 
-  const handleFilterChange = useCallback((key: keyof ResultsFilters, value: any) => {
+  const handleFilterChange = useCallback((key: keyof ResultsFilters, value: ResultsFilters[keyof ResultsFilters]) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setCurrentPage(1);
   }, []);

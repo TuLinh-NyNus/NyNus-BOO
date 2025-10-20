@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui";
 import { StatCard } from './stat-card';
 import { mockAnalytics } from '@/lib/mockdata';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Component hiển thị skeleton loading cho StatCard
@@ -52,7 +53,12 @@ export function DashboardStats() {
         setAnalyticsData(mockAnalytics);
         setError(null);
       } catch (err) {
-        console.error('Error fetching analytics data:', err);
+        logger.error('[DashboardStats] Error fetching analytics data', {
+          operation: 'fetchAnalyticsData',
+          errorName: err instanceof Error ? err.name : 'Unknown',
+          errorMessage: err instanceof Error ? err.message : 'Error fetching analytics data',
+          stack: err instanceof Error ? err.stack : undefined,
+        });
         setError('Không thể tải dữ liệu thống kê');
       } finally {
         setIsLoading(false);

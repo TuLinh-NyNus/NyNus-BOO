@@ -23,6 +23,12 @@ scripts/
 ├── setup/                 # Scripts setup môi trường
 │   ├── install-protoc.ps1       # Cài đặt protoc compiler
 │   └── setup-grpc-web.ps1       # Setup gRPC-Web dependencies
+├── import/                # 🆕 Scripts import dữ liệu
+│   └── import-questions-from-csv.ts  # Import questions từ CSV
+├── exam/                  # 🆕 Scripts quản lý exams
+│   └── create-10-exams.ts       # Tạo 10 exams mẫu
+├── database/              # 🆕 Scripts database management
+│   └── start-prisma-studio.ps1  # Start Prisma Studio locally
 ├── utilities/             # Scripts tiện ích
 │   ├── batch-import.sh          # Batch import data
 │   └── status.sh                # Check status
@@ -128,6 +134,91 @@ scripts/
 ```powershell
 .\scripts\setup\setup-grpc-web.ps1
 ```
+
+### **🆕 Import Scripts**
+
+#### 1. `import/import-questions-from-csv.ts`
+**Mục đích**: Import questions từ CSV file vào database
+
+**Sử dụng**:
+```powershell
+cd apps/frontend
+$env:DATABASE_URL="postgresql://exam_bank_user:exam_bank_password@localhost:5433/exam_bank_db?schema=public&sslmode=disable"
+pnpx tsx ../../scripts/import/import-questions-from-csv.ts
+```
+
+**Chức năng**:
+- Đọc questions từ `docs/question_new_fixed.csv`
+- Tự động tạo subcount (TL.1, TL.2, ..., TL.n)
+- Tạo question_codes nếu chưa tồn tại
+- Batch insert 100 questions mỗi lần
+- Hỗ trợ 4 loại câu hỏi: MC, TF, SA, ES
+
+**Kết quả gần nhất**:
+- 2,793 questions imported
+- 702 question codes created
+- Phân loại: MC (1,529), SA (705), TF (450), ES (109)
+
+### **🆕 Exam Scripts**
+
+#### 1. `exam/create-10-exams.ts`
+**Mục đích**: Tạo 10 exams với cấu trúc đa dạng từ questions đã import
+
+**Sử dụng**:
+```powershell
+cd apps/frontend
+$env:DATABASE_URL="postgresql://exam_bank_user:exam_bank_password@localhost:5433/exam_bank_db?schema=public&sslmode=disable"
+pnpx tsx ../../scripts/exam/create-10-exams.ts
+```
+
+**Chức năng**:
+- Tạo 10 exams với cấu trúc khác nhau
+- Tự động tính total_points dựa trên question types
+- Phân bổ questions theo difficulty và type
+- Hỗ trợ exam_type: generated, official
+
+**Exams được tạo**:
+1. Đề thi tổng hợp Toán 10 - Học kỳ 1 (50 câu, 70 điểm, 90 phút)
+2. Kiểm tra 15 phút - Toán 10 Chương 1 (15 câu, 15 điểm, 15 phút)
+3. Đề thi học sinh giỏi Toán 10 (35 câu, 65 điểm, 120 phút)
+4. Đề thi giữa kỳ 1 - Toán 10 (30 câu, 35 điểm, 60 phút)
+5. Đề thi cuối kỳ 1 - Toán 10 (38 câu, 52 điểm, 90 phút)
+6. Đề luyện tập Toán 10 - Chương 2 (30 câu, 35 điểm, 45 phút)
+7. Đề thi thử THPT Quốc gia - Toán (50 câu, 60 điểm, 90 phút)
+8. Kiểm tra 45 phút - Toán 10 Chương 3 (25 câu, 30 điểm, 45 phút)
+9. Đề ôn tập học kỳ 2 - Toán 10 (50 câu, 60 điểm, 90 phút)
+10. Đề thi Olympic Toán 10 (25 câu, 85 điểm, 150 phút)
+
+**Kết quả gần nhất**:
+- 10 exams created
+- 348 questions used
+
+### **🆕 Database Scripts**
+
+#### 1. `database/start-prisma-studio.ps1`
+**Mục đích**: Start Prisma Studio locally (thay vì Docker)
+
+**Sử dụng**:
+```powershell
+# Start Prisma Studio
+.\scripts\database\start-prisma-studio.ps1
+
+# Stop Prisma Studio
+.\scripts\database\start-prisma-studio.ps1 -Stop
+```
+
+**Chức năng**:
+- Kiểm tra PostgreSQL container đang chạy
+- Start Prisma Studio local tại port 5555
+- Tự động mở browser
+- Kết nối đến database: localhost:5433
+
+**Ưu điểm so với Docker**:
+- Không cần install dependencies mỗi lần restart
+- Start nhanh hơn (< 10 giây)
+- Dễ debug và monitor
+
+**URL**: http://localhost:5555
 
 ### **Utility Scripts**
 

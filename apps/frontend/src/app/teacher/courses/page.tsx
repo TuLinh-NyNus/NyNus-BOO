@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   BookOpen,
   Plus,
   Search,
-  Filter,
   Grid3x3,
   List,
   MoreVertical,
@@ -128,7 +127,43 @@ export default function TeacherCoursesPage() {
     status: 'all',
   });
 
-  // Check authentication
+  // Handlers (MUST BE BEFORE EARLY RETURN)
+  const handleFilterChange = useCallback((key: keyof CourseFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setIsLoading(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setCourses(mockCourses);
+    setIsLoading(false);
+    toast({
+      title: "Đã làm mới",
+      description: "Danh sách khóa học đã được cập nhật",
+    });
+  }, [toast]);
+
+  const handleCreateCourse = useCallback(() => {
+    router.push('/teacher/courses/create');
+  }, [router]);
+
+  const handleEditCourse = useCallback((courseId: string) => {
+    router.push(`/teacher/courses/${courseId}/edit`);
+  }, [router]);
+
+  const handleViewCourse = useCallback((courseId: string) => {
+    router.push(`/teacher/courses/${courseId}`);
+  }, [router]);
+
+  const handleDeleteCourse = useCallback((_courseId: string) => {
+    toast({
+      title: "Xóa khóa học",
+      description: "Tính năng đang được phát triển",
+    });
+  }, [toast]);
+
+  // Check authentication (AFTER ALL HOOKS)
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -162,42 +197,6 @@ export default function TeacherCoursesPage() {
       </div>
     );
   }
-
-  // Handlers
-  const handleFilterChange = useCallback((key: keyof CourseFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  const handleRefresh = useCallback(async () => {
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setCourses(mockCourses);
-    setIsLoading(false);
-    toast({
-      title: "Đã làm mới",
-      description: "Danh sách khóa học đã được cập nhật",
-    });
-  }, [toast]);
-
-  const handleCreateCourse = useCallback(() => {
-    router.push('/teacher/courses/create');
-  }, [router]);
-
-  const handleEditCourse = useCallback((courseId: string) => {
-    router.push(`/teacher/courses/${courseId}/edit`);
-  }, [router]);
-
-  const handleViewCourse = useCallback((courseId: string) => {
-    router.push(`/teacher/courses/${courseId}`);
-  }, [router]);
-
-  const handleDeleteCourse = useCallback((courseId: string) => {
-    toast({
-      title: "Xóa khóa học",
-      description: "Tính năng đang được phát triển",
-    });
-  }, [toast]);
 
   // Filter courses
   const filteredCourses = courses.filter(course => {

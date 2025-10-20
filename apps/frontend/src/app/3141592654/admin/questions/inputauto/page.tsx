@@ -107,40 +107,35 @@ export default function InputAutoQuestionsPage() {
       const fileContent = await selectedFile.text();
 
       // Import questions using QuestionLatexService
-      const result = await QuestionLatexService.importLatex(
-        { latex: fileContent },
-        {
-          upsertMode: false,      // Don't update existing questions
-          autoCreateCodes: true,  // Auto-create question codes
-        }
-      );
+      const result = await QuestionLatexService.importLatex({
+        latex_content: fileContent,
+        upsert_mode: false,      // Don't update existing questions
+        auto_create_codes: true,  // Auto-create question codes
+      });
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      if (result.error_count > 0) {
+      const errorCount = result.errors.length;
+      if (errorCount > 0) {
         const errorMessages = result.errors.map(e =>
-          `Question ${e.index}: ${e.error}`
+          `Row ${e.row_number} (${e.field_name}): ${e.error_message}`
         ).join('\n');
         setUploadError(errorMessages);
         setImportResult(result);
 
         toast({
           title: 'Hoàn thành với lỗi',
-          description: `Đã import ${result.created_count}/${result.total_processed} câu hỏi. ${result.error_count} lỗi.`,
+          description: `Đã import ${result.created_count}/${result.total_processed} câu hỏi. ${errorCount} lỗi.`,
           variant: 'destructive'
         });
       } else {
         setImportResult(result);
         setUploadError(null);
 
-        const warningMessage = result.warnings.length > 0
-          ? ` Cảnh báo: ${result.warnings.join(', ')}`
-          : '';
-
         toast({
           title: 'Thành công',
-          description: `Đã import ${result.created_count} câu hỏi từ file.${warningMessage}`,
+          description: `Đã import ${result.created_count} câu hỏi từ file.`,
           variant: 'success'
         });
 
@@ -331,7 +326,7 @@ export default function InputAutoQuestionsPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  {importResult.error_count === 0 ? (
+                  {importResult.errors.length === 0 ? (
                     <CheckCircle className="h-5 w-5 text-green-600" />
                   ) : (
                     <AlertTriangle className="h-5 w-5 text-yellow-600" />
@@ -372,7 +367,7 @@ export default function InputAutoQuestionsPage() {
                   </div>
                   <div className="p-4 bg-red-50 rounded-lg">
                     <p className="text-sm text-gray-600">Lỗi</p>
-                    <p className="text-2xl font-bold text-red-600">{importResult.error_count}</p>
+                    <p className="text-2xl font-bold text-red-600">{importResult.errors.length}</p>
                   </div>
                 </div>
 
@@ -390,20 +385,7 @@ export default function InputAutoQuestionsPage() {
                   </div>
                 )}
 
-                {/* Warnings */}
-                {importResult.warnings.length > 0 && (
-                  <Alert>
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription>
-                      <strong>Cảnh báo:</strong>
-                      <ul className="list-disc list-inside mt-2 text-sm space-y-1">
-                        {importResult.warnings.map((warning, index) => (
-                          <li key={index}>{warning}</li>
-                        ))}
-                      </ul>
-                    </AlertDescription>
-                  </Alert>
-                )}
+
 
                 {/* Errors */}
                 {importResult.errors.length > 0 && (
@@ -414,7 +396,7 @@ export default function InputAutoQuestionsPage() {
                       <ul className="list-disc list-inside mt-2 text-sm space-y-1">
                         {importResult.errors.map((error, index) => (
                           <li key={index}>
-                            Question {error.index}: {error.error}
+                            Row {error.row_number} ({error.field_name}): {error.error_message}
                           </li>
                         ))}
                       </ul>

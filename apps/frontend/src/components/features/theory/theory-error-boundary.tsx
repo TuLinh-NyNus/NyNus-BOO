@@ -23,6 +23,7 @@ import {
   HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/utils/logger";
 
 // ===== TYPES =====
 
@@ -362,17 +363,22 @@ export class TheoryErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('[TheoryErrorBoundary] Error caught:', error);
-    console.error('[TheoryErrorBoundary] Error info:', errorInfo);
-    
+    logger.error('[TheoryErrorBoundary] Error caught in theory component', {
+      operation: 'theoryErrorBoundary',
+      errorName: error.name,
+      errorMessage: error.message,
+      componentStack: errorInfo.componentStack,
+      stack: error.stack,
+    });
+
     this.setState({
       error,
       errorInfo
     });
-    
+
     // Call custom error handler
     this.props.onError?.(error, errorInfo);
-    
+
     // Log to monitoring service
     this.logError(error, errorInfo);
   }

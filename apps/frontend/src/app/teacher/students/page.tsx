@@ -8,7 +8,6 @@ import {
   Award,
   FileText,
   Search,
-  Filter,
   Grid3x3,
   List,
   Eye,
@@ -50,7 +49,7 @@ interface StudentFilters {
 /**
  * Student Interface (simplified from AdminUser)
  */
-interface Student {
+interface _Student {
   id: string;
   email: string;
   firstName: string;
@@ -81,7 +80,7 @@ export default function TeacherStudentsPage() {
     viewMode: 'grid',
   });
 
-  const [page, setPage] = useState(1);
+  const [page, _setPage] = useState(1);
   const [pageSize] = useState(20);
 
   // Real backend data
@@ -92,9 +91,97 @@ export default function TeacherStudentsPage() {
     { enabled: !!user?.id }
   );
 
-  const { invalidateStudents } = useInvalidateTeacherAnalytics();
+  const { invalidateStudents: _invalidateStudents } = useInvalidateTeacherAnalytics();
 
-  // Loading state
+  // Statistics from real data (MUST BE BEFORE EARLY RETURN)
+  const stats = useMemo(() => {
+    if (!studentsData) return { totalStudents: 0, activeStudents: 0, averageScore: '0.0', pendingGrading: 0 };
+    const students = studentsData.students.map(s => ({
+      id: s.userId,
+      email: s.email,
+      firstName: s.firstName,
+      lastName: s.lastName,
+      avatar: undefined,
+      totalCourses: s.totalCourses,
+      totalExamResults: s.totalExamResults,
+      averageScore: s.averageScore,
+      completionRate: s.completionRate,
+      status: s.status as 'active' | 'inactive' | 'suspended',
+      lastActivity: s.lastActivity || new Date(),
+    }));
+    const activeStudents = students.filter(s => s.status === 'active').length;
+    const totalScore = students.reduce((sum, s) => sum + s.averageScore, 0);
+    const avgScore = students.length > 0 ? (totalScore / students.length).toFixed(1) : '0.0';
+    const pendingGrading = 0; // TODO: Get from backend
+
+    return {
+      totalStudents: studentsData.total,
+      activeStudents,
+      averageScore: avgScore,
+      pendingGrading,
+    };
+  }, [studentsData]);
+
+  // Filter students (MUST BE BEFORE EARLY RETURN)
+  const filteredStudents = useMemo(() => {
+    if (!studentsData) return [];
+    const students = studentsData.students.map(s => ({
+      id: s.userId,
+      email: s.email,
+      firstName: s.firstName,
+      lastName: s.lastName,
+      avatar: undefined,
+      totalCourses: s.totalCourses,
+      totalExamResults: s.totalExamResults,
+      averageScore: s.averageScore,
+      completionRate: s.completionRate,
+      status: s.status as 'active' | 'inactive' | 'suspended',
+      lastActivity: s.lastActivity || new Date(),
+    }));
+    return students.filter(student => {
+      const matchesSearch =
+        student.firstName.toLowerCase().includes(filters.search.toLowerCase()) ||
+        student.lastName.toLowerCase().includes(filters.search.toLowerCase()) ||
+        student.email.toLowerCase().includes(filters.search.toLowerCase());
+
+      const matchesStatus = filters.status === 'all' || student.status === filters.status;
+
+      const matchesPerformance = filters.performance === 'all' || (() => {
+        if (student.averageScore >= 8) return filters.performance === 'excellent';
+        if (student.averageScore >= 6.5) return filters.performance === 'good';
+        return filters.performance === 'needs-improvement';
+      })();
+
+      return matchesSearch && matchesStatus && matchesPerformance;
+    });
+  }, [studentsData, filters]);
+
+  // Handlers (MUST BE BEFORE EARLY RETURN)
+  const handleFilterChange = useCallback((key: keyof StudentFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleViewStudent = useCallback((studentId: string) => {
+    console.log('View student:', studentId);
+    // TODO: Navigate to student detail page
+  }, []);
+
+  const handleGradeStudent = useCallback((studentId: string) => {
+    console.log('Grade student:', studentId);
+    // TODO: Open grading interface
+  }, []);
+
+  const handleMessageStudent = useCallback((studentId: string) => {
+    console.log('Message student:', studentId);
+    // TODO: Open messaging interface
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    console.log('Refresh students');
+    // TODO: Reload students from backend
+  }, []);
+
+  // Loading state (AFTER ALL HOOKS)
   if (authLoading || studentsLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -159,81 +246,6 @@ export default function TeacherStudentsPage() {
   if (!studentsData) {
     return null;
   }
-
-  // Real students data from backend
-  const students = studentsData.students.map(s => ({
-    id: s.userId,
-    email: s.email,
-    firstName: s.firstName,
-    lastName: s.lastName,
-    avatar: undefined,
-    totalCourses: s.totalCourses,
-    totalExamResults: s.totalExamResults,
-    averageScore: s.averageScore,
-    completionRate: s.completionRate,
-    status: s.status as 'active' | 'inactive' | 'suspended',
-    lastActivity: s.lastActivity || new Date(),
-  }));
-
-  // Statistics from real data
-  const stats = useMemo(() => {
-    const activeStudents = students.filter(s => s.status === 'active').length;
-    const totalScore = students.reduce((sum, s) => sum + s.averageScore, 0);
-    const avgScore = students.length > 0 ? (totalScore / students.length).toFixed(1) : '0.0';
-    const pendingGrading = 0; // TODO: Get from backend
-
-    return {
-      totalStudents: studentsData.total,
-      activeStudents,
-      averageScore: avgScore,
-      pendingGrading,
-    };
-  }, [students, studentsData.total]);
-
-  // Filter students (client-side filtering)
-  const filteredStudents = useMemo(() => {
-    return students.filter(student => {
-      const matchesSearch =
-        student.firstName.toLowerCase().includes(filters.search.toLowerCase()) ||
-        student.lastName.toLowerCase().includes(filters.search.toLowerCase()) ||
-        student.email.toLowerCase().includes(filters.search.toLowerCase());
-
-      const matchesStatus = filters.status === 'all' || student.status === filters.status;
-      
-      const matchesPerformance = filters.performance === 'all' || (() => {
-        if (student.averageScore >= 8) return filters.performance === 'excellent';
-        if (student.averageScore >= 6.5) return filters.performance === 'good';
-        return filters.performance === 'needs-improvement';
-      })();
-
-      return matchesSearch && matchesStatus && matchesPerformance;
-    });
-  }, [mockStudents, filters]);
-
-  // Handlers
-  const handleFilterChange = useCallback((key: keyof StudentFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  const handleViewStudent = useCallback((studentId: string) => {
-    console.log('View student:', studentId);
-    // TODO: Navigate to student detail page
-  }, []);
-
-  const handleGradeStudent = useCallback((studentId: string) => {
-    console.log('Grade student:', studentId);
-    // TODO: Open grading interface
-  }, []);
-
-  const handleMessageStudent = useCallback((studentId: string) => {
-    console.log('Message student:', studentId);
-    // TODO: Open messaging interface
-  }, []);
-
-  const handleRefresh = useCallback(() => {
-    console.log('Refresh students');
-    // TODO: Reload students from backend
-  }, []);
 
   // Get performance badge
   const getPerformanceBadge = (score: number) => {

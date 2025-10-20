@@ -6,12 +6,13 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { 
-  adminDashboardMockService, 
-  DashboardMetrics, 
-  SystemStatus, 
-  RecentActivity 
+import {
+  adminDashboardMockService,
+  DashboardMetrics,
+  SystemStatus,
+  RecentActivity
 } from '@/lib/mockdata/admin';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Dashboard Data Hook Options
@@ -146,7 +147,12 @@ export function useDashboardData(options: UseDashboardDataOptions = {}): UseDash
       retryCountRef.current = 0;
 
     } catch (err) {
-      console.error('[useDashboardData] Error fetching data:', err);
+      logger.error('[useDashboardData] Error fetching dashboard data', {
+        operation: 'fetchDashboardData',
+        errorName: err instanceof Error ? err.name : 'Unknown',
+        errorMessage: err instanceof Error ? err.message : 'Không thể tải dữ liệu dashboard',
+        stack: err instanceof Error ? err.stack : undefined,
+      });
       const errorMessage = err instanceof Error ? err.message : 'Không thể tải dữ liệu dashboard';
       setError(errorMessage);
       setStatus('error');
@@ -154,8 +160,12 @@ export function useDashboardData(options: UseDashboardDataOptions = {}): UseDash
       // Retry logic
       if (retryOnError && retryCountRef.current < maxRetries) {
         retryCountRef.current += 1;
-        console.log(`[useDashboardData] Retrying... Attempt ${retryCountRef.current}/${maxRetries}`);
-        
+        logger.info('[useDashboardData] Retrying dashboard data fetch', {
+          operation: 'fetchDashboardData',
+          retryAttempt: retryCountRef.current,
+          maxRetries,
+        });
+
         // Retry after delay
         setTimeout(() => {
           fetchDashboardData(isRefresh);

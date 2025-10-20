@@ -1,15 +1,17 @@
 /**
  * Notifications Hook
  * Hook để quản lý notifications trong NyNus system
- * 
+ *
  * @author NyNus Team
- * @version 1.0.0
+ * @version 2.0.0 - Real gRPC Implementation
  */
 
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/auth-context-grpc';
+import { NotificationService, BackendNotification } from '@/services/grpc/notification.service';
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -42,7 +44,39 @@ export interface NotificationActions {
   refreshNotifications: () => Promise<void>;
 }
 
-// ===== MOCK DATA (TODO: Replace with real gRPC service) =====
+// ===== HELPER FUNCTIONS =====
+
+/**
+ * Map BackendNotification to frontend Notification type
+ * Chuyển đổi notification từ backend sang frontend format
+ */
+function mapBackendNotification(backendNotif: BackendNotification): Notification {
+  // Map backend type to frontend type
+  let frontendType: Notification['type'] = 'info';
+  if (backendNotif.type.includes('SECURITY') || backendNotif.type.includes('LOGIN')) {
+    frontendType = 'security';
+  } else if (backendNotif.type.includes('ERROR') || backendNotif.type.includes('ALERT')) {
+    frontendType = 'error';
+  } else if (backendNotif.type.includes('WARNING')) {
+    frontendType = 'warning';
+  } else if (backendNotif.type.includes('SUCCESS')) {
+    frontendType = 'success';
+  }
+
+  return {
+    id: backendNotif.id,
+    type: frontendType,
+    title: backendNotif.title,
+    message: backendNotif.message,
+    isRead: backendNotif.isRead,
+    createdAt: new Date(backendNotif.createdAt),
+    expiresAt: backendNotif.expiresAt ? new Date(backendNotif.expiresAt) : undefined,
+    actionUrl: backendNotif.data?.actionUrl,
+    actionLabel: backendNotif.data?.actionLabel,
+  };
+}
+
+// ===== MOCK DATA (Deprecated - Using real gRPC service) =====
 
 const MOCK_NOTIFICATIONS: Notification[] = [
   {
@@ -118,36 +152,38 @@ export function useNotifications(): NotificationState & NotificationActions {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
-      // TODO: Replace with real gRPC service call
-      // const response = await NotificationService.getNotifications(user.id);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Mock response based on user role
-      const mockNotifications = user.role?.toString() === 'ADMIN'
-        ? [...MOCK_NOTIFICATIONS, {
-            id: '4',
-            type: 'warning' as const,
-            title: 'Cảnh báo hệ thống',
-            message: 'Phát hiện 3 lần đăng nhập thất bại từ IP 192.168.1.100',
-            isRead: false,
-            createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-            actionUrl: '/admin/security/alerts',
-            actionLabel: 'Xem chi tiết'
-          }]
-        : MOCK_NOTIFICATIONS;
+      // Use real gRPC service to fetch notifications
+      const response = await NotificationService.getUserNotifications({
+        page: 1,
+        limit: 50,
+        unreadOnly: false
+      });
+
+      // Map backend notifications to frontend format
+      const frontendNotifications = response.notifications.map(mapBackendNotification);
 
       setState(prev => ({
         ...prev,
-        notifications: mockNotifications,
-        unreadCount: mockNotifications.filter(n => !n.isRead).length,
+        notifications: frontendNotifications,
+        unreadCount: response.unreadCount,
         isLoading: false,
         lastFetch: new Date()
       }));
 
+      logger.debug('[useNotifications] Notifications fetched successfully', {
+        operation: 'fetchNotifications',
+        count: frontendNotifications.length,
+        unreadCount: response.unreadCount,
+      });
+
     } catch (error) {
-      console.error('Failed to fetch notifications:', error);
+      logger.error('[useNotifications] Failed to fetch notifications', {
+        operation: 'fetchNotifications',
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Failed to fetch notifications',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
       setState(prev => ({
         ...prev,
         isLoading: false,
@@ -158,63 +194,117 @@ export function useNotifications(): NotificationState & NotificationActions {
 
   const markAsRead = useCallback(async (notificationId: string) => {
     try {
-      // TODO: Replace with real gRPC service call
-      // await NotificationService.markAsRead(notificationId);
+      // Use real gRPC service to mark notification as read
+      const success = await NotificationService.markAsRead(notificationId);
 
-      setState(prev => ({
-        ...prev,
-        notifications: prev.notifications.map(n =>
-          n.id === notificationId ? { ...n, isRead: true } : n
-        )
-      }));
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          notifications: prev.notifications.map(n =>
+            n.id === notificationId ? { ...n, isRead: true } : n
+          ),
+          unreadCount: Math.max(0, prev.unreadCount - 1)
+        }));
+
+        logger.debug('[useNotifications] Notification marked as read', {
+          operation: 'markAsRead',
+          notificationId,
+        });
+      }
 
     } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+      logger.error('[useNotifications] Failed to mark notification as read', {
+        operation: 'markAsRead',
+        notificationId,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Failed to mark as read',
+      });
     }
   }, []);
 
   const markAllAsRead = useCallback(async () => {
     try {
-      // TODO: Replace with real gRPC service call
-      // await NotificationService.markAllAsRead(user.id);
+      // Use real gRPC service to mark all notifications as read
+      const success = await NotificationService.markAllAsRead();
 
-      setState(prev => ({
-        ...prev,
-        notifications: prev.notifications.map(n => ({ ...n, isRead: true }))
-      }));
+      if (success) {
+        setState(prev => ({
+          ...prev,
+          notifications: prev.notifications.map(n => ({ ...n, isRead: true })),
+          unreadCount: 0
+        }));
+
+        logger.debug('[useNotifications] All notifications marked as read', {
+          operation: 'markAllAsRead',
+        });
+      }
 
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error);
+      logger.error('[useNotifications] Failed to mark all notifications as read', {
+        operation: 'markAllAsRead',
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Failed to mark all as read',
+      });
     }
   }, []);
 
   const deleteNotification = useCallback(async (notificationId: string) => {
     try {
-      // TODO: Replace with real gRPC service call
-      // await NotificationService.deleteNotification(notificationId);
+      // Use real gRPC service to delete notification
+      const success = await NotificationService.deleteNotification(notificationId);
 
-      setState(prev => ({
-        ...prev,
-        notifications: prev.notifications.filter(n => n.id !== notificationId)
-      }));
+      if (success) {
+        setState(prev => {
+          const deletedNotif = prev.notifications.find(n => n.id === notificationId);
+          const wasUnread = deletedNotif && !deletedNotif.isRead;
+
+          return {
+            ...prev,
+            notifications: prev.notifications.filter(n => n.id !== notificationId),
+            unreadCount: wasUnread ? Math.max(0, prev.unreadCount - 1) : prev.unreadCount
+          };
+        });
+
+        logger.debug('[useNotifications] Notification deleted', {
+          operation: 'deleteNotification',
+          notificationId,
+        });
+      }
 
     } catch (error) {
-      console.error('Failed to delete notification:', error);
+      logger.error('[useNotifications] Failed to delete notification', {
+        operation: 'deleteNotification',
+        notificationId,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Failed to delete notification',
+      });
     }
   }, []);
 
   const clearAll = useCallback(async () => {
     try {
-      // TODO: Replace with real gRPC service call
-      // await NotificationService.clearAll(user.id);
+      // Use real gRPC service to delete all notifications
+      const deletedCount = await NotificationService.deleteAllNotifications();
 
-      setState(prev => ({
-        ...prev,
-        notifications: []
-      }));
+      if (deletedCount > 0) {
+        setState(prev => ({
+          ...prev,
+          notifications: [],
+          unreadCount: 0
+        }));
+
+        logger.debug('[useNotifications] All notifications cleared', {
+          operation: 'clearAll',
+          deletedCount,
+        });
+      }
 
     } catch (error) {
-      console.error('Failed to clear all notifications:', error);
+      logger.error('[useNotifications] Failed to clear all notifications', {
+        operation: 'clearAll',
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Failed to clear all notifications',
+      });
     }
   }, []);
 

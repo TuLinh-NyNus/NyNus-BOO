@@ -7,7 +7,6 @@ import {
   Users,
   BarChart3,
   FileText,
-  Calendar,
   Award,
   TrendingUp,
   Clock,

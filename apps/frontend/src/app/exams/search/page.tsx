@@ -12,7 +12,7 @@
 import React, { useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, ArrowLeft, Clock, TrendingUp, X } from 'lucide-react';
-import Link from 'next/link';
+
 
 import { EXAM_ROUTES, EXAM_DYNAMIC_ROUTES } from '@/lib/exam-paths';
 import { Button } from '@/components/ui/button';

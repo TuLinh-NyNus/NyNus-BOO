@@ -2,6 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import { ErrorBoundary } from './error-boundary';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Page-level Error Boundary
@@ -25,7 +26,13 @@ export function PageErrorBoundary({ children }: { children: ReactNode }) {
         </div>
       }
       onError={(error, errorInfo) => {
-        console.error('Page Error:', error, errorInfo);
+        logger.error('[PageErrorBoundary] Error caught in page', {
+          operation: 'pageErrorBoundary',
+          errorName: error.name,
+          errorMessage: error.message,
+          componentStack: errorInfo.componentStack,
+          stack: error.stack,
+        });
         // Optional: Send to monitoring service
       }}
     >
@@ -35,13 +42,13 @@ export function PageErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 /**
- * Component-level Error Boundary  
+ * Component-level Error Boundary
  * Dành cho individual components - compact fallback
  */
-export function ComponentErrorBoundary({ 
-  children, 
-  componentName 
-}: { 
+export function ComponentErrorBoundary({
+  children,
+  componentName
+}: {
   children: ReactNode;
   componentName?: string;
 }) {
@@ -55,7 +62,14 @@ export function ComponentErrorBoundary({
         </div>
       }
       onError={(error, errorInfo) => {
-        console.error(`Component Error (${componentName || 'Unknown'}):`, error, errorInfo);
+        logger.error(`[ComponentErrorBoundary] Error in component: ${componentName || 'Unknown'}`, {
+          operation: 'componentErrorBoundary',
+          componentName: componentName || 'Unknown',
+          errorName: error.name,
+          errorMessage: error.message,
+          componentStack: errorInfo.componentStack,
+          stack: error.stack,
+        });
       }}
     >
       {children}

@@ -95,7 +95,45 @@ export default function ExamManagePage() {
 
   const [state, setState] = useState<ExamManagePageState>(DEFAULT_STATE);
 
-  // ===== ROLE CHECK =====
+  // ===== HANDLERS (MUST BE BEFORE EARLY RETURN) =====
+
+  const loadExams = useCallback(async () => {
+    setState(prev => ({ ...prev, loading: true, error: null }));
+
+    try {
+      const response = await ExamService.listExams(state.filters);
+
+      setState(prev => ({
+        ...prev,
+        exams: response.exams,
+        totalItems: response.total,
+        loading: false,
+      }));
+    } catch (error) {
+      console.error('Failed to load exams:', error);
+      setState(prev => ({
+        ...prev,
+        error: 'Không thể tải danh sách đề thi',
+        loading: false,
+      }));
+
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể tải danh sách đề thi',
+        variant: 'destructive',
+      });
+    }
+  }, [state.filters, toast]);
+
+  // ===== EFFECTS (MUST BE BEFORE EARLY RETURN) =====
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      loadExams();
+    }
+  }, [authLoading, user, loadExams]);
+
+  // ===== ROLE CHECK (AFTER ALL HOOKS) =====
 
   // Check if user is teacher or admin
   if (!authLoading && (!user || (user.role !== UserRole.USER_ROLE_TEACHER && user.role !== UserRole.USER_ROLE_ADMIN))) {
@@ -124,44 +162,6 @@ export default function ExamManagePage() {
       </div>
     );
   }
-
-  // ===== HANDLERS =====
-
-  const loadExams = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    
-    try {
-      const response = await ExamService.listExams(state.filters);
-      
-      setState(prev => ({
-        ...prev,
-        exams: response.exams,
-        totalItems: response.total,
-        loading: false,
-      }));
-    } catch (error) {
-      console.error('Failed to load exams:', error);
-      setState(prev => ({
-        ...prev,
-        error: 'Không thể tải danh sách đề thi',
-        loading: false,
-      }));
-      
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tải danh sách đề thi',
-        variant: 'destructive',
-      });
-    }
-  }, [state.filters, toast]);
-
-  // ===== EFFECTS =====
-
-  useEffect(() => {
-    if (!authLoading && user) {
-      loadExams();
-    }
-  }, [authLoading, user, loadExams]);
 
   const handleCreateExam = () => {
     router.push(EXAM_ROUTES.CREATE);

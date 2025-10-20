@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
-import { UserRole } from "@/types/user";
+import { useAuth } from "@/contexts/auth-context-grpc";
+import { UserRole } from "@/generated/common/common_pb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Button } from "@/components/ui/form/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/form/select";
@@ -35,7 +35,7 @@ export default function TeacherAnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
 
   // Real backend data
-  const { data: dashboardData, isLoading: dashboardLoading, error, refetch } = useTeacherDashboard(
+  const { data: dashboardData, isLoading: dashboardLoading, error, refetch, isFetching } = useTeacherDashboard(
     user?.id || '',
     timeRange,
     { enabled: !!user?.id }
@@ -160,8 +160,8 @@ export default function TeacherAnalyticsPage() {
                 <SelectItem value="1y">1 năm</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isRefreshing}>
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <Button variant="outline" size="icon" onClick={handleRefresh} disabled={isFetching}>
+              <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
             </Button>
             <Button variant="outline" onClick={() => handleExport('pdf')}>
               <Download className="h-4 w-4 mr-2" />

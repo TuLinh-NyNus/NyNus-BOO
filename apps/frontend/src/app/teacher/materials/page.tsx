@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
-import { UserRole } from "@/types/user";
+import { useAuth } from "@/contexts/auth-context-grpc";
+import { UserRole } from "@/generated/common/common_pb";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/display/card";
 import { Button } from "@/components/ui/form/button";
 import { Input } from "@/components/ui/form/input";
@@ -14,7 +14,6 @@ import {
   FileText,
   Upload,
   Search,
-  Filter,
   Download,
   Eye,
   Edit,
@@ -22,7 +21,6 @@ import {
   AlertCircle,
   Grid3x3,
   List,
-  RefreshCw,
   File,
   FileVideo,
   FileImage
@@ -43,23 +41,8 @@ interface Material {
   views: number;
 }
 
-/**
- * Teacher Materials Page
- * Trang quản lý tài liệu giảng dạy
- */
-export default function TeacherMaterialsPage() {
-  const router = useRouter();
-  const { user, isLoading } = useAuth();
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [filters, setFilters] = useState({
-    search: '',
-    type: 'all',
-    subject: 'all',
-    grade: 'all'
-  });
-
-  // Mock materials data
-  const mockMaterials: Material[] = [
+// Mock materials data (moved outside component to avoid re-creation on every render)
+const MOCK_MATERIALS: Material[] = [
     {
       id: '1',
       title: 'Bài giảng Hàm số bậc hai',
@@ -101,9 +84,24 @@ export default function TeacherMaterialsPage() {
     }
   ];
 
+/**
+ * Teacher Materials Page
+ * Trang quản lý tài liệu giảng dạy
+ */
+export default function TeacherMaterialsPage() {
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [filters, setFilters] = useState({
+    search: '',
+    type: 'all',
+    subject: 'all',
+    grade: 'all'
+  });
+
   // Filter materials
   const filteredMaterials = useMemo(() => {
-    return mockMaterials.filter(material => {
+    return MOCK_MATERIALS.filter(material => {
       const matchesSearch = material.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                            material.description.toLowerCase().includes(filters.search.toLowerCase());
       const matchesType = filters.type === 'all' || material.type === filters.type;
@@ -112,7 +110,7 @@ export default function TeacherMaterialsPage() {
 
       return matchesSearch && matchesType && matchesSubject && matchesGrade;
     });
-  }, [mockMaterials, filters]);
+  }, [filters]);
 
   // Get material icon
   const getMaterialIcon = (type: Material['type']) => {

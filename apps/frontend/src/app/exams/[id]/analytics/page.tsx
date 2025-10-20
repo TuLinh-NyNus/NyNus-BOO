@@ -11,19 +11,18 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  BarChart3, Users, TrendingUp, Clock, Download, 
+import {
+  BarChart3, Users, TrendingUp, Clock, Download,
   CheckCircle, Target, AlertCircle, ArrowLeft,
-  Trophy, XCircle, Calendar, Filter
+  Trophy
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/display/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { UserRole } from '@/types/user';
-import { Exam, ExamStatistics, QuestionStatistics } from '@/types/exam';
+import { Exam, ExamStatistics, ExamStatus, ExamType } from '@/types/exam';
 import { QuestionDifficulty } from '@/types/question';
 
 // ===== TYPES =====
@@ -32,6 +31,14 @@ interface ExamAnalyticsPageProps {
   params: Promise<{
     id: string;
   }>;
+}
+
+interface QuestionStatistics {
+  questionId: string;
+  correctAnswers: number;
+  totalAnswers: number;
+  correctRate: number;
+  averageTimeSpent: number;
 }
 
 interface AnalyticsState {
@@ -88,7 +95,7 @@ export default function ExamAnalyticsPage({ params }: ExamAnalyticsPageProps) {
 function ExamAnalyticsClient({ examId }: { examId: string }) {
   const { user } = useAuth();
   const router = useRouter();
-  
+
   // State Management
   const [state, setState] = useState<AnalyticsState>({
     exam: null,
@@ -97,34 +104,10 @@ function ExamAnalyticsClient({ examId }: { examId: string }) {
     loading: true,
     error: null
   });
-  const [dateFilter, setDateFilter] = useState<DateFilter>({ from: null, to: null });
+  const [_dateFilter, _setDateFilter] = useState<DateFilter>({ from: null, to: null });
   const [activeTab, setActiveTab] = useState('overview');
-  
-  // Role Check - Teacher/Admin only
-  if (!user || (user.role !== UserRole.USER_ROLE_TEACHER && user.role !== UserRole.USER_ROLE_ADMIN)) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive" />
-              Không có quyền truy cập
-            </CardTitle>
-            <CardDescription>
-              Bạn cần có quyền giáo viên hoặc quản trị viên để xem phân tích đề thi.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/dashboard')} className="w-full">
-              Về Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
-  // Data Loading
+
+  // Data Loading (MUST BE BEFORE EARLY RETURN)
   const loadAnalytics = useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }));
@@ -137,13 +120,22 @@ function ExamAnalyticsClient({ examId }: { examId: string }) {
         id: examId,
         title: 'Kiểm tra Toán 12 - Chương 1',
         description: 'Đề kiểm tra chương 1: Ứng dụng đạo hàm',
+        instructions: 'Làm bài trong thời gian quy định. Không sử dụng tài liệu.',
         subject: 'Toán',
         grade: 12,
         durationMinutes: 45,
         totalPoints: 100,
         passPercentage: 60,
-        status: 'ACTIVE',
+        examType: ExamType.GENERATED,
+        status: ExamStatus.ACTIVE,
         difficulty: QuestionDifficulty.MEDIUM,
+        tags: ['toán-12', 'đạo-hàm', 'chương-1'],
+        shuffleQuestions: true,
+        showResults: true,
+        maxAttempts: 3,
+        version: 1,
+        questionIds: [],
+        createdBy: 'teacher-001',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -201,30 +193,54 @@ function ExamAnalyticsClient({ examId }: { examId: string }) {
         loading: false,
         error: null
       });
-    } catch (err) {
+    } catch (_err) {
       setState(prev => ({
         ...prev,
         loading: false,
         error: 'Không thể tải dữ liệu phân tích'
       }));
     }
-  }, [examId, dateFilter]);
-  
+  }, [examId]);
+
   useEffect(() => {
     loadAnalytics();
   }, [loadAnalytics]);
-  
+
   // Export Handlers
   const handleExportCSV = async () => {
     // TODO: Implement CSV export
     console.log('Export CSV');
   };
-  
+
   const handleExportPDF = async () => {
     // TODO: Implement PDF export
     console.log('Export PDF');
   };
-  
+
+  // Role Check - Teacher/Admin only (AFTER ALL HOOKS)
+  if (!user || (user.role !== UserRole.USER_ROLE_TEACHER && user.role !== UserRole.USER_ROLE_ADMIN)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-destructive" />
+              Không có quyền truy cập
+            </CardTitle>
+            <CardDescription>
+              Bạn cần có quyền giáo viên hoặc quản trị viên để xem phân tích đề thi.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push('/dashboard')} className="w-full">
+              Về Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Render Functions
   const renderStatsCards = () => {
     if (!state.statistics) return null;

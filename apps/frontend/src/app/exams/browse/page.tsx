@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 // Import exam components
-import { ExamGrid } from '@/components/features/exams/management/exam-grid';
 import { ExamCard } from '@/components/features/exams/shared/exam-card';
 
 // Import types

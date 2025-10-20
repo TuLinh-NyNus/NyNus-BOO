@@ -12,6 +12,7 @@ import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Search } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { logger } from '@/lib/utils/logger';
 
 // ===== TYPES =====
 
@@ -212,19 +213,25 @@ export class SearchErrorBoundary extends Component<SearchErrorBoundaryProps, Sea
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error
-    console.error('[SearchErrorBoundary] Caught error:', error);
-    console.error('[SearchErrorBoundary] Error info:', errorInfo);
-    
+    // Log error với structured logging
+    logger.error('[SearchErrorBoundary] Error caught in search component', {
+      operation: 'searchErrorBoundary',
+      errorName: error.name,
+      errorMessage: error.message,
+      componentStack: errorInfo.componentStack,
+      stack: error.stack,
+      errorId: this.state.errorId,
+    });
+
     // Update state với error info
     this.setState({
       error,
       errorInfo
     });
-    
+
     // Call custom error handler
     this.props.onError?.(error, errorInfo);
-    
+
     // Log to monitoring service (if available)
     if (typeof window !== 'undefined' && 'gtag' in window) {
       (window as { gtag: (...args: unknown[]) => void }).gtag('event', 'exception', {
@@ -252,7 +259,11 @@ export class SearchErrorBoundary extends Component<SearchErrorBoundaryProps, Sea
       this.retryCount++;
       this.resetError();
     } else {
-      console.warn('[SearchErrorBoundary] Max retries reached');
+      logger.warn('[SearchErrorBoundary] Max retries reached', {
+        operation: 'searchErrorBoundary',
+        retryCount: this.retryCount,
+        maxRetries: this.maxRetries,
+      });
     }
   };
 
@@ -287,7 +298,12 @@ export function useSearchErrorHandler() {
   
   const handleError = React.useCallback((error: Error) => {
     setError(error);
-    console.error('[SearchErrorHandler] Error:', error);
+    logger.error('[SearchErrorHandler] Error in search handler', {
+      operation: 'searchErrorHandler',
+      errorName: error.name,
+      errorMessage: error.message,
+      stack: error.stack,
+    });
   }, []);
   
   const clearError = React.useCallback(() => {

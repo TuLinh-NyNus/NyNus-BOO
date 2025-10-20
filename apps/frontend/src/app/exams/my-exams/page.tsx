@@ -26,11 +26,9 @@ import {
   Button,
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from '@/components/ui';
@@ -84,7 +82,7 @@ const DEFAULT_STATS: MyExamsStats = {
  */
 export default function MyExamsPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
 
   // ===== STATE =====
 
@@ -146,7 +144,7 @@ export default function MyExamsPage() {
     setFilters(prev => ({ ...prev, search: value, page: 1 }));
   }, []);
 
-  const handleFilterChange = useCallback((key: keyof ExamFilters, value: any) => {
+  const handleFilterChange = useCallback((key: keyof ExamFilters, value: ExamFilters[keyof ExamFilters]) => {
     setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
   }, []);
 
@@ -168,7 +166,7 @@ export default function MyExamsPage() {
 
   // ===== FILTER EXAMS BY TAB =====
 
-  const filteredExams = exams.filter(exam => {
+  const filteredExams = exams.filter(_exam => {
     // TODO: Replace with actual enrollment status from backend
     // For now, mock filtering based on tab
     if (activeTab === 'in-progress') {

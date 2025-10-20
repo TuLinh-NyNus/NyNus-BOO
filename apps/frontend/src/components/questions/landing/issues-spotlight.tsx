@@ -8,6 +8,8 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, Tag, MessageSquareWarning, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { QuestionFilterService } from '@/services/grpc/question-filter.service';
+import { logger } from '@/lib/utils/logger';
 
 interface IssuesSpotlightProps {
   className?: string;
@@ -24,63 +26,118 @@ interface IssueCard {
 
 export function IssuesSpotlight({ className }: IssuesSpotlightProps) {
   const [issues, setIssues] = useState<IssueCard[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Kết nối API ListQuestionsByFilter để lấy filterSummary thực
-    // Tạm mock số liệu để hiển thị giao diện
-    const mock: IssueCard[] = [
-      {
-        key: 'no-solution',
-        title: 'Thiếu lời giải',
-        description: 'Các câu hỏi chưa có lời giải chi tiết',
-        count: 124,
-        icon: <AlertCircle className="h-5 w-5" />,
-        onClick: () => {
-          const url = new URL(window.location.origin + '/questions/browse');
-          url.searchParams.set('hasSolution', 'false');
-          window.location.href = url.toString();
-        },
-      },
-      {
-        key: 'no-tags',
-        title: 'Chưa gắn tags',
-        description: 'Câu hỏi thiếu thẻ tags để phân loại',
-        count: 89,
-        icon: <Tag className="h-5 w-5" />,
-        onClick: () => {
-          const url = new URL(window.location.origin + '/questions/browse');
-          url.searchParams.set('tags', '');
-          window.location.href = url.toString();
-        },
-      },
-      {
-        key: 'low-feedback',
-        title: 'Feedback thấp',
-        description: 'Điểm đánh giá dưới ngưỡng khuyến nghị',
-        count: 46,
-        icon: <MessageSquareWarning className="h-5 w-5" />,
-        onClick: () => {
-          const url = new URL(window.location.origin + '/questions/browse');
-          url.searchParams.set('feedbackMax', '2');
-          window.location.href = url.toString();
-        },
-      },
-      {
-        key: 'low-usage',
-        title: 'Ít được sử dụng',
-        description: 'Câu hỏi chưa được dùng nhiều trong đề',
-        count: 312,
-        icon: <EyeOff className="h-5 w-5" />,
-        onClick: () => {
-          const url = new URL(window.location.origin + '/questions/browse');
-          url.searchParams.set('usageMax', '1');
-          window.location.href = url.toString();
-        },
-      },
-    ];
+    const fetchIssueStats = async () => {
+      try {
+        setLoading(true);
 
-    setIssues(mock);
+        // Fetch statistics for each issue type using real gRPC service
+        const [noSolutionData, noTagsData, lowFeedbackData, lowUsageData] = await Promise.all([
+          // Questions without solution
+          QuestionFilterService.listQuestionsByFilter({
+            content_filter: { has_solution: false },
+            pagination: { page: 1, limit: 1 }
+          }),
+          // Questions without tags
+          QuestionFilterService.listQuestionsByFilter({
+            metadata_filter: { has_tags: false },
+            pagination: { page: 1, limit: 1 }
+          }),
+          // Questions with low feedback (< 3.0)
+          QuestionFilterService.listQuestionsByFilter({
+            metadata_filter: { feedback_max: 3.0 },
+            pagination: { page: 1, limit: 1 }
+          }),
+          // Questions with low usage (< 2 times)
+          QuestionFilterService.listQuestionsByFilter({
+            metadata_filter: { usage_count_max: 2 },
+            pagination: { page: 1, limit: 1 }
+          })
+        ]);
+
+        const issueCards: IssueCard[] = [
+          {
+            key: 'no-solution',
+            title: 'Thiếu lời giải',
+            description: 'Các câu hỏi chưa có lời giải chi tiết',
+            count: noSolutionData.total_count || 0,
+            icon: <AlertCircle className="h-5 w-5" />,
+            onClick: () => {
+              const url = new URL(window.location.origin + '/questions/browse');
+              url.searchParams.set('hasSolution', 'false');
+              window.location.href = url.toString();
+            },
+          },
+          {
+            key: 'no-tags',
+            title: 'Chưa gắn tags',
+            description: 'Câu hỏi thiếu thẻ tags để phân loại',
+            count: noTagsData.total_count || 0,
+            icon: <Tag className="h-5 w-5" />,
+            onClick: () => {
+              const url = new URL(window.location.origin + '/questions/browse');
+              url.searchParams.set('hasTags', 'false');
+              window.location.href = url.toString();
+            },
+          },
+          {
+            key: 'low-feedback',
+            title: 'Feedback thấp',
+            description: 'Điểm đánh giá dưới ngưỡng khuyến nghị',
+            count: lowFeedbackData.total_count || 0,
+            icon: <MessageSquareWarning className="h-5 w-5" />,
+            onClick: () => {
+              const url = new URL(window.location.origin + '/questions/browse');
+              url.searchParams.set('feedbackMax', '3');
+              window.location.href = url.toString();
+            },
+          },
+          {
+            key: 'low-usage',
+            title: 'Ít được sử dụng',
+            description: 'Câu hỏi chưa được dùng nhiều trong đề',
+            count: lowUsageData.total_count || 0,
+            icon: <EyeOff className="h-5 w-5" />,
+            onClick: () => {
+              const url = new URL(window.location.origin + '/questions/browse');
+              url.searchParams.set('usageMax', '2');
+              window.location.href = url.toString();
+            },
+          },
+        ];
+
+        setIssues(issueCards);
+      } catch (error) {
+        logger.error('[IssuesSpotlight] Failed to fetch issue statistics', {
+          operation: 'fetchIssueStats',
+          errorName: error instanceof Error ? error.name : 'Unknown',
+          errorMessage: error instanceof Error ? error.message : 'Failed to fetch statistics',
+          stack: error instanceof Error ? error.stack : undefined,
+        });
+
+        // Fallback to empty state on error
+        setIssues([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIssueStats();
   }, []);
+
+  if (loading) {
+    return (
+      <div className={cn('grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4', className)}>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="rounded-xl border bg-card p-4 shadow-sm animate-pulse">
+            <div className="h-12 bg-muted rounded"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className={cn('grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4', className)}>

@@ -44,6 +44,7 @@ export interface ParseLatexRequest {
 }
 
 export interface ParsedQuestion {
+  id?: string;
   raw_content: string;
   content: string;
   subcount?: string;
@@ -106,21 +107,21 @@ export interface ImportLatexResponse {
   created_count: number;
   updated_count: number;
   skipped_count: number;
-  error_count: number;
   errors: ImportError[];
   created_codes: string[];
-  warnings: string[];
 }
 
 export interface ImportError {
-  index: number;
-  subcount?: string;
-  error: string;
+  row_number: number;
+  field_name: string;
+  error_message: string;
+  row_data: string;
 }
 
 // Helper functions to map proto to frontend types
 function mapQuestionFromPb(q: Question): ParsedQuestion {
   return {
+    id: q.getId() || undefined,
     raw_content: q.getRawContent(),
     content: q.getContent(),
     subcount: q.getSubcount() || undefined,
@@ -247,14 +248,13 @@ export const QuestionLatexService = {
         created_count: response.getCreatedCount(),
         updated_count: response.getUpdatedCount(),
         skipped_count: response.getSkippedCount(),
-        error_count: response.getErrorCount(),
         errors: response.getErrorsList().map((err) => ({
-          index: err.getIndex(),
-          subcount: err.getSubcount() || undefined,
-          error: err.getError(),
+          row_number: err.getRowNumber(),
+          field_name: err.getFieldName(),
+          error_message: err.getErrorMessage(),
+          row_data: err.getRowData(),
         })),
-        created_codes: response.getCreatedCodesList(),
-        warnings: response.getWarningsList(),
+        created_codes: response.getQuestionCodesCreatedList(),
       };
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
@@ -263,13 +263,13 @@ export const QuestionLatexService = {
         created_count: 0,
         updated_count: 0,
         skipped_count: 0,
-        error_count: 1,
         errors: [{
-          index: 0,
-          error: errorMessage,
+          row_number: 0,
+          field_name: 'general',
+          error_message: errorMessage,
+          row_data: '',
         }],
         created_codes: [],
-        warnings: [],
       };
     }
   },

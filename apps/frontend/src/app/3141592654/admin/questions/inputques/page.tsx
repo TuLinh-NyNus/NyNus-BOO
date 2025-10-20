@@ -84,10 +84,10 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
       setParseError(null);
 
       // Use createFromLatex to parse and create question in one step
-      const result = await QuestionLatexService.createFromLatex(
-        latexContent,
-        true // auto_create_code = true
-      );
+      const result = await QuestionLatexService.createFromLatex({
+        latex_content: latexContent,
+        auto_create_codes: true
+      });
 
       if (!result.success) {
         setParseError(result.error || 'Không thể phân tích LaTeX');
@@ -99,16 +99,19 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
         });
       } else {
         // Question created successfully
+        const firstQuestion = result.created_questions[0];
+        const firstCode = result.created_codes[0];
+
         setParsedQuestion({
-          id: result.question_id,
-          questionCodeId: result.question_code,
+          id: firstQuestion?.id,
+          questionCodeId: firstCode?.id,
           rawContent: latexContent
         } as Partial<Question>);
         setParseError(null);
 
         const warningMessage = result.warnings.length > 0
-          ? `Đã tạo câu hỏi thành công. Cảnh báo: ${result.warnings.join(', ')}`
-          : 'Đã phân tích và tạo câu hỏi từ LaTeX thành công';
+          ? `Đã tạo ${result.created_count} câu hỏi thành công. Cảnh báo: ${result.warnings.join(', ')}`
+          : `Đã phân tích và tạo ${result.created_count} câu hỏi từ LaTeX thành công`;
 
         toast({
           title: 'Thành công',

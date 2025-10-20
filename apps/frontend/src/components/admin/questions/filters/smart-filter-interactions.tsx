@@ -327,8 +327,11 @@ export function SmartFilterInteractions({ className }: SmartFilterInteractionsPr
                 variant="outline"
                 className="text-xs cursor-pointer hover:bg-primary hover:text-primary-foreground"
                 onClick={() => {
-                  // TODO: Add tag to filter when tag filter is implemented
-                  console.log('Add tag:', tag.value);
+                  // Add tag to filter using store
+                  const currentTags = filters.tags || [];
+                  if (!currentTags.includes(tag.value)) {
+                    updateFilters({ tags: [...currentTags, tag.value] });
+                  }
                 }}
               >
                 {tag.label} ({tag.count})

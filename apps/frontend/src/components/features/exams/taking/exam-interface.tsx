@@ -13,6 +13,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { logger } from "@/lib/utils/logger";
 
 // UI Components
 import {
@@ -170,7 +171,9 @@ export function ExamInterface({
   
   const handleQuestionFlag = useCallback((questionId: string, flagged: boolean) => {
     // Implement flag functionality if needed
-    console.log('Flag question:', questionId, flagged);
+    // TODO: Implement flag functionality
+    void questionId;
+    void flagged;
   }, []);
   
   const handleSave = useCallback(async () => {
@@ -178,7 +181,12 @@ export function ExamInterface({
       await forceAutoSave();
       onSave?.();
     } catch (error) {
-      console.error('Failed to save:', error);
+      logger.error('[ExamInterface] Failed to save exam', {
+        operation: 'handleSave',
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Failed to save',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   }, [forceAutoSave, onSave]);
   
@@ -186,13 +194,18 @@ export function ExamInterface({
     if (!confirm('Bạn có chắc chắn muốn nộp bài? Bạn sẽ không thể thay đổi câu trả lời sau khi nộp.')) {
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       await submitAttempt();
       onSubmit?.();
     } catch (error) {
-      console.error('Failed to submit exam:', error);
+      logger.error('[ExamInterface] Failed to submit exam', {
+        operation: 'handleSubmit',
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Failed to submit exam',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     } finally {
       setIsSubmitting(false);
     }

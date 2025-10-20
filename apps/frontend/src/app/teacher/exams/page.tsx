@@ -6,7 +6,6 @@ import {
   FileText,
   Plus,
   Search,
-  Filter,
   Grid3x3,
   List,
   RefreshCw,
@@ -96,7 +95,7 @@ interface ExamFilters {
 }
 
 // Mock Data
-const mockExams: MockExam[] = [
+const _mockExams: MockExam[] = [
   {
     id: '1',
     title: 'Kiểm tra giữa kỳ - Toán 10',
@@ -166,7 +165,7 @@ export default function TeacherExamsPage() {
     viewMode: 'grid',
   });
 
-  const [page, setPage] = useState(1);
+  const [page, _setPage] = useState(1);
   const [pageSize] = useState(20);
 
   // Real backend data
@@ -178,9 +177,74 @@ export default function TeacherExamsPage() {
     { enabled: !!user?.id }
   );
 
-  const { invalidateExams } = useInvalidateTeacherAnalytics();
+  const { invalidateExams: _invalidateExams } = useInvalidateTeacherAnalytics();
 
-  // Loading state
+  // Statistics from real data (MUST BE BEFORE EARLY RETURN)
+  const stats = useMemo(() => ({
+    totalExams: examsData?.total || 0,
+    activeExams: examsData?.exams.filter(e => e.status === 'active').length || 0,
+    pendingExams: examsData?.exams.filter(e => e.status === 'pending').length || 0,
+    totalAttempts: examsData?.exams.reduce((sum, e) => sum + e.attemptCount, 0) || 0,
+  }), [examsData]);
+
+  // Filtered exams (MUST BE BEFORE EARLY RETURN)
+  const filteredExams = useMemo(() => {
+    if (!examsData) return [];
+    return examsData.exams.filter(exam => {
+      const matchesSearch =
+        exam.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        exam.description.toLowerCase().includes(filters.search.toLowerCase());
+
+      const matchesStatus = filters.status === 'all' || exam.status === filters.status;
+      const matchesType = filters.type === 'all' || exam.examType === filters.type;
+      const matchesSubject = filters.subject === 'all' || exam.subject === filters.subject;
+      const matchesDifficulty = filters.difficulty === 'all' || exam.difficulty === filters.difficulty;
+
+      return matchesSearch && matchesStatus && matchesType && matchesSubject && matchesDifficulty;
+    });
+  }, [examsData, filters]);
+
+  // Handlers (MUST BE BEFORE EARLY RETURN)
+  const handleFilterChange = useCallback((key: keyof ExamFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  const handleViewExam = useCallback((examId: string) => {
+    console.log('View exam:', examId);
+    // TODO: Navigate to exam detail page
+  }, []);
+
+  const handleEditExam = useCallback((examId: string) => {
+    console.log('Edit exam:', examId);
+    // TODO: Navigate to exam edit page
+  }, []);
+
+  const handleDeleteExam = useCallback((examId: string) => {
+    console.log('Delete exam:', examId);
+    // TODO: Implement delete with confirmation
+  }, []);
+
+  const handlePublishExam = useCallback((examId: string) => {
+    console.log('Publish exam:', examId);
+    // TODO: Implement publish
+  }, []);
+
+  const handleArchiveExam = useCallback((examId: string) => {
+    console.log('Archive exam:', examId);
+    // TODO: Implement archive
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    console.log('Refresh exams');
+    // TODO: Reload exams from backend
+  }, []);
+
+  const handleCreateExam = useCallback(() => {
+    console.log('Create new exam');
+    // TODO: Navigate to exam creation page
+  }, []);
+
+  // Loading state (AFTER ALL HOOKS)
   if (authLoading || examsLoading) {
     return (
       <div className="min-h-screen bg-[#FDF2F8] flex items-center justify-center">
@@ -245,73 +309,6 @@ export default function TeacherExamsPage() {
   if (!examsData) {
     return null;
   }
-
-  // Real exams data from backend
-  const exams = examsData.exams;
-
-  // Statistics from real data
-  const stats = useMemo(() => ({
-    totalExams: examsData.total,
-    activeExams: exams.filter(e => e.status === 'active').length,
-    pendingExams: exams.filter(e => e.status === 'pending').length,
-    totalAttempts: exams.reduce((sum, e) => sum + e.attemptCount, 0),
-  }), [exams, examsData.total]);
-
-  // Filtered exams (client-side filtering)
-  const filteredExams = useMemo(() => {
-    return exams.filter(exam => {
-      const matchesSearch =
-        exam.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-        exam.description.toLowerCase().includes(filters.search.toLowerCase());
-
-      const matchesStatus = filters.status === 'all' || exam.status === filters.status;
-      const matchesType = filters.type === 'all' || exam.examType === filters.type;
-      const matchesSubject = filters.subject === 'all' || exam.subject === filters.subject;
-      const matchesDifficulty = filters.difficulty === 'all' || exam.difficulty === filters.difficulty;
-
-      return matchesSearch && matchesStatus && matchesType && matchesSubject && matchesDifficulty;
-    });
-  }, [exams, filters]);
-
-  // Handlers
-  const handleFilterChange = useCallback((key: keyof ExamFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  const handleViewExam = useCallback((examId: string) => {
-    console.log('View exam:', examId);
-    // TODO: Navigate to exam detail page
-  }, []);
-
-  const handleEditExam = useCallback((examId: string) => {
-    console.log('Edit exam:', examId);
-    // TODO: Navigate to exam edit page
-  }, []);
-
-  const handleDeleteExam = useCallback((examId: string) => {
-    console.log('Delete exam:', examId);
-    // TODO: Implement delete with confirmation
-  }, []);
-
-  const handlePublishExam = useCallback((examId: string) => {
-    console.log('Publish exam:', examId);
-    // TODO: Implement publish
-  }, []);
-
-  const handleArchiveExam = useCallback((examId: string) => {
-    console.log('Archive exam:', examId);
-    // TODO: Implement archive
-  }, []);
-
-  const handleRefresh = useCallback(() => {
-    console.log('Refresh exams');
-    // TODO: Reload exams from backend
-  }, []);
-
-  const handleCreateExam = useCallback(() => {
-    console.log('Create new exam');
-    // TODO: Navigate to exam creation page
-  }, []);
 
   // Helper functions
   const getStatusBadge = (status: ExamStatus) => {
@@ -548,7 +545,7 @@ export default function TeacherExamsPage() {
                         <CardTitle className="text-base truncate">{exam.title}</CardTitle>
                         <CardDescription className="line-clamp-2">{exam.description}</CardDescription>
                       </div>
-                      {getStatusBadge(exam.status)}
+                      {getStatusBadge(exam.status as ExamStatus)}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -574,7 +571,7 @@ export default function TeacherExamsPage() {
 
                     {/* Difficulty Badge */}
                     <div>
-                      {getDifficultyBadge(exam.difficulty)}
+                      {getDifficultyBadge(exam.difficulty as QuestionDifficulty)}
                     </div>
 
                     {/* Stats */}
@@ -661,8 +658,8 @@ export default function TeacherExamsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold truncate">{exam.title}</h3>
-                          {getStatusBadge(exam.status)}
-                          {getDifficultyBadge(exam.difficulty)}
+                          {getStatusBadge(exam.status as ExamStatus)}
+                          {getDifficultyBadge(exam.difficulty as QuestionDifficulty)}
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-1">{exam.description}</p>
                         <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">

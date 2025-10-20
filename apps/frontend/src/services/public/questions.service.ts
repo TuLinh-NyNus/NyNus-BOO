@@ -22,12 +22,14 @@ import {
 } from '@/types/public';
 
 import { QuestionType, QuestionDifficulty } from '@/types/question';
-import { 
-  isGrpcError, 
-  getGrpcErrorMessage, 
-  logGrpcError 
+import {
+  isGrpcError,
+  getGrpcErrorMessage,
+  logGrpcError
 } from '@/lib/grpc/errors';
 import { QuestionService as GrpcQuestionService } from '@/services/grpc/question.service';
+import { devLogger } from '@/lib/utils/dev-logger';
+import { logger } from '@/lib/utils/logger';
 // TODO: Re-enable mappers when implementing proper gRPC filtering
 // import { mapFiltersToListRequest, mapToSearchRequest } from '@/services/api/mappers/question-filter.mapper';
 // import { mapQuestionDetailToPublic, mapSearchResultToPublic } from '@/services/api/mappers/question.mapper';
@@ -170,14 +172,12 @@ const shouldUseRealAPI = (): boolean => {
  * Ghi log cấu hình hiện tại để debug
  */
 const logCurrentConfig = (): void => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[PublicQuestionService] Config:', {
-      useMock: isUseMock(),
-      isAuthenticated: isAuthenticated(),
-      shouldUseRealAPI: shouldUseRealAPI(),
-      apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
-    });
-  }
+  devLogger.info('[PublicQuestionService] Config:', {
+    useMock: isUseMock(),
+    isAuthenticated: isAuthenticated(),
+    shouldUseRealAPI: shouldUseRealAPI(),
+    apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
+  });
 };
 
 /**
@@ -195,22 +195,37 @@ const isAuthenticated = (): boolean => {
  */
 const handleGrpcError = (error: unknown, operation: string): void => {
   logGrpcError(error, operation);
-  
+
   if (isGrpcError(error)) {
     const message = getGrpcErrorMessage(error);
-    
+
     if (error.code === 16) { // UNAUTHENTICATED
-      console.warn('Authentication required - redirecting to login or fallback to mock');
+      logger.warn('[PublicQuestionService] Authentication required', {
+        operation: 'handleGrpcError',
+        errorCode: error.code,
+        errorMessage: message,
+      });
       // toast.error('Vui lòng đăng nhập để truy cập tài nguyên này');
-    } else if (error.code === 14) { // UNAVAILABLE 
-      console.warn('Service unavailable - falling back to mock data');
+    } else if (error.code === 14) { // UNAVAILABLE
+      logger.warn('[PublicQuestionService] Service unavailable - falling back to mock data', {
+        operation: 'handleGrpcError',
+        errorCode: error.code,
+        errorMessage: message,
+      });
       // toast.error('Không thể kết nối đến server. Hiển thị dữ liệu mẫu.');
     } else {
-      console.warn(`gRPC Error: ${message}`);
+      logger.warn(`[PublicQuestionService] gRPC Error: ${message}`, {
+        operation: 'handleGrpcError',
+        errorCode: error.code,
+        errorMessage: message,
+      });
       // toast.error(`Lỗi: ${message}`);
     }
   } else {
-    console.warn('Unknown error occurred');
+    logger.warn('[PublicQuestionService] Unknown error occurred', {
+      operation: 'handleGrpcError',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
     // toast.error('Đã xảy ra lỗi không xác định');
   }
 };
