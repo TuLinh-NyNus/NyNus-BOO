@@ -30,6 +30,7 @@ import { getChaptersByCourseId, getReviewsByCourseId } from '@/lib/mockdata/cour
 import { getCourseBySlug } from '@/lib/mockdata';
 import { MockCourse, MockChapter, MockReview } from '@/lib/mockdata/courses/courses-types';
 import { useAuth } from '@/contexts/auth-context-grpc';
+import { UserRole } from '@/generated/common/common_pb';
 
 export default function CourseDetailPage(): JSX.Element {
   const params = useParams();
@@ -138,8 +139,15 @@ export default function CourseDetailPage(): JSX.Element {
     );
   }
 
-  // Role-based access check
-  if (user && !['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'].includes(user.role.toString())) {
+  // Role-based access check - FIX: Compare with enum numbers instead of strings
+  const allowedRoles = [
+    UserRole.USER_ROLE_STUDENT,
+    UserRole.USER_ROLE_TUTOR,
+    UserRole.USER_ROLE_TEACHER,
+    UserRole.USER_ROLE_ADMIN
+  ];
+
+  if (user && !allowedRoles.includes(user.role)) {
     return (
       <div className="min-h-screen relative">
         <MathBackground />

@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/form/button";
 import { ThemeForcer } from "@/components/ui/theme";
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { Loader2, Lock } from 'lucide-react';
+import { UserRole } from '@/generated/common/common_pb';
 
 // Helper function to map tutorials to courses by category
 function getTutorialsForCourse(course: MockCourse, allTutorials: MockTutorial[]): MockTutorial[] {
@@ -92,8 +93,15 @@ export default function CoursesPage() {
     );
   }
 
-  // Role-based access check
-  if (user && !['STUDENT', 'TUTOR', 'TEACHER', 'ADMIN'].includes(user.role.toString())) {
+  // Role-based access check - FIX: Compare with enum numbers instead of strings
+  const allowedRoles = [
+    UserRole.USER_ROLE_STUDENT,
+    UserRole.USER_ROLE_TUTOR,
+    UserRole.USER_ROLE_TEACHER,
+    UserRole.USER_ROLE_ADMIN
+  ];
+
+  if (user && !allowedRoles.includes(user.role)) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <MathBackground />
