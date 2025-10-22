@@ -23,21 +23,11 @@ import { PaginationRequest } from '@/generated/common/common_pb';
 import { User } from '@/generated/v1/user_pb';
 import { RpcError } from 'grpc-web';
 import { getGrpcUrl } from '@/lib/config/endpoints';
+import { getAuthMetadata } from './client';
 
 // gRPC client configuration
 const GRPC_ENDPOINT = getGrpcUrl();
 const adminServiceClient = new AdminServiceClient(GRPC_ENDPOINT);
-
-// Helper to get auth metadata
-function getAuthMetadata(): { [key: string]: string } {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('nynus-auth-token');
-    if (token) {
-      return { 'authorization': `Bearer ${token}` };
-    }
-  }
-  return {};
-}
 
 // Handle gRPC errors
 function handleGrpcError(error: RpcError): string {
