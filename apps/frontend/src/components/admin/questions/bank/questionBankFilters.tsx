@@ -75,7 +75,7 @@ export function QuestionBankFilters({
           <SelectValue placeholder="Loại câu hỏi" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Tất cả loại</SelectItem>
+          <SelectItem value="all">Tất cả loại</SelectItem>
           <SelectItem value={QuestionType.MC}>Trắc nghiệm</SelectItem>
           <SelectItem value={QuestionType.TF}>Đúng/Sai</SelectItem>
           <SelectItem value={QuestionType.SA}>Trả lời ngắn</SelectItem>
@@ -90,7 +90,7 @@ export function QuestionBankFilters({
           <SelectValue placeholder="Trạng thái" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Tất cả trạng thái</SelectItem>
+          <SelectItem value="all">Tất cả trạng thái</SelectItem>
           <SelectItem value={QuestionStatus.ACTIVE}>Hoạt động</SelectItem>
           <SelectItem value={QuestionStatus.PENDING}>Chờ duyệt</SelectItem>
           <SelectItem value={QuestionStatus.INACTIVE}>Không hoạt động</SelectItem>
@@ -104,7 +104,7 @@ export function QuestionBankFilters({
           <SelectValue placeholder="Độ khó" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">Tất cả độ khó</SelectItem>
+          <SelectItem value="all">Tất cả độ khó</SelectItem>
           <SelectItem value={QuestionDifficulty.EASY}>Dễ</SelectItem>
           <SelectItem value={QuestionDifficulty.MEDIUM}>Trung bình</SelectItem>
           <SelectItem value={QuestionDifficulty.HARD}>Khó</SelectItem>

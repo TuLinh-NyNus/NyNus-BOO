@@ -46,9 +46,9 @@ export function AuditTrailDisplay() {
   // Filter states
   const [filters, setFilters] = useState({
     search: "",
-    action: "",
-    resource: "",
-    status: "",
+    action: "all",
+    resource: "all",
+    status: "all",
     userId: "",
   });
 
@@ -87,9 +87,9 @@ export function AuditTrailDisplay() {
   const clearFilters = () => {
     setFilters({
       search: "",
-      action: "",
-      resource: "",
-      status: "",
+      action: "all",
+      resource: "all",
+      status: "all",
       userId: "",
     });
   };
@@ -209,7 +209,7 @@ export function AuditTrailDisplay() {
                   <SelectValue placeholder="All actions" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All actions</SelectItem>
+                  <SelectItem value="all">All actions</SelectItem>
                   <SelectItem value="USER_ROLE_UPDATE">User Role Update</SelectItem>
                   <SelectItem value="PROGRESSION_SETTINGS_UPDATE">Settings Update</SelectItem>
                   <SelectItem value="QUESTION_CREATE">Question Create</SelectItem>
@@ -224,7 +224,7 @@ export function AuditTrailDisplay() {
                   <SelectValue placeholder="All resources" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All resources</SelectItem>
+                  <SelectItem value="all">All resources</SelectItem>
                   <SelectItem value="USER">User</SelectItem>
                   <SelectItem value="SETTINGS">Settings</SelectItem>
                   <SelectItem value="QUESTION">Question</SelectItem>
@@ -239,7 +239,7 @@ export function AuditTrailDisplay() {
                   <SelectValue placeholder="All statuses" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All statuses</SelectItem>
+                  <SelectItem value="all">All statuses</SelectItem>
                   <SelectItem value="SUCCESS">Success</SelectItem>
                   <SelectItem value="FAILED">Failed</SelectItem>
                   <SelectItem value="PENDING">Pending</SelectItem>

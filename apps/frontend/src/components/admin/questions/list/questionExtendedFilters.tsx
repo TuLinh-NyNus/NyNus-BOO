@@ -88,7 +88,7 @@ export function QuestionExtendedFilters({
                 <SelectValue placeholder="Chọn lớp" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả lớp</SelectItem>
+                <SelectItem value="all">Tất cả lớp</SelectItem>
                 <SelectItem value="10">Lớp 10</SelectItem>
                 <SelectItem value="11">Lớp 11</SelectItem>
                 <SelectItem value="12">Lớp 12</SelectItem>
@@ -99,14 +99,14 @@ export function QuestionExtendedFilters({
           <div className="space-y-2">
             <Label>Môn học</Label>
             <Select
-              value={filters.subject || ""}
+              value={filters.subject || "all"}
               onValueChange={(value) => onFilterChange("subject", value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn môn" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả môn</SelectItem>
+                <SelectItem value="all">Tất cả môn</SelectItem>
                 <SelectItem value="P">Toán</SelectItem>
                 <SelectItem value="L">Vật lý</SelectItem>
                 <SelectItem value="H">Hóa học</SelectItem>
@@ -152,14 +152,14 @@ export function QuestionExtendedFilters({
           <div className="space-y-2">
             <Label>Số lần sử dụng</Label>
             <Select
-              value={filters.usageRange || ""}
+              value={filters.usageRange || "all"}
               onValueChange={(value) => onFilterChange("usageRange", value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khoảng" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
                 <SelectItem value="0">Chưa sử dụng</SelectItem>
                 <SelectItem value="1-10">1-10 lần</SelectItem>
                 <SelectItem value="11-50">11-50 lần</SelectItem>
@@ -171,14 +171,14 @@ export function QuestionExtendedFilters({
           <div className="space-y-2">
             <Label>Điểm số</Label>
             <Select
-              value={filters.pointsRange || ""}
+              value={filters.pointsRange || "all"}
               onValueChange={(value) => onFilterChange("pointsRange", value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khoảng điểm" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
                 <SelectItem value="1-5">1-5 điểm</SelectItem>
                 <SelectItem value="6-10">6-10 điểm</SelectItem>
                 <SelectItem value="11-20">11-20 điểm</SelectItem>

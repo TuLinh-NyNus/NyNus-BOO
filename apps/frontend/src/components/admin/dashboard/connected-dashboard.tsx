@@ -116,18 +116,20 @@ export function ConnectedAdminDashboard() {
   } = useAdminDashboard();
 
   // Local state for filters
+  // FIX HYDRATION: Initialize với "all" thay vì undefined để đồng bộ server/client render
   const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState<UserRoleType | undefined>();
-  const [statusFilter, setStatusFilter] = useState<UserStatusType | undefined>();
+  const [roleFilter, setRoleFilter] = useState<UserRoleType | undefined | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<UserStatusType | undefined | "all">("all");
 
   /**
    * Handle search and filter
+   * FIX HYDRATION: Treat "all" as undefined khi gọi API
    */
   const handleSearch = () => {
     loadUsers({
       search: searchQuery,
-      role: roleFilter,
-      status: statusFilter,
+      role: roleFilter === "all" ? undefined : roleFilter,
+      status: statusFilter === "all" ? undefined : statusFilter,
       page: 1
     });
   };
@@ -244,24 +246,24 @@ export function ConnectedAdminDashboard() {
                 className="max-w-sm"
               />
             </div>
-            <Select value={roleFilter?.toString() ?? ""} onValueChange={(value) => setRoleFilter(value ? parseInt(value) as UserRoleType : undefined)}>
+            <Select value={roleFilter === "all" ? "all" : roleFilter?.toString() ?? "all"} onValueChange={(value) => setRoleFilter(value === "all" ? "all" : parseInt(value) as UserRoleType)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Lọc theo vai trò" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả vai trò</SelectItem>
+                <SelectItem value="all">Tất cả vai trò</SelectItem>
                 <SelectItem value={UserRole.USER_ROLE_ADMIN.toString()}>Admin</SelectItem>
                 <SelectItem value={UserRole.USER_ROLE_TEACHER.toString()}>Teacher</SelectItem>
                 <SelectItem value={UserRole.USER_ROLE_TUTOR.toString()}>Tutor</SelectItem>
                 <SelectItem value={UserRole.USER_ROLE_STUDENT.toString()}>Student</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={statusFilter?.toString() ?? ""} onValueChange={(value) => setStatusFilter(value ? parseInt(value) as UserStatusType : undefined)}>
+            <Select value={statusFilter === "all" ? "all" : statusFilter?.toString() ?? "all"} onValueChange={(value) => setStatusFilter(value === "all" ? "all" : parseInt(value) as UserStatusType)}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Lọc theo trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả trạng thái</SelectItem>
+                <SelectItem value="all">Tất cả trạng thái</SelectItem>
                 <SelectItem value={UserStatus.USER_STATUS_ACTIVE.toString()}>Active</SelectItem>
                 <SelectItem value={UserStatus.USER_STATUS_INACTIVE.toString()}>Inactive</SelectItem>
                 <SelectItem value={UserStatus.USER_STATUS_SUSPENDED.toString()}>Suspended</SelectItem>
