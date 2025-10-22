@@ -82,6 +82,10 @@ var (
 	// Pattern: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (8-4-4-4-12 hex digits)
 	uuidRegex = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 
+	// textIDRegex validates TEXT ID format for legacy/test accounts
+	// Pattern: (student|admin|teacher|tutor)-NNN (e.g., student-001, admin-001)
+	textIDRegex = regexp.MustCompile(`^(student|admin|teacher|tutor)-\d{3}$`)
+
 	// ipv4Regex validates IPv4 address format
 	// Pattern: xxx.xxx.xxx.xxx (0-255 for each octet)
 	ipv4Regex = regexp.MustCompile(`^(\d{1,3}\.){3}\d{1,3}$`)
@@ -101,8 +105,10 @@ var (
 //
 // Business Rules:
 // - User ID không được empty
-// - User ID phải có độ dài 26 characters (ULID format) hoặc 36 characters (UUID format)
-// - User ID phải match ULID pattern (base32 encoded) hoặc UUID pattern (hex with dashes)
+// - User ID phải có một trong các formats:
+//   * ULID (26 chars): 01HQXYZ1234567890ABCDEFGH
+//   * UUID (36 chars): 0082957e-7fd7-485b-a64a-b302251e380b
+//   * TEXT ID (pattern-NNN): student-001, admin-001, teacher-001, tutor-001
 //
 // Parameters:
 //   - userID: User ID cần validate
@@ -118,16 +124,20 @@ var (
 //	if err := ValidateUserID("0082957e-7fd7-485b-a64a-b302251e380b"); err != nil {
 //	  return err
 //	}
+//	if err := ValidateUserID("student-001"); err != nil {
+//	  return err
+//	}
 func ValidateUserID(userID string) error {
 	if userID == "" {
 		return ErrEmptyUserID
 	}
 
-	// Accept both ULID (26 chars) and UUID (36 chars) formats
+	// Accept ULID (26 chars), UUID (36 chars), or TEXT ID (pattern-NNN) formats
 	isULID := len(userID) == 26 && ulidRegex.MatchString(userID)
 	isUUID := len(userID) == 36 && uuidRegex.MatchString(userID)
+	isTextID := textIDRegex.MatchString(userID)
 
-	if !isULID && !isUUID {
+	if !isULID && !isUUID && !isTextID {
 		return &JWTError{
 			Op:  "ValidateUserID",
 			Err: ErrEmptyUserID, // Reuse error for simplicity
