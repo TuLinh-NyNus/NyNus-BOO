@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn, signOut as nextAuthSignOut, useSession } from 'next-auth/react';
+import { signIn, signOut as nextAuthSignOut, useSession, getSession, getCsrfToken } from 'next-auth/react';
 import { SessionProvider } from 'next-auth/react';
 import { AuthService, AuthHelpers } from '@/services/grpc/auth.service';
 import { type User } from '@/types/user';
@@ -60,6 +60,14 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     devLogger.debug('[AUTH] NextAuth sync effect - status:', status, 'session:', !!session?.user, 'hasInitialized:', hasInitializedRef.current);
 
+    // ✅ CRITICAL FIX: Wait for useSession() to finish loading before making decisions
+    // This prevents setting isLoading=false too early when session is still being fetched
+    if (status === "loading") {
+      devLogger.debug('[AUTH] NextAuth session is loading, waiting...');
+      setIsLoading(true); // ✅ Set loading while session is being fetched
+      return; // Don't do anything while session is loading
+    }
+
     if (session?.user) {
       // Store backend tokens if available
       if (session.backendAccessToken) {
@@ -87,10 +95,13 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       // Check hasInitializedRef to prevent infinite loop
       if (!hasInitializedRef.current && session.backendAccessToken && AuthHelpers.isTokenValid(session.backendAccessToken)) {
         hasInitializedRef.current = true; // Mark as initialized
+        setIsLoading(true); // ✅ CRITICAL: Set loading BEFORE fetching user
+        devLogger.debug('[AUTH] Fetching current user from backend...');
         fetchCurrentUser();
       } else if (!session.backendAccessToken && !hasInitializedRef.current) {
         // No backend token, use session data directly (Google OAuth case)
         hasInitializedRef.current = true; // Mark as initialized
+        devLogger.debug('[AUTH] Using session data directly (no backend token)');
         setUser({
           id: session.user.id || session.user.email || '',
           email: session.user.email || '',
@@ -104,9 +115,32 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
           updatedAt: new Date(),
         });
         setIsLoading(false);
+      } else if (session.backendAccessToken && !AuthHelpers.isTokenValid(session.backendAccessToken) && !hasInitializedRef.current) {
+        // ✅ NEW: Token exists but is invalid/expired
+        hasInitializedRef.current = true; // Mark as initialized to prevent retry
+        devLogger.warn('[AUTH] Backend token is invalid/expired, clearing auth state');
+        AuthHelpers.clearTokens();
+        setUser(null);
+        setIsLoading(false);
+      } else if (hasInitializedRef.current && user) {
+        // Already initialized and user exists
+        devLogger.debug('[AUTH] Already initialized with user');
+        setIsLoading(false);
       }
     } else {
-      setIsLoading(false);
+      // ✅ CRITICAL FIX: Only set isLoading=false when status is NOT loading
+      // AND we have already tried to initialize (hasInitializedRef = true)
+      // This prevents premature isLoading=false on initial page load
+      if (status !== "loading" && hasInitializedRef.current) {
+        devLogger.debug('[AUTH] No session and status is not loading, setting isLoading=false');
+        setIsLoading(false);
+      } else if (status === "unauthenticated" && !hasInitializedRef.current) {
+        // ✅ NEW: If status is unauthenticated and we haven't initialized yet,
+        // mark as initialized and set isLoading=false (user is not logged in)
+        hasInitializedRef.current = true;
+        devLogger.debug('[AUTH] Status is unauthenticated, no session available, setting isLoading=false');
+        setIsLoading(false);
+      }
     }
   // ✅ FIX: Remove 'user' from dependencies to prevent infinite loop
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -137,11 +171,14 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // fetchCurrentUser is stable, no need to include in deps
 
-  // Check auth status on mount with enhanced token validation
-  useEffect(() => {
-    logger.debug('[AuthContext] Checking auth status on mount');
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+  // ✅ CRITICAL FIX: DISABLE checkAuthStatus on mount
+  // This was causing race condition with NextAuth session sync useEffect (line 60-140)
+  // The NextAuth sync effect already handles user fetching when session is available
+  // Running checkAuthStatus on mount was setting isLoading=false too early
+  // useEffect(() => {
+  //   logger.debug('[AuthContext] Checking auth status on mount');
+  //   checkAuthStatus();
+  // }, [checkAuthStatus]);
 
   /**
    * Fetch current user with enhanced error handling and token validation
@@ -207,49 +244,99 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
    * Login with email and password
    *
    * Business Logic:
-   * 1. Call gRPC backend to authenticate user
-   * 2. Save tokens from gRPC response
-   * 3. Call NextAuth signIn to create NextAuth session (CRITICAL for middleware)
+   * 1. Call NextAuth signIn with credentials provider
+   * 2. NextAuth calls authorize() → gRPC backend authentication (SINGLE CALL)
+   * 3. Verify NextAuth session is created
    * 4. Redirect to dashboard after successful authentication
+   *
+   * ✅ FIX: Removed double authentication call
+   * - OLD: AuthContext.login() → gRPC (1st) → signIn() → authorize() → gRPC (2nd)
+   * - NEW: AuthContext.login() → signIn() → authorize() → gRPC (ONCE)
+   * - This matches /login page pattern and prevents session creation failures
    */
   const login = useCallback(async (email: string, password: string) => {
     try {
       setIsLoading(true);
 
-      // Step 1: Authenticate with gRPC backend
-      const protobufResponse = await AuthService.login(email, password);
-      const response = convertProtobufLoginResponse(protobufResponse);
+      // Step 1: ✅ FIX - Get CSRF token before signIn
+      // NextAuth v5 requires CSRF token for all authentication actions
+      // This prevents "MissingCSRF" error and ensures session cookie is created
+      logger.debug('[AuthContext] Getting CSRF token');
+      const csrfToken = await getCsrfToken();
 
-      // Step 2: Save tokens from gRPC response
-      if (response.accessToken && response.refreshToken) {
-        AuthHelpers.saveTokens(response.accessToken, response.refreshToken);
+      if (!csrfToken) {
+        logger.error('[AuthContext] Failed to get CSRF token');
+        throw new Error('Không thể lấy CSRF token. Vui lòng thử lại.');
       }
 
-      // Step 3: Set user data
-      if (response.user) {
-        setUser(response.user);
-      }
+      logger.debug('[AuthContext] CSRF token obtained, calling NextAuth signIn');
 
-      // Step 4: ✅ CRITICAL FIX - Call NextAuth signIn to create session
-      // This is required for middleware authentication check
-      // Without this, middleware will redirect to /login because no NextAuth session exists
-      logger.debug('[AuthContext] Creating NextAuth session after gRPC login');
+      // Step 2: ✅ SIMPLIFIED - Call NextAuth signIn with CSRF token
+      // This will trigger authorize() callback which calls gRPC backend ONCE
+      // No need to call AuthService.login() separately (was causing double authentication)
       const nextAuthResult = await signIn('credentials', {
         email,
         password,
+        csrfToken, // ✅ Pass CSRF token to prevent MissingCSRF error
         redirect: false, // Don't auto-redirect, we handle it manually
       });
 
       if (nextAuthResult?.error) {
-        logger.error('[AuthContext] NextAuth session creation failed', {
+        logger.error('[AuthContext] NextAuth signIn failed', {
           error: nextAuthResult.error,
         });
-        // Continue anyway - gRPC login was successful
+        throw new Error('Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
       }
 
-      // Step 5: ✅ FIX: Use window.location.href instead of router.push()
-      // This forces a full page reload, ensuring NextAuth session is properly set
-      // before middleware checks authentication (same fix as login page)
+      // Step 3: ✅ Verify session before redirect
+      // Wait for NextAuth session to be properly set to avoid timing issues
+      // This prevents redirect to /login?callbackUrl=%2Fdashboard
+      logger.debug('[AuthContext] Verifying NextAuth session before redirect');
+      const session = await getSession();
+
+      if (!session) {
+        logger.error('[AuthContext] Session verification failed - no session found');
+        throw new Error('Authentication session not created');
+      }
+
+      logger.info('[AuthContext] Session verified successfully, redirecting to dashboard');
+
+      // Step 4: ✅ Poll for session cookie before redirect
+      // This ensures cookie is set before page reload
+      const waitForSessionCookie = async (maxAttempts = 20): Promise<boolean> => {
+        for (let i = 0; i < maxAttempts; i++) {
+          const cookies = document.cookie;
+          // Check for both dev and production cookie names
+          if (cookies.includes('next-auth.session-token') || cookies.includes('__Secure-next-auth.session-token')) {
+            logger.debug(`[AuthContext] Session cookie found after ${i * 100}ms`);
+            return true;
+          }
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        logger.error('[AuthContext] Session cookie not found after 2000ms');
+        return false;
+      };
+
+      const cookieReady = await waitForSessionCookie();
+      if (!cookieReady) {
+        logger.error('[AuthContext] Session cookie not set after login - redirect may fail');
+        // Continue anyway - user can manually navigate if needed
+      }
+
+      // Step 5: ✅ Use window.location.href for FULL PAGE RELOAD
+      //
+      // WHY NOT router.push()?
+      // - router.push() triggers client-side navigation (SPA-style)
+      // - Middleware runs BEFORE NextAuth session cookie is attached to request
+      // - getToken() in middleware returns NULL → redirect to /login?callbackUrl=%2Fdashboard
+      //
+      // WHY window.location.href?
+      // - Forces FULL PAGE RELOAD (not client-side navigation)
+      // - Browser makes a fresh HTTP request with ALL cookies attached
+      // - Middleware gets the NextAuth session cookie → authentication succeeds
+      // - User lands on /dashboard successfully
+      //
+      // This is the ONLY reliable way to ensure middleware sees the session cookie
       window.location.href = '/dashboard';
     } catch (error) {
       logger.error('[AuthContext] Login failed', {
@@ -259,7 +346,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []); // No dependencies needed - window.location.href doesn't require router
+  }, []); // No dependencies - window.location.href doesn't require router
 
   /**
    * Login with Google OAuth
@@ -283,9 +370,9 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       // For now, we'll fetch the current user after NextAuth completes
       if (result?.ok) {
         await fetchCurrentUser();
-        // ✅ FIX: Use window.location.href instead of router.push()
-        // This forces a full page reload, ensuring NextAuth session is properly set
-        // before middleware checks authentication
+
+        // ✅ CRITICAL FIX - Use window.location.href for FULL PAGE RELOAD
+        // Same reason as login() - router.push() causes middleware to run before cookie is attached
         window.location.href = '/dashboard';
       }
     } catch (error) {
@@ -296,7 +383,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchCurrentUser]); // Removed router - window.location.href doesn't require it
+  }, [fetchCurrentUser]); // No router dependency - window.location.href doesn't require it
 
   /**
    * Register new user
@@ -305,7 +392,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
    * 1. Call gRPC backend to register user
    * 2. Save tokens from gRPC response
    * 3. Call NextAuth signIn to create NextAuth session (CRITICAL for middleware)
-   * 4. Redirect to dashboard after successful registration
+   * 4. Verify session is created before redirect (FIX for redirect loop)
+   * 5. Redirect to dashboard after successful registration
    */
   const register = useCallback(async (
     email: string,
@@ -326,20 +414,17 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
       const response = convertProtobufRegisterResponse(protobufResponse);
 
-      // Step 2: Save tokens from gRPC response
-      if (response.accessToken && response.refreshToken) {
-        AuthHelpers.saveTokens(response.accessToken, response.refreshToken);
+      // Verify registration was successful
+      if (!response.user) {
+        throw new Error('Đăng ký thất bại. Vui lòng thử lại.');
       }
 
-      // Step 3: Set user data
-      if (response.user) {
-        setUser(response.user);
-      }
+      logger.info('[AuthContext] Registration successful, logging in user');
 
-      // Step 4: ✅ CRITICAL FIX - Call NextAuth signIn to create session
-      // This is required for middleware authentication check
-      // Without this, middleware will redirect to /login because no NextAuth session exists
-      logger.debug('[AuthContext] Creating NextAuth session after gRPC registration');
+      // Step 2: ✅ SIMPLIFIED - Call NextAuth signIn directly after registration
+      // This will trigger authorize() callback which calls gRPC backend to login
+      // No need to save tokens manually - NextAuth handles it
+      logger.debug('[AuthContext] Calling NextAuth signIn after registration');
       const nextAuthResult = await signIn('credentials', {
         email,
         password,
@@ -347,15 +432,25 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (nextAuthResult?.error) {
-        logger.error('[AuthContext] NextAuth session creation failed', {
+        logger.error('[AuthContext] NextAuth signIn failed after registration', {
           error: nextAuthResult.error,
         });
-        // Continue anyway - gRPC registration was successful
+        throw new Error('Đăng ký thành công nhưng đăng nhập thất bại. Vui lòng đăng nhập thủ công.');
       }
 
-      // Step 5: ✅ FIX: Use window.location.href instead of router.push()
-      // This forces a full page reload, ensuring NextAuth session is properly set
-      // before middleware checks authentication (same fix as login page)
+      // Step 3: ✅ Verify session before redirect
+      logger.debug('[AuthContext] Verifying NextAuth session before redirect');
+      const session = await getSession();
+
+      if (!session) {
+        logger.error('[AuthContext] Session verification failed - no session found');
+        throw new Error('Authentication session not created');
+      }
+
+      logger.info('[AuthContext] Session verified successfully, redirecting to dashboard');
+
+      // Step 4: ✅ Use window.location.href for FULL PAGE RELOAD
+      // Same reason as login() - router.push() causes middleware to run before cookie is attached
       window.location.href = '/dashboard';
     } catch (error) {
       logger.error('[AuthContext] Registration failed', {
@@ -365,7 +460,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []); // No dependencies needed - window.location.href doesn't require router
+  }, []); // No dependencies - window.location.href doesn't require router
 
   /**
    * Logout

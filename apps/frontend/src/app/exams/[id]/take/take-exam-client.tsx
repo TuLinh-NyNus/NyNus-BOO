@@ -215,7 +215,7 @@ export default function TakeExamClient({ examId }: TakeExamClientProps) {
     } finally {
       setSaving(false);
     }
-  }, [examId, answers, router]);
+  }, [examId, answers, router, examAttempt]);
 
   // Timer effect
   useEffect(() => {

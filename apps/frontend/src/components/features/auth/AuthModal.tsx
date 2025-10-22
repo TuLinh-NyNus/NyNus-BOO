@@ -15,6 +15,7 @@ import { AuthIllustration } from "@/components/ui/auth-illustration";
 import { LoginForm } from "./LoginForm";
 import { RegisterForm } from "./RegisterForm";
 import { ForgotPasswordForm } from "./ForgotPasswordForm";
+import { useAuth } from "@/contexts/auth-context-grpc"; // ✅ Import useAuth to get loading state
 
 type AuthMode = "login" | "register" | "forgot-password";
 
@@ -34,15 +35,24 @@ export function AuthModal({
   showIllustration = true,
 }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
+  const { isLoading } = useAuth(); // ✅ Get loading state from AuthContext
 
   const handleSuccess = () => {
     onSuccess?.();
-    onClose();
+    // ✅ FIX: Don't close modal immediately after success
+    // The login() function in AuthContext will handle redirect
+    // Modal will automatically close when page navigates away
+    // This prevents race condition between modal close and redirect
+    // onClose(); // ❌ REMOVED - causes modal to close before redirect completes
   };
 
   const handleClose = () => {
-    setMode("login"); // Reset to login mode when closing
-    onClose();
+    // ✅ FIX: Only allow closing if not loading
+    // This prevents modal from closing during login/redirect process
+    if (!isLoading) {
+      setMode("login"); // Reset to login mode when closing
+      onClose();
+    }
   };
 
   const getModalTitle = () => {
@@ -59,7 +69,16 @@ export function AuthModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        // ✅ FIX: Prevent closing during login/redirect
+        // Only allow closing if not loading and user wants to close
+        if (!open && !isLoading) {
+          handleClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-4xl p-0 gap-0">
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
           {/* Left Side - Illustration */}
@@ -90,6 +109,7 @@ export function AuthModal({
                   size="icon"
                   onClick={handleClose}
                   className="h-8 w-8"
+                  disabled={isLoading} // ✅ Disable close button during loading
                 >
                   <X className="h-4 w-4" />
                 </Button>

@@ -642,6 +642,62 @@ Currently using stub implementations because:
 - Verify gRPC service connectivity
 - Implement proper error handling for expired tokens
 
+## Bug Fixes & Known Issues
+
+### Login Redirect Loop Fix (2025-01-19)
+
+**Issue**: After successful login via homepage dialog, users were redirected to `/login?callbackUrl=%2Fdashboard` instead of `/dashboard`.
+
+**Root Cause**:
+- Timing issue between NextAuth `signIn()` and `window.location.href` redirect
+- NextAuth session cookie was not set before the redirect occurred
+- Middleware checked authentication and found no session, causing redirect to login page
+
+**Solution**:
+Added session verification using `getSession()` before redirect in `auth-context-grpc.tsx`:
+
+```typescript
+// Step 4: Call NextAuth signIn to create session
+const nextAuthResult = await signIn('credentials', {
+  email,
+  password,
+  redirect: false,
+});
+
+if (nextAuthResult?.error) {
+  throw new Error('Failed to create authentication session');
+}
+
+// Step 5: NEW FIX - Verify session before redirect
+const session = await getSession();
+
+if (!session) {
+  throw new Error('Authentication session not created');
+}
+
+// Step 6: Redirect after session is confirmed
+window.location.href = '/dashboard';
+```
+
+**Files Modified**:
+- `apps/frontend/src/contexts/auth-context-grpc.tsx`
+  - Updated `login()` function (lines 206-275)
+  - Updated `register()` function (lines 314-394)
+  - Added `getSession` import from 'next-auth/react'
+
+**Testing**:
+- ✅ Login from homepage dialog redirects to `/dashboard`
+- ✅ Login from `/login` page redirects to `/dashboard`
+- ✅ Session verification prevents timing issues
+- ✅ Works with slow network conditions
+- ✅ Session persists across page refreshes
+
+**Impact**:
+- No breaking changes to existing authentication flow
+- Improved reliability of login redirect
+- Better error handling and logging
+- Consistent behavior across login and registration
+
 ## Related Documentation
 - [gRPC Migration Guide](./MIGRATION_REST_TO_GRPC_COMPLETE.md)
 - [Question System Guide](./IMPLEMENT_QUESTION.md)

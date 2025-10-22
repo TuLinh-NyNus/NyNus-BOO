@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, getCsrfToken } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,16 +56,29 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      logger.debug('[LoginPage] Calling NextAuth signIn', {
+      // ✅ FIX: Get CSRF token before signIn
+      // NextAuth v5 requires CSRF token for all authentication actions
+      // This prevents "MissingCSRF" error and ensures session cookie is created
+      logger.debug('[LoginPage] Getting CSRF token');
+      const csrfToken = await getCsrfToken();
+
+      if (!csrfToken) {
+        logger.error('[LoginPage] Failed to get CSRF token');
+        setError('Không thể lấy CSRF token. Vui lòng thử lại.');
+        return;
+      }
+
+      logger.debug('[LoginPage] CSRF token obtained, calling NextAuth signIn', {
         operation: 'emailLogin',
         provider: 'credentials',
         callbackUrl,
       });
 
-      // Use NextAuth signIn with credentials provider
+      // Use NextAuth signIn with CSRF token
       const result = await signIn('credentials', {
         email,
         password,
+        csrfToken, // ✅ Pass CSRF token to prevent MissingCSRF error
         callbackUrl, // Include callbackUrl for proper redirect
         redirect: false, // Don't auto-redirect, handle manually
       });
@@ -84,14 +97,38 @@ export default function LoginPage() {
         });
         setError('Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
       } else if (result?.ok) {
-        logger.info('[LoginPage] Login successful, redirecting', {
+        logger.info('[LoginPage] Login successful, waiting for session cookie', {
           operation: 'emailLogin',
           email: maskedEmail,
           callbackUrl,
         });
-        // ✅ FIX: Use window.location.href instead of router.push()
+
+        // ✅ FIX: Wait for session cookie before redirect
+        // NextAuth sets session cookie in the response, but browser may follow redirect
+        // before cookie is persisted. Poll for cookie to ensure it's set.
+        const waitForSessionCookie = async (maxAttempts = 20): Promise<boolean> => {
+          for (let i = 0; i < maxAttempts; i++) {
+            const cookies = document.cookie;
+            // Check for both dev and production cookie names
+            if (cookies.includes('next-auth.session-token') || cookies.includes('__Secure-next-auth.session-token')) {
+              logger.debug(`[LoginPage] Session cookie found after ${i * 100}ms`);
+              return true;
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          logger.error('[LoginPage] Session cookie not found after 2000ms');
+          return false;
+        };
+
+        const cookieFound = await waitForSessionCookie();
+        if (!cookieFound) {
+          logger.warn('[LoginPage] Proceeding with redirect despite missing cookie');
+        }
+
+        // ✅ FIX: Use window.location.href for FULL PAGE RELOAD
         // This forces a full page reload, ensuring NextAuth session is properly set
         // before middleware checks authentication
+        logger.info('[LoginPage] Redirecting to dashboard', { callbackUrl });
         window.location.href = callbackUrl;
       } else {
         logger.warn('[LoginPage] Unexpected signIn result', {

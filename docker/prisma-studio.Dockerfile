@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 # Dockerfile for running Prisma Studio in Docker
 # =================================================
 # ⚠️ DEPRECATION WARNING: Prisma Studio is being phased out
@@ -14,20 +15,29 @@
 #
 # This file is kept for backward compatibility only
 # This allows Prisma Studio to run inside Docker network and connect to PostgreSQL container
+#
+# Build context: workspace root (.)
+# Package Manager: pnpm (consistent with monorepo)
 
 FROM node:20-alpine
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm globally
+RUN npm install -g pnpm@latest
 
 # Set working directory
 WORKDIR /app
 
-# Copy package files
-COPY apps/frontend/package.json apps/frontend/pnpm-lock.yaml* ./
+# Set NODE_ENV to development
+ENV NODE_ENV=development
 
-# Install dependencies
-RUN pnpm install
+# Copy frontend package.json only
+COPY apps/frontend/package.json ./
+
+# Install dependencies with BuildKit cache mount for pnpm store
+# This significantly speeds up rebuilds by caching pnpm packages
+# Note: Not using --frozen-lockfile because pnpm-lock.yaml is excluded in .dockerignore
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install
 
 # Copy Prisma schema
 COPY apps/frontend/prisma ./prisma

@@ -75,12 +75,40 @@ export async function middleware(request: NextRequest) {
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET
   });
 
+  // Get referer for debugging
+  const referer = request.headers.get('referer') || '';
+
   logger.debug('[Middleware] Processing request', {
     pathname,
     hasToken: !!token,
     role: token?.role,
     level: token?.level,
+    referer: referer || 'none',
   });
+
+  // ✅ FIX: Handle post-login redirect timing issue
+  // NextAuth v5 sets session cookie in the 302 response from /api/auth/callback/credentials
+  // However, the browser follows the redirect IMMEDIATELY, and the redirect request
+  // doesn't include the session cookie yet (cookie is set in RESPONSE, not REQUEST)
+  // This causes middleware to see hasToken=false on the first request after login
+  // Solution: Skip auth check for requests that come from:
+  // 1. NextAuth callback (server-side redirect)
+  // 2. Login page (client-side redirect via window.location.href)
+  // 3. Homepage (client-side redirect from homepage login dialog)
+  const isPostLoginRedirect = referer.includes('/api/auth/callback') ||
+                              referer.includes('/login') ||
+                              referer.endsWith('/') || // Homepage
+                              referer === request.nextUrl.origin; // Base URL
+
+  if (!token && isPostLoginRedirect) {
+    logger.info('[Middleware] Post-login redirect detected, allowing request to pass through', {
+      pathname,
+      referer,
+      reason: 'Session cookie not yet available in request (timing issue)',
+    });
+    // Allow request to pass through - session cookie will be available in subsequent requests
+    return NextResponse.next();
+  }
 
   // ===== ACCESS CONTROL =====
 

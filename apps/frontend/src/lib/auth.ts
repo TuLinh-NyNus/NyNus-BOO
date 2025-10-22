@@ -50,61 +50,167 @@ const credentialsProvider = Credentials({
     password: { label: "Password", type: "password" }
   },
   async authorize(credentials) {
+    // ✅ ENHANCED LOGGING - Track every step of authorization
+    const maskedEmail = credentials?.email
+      ? `${credentials.email.substring(0, 2)}***@${credentials.email.split('@')[1] || '***'}`
+      : 'MISSING';
+
+    logger.info('[Auth] authorize() called', {
+      operation: 'authorize',
+      hasEmail: !!credentials?.email,
+      hasPassword: !!credentials?.password,
+      email: maskedEmail,
+    });
+
     try {
-      // Validate credentials
+      // Step 1: Validate credentials
       if (!credentials?.email || !credentials?.password) {
-        logger.warn('[Auth] Missing credentials in login attempt');
+        logger.error('[Auth] FAILED - Missing credentials', {
+          operation: 'authorize',
+          hasEmail: !!credentials?.email,
+          hasPassword: !!credentials?.password,
+        });
         return null;
       }
 
-      // Call gRPC backend to authenticate
+      logger.debug('[Auth] Step 1 PASSED - Credentials validated', {
+        operation: 'authorize',
+        email: maskedEmail,
+      });
+
+      // Step 2: Call gRPC backend to authenticate
+      logger.debug('[Auth] Step 2 START - Calling AuthService.login()', {
+        operation: 'authorize',
+        email: maskedEmail,
+      });
+
       const response = await AuthService.login(
         credentials.email as string,
         credentials.password as string
       );
 
-      logger.info('[Auth] Login response received', {
+      logger.debug('[Auth] Step 2 COMPLETE - Backend response received', {
+        operation: 'authorize',
         hasResponse: !!response,
-        hasAccessToken: !!response?.getAccessToken(),
-        hasUser: !!response?.getUser(),
+        responseType: response ? typeof response : 'null',
       });
 
-      // Validate response
-      if (!response || !response.getAccessToken()) {
-        logger.warn('[Auth] No response or no access token from backend');
+      // Step 3: Validate response object
+      if (!response) {
+        logger.error('[Auth] FAILED - No response from backend', {
+          operation: 'authorize',
+          email: maskedEmail,
+        });
         return null;
       }
 
-      // Extract user data from gRPC response
+      logger.debug('[Auth] Step 3 PASSED - Response object exists', {
+        operation: 'authorize',
+      });
+
+      // Step 4: Validate access token
+      const accessToken = response.getAccessToken();
+      if (!accessToken) {
+        logger.error('[Auth] FAILED - No access token in response', {
+          operation: 'authorize',
+          email: maskedEmail,
+          hasResponse: true,
+        });
+        return null;
+      }
+
+      logger.debug('[Auth] Step 4 PASSED - Access token exists', {
+        operation: 'authorize',
+        tokenLength: accessToken.length,
+      });
+
+      // Step 5: Extract user data from gRPC response
       const user = response.getUser();
       if (!user) {
-        logger.warn('[Auth] No user data in backend response');
+        logger.error('[Auth] FAILED - No user data in backend response', {
+          operation: 'authorize',
+          email: maskedEmail,
+          hasAccessToken: true,
+        });
         return null;
       }
 
-      logger.info('[Auth] User authenticated successfully', {
-        id: user.getId(),
-        email: user.getEmail(),
-        role: user.getRole(),
+      logger.debug('[Auth] Step 5 PASSED - User data exists', {
+        operation: 'authorize',
+        userId: user.getId(),
+        userEmail: user.getEmail(),
       });
 
-      // Convert protobuf role to string using utility
-      const roleString = convertProtobufRoleToString(user.getRole());
+      // Step 6: Extract user fields with fallbacks
+      const userId = user.getId();
+      const userEmail = user.getEmail();
+      const firstName = user.getFirstName() || '';
+      const lastName = user.getLastName() || '';
+      const userRole = user.getRole();
+      const userLevel = user.getLevel() || 1;
+      const refreshToken = response.getRefreshToken() || '';
 
-      // Return user object with backend tokens
-      return {
-        id: user.getId(),
-        email: user.getEmail(),
-        name: `${user.getFirstName()} ${user.getLastName()}`,
-        backendAccessToken: response.getAccessToken(),
-        backendRefreshToken: response.getRefreshToken(),
+      logger.debug('[Auth] Step 6 PASSED - User fields extracted', {
+        operation: 'authorize',
+        userId,
+        userEmail,
+        firstName,
+        lastName,
+        userRole,
+        userLevel,
+        hasRefreshToken: !!refreshToken,
+      });
+
+      // Step 7: Convert protobuf role to string
+      const roleString = convertProtobufRoleToString(userRole);
+
+      logger.debug('[Auth] Step 7 PASSED - Role converted', {
+        operation: 'authorize',
+        protobufRole: userRole,
+        roleString,
+      });
+
+      // Step 8: Construct user object for NextAuth
+      const userObject = {
+        id: userId,
+        email: userEmail,
+        name: `${firstName} ${lastName}`.trim() || userEmail,
+        backendAccessToken: accessToken,
+        backendRefreshToken: refreshToken,
         role: roleString,
-        level: user.getLevel(),
+        level: userLevel,
       };
-    } catch (error) {
-      logger.error('[Auth] Credentials login failed', {
-        error: error instanceof Error ? error.message : String(error),
+
+      logger.info('[Auth] SUCCESS - User authenticated, returning user object', {
+        operation: 'authorize',
+        userId: userObject.id,
+        email: userObject.email,
+        role: userObject.role,
+        level: userObject.level,
+        hasBackendTokens: !!(userObject.backendAccessToken && userObject.backendRefreshToken),
       });
+
+      return userObject;
+    } catch (error) {
+      // ✅ ENHANCED ERROR LOGGING - Capture full error details
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      logger.error('[Auth] EXCEPTION in authorize()', {
+        operation: 'authorize',
+        email: maskedEmail,
+        error: errorMessage,
+        errorType: error instanceof Error ? error.constructor.name : typeof error,
+        stack: errorStack,
+      });
+
+      // Log to console for immediate visibility during testing
+      console.error('[Auth] authorize() exception details:', {
+        error: errorMessage,
+        stack: errorStack,
+        credentials: { email: maskedEmail, hasPassword: !!credentials?.password },
+      });
+
       return null;
     }
   }

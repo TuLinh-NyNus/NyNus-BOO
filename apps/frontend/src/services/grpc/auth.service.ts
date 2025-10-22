@@ -347,63 +347,204 @@ export class AuthService {
 
   /**
    * Login with Google OAuth
+   * Business Logic: Xác thực user bằng Google ID token
+   * - Exchange Google ID token với backend để lấy JWT token
+   * - Auto-save tokens nếu login thành công
+   * - Return LoginResponse với user info và tokens
+   *
+   * ✅ SERVER-SIDE COMPATIBLE: Uses fetch() instead of gRPC-Web client
+   * This allows the method to be called from NextAuth signIn() callback (server-side)
    */
   static async googleLogin(idToken: string): Promise<LoginResponse> {
-    const request = new GoogleLoginRequest();
-    request.setIdToken(idToken);
+    const endpoint = `${GRPC_ENDPOINT}/v1.UserService/GoogleLogin`;
+
+    logger.debug('[AuthService] Google login attempt', {
+      operation: 'googleLogin',
+      endpoint,
+    });
 
     try {
-      const client = getUserServiceClient();
-      // ✅ FIX: Pass metadata with CSRF token
-      const response = await client.googleLogin(request, getAuthMetadata());
+      // ✅ USES FETCH - WORKS ON SERVER-SIDE!
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          idToken
+        })
+      });
+
+      logger.debug('[AuthService] Google login response received', {
+        operation: 'googleLogin',
+        status: response.status,
+        ok: response.ok,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+
+        // Handle specific error cases
+        if (response.status === 401) {
+          errorMessage = 'Google token không hợp lệ. Vui lòng thử lại.';
+        } else if (response.status === 403) {
+          errorMessage = 'Tài khoản Google này không có quyền truy cập.';
+        } else if (response.status === 500) {
+          errorMessage = 'Lỗi server khi đăng nhập bằng Google. Vui lòng thử lại sau.';
+        }
+
+        logger.error('[AuthService] Google login failed', {
+          operation: 'googleLogin',
+          status: response.status,
+          error: errorMessage,
+        });
+
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+
+      // Convert JSON response to protobuf-like object for compatibility
+      const loginResponse = new LoginResponse();
+      if (data.accessToken) {
+        loginResponse.setAccessToken(data.accessToken);
+        loginResponse.setRefreshToken(data.refreshToken || '');
+      }
+
+      // Set user data if available
+      if (data.user) {
+        const user = new User();
+        user.setId(data.user.id || '');
+        user.setEmail(data.user.email || '');
+        user.setFirstName(data.user.firstName || '');
+        user.setLastName(data.user.lastName || '');
+        user.setRole(data.user.role || UserRole.STUDENT);
+        user.setLevel(data.user.level || 1);
+        user.setStatus(data.user.status || UserStatus.ACTIVE);
+        user.setEmailVerified(data.user.emailVerified || false);
+        user.setCreatedAt(data.user.createdAt || '');
+        user.setUpdatedAt(data.user.updatedAt || '');
+        loginResponse.setUser(user);
+      }
 
       // Auto-save tokens on successful login
-      if (response.getAccessToken()) {
+      if (loginResponse.getAccessToken()) {
         AuthHelpers.saveTokens(
-          response.getAccessToken(),
-          response.getRefreshToken()
+          loginResponse.getAccessToken(),
+          loginResponse.getRefreshToken()
         );
       }
 
-      return response;
+      logger.debug('[AuthService] Google login successful', {
+        operation: 'googleLogin',
+        userId: loginResponse.getUser()?.getId() || 'unknown',
+      });
+
+      return loginResponse;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
-      throw new Error(errorMessage);
+      logger.error('[AuthService] Google login exception', {
+        operation: 'googleLogin',
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      throw error;
     }
   }
 
   /**
-   * SIMPLIFIED: Refresh access token using refresh token
-   * Note: In simplified mode, refresh tokens are handled by NextAuth session
+   * Refresh access token using refresh token
+   * Business Logic: Làm mới access token khi hết hạn
+   * - Sử dụng refresh token để lấy access token mới
+   * - Tự động lưu token mới vào localStorage
+   * - Nếu refresh failed thì clear tokens (force re-login)
+   *
+   * ✅ SERVER-SIDE COMPATIBLE: Uses fetch() instead of gRPC-Web client
+   * This allows the method to be called from NextAuth jwt() callback (server-side)
    */
   static async refreshToken(refreshToken?: string): Promise<RefreshTokenResponse> {
-    // SIMPLIFIED: This method is kept for backward compatibility
-    // In practice, NextAuth handles token refresh automatically
-    console.warn('[AUTH] refreshToken called - consider using NextAuth session refresh instead');
-
     if (!refreshToken) {
-      throw new Error('No refresh token available - use NextAuth session refresh');
+      throw new Error('No refresh token available');
     }
 
-    const request = new RefreshTokenRequest();
-    request.setRefreshToken(refreshToken);
+    const endpoint = `${GRPC_ENDPOINT}/v1.UserService/RefreshToken`;
+
+    logger.debug('[AuthService] Refresh token attempt', {
+      operation: 'refreshToken',
+      endpoint,
+    });
 
     try {
-      const client = getUserServiceClient();
-      // ✅ FIX: Pass metadata with CSRF token
-      const response = await client.refreshToken(request, getAuthMetadata());
+      // ✅ USES FETCH - WORKS ON SERVER-SIDE!
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          refreshToken
+        })
+      });
 
-      // SIMPLIFIED: Update only access token in localStorage
-      if (response.getAccessToken()) {
-        AuthHelpers.saveAccessToken(response.getAccessToken());
+      logger.debug('[AuthService] Refresh token response received', {
+        operation: 'refreshToken',
+        status: response.status,
+        ok: response.ok,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        let errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
+
+        // Handle specific error cases
+        if (response.status === 401) {
+          errorMessage = 'Refresh token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.';
+        } else if (response.status === 403) {
+          errorMessage = 'Không có quyền làm mới token. Vui lòng đăng nhập lại.';
+        } else if (response.status === 500) {
+          errorMessage = 'Lỗi server khi làm mới token. Vui lòng thử lại sau.';
+        }
+
+        logger.error('[AuthService] Refresh token failed', {
+          operation: 'refreshToken',
+          status: response.status,
+          error: errorMessage,
+        });
+
+        // If refresh fails, clear tokens (force re-login)
+        AuthHelpers.clearTokens();
+        throw new Error(errorMessage);
       }
 
-      return response;
+      const data = await response.json();
+
+      // Convert JSON response to protobuf-like object for compatibility
+      const refreshResponse = new RefreshTokenResponse();
+      if (data.accessToken) {
+        refreshResponse.setAccessToken(data.accessToken);
+        refreshResponse.setRefreshToken(data.refreshToken || refreshToken); // Use new refresh token if provided, otherwise keep old one
+      }
+
+      // Update access token in localStorage
+      if (refreshResponse.getAccessToken()) {
+        AuthHelpers.saveAccessToken(refreshResponse.getAccessToken());
+      }
+
+      logger.debug('[AuthService] Token refreshed successfully', {
+        operation: 'refreshToken',
+      });
+
+      return refreshResponse;
     } catch (error) {
       // If refresh fails, clear tokens (force re-login)
       AuthHelpers.clearTokens();
-      const errorMessage = handleGrpcError(error as RpcError);
-      throw new Error(errorMessage);
+
+      logger.error('[AuthService] Refresh token exception', {
+        operation: 'refreshToken',
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      throw error;
     }
   }
 

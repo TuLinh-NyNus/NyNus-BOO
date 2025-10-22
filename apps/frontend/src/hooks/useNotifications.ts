@@ -78,7 +78,7 @@ function mapBackendNotification(backendNotif: BackendNotification): Notification
 
 // ===== MOCK DATA (Deprecated - Using real gRPC service) =====
 
-const MOCK_NOTIFICATIONS: Notification[] = [
+const _MOCK_NOTIFICATIONS: Notification[] = [
   {
     id: '1',
     type: 'security',

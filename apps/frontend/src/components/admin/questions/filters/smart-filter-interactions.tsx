@@ -113,7 +113,7 @@ const SUBJECT_LABELS: Record<string, string> = {
  * Smart Filter Interactions Component
  */
 export function SmartFilterInteractions({ className }: SmartFilterInteractionsProps) {
-  const { filters, setSubjectFilter } = useQuestionFiltersStore();
+  const { filters, setSubjectFilter, setTagsFilter } = useQuestionFiltersStore();
   
   // Local state
   const [conflicts, setConflicts] = useState<FilterConflict[]>([]);
@@ -330,7 +330,7 @@ export function SmartFilterInteractions({ className }: SmartFilterInteractionsPr
                   // Add tag to filter using store
                   const currentTags = filters.tags || [];
                   if (!currentTags.includes(tag.value)) {
-                    updateFilters({ tags: [...currentTags, tag.value] });
+                    setTagsFilter([...currentTags, tag.value]);
                   }
                 }}
               >

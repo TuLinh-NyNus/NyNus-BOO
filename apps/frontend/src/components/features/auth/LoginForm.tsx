@@ -62,7 +62,12 @@ export function LoginForm({
     try {
       setError(null);
       await login(data.email, data.password);
-      onSuccess?.();
+
+      // ✅ FIX: Don't call onSuccess() immediately after login
+      // The login() function in AuthContext handles redirect to /dashboard
+      // Modal will automatically close when page navigates away
+      // This prevents race condition between modal close and redirect
+      // onSuccess?.(); // ❌ REMOVED - causes modal to close before redirect completes
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Đăng nhập thất bại";
       setError(errorMessage);
@@ -78,7 +83,11 @@ export function LoginForm({
       setIsGoogleLoading(true);
       setError(null);
       await loginWithGoogle();
-      onSuccess?.();
+
+      // ✅ FIX: Don't call onSuccess() immediately after Google login
+      // The loginWithGoogle() function in AuthContext handles redirect to /dashboard
+      // Modal will automatically close when page navigates away
+      // onSuccess?.(); // ❌ REMOVED - causes modal to close before redirect completes
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Đăng nhập Google thất bại";
       setError(errorMessage);

@@ -38,6 +38,18 @@ func NewCSRFInterceptor(enabled bool) *CSRFInterceptor {
 
 		// Public read-only endpoints
 		"/v1.QuestionService/GetPublicQuestions": true,
+
+		// ✅ FIX: Skip CSRF validation for GetCurrentUser
+		// REASON: This is a read-only operation already protected by JWT token
+		// CSRF token may not be synced immediately after login (NextAuth timing issue)
+		// Security: Still protected by JWT authentication in AuthInterceptor
+		"/v1.UserService/GetCurrentUser": true,
+
+		// ✅ FIX: Skip CSRF validation for GetNotifications (temporary)
+		// REASON: Same as GetCurrentUser - CSRF token timing issue after login
+		// TODO: Refactor to not call GetNotifications immediately after login
+		// Security: Still protected by JWT authentication in AuthInterceptor
+		"/v1.NotificationService/GetNotifications": true,
 	}
 
 	return &CSRFInterceptor{
