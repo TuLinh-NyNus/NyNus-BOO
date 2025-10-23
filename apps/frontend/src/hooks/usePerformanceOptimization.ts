@@ -1,7 +1,21 @@
 /**
  * Performance Optimization Hook
  * Hook để optimize performance cho user authentication components
- * 
+ *
+ * @deprecated This file is DEPRECATED and will be removed in v2.0.0
+ *
+ * ⚠️ MIGRATION REQUIRED:
+ * Please update your imports to use the canonical version:
+ *
+ * OLD (deprecated):
+ * import { usePerformanceOptimization } from '@/hooks/usePerformanceOptimization'
+ *
+ * NEW (recommended):
+ * import { usePerformanceOptimization } from '@/hooks/performance/usePerformanceOptimization'
+ *
+ * This file currently re-exports from the canonical location for backward compatibility.
+ * All new code should import from '@/hooks/performance/usePerformanceOptimization'
+ *
  * @author NyNus Team
  * @version 1.0.0
  */

@@ -191,12 +191,16 @@ export function AdminLayoutProvider({
    * Tự động collapse sidebar trên mobile
    */
   useEffect(() => {
-    const responsive = getResponsiveInfo();
-    
-    if (responsive.isMobile && !isSidebarCollapsed) {
+    // ✅ FIX: Inline responsive check to avoid function dependency
+    // This prevents infinite loop caused by getResponsiveInfo recreation
+    const width = windowSize.width;
+    const isMobile = width < config.breakpoints.mobile;
+
+    if (isMobile && !isSidebarCollapsed) {
       setSidebarCollapsed(true);
     }
-  }, [windowSize, isSidebarCollapsed, setSidebarCollapsed, getResponsiveInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [windowSize.width, isSidebarCollapsed]); // ✅ Only primitive dependencies, setSidebarCollapsed is stable
 
   // Get responsive info
   const responsive = getResponsiveInfo();

@@ -210,14 +210,17 @@ export function usePerformanceOptimization(
   // ===== EFFECTS =====
 
   /**
-   * Auto-start measurement on component mount/update
+   * Auto-start measurement on component mount/unmount
+   * ✅ FIX: Added empty dependency array to prevent infinite re-render loop
+   * Only runs once on mount and cleanup on unmount
    */
   useEffect(() => {
     startMeasurement();
     return () => {
       endMeasurement();
     };
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ✅ Empty dependency array - only run on mount/unmount
 
   // ===== RETURN =====
 

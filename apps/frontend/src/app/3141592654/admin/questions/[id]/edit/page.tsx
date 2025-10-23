@@ -100,7 +100,8 @@ export default function EditQuestionPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [questionId, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionId]); // ✅ Remove toast dependency to prevent infinite loop
 
   /**
    * Load question data khi component mount

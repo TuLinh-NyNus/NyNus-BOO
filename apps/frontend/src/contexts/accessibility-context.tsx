@@ -160,9 +160,12 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
   }, [settings, isEnabled, isMounted]);
 
   // Apply settings when they change
+  // ✅ FIX: Use direct dependencies instead of applySettings to prevent circular dependency
+  // applySettings depends on [settings, isEnabled, isMounted], so we use those directly
   useEffect(() => {
     applySettings();
-  }, [applySettings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings, isEnabled, isMounted]); // ✅ Direct dependencies prevent infinite loop
 
   // Update individual setting
   const updateSetting = useCallback(<K extends keyof AccessibilitySettings>(

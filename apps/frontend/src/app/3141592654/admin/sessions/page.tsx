@@ -14,7 +14,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -77,8 +77,9 @@ export default function AdminSessionsPage() {
 
   /**
    * Fetch session statistics từ mockdata
+   * ✅ Remove useCallback - not needed for simple async functions
    */
-  const fetchStats = useCallback(async () => {
+  const fetchStats = async () => {
     try {
       // Simulate API call với mockdata
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -86,15 +87,16 @@ export default function AdminSessionsPage() {
     } catch (error) {
       console.error('Error fetching session stats:', error);
     }
-  }, []);
+  };
 
   /**
    * Fetch all active sessions từ mockdata
+   * ✅ Remove useCallback - not needed for simple async functions
    */
-  const fetchSessions = useCallback(async () => {
+  const fetchSessions = async () => {
     try {
       setLoading(true);
-      
+
       // Simulate API call với mockdata
       await new Promise(resolve => setTimeout(resolve, 200));
       setSessions(mockUserLoginSessions);
@@ -105,7 +107,7 @@ export default function AdminSessionsPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   /**
    * Terminate single session
@@ -185,13 +187,13 @@ export default function AdminSessionsPage() {
 
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, fetchSessions, fetchStats]);
+  }, [autoRefresh]); // ✅ Only depend on autoRefresh flag to prevent infinite loop
 
   // Initial data load
   useEffect(() => {
     fetchSessions();
     fetchStats();
-  }, [fetchSessions, fetchStats]);
+  }, []); // ✅ Only run on mount to prevent infinite loop
 
   // Filter sessions based on current filters
   const filteredSessions = sessions.filter(session => {

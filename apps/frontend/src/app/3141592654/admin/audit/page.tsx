@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -45,6 +45,17 @@ import {
 import { logger } from "@/lib/utils/logger";
 
 /**
+ * Audit Filters Interface
+ * Combine all filter states into single object to prevent infinite loop
+ */
+interface AuditFilters {
+  searchTerm: string;
+  filterAction: string;
+  filterResource: string;
+  filterSuccess: string;
+}
+
+/**
  * Audit Trail Page
  * Trang audit trail cho Admin - Chuyển đổi từ temp1/admin/FE
  */
@@ -54,16 +65,20 @@ export default function AuditTrailPage() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState<AuditStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterAction, setFilterAction] = useState<string>("all");
-  const [filterResource, setFilterResource] = useState<string>("all");
-  const [filterSuccess, setFilterSuccess] = useState<string>("all");
+
+  // ✅ Combine filters into single state object to prevent infinite loop
+  const [filters, setFilters] = useState<AuditFilters>({
+    searchTerm: "",
+    filterAction: "all",
+    filterResource: "all",
+    filterSuccess: "all"
+  });
 
   /**
    * Fetch audit logs data từ mockdata
-   * Thay thế API calls bằng mockdata functions
+   * ✅ Extracted as separate function to be called from useEffect and refresh button
    */
-  const fetchAuditLogs = useCallback(async () => {
+  const fetchAuditLogs = async () => {
     try {
       setIsLoading(true);
 
@@ -71,10 +86,10 @@ export default function AuditTrailPage() {
       const logsResponse = getAuditLogs({
         page: 1,
         limit: 50,
-        search: searchTerm || undefined,
-        action: filterAction !== "all" ? filterAction : undefined,
-        resource: filterResource !== "all" ? filterResource : undefined,
-        success: filterSuccess !== "all" ? filterSuccess : undefined,
+        search: filters.searchTerm || undefined,
+        action: filters.filterAction !== "all" ? filters.filterAction : undefined,
+        resource: filters.filterResource !== "all" ? filters.filterResource : undefined,
+        success: filters.filterSuccess !== "all" ? filters.filterSuccess : undefined,
       });
 
       const statsData = getAuditStats();
@@ -84,10 +99,10 @@ export default function AuditTrailPage() {
     } catch (error) {
       logger.error("[AdminAuditPage] Failed to fetch audit logs data", {
         operation: "fetchAuditLogs",
-        searchTerm,
-        filterAction,
-        filterResource,
-        filterSuccess,
+        searchTerm: filters.searchTerm,
+        filterAction: filters.filterAction,
+        filterResource: filters.filterResource,
+        filterSuccess: filters.filterSuccess,
         error: error instanceof Error ? error.message : String(error),
       });
 
@@ -106,12 +121,16 @@ export default function AuditTrailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [searchTerm, filterAction, filterResource, filterSuccess]);
+  };
 
-  // Fetch data on component mount và khi filters thay đổi
+  /**
+   * Auto-fetch when filters change
+   * ✅ Direct primitive dependencies prevent infinite loop
+   */
   useEffect(() => {
     fetchAuditLogs();
-  }, [fetchAuditLogs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.searchTerm, filters.filterAction, filters.filterResource, filters.filterSuccess]);
 
   /**
    * Get action icon
@@ -299,13 +318,13 @@ export default function AuditTrailPage() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Tìm kiếm theo hành động, tài nguyên hoặc email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  value={filters.searchTerm}
+                  onChange={(e) => setFilters(prev => ({ ...prev, searchTerm: e.target.value }))}
                   className="pl-8"
                 />
               </div>
             </div>
-            <Select value={filterAction} onValueChange={setFilterAction}>
+            <Select value={filters.filterAction} onValueChange={(value) => setFilters(prev => ({ ...prev, filterAction: value }))}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Hành động" />
               </SelectTrigger>
@@ -318,7 +337,7 @@ export default function AuditTrailPage() {
                 <SelectItem value="ACCESS_RESOURCE">Truy cập tài nguyên</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterResource} onValueChange={setFilterResource}>
+            <Select value={filters.filterResource} onValueChange={(value) => setFilters(prev => ({ ...prev, filterResource: value }))}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Tài nguyên" />
               </SelectTrigger>
@@ -330,7 +349,7 @@ export default function AuditTrailPage() {
                 <SelectItem value="EXAM">Bài thi</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={filterSuccess} onValueChange={setFilterSuccess}>
+            <Select value={filters.filterSuccess} onValueChange={(value) => setFilters(prev => ({ ...prev, filterSuccess: value }))}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>

@@ -53,7 +53,6 @@ interface AdminExamPageState {
   loading: boolean;
   error: string | null;
   selectedIds: string[];
-  filters: ExamFilters;
   totalItems: number;
   currentPage: number;
 }
@@ -71,7 +70,6 @@ const DEFAULT_STATE: AdminExamPageState = {
   loading: false,
   error: null,
   selectedIds: [],
-  filters: DEFAULT_FILTERS,
   totalItems: 0,
   currentPage: 1,
 };
@@ -88,16 +86,19 @@ export default function AdminExamPage() {
 
   // ===== STATE =====
 
+  // ✅ Separate filters state to prevent infinite loop
+  const [filters, setFilters] = useState<ExamFilters>(DEFAULT_FILTERS);
   const [state, setState] = useState<AdminExamPageState>(DEFAULT_STATE);
 
   // ===== HANDLERS =====
 
   const loadExams = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true, error: null }));
-    
+
     try {
-      const response = await ExamService.listExams(state.filters);
-      
+      // ✅ Use separate filters state instead of state.filters
+      const response = await ExamService.listExams(filters);
+
       setState(prev => ({
         ...prev,
         exams: response.exams,
@@ -111,14 +112,14 @@ export default function AdminExamPage() {
         error: 'Không thể tải danh sách đề thi',
         loading: false,
       }));
-      
+
       toast({
         title: 'Lỗi',
         description: 'Không thể tải danh sách đề thi',
         variant: 'destructive',
       });
     }
-  }, [state.filters, toast]);
+  }, [filters, toast]); // ✅ filters is separate state - stable reference
 
   // ===== EFFECTS =====
 
@@ -202,18 +203,20 @@ export default function AdminExamPage() {
     }
   };
 
-  const handleFiltersChange = (filters: ExamFilters) => {
+  const handleFiltersChange = (newFilters: ExamFilters) => {
+    // ✅ Update separate filters state instead of state.filters
+    setFilters({ ...filters, ...newFilters, page: 1 });
     setState(prev => ({
       ...prev,
-      filters: { ...prev.filters, ...filters, page: 1 },
       currentPage: 1,
     }));
   };
 
   const handlePageChange = (page: number) => {
+    // ✅ Update separate filters state instead of state.filters
+    setFilters({ ...filters, page });
     setState(prev => ({
       ...prev,
-      filters: { ...prev.filters, page },
       currentPage: page,
     }));
   };
