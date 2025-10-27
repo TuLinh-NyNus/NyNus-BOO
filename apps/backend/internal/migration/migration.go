@@ -37,7 +37,7 @@ type Migration struct {
 
 // RunMigrations executes all pending migrations
 func (m *Migrator) RunMigrations() error {
-	log.Println("🔄 Starting database migrations...")
+	log.Println("[MIGRATION] Starting database migrations...")
 
 	// Create schema_migrations table if it doesn't exist
 	if err := m.createMigrationsTable(); err != nil {
@@ -60,7 +60,7 @@ func (m *Migrator) RunMigrations() error {
 	pendingCount := 0
 	for _, migration := range migrations {
 		if !contains(appliedVersions, migration.Version) {
-			log.Printf("📄 Running migration %d: %s", migration.Version, migration.Name)
+			log.Printf("[MIGRATION] Running migration %d: %s", migration.Version, migration.Name)
 			if err := m.runMigration(migration); err != nil {
 				return fmt.Errorf("failed to run migration %d: %w", migration.Version, err)
 			}
@@ -69,9 +69,9 @@ func (m *Migrator) RunMigrations() error {
 	}
 
 	if pendingCount == 0 {
-		log.Println("✅ No pending migrations found")
+		log.Println("[OK] No pending migrations found")
 	} else {
-		log.Printf("✅ Successfully applied %d migrations", pendingCount)
+		log.Printf("[OK] Successfully applied %d migrations", pendingCount)
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/services/email"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 // RegistrationHandler handles user registration business logic
-// Xử lý logic đăng ký user mới với email verification
+// Xá»­ lÃ½ logic Ä‘Äƒng kÃ½ user má»›i vá»›i email verification
 type RegistrationHandler struct {
 	userRepo       repository.IUserRepository
 	emailService   *email.EmailService
@@ -26,7 +26,7 @@ type RegistrationHandler struct {
 }
 
 // NewRegistrationHandler creates a new RegistrationHandler instance
-// Tạo instance mới của RegistrationHandler với các dependencies cần thiết
+// Táº¡o instance má»›i cá»§a RegistrationHandler vá»›i cÃ¡c dependencies cáº§n thiáº¿t
 func NewRegistrationHandler(
 	userRepo repository.IUserRepository,
 	emailService *email.EmailService,
@@ -47,7 +47,7 @@ func NewRegistrationHandler(
 }
 
 // ValidateRegistration validates registration request
-// Kiểm tra tính hợp lệ của yêu cầu đăng ký (email chưa tồn tại)
+// Kiá»ƒm tra tÃ­nh há»£p lá»‡ cá»§a yÃªu cáº§u Ä‘Äƒng kÃ½ (email chÆ°a tá»“n táº¡i)
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -66,7 +66,7 @@ func (h *RegistrationHandler) ValidateRegistration(ctx context.Context, email st
 }
 
 // CreateUser creates a new user with hashed password
-// Tạo user mới với password đã được hash
+// Táº¡o user má»›i vá»›i password Ä‘Ã£ Ä‘Æ°á»£c hash
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -111,7 +111,7 @@ func (h *RegistrationHandler) CreateUser(ctx context.Context, req *v1.RegisterRe
 }
 
 // SendVerificationEmail sends email verification to newly registered user
-// Gửi email xác thực cho user mới đăng ký
+// Gá»­i email xÃ¡c thá»±c cho user má»›i Ä‘Äƒng kÃ½
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -145,7 +145,7 @@ func (h *RegistrationHandler) SendVerificationEmail(ctx context.Context, user *r
 }
 
 // ResendVerificationEmail resends verification email to user
-// Gửi lại email xác thực cho user
+// Gá»­i láº¡i email xÃ¡c thá»±c cho user
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -170,7 +170,7 @@ func (h *RegistrationHandler) ResendVerificationEmail(ctx context.Context, userI
 }
 
 // VerifyEmail verifies user email with token
-// Xác thực email của user bằng token
+// XÃ¡c thá»±c email cá»§a user báº±ng token
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -205,3 +205,4 @@ func (h *RegistrationHandler) VerifyEmail(ctx context.Context, token string) err
 	log.Printf("Email verified successfully for user %s", user.Email)
 	return nil
 }
+

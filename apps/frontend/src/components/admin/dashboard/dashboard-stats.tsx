@@ -3,13 +3,11 @@
 import React from 'react';
 
 import { Users, UserCheck, GraduationCap, BookOpen, HelpCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui";
 import { StatCard } from './stat-card';
-import { mockAnalytics } from '@/lib/mockdata';
-import { logger } from '@/lib/utils/logger';
+import { useAdminStats } from '@/contexts/admin-stats-context';
 
 /**
  * Component hiển thị skeleton loading cho StatCard
@@ -33,45 +31,30 @@ function StatCardSkeleton() {
 /**
  * Component DashboardStats - Hiển thị các thống kê tổng quan của hệ thống
  * Bao gồm thống kê người dùng, phân bố vai trò và thống kê hệ thống
+ *
+ * ✅ FIX: Sử dụng AdminStatsContext để tránh duplicate API calls và rate limit errors
  */
 export function DashboardStats() {
-  // State quản lý dữ liệu thống kê từ mockdata
-  const [analyticsData, setAnalyticsData] = useState(mockAnalytics);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // ✅ FIX: Use AdminStatsContext instead of direct API call
+  const { stats, loading: isLoading, error } = useAdminStats();
 
-  // Effect để simulate việc fetch data từ API
-  useEffect(() => {
-    const fetchAnalyticsData = async () => {
-      try {
-        setIsLoading(true);
-        
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Sử dụng mockdata từ analytics.ts
-        setAnalyticsData(mockAnalytics);
-        setError(null);
-      } catch (err) {
-        logger.error('[DashboardStats] Error fetching analytics data', {
-          operation: 'fetchAnalyticsData',
-          errorName: err instanceof Error ? err.name : 'Unknown',
-          errorMessage: err instanceof Error ? err.message : 'Error fetching analytics data',
-          stack: err instanceof Error ? err.stack : undefined,
-        });
-        setError('Không thể tải dữ liệu thống kê');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchAnalyticsData();
-  }, []);
+  // Map stats to analytics data format
+  const analyticsData = stats ? {
+    overview: {
+      totalUsers: stats.total_users || 0,
+      activeUsers: stats.active_users || 0,
+      newUsersToday: 0, // TODO: Add to backend
+      totalSessions: stats.total_sessions || 0,
+      totalCourses: 0, // TODO: Add to backend
+      totalQuestions: 0, // TODO: Add to backend
+      coursesCompletedToday: 0 // TODO: Add to backend
+    }
+  } : null;
 
   // Hiển thị skeleton loading khi đang tải dữ liệu
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {Array.from({ length: 8 }).map((_, index) => (
           <StatCardSkeleton key={index} />
         ))}
@@ -95,13 +78,23 @@ export function DashboardStats() {
   const { overview } = analyticsData;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8" suppressHydrationWarning>
       {/* Thống kê người dùng tổng quan */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 text-foreground">
-          👥 Thống kê người dùng
-        </h3>
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div suppressHydrationWarning>
+        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-purple-500/10 backdrop-blur-xl border border-white/10 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-blue-500/50">
+              <span className="text-2xl">👥</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-black bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Thống kê người dùng
+              </h3>
+              <p className="text-sm text-muted-foreground/80 mt-1 font-medium">Tổng quan về người dùng và hoạt động trong hệ thống</p>
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title="Tổng người dùng"
             value={overview.totalUsers}
@@ -140,10 +133,20 @@ export function DashboardStats() {
 
       {/* Thống kê nội dung hệ thống */}
       <div>
-        <h3 className="text-lg font-semibold mb-4 text-foreground">
-          📚 Thống kê nội dung
-        </h3>
-        <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 backdrop-blur-xl border border-white/10 shadow-lg">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl shadow-amber-500/50">
+              <span className="text-2xl">📚</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
+                Thống kê nội dung
+              </h3>
+              <p className="text-sm text-muted-foreground/80 mt-1 font-medium">Khóa học, câu hỏi và tài liệu học tập</p>
+            </div>
+          </div>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title="Khóa học"
             value={overview.totalCourses}

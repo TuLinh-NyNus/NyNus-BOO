@@ -23,22 +23,17 @@ import {
 
 } from '@/generated/v1/question_filter_pb';
 import { RpcError } from 'grpc-web';
-import { getGrpcUrl } from '@/lib/config/endpoints';
+import { GRPC_WEB_HOST, getAuthMetadata } from './client';
 
 // gRPC client configuration
-const GRPC_ENDPOINT = getGrpcUrl();
-const questionFilterServiceClient = new QuestionFilterServiceClient(GRPC_ENDPOINT);
-
-// Helper to get auth metadata
-function getAuthMetadata(): { [key: string]: string } {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('nynus-auth-token');
-    if (token) {
-      return { 'authorization': `Bearer ${token}` };
-    }
-  }
-  return {};
-}
+// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
+// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
+const questionFilterServiceClient = new QuestionFilterServiceClient(GRPC_WEB_HOST, null, {
+  format: 'text', // Use text format for consistency with proto generation
+  withCredentials: false,
+  unaryInterceptors: [],
+  streamInterceptors: []
+});
 
 // Handle gRPC errors
 function handleGrpcError(error: RpcError): string {

@@ -1,13 +1,13 @@
-package repository
+﻿package repository
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/google/uuid"
 	"go.uber.org/multierr"
 )
@@ -160,3 +160,4 @@ func (r *QuestionTagRepository) CreateMultiple(ctx context.Context, db database.
 
 	return nil
 }
+

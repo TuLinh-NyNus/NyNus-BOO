@@ -20,6 +20,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
+// Real backend hooks
+import { useTeacherDashboard } from "@/hooks/teacher/use-teacher-analytics";
+
 // Disable static generation - requires client-side data
 export const dynamic = 'force-dynamic';
 
@@ -37,8 +40,15 @@ export default function TeacherDashboardPage() {
   const router = useRouter();
   const { user, isLoading } = useAuth();
 
+  // Real backend data - fetch teacher dashboard stats
+  const { data: dashboardData, isLoading: dashboardLoading } = useTeacherDashboard(
+    user?.id || '',
+    '30d',
+    { enabled: !!user?.id }
+  );
+
   // Loading state
-  if (isLoading) {
+  if (isLoading || dashboardLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -73,12 +83,12 @@ export default function TeacherDashboardPage() {
     );
   }
 
-  // Mock data - sẽ được thay thế bằng real data từ backend
+  // Real data from backend - AnalyticsService.getTeacherDashboard()
   const stats = {
-    totalCourses: 12,
-    totalStudents: 156,
-    activeExams: 8,
-    pendingGrading: 23,
+    totalCourses: 0, // TODO: Add course count to analytics service
+    totalStudents: dashboardData?.totalStudents || 0,
+    activeExams: dashboardData?.totalExams || 0,
+    pendingGrading: 0, // TODO: Add pending grading count to analytics service
   };
 
   const recentActivities = [

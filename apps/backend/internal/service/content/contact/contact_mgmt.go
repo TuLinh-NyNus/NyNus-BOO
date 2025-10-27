@@ -1,12 +1,12 @@
-package contact
+﻿package contact
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
 	"github.com/google/uuid"
 )
 
@@ -214,3 +214,4 @@ type ContactFormRequest struct {
 	IPAddress string  `json:"ip_address,omitempty"`
 	UserAgent string  `json:"user_agent,omitempty"`
 }
+

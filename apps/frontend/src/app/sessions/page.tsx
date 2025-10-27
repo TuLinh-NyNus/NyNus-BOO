@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Monitor, Smartphone, Tablet, Globe, MapPin, Clock, Shield, Trash2, LogOut, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +21,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
+import { ProfileService } from '@/services/grpc/profile.service';
 
 interface Session {
   id: string;
@@ -38,54 +39,30 @@ interface Session {
   expiresAt: string;
 }
 
-// Mock data - Replace with actual API call
-const mockSessions: Session[] = [
-  {
-    id: '1',
-    sessionToken: 'current-session',
-    ipAddress: '192.168.1.1',
-    userAgent: 'Chrome on Windows',
-    deviceType: 'desktop',
-    browser: 'Chrome 120',
-    os: 'Windows 11',
-    location: 'Hồ Chí Minh, Việt Nam',
-    isActive: true,
-    isCurrent: true,
-    lastActivity: new Date().toISOString(),
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '2',
-    sessionToken: 'mobile-session',
-    ipAddress: '10.0.0.1',
-    userAgent: 'Safari on iPhone',
-    deviceType: 'mobile',
-    browser: 'Safari 17',
-    os: 'iOS 17.2',
-    location: 'Hà Nội, Việt Nam',
-    isActive: true,
-    isCurrent: false,
-    lastActivity: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() + 29 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: '3',
-    sessionToken: 'tablet-session',
-    ipAddress: '172.16.0.1',
-    userAgent: 'Chrome on iPad',
-    deviceType: 'tablet',
-    browser: 'Chrome 119',
-    os: 'iPadOS 17',
-    location: 'Đà Nẵng, Việt Nam',
-    isActive: false,
-    isCurrent: false,
-    lastActivity: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    expiresAt: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+// Helper functions to parse user agent
+const detectDeviceType = (userAgent: string): 'desktop' | 'mobile' | 'tablet' | 'unknown' => {
+  const ua = userAgent.toLowerCase();
+  if (ua.includes('mobile')) return 'mobile';
+  if (ua.includes('tablet') || ua.includes('ipad')) return 'tablet';
+  return 'desktop';
+};
+
+const extractBrowser = (userAgent: string): string => {
+  if (userAgent.includes('Chrome')) return 'Chrome';
+  if (userAgent.includes('Safari')) return 'Safari';
+  if (userAgent.includes('Firefox')) return 'Firefox';
+  if (userAgent.includes('Edge')) return 'Edge';
+  return 'Unknown';
+};
+
+const extractOS = (userAgent: string): string => {
+  if (userAgent.includes('Windows')) return 'Windows';
+  if (userAgent.includes('Mac')) return 'macOS';
+  if (userAgent.includes('Linux')) return 'Linux';
+  if (userAgent.includes('Android')) return 'Android';
+  if (userAgent.includes('iOS')) return 'iOS';
+  return 'Unknown';
+};
 
 export default function SessionsPage() {
   const { toast } = useToast();
@@ -93,20 +70,34 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
   const [terminatingSession, setTerminatingSession] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchSessions();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const fetchSessions = async () => {
+  // Fetch sessions from backend - Real data from ProfileService.getSessions()
+  const fetchSessions = useCallback(async () => {
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await authService.getSessions();
-      // setSessions(response.sessions);
-      
-      // Using mock data for now
-      setSessions(mockSessions);
+      const response = await ProfileService.getSessions();
+
+      if (response.success && response.sessions) {
+        // Map gRPC sessions to Session interface
+        const mappedSessions: Session[] = response.sessions.map((s: Record<string, unknown>) => ({
+          id: String(s.id || ''),
+          sessionToken: String(s.session_token || ''),
+          ipAddress: String(s.ip_address || ''),
+          userAgent: String(s.user_agent || ''),
+          deviceType: detectDeviceType(String(s.user_agent || '')),
+          browser: extractBrowser(String(s.user_agent || '')),
+          os: extractOS(String(s.user_agent || '')),
+          location: String(s.location || 'Không xác định'),
+          isActive: Boolean(s.is_active),
+          isCurrent: Boolean(s.is_current),
+          lastActivity: String(s.last_activity || ''),
+          createdAt: String(s.created_at || ''),
+          expiresAt: String(s.expires_at || ''),
+        }));
+
+        setSessions(mappedSessions);
+      } else {
+        throw new Error(response.message || 'Failed to fetch sessions');
+      }
     } catch (error) {
       console.error('Failed to fetch sessions:', error);
       toast({
@@ -114,24 +105,33 @@ export default function SessionsPage() {
         description: 'Không thể tải danh sách phiên đăng nhập',
         variant: 'error' as const,
       });
+      setSessions([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
 
   const handleTerminateSession = async (sessionId: string) => {
     setTerminatingSession(sessionId);
     try {
-      // TODO: Call API to terminate session
-      // await authService.terminateSession(sessionId);
-      
-      // Mock implementation
-      setSessions(prev => prev.filter(s => s.id !== sessionId));
-      
-      toast({
-        title: 'Thành công',
-        description: 'Đã kết thúc phiên đăng nhập',
-      });
+      // Call ProfileService.terminateSession() - Real backend data
+      const response = await ProfileService.terminateSession(sessionId);
+
+      if (response.success) {
+        toast({
+          title: 'Thành công',
+          description: 'Đã kết thúc phiên đăng nhập',
+        });
+
+        // Refresh sessions list
+        await fetchSessions();
+      } else {
+        throw new Error(response.message || 'Failed to terminate session');
+      }
     } catch (error) {
       console.error('Failed to terminate session:', error);
       toast({
@@ -147,16 +147,20 @@ export default function SessionsPage() {
   const handleTerminateAllSessions = async () => {
     setLoading(true);
     try {
-      // TODO: Call API to terminate all sessions
-      // await authService.terminateAllSessions();
-      
-      // Mock implementation
-      setSessions(prev => prev.filter(s => s.isCurrent));
-      
-      toast({
-        title: 'Thành công',
-        description: 'Đã kết thúc tất cả phiên đăng nhập khác',
-      });
+      // Call ProfileService.terminateAllSessions() - Real backend data
+      const response = await ProfileService.terminateAllSessions(true); // Keep current session
+
+      if (response.success) {
+        toast({
+          title: 'Thành công',
+          description: `Đã kết thúc ${response.terminated_count || 0} phiên đăng nhập khác`,
+        });
+
+        // Refresh sessions list
+        await fetchSessions();
+      } else {
+        throw new Error(response.message || 'Failed to terminate all sessions');
+      }
     } catch (error) {
       console.error('Failed to terminate all sessions:', error);
       toast({

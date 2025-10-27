@@ -1,10 +1,8 @@
 syntax = "proto3";
-
 package v1;
-
 import "common/common.proto";
+import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
 // Answer message - for structured answers
 message Answer {
@@ -50,8 +48,9 @@ message Question {
   int32 feedback = 20;                 // Điểm feedback
   common.DifficultyLevel difficulty = 21; // EASY, MEDIUM, HARD, EXPERT
   string question_code_id = 22;        // FK to QuestionCode
-  string created_at = 23;
-  string updated_at = 24;
+  google.protobuf.Timestamp created_at = 23;
+  google.protobuf.Timestamp updated_at = 24;
+  bool is_favorite = 25;               // Đánh dấu câu hỏi yêu thích
 }
 
 // Wrapper for multiple answers
@@ -266,7 +265,128 @@ message ImportQuestionsResponse {
   string summary = 7;
 }
 
+// ============================================================================
+// VERSION CONTROL MESSAGES
+// ============================================================================
+
+message VersionHistoryItem {
+  string version_id = 1;
+  int32 version_number = 2;
+  string changed_by_user_id = 3;
+  string changed_by_user_name = 4;
+  string change_reason = 5;
+  google.protobuf.Timestamp changed_at = 6;
+  string summary_of_changes = 7;
+}
+
+message GetVersionHistoryRequest {
+  string question_id = 1;
+  common.PaginationRequest pagination = 2;
+}
+
+message GetVersionHistoryResponse {
+  repeated VersionHistoryItem versions = 1;
+  common.PaginationResponse pagination = 2;
+  common.Response response = 3;
+}
+
+message GetVersionRequest {
+  string question_id = 1;
+  int32 version_number = 2;
+}
+
+message GetVersionResponse {
+  Question question_version = 1;
+  common.Response response = 2;
+}
+
+message VersionDiff {
+  string field_name = 1;
+  string old_value = 2;
+  string new_value = 3;
+  string change_type = 4; // ADDED, MODIFIED, DELETED
+}
+
+message CompareVersionsRequest {
+  string question_id = 1;
+  int32 version_number_1 = 2;
+  int32 version_number_2 = 3;
+}
+
+message CompareVersionsResponse {
+  repeated VersionDiff diffs = 1;
+  common.Response response = 2;
+}
+
+message RevertToVersionRequest {
+  string question_id = 1;
+  int32 version_number = 2;
+  string revert_reason = 3;
+  string user_id = 4;
+}
+
+message RevertToVersionResponse {
+  bool success = 1;
+  string message = 2;
+  common.Response response = 3;
+}
+
+// ============================================================================
+// BULK OPERATIONS MESSAGES
+// ============================================================================
+
+message BulkUpdateQuestionsRequest {
+  repeated string question_ids = 1;
+  string status = 2;         // "NO_CHANGE" or actual status value
+  string difficulty = 3;      // "NO_CHANGE" or actual difficulty value
+}
+
+message BulkUpdateQuestionsResponse {
+  int32 success_count = 1;
+  int32 failed_count = 2;
+  repeated string failed_ids = 3;
+  common.Response response = 4;
+}
+
+message BulkDeleteQuestionsRequest {
+  repeated string question_ids = 1;
+}
+
+message BulkDeleteQuestionsResponse {
+  int32 success_count = 1;
+  int32 failed_count = 2;
+  repeated string failed_ids = 3;
+  common.Response response = 4;
+}
+
+// ============================================================================
+// FAVORITE OPERATIONS MESSAGES
+// ============================================================================
+
+message ToggleFavoriteRequest {
+  string question_id = 1;
+  bool is_favorite = 2;  // true to mark as favorite, false to unmark
+}
+
+message ToggleFavoriteResponse {
+  bool success = 1;
+  bool is_favorite = 2;  // Current favorite status
+  common.Response response = 3;
+}
+
+message ListFavoriteQuestionsRequest {
+  common.PaginationRequest pagination = 1;
+}
+
+message ListFavoriteQuestionsResponse {
+  common.Response response = 1;
+  repeated Question questions = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// ============================================================================
 // Question service
+// ============================================================================
 service QuestionService {
   rpc CreateQuestion(CreateQuestionRequest) returns (CreateQuestionResponse);
 
@@ -286,4 +406,33 @@ service QuestionService {
   rpc CreateQuestionFromLatex(CreateQuestionFromLatexRequest) returns (CreateQuestionFromLatexResponse);
   
   rpc ImportLatex(ImportLatexRequest) returns (ImportLatexResponse);
+  
+  // ============================================================================
+  // VERSION CONTROL OPERATIONS
+  // ============================================================================
+  rpc GetVersionHistory(GetVersionHistoryRequest) returns (GetVersionHistoryResponse);
+  
+  rpc GetVersion(GetVersionRequest) returns (GetVersionResponse);
+  
+  rpc CompareVersions(CompareVersionsRequest) returns (CompareVersionsResponse);
+  
+  rpc RevertToVersion(RevertToVersionRequest) returns (RevertToVersionResponse);
+  
+  // ============================================================================
+  // BULK OPERATIONS
+  // ============================================================================
+  rpc BulkUpdateQuestions(BulkUpdateQuestionsRequest) returns (BulkUpdateQuestionsResponse);
+  
+  rpc BulkDeleteQuestions(BulkDeleteQuestionsRequest) returns (BulkDeleteQuestionsResponse);
+  
+  // ============================================================================
+  // FAVORITE OPERATIONS
+  // ============================================================================
+  rpc ToggleFavorite(ToggleFavoriteRequest) returns (ToggleFavoriteResponse);
+  
+  rpc ListFavoriteQuestions(ListFavoriteQuestionsRequest) returns (ListFavoriteQuestionsResponse);
 }
+
+
+
+

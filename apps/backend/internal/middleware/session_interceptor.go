@@ -1,4 +1,4 @@
-package middleware
+﻿package middleware
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/user/session"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -149,3 +149,4 @@ func extractUserAgent(md metadata.MD) string {
 	}
 	return ""
 }
+

@@ -119,7 +119,8 @@ export default function AdminExamPage() {
         variant: 'destructive',
       });
     }
-  }, [filters, toast]); // ✅ filters is separate state - stable reference
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters]); // ✅ toast is stable, no need in deps
 
   // ===== EFFECTS =====
 

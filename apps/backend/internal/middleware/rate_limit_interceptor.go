@@ -90,7 +90,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			PerUser:           true,
 		},
 
-		// Admin operations - moderate limits
+		// Admin operations - moderate limits for write operations
 		"/v1.AdminService/UpdateUserRole": {
 			RequestsPerSecond: 0.5,
 			Burst:             5,
@@ -104,6 +104,38 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		"/v1.AdminService/UpdateUserStatus": {
 			RequestsPerSecond: 0.5,
 			Burst:             5,
+			PerUser:           true,
+		},
+
+		// Admin read operations - higher limits for dashboard loading
+		"/v1.AdminService/ListUsers": {
+			RequestsPerSecond: 10, // 10 requests per second
+			Burst:             30, // Allow burst of 30 for initial dashboard load
+			PerUser:           true,
+		},
+		"/v1.AdminService/GetAuditLogs": {
+			RequestsPerSecond: 5,
+			Burst:             20,
+			PerUser:           true,
+		},
+		"/v1.AdminService/GetResourceAccess": {
+			RequestsPerSecond: 5,
+			Burst:             20,
+			PerUser:           true,
+		},
+		// Admin system stats - very high limit for dashboard components
+		// Reason: Multiple dashboard components (7+ hooks/components) fetch stats simultaneously
+		// during page load with React Strict Mode double-render. Backend caching (10s TTL) reduces actual database load.
+		// Very high limit allows concurrent requests from different components without blocking.
+		// ✅ FIX: Increased from 30/50 to 100/200 to handle React Strict Mode + multiple concurrent components
+		"/v1.AdminService/GetSystemStats": {
+			RequestsPerSecond: 100, // 100 requests per second - supports React Strict Mode + 7+ concurrent components
+			Burst:             200,  // Allow burst of 200 for initial dashboard load with multiple components + double-render
+			PerUser:           true,
+		},
+		"/v1.AdminService/GetSecurityAlerts": {
+			RequestsPerSecond: 2,
+			Burst:             10,
 			PerUser:           true,
 		},
 
@@ -162,6 +194,52 @@ func initializeRateLimits() map[string]RateLimitConfig {
 			PerUser:           true,
 		},
 
+		// Notification operations - higher limits for read operations
+		// ✅ FIX: Increased to handle React Strict Mode double-render + multiple notification components
+		"/v1.NotificationService/GetNotifications": {
+			RequestsPerSecond: 50, // 50 requests per second - supports React Strict Mode
+			Burst:             100, // Allow burst of 100 for initial page load with double-render
+			PerUser:           true,
+		},
+		"/v1.NotificationService/MarkAsRead": {
+			RequestsPerSecond: 5,
+			Burst:             15,
+			PerUser:           true,
+		},
+		"/v1.NotificationService/MarkAllAsRead": {
+			RequestsPerSecond: 0.5, // 1 request per 2 seconds
+			Burst:             2,
+			PerUser:           true,
+		},
+		"/v1.NotificationService/DeleteNotification": {
+			RequestsPerSecond: 2,
+			Burst:             10,
+			PerUser:           true,
+		},
+
+		// Library/Book operations - higher limit for browsing
+		// ✅ FIX: Increased to handle React Strict Mode double-render
+		"/v1.BookService/ListBooks": {
+			RequestsPerSecond: 50, // 50 requests per second - supports React Strict Mode
+			Burst:             100, // Allow burst of 100 for initial dashboard load with double-render
+			PerUser:           true,
+		},
+		"/v1.BookService/GetBook": {
+			RequestsPerSecond: 10,
+			Burst:             30,
+			PerUser:           true,
+		},
+		"/v1.LibraryService/ListLibraryItems": {
+			RequestsPerSecond: 10,
+			Burst:             30,
+			PerUser:           true,
+		},
+		"/v1.LibraryService/GetLibraryItem": {
+			RequestsPerSecond: 10,
+			Burst:             30,
+			PerUser:           true,
+		},
+
 		// Default for unlisted endpoints
 		"default": {
 			RequestsPerSecond: 5,
@@ -197,9 +275,19 @@ func (r *RateLimitInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		// Check rate limit
 		if !limiter.Allow() {
-			// Rate limit exceeded
+			// Rate limit exceeded - LOG THIS for debugging
+			tokens := limiter.Tokens()
+			fmt.Printf("[RATE_LIMIT] ERROR: EXCEEDED for %s | Identifier: %s | Tokens remaining: %.2f | Config: %.2f req/s, burst %d\n",
+				info.FullMethod, identifier, tokens, config.RequestsPerSecond, config.Burst)
 			return nil, status.Errorf(codes.ResourceExhausted,
 				"rate limit exceeded for %s, please try again later", info.FullMethod)
+		}
+
+		// Log successful rate limit check (only for critical endpoints)
+		if info.FullMethod == "/v1.AdminService/GetSystemStats" || info.FullMethod == "/v1.NotificationService/GetNotifications" {
+			tokens := limiter.Tokens()
+			fmt.Printf("[RATE_LIMIT] OK for %s | Identifier: %s | Tokens: %.2f/%d\n",
+				info.FullMethod, identifier, tokens, config.Burst)
 		}
 
 		// Proceed with the request

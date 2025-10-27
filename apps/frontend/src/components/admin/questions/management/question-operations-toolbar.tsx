@@ -366,6 +366,7 @@ export function QuestionOperationsToolbar({
       {/* Destructive operations dropdown */}
       {destructiveOperations.length > 0 && (
         <DropdownMenu>
+          {/* Technical: Using asChild is SAFE here (not in Array.map) */}
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" disabled={disabled || isProcessing}>
               <MoreHorizontal className="h-4 w-4" />

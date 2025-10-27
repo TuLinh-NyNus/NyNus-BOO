@@ -51,24 +51,26 @@ const credentialsProvider = Credentials({
   },
   async authorize(credentials) {
     // ✅ ENHANCED LOGGING - Track every step of authorization
-    const maskedEmail = credentials?.email
-      ? `${credentials.email.substring(0, 2)}***@${credentials.email.split('@')[1] || '***'}`
+    // Technical: Type assertion needed for NextAuth credentials
+    const creds = credentials as { email?: string; password?: string } | undefined;
+    const maskedEmail = creds?.email
+      ? `${creds.email.substring(0, 2)}***@${creds.email.split('@')[1] || '***'}`
       : 'MISSING';
 
     logger.info('[Auth] authorize() called', {
       operation: 'authorize',
-      hasEmail: !!credentials?.email,
-      hasPassword: !!credentials?.password,
+      hasEmail: !!creds?.email,
+      hasPassword: !!creds?.password,
       email: maskedEmail,
     });
 
     try {
       // Step 1: Validate credentials
-      if (!credentials?.email || !credentials?.password) {
+      if (!creds?.email || !creds?.password) {
         logger.error('[Auth] FAILED - Missing credentials', {
           operation: 'authorize',
-          hasEmail: !!credentials?.email,
-          hasPassword: !!credentials?.password,
+          hasEmail: !!creds?.email,
+          hasPassword: !!creds?.password,
         });
         return null;
       }
@@ -85,8 +87,8 @@ const credentialsProvider = Credentials({
       });
 
       const response = await AuthService.login(
-        credentials.email as string,
-        credentials.password as string
+        creds.email as string,
+        creds.password as string
       );
 
       logger.debug('[Auth] Step 2 COMPLETE - Backend response received', {
@@ -305,18 +307,15 @@ export const authConfig: NextAuthConfig = {
      * Quản lý tokens trong JWT
      */
     async jwt({ token, account, user }) {
-      // Initial login - save tokens
-      if (account && user) {
-        // Store Google tokens
-        TokenManager.storeGoogleTokens(token, account);
-
-        // Store backend tokens from Credentials provider
+      // Persist backend tokens returned from credentials flow (account is undefined for credentials)
+      if (user) {
         TokenManager.storeCredentialsTokens(token, user);
+      }
 
-        // Store backend tokens from OAuth provider
+      if (account) {
+        // Store OAuth-specific tokens (Google + future providers)
+        TokenManager.storeGoogleTokens(token, account);
         TokenManager.storeOAuthTokens(token, account);
-
-        // Set default role for OAuth users
         TokenManager.setDefaultRoleForOAuth(token, account.provider);
       }
 

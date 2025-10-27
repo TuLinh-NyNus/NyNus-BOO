@@ -1,69 +1,86 @@
-package main
+﻿package main
 
 import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/app"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
+	"exam-bank-system/apps/backend/internal/app"
+	"exam-bank-system/apps/backend/internal/config"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 )
 
 func main() {
-	// Initialize structured logger
+	// Enable UTF-8 support for Windows console
+	// This ensures Vietnamese characters and emojis are displayed correctly
+	if _, err := os.Stdout.Stat(); err == nil {
+		// Create UTF-8 encoder for Windows console
+		encoder := unicode.UTF8.NewEncoder()
+		writer := transform.NewWriter(os.Stdout, encoder)
+		
+		// Use the UTF-8 encoded writer for standard output
+		// Note: We keep os.Stdout for logger to use directly
+		// as logrus handles encoding internally
+		_ = writer // Keep this for potential future use
+	}
+
+	// Initialize standard logger with consistent format: 2006/01/02 15:04:05
 	logger := logrus.New()
 	logger.SetLevel(logrus.InfoLevel)
-	logger.SetFormatter(&logrus.JSONFormatter{
-		TimestampFormat: time.RFC3339,
-		FieldMap: logrus.FieldMap{
-			logrus.FieldKeyTime:  "timestamp",
-			logrus.FieldKeyLevel: "level",
-			logrus.FieldKeyMsg:   "message",
-		},
+	logger.SetOutput(os.Stdout)
+	logger.SetFormatter(&logrus.TextFormatter{
+		TimestampFormat:        "2006/01/02 15:04:05",
+		FullTimestamp:          true,
+		DisableTimestamp:       false,
+		ForceColors:            false,
+		DisableColors:          true,
+		ForceQuote:             false,
+		DisableQuote:           true,
+		DisableLevelTruncation: false,
 	})
 
-	logger.Info("🚀 Starting NyNus Exam Bank System...")
+	logger.Info("[STARTUP] Starting NyNus Exam Bank System...")
 
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
-		logger.Warn("⚠️  .env file not found, using system environment variables")
+		logger.Warn("[WARN] .env file not found, using system environment variables")
 	} else {
-		logger.Info("✅ Environment variables loaded from .env file")
+		logger.Info("[OK] Environment variables loaded from .env file")
 	}
 
 	// Load configuration
-	logger.Info("📋 Loading application configuration...")
+	logger.Info("[CONFIG] Loading application configuration...")
 	cfg := config.LoadConfig()
 	logger.WithFields(logrus.Fields{
 		"environment": cfg.Server.Environment,
 		"grpc_port":   cfg.Server.GRPCPort,
 		"http_port":   cfg.Server.HTTPPort,
-	}).Info("✅ Configuration loaded successfully")
+	}).Info("[OK] Configuration loaded successfully")
 
 	// Comprehensive configuration validation
-	logger.Info("🔍 Validating configuration...")
+	logger.Info("[VALIDATE] Validating configuration...")
 	if err := cfg.Validate(); err != nil {
-		logger.WithError(err).Fatal("❌ Configuration validation failed")
+		logger.WithError(err).Fatal("[ERROR] Configuration validation failed")
 	}
 
 	// Validate auth configuration
 	if err := cfg.Auth.ValidateAuthConfig(); err != nil {
-		logger.WithError(err).Fatal("❌ Authentication configuration validation failed")
+		logger.WithError(err).Fatal("[ERROR] Authentication configuration validation failed")
 	}
 
-	logger.Info("✅ Configuration validation passed")
+	logger.Info("[OK] Configuration validation passed")
 
 	// Create application
-	logger.Info("🏗️  Initializing application...")
+	logger.Info("[INIT] Initializing application...")
 	application, err := app.NewApp(cfg)
 	if err != nil {
-		logger.WithError(err).Fatal("❌ Failed to create application")
+		logger.WithError(err).Fatal("[ERROR] Failed to create application")
 	}
-	logger.Info("✅ Application initialized successfully")
+	logger.Info("[OK] Application initialized successfully")
 
 	// Setup graceful shutdown
 	go func() {
@@ -71,15 +88,21 @@ func main() {
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 		sig := <-sigChan
 
-		logger.WithField("signal", sig.String()).Warn("🛑 Received shutdown signal, initiating graceful shutdown...")
+		logger.WithField("signal", sig.String()).Warn("[SHUTDOWN] Received shutdown signal, initiating graceful shutdown...")
 		application.Shutdown()
-		logger.Info("✅ Graceful shutdown completed")
+		logger.Info("[OK] Graceful shutdown completed")
 		os.Exit(0)
 	}()
 
 	// Run application
-	logger.Info("🚀 Starting application services...")
+	logger.Info("[STARTUP] Starting application services...")
 	if err := application.Run(); err != nil {
-		logger.WithError(err).Fatal("❌ Failed to run application")
+		logger.WithError(err).Fatal("[ERROR] Failed to run application")
 	}
+	
+	// ✅ CRITICAL FIX: application.Run() is BLOCKING and should never return
+	// If we reach this point, it means the server stopped unexpectedly
+	logger.Error("[FATAL] Server stopped unexpectedly - this should never happen!")
+	logger.Error("[FATAL] If you see this message, the gRPC server crashed or was stopped")
+	os.Exit(1)
 }

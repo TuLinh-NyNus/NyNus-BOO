@@ -1,0 +1,428 @@
+---
+alwaysApply: true
+---
+# Architecture & Structure Rules - Exam Bank System
+## Folder Structure, Naming Conventions, and Organization Patterns
+
+## 🎯 Purpose
+Ensure consistent, maintainable codebase structure across Go backend, Next.js frontend, and Flutter mobile.
+
+---
+
+## 📁 Backend Structure (Go + gRPC)
+
+### Directory Organization
+```
+apps/backend/internal/
+├── entity/              # Domain entities (database models)
+├── repository/          # Data access layer (interfaces + implementations)
+├── service/             # Business logic layer
+│   ├── auth/           # Feature-based organization
+│   ├── exam/
+│   ├── question/
+│   └── user/
+├── grpc/                # gRPC handlers (thin layer)
+├── middleware/          # gRPC interceptors (auth, rate limit, etc.)
+├── config/              # Configuration management
+├── util/                # Shared utilities
+└── validation/          # Input validation logic
+```
+
+### Naming Conventions (Go)
+```go
+// ✅ Files: snake_case
+exam_service.go
+question_repository.go
+auth_interceptor.go
+
+// ✅ Types: PascalCase
+type ExamService struct {}
+type QuestionRepository interface {}
+
+// ✅ Functions/Methods: PascalCase (exported), camelCase (unexported)
+func CreateExam(ctx context.Context) error {}
+func validateInput(data string) bool {}
+
+// ✅ Constants: PascalCase or SCREAMING_SNAKE_CASE
+const MaxRetryAttempts = 3
+const DEFAULT_PAGE_SIZE = 20
+```
+
+### Layer Responsibilities (Go)
+```go
+// ❌ BAD - Business logic in gRPC handler
+func (s *ExamServiceServer) CreateExam(ctx context.Context, req *v1.CreateExamRequest) (*v1.CreateExamResponse, error) {
+    // Validate
+    if req.Title == "" {
+        return nil, status.Error(codes.InvalidArgument, "title required")
+    }
+    // Create entity
+    exam := &entity.Exam{Title: req.Title}
+    // Save to DB
+    if err := s.db.Create(exam).Error; err != nil {
+        return nil, err
+    }
+    return &v1.CreateExamResponse{Exam: convertToProto(exam)}, nil
+}
+
+// ✅ GOOD - Thin gRPC handler, logic in service layer
+func (s *ExamServiceServer) CreateExam(ctx context.Context, req *v1.CreateExamRequest) (*v1.CreateExamResponse, error) {
+    userID, err := middleware.GetUserIDFromContext(ctx)
+    if err != nil {
+        return nil, status.Error(codes.Unauthenticated, "user not found")
+    }
+    
+    exam, err := s.examService.CreateExam(ctx, userID, req)
+    if err != nil {
+        return nil, convertToGRPCError(err)
+    }
+    
+    return &v1.CreateExamResponse{Exam: exam}, nil
+}
+```
+
+### Repository Pattern (Go)
+```go
+// ✅ Interface in repository/interfaces/
+type ExamRepository interface {
+    Create(ctx context.Context, exam *entity.Exam) error
+    FindByID(ctx context.Context, id uuid.UUID) (*entity.Exam, error)
+    Update(ctx context.Context, exam *entity.Exam) error
+    Delete(ctx context.Context, id uuid.UUID) error
+}
+
+// ✅ Implementation in repository/
+type examRepositoryImpl struct {
+    db *gorm.DB
+}
+
+func NewExamRepository(db *gorm.DB) ExamRepository {
+    return &examRepositoryImpl{db: db}
+}
+```
+
+---
+
+## 📁 Frontend Structure (Next.js 14 + TypeScript)
+
+### Directory Organization
+```
+apps/frontend/src/
+├── app/                        # Next.js 14 App Router
+│   ├── (routes)/              # Route groups
+│   ├── api/                   # API routes (if needed)
+│   └── layout.tsx
+├── components/                 # React components
+│   ├── features/              # Feature-specific components
+│   │   ├── exams/
+│   │   │   ├── shared/       # Shared within feature
+│   │   │   ├── browse/       # Route-specific
+│   │   │   └── create/
+│   │   └── questions/
+│   ├── ui/                    # Base UI components (shadcn)
+│   ├── layout/                # Layout components (header, footer)
+│   └── common/                # Truly shared components
+├── lib/                       # Utilities and helpers
+│   ├── grpc/                  # gRPC client setup
+│   ├── utils/                 # Pure utility functions
+│   ├── constants/             # Constants and configs
+│   └── validation/            # Zod schemas
+├── services/                  # API/gRPC service clients
+│   └── grpc/                  # Feature-based gRPC clients
+├── hooks/                     # Custom React hooks
+│   ├── auth/                  # Feature-based organization
+│   ├── exam/
+│   └── question/
+├── types/                     # TypeScript type definitions
+│   ├── api/                   # API response types
+│   └── common.ts
+├── contexts/                  # React contexts
+└── styles/                    # Global styles
+```
+
+### Naming Conventions (TypeScript/React)
+```typescript
+// ✅ Files: kebab-case
+exam-card.tsx
+question-list.tsx
+use-exam-data.ts
+
+// ✅ Components: PascalCase
+export function ExamCard() {}
+export const QuestionList: React.FC = () => {}
+
+// ✅ Hooks: camelCase starting with "use"
+export function useExamData() {}
+export const useQuestionFilter = () => {}
+
+// ✅ Types/Interfaces: PascalCase
+interface ExamCardProps {}
+type QuestionStatus = "active" | "inactive";
+```
+
+### Component Organization
+```typescript
+// ✅ GOOD - Feature-based component structure
+components/features/exams/
+├── shared/
+│   ├── exam-card.tsx          # Reusable within exams feature
+│   └── exam-status-badge.tsx
+├── browse/
+│   ├── exam-browser.tsx       # Route-specific component
+│   └── exam-filters.tsx
+└── create/
+    └── exam-form.tsx
+
+// ✅ File structure for complex component
+/**
+ * Component Header
+ * Brief description of what this component does
+ * 
+ * @author Team Name
+ * @created YYYY-MM-DD
+ */
+
+"use client"; // If client component
+
+// 1. External dependencies
+import React from "react";
+import { useRouter } from "next/navigation";
+
+// 2. Internal modules
+import { Button } from "@/components/ui";
+import { useExamData } from "@/hooks/exam";
+
+// 3. Types
+import type { Exam } from "@/types/exam";
+
+// 4. Component implementation
+export function ExamCard({ exam }: { exam: Exam }) {
+  // ... implementation
+}
+```
+
+### Service Layer (Frontend)
+```typescript
+// ✅ services/grpc/exam.service.ts
+import { ExamServiceClient } from "@/generated/v1/exam_service_pb_service";
+import { CreateExamRequest } from "@/generated/v1/exam_service_pb";
+
+export class ExamService {
+  private client: ExamServiceClient;
+  
+  constructor() {
+    this.client = new ExamServiceClient(/* config */);
+  }
+  
+  async createExam(data: CreateExamData): Promise<Exam> {
+    const request = new CreateExamRequest();
+    // ... setup request
+    const response = await this.client.createExam(request);
+    return response.toObject();
+  }
+}
+
+// ✅ Single instance export
+export const examService = new ExamService();
+```
+
+---
+
+## 📁 Mobile Structure (Flutter + Clean Architecture)
+
+### Directory Organization
+```
+apps/mobile/lib/
+├── core/                      # Core utilities (DI, network, storage)
+│   ├── di/                   # Dependency injection
+│   ├── network/              # gRPC client setup
+│   ├── storage/              # Local storage (Hive, SharedPrefs)
+│   ├── theme/                # App theming
+│   └── utils/                # Utilities
+├── features/                  # Feature modules
+│   └── auth/                 # Example feature
+│       ├── data/
+│       │   ├── datasources/  # Remote/Local data sources
+│       │   ├── models/       # Data models (from proto)
+│       │   └── repositories/ # Repository implementations
+│       ├── domain/
+│       │   ├── entities/     # Business entities
+│       │   ├── repositories/ # Repository interfaces
+│       │   └── usecases/     # Business use cases
+│       └── presentation/
+│           ├── bloc/         # BLoC state management
+│           ├── pages/        # Screen widgets
+│           └── widgets/      # UI components
+├── shared/                    # Shared across features
+│   ├── models/
+│   └── widgets/
+└── main.dart
+```
+
+### Naming Conventions (Dart)
+```dart
+// ✅ Files: snake_case
+exam_card.dart
+question_list_page.dart
+auth_repository.dart
+
+// ✅ Classes: PascalCase
+class ExamCard extends StatelessWidget {}
+class AuthRepository implements IAuthRepository {}
+
+// ✅ Variables/Functions: camelCase
+String userName = "John";
+Future<void> fetchExams() async {}
+
+// ✅ Constants: lowerCamelCase or SCREAMING_SNAKE_CASE
+const double defaultPadding = 16.0;
+const int MAX_RETRY_ATTEMPTS = 3;
+```
+
+### Clean Architecture Layers (Flutter)
+```dart
+// ✅ Data Layer - datasources/auth_remote_datasource.dart
+abstract class AuthRemoteDataSource {
+  Future<LoginResponse> login({required String email, required String password});
+}
+
+class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
+  final GrpcClient client;
+  
+  AuthRemoteDataSourceImpl({required this.client});
+  
+  @override
+  Future<LoginResponse> login({required String email, required String password}) async {
+    // gRPC call implementation
+  }
+}
+
+// ✅ Domain Layer - repositories/auth_repository.dart (interface)
+abstract class AuthRepository {
+  Future<Either<Failure, User>> login({required String email, required String password});
+}
+
+// ✅ Data Layer - repositories/auth_repository_impl.dart
+class AuthRepositoryImpl implements AuthRepository {
+  final AuthRemoteDataSource remoteDataSource;
+  final AuthLocalDataSource localDataSource;
+  
+  AuthRepositoryImpl({required this.remoteDataSource, required this.localDataSource});
+  
+  @override
+  Future<Either<Failure, User>> login({required String email, required String password}) async {
+    try {
+      final response = await remoteDataSource.login(email: email, password: password);
+      final user = UserModel.fromProto(response.user);
+      await localDataSource.saveUser(user);
+      return Right(user);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    }
+  }
+}
+
+// ✅ Domain Layer - usecases/login_usecase.dart
+class LoginUseCase {
+  final AuthRepository repository;
+  
+  LoginUseCase(this.repository);
+  
+  Future<Either<Failure, User>> call({required String email, required String password}) {
+    return repository.login(email: email, password: password);
+  }
+}
+
+// ✅ Presentation Layer - bloc/auth_bloc.dart
+class AuthBloc extends Bloc<AuthEvent, AuthState> {
+  final LoginUseCase loginUseCase;
+  
+  AuthBloc({required this.loginUseCase}) : super(AuthInitial()) {
+    on<LoginRequested>(_onLoginRequested);
+  }
+  
+  Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    final result = await loginUseCase(email: event.email, password: event.password);
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (user) => emit(AuthAuthenticated(user: user)),
+    );
+  }
+}
+```
+
+---
+
+## 🔄 Cross-Platform Consistency
+
+### gRPC Proto Organization
+```
+packages/proto/
+├── common/              # Shared messages (pagination, errors)
+│   ├── error.proto
+│   └── pagination.proto
+└── v1/                  # API version 1
+    ├── auth_service.proto
+    ├── exam_service.proto
+    ├── question_service.proto
+    └── user_service.proto
+```
+
+### Error Handling Pattern (All Platforms)
+```go
+// Backend (Go)
+func (s *ExamService) CreateExam(ctx context.Context, req *CreateExamRequest) (*Exam, error) {
+    if err := s.validate(req); err != nil {
+        return nil, ErrInvalidInput // Custom error type
+    }
+    // ... logic
+}
+```
+
+```typescript
+// Frontend (TypeScript)
+try {
+  const exam = await examService.createExam(data);
+} catch (error) {
+  if (error.code === grpc.Code.INVALID_ARGUMENT) {
+    // Handle validation error
+  }
+}
+```
+
+```dart
+// Mobile (Dart)
+final result = await loginUseCase(email: email, password: password);
+result.fold(
+  (failure) => emit(AuthError(message: failure.message)),
+  (user) => emit(AuthAuthenticated(user: user)),
+);
+```
+
+---
+
+## ✅ Checklist: File Organization
+
+### Before Creating New File
+- [ ] Check if similar functionality already exists
+- [ ] Choose correct layer (presentation/domain/data for Flutter, component/service/hook for React)
+- [ ] Follow feature-based organization
+- [ ] Use correct naming convention for platform
+- [ ] Place in appropriate directory based on scope (shared vs feature-specific)
+
+### Before Adding New Feature
+- [ ] Create feature folder in appropriate location
+- [ ] Set up necessary layers (Go: entity/repository/service, React: component/hook/service, Flutter: data/domain/presentation)
+- [ ] Define interfaces before implementations
+- [ ] Add types/entities first, then logic
+- [ ] Follow dependency injection pattern
+
+---
+
+**Key Principles:**
+- ✅ Feature-based organization over type-based
+- ✅ Separation of concerns (presentation/domain/data)
+- ✅ Consistent naming across all platforms
+- ✅ Thin handlers/controllers, fat services
+- ✅ Interface-driven development

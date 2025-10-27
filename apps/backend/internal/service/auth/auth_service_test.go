@@ -5,16 +5,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/constant"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/constant"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
+)
+
+const (
+	testUserID = "student-123"
 )
 
 // Mock repositories for testing
@@ -94,7 +98,7 @@ func createTestAuthService(t *testing.T) (*AuthService, *MockUserRepository, *Mo
 	require.NoError(t, err, "Failed to create UnifiedJWTService for testing")
 
 	service := &AuthService{
-		userRepo:     mockUserRepo,
+		userRepo:         mockUserRepo,
 		enhancedUserRepo: mockEnhancedRepo,
 		preferenceRepo:   mockPreferenceRepo,
 		jwtService:       unifiedJWT, // Use IJWTService interface
@@ -107,7 +111,7 @@ func createTestAuthService(t *testing.T) (*AuthService, *MockUserRepository, *Mo
 func createTestUser(email, password, role string) *entity.User {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(password), 4)
 	return &entity.User{
-		ID:            util.StringToPgText("test-user-123"),
+		ID:            util.StringToPgText(testUserID),
 		Email:         util.StringToPgText(email),
 		PasswordHash:  util.StringToPgText(string(hashedPassword)),
 		Role:          util.StringToPgText(role),
@@ -127,11 +131,11 @@ func TestAuthService_Login_Success(t *testing.T) {
 	// Setup mocks
 	mockUserRepo.On("GetByEmail", "test@nynus.com", mock.Anything).Return(testUser, nil)
 	mockEnhancedRepo.On("GetByEmail", mock.Anything, "test@nynus.com").Return(&repository.User{
-		ID:          "test-user-123",
+		ID:          testUserID,
 		Email:       "test@nynus.com",
 		LockedUntil: nil, // Not locked
 	}, nil)
-	mockEnhancedRepo.On("ResetLoginAttempts", mock.Anything, "test-user-123").Return(nil)
+	mockEnhancedRepo.On("ResetLoginAttempts", mock.Anything, testUserID).Return(nil)
 
 	// Test login
 	user, token, err := service.Login(nil, "test@nynus.com", "password123")
@@ -173,11 +177,11 @@ func TestAuthService_Login_WrongPassword(t *testing.T) {
 	// Setup mocks
 	mockUserRepo.On("GetByEmail", "test@nynus.com", mock.Anything).Return(testUser, nil)
 	mockEnhancedRepo.On("GetByEmail", mock.Anything, "test@nynus.com").Return(&repository.User{
-		ID:          "test-user-123",
+		ID:          testUserID,
 		Email:       "test@nynus.com",
 		LockedUntil: nil,
 	}, nil)
-	mockEnhancedRepo.On("IncrementLoginAttempts", mock.Anything, "test-user-123").Return(nil)
+	mockEnhancedRepo.On("IncrementLoginAttempts", mock.Anything, testUserID).Return(nil)
 
 	// Test login with wrong password
 	user, token, err := service.Login(nil, "test@nynus.com", "wrongpassword")
@@ -201,7 +205,7 @@ func TestAuthService_Login_AccountLocked(t *testing.T) {
 	// Setup mocks
 	mockUserRepo.On("GetByEmail", "test@nynus.com", mock.Anything).Return(testUser, nil)
 	mockEnhancedRepo.On("GetByEmail", mock.Anything, "test@nynus.com").Return(&repository.User{
-		ID:          "test-user-123",
+		ID:          testUserID,
 		Email:       "test@nynus.com",
 		LockedUntil: &lockTime, // Account is locked
 	}, nil)
@@ -224,7 +228,7 @@ func TestAuthService_ValidateToken(t *testing.T) {
 
 	// Generate a valid token using IJWTService.GenerateAccessToken
 	token, err := service.jwtService.GenerateAccessToken(
-		"test-user-123",
+		testUserID,
 		"test@nynus.com",
 		constant.RoleStudent,
 		1, // level
@@ -263,7 +267,7 @@ func TestAuthService_ValidateToken(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, claims)
-				assert.Equal(t, "test-user-123", claims.UserID)
+				assert.Equal(t, testUserID, claims.UserID)
 				assert.Equal(t, "test@nynus.com", claims.Email)
 			}
 		})
@@ -303,9 +307,9 @@ func TestAuthService_IsAdmin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			testUser := createTestUser("test@nynus.com", "password123", tt.userRole)
 
-			mockUserRepo.On("GetByID", mock.Anything, mock.Anything, "test-user-123").Return(testUser, nil)
+			mockUserRepo.On("GetByID", mock.Anything, mock.Anything, testUserID).Return(testUser, nil)
 
-			isAdmin, err := service.IsAdmin(nil, "test-user-123")
+			isAdmin, err := service.IsAdmin(nil, testUserID)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -350,9 +354,9 @@ func TestAuthService_IsTeacherOrAdmin(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			testUser := createTestUser("test@nynus.com", "password123", tt.userRole)
 
-			mockUserRepo.On("GetByID", mock.Anything, mock.Anything, "test-user-123").Return(testUser, nil)
+			mockUserRepo.On("GetByID", mock.Anything, mock.Anything, testUserID).Return(testUser, nil)
 
-			result, err := service.IsTeacherOrAdmin(nil, "test-user-123")
+			result, err := service.IsTeacherOrAdmin(nil, testUserID)
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expected, result)
@@ -369,9 +373,9 @@ func TestAuthService_GetUserRole(t *testing.T) {
 
 	testUser := createTestUser("test@nynus.com", "password123", constant.RoleTeacher)
 
-	mockUserRepo.On("GetByID", mock.Anything, mock.Anything, "test-user-123").Return(testUser, nil)
+	mockUserRepo.On("GetByID", mock.Anything, mock.Anything, testUserID).Return(testUser, nil)
 
-	role, err := service.GetUserRole(nil, "test-user-123")
+	role, err := service.GetUserRole(nil, testUserID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, constant.RoleTeacher, role)

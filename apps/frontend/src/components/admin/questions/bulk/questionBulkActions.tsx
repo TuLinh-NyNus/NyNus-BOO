@@ -354,6 +354,7 @@ export function QuestionBulkActions({
 
             {/* More Actions - thêm thao tác */}
             <DropdownMenu>
+              {/* Technical: Using asChild is SAFE here (not in Array.map) */}
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" disabled={progress.isRunning}>
                   <MoreHorizontal className="h-4 w-4" />

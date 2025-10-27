@@ -1,4 +1,4 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
@@ -12,28 +12,28 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/internal/service/user/session"
 )
 
-// LoginHandler handles login-related business logic với IJWTService interface
-// Xử lý logic đăng nhập với các tính năng bảo mật nâng cao
+// LoginHandler handles login-related business logic vá»›i IJWTService interface
+// Xá»­ lÃ½ logic Ä‘Äƒng nháº­p vá»›i cÃ¡c tÃ­nh nÄƒng báº£o máº­t nÃ¢ng cao
 //
 // Business Logic:
 // - Validate credentials (email + password)
 // - Check account security (locked, inactive, suspended)
-// - Handle failed login attempts với account locking
+// - Handle failed login attempts vá»›i account locking
 // - Generate JWT tokens (access + refresh)
-// - Create sessions với device fingerprinting
+// - Create sessions vá»›i device fingerprinting
 type LoginHandler struct {
 	userRepo       repository.IUserRepository
 	jwtService     auth.IJWTService // Use interface instead of concrete type
 	sessionService *session.SessionService
 }
 
-// NewLoginHandler creates a new LoginHandler instance với IJWTService interface
-// Tạo instance mới của LoginHandler với các dependencies cần thiết
+// NewLoginHandler creates a new LoginHandler instance vá»›i IJWTService interface
+// Táº¡o instance má»›i cá»§a LoginHandler vá»›i cÃ¡c dependencies cáº§n thiáº¿t
 //
 // Parameters:
 //   - userRepo: User repository for database operations
@@ -55,7 +55,7 @@ func NewLoginHandler(
 }
 
 // ValidateCredentials validates email and password
-// Kiểm tra thông tin đăng nhập (email và password)
+// Kiá»ƒm tra thÃ´ng tin Ä‘Äƒng nháº­p (email vÃ  password)
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -91,7 +91,7 @@ func (h *LoginHandler) ValidateCredentials(ctx context.Context, email, password 
 }
 
 // CheckAccountSecurity checks if account is locked or inactive
-// Kiểm tra trạng thái bảo mật của tài khoản (khóa, inactive, suspended)
+// Kiá»ƒm tra tráº¡ng thÃ¡i báº£o máº­t cá»§a tÃ i khoáº£n (khÃ³a, inactive, suspended)
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -114,7 +114,7 @@ func (h *LoginHandler) CheckAccountSecurity(ctx context.Context, user *repositor
 }
 
 // HandleFailedLogin handles failed login attempts with account locking
-// Xử lý đăng nhập thất bại: tăng số lần thử, khóa tài khoản nếu vượt quá giới hạn
+// Xá»­ lÃ½ Ä‘Äƒng nháº­p tháº¥t báº¡i: tÄƒng sá»‘ láº§n thá»­, khÃ³a tÃ i khoáº£n náº¿u vÆ°á»£t quÃ¡ giá»›i háº¡n
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -149,7 +149,7 @@ func (h *LoginHandler) HandleFailedLogin(ctx context.Context, user *repository.U
 }
 
 // ResetLoginAttempts resets login attempts after successful login
-// Reset số lần đăng nhập thất bại sau khi đăng nhập thành công
+// Reset sá»‘ láº§n Ä‘Äƒng nháº­p tháº¥t báº¡i sau khi Ä‘Äƒng nháº­p thÃ nh cÃ´ng
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -166,7 +166,7 @@ func (h *LoginHandler) ResetLoginAttempts(ctx context.Context, userID string) er
 }
 
 // GenerateTokens generates access and refresh tokens with server-side storage
-// Tạo access token và refresh token với lưu trữ server-side
+// Táº¡o access token vÃ  refresh token vá»›i lÆ°u trá»¯ server-side
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -207,7 +207,7 @@ func (h *LoginHandler) GenerateTokens(
 }
 
 // CreateSession creates a new session for the user
-// Tạo session mới cho user với session token
+// Táº¡o session má»›i cho user vá»›i session token
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -243,7 +243,7 @@ func (h *LoginHandler) CreateSession(
 }
 
 // UpdateLastLogin updates user's last login timestamp and IP
-// Cập nhật thời gian đăng nhập cuối cùng và IP address
+// Cáº­p nháº­t thá»i gian Ä‘Äƒng nháº­p cuá»‘i cÃ¹ng vÃ  IP address
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -259,3 +259,4 @@ func (h *LoginHandler) UpdateLastLogin(ctx context.Context, userID, ipAddress st
 	}
 	return nil
 }
+

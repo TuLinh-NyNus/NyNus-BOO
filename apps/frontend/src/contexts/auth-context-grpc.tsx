@@ -9,7 +9,6 @@ import { type User } from '@/types/user';
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import {
   convertProtobufUserToLocal,
-  convertProtobufLoginResponse,
   convertProtobufRegisterResponse
 } from '@/lib/utils/protobuf-converters';
 import { devLogger } from '@/lib/utils/dev-logger';
@@ -131,7 +130,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       // ✅ CRITICAL FIX: Only set isLoading=false when status is NOT loading
       // AND we have already tried to initialize (hasInitializedRef = true)
       // This prevents premature isLoading=false on initial page load
-      if (status !== "loading" && hasInitializedRef.current) {
+      // Technical: TypeScript false positive - status can still be "loading" here
+      if ((status as string) !== "loading" && hasInitializedRef.current) {
         devLogger.debug('[AUTH] No session and status is not loading, setting isLoading=false');
         setIsLoading(false);
       } else if (status === "unauthenticated" && !hasInitializedRef.current) {
@@ -146,39 +146,9 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, status]); // fetchCurrentUser is stable via useCallback
 
-  /**
-   * Check authentication status
-   */
-  const checkAuthStatus = useCallback(async () => {
-    try {
-      setIsLoading(true);
-
-      // ✅ CRITICAL FIX: Kiểm tra token trước khi gọi fetchCurrentUser
-      const token = AuthHelpers.getAccessToken();
-      if (token && AuthHelpers.isTokenValid(token)) {
-        await fetchCurrentUser();
-      } else {
-        // Không có token hoặc token không hợp lệ - đây là trạng thái bình thường
-        // Không log error, chỉ set loading = false
-        devLogger.debug('[AUTH] No valid token found, user remains unauthenticated');
-      }
-    } catch (error) {
-      devLogger.error('Auth check failed:', error);
-      AuthHelpers.clearTokens();
-    } finally {
-      setIsLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // fetchCurrentUser is stable, no need to include in deps
-
-  // ✅ CRITICAL FIX: DISABLE checkAuthStatus on mount
-  // This was causing race condition with NextAuth session sync useEffect (line 60-140)
-  // The NextAuth sync effect already handles user fetching when session is available
-  // Running checkAuthStatus on mount was setting isLoading=false too early
-  // useEffect(() => {
-  //   logger.debug('[AuthContext] Checking auth status on mount');
-  //   checkAuthStatus();
-  // }, [checkAuthStatus]);
+  // ✅ REMOVED: checkAuthStatus function was unused
+  // The NextAuth session sync useEffect (line 60-140) already handles user fetching
+  // when session is available, so checkAuthStatus was redundant and caused race conditions
 
   /**
    * Fetch current user with enhanced error handling and token validation
@@ -214,31 +184,90 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('nynus-auth-user', JSON.stringify(userData));
       }
     } catch (error: unknown) {
+      // Extract error message properly from different error types
+      let errorMessage = '';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error);
+      } else {
+        errorMessage = String(error);
+      }
+      
       logger.error('[AuthContext] Failed to fetch current user', {
-        error: error instanceof Error ? error.message : String(error),
+        error: errorMessage,
+        hasSession: !!session,
+        hasSessionUser: !!session?.user,
+        sessionStatus: status,
       });
 
-      // Categorized error handling
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      if (errorMessage?.includes('401') || errorMessage?.includes('Unauthorized')) {
+      // ✅ CRITICAL FIX: For gRPC deserialization errors, ALWAYS try NextAuth session first
+      // Check if error is the known gRPC protobuf bug
+      const isGrpcDeserializationError = errorMessage.includes('deserializing') || 
+                                         errorMessage.includes('readString') ||
+                                         errorMessage.includes('readStringRequireUtf8');
+      
+      if (isGrpcDeserializationError) {
+        logger.warn('[AuthContext] gRPC deserialization error detected');
+        
+        // Try NextAuth session fallback
+        if (session?.user) {
+          logger.info('[AuthContext] Using NextAuth session as fallback');
+          
+          const fallbackUser: User = {
+            id: (session.user as any).userId || session.user.id || '',
+            email: session.user.email || '',
+            firstName: (session.user as any).firstName || '',
+            lastName: (session.user as any).lastName || '',
+            name: (session.user as any).displayName || session.user.name || '',
+            role: (session.user as any).role || 0, // 0 = STUDENT enum value
+            status: 1, // 1 = ACTIVE enum value
+            avatar: (session.user as any).avatar || session.user.image || undefined,
+            emailVerified: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          };
+          
+          setUser(fallbackUser);
+          
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('nynus-auth-user', JSON.stringify(fallbackUser));
+          }
+          
+          logger.info('[AuthContext] Successfully loaded user from session', {
+            email: fallbackUser.email,
+            role: fallbackUser.role,
+          });
+        } else {
+          // Session not available yet - don't clear auth state, wait for next render
+          logger.warn('[AuthContext] Session not available for fallback, keeping current state', {
+            sessionStatus: status,
+          });
+          // Don't clear tokens or user - let the session load
+        }
+      } else if (errorMessage?.includes('401') || errorMessage?.includes('Unauthorized')) {
         logger.warn('[AuthContext] Token expired or invalid, clearing auth state');
         AuthHelpers.clearTokens();
         setUser(null);
       } else if (errorMessage?.includes('Network') || errorMessage?.includes('fetch')) {
         logger.warn('[AuthContext] Network error, keeping current auth state');
-        // Don't clear user state on network errors
       } else {
-        logger.error('[AuthContext] Unexpected error, clearing auth state', {
+        logger.error('[AuthContext] Unexpected error, keeping current auth state', {
           error: errorMessage,
         });
-        AuthHelpers.clearTokens();
-        setUser(null);
+        // ✅ CHANGED: Don't clear auth state on unknown errors during session load
+        if (status === 'authenticated' && session?.user) {
+          logger.info('[AuthContext] Session is authenticated, not clearing state');
+        } else {
+          AuthHelpers.clearTokens();
+          setUser(null);
+        }
       }
     } finally {
       setIsFetchingUser(false);
       setIsLoading(false);
     }
-  }, [isFetchingUser]);
+  }, [isFetchingUser, session, status]);
 
   /**
    * Login with email and password
@@ -289,8 +318,8 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Step 3: ✅ Verify session before redirect
-      // Wait for NextAuth session to be properly set to avoid timing issues
-      // This prevents redirect to /login?callbackUrl=%2Fdashboard
+      // Verify NextAuth session to ensure authentication succeeded
+      // Session cookie is HttpOnly so we use getSession() API call instead of checking document.cookie
       logger.debug('[AuthContext] Verifying NextAuth session before redirect');
       const session = await getSession();
 
@@ -299,45 +328,21 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Authentication session not created');
       }
 
-      logger.info('[AuthContext] Session verified successfully, redirecting to dashboard');
+      logger.info('[AuthContext] Session verified successfully, preparing redirect');
 
-      // Step 4: ✅ Poll for session cookie before redirect
-      // This ensures cookie is set before page reload
-      const waitForSessionCookie = async (maxAttempts = 20): Promise<boolean> => {
-        for (let i = 0; i < maxAttempts; i++) {
-          const cookies = document.cookie;
-          // Check for both dev and production cookie names
-          if (cookies.includes('next-auth.session-token') || cookies.includes('__Secure-next-auth.session-token')) {
-            logger.debug(`[AuthContext] Session cookie found after ${i * 100}ms`);
-            return true;
-          }
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        logger.error('[AuthContext] Session cookie not found after 2000ms');
-        return false;
-      };
-
-      const cookieReady = await waitForSessionCookie();
-      if (!cookieReady) {
-        logger.error('[AuthContext] Session cookie not set after login - redirect may fail');
-        // Continue anyway - user can manually navigate if needed
-      }
-
-      // Step 5: ✅ Use window.location.href for FULL PAGE RELOAD
-      //
-      // WHY NOT router.push()?
-      // - router.push() triggers client-side navigation (SPA-style)
-      // - Middleware runs BEFORE NextAuth session cookie is attached to request
-      // - getToken() in middleware returns NULL → redirect to /login?callbackUrl=%2Fdashboard
-      //
-      // WHY window.location.href?
-      // - Forces FULL PAGE RELOAD (not client-side navigation)
-      // - Browser makes a fresh HTTP request with ALL cookies attached
-      // - Middleware gets the NextAuth session cookie → authentication succeeds
-      // - User lands on /dashboard successfully
-      //
-      // This is the ONLY reliable way to ensure middleware sees the session cookie
-      window.location.href = '/dashboard';
+      // Step 4: ✅ Redirect based on user role with FULL PAGE RELOAD
+      // Use window.location.href instead of router.push() to force full page reload
+      // This ensures middleware receives fresh request with all cookies including HttpOnly session token
+      
+      // Determine redirect URL based on user role
+      // ADMIN users go directly to admin page, others to dashboard
+      const redirectUrl = session.role === 'ADMIN' ? '/3141592654/admin' : '/dashboard';
+      
+      logger.debug('[AuthContext] Performing full page redirect', { 
+        role: session.role,
+        redirectUrl 
+      });
+      window.location.href = redirectUrl;
     } catch (error) {
       logger.error('[AuthContext] Login failed', {
         error: error instanceof Error ? error.message : String(error),

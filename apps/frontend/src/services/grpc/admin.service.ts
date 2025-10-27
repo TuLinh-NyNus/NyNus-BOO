@@ -18,16 +18,36 @@ import {
   AuditLog,
   ResourceAccess,
   SecurityAlert,
+  // Temporarily add placeholders until proto regeneration
+  GetMetricsHistoryRequest,
+  GetMetricsHistoryResponse,
+  MetricsDataPoint,
 } from '@/generated/v1/admin_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
+import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 import { User } from '@/generated/v1/user_pb';
 import { RpcError } from 'grpc-web';
-import { getGrpcUrl } from '@/lib/config/endpoints';
-import { getAuthMetadata } from './client';
+import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+
+// Temporary types until proto regeneration
+export interface MetricsDataPointType {
+  timestamp: Date;
+  total_users: number;
+  active_users: number;
+  total_sessions: number;
+  active_sessions: number;
+  suspicious_activities: number;
+}
 
 // gRPC client configuration
-const GRPC_ENDPOINT = getGrpcUrl();
-const adminServiceClient = new AdminServiceClient(GRPC_ENDPOINT);
+// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
+// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
+const adminServiceClient = new AdminServiceClient(GRPC_WEB_HOST, null, {
+  format: 'text', // Use text format for consistency with proto generation
+  withCredentials: false,
+  unaryInterceptors: [],
+  streamInterceptors: []
+});
 
 // Handle gRPC errors
 function handleGrpcError(error: RpcError): string {
@@ -373,5 +393,360 @@ export class AdminService {
         stats: undefined
       };
     }
+  }
+
+  /**
+   * Get metrics history for sparklines/charts
+   * Lấy lịch sử metrics để vẽ sparklines và charts
+   */
+  static async getMetricsHistory(options: {
+    startTime?: Date;
+    endTime?: Date;
+    intervalSeconds?: number;
+    limit?: number;
+  } = {}): Promise<any> {
+    try {
+      // For now, use fetch API until proto is regenerated
+      // TODO: Replace with proper gRPC-web call after proto regeneration
+      const params = new URLSearchParams();
+      if (options.limit) params.append('limit', options.limit.toString());
+      if (options.intervalSeconds) params.append('interval_seconds', options.intervalSeconds.toString());
+      
+      const response = await fetch(`${GRPC_WEB_HOST}/api/v1/admin/metrics/history?${params}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...getAuthMetadata(),
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      return {
+        success: true,
+        message: 'Metrics history retrieved successfully',
+        errors: [],
+        dataPoints: data.data_points?.map((point: any) => ({
+          timestamp: new Date(point.timestamp),
+          total_users: point.total_users || 0,
+          active_users: point.active_users || 0,
+          total_sessions: point.total_sessions || 0,
+          active_sessions: point.active_sessions || 0,
+          suspicious_activities: point.suspicious_activities || 0,
+        })) || [],
+        totalPoints: data.total_points || 0,
+      };
+    } catch (error) {
+      console.error('Failed to fetch metrics history:', error);
+      return {
+        success: false,
+        message: 'Failed to fetch metrics history',
+        errors: [error instanceof Error ? error.message : 'Unknown error'],
+        dataPoints: [],
+        totalPoints: 0,
+      };
+    }
+  }
+
+  /**
+   * Get all user sessions across the system (admin only)
+   * Lấy tất cả sessions của users trong hệ thống
+   */
+  static async getAllUserSessions(params: {
+    page?: number;
+    limit?: number;
+    userId?: string;
+    activeOnly?: boolean;
+    searchQuery?: string;
+  } = {}): Promise<{
+    success: boolean;
+    message: string;
+    errors?: string[];
+    sessions?: Array<{
+      id: string;
+      user_id: string;
+      session_token: string;
+      ip_address: string;
+      user_agent: string;
+      device_fingerprint: string;
+      location: string;
+      is_active: boolean;
+      last_activity: string;
+      expires_at: string;
+      created_at: string;
+    }>;
+    pagination?: {
+      page: number;
+      limit: number;
+      total_pages: number;
+      total_count: number;
+    };
+    total_active_sessions?: number;
+    unique_active_users?: number;
+  }> {
+    try {
+      const { page = 1, limit = 20, userId, activeOnly = true, searchQuery } = params;
+
+      const { GetAllUserSessionsRequest } = await import('@/generated/v1/admin_pb');
+      const request = new GetAllUserSessionsRequest();
+
+      const paginationReq = new PaginationRequest();
+      paginationReq.setPage(page);
+      paginationReq.setLimit(limit);
+      request.setPagination(paginationReq);
+
+      if (userId) {
+        request.setUserId(userId);
+      }
+      request.setActiveOnly(activeOnly);
+      if (searchQuery) {
+        request.setSearchQuery(searchQuery);
+      }
+
+      const response = await adminServiceClient.getAllUserSessions(request, getAuthMetadata());
+      const responseObj = response.toObject();
+
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        sessions: responseObj.sessionsList?.map((s) => {
+          // Convert protobuf Timestamp to ISO string
+          const lastActivity = s.lastActivity?.seconds 
+            ? new Date(Number(s.lastActivity.seconds) * 1000).toISOString()
+            : new Date().toISOString();
+          const expiresAt = s.expiresAt?.seconds
+            ? new Date(Number(s.expiresAt.seconds) * 1000).toISOString()
+            : new Date().toISOString();
+          const createdAt = s.createdAt?.seconds
+            ? new Date(Number(s.createdAt.seconds) * 1000).toISOString()
+            : new Date().toISOString();
+
+          return {
+            id: s.id || '',
+            user_id: s.userId || '',
+            session_token: s.sessionToken || '',
+            ip_address: s.ipAddress || '',
+            user_agent: s.userAgent || '',
+            device_fingerprint: s.deviceFingerprint || '',
+            location: s.location || '',
+            is_active: s.isActive || false,
+            last_activity: lastActivity,
+            expires_at: expiresAt,
+            created_at: createdAt,
+          };
+        }),
+        pagination: responseObj.pagination ? {
+          page: responseObj.pagination.page || 1,
+          limit: responseObj.pagination.limit || 20,
+          total_pages: responseObj.pagination.totalPages || 1,
+          total_count: responseObj.pagination.totalCount || 0,
+        } : undefined,
+        total_active_sessions: responseObj.totalActiveSessions || 0,
+        unique_active_users: responseObj.uniqueActiveUsers || 0,
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        sessions: [],
+        total_active_sessions: 0,
+        unique_active_users: 0,
+      };
+    }
+  }
+
+  /**
+   * Get all notifications across all users (Admin only)
+   * TODO: Uncomment when proto generation is fixed
+   */
+  static async getAllNotifications(_params: {
+    page?: number;
+    limit?: number;
+    type?: string;
+    userId?: string;
+    unreadOnly?: boolean;
+    searchQuery?: string;
+  } = {}): Promise<{
+    success: boolean;
+    message: string;
+    errors?: string[];
+    notifications: Array<{
+      notification: {
+        id: string;
+        userId: string;
+        type: string;
+        title: string;
+        message: string;
+        data?: Record<string, string>;
+        isRead: boolean;
+        readAt?: string;
+        createdAt: string;
+        expiresAt?: string;
+      };
+      userEmail: string;
+      userName: string;
+    }>;
+    pagination?: {
+      page: number;
+      limit: number;
+      totalPages: number;
+      totalCount: number;
+    };
+    totalUnread: number;
+  }> {
+    console.warn('AdminService.getAllNotifications() - Proto generation pending. Using fallback.');
+    return {
+      success: false,
+      message: 'Proto generation pending - method not yet available',
+      errors: ['Proto files need to be regenerated after fixing grpc-tools'],
+      notifications: [],
+      totalUnread: 0,
+    };
+
+    /* TODO: Uncomment when proto types are available
+    try {
+      const request = new GetAllNotificationsRequest();
+
+      // Set pagination
+      const pagination = new PaginationRequest();
+      pagination.setPage(params.page || 1);
+      pagination.setLimit(params.limit || 20);
+      request.setPagination(pagination);
+
+      // Set filters
+      if (params.type || params.userId || params.unreadOnly) {
+        const filter = new NotificationFilter();
+        if (params.type) filter.setType(params.type);
+        if (params.userId) filter.setUserId(params.userId);
+        if (params.unreadOnly) filter.setUnreadOnly(params.unreadOnly);
+        request.setFilter(filter);
+      }
+
+      if (params.searchQuery) {
+        request.setSearchQuery(params.searchQuery);
+      }
+
+      const response = await new Promise((resolve, reject) => {
+        adminServiceClient.getAllNotifications(request, getAuthMetadata(), (err, res) => {
+          if (err) reject(err);
+          else resolve(res);
+        });
+      });
+
+      const responseObj = response.toObject();
+
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        notifications: responseObj.notificationsList?.map((n: any) => ({
+          notification: {
+            id: n.notification?.id || '',
+            userId: n.notification?.userId || '',
+            type: n.notification?.type || '',
+            title: n.notification?.title || '',
+            message: n.notification?.message || '',
+            data: n.notification?.dataMap || {},
+            isRead: n.notification?.isRead || false,
+            readAt: n.notification?.readAt,
+            createdAt: n.notification?.createdAt || '',
+            expiresAt: n.notification?.expiresAt,
+          },
+          userEmail: n.userEmail || '',
+          userName: n.userName || '',
+        })) || [],
+        pagination: responseObj.pagination ? {
+          page: responseObj.pagination.page,
+          limit: responseObj.pagination.limit,
+          totalPages: responseObj.pagination.totalPages,
+          totalCount: responseObj.pagination.totalCount,
+        } : undefined,
+        totalUnread: responseObj.totalUnread || 0,
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+        notifications: [],
+        totalUnread: 0,
+      };
+    }
+    */
+  }
+
+  /**
+   * Get notification statistics (Admin only)
+   * TODO: Uncomment when proto generation is fixed
+   */
+  static async getNotificationStats(): Promise<{
+    success: boolean;
+    message: string;
+    errors?: string[];
+    stats?: {
+      totalSentToday: number;
+      totalUnread: number;
+      notificationsByType: Record<string, number>;
+      readRate: number;
+      mostActiveType: string;
+      averageReadTime: number;
+      sentThisWeek: number;
+      growthPercentage: number;
+    };
+  }> {
+    console.warn('AdminService.getNotificationStats() - Proto generation pending. Using fallback.');
+    return {
+      success: false,
+      message: 'Proto generation pending - method not yet available',
+      errors: ['Proto files need to be regenerated after fixing grpc-tools'],
+    };
+
+    /* TODO: Uncomment when proto types are available
+    try {
+      const request = new GetNotificationStatsRequest();
+
+      const response = await new Promise((resolve, reject) => {
+        adminServiceClient.getNotificationStats(request, getAuthMetadata(), (err, res) => {
+          if (err) reject(err);
+          else resolve(res);
+        });
+      });
+
+      const responseObj = response.toObject();
+      const stats = responseObj.stats;
+
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        stats: stats ? {
+          totalSentToday: stats.totalSentToday,
+          totalUnread: stats.totalUnread,
+          notificationsByType: stats.notificationsByTypeMap || {},
+          readRate: stats.readRate,
+          mostActiveType: stats.mostActiveType,
+          averageReadTime: stats.averageReadTime,
+          sentThisWeek: stats.sentThisWeek,
+          growthPercentage: stats.growthPercentage,
+        } : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        errors: [errorMessage],
+      };
+    }
+    */
   }
 }

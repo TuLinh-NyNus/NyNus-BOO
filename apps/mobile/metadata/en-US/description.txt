@@ -1,0 +1,46 @@
+NyNus Exam Bank - Your Complete Learning Companion
+
+Master your studies with thousands of practice questions, comprehensive exams, and detailed theory content.
+
+FEATURES:
+• 📚 Extensive Question Bank - Browse and practice thousands of questions across all subjects
+• 🎓 Practice Exams - Take timed exams with automatic grading and detailed results
+• 📖 Theory Content - Read comprehensive lessons with LaTeX math support
+• 📥 Offline Mode - Download content for offline access, study anywhere
+• 📊 Progress Tracking - Monitor your performance and improvement over time
+• 🎯 Personalized - Bookmark questions and track your learning journey
+• 🌙 Dark Mode - Easy on the eyes, study comfortably day or night
+• 🔐 Multi-Device Sync - Access your progress across up to 3 devices
+
+SUBJECTS COVERED:
+• Mathematics (Grades 3-12)
+• Physics
+• Chemistry
+• Biology
+• Literature
+• English
+• History
+• Geography
+
+EXAM FEATURES:
+• Timed exams with countdown timer
+• Auto-save every 30 seconds
+• Pause and resume capability
+• Detailed result analysis
+• PDF export of results
+• Performance statistics
+
+PERFECT FOR:
+• Students preparing for exams
+• Teachers creating practice materials
+• Tutors assigning homework
+• Anyone looking to improve their knowledge
+
+SECURITY & PRIVACY:
+• Secure authentication
+• Encrypted data storage
+• Multi-device session management
+• Your data is safe with us
+
+Download NyNus Exam Bank today and start your journey to academic excellence!
+

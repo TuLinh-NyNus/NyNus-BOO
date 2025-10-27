@@ -21,7 +21,10 @@ import {
   Lock,
   TrendingUp,
   Map,
-  FolderOpen
+  FolderOpen,
+  FileCheck,
+  Upload,
+  Bookmark
 } from 'lucide-react';
 import { NavigationItem, NavigationSection } from '@/types/admin/sidebar';
 
@@ -94,6 +97,43 @@ export const ADMIN_NAVIGATION: NavigationItem[] = [
         href: '/3141592654/admin/questions/map-id',
         icon: 'Map',
         permissions: ['questions.read']
+      }
+    ]
+  },
+  {
+    id: 'exams',
+    name: 'Đề thi',
+    href: '/3141592654/admin/exams',
+    icon: 'FileCheck',
+    permissions: ['exams.read'],
+    children: [
+      {
+        id: 'exams-list',
+        name: 'Danh sách',
+        href: '/3141592654/admin/exams',
+        icon: 'List',
+        permissions: ['exams.read']
+      },
+      {
+        id: 'exams-create',
+        name: 'Tạo mới',
+        href: '/3141592654/admin/exams/create',
+        icon: 'Plus',
+        permissions: ['exams.create']
+      },
+      {
+        id: 'exams-analytics',
+        name: 'Phân tích',
+        href: '/3141592654/admin/exams/analytics',
+        icon: 'BarChart3',
+        permissions: ['exams.read']
+      },
+      {
+        id: 'exams-settings',
+        name: 'Cài đặt',
+        href: '/3141592654/admin/exams/settings',
+        icon: 'Settings',
+        permissions: ['exams.manage']
       }
     ]
   },
@@ -269,7 +309,10 @@ export const ICON_COMPONENTS = {
   Lock,
   TrendingUp,
   Map,
-  FolderOpen
+  FolderOpen,
+  FileCheck,
+  Upload,
+  Bookmark
 } as const;
 
 /**

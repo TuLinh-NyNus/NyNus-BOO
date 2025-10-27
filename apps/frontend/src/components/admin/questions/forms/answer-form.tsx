@@ -8,8 +8,8 @@
 
 "use client";
 
-import React, { useState } from "react";
-import { useFieldArray, Control } from "react-hook-form";
+import React, { useState, useCallback } from "react";
+import { useFieldArray, Control, useWatch } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -45,6 +45,9 @@ import {
 
 // Import LaTeX components
 import { LaTeXPreview } from "@/components/common/latex";
+
+// Import AnswerItem component
+import { AnswerItem } from "./answer-item";
 
 // ===== TYPES =====
 
@@ -87,8 +90,14 @@ export function AnswerForm({
   
   // ===== COMPUTED VALUES =====
   
-  const correctAnswersCount = fields.filter((_, index) => 
-    control._getWatch(`answers.${index}.isCorrect`)
+  // Use useWatch instead of control._getWatch to prevent infinite render loop
+  const answersWatch = useWatch({
+    control,
+    name: "answers"
+  });
+  
+  const correctAnswersCount = (answersWatch || []).filter(
+    (answer: AnswerItemData) => answer?.isCorrect === true
   ).length;
   
   const minAnswers = (questionType === 'MULTIPLE_CHOICE' || questionType === 'TRUE_FALSE') ? 4 : 1;
@@ -96,16 +105,16 @@ export function AnswerForm({
   
   // ===== HANDLERS =====
   
-  const handleAddAnswer = () => {
+  const handleAddAnswer = useCallback(() => {
     if (fields.length < maxAnswers) {
       append({
         content: "",
         isCorrect: false
       });
     }
-  };
+  }, [fields.length, maxAnswers, append]);
   
-  const handleRemoveAnswer = (index: number) => {
+  const handleRemoveAnswer = useCallback((index: number) => {
     if (fields.length > minAnswers) {
       remove(index);
       // Remove from expanded/preview sets
@@ -120,9 +129,9 @@ export function AnswerForm({
         return newSet;
       });
     }
-  };
+  }, [fields.length, minAnswers, remove]);
   
-  const handleToggleExpanded = (index: number) => {
+  const handleToggleExpanded = useCallback((index: number) => {
     setExpandedAnswers(prev => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
@@ -132,9 +141,9 @@ export function AnswerForm({
       }
       return newSet;
     });
-  };
+  }, []);
   
-  const handleTogglePreview = (index: number) => {
+  const handleTogglePreview = useCallback((index: number) => {
     setShowPreview(prev => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
@@ -144,161 +153,9 @@ export function AnswerForm({
       }
       return newSet;
     });
-  };
+  }, []);
   
   // ===== RENDER HELPERS =====
-  
-  /**
-   * Get answer label
-   */
-  const getAnswerLabel = (index: number) => {
-    return String.fromCharCode(65 + index); // A, B, C, D...
-  };
-  
-  /**
-   * Render answer item
-   */
-  const renderAnswerItem = (field: Record<"id", string>, index: number) => {
-    const isExpanded = expandedAnswers.has(index);
-    const hasPreview = showPreview.has(index);
-    
-    return (
-      <Card key={field.id} className="answer-item">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
-                  {getAnswerLabel(index)}
-                </div>
-                
-                <FormField
-                  control={control}
-                  name={`answers.${index}.isCorrect`}
-                  render={({ field: checkboxField }) => (
-                    <FormItem className="flex items-center space-x-2">
-                      <FormControl>
-                        <Checkbox
-                          checked={checkboxField.value as boolean}
-                          onCheckedChange={checkboxField.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">
-                        Đáp án đúng
-                      </FormLabel>
-                    </FormItem>
-                  )}
-                />
-              </div>
-              
-              {control._getWatch(`answers.${index}.isCorrect`) && (
-                <Badge variant="default" className="text-xs">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Đúng
-                </Badge>
-              )}
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleTogglePreview(index)}
-              >
-                {hasPreview ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
-              
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleToggleExpanded(index)}
-              >
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-              
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRemoveAnswer(index)}
-                disabled={fields.length <= minAnswers}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          {/* Answer content */}
-          <FormField
-            control={control}
-            name={`answers.${index}.content`}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nội dung đáp án</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder="Nhập nội dung đáp án (hỗ trợ LaTeX)"
-                    className="min-h-[80px]"
-                    {...field}
-                    value={field.value as string}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* LaTeX Preview */}
-          {hasPreview && control._getWatch(`answers.${index}.content`) && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Xem trước LaTeX:</h4>
-              <LaTeXPreview
-                latex={control._getWatch(`answers.${index}.content`)}
-                showValidation={true}
-                className="border rounded p-3"
-              />
-            </div>
-          )}
-          
-          {/* Expanded content */}
-          <Collapsible open={isExpanded}>
-            <CollapsibleContent className="space-y-4">
-              <FormField
-                control={control}
-                name={`answers.${index}.explanation`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Giải thích (tùy chọn)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Giải thích tại sao đây là/không phải đáp án đúng"
-                        className="min-h-[60px]"
-                        {...field}
-                        value={field.value as string}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CollapsibleContent>
-          </Collapsible>
-        </CardContent>
-      </Card>
-    );
-  };
   
   // ===== VALIDATION ALERTS =====
   
@@ -392,7 +249,21 @@ export function AnswerForm({
       
       {/* Answers list */}
       <div className="space-y-3">
-        {fields.map((field, index) => renderAnswerItem(field, index))}
+        {fields.map((field, index) => (
+          <AnswerItem
+            key={field.id}
+            field={field}
+            index={index}
+            control={control}
+            isExpanded={expandedAnswers.has(index)}
+            hasPreview={showPreview.has(index)}
+            minAnswers={minAnswers}
+            fieldsLength={fields.length}
+            onToggleExpanded={handleToggleExpanded}
+            onTogglePreview={handleTogglePreview}
+            onRemove={handleRemoveAnswer}
+          />
+        ))}
       </div>
       
       {/* Help text */}

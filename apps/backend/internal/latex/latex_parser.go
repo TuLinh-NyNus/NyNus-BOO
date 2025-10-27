@@ -1,10 +1,10 @@
-package latex
+﻿package latex
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 )
@@ -225,3 +225,4 @@ func (p *LaTeXQuestionParser) determineQuestionStatus(questionType string, answe
 		return string(entity.QuestionStatusPending)
 	}
 }
+

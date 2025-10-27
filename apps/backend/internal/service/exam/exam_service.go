@@ -4,25 +4,48 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/sirupsen/logrus"
 )
+
+// examRepository captures the subset of repository operations used by ExamService.
+type examRepository interface {
+	Create(ctx context.Context, exam *entity.Exam) error
+	GetByID(ctx context.Context, examID string) (*entity.Exam, error)
+	Update(ctx context.Context, exam *entity.Exam) error
+	Delete(ctx context.Context, examID string) error
+	List(ctx context.Context, filters *interfaces.ExamFilters, pagination *interfaces.Pagination) ([]*entity.Exam, int, error)
+	Publish(ctx context.Context, examID string) error
+	Archive(ctx context.Context, examID string) error
+	GetQuestions(ctx context.Context, examID string) ([]*entity.ExamQuestion, error)
+	AddQuestion(ctx context.Context, eq *entity.ExamQuestion) error
+	RemoveQuestion(ctx context.Context, examID, questionID string) error
+	CountAttempts(ctx context.Context, examID string) (int, error)
+}
+
+// questionRepository defines the required question operations (future use).
+type questionRepository interface {
+	GetByID(ctx context.Context, id string) (*entity.Question, error)
+}
 
 // ExamService provides business logic for exam management
 // Following QuestionService pattern for consistency
 type ExamService struct {
-	examRepo     interfaces.ExamRepository
-	questionRepo interfaces.QuestionRepository
+	examRepo     examRepository
+	questionRepo questionRepository
 	logger       *logrus.Logger
 }
 
 // NewExamService creates a new exam management service
 func NewExamService(
-	examRepo interfaces.ExamRepository,
-	questionRepo interfaces.QuestionRepository,
+	examRepo examRepository,
+	questionRepo questionRepository,
 	logger *logrus.Logger,
 ) *ExamService {
+	if logger == nil {
+		logger = logrus.New()
+	}
 	return &ExamService{
 		examRepo:     examRepo,
 		questionRepo: questionRepo,

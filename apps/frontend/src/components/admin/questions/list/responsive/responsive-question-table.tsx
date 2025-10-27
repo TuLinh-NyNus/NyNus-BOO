@@ -26,6 +26,7 @@ import {
   ArrowDown,
   Eye,
   Edit,
+  Star,
   Hash,
   Clock,
   User
@@ -52,6 +53,7 @@ export interface ResponsiveQuestionTableProps {
   onQuestionEdit?: (questionId: string) => void;
   onQuestionDelete?: (questionId: string) => void;
   onQuestionDuplicate?: (questionId: string) => void;
+  onQuestionFavorite?: (questionId: string) => void;
   
   // Sorting
   sortConfig?: { columns: SortColumn[] };
@@ -261,6 +263,7 @@ export function ResponsiveQuestionTable({
   onQuestionEdit,
   onQuestionDelete,
   onQuestionDuplicate,
+  onQuestionFavorite,
   sortConfig,
   onSortChange,
   layout = 'desktop',
@@ -429,12 +432,25 @@ export function ResponsiveQuestionTable({
                         </Button>
                       )}
                       
+                      {onQuestionFavorite && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className={`h-8 w-8 p-0 ${question.isFavorite ? 'text-yellow-500' : 'text-muted-foreground'}`}
+                          onClick={() => onQuestionFavorite(question.id)}
+                          title={question.isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích'}
+                        >
+                          <Star className={`h-4 w-4 ${question.isFavorite ? 'fill-current' : ''}`} />
+                        </Button>
+                      )}
+                      
                       <QuestionActionsDropdown
                         question={question}
                         onView={onQuestionView}
                         onEdit={onQuestionEdit}
                         onDelete={onQuestionDelete}
                         onDuplicate={onQuestionDuplicate}
+                        onFavorite={onQuestionFavorite}
                         userRole={userRole}
                         className="h-8 w-8"
                       />

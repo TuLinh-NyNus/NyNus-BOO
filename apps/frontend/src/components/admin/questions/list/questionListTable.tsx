@@ -16,7 +16,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  Button,
   Badge,
   Checkbox,
   DropdownMenu,
@@ -35,6 +34,7 @@ import {
   XCircle,
   Clock,
   Archive,
+  HelpCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -111,6 +111,15 @@ export function QuestionListTable({
     };
 
     const config = configs[status];
+    if (!config) {
+      const FallbackIcon = HelpCircle;
+      return (
+        <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
+          <FallbackIcon className="h-3 w-3" />
+          {status || "Khong xac dinh"}
+        </Badge>
+      );
+    }
     const Icon = config.icon;
 
     return (
@@ -143,6 +152,20 @@ export function QuestionListTable({
   const truncateContent = (content: string, maxLength: number = 100) => {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength) + "...";
+  };
+
+  /**
+   * Format date safely
+   */
+  const formatDate = (dateValue: string | Date | null | undefined) => {
+    if (!dateValue) return "N/A";
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return "N/A";
+      return format(date, "dd/MM/yyyy", { locale: vi });
+    } catch {
+      return "N/A";
+    }
   };
 
   return (
@@ -201,14 +224,20 @@ export function QuestionListTable({
               <TableCell className="text-sm">{question.creator}</TableCell>
               <TableCell className="text-sm">{question.usageCount || 0}</TableCell>
               <TableCell className="text-sm">
-                {format(new Date(question.createdAt), "dd/MM/yyyy", { locale: vi })}
+                {formatDate(question.createdAt)}
               </TableCell>
               <TableCell>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+                  {/*
+                    Technical: Fixed nested button issue causing "Maximum update depth exceeded" error
+                    Root cause: DropdownMenuTrigger automatically renders a button element
+                    When we put <Button> inside it → nested buttons → hydration error → infinite loop
+                    Solution: Style DropdownMenuTrigger directly without Button component (inside Array.map)
+                    Note: Cannot use asChild inside Array.map due to ref callback infinite loop
+                  */}
+                  <DropdownMenuTrigger className="h-8 w-8 p-0 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50">
+                    <MoreHorizontal className="h-4 w-4" />
+                    <span className="sr-only">Mở menu hành động</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => onQuestionEdit(question.id)}>
@@ -225,7 +254,7 @@ export function QuestionListTable({
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {canDeleteAll && (
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => onQuestionDelete(question.id)}
                         className="text-destructive"
                       >

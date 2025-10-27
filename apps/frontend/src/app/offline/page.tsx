@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -30,21 +30,40 @@ export default function OfflinePage() {
   const [isRetrying, setIsRetrying] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
 
-  // Check online status
+  // Debounce timer ref to prevent network flapping issues
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check online status with debounce to prevent network flapping issues
+  // Business Logic: Debounce network status updates để tránh quá nhiều re-renders
+  // khi mạng không ổn định (bật/tắt liên tục)
   useEffect(() => {
     const updateOnlineStatus = () => {
-      setIsOnline(navigator.onLine);
-      setLastChecked(new Date());
+      // Clear previous debounce timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+
+      // Debounce updates to prevent excessive re-renders from network flapping
+      debounceTimerRef.current = setTimeout(() => {
+        setIsOnline(navigator.onLine);
+        setLastChecked(new Date());
+      }, 500); // 500ms debounce delay
     };
 
-    updateOnlineStatus();
+    // Initial check (immediate, no debounce)
+    setIsOnline(navigator.onLine);
+    setLastChecked(new Date());
 
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
 
     return () => {
+      // Cleanup event listeners and debounce timer
       window.removeEventListener('online', updateOnlineStatus);
       window.removeEventListener('offline', updateOnlineStatus);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
     };
   }, []);
 
@@ -58,6 +77,12 @@ export default function OfflinePage() {
       return () => clearTimeout(timer);
     }
   }, [isOnline]);
+
+  // Memoize formatted time to prevent re-computation on every render
+  // Performance Optimization: Cache formatted string thay vì gọi toLocaleTimeString() mỗi render
+  const formattedLastChecked = useMemo(() => {
+    return lastChecked?.toLocaleTimeString('vi-VN') ?? '';
+  }, [lastChecked]);
 
   const handleRetry = async () => {
     setIsRetrying(true);
@@ -138,7 +163,7 @@ export default function OfflinePage() {
           </p>
           {lastChecked && (
             <p className="text-sm text-muted-foreground mt-2">
-              Kiểm tra lần cuối: {lastChecked.toLocaleTimeString('vi-VN')}
+              Kiểm tra lần cuối: {formattedLastChecked}
             </p>
           )}
         </div>

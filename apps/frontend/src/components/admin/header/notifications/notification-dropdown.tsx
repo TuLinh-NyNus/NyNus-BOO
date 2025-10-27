@@ -6,9 +6,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, X, Check, Settings, ExternalLink } from 'lucide-react';
+import { Bell, X, Check, Settings, ExternalLink, Wifi, WifiOff } from 'lucide-react';
 import { NotificationDropdownProps, AdminNotification } from '@/types/admin/header';
 import { useAdminNotifications } from '@/hooks/admin/use-admin-notifications';
+import { useWebSocket } from '@/providers';
 import { cn } from '@/lib/utils';
 
 /**
@@ -32,6 +33,9 @@ export function NotificationDropdown({
     markAllAsRead,
     clearNotification
   } = useAdminNotifications();
+  
+  // Phase 4 - Task 4.4.1: Add connection status
+  const { isConnected, connectionState } = useWebSocket();
 
   /**
    * Handle click outside
@@ -93,10 +97,11 @@ export function NotificationDropdown({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          'relative p-2 rounded-lg text-white/70 hover:text-white hover:bg-white/10',
+          'relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent/10',
           'transition-colors duration-150',
-          'focus:outline-none focus:ring-2 focus:ring-blue-500',
-          isOpen && 'bg-white/10 text-white'
+          'focus:outline-none focus:ring-2 focus:ring-primary',
+          isOpen && 'bg-accent/10 text-foreground',
+          'flex-shrink-0'
         )}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -106,7 +111,7 @@ export function NotificationDropdown({
         
         {/* Unread badge */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-medium rounded-full flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 bg-destructive text-destructive-foreground text-xs font-medium rounded-full flex items-center justify-center">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -124,22 +129,43 @@ export function NotificationDropdown({
     return (
       <div
         className={cn(
-          'absolute right-0 top-full mt-2 w-80 bg-black/90 backdrop-blur-md rounded-lg border border-white/20',
+          'absolute right-0 top-full mt-2 w-80 bg-background/95 backdrop-blur-md rounded-lg border border-border shadow-lg',
+          'animate-in fade-in-0 zoom-in-95 duration-150',
           'z-50'
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/20">
-          <h3 className="text-sm font-medium text-white">
-            Thông báo
-          </h3>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-foreground">
+              Thông báo
+            </h3>
+            
+            {/* Phase 4 - Task 4.4.1: Connection status indicator */}
+            {isConnected ? (
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-green-500/10 text-green-600 rounded-full text-xs">
+                <Wifi className="w-3 h-3" />
+                <span>Live</span>
+              </div>
+            ) : connectionState === 'connecting' ? (
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 text-yellow-600 rounded-full text-xs">
+                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
+                <span>Đang kết nối...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 px-2 py-0.5 bg-red-500/10 text-red-600 rounded-full text-xs">
+                <WifiOff className="w-3 h-3" />
+                <span>Offline</span>
+              </div>
+            )}
+          </div>
           
           <div className="flex items-center space-x-2">
             {unreadCount > 0 && (
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-xs text-blue-400 hover:text-blue-300 font-medium"
+                className="text-xs text-primary hover:text-primary/80 font-medium"
               >
                 Đánh dấu đã đọc
               </button>
@@ -148,7 +174,7 @@ export function NotificationDropdown({
             <button
               type="button"
               onClick={() => window.location.href = '/3141592654/admin/notifications'}
-              className="p-1 text-white/60 hover:text-white rounded"
+              className="p-1 text-muted-foreground hover:text-foreground rounded"
               aria-label="Notification settings"
             >
               <Settings className="w-4 h-4" />
@@ -163,11 +189,11 @@ export function NotificationDropdown({
 
         {/* Footer */}
         {notifications.length > maxNotifications && (
-          <div className="border-t border-gray-100 px-4 py-3">
+          <div className="border-t border-border px-4 py-3">
             <button
               type="button"
               onClick={() => window.location.href = '/3141592654/admin/notifications'}
-              className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+              className="w-full text-center text-sm text-primary hover:text-primary/80 font-medium"
             >
               Xem tất cả thông báo
             </button>
@@ -214,8 +240,8 @@ export function NotificationDropdown({
   const renderLoadingState = () => {
     return (
       <div className="p-4">
-        <div className="flex items-center justify-center space-x-2 text-gray-500">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+        <div className="flex items-center justify-center space-x-2 text-muted-foreground">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
           <span className="text-sm">Đang tải...</span>
         </div>
       </div>
@@ -229,8 +255,8 @@ export function NotificationDropdown({
   const renderEmptyState = () => {
     return (
       <div className="p-6 text-center">
-        <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-        <div className="text-sm text-gray-500">
+        <Bell className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+        <div className="text-sm text-muted-foreground">
           Không có thông báo mới
         </div>
       </div>
@@ -298,22 +324,22 @@ function NotificationItem({
       className={cn(
         'relative px-4 py-3 transition-colors duration-150',
         // Base background for all notifications
-        'bg-white/[0.02]',
+        'bg-accent/5',
         // Unread notifications have slightly more prominent background
-        !notification.read && 'bg-white/[0.08]',
+        !notification.read && 'bg-accent/10',
         // Hover state
-        'hover:bg-white/[0.12]'
+        'hover:bg-accent/20'
       )}
     >
       {/* Unread indicator */}
       {!notification.read && (
-        <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-[#A259FF] rounded-full" />
+        <div className="absolute left-2 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-primary rounded-full" />
       )}
 
       {/* Main content */}
       <div
         onClick={onClick}
-        className="w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset rounded"
+        className="w-full text-left cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset rounded"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -334,13 +360,13 @@ function NotificationItem({
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-white mb-1">
+            <div className="text-sm font-medium text-foreground mb-1">
               {notification.title}
             </div>
-            <div className="text-sm text-white/80 mb-2">
+            <div className="text-sm text-muted-foreground mb-2">
               {notification.message}
             </div>
-            <div className="text-xs text-white/60">
+            <div className="text-xs text-muted-foreground/70">
               {formatTimeAgo(notification.timestamp)}
             </div>
           </div>
@@ -354,7 +380,7 @@ function NotificationItem({
                   e.stopPropagation();
                   onMarkRead();
                 }}
-                className="p-1 text-white/60 hover:text-[#A259FF] rounded"
+                className="p-1 text-muted-foreground hover:text-primary rounded"
                 aria-label="Mark as read"
               >
                 <Check className="w-3 h-3" />
@@ -367,14 +393,14 @@ function NotificationItem({
                 e.stopPropagation();
                 onClear();
               }}
-              className="p-1 text-white/60 hover:text-[#FD5653] rounded"
+              className="p-1 text-muted-foreground hover:text-destructive rounded"
               aria-label="Clear notification"
             >
               <X className="w-3 h-3" />
             </button>
 
             {notification.href && (
-              <ExternalLink className="w-3 h-3 text-white/60" />
+              <ExternalLink className="w-3 h-3 text-muted-foreground" />
             )}
           </div>
         </div>

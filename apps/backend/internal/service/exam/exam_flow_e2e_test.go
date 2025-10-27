@@ -1,4 +1,4 @@
-package exam
+﻿package exam
 
 import (
 	"context"
@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question/validation"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/service/exam/scoring"
+	"exam-bank-system/apps/backend/internal/service/question/validation"
 )
 
 // MockExamRepository for E2E testing
@@ -543,3 +543,4 @@ func TestE2E_TFScoringFlow(t *testing.T) {
 // ====================================================================================
 // Additional test scenarios will be added in subsequent commits
 // ====================================================================================
+

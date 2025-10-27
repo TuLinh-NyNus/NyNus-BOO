@@ -17,12 +17,17 @@ import {
   QuestionCode,
 } from '@/generated/v1/question_pb';
 import { RpcError } from 'grpc-web';
-import { getGrpcUrl } from '@/lib/config/endpoints';
-import { getAuthMetadata } from './client';
+import { GRPC_WEB_HOST, getAuthMetadata } from './client';
 
 // gRPC client configuration
-const GRPC_ENDPOINT = getGrpcUrl();
-const questionServiceClient = new QuestionServiceClient(GRPC_ENDPOINT);
+// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
+// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
+const questionServiceClient = new QuestionServiceClient(GRPC_WEB_HOST, null, {
+  format: 'text', // Use text format for consistency with proto generation
+  withCredentials: false,
+  unaryInterceptors: [],
+  streamInterceptors: []
+});
 
 // Helper to handle gRPC errors
 function handleGrpcError(error: RpcError): string {

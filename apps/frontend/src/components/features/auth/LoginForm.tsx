@@ -35,7 +35,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({
-  onSuccess,
+  onSuccess: _onSuccess,
   onSwitchToRegister,
   onForgotPassword,
   className,

@@ -1,13 +1,13 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/contact"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/service/content/contact"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -211,3 +211,4 @@ func (s *ContactServiceServer) entityToProto(e *entity.ContactSubmission) *v1.Co
 
 	return proto
 }
+

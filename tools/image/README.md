@@ -4,6 +4,7 @@ Tool xử lý hình ảnh trong file LaTeX - Chuyển đổi TikZ thành hình �
 
 ## 🎆 Tính năng chính
 
+### 📁 LaTeX Image Processing
 - ✅ **Parse file LaTeX** để tìm các câu hỏi trong `\\begin{ex}...\\end{ex}`
 - ✅ **Compile TikZ** thành hình ảnh WEBP chất lượng cao
 - ✅ **Xử lý hình có sẵn**: Copy và rename theo subcount
@@ -19,6 +20,14 @@ Tool xử lý hình ảnh trong file LaTeX - Chuyển đổi TikZ thành hình �
 - ✅ **Chế độ streaming** cho file cực lớn (>300k câu hỏi)
 - ✅ **Checkpoint & Resume** - tự động lưu tiến trình và tiếp tục khi gian đoạn
 - ✅ **Adaptive Performance** - tự động tối ưu theo RAM và CPU
+
+### 🏷️ Image Renaming Tool (MỚI!)
+- ✅ **Đổi tên hàng loạt** hình ảnh theo pattern
+- ✅ **Preview trước khi rename** - Xem trước kết quả
+- ✅ **Validation** - Phát hiện tên trùng lặp và lỗi
+- ✅ **Backup tự động** - Tạo backup trước khi rename
+- ✅ **Undo functionality** - Hoàn tác rename cuối cùng
+- ✅ **Pattern linh hoạt** - Hỗ trợ {n}, {nn}, {nnn}, subcount
 
 ## 📋 Yêu cầu hệ thống
 
@@ -121,6 +130,25 @@ Tool đã được cập nhật để giải quyết lỗi **WinError 32** phổ
 - Thư mục images/ với hình đã convert
 - Báo cáo xử lý (report.txt)
 
+### Cách 3: Image Renaming Tool (MỚI!)
+1. **Chọn tab "🏷️ Đổi tên hình ảnh"**
+2. **Nhập đường dẫn folder** chứa hình ảnh
+3. **Click "Scan hình ảnh"** để tìm tất cả hình
+4. **Cấu hình pattern đặt tên:**
+   - Pattern: `image_{nn}`, `{nnn}-QUES`, etc.
+   - Số bắt đầu: 1, 10, 100, ...
+   - Subcount (optional): `12.{n}` → 12.1, 12.2, ...
+5. **Click "Preview kết quả"** để xem trước
+6. **Kiểm tra validation** - Tool sẽ cảnh báo nếu có lỗi
+7. **Click "Thực hiện rename"** để đổi tên
+8. **Undo nếu cần** - Click "Undo rename cuối"
+
+#### Pattern Examples:
+- `image_{n}` → image_1.webp, image_2.webp, ...
+- `{nn}-QUES` → 01-QUES.webp, 02-QUES.webp, ...
+- `photo_{nnn}` → photo_001.webp, photo_002.webp, ...
+- `{subcount}-SOL` (với subcount=12.{n}) → 12.1-SOL.webp, 12.2-SOL.webp, ...
+
 ## 🔄 Chế độ Checkpoint & Resume
 
 Đối với file cực lớn (>10,000 câu hỏi), tool sẽ tự động:
@@ -174,31 +202,51 @@ LATEX_TIMEOUT = 30
 
 ```
 tools/image/
-├── app.py              # Streamlit UI chính
-├── processor.py        # Main processor
+├── app.py              # Streamlit UI chính (với Image Renaming Tool)
+├── processor.py        # Main processor (legacy - sẽ deprecated)
 ├── setup.bat          # Script cài đặt (Windows)
 ├── run-image.bat      # Khởi động nhanh (Windows)
+├── clear_cache.bat    # Dọn dẹp cache
 ├── requirements.txt   # Python dependencies
-├── config/
-│   └── settings.py    # Cấu hình hệ thống và performance
+├── README.md          # Documentation
+├── .gitignore         # Git ignore rules
+│
 ├── core/              # Core modules
-│   ├── latex_parser.py
-│   ├── tikz_compiler.py
-│   ├── image_processor.py
-│   ├── streaming_processor.py  # Xử lý file lớn
-│   └── file_manager.py
+│   ├── __init__.py
+│   ├── main_processor.py      # Main LaTeX processor
+│   ├── latex_parser.py        # LaTeX parser
+│   ├── tikz_compiler.py       # TikZ compiler
+│   ├── image_processor.py     # Image processor
+│   ├── image_renamer.py       # 🆕 Image Renaming Tool
+│   ├── streaming_processor.py # Large file processor
+│   ├── enhanced_processor.py  # Enhanced processor
+│   └── file_manager.py        # File manager
+│
+├── config/            # Configuration
+│   ├── __init__.py
+│   └── settings.py    # System settings
+│
 ├── utils/             # Utilities
-│   └── logger.py
-├── temp/              # Thư mục tạm
-├── checkpoints/       # Checkpoint cho resume
-└── docs/              # Tài liệu
+│   ├── __init__.py
+│   ├── logger.py      # Logging utilities
+│   └── file_operations.py  # File operations
+│
+├── output/            # 🆕 Output directory
+│   ├── .gitkeep
+│   └── README.md      # Output guide
+│
+├── temp/              # Temporary files
+├── checkpoints/       # Checkpoint data
+├── state/             # Application state
+└── docs/              # Documentation
     └── LARGE_FILE_PROCESSING.md
 
-# Output structure (tạo cạnh file .tex):
-my-file.tex
-my-file/
-├── images/            # Hình ảnh đã xử lý
-└── report.txt        # Báo cáo xử lý
+# Output structure (tạo trong output/):
+output/
+└── [filename]/
+    ├── images/            # Hình ảnh đã xử lý
+    ├── [filename].tex     # File LaTeX đã cập nhật
+    └── GOC-[filename].tex # Backup file gốc
 ```
 
 ## ⚠️ Lưu ý quan trọng

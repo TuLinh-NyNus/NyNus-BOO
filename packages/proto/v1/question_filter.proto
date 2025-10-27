@@ -4,9 +4,6 @@ package v1;
 
 import "google/protobuf/timestamp.proto";
 import "common/common.proto";
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
-
 // QuestionDetail message for filter responses
 message QuestionDetail {
   string id = 1;
@@ -27,6 +24,7 @@ message QuestionDetail {
   google.protobuf.Timestamp created_at = 16;
   google.protobuf.Timestamp updated_at = 17;
   string question_code_id = 18;
+  bool is_favorite = 19;
 }
 
 // QuestionFilterService handles advanced question filtering operations
@@ -70,6 +68,7 @@ message MetadataFilter {
   int32 max_usage_count = 9;           // Maximum usage count
   int32 min_feedback = 10;             // Minimum feedback score
   int32 max_feedback = 11;             // Maximum feedback score
+  bool only_favorites = 12;            // If true, only return favorite questions
 }
 
 // Date Range Filter
@@ -244,3 +243,7 @@ message QuestionCodeSummary {
   repeated string available_lessons = 6;
   repeated string available_forms = 7;
 }
+
+
+
+

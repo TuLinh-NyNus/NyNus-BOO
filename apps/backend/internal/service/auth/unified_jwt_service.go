@@ -1,4 +1,4 @@
-package auth
+﻿package auth
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 )
@@ -19,7 +19,7 @@ import (
 //
 // Implementation Details:
 // - Implements IJWTService interface
-// - Uses structured logging với logrus
+// - Uses structured logging vá»›i logrus
 // - Validates all input parameters
 // - Returns custom error types cho better error handling
 type UnifiedJWTService struct {
@@ -57,22 +57,22 @@ type RefreshTokenResponse struct {
 	Level        int    `json:"level"`
 }
 
-// NewUnifiedJWTService creates a new unified JWT service với validation và logging
+// NewUnifiedJWTService creates a new unified JWT service vá»›i validation vÃ  logging
 //
 // Business Logic:
-// - Validate JWT secret không được empty
-// - Initialize logger nếu không được provide
-// - Configure token expiry times từ constants
+// - Validate JWT secret khÃ´ng Ä‘Æ°á»£c empty
+// - Initialize logger náº¿u khÃ´ng Ä‘Æ°á»£c provide
+// - Configure token expiry times tá»« constants
 // - Optional refresh token repository cho database-backed tokens
 //
 // Parameters:
-//   - secret: JWT secret key for signing tokens (required, không được empty)
-//   - refreshTokenRepo: Repository for refresh token storage (optional, có thể nil)
-//   - logger: Structured logger (optional, sẽ tạo default nếu nil)
+//   - secret: JWT secret key for signing tokens (required, khÃ´ng Ä‘Æ°á»£c empty)
+//   - refreshTokenRepo: Repository for refresh token storage (optional, cÃ³ thá»ƒ nil)
+//   - logger: Structured logger (optional, sáº½ táº¡o default náº¿u nil)
 //
 // Returns:
 //   - *UnifiedJWTService: Configured JWT service instance
-//   - error: Validation error nếu secret empty
+//   - error: Validation error náº¿u secret empty
 //
 // Example:
 //
@@ -128,8 +128,8 @@ func NewUnifiedJWTService(
 
 // GenerateToken generates a JWT token for a user (legacy AuthService compatibility)
 //
-// Note: Method này maintain backward compatibility với AuthService.generateToken()
-// Nên sử dụng GenerateAccessToken cho new code
+// Note: Method nÃ y maintain backward compatibility vá»›i AuthService.generateToken()
+// NÃªn sá»­ dá»¥ng GenerateAccessToken cho new code
 //
 // Parameters:
 //   - user: User entity
@@ -150,12 +150,12 @@ func (s *UnifiedJWTService) GenerateToken(user *entity.User) (string, error) {
 //
 // Business Logic:
 // - Validate all input parameters (userID, email, role, level)
-// - Create JWT claims với user information
-// - Sign token với HS256 algorithm
+// - Create JWT claims vá»›i user information
+// - Sign token vá»›i HS256 algorithm
 // - Token expires after AccessTokenExpiry (15 minutes)
 //
 // Security:
-// - Token signed với secret key
+// - Token signed vá»›i secret key
 // - Claims include user_id, email, role, level
 // - Standard JWT claims: exp, iat, nbf, iss, sub
 //
@@ -167,7 +167,7 @@ func (s *UnifiedJWTService) GenerateToken(user *entity.User) (string, error) {
 //
 // Returns:
 //   - string: JWT access token
-//   - error: Validation error hoặc signing error
+//   - error: Validation error hoáº·c signing error
 func (s *UnifiedJWTService) GenerateAccessToken(userID, email, role string, level int) (string, error) {
 	// Validate input parameters
 	if err := ValidateUserID(userID); err != nil {
@@ -250,8 +250,8 @@ func (s *UnifiedJWTService) GenerateAccessToken(userID, email, role string, leve
 
 // GenerateRefreshToken generates a new refresh token (DEPRECATED)
 //
-// Note: Method này chỉ tạo JWT-based refresh token, không store vào database
-// Nên sử dụng GenerateRefreshTokenPair để có database-backed security
+// Note: Method nÃ y chá»‰ táº¡o JWT-based refresh token, khÃ´ng store vÃ o database
+// NÃªn sá»­ dá»¥ng GenerateRefreshTokenPair Ä‘á»ƒ cÃ³ database-backed security
 //
 // Parameters:
 //   - userID: User ID
@@ -320,22 +320,22 @@ func (s *UnifiedJWTService) ValidateToken(tokenString string) (*UnifiedClaims, e
 // ValidateAccessToken validates an access token
 //
 // Business Logic:
-// - Validate token string không empty
-// - Parse JWT token với UnifiedClaims structure
-// - Verify signature với secret key
+// - Validate token string khÃ´ng empty
+// - Parse JWT token vá»›i UnifiedClaims structure
+// - Verify signature vá»›i secret key
 // - Check token expiration
-// - Validate signing method (chỉ accept HS256)
+// - Validate signing method (chá»‰ accept HS256)
 //
 // Security:
 // - Constant-time signature comparison
-// - Reject tokens với invalid signing method
+// - Reject tokens vá»›i invalid signing method
 // - Check token expiration time
 //
 // Parameters:
 //   - tokenString: JWT access token
 //
 // Returns:
-//   - *UnifiedClaims: Token claims nếu valid
+//   - *UnifiedClaims: Token claims náº¿u valid
 //   - error: Validation error
 func (s *UnifiedJWTService) ValidateAccessToken(tokenString string) (*UnifiedClaims, error) {
 	// Validate token string
@@ -347,7 +347,7 @@ func (s *UnifiedJWTService) ValidateAccessToken(tokenString string) (*UnifiedCla
 		return nil, &JWTError{Op: "ValidateAccessToken", Err: err}
 	}
 
-	// Parse token với claims
+	// Parse token vá»›i claims
 	token, err := jwt.ParseWithClaims(tokenString, &UnifiedClaims{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -398,20 +398,20 @@ func (s *UnifiedJWTService) ValidateAccessToken(tokenString string) (*UnifiedCla
 // ValidateRefreshToken validates a refresh token
 //
 // Business Logic:
-// - Validate token string không empty
-// - Parse JWT token với RefreshTokenClaims structure
-// - Verify signature với secret key
+// - Validate token string khÃ´ng empty
+// - Parse JWT token vá»›i RefreshTokenClaims structure
+// - Verify signature vá»›i secret key
 // - Check token expiration
-// - Extract user_id từ claims
+// - Extract user_id tá»« claims
 //
-// Note: Method này chỉ validate JWT structure, không check database
-// Để có full security với reuse detection, dùng RefreshTokenWithRotation
+// Note: Method nÃ y chá»‰ validate JWT structure, khÃ´ng check database
+// Äá»ƒ cÃ³ full security vá»›i reuse detection, dÃ¹ng RefreshTokenWithRotation
 //
 // Parameters:
 //   - tokenString: JWT refresh token
 //
 // Returns:
-//   - string: User ID nếu token valid
+//   - string: User ID náº¿u token valid
 //   - error: Validation error
 func (s *UnifiedJWTService) ValidateRefreshToken(tokenString string) (string, error) {
 	// Validate token string
@@ -423,7 +423,7 @@ func (s *UnifiedJWTService) ValidateRefreshToken(tokenString string) (string, er
 		return "", &JWTError{Op: "ValidateRefreshToken", Err: err}
 	}
 
-	// Parse token với claims
+	// Parse token vá»›i claims
 	token, err := jwt.ParseWithClaims(tokenString, &RefreshTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		// Validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -472,17 +472,17 @@ func (s *UnifiedJWTService) ValidateRefreshToken(tokenString string) (string, er
 // GenerateRefreshTokenPair generates both access and refresh tokens with database storage
 //
 // Business Logic:
-// - Generate access token (JWT) với user claims
-// - Generate refresh token (secure random string, không phải JWT)
-// - Store refresh token vào database với SHA-256 hash
-// - Create token family mới cho rotation tracking
+// - Generate access token (JWT) vá»›i user claims
+// - Generate refresh token (secure random string, khÃ´ng pháº£i JWT)
+// - Store refresh token vÃ o database vá»›i SHA-256 hash
+// - Create token family má»›i cho rotation tracking
 // - Save device metadata (IP, user agent, fingerprint) cho security audit
 //
 // Security Measures:
-// - Refresh token là cryptographically secure random (256 bits)
-// - Token được hash với SHA-256 trước khi lưu database
-// - Token family cho phép revoke toàn bộ family khi phát hiện reuse
-// - Device fingerprinting để phát hiện suspicious login
+// - Refresh token lÃ  cryptographically secure random (256 bits)
+// - Token Ä‘Æ°á»£c hash vá»›i SHA-256 trÆ°á»›c khi lÆ°u database
+// - Token family cho phÃ©p revoke toÃ n bá»™ family khi phÃ¡t hiá»‡n reuse
+// - Device fingerprinting Ä‘á»ƒ phÃ¡t hiá»‡n suspicious login
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -496,7 +496,7 @@ func (s *UnifiedJWTService) ValidateRefreshToken(tokenString string) (string, er
 //
 // Returns:
 //   - *RefreshTokenResponse: Contains access_token, refresh_token, user info
-//   - error: Generation error hoặc database error
+//   - error: Generation error hoáº·c database error
 func (s *UnifiedJWTService) GenerateRefreshTokenPair(
 	ctx context.Context,
 	userID, email, role string,
@@ -599,12 +599,12 @@ func (s *UnifiedJWTService) GenerateRefreshTokenPair(
 // RefreshTokenWithRotation validates and rotates a refresh token with database-backed security
 //
 // Business Logic:
-// - Hash incoming refresh token và lookup trong database
-// - Detect token reuse (nếu token đã được sử dụng trước đó)
-// - Nếu reuse detected → revoke toàn bộ token family (security breach)
-// - Nếu valid → generate new access token và new refresh token
-// - Revoke old refresh token và store new token (rotation)
-// - Inherit token family từ old token (tracking rotation chain)
+// - Hash incoming refresh token vÃ  lookup trong database
+// - Detect token reuse (náº¿u token Ä‘Ã£ Ä‘Æ°á»£c sá»­ dá»¥ng trÆ°á»›c Ä‘Ã³)
+// - Náº¿u reuse detected â†’ revoke toÃ n bá»™ token family (security breach)
+// - Náº¿u valid â†’ generate new access token vÃ  new refresh token
+// - Revoke old refresh token vÃ  store new token (rotation)
+// - Inherit token family tá»« old token (tracking rotation chain)
 //
 // Security Measures:
 // - Token reuse detection prevents replay attacks
@@ -622,7 +622,7 @@ func (s *UnifiedJWTService) GenerateRefreshTokenPair(
 //   - userRepo: User repository for user lookup
 //
 // Returns:
-//   - *RefreshTokenResponse: New access token và new refresh token
+//   - *RefreshTokenResponse: New access token vÃ  new refresh token
 //   - error: ErrRefreshTokenReused, ErrRefreshTokenExpired, ErrUserInactive
 func (s *UnifiedJWTService) RefreshTokenWithRotation(
 	ctx context.Context,
@@ -793,13 +793,13 @@ func (s *UnifiedJWTService) RefreshTokenWithRotation(
 	}, nil
 }
 
-// RevokeRefreshToken revokes a specific refresh token và toàn bộ token family
+// RevokeRefreshToken revokes a specific refresh token vÃ  toÃ n bá»™ token family
 //
 // Business Logic:
-// - Hash refresh token và lookup trong database
-// - Get token record để lấy token family
-// - Revoke toàn bộ token family (không chỉ token hiện tại)
-// - Lưu revocation reason cho audit logging
+// - Hash refresh token vÃ  lookup trong database
+// - Get token record Ä‘á»ƒ láº¥y token family
+// - Revoke toÃ n bá»™ token family (khÃ´ng chá»‰ token hiá»‡n táº¡i)
+// - LÆ°u revocation reason cho audit logging
 //
 // Use Cases:
 // - User logout (revoke current session)
@@ -808,11 +808,11 @@ func (s *UnifiedJWTService) RefreshTokenWithRotation(
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
-//   - refreshToken: Refresh token cần revoke
-//   - reason: Lý do revoke (for audit logging)
+//   - refreshToken: Refresh token cáº§n revoke
+//   - reason: LÃ½ do revoke (for audit logging)
 //
 // Returns:
-//   - error: Database error hoặc token not found
+//   - error: Database error hoáº·c token not found
 func (s *UnifiedJWTService) RevokeRefreshToken(ctx context.Context, refreshToken, reason string) error {
 	// Validate input
 	if err := ValidateRefreshToken(refreshToken); err != nil {
@@ -878,9 +878,9 @@ func (s *UnifiedJWTService) RevokeRefreshToken(ctx context.Context, refreshToken
 // RevokeAllUserRefreshTokens revokes all refresh tokens for a user
 //
 // Business Logic:
-// - Revoke tất cả active tokens của user
-// - Set is_active = FALSE và revoked_at = NOW()
-// - Lưu revocation reason
+// - Revoke táº¥t cáº£ active tokens cá»§a user
+// - Set is_active = FALSE vÃ  revoked_at = NOW()
+// - LÆ°u revocation reason
 //
 // Use Cases:
 // - User password change (force re-login on all devices)
@@ -890,7 +890,7 @@ func (s *UnifiedJWTService) RevokeRefreshToken(ctx context.Context, refreshToken
 // Parameters:
 //   - ctx: Context for cancellation and timeout
 //   - userID: User ID
-//   - reason: Lý do revoke (for audit logging)
+//   - reason: LÃ½ do revoke (for audit logging)
 //
 // Returns:
 //   - error: Database error
@@ -942,7 +942,7 @@ func (s *UnifiedJWTService) RevokeAllUserRefreshTokens(ctx context.Context, user
 // GetActiveRefreshTokensForUser returns all active refresh tokens for a user
 //
 // Business Logic:
-// - Query tất cả tokens với is_active = TRUE
+// - Query táº¥t cáº£ tokens vá»›i is_active = TRUE
 // - Filter by user_id
 // - Order by created_at DESC
 //
@@ -1008,7 +1008,7 @@ func (s *UnifiedJWTService) GetActiveRefreshTokensForUser(ctx context.Context, u
 // Business Logic:
 // - Delete tokens expired > 30 days ago (keep for audit)
 // - Delete revoked tokens > 7 days ago
-// - Return số lượng tokens đã cleanup
+// - Return sá»‘ lÆ°á»£ng tokens Ä‘Ã£ cleanup
 //
 // Use Cases:
 // - Scheduled cleanup job (daily/weekly)
@@ -1019,7 +1019,7 @@ func (s *UnifiedJWTService) GetActiveRefreshTokensForUser(ctx context.Context, u
 //   - ctx: Context for cancellation and timeout
 //
 // Returns:
-//   - int: Số lượng tokens đã cleanup
+//   - int: Sá»‘ lÆ°á»£ng tokens Ä‘Ã£ cleanup
 //   - error: Database error
 func (s *UnifiedJWTService) CleanupExpiredTokens(ctx context.Context) (int, error) {
 	if s.refreshTokenRepo == nil {
@@ -1082,3 +1082,4 @@ func (s *UnifiedJWTService) generateSecureRefreshToken() (string, error) {
 
 	return token, nil
 }
+

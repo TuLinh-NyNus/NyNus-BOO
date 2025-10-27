@@ -77,6 +77,7 @@ export interface MetadataFilter {
   maxUsageCount?: number;         // Maximum usage count
   minFeedback?: number;           // Minimum feedback score
   maxFeedback?: number;           // Maximum feedback score
+  onlyFavorites?: boolean;        // If true, only return favorite questions
 }
 
 /**

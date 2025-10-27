@@ -388,6 +388,7 @@ export function BulkActionsToolbar({
             {/* More actions dropdown */}
             {availableActions.length > 3 && (
               <DropdownMenu>
+                {/* Technical: Using asChild is SAFE here (not in Array.map) */}
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" disabled={disabled || isProcessing}>
                     <MoreHorizontal className="h-4 w-4" />

@@ -1899,7 +1899,7 @@ package v1;
 import "common/common.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
 
 // Exam status enum
 enum ExamStatus {
@@ -2466,9 +2466,9 @@ import (
     "context"
     "fmt"
 
-    "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-    "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-    "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/domain_service/exam"
+    "exam-bank-system/apps/backend/internal/entity"
+    "exam-bank-system/apps/backend/internal/repository"
+    "exam-bank-system/apps/backend/internal/service/domain_service/exam"
     "github.com/sirupsen/logrus"
 )
 
@@ -3072,8 +3072,8 @@ import (
 
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/mock"
-    "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-    "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
+    "exam-bank-system/apps/backend/internal/entity"
+    "exam-bank-system/apps/backend/internal/service/service_mgmt/exam_mgmt"
 )
 
 func TestExamMgmt_CreateExam(t *testing.T) {
@@ -3249,7 +3249,7 @@ import (
 
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/suite"
-    pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+    pb "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 type ExamServiceIntegrationTestSuite struct {

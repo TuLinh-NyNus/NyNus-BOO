@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 )
@@ -303,3 +303,4 @@ func nullableString(pgText pgtype.Text) interface{} {
 	}
 	return nil
 }
+

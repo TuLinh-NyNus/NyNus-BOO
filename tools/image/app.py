@@ -9,10 +9,12 @@ import zipfile
 from pathlib import Path
 from processor import LaTeXImageProcessor
 from core.streaming_processor import StreamingLaTeXProcessor, ProgressCallback
+from core.image_renamer import ImageRenamer
 from config import STREAMLIT_CONFIG
 import os
 import time
 import json
+import pandas as pd
 
 # ===============================
 # FUNCTION DEFINITIONS
@@ -709,7 +711,7 @@ with st.sidebar:
     """)
 
 # Main content
-tab1, tab2, tab3 = st.tabs(["📁 Duyệt & Xử lý", "📊 Kết quả", "ℹ️ Thông tin"])
+tab1, tab2, tab3, tab4 = st.tabs(["📁 Duyệt & Xử lý", "📊 Kết quả", "🏷️ Đổi tên hình ảnh", "ℹ️ Thông tin"])
 
 with tab1:
     st.markdown("### 📂 Chọn file LaTeX để xử lý")
@@ -1062,6 +1064,180 @@ with tab2:
         st.info("👆 Vui lòng upload và xử lý file trước")
 
 with tab3:
+    st.markdown("### 🏷️ Công cụ đổi tên hình ảnh hàng loạt")
+
+    st.markdown("""
+    Tool này giúp bạn đổi tên hàng loạt hình ảnh theo pattern chuẩn.
+
+    **Các bước thực hiện:**
+    1. Chọn folder chứa hình ảnh
+    2. Nhập pattern đặt tên
+    3. Preview kết quả
+    4. Thực hiện rename
+    """)
+
+    # Initialize ImageRenamer
+    if 'image_renamer' not in st.session_state:
+        st.session_state['image_renamer'] = ImageRenamer()
+
+    renamer = st.session_state['image_renamer']
+
+    # Section 1: Upload/Select Images
+    st.markdown("#### 📁 Bước 1: Chọn folder chứa hình ảnh")
+
+    folder_path = st.text_input(
+        "Đường dẫn folder:",
+        placeholder="C:/path/to/images",
+        help="Nhập đường dẫn đầy đủ đến folder chứa hình ảnh"
+    )
+
+    if folder_path and os.path.exists(folder_path):
+        if st.button("🔍 Scan hình ảnh", key="scan_images_btn"):
+            with st.spinner("Đang scan folder..."):
+                images = renamer.scan_images(folder_path)
+                st.session_state['scanned_images'] = images
+                st.success(f"✅ Tìm thấy {len(images)} hình ảnh")
+
+    # Display scanned images
+    if 'scanned_images' in st.session_state and st.session_state['scanned_images']:
+        images = st.session_state['scanned_images']
+
+        with st.expander(f"📋 Danh sách {len(images)} hình ảnh", expanded=False):
+            # Create DataFrame for display
+            df = pd.DataFrame([{
+                'STT': idx + 1,
+                'Tên file': img['original_name'],
+                'Kích thước': f"{img['size'] / 1024:.1f} KB"
+            } for idx, img in enumerate(images)])
+            st.dataframe(df, use_container_width=True, hide_index=True)
+
+        # Section 2: Naming Rules
+        st.markdown("#### 🎯 Bước 2: Cấu hình pattern đặt tên")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            pattern = st.text_input(
+                "Pattern đặt tên:",
+                value="image_{nn}",
+                help="Sử dụng: {n} = số thứ tự, {nn} = 2 chữ số, {nnn} = 3 chữ số"
+            )
+
+            st.markdown("""
+            **Ví dụ pattern:**
+            - `image_{n}` → image_1, image_2, ...
+            - `{nn}-QUES` → 01-QUES, 02-QUES, ...
+            - `photo_{nnn}` → photo_001, photo_002, ...
+            """)
+
+        with col2:
+            start_number = st.number_input(
+                "Số bắt đầu:",
+                min_value=1,
+                value=1,
+                step=1
+            )
+
+            use_subcount = st.checkbox("Sử dụng subcount pattern")
+
+            if use_subcount:
+                subcount_pattern = st.text_input(
+                    "Subcount pattern:",
+                    value="12.{n}",
+                    help="Ví dụ: 12.{n} → 12.1, 12.2, ..."
+                )
+            else:
+                subcount_pattern = None
+
+        # Generate preview
+        if st.button("👁️ Preview kết quả", key="preview_btn"):
+            with st.spinner("Đang tạo preview..."):
+                images_with_new_names = renamer.generate_new_names(
+                    images, pattern, start_number, subcount_pattern
+                )
+                st.session_state['images_with_new_names'] = images_with_new_names
+
+                # Validate
+                validation = renamer.validate_rename(images_with_new_names)
+                st.session_state['validation'] = validation
+
+        # Display preview
+        if 'images_with_new_names' in st.session_state:
+            st.markdown("#### 📊 Bước 3: Preview kết quả")
+
+            images_with_new_names = st.session_state['images_with_new_names']
+            validation = st.session_state.get('validation', {})
+
+            # Show validation results
+            if not validation.get('valid', True):
+                st.error("❌ Phát hiện lỗi:")
+                for error in validation.get('errors', []):
+                    st.error(f"  • {error}")
+
+            if validation.get('warnings'):
+                for warning in validation.get('warnings', []):
+                    st.warning(f"⚠️ {warning}")
+
+            # Preview table
+            preview_df = pd.DataFrame([{
+                'STT': idx + 1,
+                'Tên cũ': img['original_name'],
+                'Tên mới': img['new_name']
+            } for idx, img in enumerate(images_with_new_names[:20])])  # Show first 20
+
+            st.dataframe(preview_df, use_container_width=True, hide_index=True)
+
+            if len(images_with_new_names) > 20:
+                st.info(f"ℹ️ Hiển thị 20/{len(images_with_new_names)} file đầu tiên")
+
+            # Section 3: Execute Rename
+            st.markdown("#### ⚡ Bước 4: Thực hiện đổi tên")
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                backup_before_rename = st.checkbox(
+                    "Tạo backup trước khi rename",
+                    value=True,
+                    help="Tạo folder backup_before_rename với bản sao file gốc"
+                )
+
+            with col2:
+                if st.button("✅ Thực hiện rename",
+                           disabled=not validation.get('valid', True),
+                           key="execute_rename_btn"):
+                    with st.spinner("Đang rename..."):
+                        results = renamer.execute_rename(
+                            images_with_new_names,
+                            backup=backup_before_rename
+                        )
+                        st.session_state['rename_results'] = results
+
+                        if results['success'] > 0:
+                            st.success(f"✅ Đã rename {results['success']} file thành công!")
+                            st.balloons()
+
+                        if results['failed'] > 0:
+                            st.error(f"❌ {results['failed']} file bị lỗi")
+                            for error in results['errors']:
+                                st.error(f"  • {error}")
+
+            with col3:
+                if st.button("↩️ Undo rename cuối", key="undo_btn"):
+                    with st.spinner("Đang undo..."):
+                        undo_results = renamer.undo_last_rename()
+
+                        if undo_results.get('success', 0) > 0:
+                            st.success(f"✅ Đã undo {undo_results['success']} file")
+                        else:
+                            st.warning(undo_results.get('message', 'Không thể undo'))
+
+    elif folder_path:
+        st.error(f"❌ Folder không tồn tại: {folder_path}")
+    else:
+        st.info("👆 Vui lòng nhập đường dẫn folder chứa hình ảnh")
+
+with tab4:
     st.markdown("### ℹ️ Thông tin về tool")
     
     st.markdown("""

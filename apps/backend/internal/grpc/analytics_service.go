@@ -1,12 +1,12 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/analytics"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/service/system/analytics"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -231,4 +231,5 @@ func convertExamPerformanceToProto(exams []*analytics.ExamPerformance) []*v1.Exa
 	}
 	return protoExams
 }
+
 

@@ -6,6 +6,7 @@ import { BarChart2, TrendingUp, Users, BookOpen, FileText, MessageSquare, Downlo
 import { useState, useEffect } from 'react';
 
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   getAnalyticsOverview,
   mockSystemMetrics
@@ -219,20 +220,22 @@ export default function AnalyticsPage() {
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
-          <button 
+          <Button
             onClick={handleRefreshData}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-300 hover:scale-105 flex items-center gap-2"
+            variant="default"
+            className="bg-blue-500 hover:bg-blue-600 hover:scale-105"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="h-4 w-4 mr-2" />
             Cập nhật dữ liệu
-          </button>
-          <button 
+          </Button>
+          <Button
             onClick={handleExportReport}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300 hover:scale-105 flex items-center gap-2"
+            variant="default"
+            className="bg-green-500 hover:bg-green-600 hover:scale-105"
           >
-            <FileDown className="h-4 w-4" />
+            <FileDown className="h-4 w-4 mr-2" />
             Xuất báo cáo
-          </button>
+          </Button>
         </div>
       </div>
 

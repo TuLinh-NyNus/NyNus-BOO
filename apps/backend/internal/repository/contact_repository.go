@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -274,3 +274,4 @@ func generateSubmissionID() string {
 	randomPart := uuid.New().String()[:8]
 	return fmt.Sprintf("contact-%d-%s", timestamp, randomPart)
 }
+

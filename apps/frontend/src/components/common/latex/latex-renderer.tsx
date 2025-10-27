@@ -325,7 +325,7 @@ export function LaTeXPreview({
   className?: string;
   showValidation?: boolean;
 }) {
-  const { result:  isLoading, error, isValid } = useLatexRenderer(latex);
+  const { isLoading, error, isValid } = useLatexRenderer(latex);
   
   return (
     <div className={cn("latex-preview", className)}>

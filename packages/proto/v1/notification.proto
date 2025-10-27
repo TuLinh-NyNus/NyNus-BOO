@@ -1,11 +1,9 @@
 syntax = "proto3";
 
 package v1;
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
-
 import "google/api/annotations.proto";
 import "common/common.proto";
+import "google/protobuf/timestamp.proto";
 
 // Notification represents a user notification
 message Notification {
@@ -16,9 +14,9 @@ message Notification {
   string message = 5;
   map<string, string> data = 6;  // Additional data as key-value pairs
   bool is_read = 7;
-  string read_at = 8;     // RFC3339 timestamp
-  string created_at = 9;  // RFC3339 timestamp
-  string expires_at = 10; // RFC3339 timestamp, optional
+  google.protobuf.Timestamp read_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp expires_at = 10; // optional
 }
 
 // GetNotifications request
@@ -98,7 +96,7 @@ message CreateNotificationRequest {
   string title = 3;
   string message = 4;
   map<string, string> data = 5;
-  string expires_at = 6;  // Optional expiry time
+  google.protobuf.Timestamp expires_at = 6;  // Optional expiry time
 }
 
 // CreateNotification response
@@ -159,3 +157,6 @@ service NotificationService {
     };
   }
 }
+
+
+

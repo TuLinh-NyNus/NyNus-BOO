@@ -1,15 +1,15 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/util"
 	"google.golang.org/grpc/metadata"
 )
 
 // getClientIP extracts client IP address from gRPC context metadata
-// Trích xuất địa chỉ IP của client từ gRPC metadata
+// TrÃ­ch xuáº¥t Ä‘á»‹a chá»‰ IP cá»§a client tá»« gRPC metadata
 //
 // Parameters:
 //   - ctx: gRPC context containing metadata
@@ -17,9 +17,9 @@ import (
 // Returns:
 //   - string: Client IP address, or "unknown" if not found
 //
-// Note: Kiểm tra các headers phổ biến theo thứ tự ưu tiên:
-//  1. x-real-ip (từ reverse proxy)
-//  2. x-forwarded-for (từ load balancer)
+// Note: Kiá»ƒm tra cÃ¡c headers phá»• biáº¿n theo thá»© tá»± Æ°u tiÃªn:
+//  1. x-real-ip (tá»« reverse proxy)
+//  2. x-forwarded-for (tá»« load balancer)
 //  3. x-client-ip (custom header)
 //  4. :authority (gRPC peer address)
 func getClientIP(ctx context.Context) string {
@@ -63,7 +63,7 @@ func getClientIP(ctx context.Context) string {
 }
 
 // getUserAgent extracts user agent string from gRPC context metadata
-// Trích xuất user agent string từ gRPC metadata
+// TrÃ­ch xuáº¥t user agent string tá»« gRPC metadata
 //
 // Parameters:
 //   - ctx: gRPC context containing metadata
@@ -85,7 +85,7 @@ func getUserAgent(ctx context.Context) string {
 }
 
 // generateDeviceFingerprint creates a device fingerprint from user agent and IP
-// Tạo device fingerprint từ user agent và IP address
+// Táº¡o device fingerprint tá»« user agent vÃ  IP address
 //
 // Parameters:
 //   - userAgent: User agent string
@@ -93,12 +93,13 @@ func getUserAgent(ctx context.Context) string {
 // Returns:
 //   - string: Device fingerprint (always non-empty, uses fallback if needed)
 //
-// Note: Sử dụng util.GenerateDeviceFingerprint() để tạo fingerprint
-// từ user agent. Nếu user agent là "unknown", vẫn tạo fingerprint
-// để tránh lỗi validation.
+// Note: Sá»­ dá»¥ng util.GenerateDeviceFingerprint() Ä‘á»ƒ táº¡o fingerprint
+// tá»« user agent. Náº¿u user agent lÃ  "unknown", váº«n táº¡o fingerprint
+// Ä‘á»ƒ trÃ¡nh lá»—i validation.
 func generateDeviceFingerprint(userAgent string) string {
 	// Use util.GenerateDeviceFingerprint() to create a proper fingerprint
 	// Even if userAgent is "unknown", this will generate a valid fingerprint
 	// to avoid validation errors
 	return util.GenerateDeviceFingerprint(userAgent, "", "")
 }
+

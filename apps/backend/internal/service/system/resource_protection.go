@@ -1,13 +1,13 @@
-package service
+﻿package service
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/notification"
+	"exam-bank-system/apps/backend/pkg/proto/common"
 )
 
 // ResourceProtectionService handles resource access protection and auto-blocking
@@ -336,8 +336,8 @@ func (s *ResourceProtectionService) blockUser(ctx context.Context, userID string
 
 	// Send notification
 	if rule.SendNotification && s.notificationSvc != nil {
-		title := "Tài khoản tạm thời bị khóa"
-		message := fmt.Sprintf("Tài khoản của bạn đã bị khóa tự động do vi phạm: %s. Khóa đến: %v",
+		title := "TÃ i khoáº£n táº¡m thá»i bá»‹ khÃ³a"
+		message := fmt.Sprintf("TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a tá»± Ä‘á»™ng do vi pháº¡m: %s. KhÃ³a Ä‘áº¿n: %v",
 			rule.Name, blockUntil.Format("2006-01-02 15:04:05"))
 
 		s.notificationSvc.CreateSecurityAlert(ctx, userID, title, message, "", "")
@@ -419,3 +419,4 @@ func (s *ResourceProtectionService) ResetUserRiskScore(ctx context.Context, user
 
 	return nil
 }
+

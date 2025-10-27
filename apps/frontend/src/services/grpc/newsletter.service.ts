@@ -20,11 +20,17 @@ import {
 } from '@/generated/v1/newsletter_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
-import { getGrpcUrl } from '@/lib/config/endpoints';
+import { GRPC_WEB_HOST } from './client';
 
 // gRPC client configuration
-const GRPC_ENDPOINT = getGrpcUrl();
-const newsletterServiceClient = new NewsletterServiceClient(GRPC_ENDPOINT);
+// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
+// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
+const newsletterServiceClient = new NewsletterServiceClient(GRPC_WEB_HOST, null, {
+  format: 'text', // Use text format for consistency with proto generation
+  withCredentials: false,
+  unaryInterceptors: [],
+  streamInterceptors: []
+});
 
 // Helper to get auth metadata
 function getAuthMetadata(): { [key: string]: string } {

@@ -25,6 +25,7 @@ import {
 } from '@/types/question';
 
 import { QuestionService } from '@/services/grpc/question.service';
+import { QuestionFilterService } from '@/services/grpc/question-filter.service';
 import { toast } from 'sonner';
 import {
   createGetRequest,
@@ -38,7 +39,16 @@ import {
   parseUpdateResponse,
   parseDeleteResponse,
 } from '@/lib/adapters/question.adapter';
+import {
+  createFilterListRequest,
+  parseFilterListResponse,
+  validateQuestionFilters,
+  logFilterRequest
+} from '@/lib/adapters/question-filter.adapter';
 import { SelectionState, CacheEntry, createInitialSelectionState } from '@/lib/stores/shared/store-patterns';
+
+let activeFetchKey: string | null = null;
+let activeFetchPromise: Promise<void> | null = null;
 
 // ===== STORE INTERFACES =====
 
@@ -75,6 +85,7 @@ interface QuestionStoreState {
   // Error state
   error: string | null;
   fieldErrors: Record<string, string>;
+  hasFetchedQuestions: boolean;
   
   // Statistics
   statistics: {
@@ -132,8 +143,8 @@ interface QuestionStoreState {
   discardDraft: () => void;
   
   // Pagination actions
-  setPage: (page: number) => void;
-  setPageSize: (pageSize: number) => void;
+  setPage: (page: number, options?: { silent?: boolean }) => void;
+  setPageSize: (pageSize: number, options?: { silent?: boolean }) => void;
   nextPage: () => void;
   previousPage: () => void;
   goToFirstPage: () => void;
@@ -263,52 +274,120 @@ export const useQuestionStore = create<QuestionStoreState>()(
         statistics: { ...INITIAL_STATISTICS },
         
         lastAppliedFilters: null,
+        hasFetchedQuestions: false,
         
         // === ACTIONS IMPLEMENTATION ===
         
         // Fetch questions with filters
         fetchQuestions: async (filters, append = false) => {
           const { pagination } = get();
-          
-          set((state) => {
-            state.isLoading = !append;
-            state.isLoadingMore = append;
-            state.error = null;
+          const targetPage = filters?.page ?? pagination.page;
+          const targetPageSize = filters?.pageSize ?? pagination.pageSize;
+          const requestSignature = JSON.stringify({
+            filters: filters ?? {},
+            page: targetPage,
+            pageSize: targetPageSize,
+            append,
           });
-          
-          try {
-            const request = createListRequest(filters, filters?.page || pagination.page, filters?.pageSize || pagination.pageSize);
-            const response = await QuestionService.listQuestions(request);
-            
-            if (response && response.success) {
-              const parsed = parseListResponse(response);
+
+          if (activeFetchKey === requestSignature && activeFetchPromise) {
+            return activeFetchPromise;
+          }
+
+          const fetchPromise = (async () => {
+            set((state) => {
+              state.isLoading = !append;
+              state.isLoadingMore = append;
+              state.error = null;
+            });
+
+            try {
+              // Validate filters before creating request
+              if (filters) {
+                const validation = validateQuestionFilters(filters);
+                if (!validation.isValid) {
+                  throw new Error(`Invalid filters: ${validation.errors.join(', ')}`);
+                }
+              }
+
+              // MIGRATION: Use QuestionFilterService instead of QuestionService
+              // This supports full filtering by grade/subject/chapter/level/lesson/form
+              const request = createFilterListRequest(filters, targetPage, targetPageSize);
+              
+              // Log request for debugging
+              if (filters) {
+                logFilterRequest(filters, request);
+              }
+
+              const response = await QuestionFilterService.listQuestionsByFilter(request);
+
+              // Parse response from QuestionFilterService
+              const parsed = parseFilterListResponse(response);
+              
+              // Map QuestionDetail to Question domain type
+              const mappedQuestions = (parsed.questions || []).map((q: any) => ({
+                id: q.id,
+                rawContent: q.raw_content || q.rawContent,
+                content: q.content,
+                subcount: q.subcount,
+                type: q.type,
+                source: q.source,
+                solution: q.solution,
+                explanation: q.solution, // Use solution as explanation
+                tag: q.tags || q.tag || [],
+                usageCount: q.usage_count || q.usageCount || 0,
+                creator: q.creator,
+                status: q.status,
+                feedback: q.feedback || 0,
+                difficulty: q.difficulty,
+                questionCodeId: q.question_code_id || q.questionCodeId,
+                createdAt: q.created_at || q.createdAt || new Date().toISOString(),
+                updatedAt: q.updated_at || q.updatedAt || new Date().toISOString(),
+                isFavorite: q.is_favorite || q.isFavorite || false,
+                // Parse answers if available
+                answers: q.answers ? (typeof q.answers === 'string' ? JSON.parse(q.answers) : q.answers) : undefined,
+                correctAnswer: q.correct_answer || q.correctAnswer,
+              }));
+
               set((state) => {
-                state.questions = append 
-                  ? [...state.questions, ...parsed.questions]
-                  : parsed.questions;
+                state.questions = append
+                  ? [...state.questions, ...mappedQuestions]
+                  : mappedQuestions;
                 state.pagination = {
                   page: parsed.page,
                   pageSize: parsed.pageSize,
                   total: parsed.total,
-                  totalPages: calculateTotalPages(parsed.total, parsed.pageSize),
+                  totalPages: parsed.totalPages || calculateTotalPages(parsed.total, parsed.pageSize),
                 };
                 state.lastAppliedFilters = filters || null;
                 state.isLoading = false;
                 state.isLoadingMore = false;
+                state.hasFetchedQuestions = true;
               });
-              
-              // Update statistics
+
               get().refreshStatistics();
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : 'Failed to fetch questions';
+              set((state) => {
+                state.error = errorMessage;
+                state.isLoading = false;
+                state.isLoadingMore = false;
+                state.hasFetchedQuestions = true;
+              });
+              toast.error(errorMessage);
             }
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch questions';
-            set((state) => {
-              state.error = errorMessage;
-              state.isLoading = false;
-              state.isLoadingMore = false;
-            });
-            toast.error(errorMessage);
-          }
+          })();
+
+          const wrappedPromise = fetchPromise.finally(() => {
+            if (activeFetchKey === requestSignature) {
+              activeFetchKey = null;
+              activeFetchPromise = null;
+            }
+          });
+
+          activeFetchKey = requestSignature;
+          activeFetchPromise = wrappedPromise;
+          return wrappedPromise;
         },
         
         // Fetch single question by ID
@@ -1008,23 +1087,49 @@ export const useQuestionStore = create<QuestionStoreState>()(
         },
         
         // Pagination actions
-        setPage: (page) => {
+        setPage: (page, options) => {
+          const { pagination, lastAppliedFilters } = get();
+          const nextPage = Math.max(1, Math.min(page, pagination.totalPages || 1));
+
+          if (pagination.page === nextPage) {
+            if (!options?.silent) {
+              get().fetchQuestions(lastAppliedFilters || undefined);
+            }
+            return;
+          }
+
           set((state) => {
-            state.pagination.page = Math.max(1, Math.min(page, state.pagination.totalPages || 1));
+            state.pagination.page = nextPage;
           });
-          get().fetchQuestions(get().lastAppliedFilters || undefined);
+
+          if (!options?.silent) {
+            get().fetchQuestions(lastAppliedFilters || undefined);
+          }
         },
         
-        setPageSize: (pageSize) => {
+        setPageSize: (pageSize, options) => {
+          const { pagination, lastAppliedFilters } = get();
+          const normalizedSize = Math.max(1, Math.min(100, pageSize));
+          const sizeChanged = pagination.pageSize !== normalizedSize;
+
+          if (!sizeChanged && options?.silent) {
+            return;
+          }
+
           set((state) => {
-            state.pagination.pageSize = Math.max(1, Math.min(100, pageSize));
-            state.pagination.page = 1; // Reset to first page
-            state.pagination.totalPages = calculateTotalPages(
-              state.pagination.total,
-              pageSize
-            );
+            state.pagination.pageSize = normalizedSize;
+            if (sizeChanged) {
+              state.pagination.page = 1;
+              state.pagination.totalPages = calculateTotalPages(
+                state.pagination.total,
+                normalizedSize
+              );
+            }
           });
-          get().fetchQuestions(get().lastAppliedFilters || undefined);
+
+          if (!options?.silent) {
+            get().fetchQuestions(lastAppliedFilters || undefined);
+          }
         },
         
         nextPage: () => {
@@ -1176,66 +1281,119 @@ export const useQuestionStore = create<QuestionStoreState>()(
 
 // ===== STORE SELECTORS =====
 
+/**
+ * Memoized selectors để tránh infinite loop
+ * Sử dụng shallow comparison để đảm bảo object references nhất quán
+ */
+const memoizedSelectorsCache = new Map<string, unknown>();
+
+/**
+ * Helper function để memoize selector results
+ * Tránh tạo object/array mới nếu giá trị không thay đổi
+ */
+const memoizeSelector = <T>(
+  key: string,
+  currentValue: T,
+  previousValue: T | undefined
+): T => {
+  if (previousValue === undefined) {
+    memoizedSelectorsCache.set(key, currentValue);
+    return currentValue;
+  }
+
+  // Shallow comparison cho arrays
+  if (Array.isArray(currentValue) && Array.isArray(previousValue)) {
+    if (currentValue.length === previousValue.length &&
+        currentValue.every((v, i) => v === previousValue[i])) {
+      return previousValue;
+    }
+  }
+
+  // Shallow comparison cho objects
+  if (typeof currentValue === 'object' && currentValue !== null &&
+      typeof previousValue === 'object' && previousValue !== null) {
+    const currentKeys = Object.keys(currentValue);
+    const previousKeys = Object.keys(previousValue);
+
+    if (currentKeys.length === previousKeys.length &&
+        currentKeys.every(k => {
+          const curr = currentValue as Record<string, unknown>;
+          const prev = previousValue as Record<string, unknown>;
+          return curr[k] === prev[k];
+        })) {
+      return previousValue;
+    }
+  }
+
+  memoizedSelectorsCache.set(key, currentValue);
+  return currentValue;
+};
+
 export const questionSelectors = {
   // Data selectors
   questions: (state: QuestionStoreState) => state.questions,
   selectedQuestion: (state: QuestionStoreState) => state.selectedQuestion,
   draftQuestion: (state: QuestionStoreState) => state.draftQuestion,
-  
+
   // Pagination selectors
   pagination: (state: QuestionStoreState) => state.pagination,
   currentPage: (state: QuestionStoreState) => state.pagination.page,
   totalPages: (state: QuestionStoreState) => state.pagination.totalPages || 0,
-  hasNextPage: (state: QuestionStoreState) => 
+  hasNextPage: (state: QuestionStoreState) =>
     state.pagination.page < (state.pagination.totalPages || 1),
   hasPreviousPage: (state: QuestionStoreState) => state.pagination.page > 1,
-  
-  // Selection selectors
-  selectedIds: (state: QuestionStoreState) => Array.from(state.selection.selectedIds),
+
+  // Selection selectors - FIXED: Trả về Set thay vì Array để tránh tạo array mới mỗi lần
+  selectedIds: (state: QuestionStoreState) => state.selection.selectedIds,
   selectedCount: (state: QuestionStoreState) => state.selection.selectedIds.size,
   isAllSelected: (state: QuestionStoreState) => state.selection.isAllSelected,
-  isQuestionSelected: (id: string) => (state: QuestionStoreState) => 
+  isQuestionSelected: (id: string) => (state: QuestionStoreState) =>
     state.selection.selectedIds.has(id),
-  
+
   // View selectors
   viewMode: (state: QuestionStoreState) => state.viewMode,
   isDetailPanelOpen: (state: QuestionStoreState) => state.isDetailPanelOpen,
-  
+
   // Loading selectors
   isLoading: (state: QuestionStoreState) => state.isLoading,
   isLoadingMore: (state: QuestionStoreState) => state.isLoadingMore,
-  isProcessing: (state: QuestionStoreState) => 
+  isProcessing: (state: QuestionStoreState) =>
     state.isCreating || state.isUpdating || state.isDeleting,
-  
+
   // Error selectors
   error: (state: QuestionStoreState) => state.error,
   fieldErrors: (state: QuestionStoreState) => state.fieldErrors,
   hasError: (state: QuestionStoreState) => !!state.error,
   hasFieldErrors: (state: QuestionStoreState) => Object.keys(state.fieldErrors).length > 0,
-  
+
   // Statistics selectors
   statistics: (state: QuestionStoreState) => state.statistics,
   totalQuestions: (state: QuestionStoreState) => state.statistics.totalQuestions,
-  
+
   // Filter selectors
   lastAppliedFilters: (state: QuestionStoreState) => state.lastAppliedFilters,
   hasActiveFilters: (state: QuestionStoreState) => !!state.lastAppliedFilters,
-  
+
   // Cache selectors
   cacheSize: (state: QuestionStoreState) => state.cacheSize,
-  cacheUtilization: (state: QuestionStoreState) => 
+  cacheUtilization: (state: QuestionStoreState) =>
     (state.cacheSize / state.maxCacheSize) * 100,
-  
+
   // Computed selectors
-  questionById: (id: string) => (state: QuestionStoreState) => 
+  questionById: (id: string) => (state: QuestionStoreState) =>
     state.questions.find((q: Question) => q.id === id),
-  
-  selectedQuestions: (state: QuestionStoreState) => 
+
+  selectedQuestions: (state: QuestionStoreState) =>
     state.questions.filter((q: Question) => state.selection.selectedIds.has(q.id)),
-  
-  questionsCount: (state: QuestionStoreState) => ({
-    total: state.pagination.total,
-    current: state.questions.length,
-    selected: state.selection.selectedIds.size,
-  }),
+
+  // FIXED: Memoize questionsCount để tránh tạo object mới mỗi lần
+  questionsCount: (state: QuestionStoreState) => {
+    const newValue = {
+      total: state.pagination.total,
+      current: state.questions.length,
+      selected: state.selection.selectedIds.size,
+    };
+    const previousValue = memoizedSelectorsCache.get('questionsCount');
+    return memoizeSelector('questionsCount', newValue, previousValue);
+  },
 };

@@ -11,53 +11,28 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Search, Clock, TrendingUp } from 'lucide-react';
-import { Suspense } from 'react';
+import { Search, Clock, TrendingUp, Loader2 } from 'lucide-react';
+import { Suspense, useState, useEffect } from 'react';
 
 import { QUESTION_ROUTES, QUESTION_DYNAMIC_ROUTES } from '@/lib/question-paths';
 import { QuestionsHeader } from '@/components/questions/layout';
+import { QuestionFilterService } from '@/services/grpc/question-filter.service';
 
-// ===== MOCK DATA =====
+// ===== TYPES =====
 
-/**
- * Mock search results data
- * Temporary data cho development phase
- */
-const mockSearchResults = [
-  {
-    id: 'q001',
-    title: 'Giải phương trình bậc hai với tham số m',
-    content: 'Cho phương trình $x^2 + 2mx + m^2 - 1 = 0$. Tìm giá trị của $m$ để phương trình có nghiệm kép.',
-    category: 'Đại số',
-    difficulty: 'Trung bình',
-    type: 'Trắc nghiệm',
-    views: 1234,
-    rating: 4.8,
-    relevance: 95
-  },
-  {
-    id: 'q002',
-    title: 'Phương trình bậc hai trong hình học',
-    content: 'Ứng dụng phương trình bậc hai để giải bài toán tìm tọa độ giao điểm của đường thẳng và parabol.',
-    category: 'Hình học',
-    difficulty: 'Khó',
-    type: 'Tự luận',
-    views: 987,
-    rating: 4.9,
-    relevance: 87
-  },
-  {
-    id: 'q003',
-    title: 'Hệ phương trình bậc hai',
-    content: 'Giải hệ phương trình gồm một phương trình bậc nhất và một phương trình bậc hai.',
-    category: 'Đại số',
-    difficulty: 'Trung bình',
-    type: 'Trắc nghiệm',
-    views: 756,
-    rating: 4.7,
-    relevance: 82
-  }
-];
+interface SearchResult {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  difficulty: string;
+  type: string;
+  views: number;
+  rating: number;
+  relevance: number;
+}
+
+// ===== MOCK DATA FOR SIDEBAR =====
 
 /**
  * Mock recent searches
@@ -95,15 +70,72 @@ function SearchResults() {
   const category = searchParams.get('category') || '';
   const difficulty = searchParams.get('difficulty') || '';
 
-  // Filter results based on search params
-  const filteredResults = mockSearchResults.filter(result => {
-    const matchesQuery = !query || result.title.toLowerCase().includes(query.toLowerCase()) || 
-                        result.content.toLowerCase().includes(query.toLowerCase());
-    const matchesCategory = !category || result.category === category;
-    const matchesDifficulty = !difficulty || result.difficulty === difficulty;
-    
-    return matchesQuery && matchesCategory && matchesDifficulty;
-  });
+  // State for search results
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Fetch search results from backend
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      if (!query) {
+        setSearchResults([]);
+        setTotalCount(0);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        // Call QuestionFilterService.searchQuestions() - Real backend data
+        const response = await QuestionFilterService.searchQuestions({
+          query,
+          search_fields: ['content', 'solution'], // Search in content and solution
+          metadata_filter: {
+            // Apply filters if provided
+            ...(difficulty && { difficulties: [difficulty] }),
+            // Note: category filter not directly supported, will filter client-side
+          },
+          pagination: {
+            page: 1,
+            limit: 50, // Get first 50 results
+          },
+          highlight_matches: true,
+        });
+
+        // Map gRPC response to SearchResult format
+        const results: SearchResult[] = response.questions.map((item: Record<string, unknown>) => {
+          const question = item.question as Record<string, unknown>;
+          return {
+            id: String(question.id || ''),
+            title: String(question.content || '').substring(0, 100), // Use content as title
+            content: String(question.content || ''),
+            category: String(question.subject || 'Chưa phân loại'),
+            difficulty: String(question.difficulty || 'MEDIUM'),
+            type: String(question.type || 'MULTIPLE_CHOICE'),
+            views: 0, // Not available from backend
+            rating: 0, // Not available from backend
+            relevance: Number(item.relevance_score || 0) * 100, // Convert to percentage
+          };
+        });
+
+        // Client-side category filter if needed
+        const filteredResults = category
+          ? results.filter(r => r.category === category)
+          : results;
+
+        setSearchResults(filteredResults);
+        setTotalCount(response.total_count || filteredResults.length);
+      } catch (error) {
+        console.error('Failed to search questions:', error);
+        setSearchResults([]);
+        setTotalCount(0);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSearchResults();
+  }, [query, category, difficulty]);
 
   return (
     <div className="questions-search-page">
@@ -214,10 +246,16 @@ function SearchResults() {
             {/* Results Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="text-sm text-muted-foreground">
-                Tìm thấy <span className="font-medium text-foreground">{filteredResults.length}</span> kết quả
-                {query && <span> cho &ldquo;{query}&rdquo;</span>}
+                {isLoading ? (
+                  <span>Đang tìm kiếm...</span>
+                ) : (
+                  <>
+                    Tìm thấy <span className="font-medium text-foreground">{totalCount}</span> kết quả
+                    {query && <span> cho &ldquo;{query}&rdquo;</span>}
+                  </>
+                )}
               </div>
-              
+
               <select className="px-3 py-2 bg-background border rounded-md text-sm">
                 <option value="relevance">Liên quan nhất</option>
                 <option value="newest">Mới nhất</option>
@@ -227,9 +265,17 @@ function SearchResults() {
             </div>
 
             {/* Search Results */}
-            {filteredResults.length > 0 ? (
+            {isLoading ? (
+              /* Loading State */
+              <div className="flex items-center justify-center py-12">
+                <div className="text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+                  <p className="text-muted-foreground">Đang tìm kiếm câu hỏi...</p>
+                </div>
+              </div>
+            ) : searchResults.length > 0 ? (
               <div className="space-y-6">
-                {filteredResults.map((result) => (
+                {searchResults.map((result) => (
                   <Link
                     key={result.id}
                     href={QUESTION_DYNAMIC_ROUTES.DETAIL(result.id)}

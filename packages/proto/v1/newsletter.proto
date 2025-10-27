@@ -5,9 +5,6 @@ package v1;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "common/common.proto";
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
-
 // Newsletter subscription request
 message NewsletterSubscribeRequest {
   string email = 1;  // Required: email address to subscribe
@@ -170,3 +167,7 @@ service NewsletterService {
     };
   }
 }
+
+
+
+

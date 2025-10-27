@@ -25,26 +25,36 @@ class ErrorHandler:
         self.output_dir = output_dir
         self.errors = []
         self.malformed_questions = []
+        self.failed_files = []  # Track failed files
+        self.file_errors = {}  # Track errors per file: {file_path: [errors]}
         self.statistics = {
             'total_errors': 0,
             'parsing_errors': 0,
             'validation_errors': 0,
             'malformed_questions': 0,
             'processing_start_time': None,
-            'processing_end_time': None
+            'processing_end_time': None,
+            'total_files_processed': 0,
+            'successful_files': 0,
+            'failed_files': 0
         }
 
     def clear_errors(self):
         """Clear all errors and reset statistics for fresh processing."""
         self.errors = []
         self.malformed_questions = []
+        self.failed_files = []
+        self.file_errors = {}
         self.statistics = {
             'total_errors': 0,
             'parsing_errors': 0,
             'validation_errors': 0,
             'malformed_questions': 0,
             'processing_start_time': None,
-            'processing_end_time': None
+            'processing_end_time': None,
+            'total_files_processed': 0,
+            'successful_files': 0,
+            'failed_files': 0
         }
     
     def add_error(self, error_type: str, message: str, question_block: str = None, context: Dict[str, Any] = None):
@@ -83,7 +93,7 @@ class ErrorHandler:
     def add_batch_errors(self, batch_errors: List[str], batch_index: int):
         """
         Add errors from a batch processing operation.
-        
+
         Args:
             batch_errors: List of error messages from batch processing
             batch_index: Index of the batch that generated these errors
@@ -94,6 +104,47 @@ class ErrorHandler:
                 message=error_msg,
                 context={'batch_index': batch_index}
             )
+
+    def add_file_error(self, file_path: str, error_message: str, error_type: str = 'file_processing'):
+        """
+        Add a file-level error.
+
+        Args:
+            file_path: Path to the file that failed
+            error_message: Error message
+            error_type: Type of error
+        """
+        file_name = os.path.basename(file_path)
+
+        error_entry = {
+            'timestamp': datetime.now().isoformat(),
+            'file_path': file_path,
+            'file_name': file_name,
+            'error_type': error_type,
+            'message': error_message
+        }
+
+        # Add to failed files list if not already there
+        if file_path not in [f['file_path'] for f in self.failed_files]:
+            self.failed_files.append(error_entry)
+
+        # Track errors per file
+        if file_path not in self.file_errors:
+            self.file_errors[file_path] = []
+        self.file_errors[file_path].append(error_entry)
+
+        # Update statistics
+        self.statistics['failed_files'] = len(self.failed_files)
+
+    def mark_file_success(self, file_path: str):
+        """
+        Mark a file as successfully processed.
+
+        Args:
+            file_path: Path to the file
+        """
+        self.statistics['total_files_processed'] += 1
+        self.statistics['successful_files'] += 1
     
     def start_processing(self):
         """Mark the start of processing."""
@@ -233,15 +284,76 @@ class ErrorHandler:
             error_types[error_type] = error_types.get(error_type, 0) + 1
         return error_types
     
+    def save_failed_files_list(self) -> str:
+        """
+        Save list of failed files to failed_files.txt.
+
+        Returns:
+            Path to the saved file
+        """
+        os.makedirs(self.output_dir, exist_ok=True)
+        failed_files_path = os.path.join(self.output_dir, "failed_files.txt")
+
+        with open(failed_files_path, 'w', encoding='utf-8') as f:
+            f.write("# Failed Files List\n")
+            f.write(f"# Generated: {datetime.now().isoformat()}\n")
+            f.write(f"# Total Failed Files: {len(self.failed_files)}\n\n")
+
+            if self.failed_files:
+                for failed_file in self.failed_files:
+                    f.write(f"{failed_file['file_path']}\n")
+                    f.write(f"  Error: {failed_file['message']}\n")
+                    f.write(f"  Timestamp: {failed_file['timestamp']}\n\n")
+            else:
+                f.write("No failed files.\n")
+
+        return failed_files_path
+
+    def save_processing_summary(self) -> str:
+        """
+        Save processing summary to JSON file.
+
+        Returns:
+            Path to the saved file
+        """
+        os.makedirs(self.output_dir, exist_ok=True)
+        summary_path = os.path.join(self.output_dir, "processing_summary.json")
+
+        summary_data = {
+            'timestamp': datetime.now().isoformat(),
+            'statistics': self.statistics,
+            'failed_files_count': len(self.failed_files),
+            'failed_files': [
+                {
+                    'file_path': f['file_path'],
+                    'file_name': f['file_name'],
+                    'error_message': f['message'],
+                    'timestamp': f['timestamp']
+                }
+                for f in self.failed_files
+            ],
+            'success_rate': (self.statistics['successful_files'] / self.statistics['total_files_processed'] * 100) if self.statistics['total_files_processed'] > 0 else 0
+        }
+
+        with open(summary_path, 'w', encoding='utf-8') as f:
+            json.dump(summary_data, f, indent=2, ensure_ascii=False)
+
+        return summary_path
+
     def clear_errors(self):
         """Clear all stored errors."""
         self.errors.clear()
         self.malformed_questions.clear()
+        self.failed_files.clear()
+        self.file_errors.clear()
         self.statistics = {
             'total_errors': 0,
             'parsing_errors': 0,
             'validation_errors': 0,
             'malformed_questions': 0,
             'processing_start_time': None,
-            'processing_end_time': None
+            'processing_end_time': None,
+            'total_files_processed': 0,
+            'successful_files': 0,
+            'failed_files': 0
         }

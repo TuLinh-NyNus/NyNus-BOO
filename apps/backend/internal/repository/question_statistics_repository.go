@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 )
 
 // QuestionStatisticsRepository handles question statistics data operations
@@ -51,8 +51,8 @@ func (r *QuestionStatisticsRepository) GetOverallStatistics(ctx context.Context,
 			COALESCE(AVG(q.usage_count), 0) as average_usage_count,
 			COALESCE(AVG(CASE WHEN q.feedback > 0 THEN q.feedback END), 0) as average_feedback,
 			COUNT(CASE WHEN q.feedback > 0 THEN 1 END) as questions_with_feedback
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, whereClause), args...).Scan(
 		&stats.TotalQuestions,
@@ -109,8 +109,8 @@ func (r *QuestionStatisticsRepository) getTimeBasedStatistics(ctx context.Contex
 			COUNT(CASE WHEN q.created_at >= $%d THEN 1 END) as today_created,
 			COUNT(CASE WHEN q.created_at >= $%d THEN 1 END) as week_created,
 			COUNT(CASE WHEN q.created_at >= $%d THEN 1 END) as month_created
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, len(args)+1, len(args)+2, len(args)+3, whereClause),
 		append(args, today, weekStart, monthStart)...).Scan(
@@ -132,8 +132,8 @@ func (r *QuestionStatisticsRepository) getDistributionStatistics(ctx context.Con
 	// Grade distribution
 	rows, err := r.db.Query(ctx, fmt.Sprintf(`
 		SELECT qc.grade, COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY qc.grade
 		ORDER BY qc.grade
@@ -155,8 +155,8 @@ func (r *QuestionStatisticsRepository) getDistributionStatistics(ctx context.Con
 	// Subject distribution
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT qc.subject, COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY qc.subject
 		ORDER BY qc.subject
@@ -178,8 +178,8 @@ func (r *QuestionStatisticsRepository) getDistributionStatistics(ctx context.Con
 	// Chapter distribution
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT qc.chapter, COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY qc.chapter
 		ORDER BY qc.chapter
@@ -201,8 +201,8 @@ func (r *QuestionStatisticsRepository) getDistributionStatistics(ctx context.Con
 	// Level distribution
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT qc.level, COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY qc.level
 		ORDER BY qc.level
@@ -224,8 +224,8 @@ func (r *QuestionStatisticsRepository) getDistributionStatistics(ctx context.Con
 	// Type distribution
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT q.type, COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY q.type
 		ORDER BY q.type
@@ -247,8 +247,8 @@ func (r *QuestionStatisticsRepository) getDistributionStatistics(ctx context.Con
 	// Difficulty distribution
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT q.difficulty, COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY q.difficulty
 		ORDER BY q.difficulty
@@ -270,8 +270,8 @@ func (r *QuestionStatisticsRepository) getDistributionStatistics(ctx context.Con
 	// Status distribution
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT q.status, COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY q.status
 		ORDER BY q.status
@@ -301,8 +301,8 @@ func (r *QuestionStatisticsRepository) getUsageAndQualityStatistics(ctx context.
 	rows, err := r.db.Query(ctx, fmt.Sprintf(`
 		SELECT q.id, q.content, qc.code, q.usage_count, 
 			   COALESCE(q.feedback, 0), q.type, q.difficulty, q.created_at
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		ORDER BY q.usage_count DESC
 		LIMIT 10
@@ -325,8 +325,8 @@ func (r *QuestionStatisticsRepository) getUsageAndQualityStatistics(ctx context.
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT q.id, q.content, qc.code, q.usage_count, 
 			   q.feedback, q.type, q.difficulty, q.created_at
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s AND q.feedback > 0
 		ORDER BY q.feedback DESC
 		LIMIT 10
@@ -350,8 +350,8 @@ func (r *QuestionStatisticsRepository) getUsageAndQualityStatistics(ctx context.
 		SELECT q.creator, COUNT(*), 
 			   COALESCE(AVG(CASE WHEN q.feedback > 0 THEN q.feedback END), 0),
 			   MAX(q.created_at)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY q.creator
 		ORDER BY COUNT(*) DESC
@@ -385,7 +385,7 @@ func (r *QuestionStatisticsRepository) getErrorStatistics(ctx context.Context, s
 			COUNT(DISTINCT CASE WHEN pe.severity = 'WARNING' THEN pe.question_id END) as questions_with_warnings
 		FROM parse_errors pe
 		JOIN questions q ON pe.question_id = q.id
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, whereClause), args...).Scan(
 		&stats.QuestionsWithErrors,
@@ -407,16 +407,16 @@ func (r *QuestionStatisticsRepository) getErrorStatistics(ctx context.Context, s
 		SELECT 
 			COUNT(DISTINCT qi.question_id) as questions_with_images,
 			COUNT(qi.id) as total_images
-		FROM question_images qi
+		FROM question_image qi
 		JOIN questions q ON qi.question_id = q.id
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, whereClause), args...).Scan(
 		&stats.QuestionsWithImages,
 		&stats.TotalImages,
 	)
 	if err != nil {
-		// If question_images table doesn't exist or is empty, set to 0
+		// If question_image table doesn't exist or is empty, set to 0
 		stats.QuestionsWithImages = 0
 		stats.TotalImages = 0
 	}
@@ -538,8 +538,8 @@ func (r *QuestionStatisticsRepository) GetQuestionTrends(ctx context.Context, fi
 	// Daily trends (last 30 days)
 	rows, err := r.db.Query(ctx, fmt.Sprintf(`
 		SELECT DATE(q.created_at) as date, COUNT(*) as count
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s AND q.created_at >= NOW() - INTERVAL '30 days'
 		GROUP BY DATE(q.created_at)
 		ORDER BY date
@@ -565,8 +565,8 @@ func (r *QuestionStatisticsRepository) GetQuestionTrends(ctx context.Context, fi
 	// Weekly trends (last 12 weeks)
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT DATE_TRUNC('week', q.created_at) as week, COUNT(*) as count
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s AND q.created_at >= NOW() - INTERVAL '12 weeks'
 		GROUP BY DATE_TRUNC('week', q.created_at)
 		ORDER BY week
@@ -592,8 +592,8 @@ func (r *QuestionStatisticsRepository) GetQuestionTrends(ctx context.Context, fi
 	// Monthly trends (last 12 months)
 	rows, err = r.db.Query(ctx, fmt.Sprintf(`
 		SELECT DATE_TRUNC('month', q.created_at) as month, COUNT(*) as count
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s AND q.created_at >= NOW() - INTERVAL '12 months'
 		GROUP BY DATE_TRUNC('month', q.created_at)
 		ORDER BY month
@@ -661,8 +661,8 @@ func (r *QuestionStatisticsRepository) GetDashboardSummary(ctx context.Context, 
 			COALESCE(SUM(q.usage_count), 0) as total_usage,
 			COALESCE(AVG(q.usage_count), 0) as average_usage,
 			COALESCE(AVG(CASE WHEN q.feedback > 0 THEN q.feedback END), 0) as average_quality
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, whereClause), args...).Scan(
 		&summary.TotalQuestions,
@@ -692,10 +692,10 @@ func (r *QuestionStatisticsRepository) GetDashboardSummary(ctx context.Context, 
 	// Get top distributions
 	err = r.db.QueryRow(ctx, fmt.Sprintf(`
 		SELECT
-			(SELECT qc.grade FROM questions q JOIN question_codes qc ON q.question_code_id = qc.id %s GROUP BY qc.grade ORDER BY COUNT(*) DESC LIMIT 1) as top_grade,
-			(SELECT qc.subject FROM questions q JOIN question_codes qc ON q.question_code_id = qc.id %s GROUP BY qc.subject ORDER BY COUNT(*) DESC LIMIT 1) as top_subject,
-			(SELECT q.type FROM questions q JOIN question_codes qc ON q.question_code_id = qc.id %s GROUP BY q.type ORDER BY COUNT(*) DESC LIMIT 1) as top_type,
-			(SELECT q.difficulty FROM questions q JOIN question_codes qc ON q.question_code_id = qc.id %s GROUP BY q.difficulty ORDER BY COUNT(*) DESC LIMIT 1) as top_difficulty
+			(SELECT qc.grade FROM question q JOIN question_code qc ON q.question_code_id = qc.code %s GROUP BY qc.grade ORDER BY COUNT(*) DESC LIMIT 1) as top_grade,
+			(SELECT qc.subject FROM question q JOIN question_code qc ON q.question_code_id = qc.code %s GROUP BY qc.subject ORDER BY COUNT(*) DESC LIMIT 1) as top_subject,
+			(SELECT q.type FROM question q JOIN question_code qc ON q.question_code_id = qc.code %s GROUP BY q.type ORDER BY COUNT(*) DESC LIMIT 1) as top_type,
+			(SELECT q.difficulty FROM question q JOIN question_code qc ON q.question_code_id = qc.code %s GROUP BY q.difficulty ORDER BY COUNT(*) DESC LIMIT 1) as top_difficulty
 	`, whereClause, whereClause, whereClause, whereClause), args...).Scan(
 		&summary.TopGrade,
 		&summary.TopSubject,
@@ -714,8 +714,8 @@ func (r *QuestionStatisticsRepository) GetDashboardSummary(ctx context.Context, 
 	rows, err := r.db.Query(ctx, fmt.Sprintf(`
 		SELECT q.id, q.content, qc.code, q.usage_count,
 			   COALESCE(q.feedback, 0), q.type, q.difficulty, q.created_at
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		ORDER BY q.created_at DESC
 		LIMIT 5
@@ -742,8 +742,8 @@ func (r *QuestionStatisticsRepository) GetDashboardSummary(ctx context.Context, 
 		SELECT
 			COUNT(CASE WHEN q.created_at >= $%d THEN 1 END) as this_week,
 			COUNT(CASE WHEN q.created_at >= $%d AND q.created_at < $%d THEN 1 END) as last_week
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, len(args)+1, len(args)+2, len(args)+3, whereClause),
 		append(args, weekAgo, weekAgo.AddDate(0, 0, -7), weekAgo)...).Scan(
@@ -771,8 +771,8 @@ func (r *QuestionStatisticsRepository) GetQuestionCodeStatistics(ctx context.Con
 			COALESCE(SUM(q.usage_count), 0) as total_usage,
 			COALESCE(AVG(q.usage_count), 0) as average_usage,
 			COALESCE(AVG(CASE WHEN q.feedback > 0 THEN q.feedback END), 0) as average_feedback
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		GROUP BY qc.grade, qc.subject, qc.chapter, qc.level, qc.lesson, qc.form
 		ORDER BY qc.grade, qc.subject, qc.chapter, qc.level, qc.lesson, qc.form
@@ -798,3 +798,4 @@ func (r *QuestionStatisticsRepository) GetQuestionCodeStatistics(ctx context.Con
 
 	return statistics, nil
 }
+

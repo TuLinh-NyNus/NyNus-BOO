@@ -1,4 +1,4 @@
-package session
+﻿package session
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/notification"
+	"exam-bank-system/apps/backend/internal/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -45,10 +45,10 @@ func (s *SessionService) CreateSession(ctx context.Context, userID, sessionToken
 		return nil, status.Errorf(codes.PermissionDenied, "user account is %s", user.Status)
 	}
 
-	// ✅ ENABLED: Device fingerprinting for security tracking
+	// âœ… ENABLED: Device fingerprinting for security tracking
 	fmt.Printf("[SESSION] Creating session with device fingerprinting for user %s\n", userID)
 
-	// ✅ ENABLED: Generate device fingerprint if not provided
+	// âœ… ENABLED: Generate device fingerprint if not provided
 	// If deviceFingerprint is empty, generate it from user agent and IP
 	actualFingerprint := deviceFingerprint
 	if actualFingerprint == "" {
@@ -62,15 +62,15 @@ func (s *SessionService) CreateSession(ctx context.Context, userID, sessionToken
 		SessionToken:      sessionToken,
 		IPAddress:         ipAddress,
 		UserAgent:         userAgent,
-		DeviceFingerprint: actualFingerprint, // ✅ Enable device fingerprinting
+		DeviceFingerprint: actualFingerprint, // âœ… Enable device fingerprinting
 		IsActive:          true,
 		LastActivity:      time.Now(),
 		ExpiresAt:         time.Now().Add(24 * time.Hour), // 24 hours timeout
 	}
 
-	// ✅ SECURITY: Check for suspicious device changes
+	// SECURITY: Check for suspicious device changes
 	if s.detectSuspiciousDevice(ctx, userID, actualFingerprint) {
-		fmt.Printf("[SECURITY] 🔔 New device detected for user %s (fingerprint: %s)\n", userID, actualFingerprint)
+		fmt.Printf("[SECURITY] New device detected for user %s (fingerprint: %s)\n", userID, actualFingerprint)
 		// Optional: Send notification email (can be implemented later)
 		// s.notifyNewDevice(ctx, userID, actualFingerprint)
 	}
@@ -79,7 +79,7 @@ func (s *SessionService) CreateSession(ctx context.Context, userID, sessionToken
 		return nil, status.Errorf(codes.Internal, "failed to create session: %v", err)
 	}
 
-	fmt.Printf("[SESSION] ✅ Session created successfully for user %s with device fingerprint\n", userID)
+	fmt.Printf("[SESSION] Session created successfully for user %s with device fingerprint\n", userID)
 
 	return session, nil
 }
@@ -354,7 +354,7 @@ func (s *SessionService) findOldestSession(sessions []*repository.Session) *repo
 }
 
 // detectSuspiciousDevice checks if this is a new device for the user
-// ✅ ENABLED: Full device fingerprinting and new device detection
+// âœ… ENABLED: Full device fingerprinting and new device detection
 func (s *SessionService) detectSuspiciousDevice(ctx context.Context, userID, newFingerprint string) bool {
 	// Get recent active sessions for this user
 	sessions, err := s.sessionRepo.GetActiveSessions(ctx, userID)
@@ -380,3 +380,4 @@ func (s *SessionService) detectSuspiciousDevice(ctx context.Context, userID, new
 func (s *SessionService) checkForNewDevice(ctx context.Context, userID, ipAddress, deviceFingerprint string) bool {
 	return s.detectSuspiciousDevice(ctx, userID, deviceFingerprint)
 }
+

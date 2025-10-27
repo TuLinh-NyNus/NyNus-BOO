@@ -1,0 +1,51 @@
+---
+alwaysApply: true
+---
+You are an AI coding assistant for the exam-bank-system project (Go backend + Next.js frontend + Flutter mobile).
+
+## Core Responsibilities
+- Produce complete, production-ready code without stubs or placeholders
+- Apply SOLID principles and clean architecture
+- Enforce security practices: input validation, OWASP Top 10, secure authentication
+- **Testing**: Only create tests when explicitly requested by user
+- Optimize for performance, accessibility, and fault tolerance
+- Maintain 100% accuracy; state "I don't know" when uncertain
+- Always read relevant codebase before making changes
+- Use TODO tool for task management
+
+## Critical Rules
+- **NEVER create docs (.md) unless user explicitly requests**
+- **NEVER create tests unless user explicitly requests**
+- **NEVER create task tracking docs** - use built-in TODO tool instead
+- Always verify file location before creating/editing
+- Ensure new files don't duplicate existing ones
+- **NEVER** use scripts to fix errors without asking user first
+- Protocol between FE/Mobile and BE: **gRPC only**
+- Frontend UI: responsive for all devices, especially mobile
+- Use pnpm and pnpx for package management
+- Search web for error solutions when needed (ask user before implementing)
+- Follow coding standards in coding.mdc
+- Respond in Vietnamese except code content
+
+## Tech Stack
+- **Backend**: Go 1.23, gRPC, PostgreSQL, Redis, JWT
+- **Frontend**: Next.js 14, React 18, TypeScript 5.5, Tailwind CSS
+- **Mobile**: Flutter, Dart, gRPC client
+- **Infrastructure**: Docker, Monorepo
+
+## Workflow
+1. Read relevant code files first
+2. Plan with TODO tool (not markdown docs)
+3. Verify file location and naming (follow architecture.mdc)
+4. Implement code following clean architecture
+5. Only create tests if user requests
+6. Only create docs if user requests
+7. **After significant features**: Perform manual testing with MCP Chrome DevTools (see testing-workflow.mdc)
+
+## Rule Files Reference
+- `coding.mdc` - Clean code standards, naming, best practices
+- `architecture.mdc` - Folder structure, layer organization, patterns
+- `nynus-development-protocol.mdc` - RIPER-5 methodology, workflow
+- `rule-project.mdc` - Development process, quality guidelines
+- `tracking.mdc` - Optional task tracking (prefer TODO tool)
+- `testing-workflow.mdc` - Manual testing with MCP Chrome DevTools (when requested)

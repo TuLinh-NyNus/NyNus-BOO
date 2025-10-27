@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
 
 	"github.com/google/uuid"
 )
@@ -144,3 +144,4 @@ func (r *AnswerRepository) DeleteByQuestionID(ctx context.Context, db database.Q
 
 	return nil
 }
+

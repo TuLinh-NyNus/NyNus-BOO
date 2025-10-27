@@ -1,13 +1,14 @@
-package notification
+﻿package notification
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/util"
 )
 
 // NotificationType represents notification types
@@ -48,6 +49,13 @@ type NotificationData struct {
 type NotificationService struct {
 	notificationRepo repository.NotificationRepository
 	userPrefRepo     repository.UserPreferenceRepository
+	// Redis publisher for real-time notifications (Phase 3 - Task 3.2.1)
+	redisPublisher   RedisPubSubPublisher
+}
+
+// RedisPubSubPublisher defines the interface for publishing to Redis Pub/Sub
+type RedisPubSubPublisher interface {
+	Publish(ctx context.Context, channel string, message interface{}) error
 }
 
 // NewNotificationService creates a new notification service
@@ -58,7 +66,13 @@ func NewNotificationService(
 	return &NotificationService{
 		notificationRepo: notificationRepo,
 		userPrefRepo:     userPrefRepo,
+		redisPublisher:   nil, // Set via SetRedisPublisher
 	}
+}
+
+// SetRedisPublisher sets the Redis publisher (optional, for real-time notifications)
+func (s *NotificationService) SetRedisPublisher(publisher RedisPubSubPublisher) {
+	s.redisPublisher = publisher
 }
 
 // CreateNotification creates a new notification
@@ -129,7 +143,62 @@ func (s *NotificationService) CreateNotification(
 		ExpiresAt: expiresAt,
 	}
 
-	return s.notificationRepo.Create(ctx, notification)
+	// Save to database (Phase 3 - Task 3.2.2: Step 1)
+	err := s.notificationRepo.Create(ctx, notification)
+	if err != nil {
+		return fmt.Errorf("failed to create notification: %w", err)
+	}
+	
+	// Publish to Redis for real-time delivery (Phase 3 - Task 3.2.2: Step 2)
+	if s.redisPublisher != nil {
+		if err := s.publishToRedis(ctx, notification, data); err != nil {
+			// Log error but don't fail the request (Phase 3 - Task 3.2.3)
+			// Notification is already saved to DB, user can still access via polling
+			log.Printf("[WARN] Failed to publish notification to Redis: %v", err)
+		}
+	}
+	
+	return nil
+}
+
+// publishToRedis publishes notification to Redis Pub/Sub
+func (s *NotificationService) publishToRedis(ctx context.Context, notification *repository.Notification, data *NotificationData) error {
+	// Convert to Redis notification format
+	var dataMap map[string]interface{}
+	if data != nil {
+		dataMap = map[string]interface{}{
+			"priority":   data.Priority,
+			"action_url": data.ActionURL,
+			"action_text": data.ActionText,
+			"image_url":  data.ImageURL,
+			"metadata":   data.Metadata,
+		}
+	}
+	
+	redisNotification := map[string]interface{}{
+		"id":         notification.ID,
+		"user_id":    notification.UserID,
+		"type":       notification.Type,
+		"title":      notification.Title,
+		"message":    notification.Message,
+		"data":       dataMap,
+		"timestamp":  notification.CreatedAt.Format(time.RFC3339),
+		"is_read":    notification.IsRead,
+	}
+	
+	if notification.ExpiresAt != nil {
+		redisNotification["expires_at"] = notification.ExpiresAt.Format(time.RFC3339)
+	}
+	
+	// Determine channel (user-specific channel)
+	// Channel format: notifications:user:{userID}
+	channel := fmt.Sprintf("notifications:user:%s", notification.UserID)
+	
+	// Publish to Redis with timeout
+	publishCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	
+	return s.redisPublisher.Publish(publishCtx, channel, redisNotification)
 }
 
 // CreateSecurityAlert creates a security alert notification
@@ -171,13 +240,13 @@ func (s *NotificationService) CreateLoginAlert(
 		}
 	}
 
-	title := "Đăng nhập mới vào tài khoản của bạn"
-	message := fmt.Sprintf("Phát hiện đăng nhập mới từ %s. Nếu không phải bạn, vui lòng đổi mật khẩu ngay.", location)
+	title := "ÄÄƒng nháº­p má»›i vÃ o tÃ i khoáº£n cá»§a báº¡n"
+	message := fmt.Sprintf("PhÃ¡t hiá»‡n Ä‘Äƒng nháº­p má»›i tá»« %s. Náº¿u khÃ´ng pháº£i báº¡n, vui lÃ²ng Ä‘á»•i máº­t kháº©u ngay.", location)
 
 	data := &NotificationData{
 		Priority:   PriorityMedium,
 		ActionURL:  "/settings/security",
-		ActionText: "Kiểm tra bảo mật",
+		ActionText: "Kiá»ƒm tra báº£o máº­t",
 		Metadata: map[string]interface{}{
 			"ip_address": ipAddress,
 			"user_agent": userAgent,
@@ -198,13 +267,13 @@ func (s *NotificationService) CreateCourseUpdate(
 	courseName string,
 	updateType string,
 ) error {
-	title := fmt.Sprintf("Cập nhật khóa học: %s", courseName)
-	message := fmt.Sprintf("Khóa học %s có %s mới", courseName, updateType)
+	title := fmt.Sprintf("Cáº­p nháº­t khÃ³a há»c: %s", courseName)
+	message := fmt.Sprintf("KhÃ³a há»c %s cÃ³ %s má»›i", courseName, updateType)
 
 	data := &NotificationData{
 		Priority:   PriorityLow,
 		ActionURL:  fmt.Sprintf("/courses/%s", courseID),
-		ActionText: "Xem chi tiết",
+		ActionText: "Xem chi tiáº¿t",
 		Metadata: map[string]interface{}{
 			"course_id":   courseID,
 			"course_name": courseName,
@@ -388,3 +457,4 @@ func (s *NotificationService) CreateSystemBroadcast(
 	// TODO: Implement when user repository has ListAllActiveUsers method
 	return nil
 }
+

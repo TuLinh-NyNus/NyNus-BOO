@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -106,21 +106,36 @@ export function QuestionValidationPanel({
   className = ""
 }: QuestionValidationPanelProps) {
   // ===== COMPUTED VALUES =====
-  
+
+  // Calculate validation result without side effects
   const validationResult = useMemo(() => {
-    const result = operation 
+    const result = operation
       ? validateQuestionForOperation(question, operation)
       : validateQuestion(question);
-    
-    onValidationChange?.(result);
+
     return result;
-  }, [question, operation, onValidationChange]);
-  
-  const qualityScore = useMemo(() => 
+  }, [question, operation]);
+
+  const qualityScore = useMemo(() =>
     calculateQuestionQuality(question),
     [question]
   );
-  
+
+  // ===== EFFECTS =====
+
+  /**
+   * Notify parent component when validation result changes
+   * Technical: Call callback in useEffect to avoid setState during render
+   * Note: onValidationChange is intentionally excluded from dependencies
+   * to prevent infinite loops when parent doesn't memoize the callback
+   */
+  useEffect(() => {
+    onValidationChange?.(validationResult);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validationResult]);
+
+  // ===== CATEGORIZATION =====
+
   const categorizedErrors = useMemo(() => {
     const categories: Record<string, typeof validationResult.errors> = {
       content: [],

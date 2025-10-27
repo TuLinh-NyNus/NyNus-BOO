@@ -12,6 +12,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const protectedMethod = "/v1.UserService/UpdateProfile"
+
 // Mock handler for testing
 func mockHandler(ctx context.Context, req interface{}) (interface{}, error) {
 	return "success", nil
@@ -80,7 +82,7 @@ func TestCSRFInterceptor_DisabledMode(t *testing.T) {
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser", // Protected endpoint
+		FullMethod: protectedMethod, // Protected endpoint
 	}
 
 	// Call interceptor without CSRF token
@@ -97,7 +99,7 @@ func TestCSRFInterceptor_MissingToken(t *testing.T) {
 
 	ctx := context.Background()
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser", // Protected endpoint
+		FullMethod: protectedMethod, // Protected endpoint
 	}
 
 	// Call interceptor without metadata
@@ -122,7 +124,7 @@ func TestCSRFInterceptor_MissingCSRFHeader(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser",
+		FullMethod: protectedMethod,
 	}
 
 	// Call interceptor
@@ -147,7 +149,7 @@ func TestCSRFInterceptor_InvalidToken(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser",
+		FullMethod: protectedMethod,
 	}
 
 	// Call interceptor
@@ -174,7 +176,7 @@ func TestCSRFInterceptor_ValidToken(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser",
+		FullMethod: protectedMethod,
 	}
 
 	// Call interceptor
@@ -197,7 +199,7 @@ func TestCSRFInterceptor_NextAuthCookieDev(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser",
+		FullMethod: protectedMethod,
 	}
 
 	resp, err := interceptor.Unary()(ctx, nil, info, mockHandler)
@@ -217,7 +219,7 @@ func TestCSRFInterceptor_NextAuthCookieProd(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser",
+		FullMethod: protectedMethod,
 	}
 
 	resp, err := interceptor.Unary()(ctx, nil, info, mockHandler)
@@ -237,7 +239,7 @@ func TestCSRFInterceptor_GrpcWebCookie(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser",
+		FullMethod: protectedMethod,
 	}
 
 	resp, err := interceptor.Unary()(ctx, nil, info, mockHandler)
@@ -257,7 +259,7 @@ func TestCSRFInterceptor_MultipleCookies(t *testing.T) {
 	ctx := metadata.NewIncomingContext(context.Background(), md)
 
 	info := &grpc.UnaryServerInfo{
-		FullMethod: "/v1.UserService/GetCurrentUser",
+		FullMethod: protectedMethod,
 	}
 
 	resp, err := interceptor.Unary()(ctx, nil, info, mockHandler)
@@ -311,7 +313,7 @@ func TestCSRFInterceptor_ConstantTimeComparison(t *testing.T) {
 			ctx := metadata.NewIncomingContext(context.Background(), md)
 
 			info := &grpc.UnaryServerInfo{
-				FullMethod: "/v1.UserService/GetCurrentUser",
+				FullMethod: protectedMethod,
 			}
 
 			resp, err := interceptor.Unary()(ctx, nil, info, mockHandler)

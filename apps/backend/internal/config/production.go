@@ -201,7 +201,7 @@ func LogProductionSettings(cfg *ProductionConfig) {
 		log.Printf("      Metrics: %v (Port: %s)", cfg.EnableMetrics, cfg.MetricsPort)
 		log.Printf("      Tracing: %v", cfg.EnableTracing)
 	} else if IsDevelopment() {
-		log.Println("🔧 Development Configuration:")
+		log.Println("[CONFIG] Development Configuration:")
 		log.Printf("   HTTP Gateway: %v", cfg.HTTPGatewayEnabled)
 		log.Printf("   TLS Enabled: %v", cfg.TLSEnabled)
 		log.Printf("   Log Level: %s", cfg.LogLevel)

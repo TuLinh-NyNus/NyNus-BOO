@@ -1,12 +1,12 @@
-package validation
+﻿package validation
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 // QuestionFilterValidator provides validation for question filter requests
@@ -317,3 +317,4 @@ func (v *QuestionFilterValidator) validatePagination(pagination *v1.FilterPagina
 
 	return nil
 }
+

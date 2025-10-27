@@ -102,11 +102,11 @@ export default function AdminExamAnalyticsPage() {
 
   const loadAnalytics = useCallback(async () => {
     setLoading(true);
-    
+
     try {
       // TODO: Replace with real API call
       // const data = await ExamService.getAnalytics();
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       setAnalytics(MOCK_ANALYTICS);
@@ -120,7 +120,8 @@ export default function AdminExamAnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // toast is stable, no need in deps
 
   const handleBack = () => {
     router.push(ADMIN_PATHS.EXAMS);

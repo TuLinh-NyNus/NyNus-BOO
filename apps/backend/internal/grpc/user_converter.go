@@ -1,21 +1,21 @@
-package grpc
+﻿package grpc
 
 import (
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 // ConvertUserToProto converts repository.User to protobuf v1.User
-// Hàm này chuyển đổi User entity từ database sang protobuf format để trả về cho client
+// HÃ m nÃ y chuyá»ƒn Ä‘á»•i User entity tá»« database sang protobuf format Ä‘á»ƒ tráº£ vá» cho client
 //
 // Parameters:
-//   - user: User entity từ repository
+//   - user: User entity tá»« repository
 //
 // Returns:
-//   - *v1.User: Protobuf user object với đầy đủ thông tin
+//   - *v1.User: Protobuf user object vá»›i Ä‘áº§y Ä‘á»§ thÃ´ng tin
 func ConvertUserToProto(user *repository.User) *v1.User {
 	if user == nil {
 		return nil
@@ -38,7 +38,7 @@ func ConvertUserToProto(user *repository.User) *v1.User {
 }
 
 // ConvertStatusToProto converts string status to protobuf UserStatus enum
-// Chuyển đổi status từ string sang protobuf enum
+// Chuyá»ƒn Ä‘á»•i status tá»« string sang protobuf enum
 //
 // Parameters:
 //   - status: User status string (ACTIVE, INACTIVE, SUSPENDED)
@@ -59,7 +59,7 @@ func ConvertStatusToProto(status string) common.UserStatus {
 }
 
 // ConvertRoleToProto converts string role to protobuf UserRole enum
-// Chuyển đổi role từ string sang protobuf enum với 5 roles
+// Chuyá»ƒn Ä‘á»•i role tá»« string sang protobuf enum vá»›i 5 roles
 //
 // Parameters:
 //   - role: User role string (ADMIN, TEACHER, TUTOR, STUDENT, GUEST)
@@ -84,7 +84,7 @@ func ConvertRoleToProto(role string) common.UserRole {
 }
 
 // ConvertProtoToStatus converts protobuf UserStatus enum to string
-// Chuyển đổi status từ protobuf enum sang string
+// Chuyá»ƒn Ä‘á»•i status tá»« protobuf enum sang string
 //
 // Parameters:
 //   - status: Protobuf status enum
@@ -105,7 +105,7 @@ func ConvertProtoToStatus(status common.UserStatus) string {
 }
 
 // ConvertProtoToRole converts protobuf UserRole enum to string
-// Chuyển đổi role từ protobuf enum sang string
+// Chuyá»ƒn Ä‘á»•i role tá»« protobuf enum sang string
 //
 // Parameters:
 //   - role: Protobuf role enum
@@ -128,3 +128,4 @@ func ConvertProtoToRole(role common.UserRole) string {
 		return RoleGuest // Default to guest for safety
 	}
 }
+

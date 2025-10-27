@@ -129,6 +129,7 @@ export function QuestionActions({
     return (
       <div className={`question-actions-compact ${className}`}>
         <DropdownMenu>
+          {/* Technical: Using asChild is SAFE here (not in Array.map) */}
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
               <MoreHorizontal className="h-4 w-4" />

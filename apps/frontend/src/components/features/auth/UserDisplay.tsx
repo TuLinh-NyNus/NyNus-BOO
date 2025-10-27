@@ -57,28 +57,28 @@ const SIZE_CONFIG = {
     avatar: 'h-8 w-8',
     text: 'text-sm',
     badge: 'text-xs',
-    gap: 'gap-2',
+    gap: 'gap-1.5',
     padding: 'p-2'
   },
   md: {
     avatar: 'h-10 w-10',
     text: 'text-sm',
     badge: 'text-xs',
-    gap: 'gap-3',
+    gap: 'gap-2',
     padding: 'p-3'
   },
   lg: {
     avatar: 'h-12 w-12',
     text: 'text-base',
     badge: 'text-sm',
-    gap: 'gap-4',
+    gap: 'gap-3',
     padding: 'p-4'
   },
   xl: {
     avatar: 'h-16 w-16',
     text: 'text-lg',
     badge: 'text-base',
-    gap: 'gap-5',
+    gap: 'gap-4',
     padding: 'p-5'
   }
 } as const;
@@ -185,9 +185,14 @@ export const UserDisplay = memo<UserDisplayProps>(({
   const renderAvatar = () => {
     if (!showAvatar) return null;
 
+    // Chỉ thêm ring khi không phải dropdown-trigger để tránh conflict với Button ring
+    const avatarRingClass = variant === 'dropdown-trigger' 
+      ? '' 
+      : 'ring-1 ring-border/50';
+
     return (
-      <div className="relative">
-        <Avatar className={cn(sizeConfig.avatar, 'ring-2 ring-background')}>
+      <div className="relative flex-shrink-0">
+        <Avatar className={cn(sizeConfig.avatar, avatarRingClass)}>
           <AvatarImage
             src={optimizedUser?.avatar}
             alt={`${userFullName} avatar`}
@@ -220,12 +225,13 @@ export const UserDisplay = memo<UserDisplayProps>(({
     if (variant === 'compact') return null;
 
     return (
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 flex flex-col justify-center">
         {/* User Name */}
         {variantConfig.showName && (
           <div className={cn(
             sizeConfig.text,
-            'font-medium text-foreground truncate'
+            'font-medium text-foreground',
+            variant === 'dropdown-trigger' ? 'whitespace-nowrap' : 'truncate'
           )}>
             {isLoading ? (
               <div className="h-4 bg-muted animate-pulse rounded w-24" />
@@ -250,13 +256,14 @@ export const UserDisplay = memo<UserDisplayProps>(({
 
         {/* Role and Level */}
         {(variantConfig.showRole || variantConfig.showLevel) && (
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
             {variantConfig.showRole && showRole && optimizedUser?.role && (
               <Badge 
                 variant="secondary"
                 className={cn(
                   sizeConfig.badge,
-                  `bg-${roleColor}-100 text-${roleColor}-700 border-${roleColor}-200`
+                  'border-0 shadow-none whitespace-nowrap',
+                  `bg-${roleColor}-100 text-${roleColor}-700`
                 )}
               >
                 {roleLabel}
@@ -325,14 +332,16 @@ export const UserDisplay = memo<UserDisplayProps>(({
       'flex-col text-center': variantConfig.layout === 'vertical' && variant === 'card',
       'flex-row': variantConfig.layout === 'horizontal' || variant !== 'card',
       
-      // Interactive classes
-      'cursor-pointer hover:bg-accent/50 rounded-lg': onClick,
-      'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2': onClick,
-      
-      // Padding classes
+      // Padding classes - tăng padding để background bao phủ toàn bộ
       [sizeConfig.padding]: variant === 'card',
-      'p-2': variant === 'dropdown-trigger',
-      'p-1': variant === 'compact',
+      'px-3 py-2': variant === 'dropdown-trigger',
+      'p-1.5': variant === 'compact',
+      
+      // Width để đảm bảo background đủ rộng
+      'min-w-fit': variant === 'dropdown-trigger',
+      
+      // Override Button focus ring với một ring mỏng hơn để tránh chồng lấn
+      'focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-offset-0': onClick,
     },
     className
   );
@@ -340,7 +349,8 @@ export const UserDisplay = memo<UserDisplayProps>(({
   const Component = onClick ? Button : 'div';
   const componentProps = onClick ? {
     variant: 'ghost' as const,
-    className: containerClasses,
+    size: undefined, // Không sử dụng preset size, dùng custom classes từ containerClasses
+    className: cn(containerClasses, 'h-auto min-h-[44px]'), // Đảm bảo đủ chiều cao cho nội dung
     onClick,
     'aria-label': ariaLabel || `User menu for ${userFullName}`,
     role: 'button',

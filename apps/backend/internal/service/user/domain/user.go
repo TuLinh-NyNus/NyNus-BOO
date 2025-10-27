@@ -1,11 +1,11 @@
-package user
+﻿package user
 
 import (
 	"context"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
 )
 
 // Service handles user business logic following payment system pattern
@@ -44,3 +44,4 @@ func (s *UserService) GetAll(db database.QueryExecer) ([]entity.User, error) {
 func (s *UserService) GetUsersByPaging(db database.QueryExecer, offset int, limit int) (total int, users []entity.User, err error) {
 	return s.userRepo.GetUsersByPaging(db, offset, limit)
 }
+

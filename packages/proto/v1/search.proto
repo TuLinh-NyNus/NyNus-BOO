@@ -3,9 +3,6 @@ syntax = "proto3";
 package v1;
 
 import "common/common.proto";
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
-
 // Lặp lại PostType để tránh phụ thuộc chéo giữa file proto
 enum PostTypeForSearch {
   POST_TYPE_FOR_SEARCH_UNSPECIFIED = 0;
@@ -37,3 +34,7 @@ service SearchService {
   // Trả kết quả dạng streaming để hiển thị dần
   rpc Search(SearchRequest) returns (stream SearchHit);
 }
+
+
+
+

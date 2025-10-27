@@ -1,17 +1,18 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ProfileServiceServer implements the ProfileService
@@ -70,8 +71,8 @@ func (s *ProfileServiceServer) GetProfile(ctx context.Context, req *v1.GetProfil
 		Level:         int32(user.Level),
 		Status:        convertStatusToProto(user.Status),
 		EmailVerified: user.EmailVerified,
-		CreatedAt:     user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:     user.UpdatedAt.Format(time.RFC3339),
+		CreatedAt:     timestamppb.New(user.CreatedAt),
+		UpdatedAt:     timestamppb.New(user.UpdatedAt),
 	}
 
 	// Format dates
@@ -161,8 +162,8 @@ func (s *ProfileServiceServer) UpdateProfile(ctx context.Context, req *v1.Update
 		Level:         int32(user.Level),
 		Status:        convertStatusToProto(user.Status),
 		EmailVerified: user.EmailVerified,
-		CreatedAt:     user.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:     user.UpdatedAt.Format(time.RFC3339),
+		CreatedAt:     timestamppb.New(user.CreatedAt),
+		UpdatedAt:     timestamppb.New(user.UpdatedAt),
 	}
 
 	if user.DateOfBirth != nil {
@@ -204,9 +205,9 @@ func (s *ProfileServiceServer) GetSessions(ctx context.Context, req *v1.GetSessi
 			DeviceFingerprint: session.DeviceFingerprint,
 			Location:          session.Location,
 			IsActive:          session.IsActive,
-			LastActivity:      session.LastActivity.Format(time.RFC3339),
-			ExpiresAt:         session.ExpiresAt.Format(time.RFC3339),
-			CreatedAt:         session.CreatedAt.Format(time.RFC3339),
+			LastActivity:      timestamppb.New(session.LastActivity),
+			ExpiresAt:         timestamppb.New(session.ExpiresAt),
+			CreatedAt:         timestamppb.New(session.CreatedAt),
 		}
 		protoSessions = append(protoSessions, protoSession)
 	}
@@ -390,3 +391,4 @@ func getSessionTokenFromContext(ctx context.Context) string {
 	// TODO: Implement session token extraction from context
 	return ""
 }
+

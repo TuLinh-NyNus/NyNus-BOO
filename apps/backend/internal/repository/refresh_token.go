@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -787,3 +787,4 @@ func nullString(s string) sql.NullString {
 	}
 	return sql.NullString{String: s, Valid: true}
 }
+

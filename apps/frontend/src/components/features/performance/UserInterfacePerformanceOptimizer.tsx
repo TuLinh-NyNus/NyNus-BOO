@@ -142,10 +142,75 @@ export function UserInterfacePerformanceOptimizer({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (enableAutoOptimization && metrics) {
-      analyzePerformanceAndOptimize();
+    // ✅ FIX: Inline performance analysis để tránh function dependency
+    // Only trigger when performance score changes significantly to prevent infinite loop
+    if (!enableAutoOptimization || !metrics || isOptimizing) return;
+
+    // Inline analysis logic to prevent infinite loop caused by analyzePerformanceAndOptimize recreation
+    setIsOptimizing(true);
+
+    const newRecommendations: OptimizationRecommendation[] = [];
+
+    // Analyze render performance
+    if (metrics.renderTime > PERFORMANCE_THRESHOLDS.renderTime.good) {
+      newRecommendations.push({
+        id: 'optimize-render',
+        title: 'Tối ưu Render Performance',
+        description: 'Sử dụng React.memo, useMemo, useCallback để giảm re-render không cần thiết',
+        impact: 'high',
+        effort: 'medium',
+        category: 'rendering',
+        priority: 1,
+        implemented: false
+      });
     }
-  }, [metrics, enableAutoOptimization]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Analyze memory usage
+    if (metrics.memoryUsage && metrics.memoryUsage > PERFORMANCE_THRESHOLDS.memoryUsage.good) {
+      newRecommendations.push({
+        id: 'optimize-memory',
+        title: 'Tối ưu Memory Usage',
+        description: 'Cleanup event listeners, clear intervals, và optimize data structures',
+        impact: 'medium',
+        effort: 'medium',
+        category: 'memory',
+        priority: 2,
+        implemented: false
+      });
+    }
+
+    // Analyze cache performance
+    if (metrics.cacheHitRate < 80) {
+      newRecommendations.push({
+        id: 'improve-caching',
+        title: 'Cải thiện Cache Strategy',
+        description: 'Implement better caching strategies cho API calls và static assets',
+        impact: 'medium',
+        effort: 'low',
+        category: 'caching',
+        priority: 3,
+        implemented: false
+      });
+    }
+
+    // Analyze network performance
+    if (metrics.networkLatency > 300) {
+      newRecommendations.push({
+        id: 'optimize-network',
+        title: 'Tối ưu Network Requests',
+        description: 'Implement request batching, compression, và CDN optimization',
+        impact: 'high',
+        effort: 'high',
+        category: 'network',
+        priority: 4,
+        implemented: false
+      });
+    }
+
+    setRecommendations(newRecommendations);
+    setIsOptimizing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metrics?.performanceScore, enableAutoOptimization]); // ✅ Only check performance score changes
 
   // ===== HANDLERS =====
 
@@ -271,77 +336,7 @@ export function UserInterfacePerformanceOptimizer({
     }
   }, []);
 
-  const analyzePerformanceAndOptimize = useCallback(async () => {
-    if (!metrics || isOptimizing) return;
-    
-    setIsOptimizing(true);
-    
-    try {
-      const newRecommendations: OptimizationRecommendation[] = [];
-      
-      // Analyze render performance
-      if (metrics.renderTime > PERFORMANCE_THRESHOLDS.renderTime.good) {
-        newRecommendations.push({
-          id: 'optimize-render',
-          title: 'Tối ưu Render Performance',
-          description: 'Sử dụng React.memo, useMemo, useCallback để giảm re-render không cần thiết',
-          impact: 'high',
-          effort: 'medium',
-          category: 'rendering',
-          priority: 1,
-          implemented: false
-        });
-      }
-      
-      // Analyze memory usage
-      if (metrics.memoryUsage && metrics.memoryUsage > PERFORMANCE_THRESHOLDS.memoryUsage.good) {
-        newRecommendations.push({
-          id: 'optimize-memory',
-          title: 'Tối ưu Memory Usage',
-          description: 'Cleanup event listeners, clear intervals, và optimize data structures',
-          impact: 'medium',
-          effort: 'medium',
-          category: 'memory',
-          priority: 2,
-          implemented: false
-        });
-      }
-      
-      // Analyze cache performance
-      if (metrics.cacheHitRate < 80) {
-        newRecommendations.push({
-          id: 'improve-caching',
-          title: 'Cải thiện Cache Strategy',
-          description: 'Implement better caching strategies cho API calls và static assets',
-          impact: 'medium',
-          effort: 'low',
-          category: 'caching',
-          priority: 3,
-          implemented: false
-        });
-      }
-      
-      // Analyze network performance
-      if (metrics.networkLatency > 300) {
-        newRecommendations.push({
-          id: 'optimize-network',
-          title: 'Tối ưu Network Requests',
-          description: 'Implement request batching, compression, và CDN optimization',
-          impact: 'high',
-          effort: 'high',
-          category: 'network',
-          priority: 4,
-          implemented: false
-        });
-      }
-      
-      setRecommendations(newRecommendations);
-    } catch (error) {
-      console.error('Performance analysis failed:', error);
-    } finally {
-      setIsOptimizing(false);
-    }
-  }, [metrics, isOptimizing]);
+  // Note: analyzePerformanceAndOptimize has been inlined into useEffect above to prevent infinite loop
 
   const implementRecommendation = useCallback((recommendationId: string) => {
     setRecommendations(prev => 

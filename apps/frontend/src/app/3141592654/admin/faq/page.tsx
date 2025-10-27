@@ -6,6 +6,7 @@ import { HelpCircle, Filter, Search, Plus, MessageSquare, ThumbsUp, Edit, Trash,
 import { useState } from 'react';
 
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { cn } from '@/lib/utils';
 import { mockFAQs } from '@/lib/mockdata';
 import { AdminFAQ } from '@/lib/mockdata/types';
@@ -102,61 +103,68 @@ export default function FAQPage() {
         <h1 className="text-2xl font-bold text-slate-800 dark:text-white transition-colors duration-300">
           Quản lý câu hỏi thường gặp (FAQ)
         </h1>
-        <button className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 hover:scale-105 transition-all duration-300 flex items-center gap-2 shadow-md">
-          <Plus className="h-4 w-4 text-white transition-colors duration-300" />
+        <Button
+          variant="default"
+          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 hover:scale-105 shadow-md"
+        >
+          <Plus className="h-4 w-4 mr-2" />
           Thêm câu hỏi mới
-        </button>
+        </Button>
       </div>
 
       {/* Tab navigation để lọc theo trạng thái */}
       <div className="flex border-b border-slate-300 dark:border-slate-700 space-x-4 transition-colors duration-300">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('all')}
           className={cn(
-            "pb-2 px-1 font-medium transition-colors duration-300 relative",
+            "pb-2 px-1 font-medium transition-colors duration-300 relative rounded-none",
             activeTab === 'all'
               ? "text-slate-800 dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-purple-500"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-transparent"
           )}
         >
           Tất cả câu hỏi
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('pending')}
           className={cn(
-            "pb-2 px-1 font-medium transition-colors duration-300 relative flex items-center gap-2",
+            "pb-2 px-1 font-medium transition-colors duration-300 relative flex items-center gap-2 rounded-none",
             activeTab === 'pending'
               ? "text-slate-800 dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-purple-500"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-transparent"
           )}
         >
           Chờ duyệt
           <span className="px-1.5 py-0.5 text-xs rounded-full bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 transition-colors duration-300 shadow-sm">
             {pendingFAQsCount}
           </span>
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('approved')}
           className={cn(
-            "pb-2 px-1 font-medium transition-colors duration-300 relative",
+            "pb-2 px-1 font-medium transition-colors duration-300 relative rounded-none",
             activeTab === 'approved'
               ? "text-slate-800 dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-purple-500"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-transparent"
           )}
         >
           Đã duyệt
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={() => setActiveTab('rejected')}
           className={cn(
-            "pb-2 px-1 font-medium transition-colors duration-300 relative",
+            "pb-2 px-1 font-medium transition-colors duration-300 relative rounded-none",
             activeTab === 'rejected'
               ? "text-slate-800 dark:text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-purple-500"
-              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+              : "text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-transparent"
           )}
         >
           Đã từ chối
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">

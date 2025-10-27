@@ -1,4 +1,4 @@
-package redis
+﻿package redis
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
+	"exam-bank-system/apps/backend/internal/config"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -196,3 +196,4 @@ func (c *Client) Health(ctx context.Context) map[string]interface{} {
 
 	return health
 }
+

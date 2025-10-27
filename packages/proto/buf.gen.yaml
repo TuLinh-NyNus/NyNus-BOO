@@ -1,23 +1,27 @@
 version: v2
 managed:
   enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: exam-bank-system/apps/backend/pkg/proto
 plugins:
   # Generate Go protobuf files
   - local: protoc-gen-go
     out: ../../apps/backend/pkg/proto
     opt:
       - paths=source_relative
-
+  
   # Generate Go gRPC files
   - local: protoc-gen-go-grpc
     out: ../../apps/backend/pkg/proto
     opt:
       - paths=source_relative
       - require_unimplemented_servers=false
-
+  
   # Generate gRPC Gateway files
   - local: protoc-gen-grpc-gateway
     out: ../../apps/backend/pkg/proto
     opt:
       - paths=source_relative
       - generate_unbound_methods=true
+  

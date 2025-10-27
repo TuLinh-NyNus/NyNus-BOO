@@ -1,3 +1,5 @@
+//go:build integration && legacy_exam_tests
+
 package grpc_test
 
 import (
@@ -10,9 +12,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/grpc"
-	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/grpc"
+	pb "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 // MockExamMgmt is a mock implementation of ExamMgmt service

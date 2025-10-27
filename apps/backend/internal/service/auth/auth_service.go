@@ -1,16 +1,16 @@
-package auth
+﻿package auth
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/constant"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/constant"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/notification"
+	"exam-bank-system/apps/backend/internal/util"
 
 	"github.com/jackc/pgtype"
 	"golang.org/x/crypto/bcrypt"
@@ -21,10 +21,10 @@ import (
 // This service is kept temporarily for backward compatibility during migration
 //
 // Migration Status:
-// - Account locking logic: ✅ MIGRATED to EnhancedUserServiceServer.Login()
-// - Login attempts tracking: ✅ MIGRATED to EnhancedUserServiceServer.Login()
-// - Bcrypt cost configuration: ✅ MIGRATED to EnhancedUserServiceServer
-// - JWT token generation: ✅ MIGRATED to UnifiedJWTService
+// - Account locking logic: âœ… MIGRATED to EnhancedUserServiceServer.Login()
+// - Login attempts tracking: âœ… MIGRATED to EnhancedUserServiceServer.Login()
+// - Bcrypt cost configuration: âœ… MIGRATED to EnhancedUserServiceServer
+// - JWT token generation: âœ… MIGRATED to UnifiedJWTService
 //
 // TODO: Remove this service completely after all references are updated
 type AuthService struct {
@@ -137,8 +137,8 @@ func (s *AuthService) Login(db database.QueryExecer, email, password string) (*e
 
 				// Send account locked notification
 				if s.notificationService != nil {
-					title := "Tài khoản bị khóa do đăng nhập sai quá nhiều lần"
-					message := "Tài khoản của bạn đã bị khóa trong 30 phút do đăng nhập sai 5 lần liên tiếp. Nếu không phải bạn, vui lòng đổi mật khẩu ngay khi tài khoản được mở khóa."
+					title := "TÃ i khoáº£n bá»‹ khÃ³a do Ä‘Äƒng nháº­p sai quÃ¡ nhiá»u láº§n"
+					message := "TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ khÃ³a trong 30 phÃºt do Ä‘Äƒng nháº­p sai 5 láº§n liÃªn tiáº¿p. Náº¿u khÃ´ng pháº£i báº¡n, vui lÃ²ng Ä‘á»•i máº­t kháº©u ngay khi tÃ i khoáº£n Ä‘Æ°á»£c má»Ÿ khÃ³a."
 					if err := s.notificationService.CreateSecurityAlert(ctx, userID, title, message, "", ""); err != nil {
 						fmt.Printf("Failed to send account lock notification: %v\n", err)
 					}
@@ -195,21 +195,21 @@ func (s *AuthService) Register(db database.QueryExecer, email, password, firstNa
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// Create user entity với enhanced fields (default role là STUDENT theo thiết kế)
+	// Create user entity vá»›i enhanced fields (default role lÃ  STUDENT theo thiáº¿t káº¿)
 	user := &entity.User{
 		// Core required fields
 		Email:        util.StringToPgText(email),
 		PasswordHash: util.StringToPgText(string(hashedPassword)),
 		FirstName:    util.StringToPgText(firstName),
 		LastName:     util.StringToPgText(lastName),
-		Role:         util.StringToPgText(constant.RoleStudent), // Sử dụng constant
+		Role:         util.StringToPgText(constant.RoleStudent), // Sá»­ dá»¥ng constant
 		IsActive:     util.BoolToPgBool(true),
-		// Enhanced fields với defaults theo thiết kế
+		// Enhanced fields vá»›i defaults theo thiáº¿t káº¿
 		Status:                util.StringToPgText("ACTIVE"),
-		EmailVerified:         util.BoolToPgBool(false),                                       // Mới đăng ký chưa verify
+		EmailVerified:         util.BoolToPgBool(false),                                       // Má»›i Ä‘Äƒng kÃ½ chÆ°a verify
 		MaxConcurrentSessions: func() pgtype.Int4 { var i pgtype.Int4; i.Set(3); return i }(), // Default 3 sessions
 		LoginAttempts:         func() pgtype.Int4 { var i pgtype.Int4; i.Set(0); return i }(), // Reset login attempts
-		// Optional fields - để trống, sẽ cập nhật sau
+		// Optional fields - Ä‘á»ƒ trá»‘ng, sáº½ cáº­p nháº­t sau
 		// GoogleID, Username, Avatar, Bio, Phone, Address, School, DateOfBirth, Gender, Level
 		// LastLoginAt, LastLoginIP, LockedUntil
 	}
@@ -263,8 +263,8 @@ func (s *AuthService) Register(db database.QueryExecer, email, password, firstNa
 	if s.notificationService != nil && s.preferenceRepo != nil {
 		// Check if user wants email notifications before sending
 		if pref, err := s.preferenceRepo.GetByUserID(ctx, userID); err == nil && pref.EmailNotifications {
-			title := "Chào mừng bạn đến với Exam Bank System!"
-			message := fmt.Sprintf("Xin chào %s %s! Cảm ơn bạn đã đăng ký tài khoản. Hãy bắt đầu khám phá kho đề thi của chúng tôi.", firstName, lastName)
+			title := "ChÃ o má»«ng báº¡n Ä‘áº¿n vá»›i Exam Bank System!"
+			message := fmt.Sprintf("Xin chÃ o %s %s! Cáº£m Æ¡n báº¡n Ä‘Ã£ Ä‘Äƒng kÃ½ tÃ i khoáº£n. HÃ£y báº¯t Ä‘áº§u khÃ¡m phÃ¡ kho Ä‘á» thi cá»§a chÃºng tÃ´i.", firstName, lastName)
 			if err := s.notificationService.CreateNotification(ctx, userID, "WELCOME", title, message, nil, nil); err != nil {
 				fmt.Printf("Failed to send welcome notification: %v\n", err)
 			}
@@ -312,8 +312,8 @@ func (s *AuthService) IsStudent(db database.QueryExecer, userID string) (bool, e
 	return role == constant.RoleStudent, nil
 }
 
-// Enhanced role checking methods với 5 roles hierarchy
-// IsTutorOrHigher kiểm tra nếu user là TUTOR hoặc cao hơn
+// Enhanced role checking methods vá»›i 5 roles hierarchy
+// IsTutorOrHigher kiá»ƒm tra náº¿u user lÃ  TUTOR hoáº·c cao hÆ¡n
 func (s *AuthService) IsTutorOrHigher(db database.QueryExecer, userID string) (bool, error) {
 	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
@@ -324,7 +324,7 @@ func (s *AuthService) IsTutorOrHigher(db database.QueryExecer, userID string) (b
 	return constant.GetRoleHierarchy(role) >= constant.GetRoleHierarchy(constant.RoleTutor), nil
 }
 
-// IsGuest kiểm tra nếu user là GUEST
+// IsGuest kiá»ƒm tra náº¿u user lÃ  GUEST
 func (s *AuthService) IsGuest(db database.QueryExecer, userID string) (bool, error) {
 	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
@@ -335,7 +335,7 @@ func (s *AuthService) IsGuest(db database.QueryExecer, userID string) (bool, err
 	return role == constant.RoleGuest, nil
 }
 
-// HasRoleOrHigher kiểm tra nếu user có role bằng hoặc cao hơn required role
+// HasRoleOrHigher kiá»ƒm tra náº¿u user cÃ³ role báº±ng hoáº·c cao hÆ¡n required role
 func (s *AuthService) HasRoleOrHigher(db database.QueryExecer, userID string, requiredRole string) (bool, error) {
 	ctx := context.Background()
 	user, err := s.userRepo.GetByID(ctx, db, userID)
@@ -361,3 +361,4 @@ func (s *AuthService) GetUserRole(db database.QueryExecer, userID string) (strin
 func (s *AuthService) generateToken(user *entity.User) (string, error) {
 	return s.jwtService.GenerateToken(user)
 }
+

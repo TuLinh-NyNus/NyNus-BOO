@@ -17,6 +17,8 @@ import { QUESTION_ROUTES, QUESTION_DYNAMIC_ROUTES } from '@/lib/question-paths';
 import { QuestionsHeader } from '@/components/questions/layout/questions-header';
 import { NavigationButtons } from '@/components/questions/shared/navigation-buttons';
 import { Button } from '@/components/ui/button';
+import { PublicQuestionService } from '@/services/public/question.service';
+import { QuestionAnalyticsTracker } from '@/components/analytics/question-analytics-tracker';
 
 // ===== TYPES =====
 
@@ -30,10 +32,6 @@ interface QuestionDetailPageProps {
   }>;
 }
 
-// ===== MOCK DATA =====
-
-// ===== INTERFACES =====
-
 /**
  * Question Answer Interface
  */
@@ -41,10 +39,11 @@ interface QuestionAnswer {
   id: string;
   content: string;
   isCorrect: boolean;
+  explanation?: string;
 }
 
 /**
- * Question Data Interface
+ * Question Data Interface (for internal use)
  */
 interface QuestionData {
   id: string;
@@ -57,160 +56,61 @@ interface QuestionData {
   rating: number;
   createdAt: string;
   answers?: QuestionAnswer[];
-  solution: string;
+  solution?: string;
   tags: string[];
   author: string;
-  lastUpdated: string;
+  lastUpdated?: string;
+}
+
+// ===== HELPER FUNCTIONS =====
+
+/**
+ * Fetch question data từ backend
+ * @param id - Question ID
+ * @returns Question data hoặc null nếu không tìm thấy
+ */
+async function fetchQuestionData(id: string): Promise<QuestionData | null> {
+  try {
+    const publicQuestion = await PublicQuestionService.getPublicQuestionById(id);
+    
+    // Map to QuestionData format
+    return {
+      id: publicQuestion.id,
+      title: publicQuestion.content.substring(0, 100), // First 100 chars as title
+      content: publicQuestion.content,
+      category: publicQuestion.category || 'Chưa phân loại',
+      difficulty: publicQuestion.difficulty || 'Trung bình',
+      type: publicQuestion.type,
+      views: publicQuestion.views || 0,
+      rating: publicQuestion.rating || 0,
+      createdAt: new Date(publicQuestion.createdAt).toLocaleDateString('vi-VN'),
+      answers: publicQuestion.answers,
+      solution: publicQuestion.solution,
+      tags: publicQuestion.tags,
+      author: publicQuestion.author || 'Ẩn danh',
+      lastUpdated: publicQuestion.updatedAt 
+        ? new Date(publicQuestion.updatedAt).toLocaleDateString('vi-VN')
+        : undefined,
+    };
+  } catch (error) {
+    console.error('Error fetching question:', error);
+    return null;
+  }
 }
 
 /**
- * Mock question data
- * Temporary data cho development phase
+ * Fetch related questions
+ * @param questionId - Source question ID
+ * @returns Array of related questions
  */
-const mockQuestions: Record<string, QuestionData> = {
-  'q001': {
-    id: 'q001',
-    title: 'Giải phương trình bậc hai với tham số',
-    content: `Cho phương trình $x^2 + 2mx + m^2 - 1 = 0$ với $m$ là tham số thực.
-
-**Câu hỏi:** Tìm tất cả các giá trị của $m$ để phương trình có nghiệm kép.
-
-**Phân tích:**
-- Phương trình bậc hai $ax^2 + bx + c = 0$ có nghiệm kép khi và chỉ khi $\\Delta = 0$
-- Trong trường hợp này: $a = 1$, $b = 2m$, $c = m^2 - 1$`,
-    category: 'Đại số',
-    difficulty: 'Trung bình',
-    type: 'Trắc nghiệm',
-    views: 1234,
-    rating: 4.8,
-    createdAt: '2025-01-15',
-    answers: [
-      { id: 'a', content: '$m = 1$', isCorrect: false },
-      { id: 'b', content: '$m = -1$', isCorrect: false },
-      { id: 'c', content: '$m = \\pm 1$', isCorrect: true },
-      { id: 'd', content: 'Không có giá trị nào của $m$', isCorrect: false }
-    ],
-    solution: `**Lời giải chi tiết:**
-
-Phương trình có nghiệm kép khi và chỉ khi $\\Delta = 0$.
-
-Ta có: $\\Delta = b^2 - 4ac = (2m)^2 - 4 \\cdot 1 \\cdot (m^2 - 1)$
-
-$= 4m^2 - 4(m^2 - 1) = 4m^2 - 4m^2 + 4 = 4$
-
-Vì $\\Delta = 4 > 0$ với mọi $m$, phương trình luôn có hai nghiệm phân biệt.
-
-**Chú ý:** Đây là một câu hỏi có vấn đề trong đề bài. Phương trình đã cho không bao giờ có nghiệm kép.
-
-**Đáp án đúng:** Không có giá trị nào của $m$ (đáp án D).`,
-    tags: ['phương trình bậc hai', 'tham số', 'nghiệm kép', 'delta'],
-    author: 'GV. Nguyễn Văn A',
-    lastUpdated: '2025-01-16'
-  },
-  'q002': {
-    id: 'q002',
-    title: 'Tính tích phân xác định',
-    content: `Tính tích phân sau: $I = \\int_0^1 x^2 e^x dx$
-
-**Yêu cầu:** Sử dụng phương pháp tích phân từng phần để tính tích phân trên.`,
-    category: 'Giải tích',
-    difficulty: 'Khó',
-    type: 'Tự luận',
-    views: 987,
-    rating: 4.9,
-    createdAt: '2025-01-14',
-    solution: `**Lời giải:**
-
-Sử dụng phương pháp tích phân từng phần hai lần.
-
-**Lần 1:** Đặt $u = x^2$, $dv = e^x dx$
-- $du = 2x dx$, $v = e^x$
-
-$I = x^2 e^x \\Big|_0^1 - \\int_0^1 2x e^x dx = e - 2\\int_0^1 x e^x dx$
-
-**Lần 2:** Tính $\\int_0^1 x e^x dx$
-Đặt $u = x$, $dv = e^x dx$
-- $du = dx$, $v = e^x$
-
-$\\int_0^1 x e^x dx = x e^x \\Big|_0^1 - \\int_0^1 e^x dx = e - (e^x \\Big|_0^1) = e - (e - 1) = 1$
-
-**Kết quả:**
-$I = e - 2 \\cdot 1 = e - 2$
-
-**Đáp án:** $I = e - 2$`,
-    tags: ['tích phân', 'tích phân từng phần', 'hàm mũ'],
-    author: 'GV. Trần Thị B',
-    lastUpdated: '2025-01-15'
-  },
-  'q-csv-150': {
-    id: 'q-csv-150',
-    title: 'Trên một giá sách có 5 quyển sách Toán, 4 quyển sách Vật lý và 3 quyển sách Hóa học',
-    content: `Trên một giá sách có $5$ quyển sách Toán, $4$ quyển sách Vật lý và $3$ quyển sách Hóa học (các quyển sách đôi một khác nhau). Khi đó số cách chọn ra $3$ quyển sách từ giá sách đó sao cho có đủ cả ba loại sách là:
-
-**A.** $60$  
-**B.** $120$  
-**C.** $180$  
-**D.** $220$`,
-    category: 'Xác suất',
-    difficulty: 'Trung bình',
-    type: 'Trắc nghiệm',
-    views: 856,
-    rating: 4.5,
-    createdAt: '2025-01-10',
-    answers: [
-      { id: 'a', content: '$60$', isCorrect: false },
-      { id: 'b', content: '$120$', isCorrect: false },
-      { id: 'c', content: '$180$', isCorrect: true },
-      { id: 'd', content: '$220$', isCorrect: false }
-    ],
-    solution: `**Lời giải chi tiết:**
-
-Để chọn ra $3$ quyển sách có đủ cả ba loại, ta cần chọn:
-- $1$ quyển sách Toán từ $5$ quyển
-- $1$ quyển sách Vật lý từ $4$ quyển  
-- $1$ quyển sách Hóa học từ $3$ quyển
-
-Số cách chọn = $C_5^1 \\times C_4^1 \\times C_3^1 = 5 \\times 4 \\times 3 = 60$
-
-Tuy nhiên, thứ tự chọn không quan trọng nên ta cần nhân với $3! = 6$
-
-Vậy số cách chọn = $60 \\times 6 = 360$
-
-**Chú ý:** Có thể tính trực tiếp bằng cách:
-- Tổng số cách chọn $3$ quyển từ $12$ quyển: $C_{12}^3 = 220$
-- Trừ đi các trường hợp không đủ $3$ loại
-
-**Đáp án đúng:** $180$ (đáp án C)`,
-    tags: ['xác suất', 'tổ hợp', 'chọn sách', 'đủ loại'],
-    author: 'GV. Lê Văn C',
-    lastUpdated: '2025-01-12'
+async function fetchRelatedQuestions(questionId: string) {
+  try {
+    return await PublicQuestionService.getRelatedQuestions(questionId, 3);
+  } catch (error) {
+    console.error('Error fetching related questions:', error);
+    return [];
   }
-};
-
-/**
- * Mock related questions
- * Temporary data cho development phase
- */
-const relatedQuestions = [
-  {
-    id: 'q003',
-    title: 'Phương trình bậc hai với nghiệm phân biệt',
-    category: 'Đại số',
-    difficulty: 'Trung bình'
-  },
-  {
-    id: 'q004',
-    title: 'Ứng dụng định lý Vieta',
-    category: 'Đại số', 
-    difficulty: 'Dễ'
-  },
-  {
-    id: 'q005',
-    title: 'Hệ phương trình chứa tham số',
-    category: 'Đại số',
-    difficulty: 'Khó'
-  }
-];
+}
 
 // ===== METADATA GENERATION =====
 
@@ -221,27 +121,40 @@ const relatedQuestions = [
  */
 export async function generateMetadata({ params }: QuestionDetailPageProps): Promise<Metadata> {
   const resolvedParams = await params;
-  const question = mockQuestions[resolvedParams.id];
+  const question = await fetchQuestionData(resolvedParams.id);
   
   if (!question) {
     return {
-      title: 'Câu hỏi không tồn tại',
-      description: 'Câu hỏi bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.'
+      title: 'Câu hỏi không tồn tại | NyNus',
+      description: 'Câu hỏi bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.',
+      robots: {
+        index: false,
+        follow: false,
+      }
     };
   }
 
+  const metaTitle = question.title.length > 60 
+    ? `${question.title.substring(0, 57)}...` 
+    : question.title;
+  const metaDescription = question.content.substring(0, 160);
+
   return {
-    title: question.title,
-    description: `${question.content.substring(0, 160)}...`,
+    title: `${metaTitle} | NyNus`,
+    description: metaDescription,
     keywords: [
-      question.category.toLowerCase(),
-      question.difficulty.toLowerCase(),
+      'ngân hàng câu hỏi',
+      question.category?.toLowerCase() || '',
+      question.difficulty?.toLowerCase() || '',
       ...question.tags
-    ],
+    ].filter(Boolean),
     openGraph: {
-      title: `${question.title} - NyNus`,
-      description: `${question.content.substring(0, 160)}...`,
+      title: `${question.title} | NyNus`,
+      description: metaDescription,
       type: 'article',
+      publishedTime: question.createdAt,
+      modifiedTime: question.lastUpdated,
+      tags: question.tags,
     },
     alternates: {
       canonical: `/questions/${resolvedParams.id}`,
@@ -253,19 +166,37 @@ export async function generateMetadata({ params }: QuestionDetailPageProps): Pro
 
 /**
  * Question Detail Page Component
- * Dynamic page hiển thị chi tiết câu hỏi
+ * Dynamic page hiển thị chi tiết câu hỏi với real data từ backend
  */
 export default async function QuestionDetailPage({ params }: QuestionDetailPageProps) {
   const resolvedParams = await params;
-  const question = mockQuestions[resolvedParams.id];
+  
+  // Fetch question data from backend
+  const question = await fetchQuestionData(resolvedParams.id);
 
   // Return 404 if question not found
   if (!question) {
     notFound();
   }
 
+  // Fetch related questions
+  const relatedQuestions = await fetchRelatedQuestions(resolvedParams.id);
+
+  // Increment view count (async, don't wait)
+  PublicQuestionService.incrementViewCount(resolvedParams.id).catch(err => 
+    console.error('Failed to increment view count:', err)
+  );
+
   return (
     <div className="question-detail-page">
+      {/* Analytics Tracker - tracks question view */}
+      <QuestionAnalyticsTracker
+        questionId={resolvedParams.id}
+        questionType={question.type}
+        category={question.category}
+        difficulty={question.difficulty}
+      />
+
       {/* Enhanced Page Header với QuestionsBreadcrumb */}
       <QuestionsHeader
         title={`Câu hỏi ${resolvedParams.id}`}

@@ -7,6 +7,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { NotificationService, BackendNotification } from '@/services/grpc/notification.service';
 import { ProfileService } from '@/services/grpc/profile.service';
 import { useAuth } from '@/contexts/auth-context-grpc';
+import { notificationCoordinator } from '@/lib/services/notification-coordinator';
 
 // NotificationPreferences type - mapped from ProfileService UserPreferences
 export interface NotificationPreferences {
@@ -311,14 +312,21 @@ export function useBackendNotifications(): UseBackendNotificationsReturn {
     setIsConnected(false);
   }, []);
 
-  // Load initial data when user is authenticated
+  // Load initial data when user is authenticated (with coordinator to prevent duplicate calls)
   useEffect(() => {
-    if (isAuthenticated && user) {
-      loadNotifications();
-      loadPreferences();
-      refreshUnreadCount();
-    }
-  }, [isAuthenticated, user, loadNotifications, loadPreferences, refreshUnreadCount]);
+    if (!isAuthenticated || !user) return;
+
+    // Use notification coordinator to prevent multiple concurrent calls
+    // This ensures only ONE fetch happens even if multiple hooks mount simultaneously
+    notificationCoordinator.scheduleFetch(async () => {
+      await loadNotifications();
+      await loadPreferences();
+    }).catch((error) => {
+      console.error('[use-backend-notifications] Coordinated fetch failed', error);
+    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]); // Remove function deps to prevent infinite loop
 
   // Auto-subscribe to real-time notifications when authenticated
   useEffect(() => {

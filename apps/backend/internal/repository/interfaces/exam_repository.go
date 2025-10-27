@@ -1,9 +1,9 @@
-package interfaces
+﻿package interfaces
 
 import (
 	"context"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 )
 
 // ExamRepository defines the interface for exam data access
@@ -195,3 +195,4 @@ type PerformanceTrend struct {
 	AverageScore float64
 	PassRate     float64
 }
+

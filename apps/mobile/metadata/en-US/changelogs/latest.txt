@@ -1,0 +1,25 @@
+What's New in v1.0.0:
+
+🎉 Initial Release
+• Complete question bank with thousands of questions across all subjects
+• Practice exams with automatic grading and detailed analytics
+• Theory content with LaTeX math support
+• Offline mode for learning anywhere, anytime
+• Beautiful, modern UI with Material 3 design
+• Dark mode support
+• Progress tracking and comprehensive statistics
+• Multi-device sync (up to 3 devices)
+• Secure authentication with biometric support
+
+Features:
+• Browse questions by subject, grade, difficulty
+• Advanced search and filtering
+• Bookmark your favorite questions
+• Take timed exams with auto-save
+• View detailed exam results
+• PDF export of results
+• Download content for offline access
+• Track your learning progress
+
+We're excited to bring you this comprehensive learning platform!
+

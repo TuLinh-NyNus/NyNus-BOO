@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, FileText, Save, Eye, Loader2, Copy } from 'lucide-react';
 
@@ -16,7 +16,12 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
+  Skeleton,
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
 } from '@/components/ui';
 import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/common/error-boundary';
@@ -47,6 +52,100 @@ export default function InputLatexQuestionsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [parseError, setParseError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [isDraftSaved, setIsDraftSaved] = useState(true);
+  const [isQuestionCreated, setIsQuestionCreated] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Load draft from localStorage on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('latex-question-draft');
+    if (savedDraft) {
+      try {
+        const parsed = JSON.parse(savedDraft);
+        if (parsed.content && parsed.timestamp) {
+          // Only load if less than 7 days old
+          const daysSinceLastEdit = (Date.now() - parsed.timestamp) / (1000 * 60 * 60 * 24);
+          if (daysSinceLastEdit < 7) {
+            setLatexContent(parsed.content);
+            toast({
+              title: 'Đã khôi phục bản nháp',
+              description: 'Đã tải lại nội dung bản nháp từ lần trước',
+              variant: 'default'
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load draft:', error);
+      }
+    }
+  }, [toast]);
+
+  // Auto-save draft to localStorage (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (latexContent.trim()) {
+        try {
+          localStorage.setItem('latex-question-draft', JSON.stringify({
+            content: latexContent,
+            timestamp: Date.now()
+          }));
+          setIsDraftSaved(true);
+        } catch (error) {
+          console.error('Failed to save draft:', error);
+        }
+      }
+    }, 1000); // Debounce 1 second
+
+    setIsDraftSaved(false);
+    return () => clearTimeout(timeoutId);
+  }, [latexContent]);
+
+  /**
+   * Validate parsed question
+   * Returns array of validation warnings
+   */
+  const validateQuestion = useCallback((question: Partial<Question>): string[] => {
+    const warnings: string[] = [];
+
+    // Check if question has content
+    if (!question.content || question.content.trim().length === 0) {
+      warnings.push('Câu hỏi không có nội dung');
+    }
+
+    // Check question type
+    if (!question.type) {
+      warnings.push('Câu hỏi chưa có loại (type)');
+    }
+
+    // Validate answers for multiple choice
+    if (question.type === QuestionType.MC || question.type === QuestionType.MULTIPLE_CHOICE) {
+      const answers = question.answers as AnswerOption[] | undefined;
+      
+      if (!answers || answers.length < 2) {
+        warnings.push('Câu trắc nghiệm phải có ít nhất 2 đáp án');
+      }
+
+      if (answers && !answers.some(a => a.isCorrect)) {
+        warnings.push('Phải có ít nhất 1 đáp án đúng');
+      }
+
+      if (answers && answers.filter(a => a.isCorrect).length > 1) {
+        warnings.push('Câu trắc nghiệm đơn chỉ nên có 1 đáp án đúng');
+      }
+    }
+
+    // Check if content is too short
+    if (question.content && question.content.trim().length < 10) {
+      warnings.push('Nội dung câu hỏi quá ngắn (< 10 ký tự)');
+    }
+
+    // Check if content is too long
+    if (question.content && question.content.length > 5000) {
+      warnings.push('Nội dung câu hỏi quá dài (> 5000 ký tự)');
+    }
+
+    return warnings;
+  }, []);
 
   // Sample LaTeX template
   const sampleLatex = `\\begin{ex}%[Nguồn: "Sách giáo khoa Toán 12"]%[2P5VN]
@@ -66,10 +165,10 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
 \\end{ex}`;
 
   /**
-   * Handle LaTeX parsing and creation
-   * Uses QuestionLatexService.createFromLatex to parse and create in one step
+   * Handle LaTeX parsing (Step 1: Parse only, no creation)
+   * Memoized to prevent unnecessary re-creation
    */
-  const handleParseLatex = async () => {
+  const handleParseLatex = useCallback(async () => {
     if (!latexContent.trim()) {
       toast({
         title: 'Lỗi',
@@ -82,47 +181,40 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
     try {
       setIsLoading(true);
       setParseError(null);
+      setIsQuestionCreated(false);
 
-      // Use createFromLatex to parse and create question in one step
-      const result = await QuestionLatexService.createFromLatex({
+      // Use parseLatex to only parse, not create
+      const result = await QuestionLatexService.parseLatex({
         latex_content: latexContent,
-        auto_create_codes: true
+        is_base64: false
       });
 
       if (!result.success) {
-        setParseError(result.error || 'Không thể phân tích LaTeX');
+        setParseError(result.errors[0] || 'Không thể phân tích LaTeX');
         setParsedQuestion(null);
         toast({
-          title: 'Lỗi',
-          description: result.error || 'Không thể phân tích và tạo câu hỏi từ LaTeX',
+          title: 'Lỗi phân tích',
+          description: result.errors[0] || 'Không thể phân tích LaTeX',
           variant: 'destructive'
         });
       } else {
-        // Question created successfully
-        const firstQuestion = result.created_questions[0];
-        const firstCode = result.created_codes[0];
+        // Parsing successful, show preview for review
+        const firstQuestion = result.questions[0];
+        
+        if (firstQuestion) {
+          setParsedQuestion(firstQuestion as Partial<Question>);
+          setParseError(null);
 
-        setParsedQuestion({
-          id: firstQuestion?.id,
-          questionCodeId: firstCode?.id,
-          rawContent: latexContent
-        } as Partial<Question>);
-        setParseError(null);
+          const warningMessage = result.warnings.length > 0
+            ? `Đã phân tích thành công. Cảnh báo: ${result.warnings.join(', ')}`
+            : 'Đã phân tích LaTeX thành công. Vui lòng kiểm tra và nhấn "Tạo câu hỏi" để lưu.';
 
-        const warningMessage = result.warnings.length > 0
-          ? `Đã tạo ${result.created_count} câu hỏi thành công. Cảnh báo: ${result.warnings.join(', ')}`
-          : `Đã phân tích và tạo ${result.created_count} câu hỏi từ LaTeX thành công`;
-
-        toast({
-          title: 'Thành công',
-          description: warningMessage,
-          variant: 'success'
-        });
-
-        // Redirect to questions list after successful creation
-        setTimeout(() => {
-          router.push(ADMIN_PATHS.QUESTIONS);
-        }, 1500);
+          toast({
+            title: 'Phân tích thành công',
+            description: warningMessage,
+            variant: 'default'
+          });
+        }
       }
     } catch (error) {
       console.error('Lỗi khi phân tích LaTeX:', error);
@@ -136,50 +228,112 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [latexContent, toast]);
 
   /**
-   * Handle save parsed question
-   * Note: This is now redundant since handleParseLatex creates the question directly
-   * Keeping for backward compatibility
+   * Handle create question (Step 2: Actually create after review)
+   * Memoized to prevent unnecessary re-creation
    */
-  const handleSaveQuestion = async () => {
-    if (!parsedQuestion) {
+  const handleCreateQuestion = useCallback(async () => {
+    if (!parsedQuestion || !latexContent.trim()) {
       toast({
         title: 'Lỗi',
-        description: 'Chưa có câu hỏi để lưu',
+        description: 'Chưa có câu hỏi để tạo',
         variant: 'destructive'
       });
       return;
     }
 
-    // Question already created by handleParseLatex, just redirect
-    toast({
-      title: 'Thành công',
-      description: 'Câu hỏi đã được lưu thành công',
-      variant: 'success'
-    });
+    try {
+      setIsCreating(true);
 
-    // Redirect to questions list
-    router.push(ADMIN_PATHS.QUESTIONS);
-  };
+      // Use createFromLatex to actually create the question
+      const result = await QuestionLatexService.createFromLatex({
+        latex_content: latexContent,
+        auto_create_codes: true
+      });
+
+      if (!result.success) {
+        toast({
+          title: 'Lỗi',
+          description: result.error || 'Không thể tạo câu hỏi',
+          variant: 'destructive'
+        });
+      } else {
+        setIsQuestionCreated(true);
+        
+        // Update parsed question with created ID
+        const firstQuestion = result.created_questions[0];
+        const firstCode = result.created_codes[0];
+
+        setParsedQuestion({
+          ...parsedQuestion,
+          id: firstQuestion?.id,
+          questionCodeId: firstCode?.id
+        } as Partial<Question>);
+
+        toast({
+          title: 'Thành công',
+          description: `Đã tạo ${result.created_count} câu hỏi thành công`,
+          variant: 'success'
+        });
+
+        // Clear draft after successful creation
+        localStorage.removeItem('latex-question-draft');
+
+        // Auto redirect after 2 seconds
+        setTimeout(() => {
+          router.push(ADMIN_PATHS.QUESTIONS);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Lỗi khi tạo câu hỏi:', error);
+      toast({
+        title: 'Lỗi',
+        description: error instanceof Error ? error.message : 'Không thể tạo câu hỏi',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  }, [parsedQuestion, latexContent, toast, router]);
+
+  /**
+   * Handle view created question details
+   * Memoized to prevent unnecessary re-creation
+   */
+  const handleViewQuestion = useCallback(() => {
+    if (!parsedQuestion?.id) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không tìm thấy ID câu hỏi',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Redirect to question detail page
+    router.push(`${ADMIN_PATHS.QUESTIONS}/${parsedQuestion.id}`);
+  }, [parsedQuestion, toast, router]);
 
   /**
    * Handle copy sample LaTeX
+   * Memoized to prevent unnecessary re-creation
    */
-  const handleCopySample = () => {
+  const handleCopySample = useCallback(() => {
     setLatexContent(sampleLatex);
     toast({
       title: 'Đã sao chép',
       description: 'Đã sao chép mẫu LaTeX vào editor',
       variant: 'success'
     });
-  };
+  }, [sampleLatex, toast]);
 
   /**
    * Handle copy to clipboard
+   * Memoized to prevent unnecessary re-creation
    */
-  const handleCopyToClipboard = async (text: string) => {
+  const handleCopyToClipboard = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       toast({
@@ -194,47 +348,64 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
         variant: 'destructive'
       });
     }
-  };
+  }, [toast]);
+
+  /**
+   * Question type labels mapping
+   * Memoized constant to prevent re-creation
+   */
+  const typeLabels = useMemo(() => ({
+    [QuestionType.MC]: 'Trắc nghiệm',
+    [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
+    [QuestionType.TF]: 'Đúng/Sai',
+    [QuestionType.SA]: 'Tự luận ngắn',
+    [QuestionType.ES]: 'Tự luận',
+    [QuestionType.MA]: 'Ghép đôi'
+  }), []);
 
   /**
    * Render question type badge
+   * Memoized to prevent unnecessary re-renders
    */
-  const renderQuestionTypeBadge = (type?: QuestionType) => {
+  const renderQuestionTypeBadge = useCallback((type?: QuestionType) => {
     if (!type) return null;
-
-    const typeLabels = {
-      [QuestionType.MC]: 'Trắc nghiệm',
-      [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm',
-      [QuestionType.TF]: 'Đúng/Sai',
-      [QuestionType.SA]: 'Tự luận ngắn',
-      [QuestionType.ES]: 'Tự luận',
-      [QuestionType.MA]: 'Ghép đôi'
-    };
 
     return (
       <Badge variant="outline">
         {typeLabels[type]}
       </Badge>
     );
-  };
+  }, [typeLabels]);
 
   return (
     <ErrorBoundary>
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        {/* Header - Responsive */}
+        <header 
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+          role="banner"
+        >
+          <div className="flex items-start sm:items-center gap-3 sm:gap-4">
             <Button 
               variant="ghost" 
               size="sm"
               onClick={() => router.back()}
+              className="shrink-0"
+              aria-label="Quay lại trang trước"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Quay lại
+              <ArrowLeft className="h-4 w-4 sm:mr-2" aria-hidden="true" />
+              <span className="hidden sm:inline">Quay lại</span>
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Nhập câu hỏi LaTeX</h1>
-              <p className="text-muted-foreground mt-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Nhập câu hỏi LaTeX</h1>
+                {latexContent.trim() && (
+                  <Badge variant={isDraftSaved ? "outline" : "secondary"} className="text-xs">
+                    {isDraftSaved ? '✓ Đã lưu nháp' : 'Đang lưu...'}
+                  </Badge>
+                )}
+              </div>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">
                 Nhập và phân tích câu hỏi từ định dạng LaTeX
               </p>
             </div>
@@ -243,14 +414,18 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
           <div className="flex gap-2">
             <Button 
               variant="outline"
+              size="sm"
               onClick={() => router.push(ADMIN_PATHS.QUESTIONS)}
+              className="w-full sm:w-auto"
+              aria-label="Xem danh sách câu hỏi"
             >
-              Danh sách câu hỏi
+              <span className="hidden sm:inline">Danh sách câu hỏi</span>
+              <span className="sm:hidden">Danh sách</span>
             </Button>
           </div>
-        </div>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
           {/* LaTeX Input using LaTeXEditor component */}
           <Card>
             <CardHeader>
@@ -264,28 +439,32 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                     variant="outline" 
                     size="sm"
                     onClick={handleCopySample}
+                    aria-label="Sao chép mẫu LaTeX vào editor"
                   >
-                    <Copy className="h-4 w-4 mr-2" />
+                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
                     Sao chép mẫu
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowPreview(!showPreview)}
+                    aria-label={showPreview ? 'Ẩn xem trước LaTeX' : 'Hiện xem trước LaTeX'}
+                    aria-pressed={showPreview}
                   >
-                    <Eye className="h-4 w-4 mr-2" />
+                    <Eye className="h-4 w-4 mr-2" aria-hidden="true" />
                     {showPreview ? 'Ẩn Preview' : 'Hiện Preview'}
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Use LaTeXEditor component */}
+              {/* Use LaTeXEditor component - Responsive height */}
               <LaTeXEditor
                 value={latexContent}
                 onChange={setLatexContent}
                 showPreview={showPreview}
-                height="400px"
+                height="300px"
+                className="sm:h-[400px]"
                 placeholder="Nhập nội dung LaTeX..."
               />
 
@@ -294,20 +473,23 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                   onClick={handleParseLatex}
                   disabled={isLoading || !latexContent.trim()}
                   className="flex-1"
+                  aria-label="Phân tích nội dung LaTeX"
+                  aria-busy={isLoading}
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
                   ) : (
-                    <FileText className="h-4 w-4 mr-2" />
+                    <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
                   )}
-                  Phân tích & Tạo câu hỏi
+                  Phân tích LaTeX
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => handleCopyToClipboard(latexContent)}
                   disabled={!latexContent.trim()}
+                  aria-label="Sao chép nội dung LaTeX vào clipboard"
                 >
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4" aria-hidden="true" />
                 </Button>
               </div>
             </CardContent>
@@ -317,26 +499,64 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5" />
+                <Eye className="h-5 w-5" aria-hidden="true" />
                 Kết quả phân tích
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent role="region" aria-label="Kết quả phân tích câu hỏi" aria-live="polite">
               {parseError && (
                 <Alert variant="destructive" className="mb-4">
                   <AlertDescription>{parseError}</AlertDescription>
                 </Alert>
               )}
 
-              {!parsedQuestion && !parseError && (
+              {isLoading && (
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-3/4" />
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <div className="mt-4">
+                        <Skeleton className="h-20 w-full" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {!parsedQuestion && !parseError && !isLoading && (
                 <div className="text-center py-8 text-gray-500">
                   <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>Nhập nội dung LaTeX và nhấn &quot;Phân tích LaTeX&quot; để xem kết quả</p>
+                  <p>Nhập nội dung LaTeX và nhấn &quot;Phân tích & Tạo câu hỏi&quot; để xem kết quả</p>
                 </div>
               )}
 
               {parsedQuestion && (
                 <div className="space-y-4">
+                  {/* Validation warnings */}
+                  {(() => {
+                    const validationWarnings = validateQuestion(parsedQuestion);
+                    return validationWarnings.length > 0 && (
+                      <Alert variant="warning" className="mb-4">
+                        <AlertDescription>
+                          <div className="space-y-1">
+                            <p className="font-medium">⚠️ Cảnh báo validation:</p>
+                            {validationWarnings.map((warning, index) => (
+                              <div key={index} className="text-sm">
+                                • {warning}
+                              </div>
+                            ))}
+                          </div>
+                        </AlertDescription>
+                      </Alert>
+                    );
+                  })()}
+
                   {/* Question preview */}
                   <Card>
                     <CardHeader>
@@ -402,25 +622,64 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                   </Card>
 
                   {/* Action buttons */}
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleSaveQuestion}
-                      disabled={isLoading}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700"
-                    >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4 mr-2" />
-                      )}
-                      Lưu câu hỏi
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => router.push(`${ADMIN_PATHS.QUESTIONS_CREATE}?from=latex`)}
-                    >
-                      Chỉnh sửa
-                    </Button>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    {!isQuestionCreated ? (
+                      <>
+                        <Button 
+                          onClick={handleCreateQuestion}
+                          disabled={isCreating}
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          aria-label="Tạo câu hỏi vào hệ thống"
+                          aria-busy={isCreating}
+                        >
+                          {isCreating ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                          ) : (
+                            <Save className="h-4 w-4 mr-2" aria-hidden="true" />
+                          )}
+                          Tạo câu hỏi
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setParsedQuestion(null);
+                            setParseError(null);
+                            setIsQuestionCreated(false);
+                          }}
+                          className="flex-1"
+                          aria-label="Hủy và phân tích lại"
+                          disabled={isCreating}
+                        >
+                          <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
+                          Phân tích lại
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button 
+                          onClick={handleViewQuestion}
+                          className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          aria-label="Xem chi tiết câu hỏi đã tạo"
+                        >
+                          <Eye className="h-4 w-4 mr-2" aria-hidden="true" />
+                          Xem chi tiết
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setParsedQuestion(null);
+                            setParseError(null);
+                            setIsQuestionCreated(false);
+                            setLatexContent('');
+                          }}
+                          className="flex-1"
+                          aria-label="Tạo câu hỏi mới"
+                        >
+                          <FileText className="h-4 w-4 mr-2" aria-hidden="true" />
+                          Tạo câu hỏi mới
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
@@ -428,13 +687,24 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
           </Card>
         </div>
 
-        {/* LaTeX Examples */}
+        {/* LaTeX Examples - Collapsible */}
         <Card>
-          <CardHeader>
-            <CardTitle>Ví dụ LaTeX</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="multiple-choice">
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="examples" className="border-0">
+              <CardHeader className="pb-0">
+                <AccordionTrigger className="hover:no-underline py-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Ví dụ LaTeX
+                    <Badge variant="outline" className="ml-2">
+                      Nhấn để xem
+                    </Badge>
+                  </CardTitle>
+                </AccordionTrigger>
+              </CardHeader>
+              <AccordionContent>
+                <CardContent className="pt-4">
+                  <Tabs defaultValue="multiple-choice">
               <TabsList>
                 <TabsTrigger value="multiple-choice">Trắc nghiệm</TabsTrigger>
                 <TabsTrigger value="true-false">Đúng/Sai</TabsTrigger>
@@ -465,8 +735,9 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                     size="sm" 
                     className="mt-2"
                     onClick={() => handleCopyToClipboard(sampleLatex)}
+                    aria-label="Sao chép ví dụ câu hỏi trắc nghiệm"
                   >
-                    <Copy className="h-4 w-4 mr-2" />
+                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
                     Sao chép
                   </Button>
                 </div>
@@ -500,8 +771,9 @@ Phát biểu: "Trong tam giác vuông, bình phương cạnh huyền bằng tổ
     Đây chính là định lý Pythagoras.
 }
 \\end{ex}`)}
+                    aria-label="Sao chép ví dụ câu hỏi đúng sai"
                   >
-                    <Copy className="h-4 w-4 mr-2" />
+                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
                     Sao chép
                   </Button>
                 </div>
@@ -547,14 +819,18 @@ Giải phương trình: $\\log_2(x+1) + \\log_2(x-1) = 3$
     Kết hợp điều kiện $x > 1$, ta có $x = 3$.
 }
 \\end{ex}`)}
+                    aria-label="Sao chép ví dụ câu hỏi tự luận"
                   >
-                    <Copy className="h-4 w-4 mr-2" />
+                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
                     Sao chép
                   </Button>
                 </div>
               </TabsContent>
-            </Tabs>
-          </CardContent>
+                  </Tabs>
+                </CardContent>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </Card>
       </div>
     </ErrorBoundary>

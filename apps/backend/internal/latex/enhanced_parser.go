@@ -1,4 +1,4 @@
-package latex
+﻿package latex
 
 import (
 	"fmt"
@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/util"
 )
 
 // EnhancedLaTeXParser provides enhanced parsing with detailed error handling
@@ -46,8 +46,8 @@ func (p *EnhancedLaTeXParser) ParseWithDetailedErrors(latexContent string) *enti
 			ID:         util.StringToPgText(uuid.New().String()),
 			Type:       entity.ParseErrorTypeStructural,
 			Severity:   entity.ParseErrorSeverityError,
-			Message:    util.StringToPgText("Không tìm thấy block câu hỏi \\begin{ex}...\\end{ex}"),
-			Suggestion: util.StringToPgText("Đảm bảo nội dung LaTeX có cấu trúc \\begin{ex}...\\end{ex}"),
+			Message:    util.StringToPgText("KhÃ´ng tÃ¬m tháº¥y block cÃ¢u há»i \\begin{ex}...\\end{ex}"),
+			Suggestion: util.StringToPgText("Äáº£m báº£o ná»™i dung LaTeX cÃ³ cáº¥u trÃºc \\begin{ex}...\\end{ex}"),
 			Context:    util.StringToPgText("latex_structure"),
 			CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 		})
@@ -108,8 +108,8 @@ func (p *EnhancedLaTeXParser) validateStructure(questionBlock string) []entity.D
 				ID:         util.StringToPgText(uuid.New().String()),
 				Type:       entity.ParseErrorTypeStructural,
 				Severity:   entity.ParseErrorSeverityError,
-				Message:    util.StringToPgText(fmt.Sprintf("Thiếu lệnh LaTeX bắt buộc: %s", cmd)),
-				Suggestion: util.StringToPgText(fmt.Sprintf("Thêm lệnh %s vào nội dung LaTeX", cmd)),
+				Message:    util.StringToPgText(fmt.Sprintf("Thiáº¿u lá»‡nh LaTeX báº¯t buá»™c: %s", cmd)),
+				Suggestion: util.StringToPgText(fmt.Sprintf("ThÃªm lá»‡nh %s vÃ o ná»™i dung LaTeX", cmd)),
 				Context:    util.StringToPgText("latex_commands"),
 				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 			})
@@ -122,8 +122,8 @@ func (p *EnhancedLaTeXParser) validateStructure(questionBlock string) []entity.D
 			ID:         util.StringToPgText(uuid.New().String()),
 			Type:       entity.ParseErrorTypeStructural,
 			Severity:   entity.ParseErrorSeverityError,
-			Message:    util.StringToPgText("Dấu ngoặc không cân bằng trong LaTeX"),
-			Suggestion: util.StringToPgText("Kiểm tra lại các dấu ngoặc {}, [], () trong nội dung LaTeX"),
+			Message:    util.StringToPgText("Dáº¥u ngoáº·c khÃ´ng cÃ¢n báº±ng trong LaTeX"),
+			Suggestion: util.StringToPgText("Kiá»ƒm tra láº¡i cÃ¡c dáº¥u ngoáº·c {}, [], () trong ná»™i dung LaTeX"),
 			Context:    util.StringToPgText("bracket_balance"),
 			CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 		})
@@ -145,8 +145,8 @@ func (p *EnhancedLaTeXParser) parseQuestionContent(questionBlock string) (*entit
 			ID:         util.StringToPgText(uuid.New().String()),
 			Type:       entity.ParseErrorTypeInvalidFormat,
 			Severity:   entity.ParseErrorSeverityError,
-			Message:    util.StringToPgText(fmt.Sprintf("Lỗi phân tích nội dung: %v", err)),
-			Suggestion: util.StringToPgText("Kiểm tra lại cú pháp LaTeX và định dạng câu hỏi"),
+			Message:    util.StringToPgText(fmt.Sprintf("Lá»—i phÃ¢n tÃ­ch ná»™i dung: %v", err)),
+			Suggestion: util.StringToPgText("Kiá»ƒm tra láº¡i cÃº phÃ¡p LaTeX vÃ  Ä‘á»‹nh dáº¡ng cÃ¢u há»i"),
 			Context:    util.StringToPgText("content_parsing"),
 			CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 		})
@@ -179,7 +179,7 @@ func (p *EnhancedLaTeXParser) validateRequiredFields(question *entity.Question) 
 				ID:         util.StringToPgText(uuid.New().String()),
 				Type:       rule.ErrorType,
 				Severity:   rule.Severity,
-				Message:    util.StringToPgText(fmt.Sprintf("Trường bắt buộc '%s' bị thiếu", rule.Field)),
+				Message:    util.StringToPgText(fmt.Sprintf("TrÆ°á»ng báº¯t buá»™c '%s' bá»‹ thiáº¿u", rule.Field)),
 				Field:      util.StringToPgText(rule.Field),
 				Suggestion: util.StringToPgText(strings.Join(rule.Suggestions, "; ")),
 				Context:    util.StringToPgText("required_field_validation"),
@@ -215,7 +215,7 @@ func (p *EnhancedLaTeXParser) validateFieldFormats(question *entity.Question) []
 					ID:         util.StringToPgText(uuid.New().String()),
 					Type:       rule.ErrorType,
 					Severity:   rule.Severity,
-					Message:    util.StringToPgText(fmt.Sprintf("Định dạng trường '%s' không hợp lệ", rule.Field)),
+					Message:    util.StringToPgText(fmt.Sprintf("Äá»‹nh dáº¡ng trÆ°á»ng '%s' khÃ´ng há»£p lá»‡", rule.Field)),
 					Field:      util.StringToPgText(rule.Field),
 					Suggestion: util.StringToPgText(strings.Join(rule.Suggestions, "; ")),
 					Context:    util.StringToPgText("format_validation"),
@@ -231,7 +231,7 @@ func (p *EnhancedLaTeXParser) validateFieldFormats(question *entity.Question) []
 				ID:         util.StringToPgText(uuid.New().String()),
 				Type:       rule.ErrorType,
 				Severity:   rule.Severity,
-				Message:    util.StringToPgText(fmt.Sprintf("Trường '%s' quá ngắn (tối thiểu %d ký tự)", rule.Field, rule.MinLength)),
+				Message:    util.StringToPgText(fmt.Sprintf("TrÆ°á»ng '%s' quÃ¡ ngáº¯n (tá»‘i thiá»ƒu %d kÃ½ tá»±)", rule.Field, rule.MinLength)),
 				Field:      util.StringToPgText(rule.Field),
 				Suggestion: util.StringToPgText(strings.Join(rule.Suggestions, "; ")),
 				Context:    util.StringToPgText("length_validation"),
@@ -244,9 +244,9 @@ func (p *EnhancedLaTeXParser) validateFieldFormats(question *entity.Question) []
 				ID:         util.StringToPgText(uuid.New().String()),
 				Type:       rule.ErrorType,
 				Severity:   rule.Severity,
-				Message:    util.StringToPgText(fmt.Sprintf("Trường '%s' quá dài (tối đa %d ký tự)", rule.Field, rule.MaxLength)),
+				Message:    util.StringToPgText(fmt.Sprintf("TrÆ°á»ng '%s' quÃ¡ dÃ i (tá»‘i Ä‘a %d kÃ½ tá»±)", rule.Field, rule.MaxLength)),
 				Field:      util.StringToPgText(rule.Field),
-				Suggestion: util.StringToPgText("Rút gọn nội dung hoặc chia thành nhiều phần"),
+				Suggestion: util.StringToPgText("RÃºt gá»n ná»™i dung hoáº·c chia thÃ nh nhiá»u pháº§n"),
 				Context:    util.StringToPgText("length_validation"),
 				CreatedAt:  pgtype.Timestamptz{Time: time.Now(), Status: pgtype.Present},
 			})
@@ -298,19 +298,19 @@ func (p *EnhancedLaTeXParser) generateSuggestions(errors, warnings []entity.Deta
 	}
 
 	if errorTypes[entity.ParseErrorTypeMissingField] {
-		suggestions = append(suggestions, "Thêm các trường bắt buộc còn thiếu")
+		suggestions = append(suggestions, "ThÃªm cÃ¡c trÆ°á»ng báº¯t buá»™c cÃ²n thiáº¿u")
 	}
 
 	if errorTypes[entity.ParseErrorTypeInvalidFormat] {
-		suggestions = append(suggestions, "Kiểm tra lại cú pháp LaTeX")
+		suggestions = append(suggestions, "Kiá»ƒm tra láº¡i cÃº phÃ¡p LaTeX")
 	}
 
 	if errorTypes[entity.ParseErrorTypeStructural] {
-		suggestions = append(suggestions, "Sửa cấu trúc LaTeX cơ bản")
+		suggestions = append(suggestions, "Sá»­a cáº¥u trÃºc LaTeX cÆ¡ báº£n")
 	}
 
 	if len(warnings) > 0 {
-		suggestions = append(suggestions, "Xem xét các cảnh báo để cải thiện chất lượng câu hỏi")
+		suggestions = append(suggestions, "Xem xÃ©t cÃ¡c cáº£nh bÃ¡o Ä‘á»ƒ cáº£i thiá»‡n cháº¥t lÆ°á»£ng cÃ¢u há»i")
 	}
 
 	return suggestions
@@ -385,3 +385,4 @@ func hasBalancedBrackets(content string) bool {
 
 	return braceCount == 0 && bracketCount == 0 && parenCount == 0
 }
+

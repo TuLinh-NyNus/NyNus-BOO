@@ -1,12 +1,12 @@
-syntax = "proto3";
+﻿syntax = "proto3";
 
 package v1;
 
 import "common/common.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
 
-// Lặp lại PostType để tránh phụ thuộc chéo giữa file proto
+// Láº·p láº¡i PostType Ä‘á»ƒ trÃ¡nh phá»¥ thuá»™c chÃ©o giá»¯a file proto
 enum PostTypeForSearch {
   POST_TYPE_FOR_SEARCH_UNSPECIFIED = 0;
   POST_TYPE_FOR_SEARCH_ARTICLE = 1;
@@ -15,12 +15,12 @@ enum PostTypeForSearch {
 }
 
 message SearchRequest {
-  string query = 1;                      // từ khóa
-  string category = 2;                   // lọc theo category
-  repeated string tags = 3;              // lọc theo tags
-  PostTypeForSearch type = 4;            // lọc theo loại bài
-  int32 limit = 5;                       // số kết quả tối đa
-  int32 offset = 6;                      // phân trang (nếu không dùng streaming)
+  string query = 1;                      // tá»« khÃ³a
+  string category = 2;                   // lá»c theo category
+  repeated string tags = 3;              // lá»c theo tags
+  PostTypeForSearch type = 4;            // lá»c theo loáº¡i bÃ i
+  int32 limit = 5;                       // sá»‘ káº¿t quáº£ tá»‘i Ä‘a
+  int32 offset = 6;                      // phÃ¢n trang (náº¿u khÃ´ng dÃ¹ng streaming)
 }
 
 message SearchHit {
@@ -34,6 +34,7 @@ message SearchHit {
 }
 
 service SearchService {
-  // Trả kết quả dạng streaming để hiển thị dần
+  // Tráº£ káº¿t quáº£ dáº¡ng streaming Ä‘á»ƒ hiá»ƒn thá»‹ dáº§n
   rpc Search(SearchRequest) returns (stream SearchHit);
 }
+

@@ -1,25 +1,28 @@
 /**
  * Realtime Dashboard Metrics Component
  * Component hiển thị metrics real-time cho admin dashboard
+ *
+ * ✅ FIX: Sử dụng AdminStatsContext để tránh duplicate API calls
  */
 
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Users, 
-  UserCheck, 
-  Shield, 
-  Activity, 
-  TrendingUp, 
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import {
+  Users,
+  UserCheck,
+  Shield,
+  Activity,
+  TrendingUp,
   TrendingDown,
   Minus
 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/display/card';
 import { Badge } from '@/components/ui/display/badge';
-import { adminDashboardMockService, DashboardMetrics } from '@/lib/mockdata/admin';
+import { DashboardMetrics } from '@/lib/mockdata/admin';
 import { cn } from "@/lib/utils";
+import { useAdminStats } from '@/contexts/admin-stats-context';
 
 /**
  * Realtime Dashboard Metrics Props
@@ -42,6 +45,7 @@ interface MetricCardProps {
   description: string; // Mô tả metric
   format?: 'number' | 'percentage' | 'duration'; // Format hiển thị
   colorScheme?: 'primary' | 'success' | 'education' | 'accent' | 'alert'; // Unified color scheme
+  sparklineData?: number[]; // Optional tiny sparkline
 }
 
 /**
@@ -111,51 +115,57 @@ function MetricCard({
   icon,
   description,
   format = 'number',
-  colorScheme = 'primary'
+  colorScheme = 'primary',
+  sparklineData
 }: MetricCardProps) {
   const trend = getTrendIndicator(value, previousValue);
   
-  // UNIFIED COLOR SYSTEM - Full parity with StatCard rich styling
+  // MODERN GLASSMORPHISM COLOR SYSTEM - matching StatCard
   const colorClasses = {
     primary: {
-      bg: 'bg-gradient-to-br from-[#5B88B9]/15 via-[#5B88B9]/10 to-[#4A6B8A]/15 dark:from-[#5B88B9]/25 dark:via-[#5B88B9]/15 dark:to-[#4A6B8A]/25',
-      border: 'border-[#5B88B9]/30 dark:border-[#5B88B9]/40',
-      iconBg: 'bg-gradient-to-br from-[#5B88B9] to-[#4A6B8A] shadow-lg shadow-[#5B88B9]/25',
+      bg: 'bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-blue-600/10 dark:from-blue-500/20 dark:via-cyan-500/15 dark:to-blue-600/20',
+      border: 'border-white/10 dark:border-white/20',
+      iconBg: 'bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 shadow-2xl shadow-blue-500/50',
       iconColor: 'text-white',
-      valueGradient: 'bg-gradient-to-r from-[#5B88B9] to-[#4A6B8A] bg-clip-text text-transparent',
-      hoverGlow: 'hover:shadow-xl hover:shadow-[#5B88B9]/30 dark:hover:shadow-[#5B88B9]/30'
+      valueGradient: 'bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500 bg-clip-text text-transparent',
+      hoverGlow: 'hover:shadow-2xl hover:shadow-blue-500/30 hover:border-blue-400/30',
+      accentGlow: 'absolute inset-0 bg-gradient-to-br from-blue-500/5 via-cyan-500/5 to-transparent pointer-events-none'
     },
     success: {
-      bg: 'bg-gradient-to-br from-[#48BB78]/15 via-[#48BB78]/10 to-[#38A169]/15 dark:from-[#48BB78]/25 dark:via-[#48BB78]/15 dark:to-[#38A169]/25',
-      border: 'border-[#48BB78]/30 dark:border-[#48BB78]/40',
-      iconBg: 'bg-gradient-to-br from-[#48BB78] to-[#38A169] shadow-lg shadow-[#48BB78]/25',
+      bg: 'bg-gradient-to-br from-emerald-500/10 via-green-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:via-green-500/15 dark:to-teal-500/20',
+      border: 'border-white/10 dark:border-white/20',
+      iconBg: 'bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 shadow-2xl shadow-emerald-500/50',
       iconColor: 'text-white',
-      valueGradient: 'bg-gradient-to-r from-[#48BB78] to-[#38A169] bg-clip-text text-transparent',
-      hoverGlow: 'hover:shadow-xl hover:shadow-[#48BB78]/30 dark:hover:shadow-[#48BB78]/30'
+      valueGradient: 'bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 bg-clip-text text-transparent',
+      hoverGlow: 'hover:shadow-2xl hover:shadow-emerald-500/30 hover:border-emerald-400/30',
+      accentGlow: 'absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-green-500/5 to-transparent pointer-events-none'
     },
     education: {
-      bg: 'bg-gradient-to-br from-[#FDAD00]/15 via-[#FDAD00]/10 to-[#E09900]/15 dark:from-[#FDAD00]/25 dark:via-[#FDAD00]/15 dark:to-[#E09900]/25',
-      border: 'border-[#FDAD00]/30 dark:border-[#FDAD00]/40',
-      iconBg: 'bg-gradient-to-br from-[#FDAD00] to-[#E09900] shadow-lg shadow-[#FDAD00]/25',
+      bg: 'bg-gradient-to-br from-amber-500/10 via-yellow-500/10 to-orange-500/10 dark:from-amber-500/20 dark:via-yellow-500/15 dark:to-orange-500/20',
+      border: 'border-white/10 dark:border-white/20',
+      iconBg: 'bg-gradient-to-br from-amber-500 via-yellow-500 to-orange-500 shadow-2xl shadow-amber-500/50',
       iconColor: 'text-white',
-      valueGradient: 'bg-gradient-to-r from-[#FDAD00] to-[#E09900] bg-clip-text text-transparent',
-      hoverGlow: 'hover:shadow-xl hover:shadow-[#FDAD00]/30 dark:hover:shadow-[#FDAD00]/30'
+      valueGradient: 'bg-gradient-to-r from-amber-600 via-yellow-500 to-orange-500 bg-clip-text text-transparent',
+      hoverGlow: 'hover:shadow-2xl hover:shadow-amber-500/30 hover:border-amber-400/30',
+      accentGlow: 'absolute inset-0 bg-gradient-to-br from-amber-500/5 via-yellow-500/5 to-transparent pointer-events-none'
     },
     accent: {
-      bg: 'bg-gradient-to-br from-[#A259FF]/15 via-[#A259FF]/10 to-[#32197D]/15 dark:from-[#A259FF]/25 dark:via-[#A259FF]/15 dark:to-[#32197D]/25',
-      border: 'border-[#A259FF]/30 dark:border-[#A259FF]/40',
-      iconBg: 'bg-gradient-to-br from-[#A259FF] to-[#32197D] shadow-lg shadow-[#A259FF]/25',
+      bg: 'bg-gradient-to-br from-purple-500/10 via-fuchsia-500/10 to-pink-500/10 dark:from-purple-500/20 dark:via-fuchsia-500/15 dark:to-pink-500/20',
+      border: 'border-white/10 dark:border-white/20',
+      iconBg: 'bg-gradient-to-br from-purple-500 via-fuchsia-500 to-pink-500 shadow-2xl shadow-purple-500/50',
       iconColor: 'text-white',
-      valueGradient: 'bg-gradient-to-r from-[#A259FF] to-[#32197D] bg-clip-text text-transparent',
-      hoverGlow: 'hover:shadow-xl hover:shadow-[#A259FF]/30 dark:hover:shadow-[#A259FF]/30'
+      valueGradient: 'bg-gradient-to-r from-purple-600 via-fuchsia-500 to-pink-500 bg-clip-text text-transparent',
+      hoverGlow: 'hover:shadow-2xl hover:shadow-purple-500/30 hover:border-purple-400/30',
+      accentGlow: 'absolute inset-0 bg-gradient-to-br from-purple-500/5 via-fuchsia-500/5 to-transparent pointer-events-none'
     },
     alert: {
-      bg: 'bg-gradient-to-br from-[#FD5653]/15 via-[#FD5653]/10 to-[#E53E3E]/15 dark:from-[#FD5653]/25 dark:via-[#FD5653]/15 dark:to-[#E53E3E]/25',
-      border: 'border-[#FD5653]/30 dark:border-[#FD5653]/40',
-      iconBg: 'bg-gradient-to-br from-[#FD5653] to-[#E53E3E] shadow-lg shadow-[#FD5653]/25',
+      bg: 'bg-gradient-to-br from-rose-500/10 via-red-500/10 to-pink-500/10 dark:from-rose-500/20 dark:via-red-500/15 dark:to-pink-500/20',
+      border: 'border-white/10 dark:border-white/20',
+      iconBg: 'bg-gradient-to-br from-rose-500 via-red-500 to-pink-500 shadow-2xl shadow-rose-500/50',
       iconColor: 'text-white',
-      valueGradient: 'bg-gradient-to-r from-[#FD5653] to-[#E53E3E] bg-clip-text text-transparent',
-      hoverGlow: 'hover:shadow-xl hover:shadow-[#FD5653]/30 dark:hover:shadow-[#FD5653]/30'
+      valueGradient: 'bg-gradient-to-r from-rose-600 via-red-500 to-pink-500 bg-clip-text text-transparent',
+      hoverGlow: 'hover:shadow-2xl hover:shadow-rose-500/30 hover:border-rose-400/30',
+      accentGlow: 'absolute inset-0 bg-gradient-to-br from-rose-500/5 via-red-500/5 to-transparent pointer-events-none'
     }
   };
 
@@ -163,44 +173,92 @@ function MetricCard({
 
   return (
     <Card className={cn(
-      "relative overflow-hidden border transition-all duration-300 backdrop-blur-sm cursor-pointer group",
+      "group relative overflow-hidden border transition-all duration-500 h-full min-h-[200px]",
+      "backdrop-blur-xl bg-card/40 shadow-lg hover:-translate-y-1",
+      "cursor-pointer hover:scale-[1.03]",
       scheme.bg,
       scheme.border,
       scheme.hoverGlow
     )}>
-      {/* Subtle gradient overlay - consistent với StatCard */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent dark:from-white/10 dark:to-transparent pointer-events-none" />
+      {/* Glassmorphism Accent Glow */}
+      <div className={scheme.accentGlow} />
+      
+      {/* Animated Gradient Border Effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-        <CardTitle className="text-sm font-medium text-foreground/90">
+      {/* Floating Orb Effect */}
+      <div className="absolute -top-12 -right-12 w-32 h-32 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 group-hover:scale-150" />
+
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6 pt-6 px-6 relative z-10">
+        <CardTitle className="text-sm font-bold text-foreground/90 tracking-wide uppercase">
           {title}
         </CardTitle>
-        <div className={cn("p-2 rounded-lg transition-all duration-300", scheme.iconBg)}>
-          <div className={scheme.iconColor}>
+        <div className={cn(
+          "p-3 rounded-2xl transition-all duration-500",
+          "group-hover:rotate-12 group-hover:scale-125",
+          scheme.iconBg
+        )}>
+          <div className={cn(scheme.iconColor, "scale-110")}>
             {icon}
           </div>
         </div>
       </CardHeader>
-      <CardContent className="relative z-10">
-        {/* Enhanced typography với rich gradients - full parity với StatCard */}
+      
+      <CardContent className="relative z-10 px-6 pb-6">
+        {/* Value with mega emphasis */}
         <div className={cn(
-          "text-3xl font-extrabold mb-2 transition-all duration-300 group-hover:scale-105",
-          scheme.valueGradient
+          "text-5xl font-black mb-4 transition-all duration-500",
+          "group-hover:scale-110 group-hover:tracking-tight",
+          scheme.valueGradient,
+          "drop-shadow-sm"
         )}>
           {formatValue(value, format)}
         </div>
 
-        <div className="flex items-center justify-between mt-2">
-          <p className="text-sm font-medium text-muted-foreground/90 leading-relaxed">
+        {/* Optional micro sparkline */}
+        {sparklineData && sparklineData.length > 1 && (
+          <div className="mb-4 -ml-1 -mr-1 opacity-80 group-hover:opacity-100 transition-opacity">
+            <svg viewBox="0 0 100 24" className="w-full h-6">
+              <defs>
+                <linearGradient id={`grad-${title.replace(/\s+/g,'-')}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.6)" />
+                  <stop offset="100%" stopColor="rgba(255,255,255,0.2)" />
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="22" x2="100" y2="22" stroke="currentColor" className="text-white/10" strokeWidth="0.5" />
+              {
+                (() => {
+                  const max = Math.max(...sparklineData!);
+                  const min = Math.min(...sparklineData!);
+                  const range = Math.max(1, max - min);
+                  const step = 100 / (sparklineData!.length - 1);
+                  const points = sparklineData!.map((v, i) => {
+                    const x = i * step;
+                    const y = 22 - ((v - min) / range) * 18;
+                    return `${x},${y}`;
+                  }).join(' ');
+                  return <polyline points={points} fill="none" stroke={`url(#grad-${title.replace(/\s+/g,'-')})`} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />;
+                })()
+              }
+            </svg>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-medium text-muted-foreground/70 leading-relaxed group-hover:text-muted-foreground/90 transition-colors duration-300 flex-1">
             {description}
           </p>
           <Badge variant="outline" className={cn(
-            "flex items-center gap-1 transition-all duration-300",
-            trend.color,
-            "border-muted-foreground/30"
+            "flex items-center gap-1 transition-all duration-300 backdrop-blur-sm shrink-0",
+            "group-hover:scale-105",
+            trend.color === 'text-green-600' 
+              ? "bg-emerald-500/20 text-emerald-400 border-emerald-400/30"
+              : trend.color === 'text-red-600'
+              ? "bg-rose-500/20 text-rose-400 border-rose-400/30"
+              : "bg-blue-500/20 text-blue-400 border-blue-400/30"
           )}>
             {trend.icon}
-            <span className="text-xs">{trend.text}</span>
+            <span className="text-xs font-bold">{trend.text}</span>
           </Badge>
         </div>
       </CardContent>
@@ -211,60 +269,66 @@ function MetricCard({
 /**
  * Realtime Dashboard Metrics Component
  * Component chính hiển thị real-time metrics
+ *
+ * ✅ FIX: Sử dụng AdminStatsContext thay vì fetch trực tiếp
  */
 export function RealtimeDashboardMetrics({
-  enableAutoRefresh = true,
-  refreshInterval = 30000
+  enableAutoRefresh: _enableAutoRefresh = true,
+  refreshInterval: _refreshInterval = 30000
 }: RealtimeDashboardMetricsProps) {
-  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  // ✅ FIX: Use AdminStatsContext instead of direct API call
+  const { stats, loading: isLoading, metricsHistory } = useAdminStats();
+
   const [previousMetrics, setPreviousMetrics] = useState<DashboardMetrics | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const metricsRef = useRef<DashboardMetrics | null>(null);
 
-  /**
-   * Fetch metrics data
-   * Fetch dữ liệu metrics
-   */
-  const fetchMetrics = useCallback(async () => {
-    try {
-      const data = await adminDashboardMockService.getDashboardMetrics();
-      
-      // Store previous metrics for trend calculation
-      if (metrics) {
-        setPreviousMetrics(metrics);
-      }
-      
-      setMetrics(data);
-    } catch (error) {
-      console.error('[RealtimeDashboardMetrics] Error fetching metrics:', error);
-    } finally {
-      setIsLoading(false);
+  // Map stats to DashboardMetrics format - wrapped in useMemo to prevent re-creation
+  const metrics: DashboardMetrics | null = useMemo(() => stats ? {
+    users: {
+      total: stats.total_users || 0,
+      active: stats.active_users || 0,
+      newToday: 0, // TODO: Add to backend
+      growth: 0 // TODO: Calculate from historical data
+    },
+    sessions: {
+      total: stats.total_sessions || 0,
+      active: stats.active_sessions || 0,
+      averageDuration: 0, // TODO: Add to backend
+      bounceRate: 0 // TODO: Add to backend
+    },
+    security: {
+      events: 0, // TODO: Add to backend
+      alerts: stats.suspicious_activities || 0,
+      blockedIPs: 0, // TODO: Add to backend
+      riskScore: stats.suspicious_activities || 0
+    },
+    system: {
+      uptime: 99.8, // TODO: Add to backend
+      responseTime: 145, // TODO: Add to backend
+      errorRate: 0.02, // TODO: Add to backend
+      performance: 94.5 // TODO: Add to backend
     }
+  } : null, [stats]);
+
+  // Update previous metrics when metrics change
+  useEffect(() => {
+    if (metrics && metricsRef.current) {
+      setPreviousMetrics(metricsRef.current);
+    }
+    metricsRef.current = metrics;
   }, [metrics]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchMetrics();
-  }, [fetchMetrics]);
-
-  // Auto refresh setup
-  useEffect(() => {
-    if (enableAutoRefresh && refreshInterval > 0) {
-      const interval = setInterval(fetchMetrics, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [enableAutoRefresh, refreshInterval, fetchMetrics]);
 
   if (isLoading || !metrics) {
     return (
-      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <Card key={index} className="animate-pulse">
             <CardHeader className="space-y-0 pb-2">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
             </CardHeader>
             <CardContent>
-              <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-full"></div>
+              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
             </CardContent>
           </Card>
         ))}
@@ -273,18 +337,32 @@ export function RealtimeDashboardMetrics({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-emerald-400 to-cyan-600 dark:from-emerald-400 dark:to-cyan-400 bg-clip-text text-transparent">
-          ⚡ Thống kê thời gian thực
-        </h3>
-        <Badge variant="outline" className="text-emerald-300 border-emerald-300 bg-emerald-500/10 backdrop-blur-sm">
-          <Activity className="h-3 w-3 mr-1" />
-          Live
-        </Badge>
+    <div className="space-y-6">
+      {/* Modern Section Header with Glassmorphism */}
+      <div className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 backdrop-blur-xl border border-white/10 shadow-lg">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 via-cyan-500 to-blue-500 flex items-center justify-center shadow-2xl shadow-emerald-500/50 animate-pulse">
+            <Activity className="h-7 w-7 text-white" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
+              Thống kê Real-time
+            </h3>
+            <p className="text-sm text-muted-foreground/80 mt-1 font-medium">Dữ liệu cập nhật liên tục từ hệ thống</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping absolute" />
+          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          <Badge variant="outline" className="bg-emerald-500/20 border-emerald-400/50 text-emerald-300 font-bold backdrop-blur-sm">
+            <Activity className="h-3 w-3 mr-1.5" />
+            LIVE
+          </Badge>
+        </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Modern Bento Grid */}
+      <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Tổng người dùng"
           value={metrics.users.total}
@@ -292,6 +370,7 @@ export function RealtimeDashboardMetrics({
           icon={<Users className="h-4 w-4" />}
           description="Tất cả tài khoản"
           colorScheme="primary"
+          sparklineData={metricsHistory?.map(p => p.total_users)}
         />
 
         <MetricCard
@@ -301,6 +380,7 @@ export function RealtimeDashboardMetrics({
           icon={<UserCheck className="h-4 w-4" />}
           description="Người dùng online"
           colorScheme="success"
+          sparklineData={metricsHistory?.map(p => p.active_users)}
         />
 
         <MetricCard
@@ -310,6 +390,7 @@ export function RealtimeDashboardMetrics({
           icon={<Activity className="h-4 w-4" />}
           description="Người dùng đang kết nối"
           colorScheme="accent"
+          sparklineData={metricsHistory?.map(p => p.active_sessions)}
         />
 
         <MetricCard
@@ -320,6 +401,7 @@ export function RealtimeDashboardMetrics({
           description="Mức độ rủi ro"
           format="number"
           colorScheme={metrics.security.riskScore > 5 ? 'alert' : metrics.security.riskScore > 3 ? 'education' : 'success'}
+          sparklineData={metricsHistory?.map(p => p.suspicious_activities)}
         />
       </div>
     </div>

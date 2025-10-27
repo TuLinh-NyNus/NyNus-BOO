@@ -297,3 +297,53 @@ export const progressToast = {
   },
 }
 
+/**
+ * Redirect toast for authentication redirects
+ * Business Logic: Hiển thị thông báo khi chuyển hướng để cải thiện UX
+ */
+export const redirectToast = {
+  /**
+   * Toast khi chuyển hướng đến trang đăng nhập
+   */
+  redirectingToLogin: (): void => {
+    toastInfo(
+      'Đang chuyển hướng...',
+      'Bạn sẽ được chuyển đến trang đăng nhập.',
+      { duration: 2000, dismissible: false }
+    );
+  },
+
+  /**
+   * Toast khi chuyển hướng đến dashboard
+   */
+  redirectingToDashboard: (): void => {
+    toastInfo(
+      'Đang chuyển hướng...',
+      'Bạn sẽ được chuyển đến trang chủ.',
+      { duration: 2000, dismissible: false }
+    );
+  },
+
+  /**
+   * Toast khi chuyển hướng đến trang bất kỳ
+   */
+  redirectingToPage: (pageName: string): void => {
+    toastInfo(
+      'Đang chuyển hướng...',
+      `Bạn sẽ được chuyển đến ${pageName}.`,
+      { duration: 2000, dismissible: false }
+    );
+  },
+
+  /**
+   * Toast khi không có quyền truy cập
+   */
+  accessDenied: (): void => {
+    toastWarning(
+      'Không có quyền truy cập',
+      'Bạn sẽ được chuyển hướng đến trang phù hợp.',
+      { duration: 2500, dismissible: false }
+    );
+  },
+}
+

@@ -1,12 +1,12 @@
-syntax = "proto3";
+﻿syntax = "proto3";
 
 package v1;
 
 import "common/common.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
 
-// Nguồn nhập liệu
+// Nguá»“n nháº­p liá»‡u
 enum ImportSourceType {
   IMPORT_SOURCE_TYPE_UNSPECIFIED = 0;
   IMPORT_SOURCE_TYPE_DOCX = 1;
@@ -14,7 +14,7 @@ enum ImportSourceType {
   IMPORT_SOURCE_TYPE_PDF = 3;
 }
 
-// Trạng thái job import
+// Tráº¡ng thÃ¡i job import
 enum ImportStatus {
   IMPORT_STATUS_UNSPECIFIED = 0;
   IMPORT_STATUS_PENDING = 1;
@@ -23,22 +23,22 @@ enum ImportStatus {
   IMPORT_STATUS_FAILED = 4;
 }
 
-// Upload file nhập liệu theo dạng client-streaming
+// Upload file nháº­p liá»‡u theo dáº¡ng client-streaming
 message FileChunk {
-  string file_name = 1;   // tên file gốc
-  bytes data = 2;         // dữ liệu nhị phân
+  string file_name = 1;   // tÃªn file gá»‘c
+  bytes data = 2;         // dá»¯ liá»‡u nhá»‹ phÃ¢n
 }
 
 message UploadImportFileResponse {
   common.Response response = 1;
-  string upload_asset_id = 2; // ID asset đã lưu (Cloudinary/Storage)
+  string upload_asset_id = 2; // ID asset Ä‘Ã£ lÆ°u (Cloudinary/Storage)
 }
 
 message CreateImportJobRequest {
   ImportSourceType source_type = 1;   // DOCX/GOOGLE_DOCS/PDF
-  string source_url = 2;              // nếu nhập từ URL (Google Docs public/export)
-  string upload_asset_id = 3;         // nếu đã upload file qua UploadImportFile
-  string options_json = 4;            // cấu hình tách bài, mapping category...
+  string source_url = 2;              // náº¿u nháº­p tá»« URL (Google Docs public/export)
+  string upload_asset_id = 3;         // náº¿u Ä‘Ã£ upload file qua UploadImportFile
+  string options_json = 4;            // cáº¥u hÃ¬nh tÃ¡ch bÃ i, mapping category...
 }
 
 message ImportJob {
@@ -60,8 +60,8 @@ message GetImportStatusResponse { common.Response response = 1; ImportJob job = 
 message ImportResult {
   string id = 1;
   string import_job_id = 2;
-  string post_id = 3;    // bài viết tạo ra
-  string section = 4;    // phần/heading tương ứng (nếu có)
+  string post_id = 3;    // bÃ i viáº¿t táº¡o ra
+  string section = 4;    // pháº§n/heading tÆ°Æ¡ng á»©ng (náº¿u cÃ³)
   string note = 5;
 }
 
@@ -69,15 +69,16 @@ message ListImportResultsRequest { string import_job_id = 1; }
 message ListImportResultsResponse { common.Response response = 1; repeated ImportResult results = 2; }
 
 service ImportService {
-  // Tải file lớn (DOCX/PDF) bằng client-streaming
+  // Táº£i file lá»›n (DOCX/PDF) báº±ng client-streaming
   rpc UploadImportFile(stream FileChunk) returns (UploadImportFileResponse);
 
-  // Tạo job import từ file đã upload hoặc từ URL
+  // Táº¡o job import tá»« file Ä‘Ã£ upload hoáº·c tá»« URL
   rpc CreateImportJob(CreateImportJobRequest) returns (CreateImportJobResponse);
 
-  // Theo dõi trạng thái job
+  // Theo dÃµi tráº¡ng thÃ¡i job
   rpc GetImportStatus(GetImportStatusRequest) returns (GetImportStatusResponse);
 
-  // Kết quả import (nhiều bài/section)
+  // Káº¿t quáº£ import (nhiá»u bÃ i/section)
   rpc ListImportResults(ListImportResultsRequest) returns (ListImportResultsResponse);
 }
+

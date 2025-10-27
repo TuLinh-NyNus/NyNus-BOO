@@ -10,8 +10,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
 import { QuestionService } from '@/services/grpc/question.service';
+import { QuestionFilterService } from '@/services/grpc/question-filter.service';
 import { Question, QuestionFilters, QuestionListResponse, QuestionType, QuestionStatus, QuestionDifficulty } from '@/types/question';
 import { useDebounce } from '../performance/useDebounce';
+import { createFilterListRequest, parseFilterListResponse } from '@/lib/adapters/question-filter.adapter';
 
 // ===== INTERFACES =====
 
@@ -163,69 +165,43 @@ export function useQuestionFilters(
 
       const startTime = performance.now();
 
-      // Call QuestionService.listQuestions with pagination
-      const response = await QuestionService.listQuestions({
-        pagination: {
-          page: currentFilters.page || 1,
-          limit: currentFilters.pageSize || 20
-        }
-      });
+      // MIGRATION: Use QuestionFilterService for full filtering support
+      const request = createFilterListRequest(currentFilters);
+      const response = await QuestionFilterService.listQuestionsByFilter(request);
 
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to fetch questions');
-      }
+      // Parse response
+      const parsed = parseFilterListResponse(response);
 
-      // Map protobuf questions to frontend Question type
-      const mappedQuestions: Question[] = (response.questions || []).map((q: {
-        id: string;
-        content: string;
-        raw_content: string;
-        type: string;
-        tag: string[];
-        question_code_id: string;
-        status: string;
-        difficulty: string;
-        source?: string;
-        solution?: string;
-        subcount?: string;
-        usage_count?: number;
-        creator?: string;
-        feedback?: number;
-        created_at?: string;
-        updated_at?: string;
-        structured_answers?: Array<{ id: string; content: string; is_correct: boolean; explanation?: string }>;
-      }) => ({
+      // Map QuestionDetail to Question domain type
+      const mappedQuestions: Question[] = (parsed.questions || []).map((q: any) => ({
         id: q.id,
         content: q.content,
-        rawContent: q.raw_content,
+        rawContent: q.raw_content || q.rawContent,
         type: q.type as QuestionType,
-        tag: q.tag || [],
-        questionCodeId: q.question_code_id,
+        tag: q.tags || q.tag || [],
+        questionCodeId: q.question_code_id || q.questionCodeId,
         status: q.status as QuestionStatus,
         difficulty: q.difficulty as QuestionDifficulty,
         source: q.source || '',
         solution: q.solution || '',
         subcount: q.subcount || '',
-        usageCount: q.usage_count || 0,
+        usageCount: q.usage_count || q.usageCount || 0,
         creator: q.creator || '',
         feedback: q.feedback || 0,
-        createdAt: q.created_at || new Date().toISOString(),
-        updatedAt: q.updated_at || new Date().toISOString(),
-        answers: q.structured_answers?.map((a: { id: string; content: string; is_correct: boolean; explanation?: string }) => ({
-          id: a.id,
-          content: a.content,
-          isCorrect: a.is_correct,
-          explanation: a.explanation || ''
-        })) || []
+        createdAt: q.created_at || q.createdAt || new Date().toISOString(),
+        updatedAt: q.updated_at || q.updatedAt || new Date().toISOString(),
+        isFavorite: q.is_favorite || q.isFavorite || false,
+        answers: q.answers ? (typeof q.answers === 'string' ? JSON.parse(q.answers) : q.answers) : undefined,
+        correctAnswer: q.correct_answer || q.correctAnswer,
       }));
 
       // Update state
       setQuestions(mappedQuestions);
       setPagination({
-        page: response.pagination?.page || 1,
-        pageSize: response.pagination?.limit || 20,
-        total: response.pagination?.total || 0,
-        totalPages: response.pagination?.totalPages || 0
+        page: parsed.page,
+        pageSize: parsed.pageSize,
+        total: parsed.total,
+        totalPages: parsed.totalPages
       });
       
       // Performance tracking

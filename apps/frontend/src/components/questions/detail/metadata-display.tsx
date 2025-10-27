@@ -123,14 +123,19 @@ export function MetadataDisplay({
   }, [question]);
   
   /**
-   * Format creation date
+   * Format creation date safely
    */
   const formattedCreatedAt = useMemo(() => {
     if (!question?.createdAt) return null;
     try {
-      return format(new Date(question.createdAt), 'dd/MM/yyyy', { locale: vi });
-    } catch (_error) {
-      console.warn('[MetadataDisplay] Invalid date format:', question.createdAt);
+      const date = new Date(question.createdAt);
+      if (isNaN(date.getTime())) {
+        console.warn('[MetadataDisplay] Invalid date value:', question.createdAt);
+        return null;
+      }
+      return format(date, 'dd/MM/yyyy', { locale: vi });
+    } catch (error) {
+      console.warn('[MetadataDisplay] Date format error:', error);
       return null;
     }
   }, [question?.createdAt]);

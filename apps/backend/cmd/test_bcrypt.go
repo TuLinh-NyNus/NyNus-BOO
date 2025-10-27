@@ -1,3 +1,5 @@
+//go:build tools
+
 package main
 
 import (
@@ -20,4 +22,3 @@ func main() {
 
 	fmt.Println("✅ Password matches!")
 }
-

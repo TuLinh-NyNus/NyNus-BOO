@@ -95,8 +95,12 @@ export async function middleware(request: NextRequest) {
   // 1. NextAuth callback (server-side redirect)
   // 2. Login page (client-side redirect via window.location.href)
   // 3. Homepage (client-side redirect from homepage login dialog)
+  // 4. Dashboard (user navigating from dashboard after login)
+  // 5. Admin routes (user navigating from dashboard to admin)
   const isPostLoginRedirect = referer.includes('/api/auth/callback') ||
                               referer.includes('/login') ||
+                              referer.includes('/dashboard') ||
+                              referer.includes('/3141592654/admin') ||
                               referer.endsWith('/') || // Homepage
                               referer === request.nextUrl.origin; // Base URL
 
@@ -167,14 +171,15 @@ export async function middleware(request: NextRequest) {
 
 /**
  * Middleware matcher configuration
- * 
+ *
  * Performance Optimization:
  * - Only run middleware on protected routes
  * - Reduces middleware executions by ~70%
  * - Static files and public routes are automatically skipped
- * 
+ *
  * Routes included:
  * - Protected pages: /dashboard, /admin, /teacher, /tutor, /exams, /courses, /profile, /settings, /sessions
+ * - Secure admin route: /3141592654/admin (obfuscated admin path)
  * - Protected API routes: /api/admin, /api/teacher, /api/protected
  * - NextAuth routes: /api/auth (for CSRF handling)
  */
@@ -191,14 +196,17 @@ export const config = {
     '/settings/:path*',
     '/sessions/:path*',
     '/notifications/:path*',
-    
+
+    // Secure admin route (obfuscated path)
+    '/3141592654/admin/:path*',
+
     // Protected API routes
     '/api/admin/:path*',
     '/api/teacher/:path*',
     '/api/tutor/:path*',
     '/api/protected/:path*',
     '/api/user/:path*',
-    
+
     // NextAuth routes (for CSRF handling)
     '/api/auth/:path*',
   ],

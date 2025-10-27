@@ -1,9 +1,9 @@
-package interfaces
+﻿package interfaces
 
 import (
 	"context"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 )
 
 // QuestionImageRepository defines the interface for question image operations
@@ -34,3 +34,4 @@ type QuestionImageRepository interface {
 	CountByStatus(ctx context.Context) (map[string]int, error)
 	CountByQuestionID(ctx context.Context, questionID string) (int, error)
 }
+

@@ -1,4 +1,4 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
@@ -8,13 +8,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/services/email"
 )
 
 // PasswordResetHandler handles password reset business logic
-// Xử lý logic reset password với email verification
+// Xá»­ lÃ½ logic reset password vá»›i email verification
 type PasswordResetHandler struct {
 	userRepo       repository.IUserRepository
 	emailService   *email.EmailService
@@ -23,7 +23,7 @@ type PasswordResetHandler struct {
 }
 
 // NewPasswordResetHandler creates a new PasswordResetHandler instance
-// Tạo instance mới của PasswordResetHandler với các dependencies cần thiết
+// Táº¡o instance má»›i cá»§a PasswordResetHandler vá»›i cÃ¡c dependencies cáº§n thiáº¿t
 func NewPasswordResetHandler(
 	userRepo repository.IUserRepository,
 	emailService *email.EmailService,
@@ -44,7 +44,7 @@ func NewPasswordResetHandler(
 }
 
 // InitiatePasswordReset initiates password reset process
-// Bắt đầu quá trình reset password bằng cách gửi email với reset token
+// Báº¯t Ä‘áº§u quÃ¡ trÃ¬nh reset password báº±ng cÃ¡ch gá»­i email vá»›i reset token
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -53,7 +53,7 @@ func NewPasswordResetHandler(
 // Returns:
 //   - error: Error if initiation fails (always returns nil for security)
 //
-// Note: Luôn trả về success để không tiết lộ thông tin user có tồn tại hay không
+// Note: LuÃ´n tráº£ vá» success Ä‘á»ƒ khÃ´ng tiáº¿t lá»™ thÃ´ng tin user cÃ³ tá»“n táº¡i hay khÃ´ng
 func (h *PasswordResetHandler) InitiatePasswordReset(ctx context.Context, email string) error {
 	// Check if user exists
 	user, err := h.userRepo.GetByEmail(ctx, email)
@@ -86,7 +86,7 @@ func (h *PasswordResetHandler) InitiatePasswordReset(ctx context.Context, email 
 }
 
 // VerifyResetToken verifies password reset token and returns user ID
-// Xác thực reset token và trả về user ID
+// XÃ¡c thá»±c reset token vÃ  tráº£ vá» user ID
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -105,7 +105,7 @@ func (h *PasswordResetHandler) VerifyResetToken(ctx context.Context, token strin
 }
 
 // ResetPassword resets user password with token
-// Reset password của user bằng token và password mới
+// Reset password cá»§a user báº±ng token vÃ  password má»›i
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -150,7 +150,7 @@ func (h *PasswordResetHandler) ResetPassword(ctx context.Context, token, newPass
 }
 
 // ChangePassword changes user password (for authenticated users)
-// Đổi password cho user đã đăng nhập (yêu cầu password cũ)
+// Äá»•i password cho user Ä‘Ã£ Ä‘Äƒng nháº­p (yÃªu cáº§u password cÅ©)
 //
 // Parameters:
 //   - ctx: Context for cancellation and timeout
@@ -192,3 +192,4 @@ func (h *PasswordResetHandler) ChangePassword(ctx context.Context, userID, oldPa
 	log.Printf("Password changed successfully for user %s", user.Email)
 	return nil
 }
+

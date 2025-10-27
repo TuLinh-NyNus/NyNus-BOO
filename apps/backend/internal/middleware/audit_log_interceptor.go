@@ -1,4 +1,4 @@
-package middleware
+﻿package middleware
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/repository"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -338,3 +338,4 @@ func sanitizeResponseData(data map[string]interface{}, method string) {
 		// Token already removed
 	}
 }
+

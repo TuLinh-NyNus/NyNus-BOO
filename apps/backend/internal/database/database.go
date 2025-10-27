@@ -1,4 +1,4 @@
-package database
+﻿package database
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/util"
 
 	"github.com/jackc/pgtype"
 	"github.com/jackc/pgx/v4"
@@ -296,3 +296,4 @@ func Update(ctx context.Context, entity Entity, id string, execFunc func(ctx con
 	// Update excluding resource_path and created_at
 	return UpdateByID(ctx, entity, id, []string{"resource_path", "created_at"}, execFunc)
 }
+

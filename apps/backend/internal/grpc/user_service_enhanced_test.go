@@ -1,3 +1,5 @@
+//go:build integration && user_service_integration
+
 package grpc
 
 import (
@@ -5,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/oauth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/proto/gen/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/proto/gen/v1"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/internal/service/user/oauth"
+	"exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/services/email"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -90,7 +92,7 @@ func (m *MockEmailService) SendVerificationEmail(email, userName, token string) 
 	return args.Error(0)
 }
 
-// Test setup helper với IJWTService interface
+// Test setup helper vá»›i IJWTService interface
 func createTestEnhancedUserService(t *testing.T) (*EnhancedUserServiceServer, *MockOAuthService, *MockSessionService, *MockUserRepository, *MockEmailService) {
 	mockOAuth := &MockOAuthService{}
 	mockSession := &MockSessionService{}
@@ -101,7 +103,7 @@ func createTestEnhancedUserService(t *testing.T) (*EnhancedUserServiceServer, *M
 	testLogger := logrus.New()
 	testLogger.SetLevel(logrus.ErrorLevel) // Suppress logs during tests
 
-	// Create UnifiedJWTService với logger
+	// Create UnifiedJWTService vá»›i logger
 	jwtService, err := auth.NewUnifiedJWTService("test-secret", nil, testLogger)
 	require.NoError(t, err, "Failed to create UnifiedJWTService for testing")
 

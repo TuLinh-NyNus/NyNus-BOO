@@ -73,7 +73,7 @@ func (i *CSRFInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		// Skip if CSRF protection is disabled (development mode)
 		if !i.enabled {
-			fmt.Printf("[CSRF] ⚠️  CSRF protection disabled for %s (development mode)\n", info.FullMethod)
+			fmt.Printf("[CSRF] WARNING: CSRF protection disabled for %s (development mode)\n", info.FullMethod)
 			return handler(ctx, req)
 		}
 
@@ -86,7 +86,7 @@ func (i *CSRFInterceptor) Unary() grpc.UnaryServerInterceptor {
 		// Extract CSRF token from x-csrf-token header
 		csrfTokens := md["x-csrf-token"]
 		if len(csrfTokens) == 0 {
-			fmt.Printf("[CSRF] ❌ Missing CSRF token for method %s\n", info.FullMethod)
+			fmt.Printf("[CSRF] ERROR: Missing CSRF token for method %s\n", info.FullMethod)
 			return nil, status.Errorf(codes.PermissionDenied, "missing CSRF token")
 		}
 
@@ -94,11 +94,11 @@ func (i *CSRFInterceptor) Unary() grpc.UnaryServerInterceptor {
 
 		// Validate CSRF token against expected value from cookie
 		if !i.validateCSRFToken(ctx, csrfToken, md) {
-			fmt.Printf("[SECURITY] 🚨 Invalid CSRF token for method %s\n", info.FullMethod)
+			fmt.Printf("[SECURITY] ALERT: Invalid CSRF token for method %s\n", info.FullMethod)
 			return nil, status.Errorf(codes.PermissionDenied, "invalid CSRF token")
 		}
 
-		fmt.Printf("[CSRF] ✅ CSRF token validated for %s\n", info.FullMethod)
+		fmt.Printf("[CSRF] OK: CSRF token validated for %s\n", info.FullMethod)
 		return handler(ctx, req)
 	}
 }
@@ -109,12 +109,22 @@ func (i *CSRFInterceptor) validateCSRFToken(ctx context.Context, token string, m
 	// Get expected CSRF token from NextAuth cookie
 	expectedToken := i.getExpectedCSRFToken(md)
 	if expectedToken == "" {
-		fmt.Printf("[CSRF] ⚠️  No expected CSRF token found in cookies\n")
+		fmt.Printf("[CSRF] WARNING: No expected CSRF token found in cookies\n")
 		return false
 	}
 
+	// DEBUG: Log tokens for comparison
+	fmt.Printf("[CSRF] DEBUG: Token from header: '%s' (len=%d)\n", token, len(token))
+	fmt.Printf("[CSRF] DEBUG: Token from cookie: '%s' (len=%d)\n", expectedToken, len(expectedToken))
+
 	// Constant-time comparison to prevent timing attacks
-	return subtle.ConstantTimeCompare([]byte(token), []byte(expectedToken)) == 1
+	match := subtle.ConstantTimeCompare([]byte(token), []byte(expectedToken)) == 1
+	if !match {
+		fmt.Printf("[CSRF] ERROR: Tokens do not match!\n")
+	} else {
+		fmt.Printf("[CSRF] OK: Tokens match!\n")
+	}
+	return match
 }
 
 // getExpectedCSRFToken extracts the expected CSRF token from NextAuth cookies
@@ -127,8 +137,14 @@ func (i *CSRFInterceptor) getExpectedCSRFToken(md metadata.MD) string {
 		cookies = md["grpc-metadata-cookie"]
 	}
 
+	// DEBUG: Log cookies received
+	fmt.Printf("[CSRF] DEBUG: Cookies received: %v\n", cookies)
+
 	// Parse cookies to find NextAuth CSRF token
 	for _, cookieHeader := range cookies {
+		// DEBUG: Log each cookie header
+		fmt.Printf("[CSRF] DEBUG: Processing cookie header: '%s'\n", cookieHeader)
+
 		// Split multiple cookies (separated by semicolon)
 		cookiePairs := strings.Split(cookieHeader, ";")
 
@@ -141,6 +157,9 @@ func (i *CSRFInterceptor) getExpectedCSRFToken(md metadata.MD) string {
 			if strings.HasPrefix(pair, "next-auth.csrf-token=") ||
 				strings.HasPrefix(pair, "__Host-next-auth.csrf-token=") {
 
+				// DEBUG: Log found CSRF cookie
+				fmt.Printf("[CSRF] DEBUG: Found CSRF cookie: '%s'\n", pair)
+
 				// Extract token value
 				parts := strings.SplitN(pair, "=", 2)
 				if len(parts) != 2 {
@@ -148,11 +167,19 @@ func (i *CSRFInterceptor) getExpectedCSRFToken(md metadata.MD) string {
 				}
 
 				tokenValue := parts[1]
+				fmt.Printf("[CSRF] DEBUG: Token value (URL-encoded): '%s'\n", tokenValue)
+
+				// FIX: URL-decode cookie value
+				// Cookies are URL-encoded, need to decode before parsing
+				// %7C is URL-encoded pipe character |
+				decodedValue := strings.ReplaceAll(tokenValue, "%7C", "|")
+				fmt.Printf("[CSRF] DEBUG: Token value (decoded): '%s'\n", decodedValue)
 
 				// NextAuth CSRF token format: "token|hash"
 				// We only need the token part (before the pipe)
-				tokenParts := strings.Split(tokenValue, "|")
+				tokenParts := strings.Split(decodedValue, "|")
 				if len(tokenParts) > 0 {
+					fmt.Printf("[CSRF] DEBUG: Extracted token (before pipe): '%s'\n", tokenParts[0])
 					return tokenParts[0]
 				}
 			}

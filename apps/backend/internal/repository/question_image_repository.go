@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 )
@@ -436,3 +436,4 @@ func (r *QuestionImageRepository) CountByQuestionID(ctx context.Context, questio
 
 	return count, nil
 }
+

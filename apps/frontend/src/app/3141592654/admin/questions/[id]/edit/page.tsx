@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertTriangle, History } from 'lucide-react';
 
 import {
   Button
@@ -12,6 +12,8 @@ import { ErrorBoundary } from '@/components/common/error-boundary';
 
 // Import IntegratedQuestionForm từ components
 import { IntegratedQuestionForm } from '@/components/admin/questions/forms';
+// Import Version History
+import { VersionHistoryPanel } from '@/components/admin/questions/version-history';
 
 import {
   Question,
@@ -37,6 +39,10 @@ export default function EditQuestionPage() {
   const [originalQuestion, setOriginalQuestion] = useState<Question | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  
+  // Version history state
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [currentVersionNumber] = useState(1); // TODO: Get from API
 
   /**
    * Load question data from QuestionService
@@ -300,6 +306,17 @@ export default function EditQuestionPage() {
                 </p>
               </div>
             </div>
+
+            {/* Version History Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowVersionHistory(true)}
+              className="flex items-center gap-2"
+            >
+              <History className="h-4 w-4" />
+              <span>Lịch sử phiên bản</span>
+            </Button>
           </div>
 
         {/* IntegratedQuestionForm with loaded question */}
@@ -314,6 +331,25 @@ export default function EditQuestionPage() {
         )}
         </div>
       </div>
+
+      {/* Version History Panel */}
+      <VersionHistoryPanel
+        isOpen={showVersionHistory}
+        questionId={questionId}
+        currentVersion={currentVersionNumber}
+        onClose={() => setShowVersionHistory(false)}
+        onVersionRevert={async (versionNumber) => {
+          console.log('Revert to version:', versionNumber);
+          toast({
+            title: 'Thành công',
+            description: `Đã khôi phục về phiên bản ${versionNumber}`,
+            variant: 'success',
+          });
+          // TODO: Call API to revert
+          // TODO: Reload question data
+          await loadQuestionData();
+        }}
+      />
     </ErrorBoundary>
   );
 }

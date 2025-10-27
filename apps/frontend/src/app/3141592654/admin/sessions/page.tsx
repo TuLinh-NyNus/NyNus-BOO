@@ -41,10 +41,10 @@ const AlertDialogCancel = ({ children, ...props }: React.ComponentProps<typeof B
 
 import {
   UserLoginSession,
-  UserSessionStats,
-  mockUserLoginSessions,
-  mockUserSessionStats
+  UserSessionStats
 } from '@/lib/mockdata/sessions';
+import { AdminService } from '@/services/grpc/admin.service';
+import { toast as showToast } from 'sonner';
 
 // Interface cho session filters
 interface SessionFilters {
@@ -59,6 +59,7 @@ interface SessionFilters {
  * Comprehensive session monitoring và management interface
  */
 export default function AdminSessionsPage() {
+
   // State management
   const [sessions, setSessions] = useState<UserLoginSession[]>([]);
   const [stats, setStats] = useState<UserSessionStats | null>(null);
@@ -76,38 +77,208 @@ export default function AdminSessionsPage() {
   const [autoRefresh, setAutoRefresh] = useState(true);
 
   /**
-   * Fetch session statistics từ mockdata
-   * ✅ Remove useCallback - not needed for simple async functions
+   * Fetch session statistics from real backend
    */
   const fetchStats = async () => {
     try {
-      // Simulate API call với mockdata
-      await new Promise(resolve => setTimeout(resolve, 100));
-      setStats(mockUserSessionStats);
+      console.log('📊 [Stats] Fetching session statistics...');
+      const response = await AdminService.getAllUserSessions({
+        page: 1,
+        limit: 1000, // Get all for stats calculation
+        activeOnly: false
+      });
+
+      console.log('📦 [Stats] Response:', {
+        success: response.success,
+        sessionCount: response.sessions?.length || 0
+      });
+
+      if (response.success && response.sessions) {
+        // Calculate stats from sessions data
+        const activeSessions = response.sessions.filter(s => s.is_active);
+        const uniqueIPs = new Set(response.sessions.map(s => s.ip_address));
+        
+        // Calculate average session duration (in minutes)
+        const now = new Date();
+        const durations = activeSessions
+          .map(s => {
+            const created = new Date(s.created_at);
+            const lastActivity = new Date(s.last_activity);
+            return (lastActivity.getTime() - created.getTime()) / (1000 * 60);
+          })
+          .filter(d => d > 0 && d < 60 * 24); // Filter invalid values
+        
+        const avgDuration = durations.length > 0
+          ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+          : 0;
+
+        setStats({
+          totalActiveSessions: response.total_active_sessions || activeSessions.length,
+          uniqueActiveUsers: response.unique_active_users || activeSessions.length,
+          uniqueActiveIPs: uniqueIPs.size,
+          averageSessionDuration: avgDuration,
+          recentViolations: 0 // TODO: Get from backend
+        });
+      }
     } catch (error) {
       console.error('Error fetching session stats:', error);
+      showToast.error('Không thể tải thống kê phiên đăng nhập');
     }
   };
 
   /**
-   * Fetch all active sessions từ mockdata
-   * ✅ Remove useCallback - not needed for simple async functions
+   * Fetch all active sessions from real backend with user data
    */
   const fetchSessions = async () => {
     try {
       setLoading(true);
 
-      // Simulate API call với mockdata
-      await new Promise(resolve => setTimeout(resolve, 200));
-      setSessions(mockUserLoginSessions);
+      // Fetch sessions from backend
+      console.log('🔍 [Sessions] Fetching sessions from backend...');
+      const sessionsResponse = await AdminService.getAllUserSessions({
+        page: 1,
+        limit: 100,
+        activeOnly: false,
+        searchQuery: filters.search || undefined
+      });
+
+      console.log('📦 [Sessions] Response:', {
+        success: sessionsResponse.success,
+        message: sessionsResponse.message,
+        sessionCount: sessionsResponse.sessions?.length || 0,
+        totalActive: sessionsResponse.total_active_sessions,
+        uniqueUsers: sessionsResponse.unique_active_users
+      });
+
+      if (!sessionsResponse.success) {
+        throw new Error(sessionsResponse.message);
+      }
+
+      // Fetch users to get email and name info
+      console.log('👥 [Sessions] Fetching users for mapping...');
+      const usersResponse = await AdminService.listUsers({
+        page: 1,
+        limit: 1000 // Get all users for mapping
+      });
+
+      console.log('📦 [Users] Response:', {
+        success: usersResponse.success,
+        userCount: usersResponse.users?.length || 0
+      });
+
+      // Create user lookup map
+      const userMap = new Map<string, { email: string; firstName: string; lastName: string }>();
+      if (usersResponse.success && usersResponse.users) {
+        usersResponse.users.forEach((user: {
+          id: string;
+          email: string;
+          first_name?: string;
+          last_name?: string;
+        }) => {
+          userMap.set(user.id, {
+            email: user.email,
+            firstName: user.first_name || '',
+            lastName: user.last_name || ''
+          });
+        });
+      }
+      
+      console.log(`🗺️ [Sessions] Created user map with ${userMap.size} entries`);
+
+      // Map sessions with user data
+      const mappedSessions: UserLoginSession[] = (sessionsResponse.sessions || []).map(session => {
+        const user = userMap.get(session.user_id);
+        return {
+          id: session.id,
+          userId: session.user_id,
+          user: user || {
+            email: 'Unknown',
+            firstName: 'Unknown',
+            lastName: 'User'
+          },
+          ipAddress: session.ip_address,
+          deviceInfo: {
+            browser: extractBrowser(session.user_agent),
+            os: extractOS(session.user_agent),
+            device: extractDevice(session.user_agent)
+          },
+          userAgent: session.user_agent,
+          isActive: session.is_active,
+          createdAt: session.created_at,
+          lastActivity: session.last_activity,
+          expiresAt: session.expires_at,
+          location: session.location || 'Unknown'
+        };
+      });
+
+      console.log(`✅ [Sessions] Mapped ${mappedSessions.length} sessions with user data`);
+
+      setSessions(mappedSessions);
       setLastUpdate(new Date());
+
+      showToast.success(`Đã tải ${mappedSessions.length} phiên đăng nhập`);
     } catch (error) {
-      console.error('Error fetching sessions:', error);
-      setSessions(mockUserLoginSessions); // Fallback to mockdata
+      console.error('❌ [Sessions] Error fetching sessions:', error);
+      showToast.error(error instanceof Error ? error.message : 'Không thể tải danh sách phiên đăng nhập');
+      setSessions([]);
     } finally {
       setLoading(false);
     }
   };
+
+  /**
+   * Helper: Extract browser from user agent
+   */
+  const extractBrowser = (userAgent: string): string => {
+    if (userAgent.includes('Chrome')) return 'Chrome';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Safari')) return 'Safari';
+    if (userAgent.includes('Edge')) return 'Edge';
+    return 'Unknown';
+  };
+
+  /**
+   * Helper: Extract OS from user agent
+   */
+  const extractOS = (userAgent: string): string => {
+    if (userAgent.includes('Windows')) return 'Windows';
+    if (userAgent.includes('Mac OS')) return 'macOS';
+    if (userAgent.includes('Linux')) return 'Linux';
+    if (userAgent.includes('Android')) return 'Android';
+    if (userAgent.includes('iOS') || userAgent.includes('iPhone')) return 'iOS';
+    return 'Unknown';
+  };
+
+  /**
+   * Helper: Extract device type from user agent
+   */
+  const extractDevice = (userAgent: string): string => {
+    if (userAgent.includes('Mobile') || userAgent.includes('Android') || userAgent.includes('iPhone')) {
+      return 'Mobile';
+    }
+    if (userAgent.includes('Tablet') || userAgent.includes('iPad')) {
+      return 'Tablet';
+    }
+    return 'Desktop';
+  };
+
+  // Initial data load on mount
+  useEffect(() => {
+    fetchSessions();
+    fetchStats();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-refresh effect
+  useEffect(() => {
+    if (autoRefresh) {
+      const interval = setInterval(() => {
+        fetchSessions();
+        fetchStats();
+      }, 30000); // Refresh every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [autoRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
    * Terminate single session

@@ -1,12 +1,12 @@
-package newsletter
+﻿package newsletter
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
 	"github.com/google/uuid"
 )
 
@@ -252,3 +252,4 @@ type SubscriptionStats struct {
 	NewThisWeek       int `json:"new_this_week"`
 	NewThisMonth      int `json:"new_this_month"`
 }
+

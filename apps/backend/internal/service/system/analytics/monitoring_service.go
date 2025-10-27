@@ -1,4 +1,4 @@
-package analytics
+﻿package analytics
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/sirupsen/logrus"
 )
 
@@ -377,3 +377,4 @@ func (s *MonitoringService) RecordExamEvent(ctx context.Context, examID, userID,
 	// For now, just log the event
 	return nil
 }
+

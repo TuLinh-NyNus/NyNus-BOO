@@ -164,6 +164,13 @@ export const ADMIN_ROUTES_METADATA: Record<string, AdminRouteMetadata> = {
     icon: 'FileQuestion',
     requiresPermission: ['questions.read']
   },
+  [ADMIN_PATHS.EXAMS]: {
+    path: ADMIN_PATHS.EXAMS,
+    title: 'Quản lý đề thi',
+    description: 'Tạo và quản lý đề thi',
+    icon: 'FileCheck',
+    requiresPermission: ['exams.read']
+  },
   [ADMIN_PATHS.ANALYTICS]: {
     path: ADMIN_PATHS.ANALYTICS,
     title: 'Thống kê',
@@ -203,6 +210,7 @@ export const AdminPathUtils = {
   dashboard: () => ADMIN_PATHS.DASHBOARD,
   users: () => ADMIN_PATHS.USERS,
   questions: () => ADMIN_PATHS.QUESTIONS,
+  exams: () => ADMIN_PATHS.EXAMS,
   analytics: () => ADMIN_PATHS.ANALYTICS,
   settings: () => ADMIN_PATHS.SETTINGS,
   
@@ -211,6 +219,8 @@ export const AdminPathUtils = {
   userView: (id: string) => ADMIN_PATHS.USERS_VIEW(id),
   questionEdit: (id: string) => `/3141592654/admin/questions/${id}/edit`,
   questionView: (id: string) => ADMIN_PATHS.QUESTIONS_VIEW(id),
+  examEdit: (id: string) => ADMIN_PATHS.EXAMS_EDIT(id),
+  examView: (id: string) => ADMIN_PATHS.EXAMS_VIEW(id),
 } as const;
 
 /**

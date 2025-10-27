@@ -1,10 +1,10 @@
-package latex
+﻿package latex
 
 import (
 	"regexp"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 	"github.com/jackc/pgtype"
 )
 
@@ -28,7 +28,7 @@ func (qcp *QuestionCodeParser) ParseMetadata(content string) (questionCode *enti
 	// Extract subcount from [XX.N] pattern
 	subcount = qcp.ExtractSubcount(content)
 
-	// Extract source from %[Nguồn: "..."] pattern
+	// Extract source from %[Nguá»“n: "..."] pattern
 	source = qcp.ExtractSource(content)
 
 	return questionCode, subcount, source
@@ -121,13 +121,13 @@ func (qcp *QuestionCodeParser) ExtractSubcount(content string) string {
 	return ""
 }
 
-// ExtractSource extracts source from %[Nguồn: "..."] pattern
+// ExtractSource extracts source from %[Nguá»“n: "..."] pattern
 func (qcp *QuestionCodeParser) ExtractSource(content string) string {
-	// Pattern for source: %[Nguồn: "..."] or similar
+	// Pattern for source: %[Nguá»“n: "..."] or similar
 	patterns := []string{
-		`%\s*\[\s*Nguồn:\s*"([^"]+)"\s*\]`,
-		`%\s*\[\s*Nguồn:\s*([^\]]+)\s*\]`,
-		`%\s*\[\s*([^%\[\]]*(?:Thi|Đề|Kiểm tra|Bài tập)[^\[\]]*)\s*\]`,
+		`%\s*\[\s*Nguá»“n:\s*"([^"]+)"\s*\]`,
+		`%\s*\[\s*Nguá»“n:\s*([^\]]+)\s*\]`,
+		`%\s*\[\s*([^%\[\]]*(?:Thi|Äá»|Kiá»ƒm tra|BÃ i táº­p)[^\[\]]*)\s*\]`,
 	}
 
 	for _, pattern := range patterns {
@@ -180,16 +180,16 @@ func (qcp *QuestionCodeParser) GetQuestionCodeHierarchy(qc *entity.QuestionCode)
 		hierarchy["subject"] = qcp.getSubjectLabel(qc.Subject.String)
 	}
 	if qc.Chapter.Status == pgtype.Present {
-		hierarchy["chapter"] = "Chương " + qc.Chapter.String
+		hierarchy["chapter"] = "ChÆ°Æ¡ng " + qc.Chapter.String
 	}
 	if qc.Level.Status == pgtype.Present {
 		hierarchy["level"] = qcp.getLevelLabel(qc.Level.String)
 	}
 	if qc.Lesson.Status == pgtype.Present {
-		hierarchy["lesson"] = "Bài " + qc.Lesson.String
+		hierarchy["lesson"] = "BÃ i " + qc.Lesson.String
 	}
 	if qc.Form.Status == pgtype.Present {
-		hierarchy["form"] = "Dạng " + qc.Form.String
+		hierarchy["form"] = "Dáº¡ng " + qc.Form.String
 	}
 
 	return hierarchy
@@ -199,27 +199,27 @@ func (qcp *QuestionCodeParser) GetQuestionCodeHierarchy(qc *entity.QuestionCode)
 func (qcp *QuestionCodeParser) getGradeLabel(grade string) string {
 	switch grade {
 	case "0":
-		return "Lớp 10"
+		return "Lá»›p 10"
 	case "1":
-		return "Lớp 11"
+		return "Lá»›p 11"
 	case "2":
-		return "Lớp 12"
+		return "Lá»›p 12"
 	case "3":
-		return "Lớp 3"
+		return "Lá»›p 3"
 	case "4":
-		return "Lớp 4"
+		return "Lá»›p 4"
 	case "5":
-		return "Lớp 5"
+		return "Lá»›p 5"
 	case "6":
-		return "Lớp 6"
+		return "Lá»›p 6"
 	case "7":
-		return "Lớp 7"
+		return "Lá»›p 7"
 	case "8":
-		return "Lớp 8"
+		return "Lá»›p 8"
 	case "9":
-		return "Lớp 9"
+		return "Lá»›p 9"
 	default:
-		return "Lớp " + grade
+		return "Lá»›p " + grade
 	}
 }
 
@@ -227,21 +227,21 @@ func (qcp *QuestionCodeParser) getGradeLabel(grade string) string {
 func (qcp *QuestionCodeParser) getSubjectLabel(subject string) string {
 	switch subject {
 	case "P":
-		return "Toán học"
+		return "ToÃ¡n há»c"
 	case "L":
-		return "Vật lý"
+		return "Váº­t lÃ½"
 	case "H":
-		return "Hóa học"
+		return "HÃ³a há»c"
 	case "S":
-		return "Sinh học"
+		return "Sinh há»c"
 	case "E":
-		return "Tiếng Anh"
+		return "Tiáº¿ng Anh"
 	case "T":
-		return "Lịch sử"
+		return "Lá»‹ch sá»­"
 	case "D":
-		return "Địa lý"
+		return "Äá»‹a lÃ½"
 	default:
-		return "Môn " + subject
+		return "MÃ´n " + subject
 	}
 }
 
@@ -249,18 +249,19 @@ func (qcp *QuestionCodeParser) getSubjectLabel(subject string) string {
 func (qcp *QuestionCodeParser) getLevelLabel(level string) string {
 	switch level {
 	case "N":
-		return "Nhận biết"
+		return "Nháº­n biáº¿t"
 	case "H":
-		return "Thông hiểu"
+		return "ThÃ´ng hiá»ƒu"
 	case "V":
-		return "Vận dụng"
+		return "Váº­n dá»¥ng"
 	case "C":
-		return "Vận dụng cao"
+		return "Váº­n dá»¥ng cao"
 	case "T":
 		return "VIP"
 	case "M":
 		return "Note"
 	default:
-		return "Mức " + level
+		return "Má»©c " + level
 	}
 }
+

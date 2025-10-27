@@ -1,12 +1,13 @@
 syntax = "proto3";
 
 package v1;
-
 import "google/api/annotations.proto";
 import "common/common.proto";
 import "v1/user.proto";
+import "v1/profile.proto";
+import "v1/notification.proto";
+import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
 // Admin user management
 message ListUsersFilter {
@@ -74,7 +75,7 @@ message AuditLog {
   string user_agent = 10;
   bool success = 11;
   string error_message = 12;
-  string created_at = 13;
+  google.protobuf.Timestamp created_at = 13;
 }
 
 message GetAuditLogsRequest {
@@ -82,8 +83,8 @@ message GetAuditLogsRequest {
   string user_id = 2;
   string action = 3;
   string resource = 4;
-  string start_date = 5;  // ISO format
-  string end_date = 6;    // ISO format
+  google.protobuf.Timestamp start_date = 5;  // ISO 8601, UTC
+  google.protobuf.Timestamp end_date = 6;    // ISO 8601, UTC
 }
 
 message GetAuditLogsResponse {
@@ -103,7 +104,7 @@ message ResourceAccess {
   string ip_address = 7;
   bool is_valid_access = 8;
   int32 risk_score = 9;
-  string created_at = 10;
+  google.protobuf.Timestamp created_at = 10;
 }
 
 message GetResourceAccessRequest {
@@ -112,8 +113,8 @@ message GetResourceAccessRequest {
   string resource_type = 3;
   string resource_id = 4;
   int32 min_risk_score = 5;
-  string start_date = 6;
-  string end_date = 7;
+  google.protobuf.Timestamp start_date = 6;  // ISO 8601, UTC
+  google.protobuf.Timestamp end_date = 7;    // ISO 8601, UTC
 }
 
 message GetResourceAccessResponse {
@@ -161,6 +162,99 @@ message GetSystemStatsRequest {
 message GetSystemStatsResponse {
   common.Response response = 1;
   SystemStats stats = 2;
+}
+
+// Metrics History - Time series data for sparklines/charts
+message MetricsDataPoint {
+  google.protobuf.Timestamp timestamp = 1;
+  int32 total_users = 2;
+  int32 active_users = 3;
+  int32 total_sessions = 4;
+  int32 active_sessions = 5;
+  int32 suspicious_activities = 6;
+}
+
+message GetMetricsHistoryRequest {
+  // Time range for metrics
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
+  
+  // Optional: interval between data points (in seconds)
+  // Default: auto-calculate based on time range
+  // For sparklines: typically 5-15 minutes
+  int32 interval_seconds = 3;
+  
+  // Optional: limit number of data points
+  // Default: 20 (suitable for sparklines)
+  int32 limit = 4;
+}
+
+message GetMetricsHistoryResponse {
+  common.Response response = 1;
+  repeated MetricsDataPoint data_points = 2;
+  int32 total_points = 3;
+}
+
+// Session management
+message GetAllUserSessionsRequest {
+  common.PaginationRequest pagination = 1;
+  string user_id = 2;           // Optional: filter by specific user
+  bool active_only = 3;         // Filter only active sessions
+  string search_query = 4;      // Search by email, IP, location
+}
+
+message GetAllUserSessionsResponse {
+  common.Response response = 1;
+  repeated UserSession sessions = 2;
+  common.PaginationResponse pagination = 3;
+  int32 total_active_sessions = 4;
+  int32 unique_active_users = 5;
+}
+
+// Notification management (Admin view)
+message NotificationFilter {
+  string type = 1;              // Filter by notification type
+  bool unread_only = 2;         // Show only unread notifications
+  string user_id = 3;           // Filter by specific user
+}
+
+message GetAllNotificationsRequest {
+  common.PaginationRequest pagination = 1;
+  NotificationFilter filter = 2;
+  string search_query = 3;      // Search in title, message, user email
+}
+
+message NotificationWithUser {
+  Notification notification = 1;
+  string user_email = 2;
+  string user_name = 3;
+}
+
+message GetAllNotificationsResponse {
+  common.Response response = 1;
+  repeated NotificationWithUser notifications = 2;
+  common.PaginationResponse pagination = 3;
+  int32 total_unread = 4;
+}
+
+message GetNotificationStatsRequest {
+  // Empty - returns current stats
+}
+
+message NotificationStats {
+  int32 total_sent_today = 1;
+  int32 total_unread = 2;
+  map<string, int32> notifications_by_type = 3;
+  double read_rate = 4;
+  string most_active_type = 5;
+  double average_read_time = 6;
+  int32 sent_this_week = 7;
+  double growth_percentage = 8;
+}
+
+message GetNotificationStatsResponse {
+  common.Response response = 1;
+  NotificationStats stats = 2;
 }
 
 // Admin service
@@ -217,4 +311,34 @@ service AdminService {
       get: "/api/v1/admin/stats"
     };
   }
+
+  rpc GetMetricsHistory(GetMetricsHistoryRequest) returns (GetMetricsHistoryResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/metrics/history"
+    };
+  }
+
+  // Session management
+  rpc GetAllUserSessions(GetAllUserSessionsRequest) returns (GetAllUserSessionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/sessions"
+    };
+  }
+
+  // Notification management
+  rpc GetAllNotifications(GetAllNotificationsRequest) returns (GetAllNotificationsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/notifications"
+    };
+  }
+
+  rpc GetNotificationStats(GetNotificationStatsRequest) returns (GetNotificationStatsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/admin/notifications/stats"
+    };
+  }
 }
+
+
+
+

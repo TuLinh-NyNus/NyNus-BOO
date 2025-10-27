@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/google/uuid"
 )
 
@@ -2081,3 +2081,4 @@ func (r *ExamRepository) Search(ctx context.Context, searchCriteria *interfaces.
 	// TODO: Implement proper search functionality
 	return nil, 0, fmt.Errorf("Search not implemented yet")
 }
+

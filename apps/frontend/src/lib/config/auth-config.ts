@@ -207,7 +207,9 @@ export const AUTH_VALIDATION = {
 export const AUTH_ENV = {
   // NextAuth
   NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
-  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || '',
+  // ✅ FIX: Use validated env from env.ts instead of allowing empty string
+  // If NEXTAUTH_SECRET is missing, env.parseEnv() will throw error before this point
+  NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET!,
   
   // JWT
   JWT_SECRET: process.env.JWT_SECRET || '',

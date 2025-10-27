@@ -1,10 +1,13 @@
 /**
  * Admin Dashboard Hook
  * React hook để quản lý admin dashboard data và operations
+ *
+ * ✅ FIX: Sử dụng AdminStatsContext để tránh duplicate API calls
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { AdminService } from '@/services/grpc/admin.service';
+import { useAdminStats } from '@/contexts/admin-stats-context';
 // import { UserRole, UserStatus } from '@/generated/common/common_pb';
 
 export interface AdminDashboardStats {
@@ -121,10 +124,19 @@ export interface UseAdminDashboardReturn {
 }
 
 export function useAdminDashboard(): UseAdminDashboardReturn {
-  // Dashboard stats state
-  const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(false);
-  const [statsError, setStatsError] = useState<string | null>(null);
+  // ✅ FIX: Use AdminStatsContext instead of local state
+  const { stats: contextStats, loading: statsLoading, error: statsError, refresh: refreshStats } = useAdminStats();
+
+  // Map context stats to AdminDashboardStats format
+  const stats: AdminDashboardStats | null = contextStats ? {
+    totalUsers: contextStats.total_users || 0,
+    activeUsers: contextStats.active_users || 0,
+    totalSessions: contextStats.total_sessions || 0,
+    securityAlerts: contextStats.suspicious_activities || 0,
+    newUsersToday: 0, // TODO: Add to backend
+    loginAttemptsToday: 0, // TODO: Add to backend
+    suspiciousActivities: contextStats.suspicious_activities || 0
+  } : null;
 
   // Users state
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -141,34 +153,6 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
   const [resourceAccess, setResourceAccess] = useState<ResourceAccess[]>([]);
   const [resourceAccessLoading, setResourceAccessLoading] = useState(false);
   const [resourceAccessError, setResourceAccessError] = useState<string | null>(null);
-
-  /**
-   * Load dashboard statistics
-   */
-  const refreshStats = useCallback(async () => {
-    setStatsLoading(true);
-    setStatsError(null);
-
-    try {
-      // For now, use mock data since backend might not have this endpoint yet
-      const mockStats: AdminDashboardStats = {
-        totalUsers: 1250,
-        activeUsers: 890,
-        totalSessions: 1456,
-        securityAlerts: 12,
-        newUsersToday: 45,
-        loginAttemptsToday: 2340,
-        suspiciousActivities: 8
-      };
-
-      setStats(mockStats);
-    } catch (error) {
-      console.error('Failed to load dashboard stats:', error);
-      setStatsError('Không thể tải thống kê dashboard');
-    } finally {
-      setStatsLoading(false);
-    }
-  }, []);
 
   /**
    * Load users with pagination and filters
@@ -337,11 +321,15 @@ export function useAdminDashboard(): UseAdminDashboardReturn {
     }
   }, []);
 
-  // Load initial data on mount
+  // ✅ FIX: Load initial data on mount
+  // REMOVED: refreshStats() call - AdminStatsContext already auto-fetches on mount
+  // Keeping this useEffect would cause infinite loop due to function dependency chain:
+  // refreshStats depends on fetchStats → fetchStats recreates on stats update → refreshStats recreates → useEffect triggers
   useEffect(() => {
-    refreshStats();
+    // Only load users on mount, stats are already loaded by AdminStatsContext
     loadUsers();
-  }, [refreshStats, loadUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty deps - only run once on mount
 
   return {
     // Dashboard stats

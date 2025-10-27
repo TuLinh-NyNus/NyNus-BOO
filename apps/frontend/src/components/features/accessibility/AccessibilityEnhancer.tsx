@@ -125,31 +125,11 @@ export function AccessibilityEnhancer({
   // ===== EFFECTS =====
 
   useEffect(() => {
-    initializeAccessibility();
-    if (autoDetect) {
-      detectAccessibilityNeeds();
-    }
-  }, [autoDetect]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    applyAccessibilitySettings();
-  }, [settings]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    // Sync with system preferences
-    setSettings(prev => ({
-      ...prev,
-      highContrast: isHighContrast,
-      reducedMotion: prefersReducedMotion
-    }));
-  }, [isHighContrast, prefersReducedMotion]);
-
-  // ===== HANDLERS =====
-
-  const initializeAccessibility = useCallback(() => {
+    // ✅ FIX: Inline initialization logic để tránh function dependency
+    // Prevents infinite loop caused by initializeAccessibility recreation
     setIsLoading(true);
-    
-    // Load saved settings
+
+    // Load saved settings from localStorage
     const savedSettings = localStorage.getItem('nynus-accessibility-settings');
     if (savedSettings) {
       try {
@@ -160,7 +140,7 @@ export function AccessibilityEnhancer({
       }
     }
 
-    // Initialize features
+    // Initialize features list for UI display
     const accessibilityFeatures: AccessibilityFeature[] = [
       {
         id: 'high-contrast',
@@ -208,37 +188,35 @@ export function AccessibilityEnhancer({
         status: settings.reducedMotion ? 'active' : 'inactive'
       }
     ];
-
     setFeatures(accessibilityFeatures);
+
+    // Auto-detect accessibility needs if enabled
+    if (autoDetect) {
+      // Detect screen reader
+      const hasScreenReader =
+        navigator.userAgent.includes('NVDA') ||
+        navigator.userAgent.includes('JAWS') ||
+        navigator.userAgent.includes('VoiceOver') ||
+        'speechSynthesis' in window;
+
+      if (hasScreenReader) {
+        setSettings(prev => ({ ...prev, screenReader: true }));
+      }
+
+      // Detect high contrast preference
+      if (window.matchMedia('(prefers-contrast: high)').matches) {
+        setSettings(prev => ({ ...prev, highContrast: true }));
+        setTheme('dark');
+      }
+    }
+
     setIsLoading(false);
-  }, [settings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDetect, settings.highContrast, settings.fontSize, settings.screenReader, settings.keyboardNavigation, settings.reducedMotion]); // ✅ Primitive dependencies for features update
 
-  const detectAccessibilityNeeds = useCallback(() => {
-    // Detect screen reader
-    const hasScreenReader = 
-      navigator.userAgent.includes('NVDA') ||
-      navigator.userAgent.includes('JAWS') ||
-      navigator.userAgent.includes('VoiceOver') ||
-      'speechSynthesis' in window;
-
-    if (hasScreenReader) {
-      setSettings(prev => ({ ...prev, screenReader: true }));
-      announceToScreenReader('Screen reader support đã được kích hoạt tự động', 'assertive');
-    }
-
-    // Detect high contrast preference
-    if (window.matchMedia('(prefers-contrast: high)').matches) {
-      setSettings(prev => ({ ...prev, highContrast: true }));
-      setTheme('dark'); // Switch to dark theme for better contrast
-    }
-
-    // Detect reduced motion preference
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setSettings(prev => ({ ...prev, reducedMotion: true }));
-    }
-  }, [setTheme]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const applyAccessibilitySettings = useCallback(() => {
+  useEffect(() => {
+    // ✅ FIX: Inline apply settings logic để tránh function dependency
+    // Prevents infinite loop caused by applyAccessibilitySettings recreation
     const root = document.documentElement;
 
     // Apply font size
@@ -265,9 +243,22 @@ export function AccessibilityEnhancer({
       root.classList.remove('enhanced-focus');
     }
 
-    // Save settings
+    // Save settings to localStorage
     localStorage.setItem('nynus-accessibility-settings', JSON.stringify(settings));
-  }, [settings]);
+  }, [settings]); // ✅ Settings object dependency is acceptable here
+
+  useEffect(() => {
+    // Sync with system preferences
+    setSettings(prev => ({
+      ...prev,
+      highContrast: isHighContrast,
+      reducedMotion: prefersReducedMotion
+    }));
+  }, [isHighContrast, prefersReducedMotion]);
+
+  // ===== HANDLERS =====
+  // Note: initializeAccessibility, detectAccessibilityNeeds, applyAccessibilitySettings
+  // have been inlined into useEffect hooks above to prevent infinite loops
 
   const announceToScreenReader = useCallback((
     message: string, 

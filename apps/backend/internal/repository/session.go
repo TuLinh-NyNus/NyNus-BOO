@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/pkg/proto/common"
 	"github.com/sirupsen/logrus"
 )
 
@@ -103,6 +103,10 @@ type SessionRepository interface {
 	UpdateLastActivity(ctx context.Context, sessionID string) error
 	TerminateSession(ctx context.Context, sessionID string) error
 	DeleteSession(ctx context.Context, sessionID string) error
+	// Admin methods for monitoring all sessions
+	GetAllActiveSessions(ctx context.Context, limit, offset int) ([]*Session, error)
+	GetAllSessionsCount(ctx context.Context) (int, error)
+	SearchSessions(ctx context.Context, query string, limit, offset int) ([]*Session, error)
 }
 
 // EmailVerificationToken represents email verification token
@@ -133,6 +137,9 @@ type IUserRepository interface {
 	GetByGoogleID(ctx context.Context, googleID string) (*User, error)
 	GetByUsername(ctx context.Context, username string) (*User, error)
 	GetAll(ctx context.Context) ([]*User, error)
+	// GetUsersWithFilters retrieves users with database-level filtering and pagination
+	// Returns: users slice, total count, error
+	GetUsersWithFilters(ctx context.Context, filters UserFilters, offset, limit int) ([]*User, int, error)
 	Update(ctx context.Context, user *User) error
 	UpdateGoogleID(ctx context.Context, userID, googleID string) error
 	UpdateAvatar(ctx context.Context, userID, avatar string) error
@@ -726,3 +733,161 @@ func (r *sessionRepository) DeleteSession(ctx context.Context, sessionID string)
 
 	return nil
 }
+
+// GetAllActiveSessions gets all active sessions across all users (admin only)
+func (r *sessionRepository) GetAllActiveSessions(ctx context.Context, limit, offset int) ([]*Session, error) {
+	r.logger.WithFields(logrus.Fields{
+		"operation": "GetAllActiveSessions",
+		"limit":     limit,
+		"offset":    offset,
+	}).Debug("Fetching all active sessions")
+
+	query := `
+		SELECT id, user_id, session_token, ip_address, user_agent,
+			   device_fingerprint, location, is_active, last_activity,
+			   expires_at, created_at
+		FROM user_sessions
+		WHERE is_active = true AND expires_at > NOW()
+		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2`
+
+	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		r.logger.WithFields(logrus.Fields{
+			"operation": "GetAllActiveSessions",
+		}).WithError(err).Error("Failed to get all active sessions")
+		return nil, fmt.Errorf("failed to get all active sessions: %w", err)
+	}
+	defer rows.Close()
+
+	var sessions []*Session
+	for rows.Next() {
+		session := &Session{}
+		err := rows.Scan(
+			&session.ID,
+			&session.UserID,
+			&session.SessionToken,
+			&session.IPAddress,
+			&session.UserAgent,
+			&session.DeviceFingerprint,
+			&session.Location,
+			&session.IsActive,
+			&session.LastActivity,
+			&session.ExpiresAt,
+			&session.CreatedAt,
+		)
+		if err != nil {
+			r.logger.WithFields(logrus.Fields{
+				"operation": "GetAllActiveSessions",
+			}).WithError(err).Error("Failed to scan session")
+			return nil, fmt.Errorf("failed to scan session: %w", err)
+		}
+		sessions = append(sessions, session)
+	}
+
+	r.logger.WithFields(logrus.Fields{
+		"operation":     "GetAllActiveSessions",
+		"session_count": len(sessions),
+	}).Debug("All active sessions fetched successfully")
+
+	return sessions, nil
+}
+
+// GetAllSessionsCount gets total count of active sessions
+func (r *sessionRepository) GetAllSessionsCount(ctx context.Context) (int, error) {
+	r.logger.WithFields(logrus.Fields{
+		"operation": "GetAllSessionsCount",
+	}).Debug("Counting all active sessions")
+
+	query := `
+		SELECT COUNT(*)
+		FROM user_sessions
+		WHERE is_active = true AND expires_at > NOW()`
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query).Scan(&count)
+	if err != nil {
+		r.logger.WithFields(logrus.Fields{
+			"operation": "GetAllSessionsCount",
+		}).WithError(err).Error("Failed to count sessions")
+		return 0, fmt.Errorf("failed to count sessions: %w", err)
+	}
+
+	r.logger.WithFields(logrus.Fields{
+		"operation": "GetAllSessionsCount",
+		"count":     count,
+	}).Debug("Session count retrieved successfully")
+
+	return count, nil
+}
+
+// SearchSessions searches sessions by user email, IP address, or location
+func (r *sessionRepository) SearchSessions(ctx context.Context, query string, limit, offset int) ([]*Session, error) {
+	r.logger.WithFields(logrus.Fields{
+		"operation": "SearchSessions",
+		"query":     query,
+		"limit":     limit,
+		"offset":    offset,
+	}).Debug("Searching sessions")
+
+	searchQuery := `
+		SELECT s.id, s.user_id, s.session_token, s.ip_address, s.user_agent,
+			   s.device_fingerprint, s.location, s.is_active, s.last_activity,
+			   s.expires_at, s.created_at
+		FROM user_sessions s
+		JOIN users u ON s.user_id = u.id
+		WHERE s.is_active = true
+			AND s.expires_at > NOW()
+			AND (
+				u.email ILIKE $1
+				OR s.ip_address ILIKE $1
+				OR s.location ILIKE $1
+			)
+		ORDER BY s.created_at DESC
+		LIMIT $2 OFFSET $3`
+
+	searchPattern := "%" + query + "%"
+	rows, err := r.db.QueryContext(ctx, searchQuery, searchPattern, limit, offset)
+	if err != nil {
+		r.logger.WithFields(logrus.Fields{
+			"operation": "SearchSessions",
+			"query":     query,
+		}).WithError(err).Error("Failed to search sessions")
+		return nil, fmt.Errorf("failed to search sessions: %w", err)
+	}
+	defer rows.Close()
+
+	var sessions []*Session
+	for rows.Next() {
+		session := &Session{}
+		err := rows.Scan(
+			&session.ID,
+			&session.UserID,
+			&session.SessionToken,
+			&session.IPAddress,
+			&session.UserAgent,
+			&session.DeviceFingerprint,
+			&session.Location,
+			&session.IsActive,
+			&session.LastActivity,
+			&session.ExpiresAt,
+			&session.CreatedAt,
+		)
+		if err != nil {
+			r.logger.WithFields(logrus.Fields{
+				"operation": "SearchSessions",
+			}).WithError(err).Error("Failed to scan session")
+			return nil, fmt.Errorf("failed to scan session: %w", err)
+		}
+		sessions = append(sessions, session)
+	}
+
+	r.logger.WithFields(logrus.Fields{
+		"operation":     "SearchSessions",
+		"query":         query,
+		"session_count": len(sessions),
+	}).Debug("Sessions search completed successfully")
+
+	return sessions, nil
+}
+

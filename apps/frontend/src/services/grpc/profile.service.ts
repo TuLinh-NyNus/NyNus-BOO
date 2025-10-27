@@ -19,11 +19,17 @@ import {
   UserPreferences,
 } from '@/generated/v1/profile_pb';
 import { RpcError } from 'grpc-web';
-import { getGrpcUrl } from '@/lib/config/endpoints';
+import { GRPC_WEB_HOST } from './client';
 
 // gRPC client configuration
-const GRPC_ENDPOINT = getGrpcUrl();
-const profileServiceClient = new ProfileServiceClient(GRPC_ENDPOINT);
+// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
+// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
+const profileServiceClient = new ProfileServiceClient(GRPC_WEB_HOST, null, {
+  format: 'text', // Use text format for consistency with proto generation
+  withCredentials: false,
+  unaryInterceptors: [],
+  streamInterceptors: []
+});
 
 // Helper to get auth metadata
 function getAuthMetadata(): { [key: string]: string } {

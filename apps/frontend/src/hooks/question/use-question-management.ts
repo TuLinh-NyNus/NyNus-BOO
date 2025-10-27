@@ -149,35 +149,30 @@ export function useQuestionManagement(
       setLoading(true);
       setError(null);
       
-      const pagination: PaginationRequest = {
-        page: state.currentPage,
-        limit: state.pageSize,
-        // sortBy: 'created_at', // Remove unsupported property
-        // sort_order: 'desc', // Remove unsupported property
-        ...(request && 'pagination' in request ? request.pagination || {} : {}),
+      // MIGRATION: Use QuestionFilterService with proper filter structure
+      const filterRequest: ListQuestionsByFilterRequest = {
+        pagination: {
+          page: state.currentPage,
+          limit: state.pageSize,
+          sort: [{ field: 1, order: 2 }] // SORT_FIELD_CREATED_AT, SORT_ORDER_DESC
+        },
+        ...(request || {})
       };
       
-      const response = await QuestionService.listQuestions({
-        ...request,
-        pagination,
-      });
+      const response = await QuestionFilterService.listQuestionsByFilter(filterRequest);
       
-      if (response.success) {
-        updateState({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          questions: response.questions.map((q: any) => ({
-            ...q,
-            tags: q.tag,
-            answers: '', // Add missing fields for QuestionDetail
-            correct_answer: '', 
-          })) as QuestionDetail[],
-          totalCount: response.pagination?.total_count || 0,
-          totalPages: response.pagination?.total_pages || 1,
-          currentPage: response.pagination?.page || 1,
-        });
-      } else {
-        throw new Error(response.message || 'Failed to load questions');
-      }
+      // Response from QuestionFilterService has different structure
+      updateState({
+        questions: (response.questions || []).map((q: any) => ({
+          ...q,
+          tags: q.tags || q.tag || [],
+          answers: q.answers || '',
+          correct_answer: q.correct_answer || q.correctAnswer || '',
+        })) as QuestionDetail[],
+        totalCount: response.total_count || response.totalCount || 0,
+        totalPages: response.total_pages || response.totalPages || 1,
+        currentPage: response.page || state.currentPage,
+      });
     } catch (error) {
       console.error('Load questions error:', error);
       setError((error as Error).message);

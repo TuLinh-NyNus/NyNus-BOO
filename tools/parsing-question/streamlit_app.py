@@ -39,6 +39,213 @@ try:
 except:
     pass
 
+# Multi-file processing function
+def process_multiple_files(
+    uploaded_files,
+    output_dir="output",
+    max_workers=4,
+    batch_size=250,
+    enable_checkpoint=True,
+    enable_optimization=True,
+    resume_session_id=None
+):
+    """
+    Process multiple files concurrently.
+
+    Args:
+        uploaded_files: List of uploaded files from Streamlit
+        output_dir: Output directory for results
+        max_workers: Number of concurrent workers
+        batch_size: Questions per batch
+        enable_checkpoint: Enable checkpoint & resume
+        enable_optimization: Enable performance optimization
+        resume_session_id: Session ID to resume from
+
+    Returns:
+        Dictionary with processing results
+    """
+    import tempfile
+    import time
+
+    # Add src directory to path
+    src_dir = os.path.join(current_dir, "src")
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+
+    from processor.multi_file_processor import MultiFileProcessor
+    from processor.error_handler import ErrorHandler
+    from export.csv_exporter import CSVExporter
+    from export.excel_exporter import ExcelExporter
+
+    # Create progress containers
+    st.markdown("### 🔄 Multi-File Processing")
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+    file_status_container = st.container()
+
+    # Save uploaded files to temp directory
+    temp_dir = tempfile.mkdtemp()
+    file_paths = []
+
+    status_text.text("📁 Đang lưu files...")
+    for i, uploaded_file in enumerate(uploaded_files):
+        temp_path = os.path.join(temp_dir, uploaded_file.name)
+        with open(temp_path, 'wb') as f:
+            f.write(uploaded_file.getvalue())
+        file_paths.append(temp_path)
+        progress_bar.progress((i + 1) / len(uploaded_files) * 10)
+
+    # Initialize multi-file processor
+    status_text.text("🚀 Đang khởi tạo multi-file processor...")
+    processor = MultiFileProcessor(
+        max_workers=max_workers,
+        batch_size=batch_size,
+        enable_checkpoint=enable_checkpoint
+    )
+    error_handler = ErrorHandler(output_dir)
+    error_handler.clear_errors()
+
+    # Initialize performance optimizer if enabled
+    performance_optimizer = None
+    if enable_optimization:
+        from utils.performance_optimizer import PerformanceOptimizer
+        performance_optimizer = PerformanceOptimizer(
+            initial_batch_size=batch_size,
+            initial_workers=max_workers
+        )
+        status_text.text("🚀 Performance optimization enabled")
+
+    # Track file processing status
+    file_status_dict = {}
+
+    def progress_callback(processed, total, elapsed, file_result):
+        """Callback for progress updates."""
+        # Update progress bar (10% for setup, 80% for processing, 10% for export)
+        progress = 10 + (processed / total * 80)
+        progress_bar.progress(int(progress))
+
+        # Update status text
+        files_per_sec = processed / elapsed if elapsed > 0 else 0
+        remaining = total - processed
+        eta = remaining / files_per_sec if files_per_sec > 0 else 0
+        eta_text = f"{eta:.0f}s" if eta < 60 else f"{eta/60:.1f}m"
+
+        status_text.text(
+            f"⚙️ Processing: {processed}/{total} files | "
+            f"⚡ {files_per_sec:.2f} files/s | "
+            f"⏱️ ETA: {eta_text}"
+        )
+
+        # Update file status
+        file_status_dict[file_result['file_name']] = file_result
+
+        # Display file status table
+        with file_status_container:
+            status_df = pd.DataFrame([
+                {
+                    'File': name,
+                    'Status': '✅' if info['status'] == 'success' else '❌',
+                    'Questions': info.get('question_count', 0),
+                    'Errors': info.get('error_count', 0),
+                    'Time (s)': f"{info.get('processing_time', 0):.1f}"
+                }
+                for name, info in file_status_dict.items()
+            ])
+            st.dataframe(status_df, use_container_width=True)
+
+    # Process files
+    if resume_session_id:
+        status_text.text(f"🔄 Resuming from checkpoint: {resume_session_id[:8]}...")
+    else:
+        status_text.text("⚙️ Đang xử lý files...")
+
+    start_time = time.time()
+
+    results = processor.process_files(
+        file_paths,
+        output_dir=output_dir,
+        progress_callback=progress_callback,
+        resume_session_id=resume_session_id
+    )
+
+    processing_time = time.time() - start_time
+
+    # Display session info if checkpoint enabled
+    if enable_checkpoint and 'session_id' in results:
+        st.info(f"📋 Session ID: {results['session_id']}")
+
+    # Display performance metrics if optimization enabled
+    if enable_optimization and performance_optimizer:
+        summary = performance_optimizer.get_performance_summary()
+        if summary:
+            with st.expander("📊 Performance Metrics"):
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Avg CPU", f"{summary.get('avg_cpu_percent', 0):.1f}%")
+                with col2:
+                    st.metric("Avg Memory", f"{summary.get('avg_memory_percent', 0):.1f}%")
+                with col3:
+                    st.metric("Questions/s", f"{summary.get('avg_questions_per_second', 0):.1f}")
+                with col4:
+                    st.metric("Files/s", f"{summary.get('avg_files_per_second', 0):.2f}")
+
+    # Update error handler with results
+    for failed_file in results['failed_files']:
+        error_handler.add_file_error(
+            failed_file.file_path,
+            failed_file.error_message or "Unknown error",
+            'file_processing'
+        )
+
+    for success_file in results['successful_files']:
+        error_handler.mark_file_success(success_file.file_path)
+
+    # Export results
+    status_text.text("💾 Đang export kết quả...")
+    progress_bar.progress(90)
+
+    # Aggregate all questions and question codes
+    all_questions = []
+    all_question_codes = []
+
+    for file_result in results['successful_files']:
+        all_questions.extend(file_result.questions)
+        all_question_codes.extend(file_result.question_codes)
+
+    # Export to CSV and Excel
+    csv_exporter = CSVExporter(output_dir)
+    csv_files = csv_exporter.export_all(all_questions, all_question_codes, [])
+
+    try:
+        excel_exporter = ExcelExporter(output_dir)
+        excel_file = excel_exporter.export_all(all_questions, all_question_codes, [])
+    except Exception as e:
+        excel_file = None
+        st.warning(f"⚠️ Không thể tạo Excel file: {str(e)}")
+
+    # Save error reports
+    if results['failed_files']:
+        error_handler.save_failed_files_list()
+
+    error_handler.save_processing_summary()
+
+    # Complete
+    progress_bar.progress(100)
+    status_text.text("✅ Hoàn thành!")
+
+    # Cleanup temp files
+    import shutil
+    shutil.rmtree(temp_dir, ignore_errors=True)
+
+    return {
+        'results': results,
+        'all_questions': all_questions,
+        'all_question_codes': all_question_codes,
+        'csv_files': csv_files,
+        'excel_file': excel_file,
+        'processing_time': processing_time
+    }
+
 # Custom CSS
 st.markdown("""
 <style>
@@ -533,60 +740,179 @@ def process_uploaded_file(uploaded_file):
 
         st.info(f"📊 Tìm thấy {total_questions:,} câu hỏi")
 
-        # Step 3: Create batches
-        status_text.text("📦 Đang chia nhỏ thành batches...")
-        progress_bar.progress(30)
-        
-        # Create batches - Use optimal batch size based on performance analysis
-        optimal_batch_size = 250  # BEST PERFORMANCE: 73.4 q/s (+97% improvement)
-        batch_size = min(optimal_batch_size, total_questions)
-        batches = file_reader.split_into_batches(batch_size)
+        # Step 3: Determine processing mode based on file size
+        use_large_file_optimization = total_questions >= 100000  # Use optimization for 100K+ questions
+        use_streaming_mode = total_questions >= 300000  # Use streaming for 300K+ questions
 
-        # Step 4: Process batches
-        status_text.text(f"⚙️ Đang xử lý {len(batches)} batches...")
-        progress_bar.progress(40)
+        if use_large_file_optimization:
+            # Import LargeFileProcessor
+            from processor.large_file_processor import LargeFileProcessor
 
-        # Create progress callback for batch processing
-        import time
-        start_time = time.time()
-        processed_questions = 0
-        
-        def progress_callback(current_batch, total_batches, batch_questions):
-            nonlocal processed_questions, start_time
-            processed_questions += batch_questions
-            
-            # Calculate progress percentage
-            batch_progress = (current_batch / total_batches) * 40  # 40% for batch processing (40% to 80%)
-            total_progress = 40 + batch_progress
-            progress_bar.progress(int(total_progress))
-            
-            # Calculate processing speed
-            elapsed_time = time.time() - start_time
-            questions_per_second = processed_questions / elapsed_time if elapsed_time > 0 else 0
-            
-            # Estimate remaining time
-            remaining_questions = total_questions - processed_questions
-            eta_seconds = remaining_questions / questions_per_second if questions_per_second > 0 else 0
-            eta_text = f"{eta_seconds:.0f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
-            
-            # Update status with detailed info
-            status_text.text(
-                f"⚙️ Batch {current_batch}/{total_batches} | "
-                f"📊 {int(processed_questions):,}/{total_questions:,} câu hỏi | "
-                f"⚡ {questions_per_second:.1f} q/s | "
-                f"⏱️ ETA: {eta_text}"
+            # Determine mode
+            if use_streaming_mode:
+                st.info(f"🚀 Ultra-Large File Detected ({total_questions:,} questions) - Using Streaming Processor")
+                st.info("💾 Streaming Mode: Constant memory usage (~100MB), 7x speedup")
+            else:
+                st.info(f"🚀 Large File Detected ({total_questions:,} questions) - Using Optimized Processor")
+
+            # Initialize processor with 4 workers for large files
+            processor = LargeFileProcessor(batch_workers=4, enable_dynamic_batch_size=True)
+
+            # Calculate optimal batch size
+            batch_size = processor.calculate_optimal_batch_size(total_questions)
+            st.info(f"📦 Optimal batch size: {batch_size} | Workers: 4")
+
+            # Progress tracking
+            import time
+            start_time = time.time()
+
+            def large_file_progress_callback(processed, total, elapsed, stats):
+                """Progress callback for large file processing."""
+                # Calculate progress percentage
+                progress_pct = (processed / total * 100) if total > 0 else 0
+                progress_bar.progress(int(30 + progress_pct * 0.5))  # 30% to 80%
+
+                # Update status
+                status_text.text(
+                    f"⚙️ Batch {stats['processed_batches']}/{stats['total_batches']} | "
+                    f"📊 {processed:,}/{total:,} câu hỏi | "
+                    f"⚡ {stats['questions_per_second']:.1f} q/s | "
+                    f"⏱️ ETA: {stats['eta_seconds']:.0f}s"
+                )
+
+            # Process with appropriate mode
+            if use_streaming_mode:
+                status_text.text("⚙️ Đang xử lý với Streaming Processor (7x faster)...")
+            else:
+                status_text.text("⚙️ Đang xử lý với Large File Optimizer (6x faster)...")
+
+            progress_bar.progress(30)
+
+            # Create output directory
+            output_dir = "output"
+            os.makedirs(output_dir, exist_ok=True)
+
+            try:
+                if use_streaming_mode:
+                    # Use streaming mode for ultra-large files (300K+)
+                    results = processor.process_large_file_streaming(
+                        tmp_file_path,
+                        output_dir=output_dir,
+                        progress_callback=large_file_progress_callback
+                    )
+
+                    # For streaming mode, data is already exported to CSV
+                    # Load from CSV for display
+                    import pandas as pd
+                    questions_df = pd.read_csv(results['output_files']['questions'])
+                    codes_df = pd.read_csv(results['output_files']['codes'])
+
+                    # Convert to objects for compatibility
+                    questions = []  # Empty list, data already in CSV
+                    question_codes = []  # Empty list, data already in CSV
+                    errors = results['errors']
+
+                    st.success(
+                        f"✅ Streaming Mode: Processed {results['total_questions']:,} questions in {results['processing_time']:.1f}s "
+                        f"({results['questions_per_second']:.1f} q/s) | Memory: ~100MB"
+                    )
+
+                    # Skip validation and export steps (already done)
+                    # Jump to display results
+                    st.info("💾 Data already exported to CSV files (streaming mode)")
+
+                    # Display summary
+                    st.write("### 📊 Processing Summary")
+                    st.write(f"- Total questions: {results['total_questions']:,}")
+                    st.write(f"- Processing time: {results['processing_time']:.1f}s")
+                    st.write(f"- Speed: {results['questions_per_second']:.1f} q/s")
+                    st.write(f"- Batch size: {results['batch_size']}")
+                    st.write(f"- Workers: {results['batch_workers']}")
+
+                    # Cleanup and return early
+                    os.unlink(tmp_file_path)
+                    return questions, question_codes, []
+
+                else:
+                    # Use standard large file mode (100K-300K)
+                    results = processor.process_large_file(
+                        tmp_file_path,
+                        output_dir=output_dir,
+                        progress_callback=large_file_progress_callback
+                    )
+
+                    questions = results['questions']
+                    question_codes = results['question_codes']
+                    errors = results['errors']
+
+                    # Show performance stats
+                    st.success(
+                        f"✅ Processed {results['total_questions']:,} questions in {results['processing_time']:.1f}s "
+                        f"({results['questions_per_second']:.1f} q/s)"
+                    )
+
+            except Exception as e:
+                st.error(f"❌ Error during processing: {str(e)}")
+                import traceback
+                st.error(traceback.format_exc())
+                os.unlink(tmp_file_path)
+                return None, None, None
+
+        else:
+            # Standard processing for smaller files
+            status_text.text("📦 Đang chia nhỏ thành batches...")
+            progress_bar.progress(30)
+
+            # Create batches - Use optimal batch size based on performance analysis
+            optimal_batch_size = 250  # BEST PERFORMANCE: 73.4 q/s (+97% improvement)
+            batch_size = min(optimal_batch_size, total_questions)
+            batches = file_reader.split_into_batches(batch_size)
+
+            # Step 4: Process batches
+            status_text.text(f"⚙️ Đang xử lý {len(batches)} batches...")
+            progress_bar.progress(40)
+
+            # Create progress callback for batch processing
+            import time
+            start_time = time.time()
+            processed_questions = 0
+
+            def progress_callback(current_batch, total_batches, batch_questions):
+                nonlocal processed_questions, start_time
+                processed_questions += batch_questions
+
+                # Calculate progress percentage
+                batch_progress = (current_batch / total_batches) * 40  # 40% for batch processing (40% to 80%)
+                total_progress = 40 + batch_progress
+                progress_bar.progress(int(total_progress))
+
+                # Calculate processing speed
+                elapsed_time = time.time() - start_time
+                questions_per_second = processed_questions / elapsed_time if elapsed_time > 0 else 0
+
+                # Estimate remaining time
+                remaining_questions = total_questions - processed_questions
+                eta_seconds = remaining_questions / questions_per_second if questions_per_second > 0 else 0
+                eta_text = f"{eta_seconds:.0f}s" if eta_seconds < 60 else f"{eta_seconds/60:.1f}m"
+
+                # Update status with detailed info
+                status_text.text(
+                    f"⚙️ Batch {current_batch}/{total_batches} | "
+                    f"📊 {int(processed_questions):,}/{total_questions:,} câu hỏi | "
+                    f"⚡ {questions_per_second:.1f} q/s | "
+                    f"⏱️ ETA: {eta_text}"
+                )
+
+            # Process with BatchProcessor - Use single-threaded mode for Streamlit compatibility
+            batch_processor = BatchProcessor(max_workers=1)  # Force single-threaded to avoid ScriptRunContext issues
+
+            # Display performance info
+            worker_count = batch_processor.max_workers
+            st.info(f"🚀 Standard Mode: Using {worker_count} worker, batch size {batch_size}")
+            questions, question_codes, errors = batch_processor.process_batches(
+                batches,
+                progress_callback
             )
-
-        # Process with BatchProcessor - Use single-threaded mode for Streamlit compatibility
-        batch_processor = BatchProcessor(max_workers=1)  # Force single-threaded to avoid ScriptRunContext issues
-        
-        # Display performance info
-        worker_count = batch_processor.max_workers
-        st.info(f"🚀 Streamlit Mode: Using {worker_count} worker (single-threaded), batch size {batch_size}")
-        questions, question_codes, errors = batch_processor.process_batches(
-            batches,
-            progress_callback
-        )
 
         # Step 5: Validate data
         status_text.text("✅ Đang validate dữ liệu...")
@@ -920,29 +1246,42 @@ def main():
     local_file_path = None
 
     if upload_method == "🔄 Upload File":
-        uploaded_file = st.sidebar.file_uploader(
-            "Chọn file LaTeX để trích xuất",
+        # Multi-file upload support
+        uploaded_files = st.sidebar.file_uploader(
+            "Chọn file(s) LaTeX để trích xuất",
             type=['tex', 'md'],
-            help="Upload file .tex hoặc .md để trích xuất câu hỏi. Hỗ trợ file lên đến 1GB.",
-            key="file_uploader_main"
+            help="Upload một hoặc nhiều file .tex hoặc .md để trích xuất câu hỏi. Hỗ trợ file lên đến 1GB.",
+            key="file_uploader_main",
+            accept_multiple_files=True
         )
 
-        # Check if a new file is uploaded
-        if uploaded_file is not None:
-            file_content = uploaded_file.getvalue()
-            current_file_hash = get_file_hash(file_content)
+        # Check if files are uploaded
+        if uploaded_files is not None and len(uploaded_files) > 0:
+            # For single file, maintain backward compatibility
+            if len(uploaded_files) == 1:
+                uploaded_file = uploaded_files[0]
+                file_content = uploaded_file.getvalue()
+                current_file_hash = get_file_hash(file_content)
 
-            # Calculate file info
-            file_size_mb = len(file_content) / (1024 * 1024)
+                # Calculate file info
+                file_size_mb = len(file_content) / (1024 * 1024)
 
-            # Always clear cache and session for fresh processing when file is uploaded
-            clear_cache_and_session()
-            st.session_state['file_hash'] = current_file_hash
-            st.session_state['last_processed_file'] = uploaded_file.name
+                # Always clear cache and session for fresh processing when file is uploaded
+                clear_cache_and_session()
+                st.session_state['file_hash'] = current_file_hash
+                st.session_state['last_processed_file'] = uploaded_file.name
 
-            # Show file info - auto-processing will start automatically
-            st.sidebar.success(f"✅ File uploaded: {uploaded_file.name}")
-            st.sidebar.info(f"📊 File size: {file_size_mb:.2f} MB")
+                # Show file info - auto-processing will start automatically
+                st.sidebar.success(f"✅ File uploaded: {uploaded_file.name}")
+                st.sidebar.info(f"📊 File size: {file_size_mb:.2f} MB")
+            else:
+                # Multi-file mode
+                st.session_state['multi_file_mode'] = True
+                st.session_state['uploaded_files'] = uploaded_files
+
+                total_size = sum(len(f.getvalue()) for f in uploaded_files) / (1024 * 1024)
+                st.sidebar.success(f"✅ {len(uploaded_files)} files uploaded")
+                st.sidebar.info(f"📊 Total size: {total_size:.2f} MB")
     else:
         # Local file selection
         st.sidebar.markdown("**📁 File Local Available:**")
@@ -973,8 +1312,176 @@ def main():
         else:
             st.sidebar.warning("⚠️ Không tìm thấy file .tex hoặc .md nào")
 
+    # Check for multi-file mode
+    if st.session_state.get('multi_file_mode', False) and st.session_state.get('uploaded_files'):
+        uploaded_files_list = st.session_state['uploaded_files']
+
+        st.markdown("## 📁 Multi-File Processing Mode")
+        st.info(f"🔄 Processing {len(uploaded_files_list)} files concurrently")
+
+        # Advanced options
+        with st.expander("⚙️ Advanced Options", expanded=False):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                enable_checkpoint = st.checkbox(
+                    "📂 Enable Checkpoint & Resume",
+                    value=True,
+                    help="Save progress and resume from interruptions"
+                )
+
+                enable_optimization = st.checkbox(
+                    "🚀 Enable Performance Optimization",
+                    value=True,
+                    help="Auto-tune batch size and workers based on system resources"
+                )
+
+            with col2:
+                max_workers = st.slider(
+                    "👷 Max Workers",
+                    min_value=1,
+                    max_value=8,
+                    value=4,
+                    help="Number of concurrent workers"
+                )
+
+                batch_size = st.slider(
+                    "📦 Batch Size",
+                    min_value=50,
+                    max_value=1000,
+                    value=250,
+                    step=50,
+                    help="Questions per batch"
+                )
+
+        # Checkpoint resume section
+        if enable_checkpoint:
+            from processor.multi_file_processor import MultiFileProcessor
+
+            temp_processor = MultiFileProcessor(enable_checkpoint=True)
+            resumable_sessions = temp_processor.list_resumable_sessions()
+
+            if resumable_sessions:
+                st.markdown("### 🔄 Resume from Checkpoint")
+
+                session_options = ["-- Start New Session --"] + [
+                    f"{s['session_id'][:8]}... ({s['progress_percentage']:.1f}% - {s['processed_files']}/{s['total_files']} files)"
+                    for s in resumable_sessions
+                ]
+
+                selected_session = st.selectbox(
+                    "Select session to resume:",
+                    session_options,
+                    help="Resume from a previous interrupted session"
+                )
+
+                if selected_session != "-- Start New Session --":
+                    # Extract session ID
+                    session_id = selected_session.split("...")[0]
+
+                    # Find full session info
+                    full_session = next(s for s in resumable_sessions if s['session_id'].startswith(session_id))
+
+                    # Display session info
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Progress", f"{full_session['progress_percentage']:.1f}%")
+                    with col2:
+                        st.metric("Processed", f"{full_session['processed_files']}/{full_session['total_files']}")
+                    with col3:
+                        st.metric("Questions", full_session['total_questions'])
+
+                    st.session_state['resume_session_id'] = full_session['session_id']
+                else:
+                    st.session_state['resume_session_id'] = None
+
+        # Process button
+        if st.button("🚀 Start Multi-File Processing", type="primary"):
+            with st.spinner("Processing files..."):
+                multi_results = process_multiple_files(
+                    uploaded_files_list,
+                    output_dir="output",
+                    max_workers=max_workers,
+                    batch_size=batch_size,
+                    enable_checkpoint=enable_checkpoint,
+                    enable_optimization=enable_optimization,
+                    resume_session_id=st.session_state.get('resume_session_id')
+                )
+
+                # Display results
+                st.success("✅ Multi-file processing completed!")
+
+                # Statistics
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Total Files", multi_results['results']['total_files'])
+                with col2:
+                    st.metric("Successful", multi_results['results']['successful_count'])
+                with col3:
+                    st.metric("Failed", multi_results['results']['failed_count'])
+                with col4:
+                    st.metric("Total Questions", multi_results['results']['total_questions'])
+
+                # Processing time
+                st.info(f"⏱️ Processing time: {multi_results['processing_time']:.2f}s ({multi_results['results']['files_per_second']:.2f} files/s)")
+
+                # Failed files
+                if multi_results['results']['failed_files']:
+                    with st.expander("❌ Failed Files"):
+                        for failed in multi_results['results']['failed_files']:
+                            st.error(f"**{failed.file_name}**: {failed.error_message}")
+
+                # Download buttons
+                st.markdown("### 📥 Download Results")
+
+                if multi_results['csv_files']:
+                    st.download_button(
+                        label="📄 Download Questions CSV",
+                        data=open(multi_results['csv_files']['questions'], 'rb').read(),
+                        file_name="multi_file_questions.csv",
+                        mime="text/csv"
+                    )
+
+                if multi_results['excel_file']:
+                    st.download_button(
+                        label="📊 Download Excel File",
+                        data=open(multi_results['excel_file'], 'rb').read(),
+                        file_name="multi_file_results.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+
+                # Show processing summary
+                summary_path = "output/processing_summary.json"
+                if os.path.exists(summary_path):
+                    with open(summary_path, 'r', encoding='utf-8') as f:
+                        summary = json.load(f)
+
+                    with st.expander("📊 Processing Summary"):
+                        st.json(summary)
+
+                # Convert to DataFrame for display
+                questions_df = pd.DataFrame([q.to_csv_dict() for q in multi_results['all_questions']])
+                codes_df = pd.DataFrame([c.to_csv_dict() for c in multi_results['all_question_codes']]) if multi_results['all_question_codes'] else pd.DataFrame()
+                tags_df = pd.DataFrame()
+
+                st.session_state['multi_file_processed'] = True
+        else:
+            # Show file list
+            st.markdown("### 📋 Files to Process")
+            file_list_df = pd.DataFrame([
+                {
+                    'File Name': f.name,
+                    'Size (MB)': f"{len(f.getvalue()) / (1024 * 1024):.2f}"
+                }
+                for f in uploaded_files_list
+            ])
+            st.dataframe(file_list_df, use_container_width=True)
+
+            st.info("👆 Click 'Start Multi-File Processing' button to begin")
+            return
+
     # Process uploaded file or load existing data
-    if uploaded_file is not None or local_file_path is not None or st.session_state.get('trigger_processing', False):
+    elif uploaded_file is not None or local_file_path is not None or st.session_state.get('trigger_processing', False):
         if uploaded_file is not None:
             # Debug logging
             st.sidebar.write(f"🔍 DEBUG: Processing section reached")

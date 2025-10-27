@@ -1,0 +1,68 @@
+{
+  "version": "v2025-10-27",
+  "note": "This is a SIMPLIFIED flat mapping. Full hierarchical data requires backend API.",
+  "grades": {
+    "0": "Lớp 10",
+    "1": "Lớp 11",
+    "2": "Lớp 12",
+    "A": "Đại học",
+    "B": "Cao đẳng",
+    "C": "Trung cấp"
+  },
+  "subjects": {
+    "P": "10-NGÂN HÀNG CHÍNH",
+    "L": "Vật lý",
+    "H": "Hóa học",
+    "S": "Sinh học",
+    "V": "Văn học",
+    "A": "Tiếng Anh",
+    "U": "Lịch sử",
+    "D": "Địa lý",
+    "G": "GDCD"
+  },
+  "chapters": {
+    "1": "Một số chủ đề Đại số, Số học bồi dưỡng HỌC SINH GIỎI lớp 9",
+    "2": "Một số chủ đề Hình học bồi dưỡng HỌC SINH GIỎI lớp 9",
+    "3": "Phương trình và hệ phương trình",
+    "4": "Phương trình và hệ phương trình (Luyện tập)",
+    "5": "MỘT SỐ YẾU THỐNG KÊ",
+    "6": "TỔ HỢP VÀ XÁC SUẤT THỐNG KÊ",
+    "7": "Chương 7",
+    "8": "Chương 8",
+    "9": "Chương 9"
+  },
+  "levels": {
+    "N": "Nhận biết",
+    "H": "Thông Hiểu",
+    "V": "VD",
+    "C": "VD Cao",
+    "T": "VIP",
+    "M": "Note"
+  },
+  "lessons": {
+    "1": "Hình học cổ điển",
+    "2": "Chứng minh đẳng thức",
+    "3": "Chứng minh quan hệ song song, vuông góc",
+    "4": "Bài 4",
+    "5": "Bài 5",
+    "6": "Bài 6",
+    "7": "Bài 7",
+    "8": "Bài 8",
+    "9": "Bài 9",
+    "A": "Bài A",
+    "B": "Bài B",
+    "C": "Bài C"
+  },
+  "forms": {
+    "1": "Dạng 1",
+    "2": "Dạng 2",
+    "3": "Dạng 3",
+    "4": "Dạng 4",
+    "5": "Dạng 5",
+    "6": "Dạng 6",
+    "7": "Dạng 7",
+    "8": "Dạng 8",
+    "9": "Dạng 9"
+  }
+}
+

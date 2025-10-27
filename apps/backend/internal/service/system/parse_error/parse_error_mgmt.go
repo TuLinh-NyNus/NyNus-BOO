@@ -1,4 +1,4 @@
-package parse_error
+﻿package parse_error
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"github.com/jackc/pgtype"
 	"github.com/sirupsen/logrus"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/latex"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/latex"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/util"
 )
 
 // ParseErrorMgmt manages parse errors and retry mechanisms
@@ -326,3 +326,4 @@ func (m *ParseErrorMgmt) ScheduleAutoRetry(ctx context.Context) error {
 
 	return nil
 }
+

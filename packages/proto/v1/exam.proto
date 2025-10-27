@@ -4,9 +4,6 @@ package v1;
 
 import "common/common.proto";
 import "google/protobuf/timestamp.proto";
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
-
 // Exam status enum (aligned with ExamSystem.md design)
 enum ExamStatus {
   EXAM_STATUS_UNSPECIFIED = 0;
@@ -440,3 +437,7 @@ service ExamService {
   rpc GetExamStatistics(GetExamStatisticsRequest) returns (GetExamStatisticsResponse);
   rpc GetUserPerformance(GetUserPerformanceRequest) returns (GetUserPerformanceResponse);
 }
+
+
+
+

@@ -97,6 +97,20 @@ export function QuestionMetadataDisplay({
     return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
+  /**
+   * Format date safely
+   */
+  const formatDate = (dateValue: string | Date | null | undefined, formatString: string = "dd/MM/yyyy HH:mm") => {
+    if (!dateValue) return "N/A";
+    try {
+      const date = new Date(dateValue);
+      if (isNaN(date.getTime())) return "N/A";
+      return format(date, formatString, { locale: vi });
+    } catch {
+      return "N/A";
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -165,7 +179,7 @@ export function QuestionMetadataDisplay({
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4 text-muted-foreground" />
               <span>
-                {format(new Date(question.createdAt), "dd/MM/yyyy HH:mm", { locale: vi })}
+                {formatDate(question.createdAt)}
               </span>
             </div>
           </div>
@@ -206,10 +220,7 @@ export function QuestionMetadataDisplay({
           <div className="space-y-1">
             <Label className="text-sm text-muted-foreground">Cập nhật lần cuối</Label>
             <span className="text-sm">
-              {question.updatedAt 
-                ? format(new Date(question.updatedAt), "dd/MM/yyyy HH:mm", { locale: vi })
-                : "Chưa cập nhật"
-              }
+              {question.updatedAt ? formatDate(question.updatedAt) : "Chưa cập nhật"}
             </span>
           </div>
         </div>

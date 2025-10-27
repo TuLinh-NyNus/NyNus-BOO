@@ -1,11 +1,11 @@
-package middleware
+﻿package middleware
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/security"
+	"exam-bank-system/apps/backend/internal/service/system/security"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -88,7 +88,7 @@ func (s *SecurityInterceptor) Unary() grpc.UnaryServerInterceptor {
 }
 
 // isExamEndpoint checks if the endpoint is exam-related
-// Kiểm tra xem endpoint có liên quan đến exam không
+// Kiá»ƒm tra xem endpoint cÃ³ liÃªn quan Ä‘áº¿n exam khÃ´ng
 func (s *SecurityInterceptor) isExamEndpoint(method string) bool {
 	examMethods := []string{
 		ExamMethodStartExam,
@@ -372,3 +372,4 @@ func (h *SecurityEventHandler) HandleSecurityEvent(ctx context.Context, sessionI
 
 	return nil
 }
+

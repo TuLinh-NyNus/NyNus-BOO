@@ -31,6 +31,7 @@ import {
 
 /**
  * Map PublicQuestionFilters to QuestionCodeFilter
+ * UPDATED: Thêm hỗ trợ đầy đủ chapter, level, lesson, form
  */
 function mapToQuestionCodeFilter(filters: PublicQuestionFilters): QuestionCodeFilter | undefined {
   const hasCodeFilters = filters.subject?.length || filters.grade?.length;

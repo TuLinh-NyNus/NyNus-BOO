@@ -13,6 +13,8 @@ import {
   DeleteQuestionRequest,
   ListQuestionsRequest,
   ImportQuestionsRequest,
+  ToggleFavoriteRequest,
+  ListFavoriteQuestionsRequest,
   AnswerList,
   Answer,
   CorrectAnswer,
@@ -149,22 +151,17 @@ function toUpdateReq(dto: UpdateQuestionRequestDTO): UpdateQuestionRequest {
 
 */
 
-import { getGrpcUrl } from '@/lib/config/endpoints';
+import { GRPC_WEB_HOST, getAuthMetadata } from './client';
 
 // gRPC client configuration
-const GRPC_ENDPOINT = getGrpcUrl();
-const questionServiceClient = new QuestionServiceClient(GRPC_ENDPOINT);
-
-// Helper to get auth metadata
-function getAuthMetadata(): { [key: string]: string } {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('nynus-auth-token');
-    if (token) {
-      return { 'authorization': `Bearer ${token}` };
-    }
-  }
-  return {};
-}
+// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
+// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
+const questionServiceClient = new QuestionServiceClient(GRPC_WEB_HOST, null, {
+  format: 'text', // Use text format for consistency with proto generation
+  withCredentials: false,
+  unaryInterceptors: [],
+  streamInterceptors: []
+});
 
 // Handle gRPC errors
 function handleGrpcError(error: RpcError): string {
@@ -489,6 +486,106 @@ export class QuestionService {
         error_count: 0,
         errors: [errorMessage],
         summary: errorMessage
+      };
+    }
+  }
+
+  /**
+   * Toggle favorite status of a question
+   * @param questionId - The ID of the question
+   * @param isFavorite - The new favorite status
+   * @returns Promise with success status and new favorite state
+   */
+  static async toggleFavorite(questionId: string, isFavorite: boolean): Promise<{
+    success: boolean;
+    message: string;
+    isFavorite: boolean;
+  }> {
+    try {
+      const request = new ToggleFavoriteRequest();
+      request.setQuestionId(questionId);
+      request.setIsFavorite(isFavorite);
+
+      const response = await questionServiceClient.toggleFavorite(request, getAuthMetadata());
+      const responseObj = response.toObject();
+
+      return {
+        success: responseObj.success || false,
+        message: responseObj.response?.message || 'Favorite status updated',
+        isFavorite: responseObj.isFavorite || false
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * List all favorite questions with pagination
+   * @param page - Page number (1-indexed)
+   * @param pageSize - Number of items per page
+   * @returns Promise with list of favorite questions and pagination info
+   */
+  static async listFavoriteQuestions(page: number = 1, pageSize: number = 20): Promise<{
+    success: boolean;
+    message: string;
+    questions: any[];
+    pagination: {
+      page: number;
+      pageSize: number;
+      total: number;
+      totalPages: number;
+    } | undefined;
+  }> {
+    try {
+      const request = new ListFavoriteQuestionsRequest();
+      const pagination = new PaginationRequest();
+      pagination.setPage(page);
+      pagination.setPageSize(pageSize);
+      request.setPagination(pagination);
+
+      const response = await questionServiceClient.listFavoriteQuestions(request, getAuthMetadata());
+      const responseObj = response.toObject();
+
+      // Map protobuf questions to frontend format
+      const questions = (responseObj.questionsList || []).map((q: any) => ({
+        id: q.id,
+        rawContent: q.rawContent,
+        content: q.content,
+        subcount: q.subcount,
+        type: q.type,
+        source: q.source,
+        solution: q.solution,
+        tag: q.tagList || [],
+        usageCount: q.usageCount,
+        creator: q.creator,
+        status: q.status,
+        feedback: q.feedback,
+        difficulty: q.difficulty,
+        isFavorite: q.isFavorite,
+        questionCodeId: q.questionCodeId,
+        createdAt: q.createdAt,
+        updatedAt: q.updatedAt,
+      }));
+
+      return {
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        questions,
+        pagination: responseObj.pagination ? {
+          page: responseObj.pagination.page || page,
+          pageSize: responseObj.pagination.pageSize || pageSize,
+          total: responseObj.pagination.total || 0,
+          totalPages: responseObj.pagination.totalPages || 0
+        } : undefined
+      };
+    } catch (error) {
+      const errorMessage = handleGrpcError(error as RpcError);
+      return {
+        success: false,
+        message: errorMessage,
+        questions: [],
+        pagination: undefined
       };
     }
   }

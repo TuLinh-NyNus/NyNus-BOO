@@ -1,12 +1,12 @@
-syntax = "proto3";
+﻿syntax = "proto3";
 
 package v1;
 
 import "common/common.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
 
-// Định dạng ảnh đầu ra cho TikZ. Được ấn định bởi template.
+// Äá»‹nh dáº¡ng áº£nh Ä‘áº§u ra cho TikZ. ÄÆ°á»£c áº¥n Ä‘á»‹nh bá»Ÿi template.
 enum OutputFormat {
   OUTPUT_FORMAT_UNSPECIFIED = 0;
   OUTPUT_FORMAT_WEBP = 1;
@@ -15,44 +15,44 @@ enum OutputFormat {
   OUTPUT_FORMAT_SVG = 4;
 }
 
-// Mẫu (template) biên dịch TikZ. Thiết lập định dạng và preamble cố định.
+// Máº«u (template) biÃªn dá»‹ch TikZ. Thiáº¿t láº­p Ä‘á»‹nh dáº¡ng vÃ  preamble cá»‘ Ä‘á»‹nh.
 message TikzTemplate {
   string id = 1;
   string name = 2;
-  string engine = 3;           // ví dụ: "pdflatex"
-  OutputFormat output_format = 4; // Định dạng ảnh cố định theo template
-  string preamble = 5;         // LaTeX preamble (header) cho biên dịch
+  string engine = 3;           // vÃ­ dá»¥: "pdflatex"
+  OutputFormat output_format = 4; // Äá»‹nh dáº¡ng áº£nh cá»‘ Ä‘á»‹nh theo template
+  string preamble = 5;         // LaTeX preamble (header) cho biÃªn dá»‹ch
   bool is_active = 6;
   int64 created_at = 7;
   int64 updated_at = 8;
   string created_by = 9;
 }
 
-// Nguồn TikZ cần biên dịch. Không truyền options — tuân thủ template.
+// Nguá»“n TikZ cáº§n biÃªn dá»‹ch. KhÃ´ng truyá»n options â€” tuÃ¢n thá»§ template.
 message TikzSource {
-  string template_id = 1;  // Chọn template xác định format/preamble
-  string code = 2;         // Nội dung tikzpicture
+  string template_id = 1;  // Chá»n template xÃ¡c Ä‘á»‹nh format/preamble
+  string code = 2;         // Ná»™i dung tikzpicture
 }
 
-// Tham chiếu tài nguyên (ảnh đã upload lên Cloudinary/CDN)
+// Tham chiáº¿u tÃ i nguyÃªn (áº£nh Ä‘Ã£ upload lÃªn Cloudinary/CDN)
 message AssetRef {
-  string asset_id = 1;     // ID trong hệ thống (DB)
+  string asset_id = 1;     // ID trong há»‡ thá»‘ng (DB)
   string url = 2;          // URL CDN/Cloudinary
   string public_id = 3;    // Cloudinary public_id
   string hash = 4;         // sha256(template_id + code [+ template version])
-  string format = 5;       // webp/png/jpg/svg (chuỗi để linh hoạt)
+  string format = 5;       // webp/png/jpg/svg (chuá»—i Ä‘á»ƒ linh hoáº¡t)
   int32 width = 6;
   int32 height = 7;
 }
 
 message CompileTikzRequest {
-  TikzSource source = 1;   // Không giới hạn độ dài input theo yêu cầu
+  TikzSource source = 1;   // KhÃ´ng giá»›i háº¡n Ä‘á»™ dÃ i input theo yÃªu cáº§u
 }
 
 message CompileTikzResponse {
   common.Response response = 1;
   AssetRef asset = 2;
-  string log = 3;          // Log rút gọn khi cần debug
+  string log = 3;          // Log rÃºt gá»n khi cáº§n debug
 }
 
 message ListTikzTemplatesRequest {}
@@ -63,9 +63,10 @@ message ListTikzTemplatesResponse {
 }
 
 service TikzCompilerService {
-  // Biên dịch TikZ theo template (định dạng ảnh do template quyết định)
+  // BiÃªn dá»‹ch TikZ theo template (Ä‘á»‹nh dáº¡ng áº£nh do template quyáº¿t Ä‘á»‹nh)
   rpc CompileTikz(CompileTikzRequest) returns (CompileTikzResponse);
 
-  // Danh sách template khả dụng để chọn trong UI
+  // Danh sÃ¡ch template kháº£ dá»¥ng Ä‘á»ƒ chá»n trong UI
   rpc ListTemplates(ListTikzTemplatesRequest) returns (ListTikzTemplatesResponse);
 }
+

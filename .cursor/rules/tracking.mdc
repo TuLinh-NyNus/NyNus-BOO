@@ -1,0 +1,134 @@
+---
+alwaysApply: true
+---
+# Work Tracking Process - Optional
+## Lightweight Task Management for Exam Bank System
+
+## Overview
+**NOTE**: Task tracking documentation is OPTIONAL. Only create tracking docs when explicitly requested by user.
+
+Simple process for tracking tasks in exam-bank-system. Supports Go backend, Next.js frontend, Flutter mobile.
+
+## When to Use Task Tracking
+- **DO NOT create** tracking docs unless user explicitly requests
+- Use built-in TODO tool for simple task management
+- Only create `docs/work-tracking/` structure if user asks for detailed documentation
+
+## Simplified Folder Structure (When Requested)
+```
+docs/work-tracking/active/[task-name]/
+├── overview.md              # Main task info (ONLY if requested)
+└── checklist.md             # Task checklist (ONLY if requested)
+```
+
+**Removed**: Subtask folders, report.md, dashboard.md - too complex for most tasks
+
+## Task Status Markers (If Using Tracking)
+- `[ ]` Not started
+- `[/]` In progress
+- `[x]` Completed
+- `[-]` Cancelled
+
+## Completion Guidelines
+When task is done:
+- [ ] Code implementation done
+- [ ] Tests written ONLY if user requested
+- [ ] Move from `active/` to `completed/` (if using tracking docs)
+- [ ] Update TODO tool status
+
+## Simplified Template (ONLY if requested)
+
+### Task Overview (overview.md)
+```markdown
+# Task: [Tên Task]
+
+## Thông tin
+- **Trạng thái**: [/] Đang thực hiện
+- **Loại**: Feature/Bugfix/Refactor
+- **Ưu tiên**: High/Medium/Low
+
+## Mục tiêu
+[Mô tả ngắn gọn]
+
+## Tech Stack Impact
+### Backend (Go)
+- Files: [Các file Go cần sửa]
+- Packages: [Packages bị ảnh hưởng]
+
+### Frontend (Next.js/TypeScript)
+- Components: [Các component cần sửa]
+- Pages: [Các page bị ảnh hưởng]
+
+### Mobile (Flutter/Dart)
+- Screens: [Các screen cần sửa]
+- Services: [Services bị ảnh hưởng]
+
+### Database (PostgreSQL)
+- Tables: [Bảng bị ảnh hưởng]
+- Migrations: [Migration cần chạy]
+
+## Blockers
+[Ghi nhận vấn đề]
+
+## Kết quả
+[Cập nhật khi hoàn thành]
+```
+
+### Task Checklist (checklist.md)
+```markdown
+# Checklist: [Tên Task]
+
+## Development
+- [ ] Code implementation hoàn thành
+- [ ] Tests (ONLY if user requested)
+- [ ] Code review (nếu làm việc nhóm)
+
+## Documentation
+- [ ] Cập nhật docs (chỉ khi cần thiết)
+- [ ] PR merged
+
+## Notes
+[Blockers, issues]
+```
+
+**REMOVED**: Subtask templates, report templates, dashboard - quá phức tạp, dùng TODO tool thay thế
+
+## Git Workflow (Best Practice)
+```bash
+# Branch naming
+feature/[task-name]
+bugfix/[issue-description]
+refactor/[component-name]
+
+# Commit messages
+feat: [Tính năng mới]
+fix: [Sửa lỗi]
+refactor: [Tái cấu trúc code]
+docs: [Cập nhật tài liệu]
+```
+
+## Best Practices
+
+### 1. Prefer TODO Tool Over Docs
+- Use built-in TODO tool for most tasks
+- Only create tracking docs when explicitly requested
+- Keep docs minimal when created
+
+### 2. Update Status Regularly
+- Cập nhật TODO status khi hoàn thành bước
+- Ghi blockers khi gặp vấn đề
+- Keep it simple
+
+### 3. Multi-App Guidelines
+- Consider impact on backend (Go), frontend (Next.js), mobile (Flutter)
+- Update gRPC proto if API changes
+- Test affected apps only
+
+---
+
+**Key Changes:**
+- ✅ Optional tracking (not mandatory)
+- ✅ Removed complex templates
+- ✅ Use TODO tool as primary method
+- ✅ Multi-language support (Go, TypeScript, Dart)
+- ✅ 70% size reduction

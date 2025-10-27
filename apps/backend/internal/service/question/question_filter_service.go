@@ -1,16 +1,17 @@
-package question
+﻿package question
 
 import (
 	"context"
 	"database/sql"
+	"log"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/opensearch"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/opensearch"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -36,9 +37,9 @@ func NewQuestionFilterService(db *sql.DB, openSearchClient *opensearch.Client) *
 	var openSearchRepo *opensearch.QuestionRepository
 	if openSearchClient != nil && openSearchClient.IsEnabled() {
 		openSearchRepo = opensearch.NewQuestionRepository(openSearchClient)
-		logger.Info("OpenSearch repository initialized for question filtering")
+		log.Println("[OK] OpenSearch repository initialized for question filtering")
 	} else {
-		logger.Info("OpenSearch not available, using PostgreSQL for question filtering")
+		log.Println("[INFO] OpenSearch not available, using PostgreSQL for question filtering")
 	}
 
 	return &QuestionFilterService{
@@ -610,3 +611,4 @@ func (qfm *QuestionFilterService) GetQuestionsByQuestionCode(ctx context.Context
 		TotalPages: 0,
 	}, nil
 }
+

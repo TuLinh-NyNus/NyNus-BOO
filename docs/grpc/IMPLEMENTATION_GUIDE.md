@@ -110,8 +110,8 @@ import (
     "context"
     "time"
 
-    v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
-    "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
+    v1 "exam-bank-system/apps/backend/pkg/proto/v1"
+    "exam-bank-system/apps/backend/pkg/proto/common"
     "google.golang.org/grpc/codes"
     "google.golang.org/grpc/status"
     "google.golang.org/protobuf/types/known/timestamppb"
@@ -401,8 +401,8 @@ import (
 
     "github.com/stretchr/testify/assert"
     "github.com/stretchr/testify/mock"
-    v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
-    "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/grpc"
+    v1 "exam-bank-system/apps/backend/pkg/proto/v1"
+    "exam-bank-system/apps/backend/internal/grpc"
 )
 
 func TestMyService_MyMethod(t *testing.T) {
@@ -873,4 +873,3 @@ describe('MyService', () => {
 
 **Last Updated**: 2025-01-19
 **Version**: 1.1.0 - Added Streaming Patterns and Advanced Error Handling
-

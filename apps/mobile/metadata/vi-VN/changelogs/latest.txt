@@ -1,0 +1,25 @@
+Có gì mới trong v1.0.0:
+
+🎉 Phiên bản đầu tiên
+• Ngân hàng câu hỏi hoàn chỉnh với hàng nghìn câu hỏi trên mọi môn học
+• Đề thi thử với chấm điểm tự động và phân tích chi tiết
+• Nội dung lý thuyết với hỗ trợ công thức LaTeX
+• Chế độ ngoại tuyến học mọi lúc mọi nơi
+• Giao diện đẹp, hiện đại với Material 3
+• Hỗ trợ chế độ tối
+• Theo dõi tiến độ và thống kê toàn diện
+• Đồng bộ đa thiết bị (tối đa 3 thiết bị)
+• Xác thực an toàn với hỗ trợ sinh trắc học
+
+Tính năng:
+• Duyệt câu hỏi theo môn học, lớp, độ khó
+• Tìm kiếm và lọc nâng cao
+• Lưu câu hỏi yêu thích
+• Làm bài thi có giới hạn thời gian với tự động lưu
+• Xem kết quả chi tiết
+• Xuất kết quả PDF
+• Tải nội dung để học ngoại tuyến
+• Theo dõi tiến độ học tập
+
+Chúng tôi rất vui được mang đến nền tảng học tập toàn diện này!
+

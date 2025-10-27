@@ -1,4 +1,4 @@
-package bulk_import
+﻿package bulk_import
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/latex"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/parse_error"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/latex"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/system/parse_error"
+	"exam-bank-system/apps/backend/internal/util"
 )
 
 // BulkImportMgmt manages bulk import operations with comprehensive error handling
@@ -87,7 +87,7 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 		// No questions found - create error
 		importError := m.createBulkImportError(sessionID, 1, entity.BulkImportErrorTypeParseError,
 			entity.BulkImportErrorSeverityError, "No valid questions found in LaTeX content",
-			"", "Kiểm tra cú pháp LaTeX và đảm bảo có ít nhất một câu hỏi hợp lệ", latexContent, "", true)
+			"", "Kiá»ƒm tra cÃº phÃ¡p LaTeX vÃ  Ä‘áº£m báº£o cÃ³ Ã­t nháº¥t má»™t cÃ¢u há»i há»£p lá»‡", latexContent, "", true)
 		result.Errors = append(result.Errors, importError)
 		m.saveBulkImportError(ctx, &importError)
 
@@ -148,7 +148,7 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 					// Duplicate error
 					duplicateError := m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeDuplicateError,
 						entity.BulkImportErrorSeverityError, fmt.Sprintf("Question code %s already exists", util.PgTextToString(questionCode.Code)),
-						"question_code", "Bật chế độ upsert hoặc sử dụng mã câu hỏi khác", "", "", true)
+						"question_code", "Báº­t cháº¿ Ä‘á»™ upsert hoáº·c sá»­ dá»¥ng mÃ£ cÃ¢u há»i khÃ¡c", "", "", true)
 					result.Errors = append(result.Errors, duplicateError)
 					m.saveBulkImportError(ctx, &duplicateError)
 					errorCount++
@@ -165,7 +165,7 @@ func (m *BulkImportMgmt) ImportLatexWithErrorHandling(ctx context.Context, latex
 			// Database error
 			dbError := m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeDatabaseError,
 				entity.BulkImportErrorSeverityError, fmt.Sprintf("Failed to save question: %v", err),
-				"", "Kiểm tra kết nối database và thử lại", "", "", true)
+				"", "Kiá»ƒm tra káº¿t ná»‘i database vÃ  thá»­ láº¡i", "", "", true)
 			result.Errors = append(result.Errors, dbError)
 			m.saveBulkImportError(ctx, &dbError)
 			errorCount++
@@ -256,7 +256,7 @@ func (m *BulkImportMgmt) validateQuestion(question entity.Question, rowNumber in
 	if util.IsTextEmpty(question.Content) {
 		errors = append(errors, m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeValidationError,
 			entity.BulkImportErrorSeverityError, "Question content is required", "content",
-			"Nhập nội dung câu hỏi đầy đủ", "", "", true))
+			"Nháº­p ná»™i dung cÃ¢u há»i Ä‘áº§y Ä‘á»§", "", "", true))
 	}
 
 	// Validate content length
@@ -264,12 +264,12 @@ func (m *BulkImportMgmt) validateQuestion(question entity.Question, rowNumber in
 	if len(content) < 10 {
 		errors = append(errors, m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeValidationError,
 			entity.BulkImportErrorSeverityError, "Question content too short (minimum 10 characters)", "content",
-			"Nội dung câu hỏi phải có ít nhất 10 ký tự", "", "", true))
+			"Ná»™i dung cÃ¢u há»i pháº£i cÃ³ Ã­t nháº¥t 10 kÃ½ tá»±", "", "", true))
 	}
 	if len(content) > 5000 {
 		errors = append(errors, m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeValidationError,
 			entity.BulkImportErrorSeverityError, "Question content too long (maximum 5000 characters)", "content",
-			"Nội dung câu hỏi không được vượt quá 5000 ký tự", "", "", true))
+			"Ná»™i dung cÃ¢u há»i khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 5000 kÃ½ tá»±", "", "", true))
 	}
 
 	// Validate question type
@@ -285,7 +285,7 @@ func (m *BulkImportMgmt) validateQuestion(question entity.Question, rowNumber in
 	if !isValidType {
 		errors = append(errors, m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeValidationError,
 			entity.BulkImportErrorSeverityError, fmt.Sprintf("Invalid question type: %s", questionType), "type",
-			"Chọn loại câu hỏi hợp lệ: MC, TF, SA, ES, hoặc MA", "", "", true))
+			"Chá»n loáº¡i cÃ¢u há»i há»£p lá»‡: MC, TF, SA, ES, hoáº·c MA", "", "", true))
 	}
 
 	return errors
@@ -412,7 +412,7 @@ func (m *BulkImportMgmt) ImportCSVWithErrorHandling(ctx context.Context, csvCont
 		// CSV format error
 		formatError := m.createBulkImportError(sessionID, 1, entity.BulkImportErrorTypeFormatError,
 			entity.BulkImportErrorSeverityError, fmt.Sprintf("Failed to parse CSV: %v", err),
-			"", "Kiểm tra định dạng CSV và encoding", csvContent, "", false)
+			"", "Kiá»ƒm tra Ä‘á»‹nh dáº¡ng CSV vÃ  encoding", csvContent, "", false)
 		result.Errors = append(result.Errors, formatError)
 		m.saveBulkImportError(ctx, &formatError)
 
@@ -430,7 +430,7 @@ func (m *BulkImportMgmt) ImportCSVWithErrorHandling(ctx context.Context, csvCont
 		// No data rows
 		formatError := m.createBulkImportError(sessionID, 1, entity.BulkImportErrorTypeFormatError,
 			entity.BulkImportErrorSeverityError, "CSV file must contain header and at least one data row",
-			"", "Thêm ít nhất một dòng dữ liệu vào file CSV", csvContent, "", false)
+			"", "ThÃªm Ã­t nháº¥t má»™t dÃ²ng dá»¯ liá»‡u vÃ o file CSV", csvContent, "", false)
 		result.Errors = append(result.Errors, formatError)
 		m.saveBulkImportError(ctx, &formatError)
 
@@ -466,7 +466,7 @@ func (m *BulkImportMgmt) ImportCSVWithErrorHandling(ctx context.Context, csvCont
 		if len(row) != len(header) {
 			formatError := m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeFormatError,
 				entity.BulkImportErrorSeverityError, fmt.Sprintf("Row has %d columns, expected %d", len(row), len(header)),
-				"", "Đảm bảo số cột trong mỗi dòng khớp với header", rowData, "", true)
+				"", "Äáº£m báº£o sá»‘ cá»™t trong má»—i dÃ²ng khá»›p vá»›i header", rowData, "", true)
 			result.Errors = append(result.Errors, formatError)
 			m.saveBulkImportError(ctx, &formatError)
 			errorCount++
@@ -478,7 +478,7 @@ func (m *BulkImportMgmt) ImportCSVWithErrorHandling(ctx context.Context, csvCont
 		if err != nil {
 			parseError := m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeParseError,
 				entity.BulkImportErrorSeverityError, fmt.Sprintf("Failed to parse question: %v", err),
-				"", "Kiểm tra định dạng dữ liệu trong dòng", rowData, "", true)
+				"", "Kiá»ƒm tra Ä‘á»‹nh dáº¡ng dá»¯ liá»‡u trong dÃ²ng", rowData, "", true)
 			result.Errors = append(result.Errors, parseError)
 			m.saveBulkImportError(ctx, &parseError)
 			errorCount++
@@ -515,7 +515,7 @@ func (m *BulkImportMgmt) ImportCSVWithErrorHandling(ctx context.Context, csvCont
 			if err == nil && existing != nil {
 				duplicateError := m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeDuplicateError,
 					entity.BulkImportErrorSeverityError, fmt.Sprintf("Question ID %s already exists", util.PgTextToString(question.ID)),
-					"id", "Bật chế độ upsert hoặc sử dụng ID khác", rowData, "", true)
+					"id", "Báº­t cháº¿ Ä‘á»™ upsert hoáº·c sá»­ dá»¥ng ID khÃ¡c", rowData, "", true)
 				result.Errors = append(result.Errors, duplicateError)
 				m.saveBulkImportError(ctx, &duplicateError)
 				errorCount++
@@ -536,7 +536,7 @@ func (m *BulkImportMgmt) ImportCSVWithErrorHandling(ctx context.Context, csvCont
 			// Database error
 			dbError := m.createBulkImportError(sessionID, rowNumber, entity.BulkImportErrorTypeDatabaseError,
 				entity.BulkImportErrorSeverityError, fmt.Sprintf("Failed to save question: %v", err),
-				"", "Kiểm tra kết nối database và thử lại", rowData, "", true)
+				"", "Kiá»ƒm tra káº¿t ná»‘i database vÃ  thá»­ láº¡i", rowData, "", true)
 			result.Errors = append(result.Errors, dbError)
 			m.saveBulkImportError(ctx, &dbError)
 			errorCount++
@@ -699,3 +699,4 @@ func (m *BulkImportMgmt) CleanupOldImportData(ctx context.Context, olderThanDays
 	cutoffTime := time.Now().AddDate(0, 0, -olderThanDays)
 	return m.bulkImportRepo.CleanupOldImportData(ctx, cutoffTime)
 }
+

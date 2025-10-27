@@ -1,13 +1,13 @@
-package repository
+﻿package repository
 
 import (
 	"context"
 	"fmt"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/jackc/pgtype"
 )
 
@@ -841,3 +841,4 @@ func (r *QuestionFilterRepository) generateHighlights(question entity.Question, 
 
 	return highlights
 }
+

@@ -23,9 +23,15 @@ export {
 
 // Notification hooks
 export {
+  AdminNotificationsProvider,
   useAdminNotifications,
   useNotificationToast
 } from './use-admin-notifications';
+
+// Books hooks
+export {
+  useAdminBooks
+} from './use-admin-books';
 
 // Dashboard Hooks
 export {

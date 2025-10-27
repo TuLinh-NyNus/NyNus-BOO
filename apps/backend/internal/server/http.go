@@ -1,4 +1,4 @@
-package server
+﻿package server
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 // HTTPServer wraps the gRPC-Gateway server
@@ -32,7 +32,7 @@ func NewHTTPServer(httpPort, grpcPort string, grpcServer *grpc.Server) *HTTPServ
 		// Pass auth header and IP-related headers to gRPC
 		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
 			switch strings.ToLower(key) {
-			case "authorization", "x-forwarded-for", "x-real-ip", "x-client-ip", "user-agent":
+			case "authorization", "x-forwarded-for", "x-real-ip", "x-client-ip", "user-agent", "cookie":
 				return key, true
 			default:
 				return runtime.DefaultHeaderMatcher(key)
@@ -61,6 +61,13 @@ func NewHTTPServer(httpPort, grpcPort string, grpcServer *grpc.Server) *HTTPServ
 			// User agent header
 			if userAgent := req.Header.Get("User-Agent"); userAgent != "" {
 				md.Set("user-agent", userAgent)
+			}
+
+			// FIX: Forward Cookie header for CSRF validation
+			// CSRF interceptor needs cookies to validate CSRF token
+			// It compares token in header (x-csrf-token) vs token in cookie (next-auth.csrf-token)
+			if cookie := req.Header.Get("Cookie"); cookie != "" {
+				md.Set("cookie", cookie)
 			}
 
 			// Fallback: Use RemoteAddr if no IP headers present
@@ -195,7 +202,7 @@ func (s *HTTPServer) Start() error {
 
 	// Start HTTP server
 	addr := fmt.Sprintf(":%s", s.httpPort)
-	fmt.Printf("🌐 Starting HTTP/gRPC-Gateway + gRPC-Web server on %s\n", addr)
+	fmt.Printf("[HTTP] Starting HTTP/gRPC-Gateway + gRPC-Web server on %s\n", addr)
 
 	// Create a simple handler that routes requests
 	return http.ListenAndServe(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -288,6 +295,14 @@ func (s *HTTPServer) registerServices(ctx context.Context, endpoint string, opts
 	// Register ExamService
 	if err := v1.RegisterExamServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
 		return fmt.Errorf("failed to register ExamService: %w", err)
+	}
+
+	// Register BookService
+	if err := v1.RegisterBookServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+		return fmt.Errorf("failed to register BookService: %w", err)
+	}
+	if err := v1.RegisterLibraryServiceHandlerFromEndpoint(ctx, s.mux, endpoint, opts); err != nil {
+		return fmt.Errorf("failed to register LibraryService: %w", err)
 	}
 
 	return nil

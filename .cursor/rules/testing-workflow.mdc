@@ -1,0 +1,489 @@
+---
+alwaysApply: true
+---
+# Testing Workflow - MCP Chrome DevTools
+## Manual Testing Process After Implementation
+
+## 🎯 When to Use This Workflow
+
+**IMPORTANT**: Only perform testing when explicitly requested by user OR after completing significant features.
+
+This workflow uses MCP Chrome DevTools to:
+- Verify functionality works as expected
+- Detect runtime errors and console warnings
+- Analyze UI/UX quality
+- Check performance and network issues
+- Validate responsive design
+
+---
+
+## 📋 Testing Process
+
+### Step 1: Preparation
+1. Ensure development server is running:
+   ```bash
+   # Frontend
+   cd apps/frontend
+   pnpm dev
+   
+   # Backend (if needed)
+   cd apps/backend
+   go run cmd/server/main.go
+   ```
+
+2. Have test credentials ready (see Test Accounts section below)
+
+### Step 2: Access Application via MCP Chrome DevTools
+
+```javascript
+// Use MCP tools to navigate
+mcp_chrome-devtools_navigate_page({
+  url: "http://localhost:3000"  // or your dev URL
+})
+
+// Take initial snapshot
+mcp_chrome-devtools_take_snapshot({
+  verbose: false
+})
+```
+
+### Step 3: Login Testing
+
+Test with different roles to verify role-based access:
+
+```javascript
+// Example: Login as Admin
+mcp_chrome-devtools_fill_form({
+  elements: [
+    { uid: "[email-input-uid]", value: "admin10@nynus.edu.vn" },
+    { uid: "[password-input-uid]", value: "Abd8stbcs!" }
+  ]
+})
+
+mcp_chrome-devtools_click({
+  uid: "[login-button-uid]"
+})
+
+// Wait for navigation
+mcp_chrome-devtools_wait_for({
+  text: "Dashboard", // or expected text after login
+  timeout: 5000
+})
+```
+
+**Test Accounts:**
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin10@nynus.edu.vn | Abd8stbcs! |
+| Teacher | teacher20@nynus.edu.vn | Abd8stbcs! |
+| Student | student33@nynus.edu.vn | Abd8stbcs! |
+
+### Step 4: Console Log Analysis
+
+```javascript
+// Get console messages
+mcp_chrome-devtools_list_console_messages({
+  types: ["error", "warn"],
+  pageSize: 50
+})
+```
+
+**Check for:**
+- ❌ **Errors** (red): Must be fixed
+  - JavaScript runtime errors
+  - Network request failures
+  - gRPC connection errors
+  - Unhandled promise rejections
+
+- ⚠️ **Warnings** (yellow): Should investigate
+  - Deprecated API usage
+  - Performance warnings
+  - React hydration mismatches
+  - Missing key props
+
+- 📝 **Info/Log**: Optional review
+  - Debug statements (should be removed in production)
+  - Unnecessary verbose logging
+
+**Actions:**
+```javascript
+// Get detailed error message
+mcp_chrome-devtools_get_console_message({
+  msgid: [message-id]
+})
+
+// Take screenshot of error state
+mcp_chrome-devtools_take_screenshot({
+  format: "png",
+  filePath: "error-screenshot.png"
+})
+```
+
+### Step 5: Network Analysis
+
+```javascript
+// List network requests
+mcp_chrome-devtools_list_network_requests({
+  resourceTypes: ["fetch", "xhr"],
+  pageSize: 50
+})
+```
+
+**Check for:**
+- ❌ Failed requests (status 4xx, 5xx)
+- ⚠️ Slow requests (>1s for API, >3s for large data)
+- ⚠️ Multiple duplicate requests (inefficient)
+- ✅ Proper error handling
+- ✅ gRPC requests with correct headers
+
+**Actions:**
+```javascript
+// Get request details
+mcp_chrome-devtools_get_network_request({
+  reqid: [request-id]
+})
+```
+
+### Step 6: UI/UX Analysis
+
+#### Visual Inspection
+```javascript
+// Take snapshot of current page
+mcp_chrome-devtools_take_snapshot({
+  verbose: true
+})
+
+// Take full page screenshot
+mcp_chrome-devtools_take_screenshot({
+  fullPage: true,
+  format: "png",
+  filePath: "ui-full-page.png"
+})
+```
+
+**UI Checklist:**
+- [ ] Layout không bị vỡ (no overflow, proper spacing)
+- [ ] Typography rõ ràng, dễ đọc
+- [ ] Colors có contrast tốt (accessibility)
+- [ ] Buttons, links có hover states
+- [ ] Loading states hiển thị khi cần
+- [ ] Error messages rõ ràng, helpful
+- [ ] Empty states có hướng dẫn user
+- [ ] Icons nhất quán, có ý nghĩa
+
+**UX Checklist:**
+- [ ] Navigation flow logic, intuitive
+- [ ] Forms có validation feedback ngay lập tức
+- [ ] Success/error notifications rõ ràng
+- [ ] Không có dead-end states (luôn có way out)
+- [ ] Keyboard navigation works (Tab, Enter, Esc)
+- [ ] Focus indicators visible
+- [ ] Tooltips/help text khi cần
+
+#### Responsive Design Testing
+```javascript
+// Test mobile viewport
+mcp_chrome-devtools_resize_page({
+  width: 375,
+  height: 667
+})
+
+mcp_chrome-devtools_take_screenshot({
+  filePath: "mobile-view.png"
+})
+
+// Test tablet
+mcp_chrome-devtools_resize_page({
+  width: 768,
+  height: 1024
+})
+
+// Test desktop
+mcp_chrome-devtools_resize_page({
+  width: 1920,
+  height: 1080
+})
+```
+
+**Responsive Checklist:**
+- [ ] Mobile (375px): Navigation hamburger menu, stacked layout
+- [ ] Tablet (768px): Proper grid layout, readable text
+- [ ] Desktop (1920px): No excessive white space, optimal content width
+- [ ] Touch targets ≥44px on mobile
+- [ ] Text không quá nhỏ trên mobile (≥16px)
+- [ ] Images scale properly
+- [ ] No horizontal scroll
+
+### Step 7: Interaction Testing
+
+Test user workflows:
+
+```javascript
+// Example: Create Exam Flow
+// 1. Navigate to create exam page
+mcp_chrome-devtools_click({ uid: "[create-exam-button-uid]" })
+
+// 2. Fill form
+mcp_chrome-devtools_fill_form({
+  elements: [
+    { uid: "[title-input]", value: "Test Exam" },
+    { uid: "[description-input]", value: "Testing description" }
+  ]
+})
+
+// 3. Submit
+mcp_chrome-devtools_click({ uid: "[submit-button]" })
+
+// 4. Verify success
+mcp_chrome-devtools_wait_for({
+  text: "Exam created successfully"
+})
+```
+
+**Interaction Checklist:**
+- [ ] Forms submit correctly
+- [ ] Validation errors show properly
+- [ ] Loading indicators during async operations
+- [ ] Disabled states prevent double submission
+- [ ] Success feedback clear and actionable
+- [ ] Navigation after actions works
+- [ ] Modal dialogs open/close properly
+- [ ] Dropdowns, selects work correctly
+
+### Step 8: Performance Analysis
+
+```javascript
+// Start performance trace
+mcp_chrome-devtools_performance_start_trace({
+  reload: true,
+  autoStop: true
+})
+
+// After trace completes, analyze insights
+mcp_chrome-devtools_performance_analyze_insight({
+  insightName: "LCPBreakdown"  // or other insights
+})
+```
+
+**Performance Checklist:**
+- [ ] LCP (Largest Contentful Paint) < 2.5s
+- [ ] FID (First Input Delay) < 100ms
+- [ ] CLS (Cumulative Layout Shift) < 0.1
+- [ ] No layout thrashing
+- [ ] Minimal re-renders (React)
+- [ ] Optimized images (WebP, proper sizing)
+- [ ] Code splitting for large bundles
+
+### Step 9: Accessibility Testing
+
+```javascript
+// Navigate with keyboard only
+mcp_chrome-devtools_evaluate_script({
+  function: `() => {
+    // Check for accessibility issues
+    const issues = [];
+    
+    // Check images have alt text
+    document.querySelectorAll('img').forEach(img => {
+      if (!img.alt) issues.push('Image missing alt text: ' + img.src);
+    });
+    
+    // Check buttons have text or aria-label
+    document.querySelectorAll('button').forEach(btn => {
+      if (!btn.textContent.trim() && !btn.getAttribute('aria-label')) {
+        issues.push('Button missing label');
+      }
+    });
+    
+    return issues;
+  }`
+})
+```
+
+**Accessibility Checklist:**
+- [ ] All images have meaningful alt text
+- [ ] Buttons/links have descriptive labels
+- [ ] Form inputs have associated labels
+- [ ] Headings hierarchy proper (h1 → h2 → h3)
+- [ ] Color not sole means of conveying info
+- [ ] Focus visible on all interactive elements
+- [ ] Screen reader friendly (semantic HTML)
+- [ ] ARIA attributes used correctly
+
+---
+
+## 📊 Test Report Template
+
+After completing testing, report findings:
+
+```markdown
+## Test Report: [Feature Name]
+
+**Date**: YYYY-MM-DD
+**Tested By**: [Your Name]
+**Browser**: Chrome [version]
+**Test Environment**: Development/Staging
+
+### ✅ Passed Tests
+- [x] Login với 3 roles (admin, teacher, student)
+- [x] Navigation flow hoạt động tốt
+- [x] Responsive design on mobile/tablet/desktop
+
+### ❌ Failed Tests / Bugs Found
+1. **Console Error**: [Description]
+   - Severity: High/Medium/Low
+   - Steps to reproduce: ...
+   - Screenshot: [path]
+
+2. **UI Issue**: [Description]
+   - Affected viewport: Mobile/Tablet/Desktop
+   - Expected: ...
+   - Actual: ...
+
+### ⚠️ Warnings / Suggestions
+- Console warnings về deprecated API (low priority)
+- UI improvement: [Suggestion]
+
+### 📈 Performance Metrics
+- LCP: [X]s
+- FID: [X]ms
+- CLS: [X]
+
+### 💡 UX Improvement Suggestions
+1. [Suggestion 1] - Rationale
+2. [Suggestion 2] - Rationale
+```
+
+---
+
+## 🎨 UI/UX Improvement Framework
+
+When analyzing UI, consider:
+
+### Visual Design
+- **Hierarchy**: Important elements stand out?
+- **Spacing**: Consistent padding/margins (8px grid)?
+- **Alignment**: Everything aligned to grid?
+- **Color**: Brand colors consistent? Proper contrast?
+- **Typography**: Font sizes scale properly (mobile to desktop)?
+
+### User Experience
+- **Clarity**: Purpose of each page immediately clear?
+- **Feedback**: System responds to user actions?
+- **Efficiency**: Minimal steps to complete tasks?
+- **Error Prevention**: Validation before submission?
+- **Help & Documentation**: Tooltips, placeholder text helpful?
+
+### Common UI Improvements
+```typescript
+// ❌ BAD - No loading state
+<Button onClick={handleSubmit}>Submit</Button>
+
+// ✅ GOOD - Loading state visible
+<Button onClick={handleSubmit} disabled={isLoading}>
+  {isLoading ? "Submitting..." : "Submit"}
+</Button>
+
+// ❌ BAD - Generic error
+"Error occurred"
+
+// ✅ GOOD - Helpful error message
+"Unable to create exam. Please check all required fields and try again."
+
+// ❌ BAD - No empty state
+{exams.length === 0 && <div>No exams</div>}
+
+// ✅ GOOD - Helpful empty state
+{exams.length === 0 && (
+  <EmptyState
+    title="No exams yet"
+    description="Create your first exam to get started"
+    action={<Button onClick={handleCreate}>Create Exam</Button>}
+  />
+)}
+```
+
+---
+
+## ⚡ Quick Testing Commands
+
+```javascript
+// Quick login test
+async function quickLoginTest(role) {
+  const accounts = {
+    admin: { email: "admin10@nynus.edu.vn", pass: "Abd8stbcs!" },
+    teacher: { email: "teacher20@nynus.edu.vn", pass: "Abd8stbcs!" },
+    student: { email: "student33@nynus.edu.vn", pass: "Abd8stbcs!" }
+  };
+  
+  const account = accounts[role];
+  // Fill and submit login form
+  // Verify successful login
+  // Check console for errors
+  // Return report
+}
+
+// Quick console check
+async function checkConsoleErrors() {
+  const messages = await mcp_chrome-devtools_list_console_messages({
+    types: ["error", "warn"]
+  });
+  
+  return messages.filter(m => 
+    !m.text.includes("DevTools") && // Ignore DevTools warnings
+    !m.text.includes("Extension") // Ignore extension warnings
+  );
+}
+
+// Quick responsive test
+async function quickResponsiveTest() {
+  const viewports = [
+    { name: "Mobile", width: 375, height: 667 },
+    { name: "Tablet", width: 768, height: 1024 },
+    { name: "Desktop", width: 1920, height: 1080 }
+  ];
+  
+  for (const vp of viewports) {
+    await mcp_chrome-devtools_resize_page(vp);
+    await mcp_chrome-devtools_take_screenshot({
+      filePath: `${vp.name.toLowerCase()}-view.png`
+    });
+  }
+}
+```
+
+---
+
+## 🚨 Critical Issues - Immediate Fix Required
+
+Stop and report immediately if you find:
+- ❌ Authentication bypass or security vulnerability
+- ❌ Data loss (user data not saved correctly)
+- ❌ Application crash on critical path
+- ❌ gRPC connection failures
+- ❌ Exposed sensitive data in console/network
+- ❌ CORS errors preventing functionality
+
+---
+
+## ✅ Testing Workflow Checklist
+
+Before marking feature as complete:
+- [ ] Tested with all 3 roles (admin, teacher, student)
+- [ ] Console log analysis completed (no critical errors)
+- [ ] Network requests analysis done (all succeed or handled gracefully)
+- [ ] UI visual inspection passed
+- [ ] Responsive design tested (mobile, tablet, desktop)
+- [ ] Key user workflows tested end-to-end
+- [ ] Performance metrics acceptable
+- [ ] Accessibility basics checked
+- [ ] Test report created and shared
+
+---
+
+**Remember**: 
+- Testing is OPTIONAL unless user requests or feature is critical
+- Use MCP Chrome DevTools for consistent, repeatable testing
+- Document findings clearly with screenshots
+- Prioritize user-facing issues over minor warnings
+- Suggest improvements, but don't implement without approval

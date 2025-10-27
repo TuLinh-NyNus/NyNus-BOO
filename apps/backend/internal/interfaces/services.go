@@ -1,10 +1,10 @@
-package interfaces
+﻿package interfaces
 
 import (
 	"context"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/service/auth"
 )
 
 // AuthServiceInterface defines the contract for authentication operations
@@ -20,7 +20,7 @@ type AuthServiceInterface interface {
 }
 
 // UserServiceInterface defines the contract for user management operations
-// This follows the new pattern: Service Management Layer → Domain Service Layer → Repository Layer
+// This follows the new pattern: Service Management Layer â†’ Domain Service Layer â†’ Repository Layer
 type UserServiceInterface interface {
 	// User management operations with pagination
 	GetUser(ctx context.Context, userID string) (user entity.User, err error)
@@ -29,7 +29,7 @@ type UserServiceInterface interface {
 }
 
 // QuestionServiceInterface defines the contract for question management operations
-// This follows the new pattern: Service Management Layer → Domain Service Layer → Repository Layer
+// This follows the new pattern: Service Management Layer â†’ Domain Service Layer â†’ Repository Layer
 type QuestionServiceInterface interface {
 	// Question management operations with pagination
 	GetQuestion(ctx context.Context, questionID string) (question entity.Question, err error)
@@ -40,7 +40,7 @@ type QuestionServiceInterface interface {
 }
 
 // ExamServiceInterface defines the contract for exam management operations
-// This follows the new pattern: Service Management Layer → Domain Service Layer → Repository Layer
+// This follows the new pattern: Service Management Layer â†’ Domain Service Layer â†’ Repository Layer
 type ExamServiceInterface interface {
 	// Exam management operations with pagination
 	GetExam(ctx context.Context, examID string) (exam entity.Exam, err error)
@@ -71,3 +71,4 @@ type ServiceDependencies struct {
 	UserService     UserServiceInterface
 	QuestionService QuestionServiceInterface
 }
+

@@ -22,6 +22,10 @@ export const BREADCRUMB_LABELS: Record<string, string> = {
   'questions': 'Quản lý câu hỏi',
   'question': 'Câu hỏi',
   
+  // Exam management
+  'exams': 'Quản lý đề thi',
+  'exam': 'Đề thi',
+  
   // Content management
   'books': 'Quản lý sách',
   'book': 'Sách',

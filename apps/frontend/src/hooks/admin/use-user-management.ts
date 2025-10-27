@@ -1,14 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-  getMockUsersResponse,
-  getMockUserStats,
-  getUserById as getUserByIdFromMock
-} from '@/lib/mockdata';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { AdminUser, UserStats, AdvancedUserFilters } from '@/lib/mockdata/types';
-import { UserRole, UserStatus, MockPagination } from '@/lib/mockdata/core-types';
-import { convertEnumStatusToProtobuf, convertEnumRoleToProtobuf } from '@/lib/utils/type-converters';
+import { MockPagination } from '@/lib/mockdata/core-types';
+import { UserRole, UserStatus } from '@/generated/common/common_pb';
+import { AdminService } from '@/services/grpc/admin.service';
+import { useAdminStats } from '@/contexts/admin-stats-context';
 
 // ===== INTERFACES =====
 
@@ -104,7 +101,10 @@ export function useUserManagement(
 ): UseUserManagementReturn {
   // Merge config với defaults
   const finalConfig = useMemo(() => ({ ...defaultConfig, ...config }), [config]);
-  
+
+  // ✅ FIX: Use AdminStatsContext instead of direct API call
+  const { stats: contextStats } = useAdminStats();
+
   // ===== STATES =====
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState<UserStats>({
@@ -141,7 +141,7 @@ export function useUserManagement(
   const [filters, setFilters] = useState<AdvancedUserFilters>(defaultFilters);
   
   // ===== CACHE STATE =====
-  const [cache, setCache] = useState<Map<string, { users: AdminUser[]; pagination: MockPagination }>>(new Map());
+  const cacheRef = useRef<Map<string, { users: AdminUser[]; pagination: MockPagination }>>(new Map());
   
   // ===== UTILITY COMPUTED VALUES =====
   const hasUsers = useMemo(() => users.length > 0, [users]);
@@ -157,7 +157,7 @@ export function useUserManagement(
   }, [pagination.limit]);
   
   /**
-   * Load users từ mockdata với filters và pagination
+   * Load users từ real database via gRPC với filters và pagination
    */
   const loadUsers = useCallback(async (
     newFilters: AdvancedUserFilters = filters,
@@ -166,11 +166,11 @@ export function useUserManagement(
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Check cache nếu enabled
       const cacheKey = generateCacheKey(newFilters, page);
-      if (finalConfig.enableCaching && cache.has(cacheKey)) {
-        const cachedData = cache.get(cacheKey);
+      if (finalConfig.enableCaching && cacheRef.current.has(cacheKey)) {
+        const cachedData = cacheRef.current.get(cacheKey);
         if (cachedData) {
           setUsers(cachedData.users);
           setPagination(cachedData.pagination);
@@ -178,34 +178,89 @@ export function useUserManagement(
           return;
         }
       }
-      
-      // Convert AdvancedUserFilters to API filters
-      const apiFilters = {
-        role: newFilters.roles.length === 1 ? newFilters.roles[0] : undefined,
-        status: newFilters.statuses.length === 1 ? newFilters.statuses[0] : undefined,
-        emailVerified: newFilters.emailVerified === null ? undefined : newFilters.emailVerified,
-        levelMin: newFilters.levelRange?.min,
-        levelMax: newFilters.levelRange?.max,
-        riskScoreMin: newFilters.riskScoreRange?.min,
-        riskScoreMax: newFilters.riskScoreRange?.max,
-        isLocked: newFilters.isLocked === null ? undefined : newFilters.isLocked,
-        highRisk: newFilters.highRiskUsers === null ? undefined : newFilters.highRiskUsers,
-        search: newFilters.search || undefined,
-      };
-      
-      // Call mock API
-      const response = getMockUsersResponse(page, pagination.limit, apiFilters);
-      
-      if (response.success && response.data) {
-        setUsers(response.data.users);
-        setPagination(response.data.pagination);
-        
+
+      // Convert AdvancedUserFilters to gRPC API filters
+      const grpcFilters: {
+        role?: string;
+        status?: string;
+        search_query?: string;
+      } = {};
+
+      if (newFilters.roles.length === 1) {
+        // Convert enum to string for gRPC
+        grpcFilters.role = newFilters.roles[0].toString();
+      }
+      if (newFilters.statuses.length === 1) {
+        // Convert enum to string for gRPC
+        grpcFilters.status = newFilters.statuses[0].toString();
+      }
+      if (newFilters.search) {
+        grpcFilters.search_query = newFilters.search;
+      }
+
+      // Call real gRPC API
+      const response = await AdminService.listUsers({
+        filter: grpcFilters,
+        pagination: {
+          page,
+          limit: pagination.limit
+        }
+      });
+
+      if (response.success && response.users) {
+        // Map gRPC users to AdminUser format
+        const mappedUsers: AdminUser[] = response.users.map((user: Record<string, unknown>) => ({
+          id: user.id,
+          email: user.email,
+          firstName: user.first_name || '',
+          lastName: user.last_name || '',
+          username: user.username || '',
+          role: user.role as UserRole,
+          status: user.status as UserStatus,
+          level: user.level || 1,
+          isActive: user.is_active,
+          emailVerified: user.email_verified || false,
+          avatar: user.avatar || '',
+          googleId: user.google_id || '',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          lastLogin: new Date(),
+          // Enhanced fields - default values for now
+          riskScore: 0,
+          isLocked: false,
+          failedLoginAttempts: 0,
+          activeSessions: 0,
+          totalLogins: 0,
+          lastPasswordChange: new Date(),
+          twoFactorEnabled: false,
+          suspensionReason: null,
+          suspendedAt: null,
+          suspendedBy: null,
+          notes: null
+        }));
+
+        setUsers(mappedUsers);
+
+        // Map pagination
+        const paginationData: MockPagination = {
+          page: response.pagination?.page || page,
+          limit: response.pagination?.limit || pagination.limit,
+          total: response.pagination?.total || mappedUsers.length,
+          totalPages: response.pagination?.total_pages || 1,
+          hasNext: response.pagination?.has_next || false,
+          hasPrev: response.pagination?.has_prev || false
+        };
+        setPagination(paginationData);
+
         // Cache result nếu enabled
         if (finalConfig.enableCaching) {
-          setCache(prev => new Map(prev).set(cacheKey, response.data));
+          cacheRef.current.set(cacheKey, {
+            users: mappedUsers,
+            pagination: paginationData
+          });
         }
       } else {
-        throw new Error('Failed to load users');
+        throw new Error(response.message || 'Failed to load users');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
@@ -213,19 +268,37 @@ export function useUserManagement(
     } finally {
       setIsLoading(false);
     }
-  }, [filters, pagination.page, pagination.limit, finalConfig.enableCaching, cache, generateCacheKey]);
+  }, [filters, pagination.page, pagination.limit, finalConfig.enableCaching, generateCacheKey]);
   
   /**
-   * Load user statistics
+   * Load user statistics from AdminStatsContext
+   * ✅ FIX: Use context instead of direct API call to avoid rate limit
    */
-  const loadStats = useCallback(async () => {
-    try {
-      const userStats = getMockUserStats();
+  const loadStats = useCallback(() => {
+    if (contextStats) {
+      // Map context stats to UserStats format
+      const userStats: UserStats = {
+        totalUsers: contextStats.total_users || 0,
+        activeUsers: contextStats.active_users || 0,
+        inactiveUsers: 0, // TODO: Add to backend
+        suspendedUsers: 0, // TODO: Add to backend
+        pendingVerificationUsers: 0, // TODO: Add to backend
+        newUsersToday: 0, // TODO: Add to backend
+        newUsersThisWeek: 0, // TODO: Add to backend
+        newUsersThisMonth: 0, // TODO: Add to backend
+        growthPercentage: 0, // TODO: Calculate from historical data
+        guestUsers: contextStats.users_by_role?.['GUEST'] || 0,
+        studentUsers: contextStats.users_by_role?.['STUDENT'] || 0,
+        tutorUsers: contextStats.users_by_role?.['TUTOR'] || 0,
+        teacherUsers: contextStats.users_by_role?.['TEACHER'] || 0,
+        adminUsers: contextStats.users_by_role?.['ADMIN'] || 0,
+        highRiskUsers: contextStats.suspicious_activities || 0,
+        lockedUsers: 0, // TODO: Add to backend
+        multipleSessionUsers: 0 // TODO: Add to backend
+      };
       setStats(userStats);
-    } catch (err) {
-      console.error('Failed to load user stats:', err);
     }
-  }, []);
+  }, [contextStats]);
   
   // ===== MAIN ACTIONS =====
   
@@ -269,7 +342,7 @@ export function useUserManagement(
    */
   const refreshUsers = useCallback(async () => {
     // Clear cache
-    setCache(new Map());
+    cacheRef.current = new Map();
     await loadUsers();
     await loadStats();
   }, [loadUsers, loadStats]);
@@ -278,22 +351,28 @@ export function useUserManagement(
   
   /**
    * Get user by ID và set làm selectedUser
+   * Tìm user từ danh sách đã load hoặc fetch từ API nếu cần
    */
   const getUserById = useCallback(async (id: string) => {
     try {
       setIsLoading(true);
-      const user = getUserByIdFromMock(id);
+
+      // First try to find user in current loaded users
+      const user = users.find(u => u.id === id);
+
       if (user) {
         setSelectedUser(user);
       } else {
-        throw new Error(`User with ID ${id} not found`);
+        // If not found in current list, could fetch from API
+        // For now, just throw error
+        throw new Error(`User with ID ${id} not found in current list`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to get user');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [users]);
   
   /**
    * Clear selected user
@@ -313,21 +392,29 @@ export function useUserManagement(
   // ===== SECURITY ACTIONS =====
   
   /**
-   * Suspend user với reason
+   * Suspend user với reason - Call real gRPC API
    */
   const suspendUser = useCallback(async (userId: string, reason: string) => {
     try {
       setIsLoading(true);
-      // Mock API call - trong thực tế sẽ call API
-      console.log(`Suspending user ${userId} with reason: ${reason}`);
-      
+
+      // Call real gRPC API to update user status
+      const response = await AdminService.updateUserStatus({
+        user_id: userId,
+        status: 'SUSPENDED'
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to suspend user');
+      }
+
       // Update local state
       setUsers(prev => prev.map(user =>
         user.id === userId
-          ? { ...user, status: convertEnumStatusToProtobuf(UserStatus.SUSPENDED), adminNotes: `SUSPENDED: ${reason}` } as AdminUser
+          ? { ...user, status: UserStatus.USER_STATUS_SUSPENDED, suspensionReason: reason }
           : user
       ));
-      
+
       await loadStats(); // Refresh stats
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to suspend user');
@@ -337,21 +424,29 @@ export function useUserManagement(
   }, [loadStats]);
   
   /**
-   * Reactivate suspended user
+   * Reactivate suspended user - Call real gRPC API
    */
   const reactivateUser = useCallback(async (userId: string) => {
     try {
       setIsLoading(true);
-      // Mock API call
-      console.log(`Reactivating user ${userId}`);
-      
+
+      // Call real gRPC API to update user status
+      const response = await AdminService.updateUserStatus({
+        user_id: userId,
+        status: 'ACTIVE'
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to reactivate user');
+      }
+
       // Update local state
       setUsers(prev => prev.map(user =>
         user.id === userId
-          ? { ...user, status: convertEnumStatusToProtobuf(UserStatus.ACTIVE), lockedUntil: undefined, loginAttempts: 0 } as AdminUser
+          ? { ...user, status: UserStatus.USER_STATUS_ACTIVE, isLocked: false, failedLoginAttempts: 0 }
           : user
       ));
-      
+
       await loadStats(); // Refresh stats
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to reactivate user');
@@ -361,21 +456,29 @@ export function useUserManagement(
   }, [loadStats]);
   
   /**
-   * Promote user to new role
+   * Promote user to new role - Call real gRPC API
    */
   const promoteUser = useCallback(async (userId: string, newRole: UserRole) => {
     try {
       setIsLoading(true);
-      // Mock API call
-      console.log(`Promoting user ${userId} to role ${newRole}`);
-      
+
+      // Call real gRPC API to update user role
+      const response = await AdminService.updateUserRole({
+        user_id: userId,
+        role: newRole.toString()
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to promote user');
+      }
+
       // Update local state
       setUsers(prev => prev.map(user =>
         user.id === userId
-          ? { ...user, role: convertEnumRoleToProtobuf(newRole), level: newRole === UserRole.ADMIN ? undefined : 1 } as AdminUser
+          ? { ...user, role: Number(newRole) as UserRole }
           : user
       ));
-      
+
       await loadStats(); // Refresh stats
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to promote user');
@@ -415,14 +518,21 @@ export function useUserManagement(
   }, [loadStats]);
   
   // ===== EFFECTS =====
-  
+
+  /**
+   * Update stats when context stats change
+   * ✅ FIX: Auto-update stats from context
+   */
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+
   /**
    * Load initial data khi component mount
    */
   useEffect(() => {
     loadUsers();
-    loadStats();
-  }, [loadUsers, loadStats]); // Include dependencies
+  }, [loadUsers]); // Include dependencies
   
   // ===== RETURN =====
   

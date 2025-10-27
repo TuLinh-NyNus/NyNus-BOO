@@ -45,7 +45,7 @@ const ERROR_MESSAGES: Record<GrpcStatusCode, string> = {
   [GrpcStatusCode.NOT_FOUND]: 'Không tìm thấy dữ liệu',
   [GrpcStatusCode.ALREADY_EXISTS]: 'Dữ liệu đã tồn tại',
   [GrpcStatusCode.PERMISSION_DENIED]: 'Bạn không có quyền thực hiện thao tác này',
-  [GrpcStatusCode.RESOURCE_EXHAUSTED]: 'Tài nguyên đã hết',
+  [GrpcStatusCode.RESOURCE_EXHAUSTED]: 'Quá nhiều yêu cầu. Vui lòng đợi một chút và thử lại',
   [GrpcStatusCode.FAILED_PRECONDITION]: 'Điều kiện tiên quyết không được đáp ứng',
   [GrpcStatusCode.ABORTED]: 'Yêu cầu đã bị hủy bỏ',
   [GrpcStatusCode.OUT_OF_RANGE]: 'Giá trị nằm ngoài phạm vi cho phép',
@@ -75,6 +75,10 @@ const ERROR_ACTIONS: Partial<Record<GrpcStatusCode, ErrorAction>> = {
     shouldShowToast: true,
   },
   [GrpcStatusCode.PERMISSION_DENIED]: {
+    shouldShowToast: true,
+  },
+  [GrpcStatusCode.RESOURCE_EXHAUSTED]: {
+    shouldRetry: false, // Don't auto-retry rate limit errors
     shouldShowToast: true,
   },
   [GrpcStatusCode.UNAVAILABLE]: {

@@ -16,11 +16,13 @@ interface DarkThemeProviderProps {
 }
 
 export function DarkThemeProvider({ children, className = '' }: DarkThemeProviderProps) {
-  // Không còn thêm class dark vào documentElement
-  // Chỉ áp dụng dark theme locally cho admin panel thông qua wrapper div
-  
+  // ✅ FIX: Always render same structure to prevent hydration mismatch
+  // Server and client both render the wrapper div with same className
   return (
-    <div className={`dark admin-panel h-full bg-background text-foreground ${className}`}>
+    <div
+      className={`dark admin-panel h-full bg-background text-foreground ${className}`}
+      suppressHydrationWarning={true}
+    >
       {children}
     </div>
   );

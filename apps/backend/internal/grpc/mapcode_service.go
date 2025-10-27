@@ -1,12 +1,12 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
 	"fmt"
 
-	mapcode "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	mapcode "exam-bank-system/apps/backend/internal/service/content/mapcode"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	pb "exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -410,3 +410,36 @@ func (s *MapCodeServiceServer) GetStorageInfo(ctx context.Context, req *pb.GetSt
 		Storage: protoStorage,
 	}, nil
 }
+
+// GetMapCodeConfig returns the full MapCode configuration
+func (s *MapCodeServiceServer) GetMapCodeConfig(ctx context.Context, req *pb.GetMapCodeConfigRequest) (*pb.GetMapCodeConfigResponse, error) {
+	config, err := s.mapCodeMgmt.GetMapCodeConfig(ctx, req.VersionId)
+	if err != nil {
+		return &pb.GetMapCodeConfigResponse{
+			Status: &common.Response{
+				Success: false,
+				Message: fmt.Sprintf("Failed to get MapCode config: %v", err),
+			},
+		}, nil
+	}
+
+	// Convert config maps to proto format
+	protoConfig := &pb.MapCodeConfig{
+		Version:  config.Version,
+		Grades:   config.Grades,
+		Subjects: config.Subjects,
+		Chapters: config.Chapters,
+		Levels:   config.Levels,
+		Lessons:  config.Lessons,
+		Forms:    config.Forms,
+	}
+
+	return &pb.GetMapCodeConfigResponse{
+		Status: &common.Response{
+			Success: true,
+			Message: "MapCode configuration retrieved successfully",
+		},
+		Config: protoConfig,
+	}, nil
+}
+

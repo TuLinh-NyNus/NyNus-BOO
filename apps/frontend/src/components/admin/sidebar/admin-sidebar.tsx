@@ -11,15 +11,89 @@
 'use client';
 
 import React from 'react';
-import { AdminSidebarProps } from '@/types/admin/sidebar';
+import { AdminSidebarProps, NavigationSection, NavigationItem } from '@/types/admin/sidebar';
 import { useAdminLayout } from '@/components/admin/providers/admin-layout-provider';
 import { useAdminNavigation, useBottomNavigation } from '@/hooks/admin/use-admin-navigation';
 import { NAVIGATION_SECTIONS } from '@/lib/admin-navigation';
+import { useAdminSidebarBadges } from '@/hooks/admin/use-admin-sidebar-badges';
 import { AdminLogo } from './logo/admin-logo';
 import { NavSection } from './navigation/nav-section';
 import { NavItem } from './navigation/nav-item';
 import { cn } from '@/lib/utils';
 import { HydrationSafe } from '@/components/common/hydration-safe';
+
+type SidebarBadgeCounts = {
+  users?: number;
+  questions?: number;
+  books?: number;
+  sessions?: number;
+  notifications?: number;
+};
+
+const compactNumberFormatter = new Intl.NumberFormat('en', {
+  notation: 'compact',
+  maximumFractionDigits: 1
+});
+
+function formatBadgeValue(value?: number) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (value < 1000) {
+    return value.toString();
+  }
+
+  return compactNumberFormatter.format(value).toLowerCase();
+}
+
+function applyBadgesToSections(
+  sections: NavigationSection[],
+  counts: SidebarBadgeCounts,
+  loading: boolean
+): NavigationSection[] {
+  const applyToItem = (item: NavigationItem): NavigationItem => {
+    const next: NavigationItem = {
+      ...item,
+      ...(item.children ? { children: item.children.map(applyToItem) } : {})
+    };
+
+    let badgeValue: string | number | undefined;
+
+    switch (item.id) {
+      case 'users':
+        badgeValue = counts.users !== undefined ? formatBadgeValue(counts.users) : loading ? '...' : undefined;
+        break;
+      case 'questions':
+        badgeValue = counts.questions !== undefined ? formatBadgeValue(counts.questions) : loading ? '...' : undefined;
+        break;
+      case 'books':
+        badgeValue = counts.books !== undefined ? formatBadgeValue(counts.books) : loading ? '...' : undefined;
+        break;
+      case 'sessions':
+        badgeValue = counts.sessions !== undefined ? formatBadgeValue(counts.sessions) : loading ? '...' : undefined;
+        break;
+      case 'notifications':
+        badgeValue = counts.notifications !== undefined ? formatBadgeValue(counts.notifications) : loading ? '...' : undefined;
+        break;
+      default:
+        badgeValue = item.badge;
+    }
+
+    if (badgeValue !== undefined) {
+      next.badge = badgeValue;
+    } else {
+      delete next.badge;
+    }
+
+    return next;
+  };
+
+  return sections.map((section) => ({
+    ...section,
+    items: section.items.map(applyToItem)
+  }));
+}
 
 /**
  * Admin Sidebar Component
@@ -33,8 +107,19 @@ export function AdminSidebar({
   showCollapseButton = true
 }: AdminSidebarProps) {
   const { isSidebarCollapsed, toggleSidebar, isMobile } = useAdminLayout();
-  const { state: navigationState } = useAdminNavigation(NAVIGATION_SECTIONS);
+  const { counts, loading: badgeLoading, error: badgeError } = useAdminSidebarBadges();
+  const navigationSections = React.useMemo(
+    () => applyBadgesToSections(NAVIGATION_SECTIONS, counts, badgeLoading),
+    [counts, badgeLoading]
+  );
+  const { state: navigationState } = useAdminNavigation(navigationSections);
   const { state: bottomNavState, actions: bottomNavActions } = useBottomNavigation();
+
+  React.useEffect(() => {
+    if (badgeError) {
+      console.error('[AdminSidebar] Failed to load sidebar badges', badgeError);
+    }
+  }, [badgeError]);
 
   // Use controlled collapsed state if provided, otherwise use context
   const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : isSidebarCollapsed;
@@ -108,9 +193,9 @@ export function AdminSidebar({
   /**
    * Render navigation sections
    * Render các navigation sections
-   */
+  */
   const renderNavigationSections = () => {
-    return NAVIGATION_SECTIONS.map((section) => (
+    return navigationSections.map((section) => (
       <NavSection
         key={section.id}
         section={section}

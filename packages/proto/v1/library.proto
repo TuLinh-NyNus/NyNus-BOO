@@ -1,0 +1,535 @@
+syntax = "proto3";
+
+package v1;
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "common/common.proto";
+
+
+// Library item type discriminator.
+enum LibraryItemType {
+  LIBRARY_ITEM_TYPE_UNSPECIFIED = 0;
+  LIBRARY_ITEM_TYPE_EXAM = 1;
+  LIBRARY_ITEM_TYPE_BOOK = 2;
+  LIBRARY_ITEM_TYPE_VIDEO = 3;
+}
+
+// Upload status workflow for library content.
+enum LibraryUploadStatus {
+  LIBRARY_UPLOAD_STATUS_UNSPECIFIED = 0;
+  LIBRARY_UPLOAD_STATUS_PENDING = 1;
+  LIBRARY_UPLOAD_STATUS_APPROVED = 2;
+  LIBRARY_UPLOAD_STATUS_REJECTED = 3;
+  LIBRARY_UPLOAD_STATUS_ARCHIVED = 4;
+}
+
+// Base library item returned to clients.
+message LibraryItem {
+  string id = 1;
+  string name = 2;
+  LibraryItemType type = 3;
+  string description = 4;
+  string file_url = 5;
+  string file_id = 6;
+  string thumbnail_url = 7;
+  google.protobuf.Int64Value file_size = 8;
+  LibraryUploadStatus upload_status = 9;
+  bool is_active = 10;
+  string uploaded_by = 11;
+  string approved_by = 12;
+  repeated string tags = 13;
+  string required_role = 14;  // GUEST, STUDENT, TUTOR, TEACHER, ADMIN
+  google.protobuf.Int32Value required_level = 15;
+  repeated string target_roles = 16;
+  int64 download_count = 17;
+  double average_rating = 18;
+  int32 review_count = 19;
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+
+  oneof metadata {
+    ExamMetadata exam = 30;
+    BookMetadata book = 31;
+    VideoMetadata video = 32;
+  }
+}
+
+// Exam specific metadata.
+message ExamMetadata {
+  string subject = 1;
+  string grade = 2;
+  string province = 3;
+  string school = 4;
+  string academic_year = 5;
+  string semester = 6;
+  google.protobuf.Int32Value exam_duration = 7;  // minutes
+  google.protobuf.Int32Value question_count = 8;
+  string difficulty_level = 9;  // easy, medium, hard
+  string exam_type = 10;        // practice, official, sample
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+}
+
+// Book specific metadata.
+message BookMetadata {
+  string subject = 1;
+  string grade = 2;
+  string book_type = 3;  // textbook, workbook, reference
+  string author = 4;
+  string publisher = 5;
+  google.protobuf.Int32Value publication_year = 6;
+  string isbn = 7;
+  google.protobuf.Int32Value page_count = 8;
+  string cover_image = 9;
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+}
+
+// Video specific metadata.
+message VideoMetadata {
+  string youtube_url = 1;
+  string youtube_id = 2;
+  google.protobuf.Int32Value duration = 3;  // seconds
+  string quality = 4;
+  string instructor_name = 5;
+  string related_exam_id = 6;
+  string subject = 7;
+  string grade = 8;
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+}
+
+// Shared payload for create/update operations.
+message LibraryItemPayload {
+  string name = 1;
+  string description = 2;
+  LibraryItemType type = 3;
+  string file_url = 4;
+  string file_id = 5;
+  string thumbnail_url = 6;
+  google.protobuf.Int64Value file_size = 7;
+  string category = 8;
+  string required_role = 9;
+  google.protobuf.Int32Value required_level = 10;
+  repeated string target_roles = 11;
+  repeated string tags = 12;
+
+  oneof metadata {
+    CreateExamMetadata exam = 20;
+    CreateBookMetadata book = 21;
+    CreateVideoMetadata video = 22;
+  }
+}
+
+message CreateExamMetadata {
+  string subject = 1;
+  string grade = 2;
+  string province = 3;
+  string school = 4;
+  string academic_year = 5;
+  string semester = 6;
+  google.protobuf.Int32Value exam_duration = 7;
+  google.protobuf.Int32Value question_count = 8;
+  string difficulty_level = 9;
+  string exam_type = 10;
+}
+
+message CreateBookMetadata {
+  string subject = 1;
+  string grade = 2;
+  string book_type = 3;
+  string author = 4;
+  string publisher = 5;
+  google.protobuf.Int32Value publication_year = 6;
+  string isbn = 7;
+  google.protobuf.Int32Value page_count = 8;
+  string cover_image = 9;
+}
+
+message CreateVideoMetadata {
+  string subject = 1;
+  string grade = 2;
+  string youtube_url = 3;
+  string youtube_id = 4;
+  google.protobuf.Int32Value duration = 5;
+  string quality = 6;
+  string instructor_name = 7;
+  string related_exam_id = 8;
+}
+
+// Filtering parameters for listing/searching items.
+message LibraryFilter {
+  repeated LibraryItemType types = 1;
+  repeated string subjects = 2;
+  repeated string grades = 3;
+  string province = 4;
+  string academic_year = 5;
+  string semester = 6;
+  string difficulty_level = 7;
+  string exam_type = 8;
+  string book_type = 9;
+  string video_quality = 10;
+  repeated string tags = 11;
+  bool only_active = 12;
+  google.protobuf.Int32Value min_level = 13;
+  google.protobuf.Int32Value max_level = 14;
+  string required_role = 15;
+}
+
+message ListLibraryItemsRequest {
+  common.PaginationRequest pagination = 1;
+  LibraryFilter filter = 2;
+  string search = 3;
+  string sort_by = 4;    // created_at, rating, download_count, name
+  string sort_order = 5; // asc, desc
+}
+
+message ListLibraryItemsResponse {
+  common.Response response = 1;
+  repeated LibraryItem items = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+message GetLibraryItemRequest {
+  string id = 1;
+}
+
+message GetLibraryItemResponse {
+  common.Response response = 1;
+  LibraryItem item = 2;
+}
+
+message CreateLibraryItemRequest {
+  LibraryItemPayload item = 1;
+}
+
+message CreateLibraryItemResponse {
+  common.Response response = 1;
+  LibraryItem item = 2;
+}
+
+message UpdateLibraryItemRequest {
+  string id = 1;
+  LibraryItemPayload item = 2;
+}
+
+message UpdateLibraryItemResponse {
+  common.Response response = 1;
+  LibraryItem item = 2;
+}
+
+message ApproveLibraryItemRequest {
+  string id = 1;
+  LibraryUploadStatus status = 2;
+  string reviewer_note = 3;
+}
+
+message ApproveLibraryItemResponse {
+  common.Response response = 1;
+  LibraryItem item = 2;
+}
+
+message RateLibraryItemRequest {
+  string id = 1;
+  int32 rating = 2; // 1-5
+  string review = 3;
+}
+
+message RateLibraryItemResponse {
+  common.Response response = 1;
+  double average_rating = 2;
+  int32 review_count = 3;
+}
+
+message BookmarkLibraryItemRequest {
+  string id = 1;
+  bool bookmark = 2;
+}
+
+message BookmarkLibraryItemResponse {
+  common.Response response = 1;
+  bool bookmarked = 2;
+}
+
+message DownloadLibraryItemRequest {
+  string id = 1;
+}
+
+message DownloadLibraryItemResponse {
+  common.Response response = 1;
+  string download_url = 2;
+}
+
+message SearchLibraryItemsRequest {
+  string query = 1;
+  common.PaginationRequest pagination = 2;
+  LibraryFilter filter = 3;
+}
+
+message SearchLibraryItemsResponse {
+  common.Response response = 1;
+  repeated LibraryItem items = 2;
+  common.PaginationResponse pagination = 3;
+}
+
+// Service orchestrating library operations.
+service LibraryService {
+  rpc ListItems(ListLibraryItemsRequest) returns (ListLibraryItemsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/items"
+    };
+  }
+
+  rpc GetItem(GetLibraryItemRequest) returns (GetLibraryItemResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/items/{id}"
+    };
+  }
+
+  rpc CreateItem(CreateLibraryItemRequest) returns (CreateLibraryItemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/library/items"
+      body: "*"
+    };
+  }
+
+  rpc UpdateItem(UpdateLibraryItemRequest) returns (UpdateLibraryItemResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/library/items/{id}"
+      body: "*"
+    };
+  }
+
+  rpc ApproveItem(ApproveLibraryItemRequest) returns (ApproveLibraryItemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/library/items/{id}/approve"
+      body: "*"
+    };
+  }
+
+  rpc RateItem(RateLibraryItemRequest) returns (RateLibraryItemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/library/items/{id}/rate"
+      body: "*"
+    };
+  }
+
+  rpc BookmarkItem(BookmarkLibraryItemRequest) returns (BookmarkLibraryItemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/library/items/{id}/bookmark"
+      body: "*"
+    };
+  }
+
+  rpc DownloadItem(DownloadLibraryItemRequest) returns (DownloadLibraryItemResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/library/items/{id}/download"
+      body: "*"
+    };
+  }
+
+  rpc SearchItems(SearchLibraryItemsRequest) returns (SearchLibraryItemsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/search"
+    };
+  }
+
+  // Tags Management
+  rpc CreateTag(CreateTagRequest) returns (TagResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/library/tags"
+      body: "*"
+    };
+  }
+
+  rpc GetTag(GetTagRequest) returns (TagResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/tags/{id}"
+    };
+  }
+
+  rpc ListTags(ListTagsRequest) returns (ListTagsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/tags"
+    };
+  }
+
+  rpc UpdateTag(UpdateTagRequest) returns (TagResponse) {
+    option (google.api.http) = {
+      put: "/api/v1/library/tags/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteTag(DeleteTagRequest) returns (DeleteTagResponse) {
+    option (google.api.http) = {
+      delete: "/api/v1/library/tags/{id}"
+    };
+  }
+
+  rpc GetPopularTags(GetPopularTagsRequest) returns (ListTagsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/tags/popular"
+    };
+  }
+
+  // Analytics
+  rpc GetAnalytics(GetAnalyticsRequest) returns (AnalyticsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/analytics"
+    };
+  }
+
+  rpc GetTopDownloaded(GetTopItemsRequest) returns (TopItemsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/analytics/top-downloaded"
+    };
+  }
+
+  rpc GetTopRated(GetTopItemsRequest) returns (TopItemsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/analytics/top-rated"
+    };
+  }
+
+  // Search Suggestions
+  rpc GetSearchSuggestions(SearchSuggestionsRequest) returns (SearchSuggestionsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/library/search/suggestions"
+    };
+  }
+}
+
+// Tags Messages
+message Tag {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string color = 4;
+  bool is_trending = 5;
+  int32 usage_count = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+}
+
+message CreateTagRequest {
+  string name = 1;
+  string description = 2;
+  string color = 3;
+  bool is_trending = 4;
+}
+
+message GetTagRequest {
+  string id = 1;
+}
+
+message ListTagsRequest {
+  string search = 1;
+  google.protobuf.BoolValue is_trending = 2;
+  int32 limit = 3;
+  int32 offset = 4;
+}
+
+message ListTagsResponse {
+  common.Response response = 1;
+  repeated Tag tags = 2;
+  int32 total = 3;
+}
+
+message UpdateTagRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string color = 4;
+  bool is_trending = 5;
+}
+
+message DeleteTagRequest {
+  string id = 1;
+}
+
+message DeleteTagResponse {
+  common.Response response = 1;
+}
+
+message GetPopularTagsRequest {
+  int32 limit = 1;
+}
+
+message TagResponse {
+  common.Response response = 1;
+  Tag tag = 2;
+}
+
+// Analytics Messages
+message GetAnalyticsRequest {
+  // Empty for now, can add date ranges later
+}
+
+message AnalyticsResponse {
+  common.Response response = 1;
+  AnalyticsSummary summary = 2;
+  repeated TopItem top_downloaded = 3;
+  repeated TopItem top_rated = 4;
+  repeated TopItem recently_added = 5;
+  repeated ContentDistribution distribution = 6;
+}
+
+message AnalyticsSummary {
+  int64 total_downloads = 1;
+  int64 total_views = 2;
+  double average_rating = 3;
+  int64 active_users = 4;
+  double trending_growth = 5;
+  int64 total_items = 6;
+  int64 total_exams = 7;
+  int64 total_books = 8;
+  int64 total_videos = 9;
+}
+
+message TopItem {
+  string item_id = 1;
+  string title = 2;
+  string type = 3;
+  int64 download_count = 4;
+  double rating = 5;
+  int32 review_count = 6;
+  int32 rank = 7;
+}
+
+message ContentDistribution {
+  string type = 1;
+  int64 count = 2;
+  double percentage = 3;
+}
+
+message GetTopItemsRequest {
+  int32 limit = 1;
+}
+
+message TopItemsResponse {
+  common.Response response = 1;
+  repeated TopItem items = 2;
+}
+
+// Search Suggestions Messages
+message SearchSuggestionsRequest {
+  string query = 1;
+  int32 limit = 2;
+}
+
+message SearchSuggestionsResponse {
+  common.Response response = 1;
+  repeated SearchSuggestion suggestions = 2;
+}
+
+message SearchSuggestion {
+  string text = 1;
+  string type = 2; // "title", "subject", "tag", "trending"
+  int64 count = 3;
+  bool is_trending = 4;
+}
+
+
+

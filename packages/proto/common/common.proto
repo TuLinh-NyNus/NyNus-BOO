@@ -1,11 +1,6 @@
 syntax = "proto3";
 
 package common;
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common";
-
-
-
 // Common response wrapper
 message Response {
   bool success = 1;
@@ -71,3 +66,6 @@ enum QuestionStatus {
   QUESTION_STATUS_INACTIVE = 3;
   QUESTION_STATUS_ARCHIVED = 4;
 }
+
+
+

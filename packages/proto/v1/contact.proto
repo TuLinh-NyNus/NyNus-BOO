@@ -5,9 +5,6 @@ package v1;
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 import "common/common.proto";
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
-
 // Contact form submission request
 message ContactFormRequest {
   string name = 1;     // Required: sender name
@@ -121,3 +118,7 @@ service ContactService {
     };
   }
 }
+
+
+
+

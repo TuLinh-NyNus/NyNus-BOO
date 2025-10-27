@@ -194,7 +194,7 @@ export function QuestionActionsDropdown({
     },
     {
       key: 'favorite',
-      label: 'Yêu thích',
+      label: question.isFavorite ? 'Bỏ yêu thích' : 'Thêm vào yêu thích',
       icon: Star,
       onClick: () => onFavorite?.(question.id),
       minRole: 'STUDENT'
@@ -307,18 +307,21 @@ export function QuestionActionsDropdown({
   return (
     <>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`h-8 w-8 p-0 ${className}`}
-            disabled={disabled}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Mở menu hành động</span>
-          </Button>
+        {/*
+          Technical: Fixed nested button issue causing "Maximum update depth exceeded" error
+          Root cause: DropdownMenuTrigger automatically renders a button element
+          When we put <Button> inside it → nested buttons → hydration error → infinite loop
+          Solution: Style DropdownMenuTrigger directly without Button component
+          Note: This component is used inside questions.map(), cannot use asChild
+        */}
+        <DropdownMenuTrigger
+          className={`h-8 w-8 p-0 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 ${className}`}
+          disabled={disabled}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">Mở menu hành động</span>
         </DropdownMenuTrigger>
-        
+
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Hành động</DropdownMenuLabel>
           <DropdownMenuSeparator />

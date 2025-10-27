@@ -1,4 +1,4 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
@@ -8,24 +8,24 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/oauth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/internal/service/user/oauth"
+	"exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/services/email"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
-// EnhancedUserServiceServer implements the enhanced UserService with OAuth và IJWTService interface
-// Service chính xử lý các gRPC requests liên quan đến user authentication và management
+// EnhancedUserServiceServer implements the enhanced UserService with OAuth vÃ  IJWTService interface
+// Service chÃ­nh xá»­ lÃ½ cÃ¡c gRPC requests liÃªn quan Ä‘áº¿n user authentication vÃ  management
 //
 // Business Logic:
 // - Traditional email/password authentication (Login)
-// - User registration với email verification
+// - User registration vá»›i email verification
 // - Google OAuth authentication
-// - Token refresh với rotation
+// - Token refresh vá»›i rotation
 // - Email verification
 // - Password reset flow
 // - User profile management (GetCurrentUser, UpdateUser)
@@ -42,8 +42,8 @@ type EnhancedUserServiceServer struct {
 	bcryptCost           int
 }
 
-// NewEnhancedUserServiceServer creates a new enhanced user service với IJWTService interface
-// Tạo instance mới của EnhancedUserServiceServer với đầy đủ dependencies và handlers
+// NewEnhancedUserServiceServer creates a new enhanced user service vá»›i IJWTService interface
+// Táº¡o instance má»›i cá»§a EnhancedUserServiceServer vá»›i Ä‘áº§y Ä‘á»§ dependencies vÃ  handlers
 //
 // Parameters:
 //   - oauthService: OAuth service for Google login
@@ -68,7 +68,7 @@ func NewEnhancedUserServiceServer(
 		bcryptCost = DefaultBcryptCost
 	}
 
-	// Initialize handlers với IJWTService interface
+	// Initialize handlers vá»›i IJWTService interface
 	loginHandler := NewLoginHandler(userRepo, jwtService, sessionService)
 	registrationHandler := NewRegistrationHandler(userRepo, emailService, sessionService, bcryptCost)
 	passwordResetHandler := NewPasswordResetHandler(userRepo, emailService, sessionService, bcryptCost)
@@ -87,15 +87,15 @@ func NewEnhancedUserServiceServer(
 }
 
 // Login handles traditional email/password authentication
-// Xử lý đăng nhập bằng email và password với các tính năng bảo mật nâng cao
+// Xá»­ lÃ½ Ä‘Äƒng nháº­p báº±ng email vÃ  password vá»›i cÃ¡c tÃ­nh nÄƒng báº£o máº­t nÃ¢ng cao
 //
 // Parameters:
 //   - ctx: gRPC context
-//   - req: Login request với email và password
+//   - req: Login request vá»›i email vÃ  password
 //
 // Returns:
-//   - *v1.LoginResponse: Response chứa tokens và user info
-//   - error: Error nếu đăng nhập thất bại
+//   - *v1.LoginResponse: Response chá»©a tokens vÃ  user info
+//   - error: Error náº¿u Ä‘Äƒng nháº­p tháº¥t báº¡i
 func (s *EnhancedUserServiceServer) Login(ctx context.Context, req *v1.LoginRequest) (*v1.LoginResponse, error) {
 	// Validate input
 	if req.Email == "" || req.Password == "" {
@@ -165,15 +165,15 @@ func (s *EnhancedUserServiceServer) Login(ctx context.Context, req *v1.LoginRequ
 }
 
 // Register handles new user registration
-// Xử lý đăng ký user mới với email verification
+// Xá»­ lÃ½ Ä‘Äƒng kÃ½ user má»›i vá»›i email verification
 //
 // Parameters:
 //   - ctx: gRPC context
-//   - req: Registration request với email, password, và thông tin cá nhân
+//   - req: Registration request vá»›i email, password, vÃ  thÃ´ng tin cÃ¡ nhÃ¢n
 //
 // Returns:
-//   - *v1.RegisterResponse: Response chứa user info
-//   - error: Error nếu đăng ký thất bại
+//   - *v1.RegisterResponse: Response chá»©a user info
+//   - error: Error náº¿u Ä‘Äƒng kÃ½ tháº¥t báº¡i
 func (s *EnhancedUserServiceServer) Register(ctx context.Context, req *v1.RegisterRequest) (*v1.RegisterResponse, error) {
 	// Validate input
 	if req.Email == "" || req.Password == "" {
@@ -205,15 +205,15 @@ func (s *EnhancedUserServiceServer) Register(ctx context.Context, req *v1.Regist
 }
 
 // GoogleLogin handles Google OAuth authentication
-// Xử lý đăng nhập bằng Google OAuth
+// Xá»­ lÃ½ Ä‘Äƒng nháº­p báº±ng Google OAuth
 //
 // Parameters:
 //   - ctx: gRPC context
-//   - req: Google login request với ID token
+//   - req: Google login request vá»›i ID token
 //
 // Returns:
-//   - *v1.LoginResponse: Response chứa tokens và user info
-//   - error: Error nếu OAuth authentication thất bại
+//   - *v1.LoginResponse: Response chá»©a tokens vÃ  user info
+//   - error: Error náº¿u OAuth authentication tháº¥t báº¡i
 func (s *EnhancedUserServiceServer) GoogleLogin(ctx context.Context, req *v1.GoogleLoginRequest) (*v1.LoginResponse, error) {
 	// Get client IP from metadata
 	ipAddress := getClientIP(ctx)
@@ -228,15 +228,15 @@ func (s *EnhancedUserServiceServer) GoogleLogin(ctx context.Context, req *v1.Goo
 }
 
 // RefreshToken refreshes the access token with rotation for enhanced security
-// Làm mới access token với refresh token rotation để tăng cường bảo mật
+// LÃ m má»›i access token vá»›i refresh token rotation Ä‘á»ƒ tÄƒng cÆ°á»ng báº£o máº­t
 //
 // Parameters:
 //   - ctx: gRPC context
 //   - req: Refresh token request
 //
 // Returns:
-//   - *v1.RefreshTokenResponse: Response chứa access token và refresh token mới
-//   - error: Error nếu refresh thất bại
+//   - *v1.RefreshTokenResponse: Response chá»©a access token vÃ  refresh token má»›i
+//   - error: Error náº¿u refresh tháº¥t báº¡i
 func (s *EnhancedUserServiceServer) RefreshToken(ctx context.Context, req *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error) {
 	// Get client context for security tracking
 	ipAddress := getClientIP(ctx)
@@ -276,15 +276,15 @@ func (s *EnhancedUserServiceServer) RefreshToken(ctx context.Context, req *v1.Re
 }
 
 // VerifyEmail verifies user email with token
-// Xác thực email của user bằng verification token
+// XÃ¡c thá»±c email cá»§a user báº±ng verification token
 //
 // Parameters:
 //   - ctx: gRPC context
-//   - req: Verify email request với token
+//   - req: Verify email request vá»›i token
 //
 // Returns:
-//   - *v1.VerifyEmailResponse: Response với success status
-//   - error: Luôn trả về nil (errors được wrap trong response)
+//   - *v1.VerifyEmailResponse: Response vá»›i success status
+//   - error: LuÃ´n tráº£ vá» nil (errors Ä‘Æ°á»£c wrap trong response)
 func (s *EnhancedUserServiceServer) VerifyEmail(ctx context.Context, req *v1.VerifyEmailRequest) (*v1.VerifyEmailResponse, error) {
 	// Delegate to registration handler
 	if err := s.registrationHandler.VerifyEmail(ctx, req.Token); err != nil {
@@ -305,15 +305,15 @@ func (s *EnhancedUserServiceServer) VerifyEmail(ctx context.Context, req *v1.Ver
 }
 
 // ForgotPassword initiates password reset process
-// Bắt đầu quá trình reset password bằng cách gửi email với reset token
+// Báº¯t Ä‘áº§u quÃ¡ trÃ¬nh reset password báº±ng cÃ¡ch gá»­i email vá»›i reset token
 //
 // Parameters:
 //   - ctx: gRPC context
-//   - req: Forgot password request với email
+//   - req: Forgot password request vá»›i email
 //
 // Returns:
-//   - *v1.ForgotPasswordResponse: Response luôn success (không tiết lộ user existence)
-//   - error: Luôn trả về nil
+//   - *v1.ForgotPasswordResponse: Response luÃ´n success (khÃ´ng tiáº¿t lá»™ user existence)
+//   - error: LuÃ´n tráº£ vá» nil
 func (s *EnhancedUserServiceServer) ForgotPassword(ctx context.Context, req *v1.ForgotPasswordRequest) (*v1.ForgotPasswordResponse, error) {
 	// Delegate to password reset handler (always returns nil for security)
 	_ = s.passwordResetHandler.InitiatePasswordReset(ctx, req.Email)
@@ -327,15 +327,15 @@ func (s *EnhancedUserServiceServer) ForgotPassword(ctx context.Context, req *v1.
 }
 
 // ResetPassword resets user password with token
-// Reset password của user bằng reset token và password mới
+// Reset password cá»§a user báº±ng reset token vÃ  password má»›i
 //
 // Parameters:
 //   - ctx: gRPC context
-//   - req: Reset password request với token và new password
+//   - req: Reset password request vá»›i token vÃ  new password
 //
 // Returns:
-//   - *v1.ResetPasswordResponse: Response với success status
-//   - error: Luôn trả về nil (errors được wrap trong response)
+//   - *v1.ResetPasswordResponse: Response vá»›i success status
+//   - error: LuÃ´n tráº£ vá» nil (errors Ä‘Æ°á»£c wrap trong response)
 func (s *EnhancedUserServiceServer) ResetPassword(ctx context.Context, req *v1.ResetPasswordRequest) (*v1.ResetPasswordResponse, error) {
 	// Delegate to password reset handler
 	if err := s.passwordResetHandler.ResetPassword(ctx, req.Token, req.NewPassword); err != nil {
@@ -356,15 +356,15 @@ func (s *EnhancedUserServiceServer) ResetPassword(ctx context.Context, req *v1.R
 }
 
 // GetCurrentUser gets the current authenticated user
-// Lấy thông tin user hiện tại đang đăng nhập
+// Láº¥y thÃ´ng tin user hiá»‡n táº¡i Ä‘ang Ä‘Äƒng nháº­p
 //
 // Parameters:
-//   - ctx: gRPC context (chứa user ID từ JWT token)
+//   - ctx: gRPC context (chá»©a user ID tá»« JWT token)
 //   - req: Get current user request
 //
 // Returns:
-//   - *v1.GetUserResponse: Response chứa user info
-//   - error: Error nếu user không authenticated hoặc không tìm thấy
+//   - *v1.GetUserResponse: Response chá»©a user info
+//   - error: Error náº¿u user khÃ´ng authenticated hoáº·c khÃ´ng tÃ¬m tháº¥y
 func (s *EnhancedUserServiceServer) GetCurrentUser(ctx context.Context, req *v1.GetCurrentUserRequest) (*v1.GetUserResponse, error) {
 	// Get user ID from context (injected by auth middleware)
 	userID, err := middleware.GetUserIDFromContext(ctx)
@@ -388,15 +388,15 @@ func (s *EnhancedUserServiceServer) GetCurrentUser(ctx context.Context, req *v1.
 }
 
 // UpdateUser updates user information
-// Cập nhật thông tin user (chỉ cho phép update own profile hoặc admin update others)
+// Cáº­p nháº­t thÃ´ng tin user (chá»‰ cho phÃ©p update own profile hoáº·c admin update others)
 //
 // Parameters:
-//   - ctx: gRPC context (chứa user ID từ JWT token)
-//   - req: Update user request với các fields cần update
+//   - ctx: gRPC context (chá»©a user ID tá»« JWT token)
+//   - req: Update user request vá»›i cÃ¡c fields cáº§n update
 //
 // Returns:
-//   - *v1.UpdateUserResponse: Response chứa updated user info
-//   - error: Error nếu không có quyền hoặc update thất bại
+//   - *v1.UpdateUserResponse: Response chá»©a updated user info
+//   - error: Error náº¿u khÃ´ng cÃ³ quyá»n hoáº·c update tháº¥t báº¡i
 func (s *EnhancedUserServiceServer) UpdateUser(ctx context.Context, req *v1.UpdateUserRequest) (*v1.UpdateUserResponse, error) {
 	// Get user ID from context
 	userID, err := middleware.GetUserIDFromContext(ctx)
@@ -435,7 +435,7 @@ func (s *EnhancedUserServiceServer) UpdateUser(ctx context.Context, req *v1.Upda
 }
 
 // checkAdminPermission checks if user has admin permission
-// Kiểm tra xem user có quyền admin không
+// Kiá»ƒm tra xem user cÃ³ quyá»n admin khÃ´ng
 func (s *EnhancedUserServiceServer) checkAdminPermission(ctx context.Context, userID string) error {
 	requestingUser, err := s.userRepo.GetByID(ctx, userID)
 	if err != nil {
@@ -450,7 +450,7 @@ func (s *EnhancedUserServiceServer) checkAdminPermission(ctx context.Context, us
 }
 
 // updateUserFields updates user fields from request
-// Cập nhật các fields của user từ request (chỉ update fields không rỗng)
+// Cáº­p nháº­t cÃ¡c fields cá»§a user tá»« request (chá»‰ update fields khÃ´ng rá»—ng)
 func (s *EnhancedUserServiceServer) updateUserFields(user *repository.User, req *v1.UpdateUserRequest) {
 	if req.FirstName != "" {
 		user.FirstName = req.FirstName
@@ -479,15 +479,15 @@ func (s *EnhancedUserServiceServer) updateUserFields(user *repository.User, req 
 }
 
 // SendVerificationEmail sends email verification token to user
-// Gửi lại email xác thực cho user
+// Gá»­i láº¡i email xÃ¡c thá»±c cho user
 //
 // Parameters:
 //   - ctx: gRPC context
-//   - req: Send verification email request với user ID
+//   - req: Send verification email request vá»›i user ID
 //
 // Returns:
-//   - *v1.SendVerificationEmailResponse: Response với success status
-//   - error: Luôn trả về nil (errors được wrap trong response)
+//   - *v1.SendVerificationEmailResponse: Response vá»›i success status
+//   - error: LuÃ´n tráº£ vá» nil (errors Ä‘Æ°á»£c wrap trong response)
 func (s *EnhancedUserServiceServer) SendVerificationEmail(ctx context.Context, req *v1.SendVerificationEmailRequest) (*v1.SendVerificationEmailResponse, error) {
 	// Delegate to registration handler
 	if err := s.registrationHandler.ResendVerificationEmail(ctx, req.UserId); err != nil {
@@ -506,3 +506,4 @@ func (s *EnhancedUserServiceServer) SendVerificationEmail(ctx context.Context, r
 		},
 	}, nil
 }
+

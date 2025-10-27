@@ -8,6 +8,8 @@ import { BasicFiltersRow } from './basic-filters-row';
 import { AdvancedFiltersSection } from './advanced-filters-section';
 import { FilterChips } from './filter-chips';
 
+const FILTER_APPLY_DEBOUNCE_MS = 300;
+
 /**
  * Comprehensive Question Filters Component
  * Hệ thống lọc câu hỏi toàn diện với giao diện đơn giản, dễ sử dụng
@@ -66,22 +68,35 @@ export function ComprehensiveQuestionFilters({
 
   /**
    * Notify parent when filters change
-   * Use previous filters comparison to prevent unnecessary calls
+   * FIXED: Use stable callback ref and proper memoization to prevent infinite loop
    */
   const onFiltersChangeRef = React.useRef(onFiltersChange);
   const prevFiltersRef = React.useRef<QuestionFilters>({});
-  onFiltersChangeRef.current = onFiltersChange;
 
+  // Update ref on every render but don't trigger re-render
   React.useEffect(() => {
-    if (isInitialized) {
-      // Only notify if filters actually changed
-      const filtersChanged = JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current);
+    onFiltersChangeRef.current = onFiltersChange;
+  });
 
-      if (filtersChanged) {
-        prevFiltersRef.current = filters;
-        const cleanFilters = getCleanFilters();
+  // FIXED: Only notify parent when filters actually change AND initialized
+  React.useEffect(() => {
+    if (!isInitialized) {
+      return; // Don't notify during initialization
+    }
+
+    // Deep comparison to prevent unnecessary calls
+    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(prevFiltersRef.current);
+
+    if (filtersChanged) {
+      prevFiltersRef.current = filters;
+      const cleanFilters = getCleanFilters();
+
+      // Use timeout to batch updates and prevent rapid-fire calls
+      const timeoutId = setTimeout(() => {
         onFiltersChangeRef.current(cleanFilters);
-      }
+      }, FILTER_APPLY_DEBOUNCE_MS);
+
+      return () => clearTimeout(timeoutId);
     }
   }, [filters, isInitialized, getCleanFilters]);
 

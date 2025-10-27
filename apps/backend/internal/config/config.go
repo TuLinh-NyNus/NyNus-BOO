@@ -80,13 +80,18 @@ type GoogleDriveConfig struct {
 
 // RedisConfig holds Redis configuration
 type RedisConfig struct {
-	URL          string
-	Password     string
-	Enabled      bool
-	MaxRetries   int
-	Timeout      string
-	PoolSize     int
-	MinIdleConns int
+	URL                 string
+	Password            string
+	Enabled             bool
+	MaxRetries          int
+	Timeout             string
+	PoolSize            int
+	MinIdleConns        int
+	// Pub/Sub configuration (added for Phase 1 - Task 1.3.1)
+	PubSubEnabled       bool
+	PubSubChannelPrefix string
+	MessageQueueSize    int
+	WorkerPoolSize      int
 }
 
 // LoadConfig loads configuration from environment variables
@@ -128,22 +133,27 @@ func LoadConfig() *Config {
 			RootFolderID: getEnv("DRIVE_ROOT_FOLDER_ID", ""),
 		},
 		Redis: RedisConfig{
-			URL:          getEnv("REDIS_URL", "redis://localhost:6379"),
-			Password:     getEnv("REDIS_PASSWORD", ""),
-			Enabled:      getEnv("REDIS_ENABLED", "true") == "true",
-			MaxRetries:   getIntEnv("REDIS_MAX_RETRIES", 3),
-			Timeout:      getEnv("REDIS_TIMEOUT", "5s"),
-			PoolSize:     getIntEnv("REDIS_POOL_SIZE", 10),
-			MinIdleConns: getIntEnv("REDIS_MIN_IDLE_CONNS", 2),
+			URL:                 getEnv("REDIS_URL", "redis://localhost:6379"),
+			Password:            getEnv("REDIS_PASSWORD", ""),
+			Enabled:             getEnv("REDIS_ENABLED", "true") == "true",
+			MaxRetries:          getIntEnv("REDIS_MAX_RETRIES", 3),
+			Timeout:             getEnv("REDIS_TIMEOUT", "5s"),
+			PoolSize:            getIntEnv("REDIS_POOL_SIZE", 10),
+			MinIdleConns:        getIntEnv("REDIS_MIN_IDLE_CONNS", 2),
+			// Pub/Sub configuration (added for Phase 1 - Task 1.3.2)
+			PubSubEnabled:       getEnv("REDIS_PUBSUB_ENABLED", "true") == "true",
+			PubSubChannelPrefix: getEnv("REDIS_PUBSUB_CHANNEL_PREFIX", "exam_bank"),
+			MessageQueueSize:    getIntEnv("REDIS_MESSAGE_QUEUE_SIZE", 100),
+			WorkerPoolSize:      getIntEnv("REDIS_WORKER_POOL_SIZE", 10),
 		},
 		Production: LoadProductionConfig(),
 	}
 }
 
-// GetDatabaseConnectionString returns the database connection string
+// GetDatabaseConnectionString returns the database connection string with UTF-8 encoding
 func (c *Config) GetDatabaseConnectionString() string {
-	// Try postgres:// URL format instead
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
+	// Include client_encoding=UTF8 to ensure proper Vietnamese character support
+	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s&client_encoding=UTF8",
 		c.Database.User,
 		c.Database.Password,
 		c.Database.Host,

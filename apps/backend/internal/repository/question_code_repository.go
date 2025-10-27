@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
 )
@@ -376,3 +376,4 @@ func nullableStringToSQL(t pgtype.Text) sql.NullString {
 	}
 	return sql.NullString{Valid: false}
 }
+

@@ -204,6 +204,7 @@ curl -X POST http://localhost:8080/v1.UserService/Login \
 
 ## 📚 Documentation Links
 
+### Core Documentation
 - **[Architecture Details](./GRPC_ARCHITECTURE.md)** - Deep dive into architecture
 - **[Proto Definitions](./PROTO_DEFINITIONS.md)** - Complete proto reference
 - **[Implementation Guide](./IMPLEMENTATION_GUIDE.md)** - How to add new services
@@ -211,6 +212,16 @@ curl -X POST http://localhost:8080/v1.UserService/Login \
 - **[API Reference](./API_REFERENCE.md)** - Complete API documentation
 - **[Troubleshooting](./TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Migration Guide](./MIGRATION_GUIDE.md)** - Migrating from REST to gRPC
+
+### Proto System Documentation (Comprehensive Analysis)
+- **[📖 Proto README](./PROTO_README.md)** - Navigation guide for all proto docs
+- **[🔍 System Analysis](./PROTO_SYSTEM_ANALYSIS.md)** - Comprehensive analysis of all 18 services
+- **[💻 Usage Guide](./PROTO_USAGE_GUIDE.md)** - Developer guide with code examples
+- **[🏗️ Architecture Diagrams](./PROTO_ARCHITECTURE_DIAGRAM.md)** - Visual representations
+- **[⚡ Quick Reference](./PROTO_QUICK_REFERENCE.md)** - Daily reference guide
+- **[📊 Analysis Summary](./PROTO_ANALYSIS_SUMMARY.md)** - Executive summary
+
+> 💡 **New to Proto?** Start with [Proto README](./PROTO_README.md) for a guided tour!
 
 ## 🛠️ Development Workflow
 
@@ -316,7 +327,19 @@ pnpm test
 
 ---
 
-**Last Updated**: 2025-01-19  
-**Version**: 1.0.0  
-**Status**: Production Ready (Core Services)
+## 📦 Archive
+
+Historical and deprecated documentation has been moved to `archive/` folder for reference. These files are no longer maintained and should not be used. See [archive/README.md](./archive/README.md) for details.
+
+**Archived files** (27/10/2025):
+- Historical reports from Jan 2025 (3 files)
+- Deprecated proto docs (2 files)
+
+**Reason**: Replaced by comprehensive Proto System Documentation (6 new files)
+
+---
+
+**Last Updated**: 2025-10-27  
+**Version**: 2.0.0  
+**Status**: Production Ready (Core Services) + Comprehensive Proto Docs
 

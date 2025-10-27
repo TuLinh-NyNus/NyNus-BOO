@@ -1,10 +1,8 @@
 syntax = "proto3";
 
 package v1;
-
 import "common/common.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
 
 // User message
@@ -188,3 +186,7 @@ service UserService {
 
   rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
 }
+
+
+
+

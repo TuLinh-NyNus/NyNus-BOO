@@ -3,45 +3,64 @@ package container
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/cache"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/grpc"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/opensearch"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/redis"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	contact_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/contact"
-	mapcode_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/mapcode"
-	newsletter_mgmt "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/content/newsletter"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/notification"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
-	system "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/analytics"
-	image_processing "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/image_processing"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/performance"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/security"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/oauth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/services/email"
+	"github.com/jmoiron/sqlx"
+	
+	"exam-bank-system/apps/backend/internal/cache"
+	"exam-bank-system/apps/backend/internal/config"
+	"exam-bank-system/apps/backend/internal/grpc"
+	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/opensearch"
+	"exam-bank-system/apps/backend/internal/redis"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/server"
+	"exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/websocket"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/service/auth"
+	book_mgmt "exam-bank-system/apps/backend/internal/service/content/book"
+	contact_mgmt "exam-bank-system/apps/backend/internal/service/content/contact"
+	mapcode_mgmt "exam-bank-system/apps/backend/internal/service/content/mapcode"
+	newsletter_mgmt "exam-bank-system/apps/backend/internal/service/content/newsletter"
+	"exam-bank-system/apps/backend/internal/service/exam"
+	"exam-bank-system/apps/backend/internal/service/exam/scoring"
+	bookmarksvc "exam-bank-system/apps/backend/internal/service/library/bookmark"
+	ratingsvc "exam-bank-system/apps/backend/internal/service/library/rating"
+	videosvc "exam-bank-system/apps/backend/internal/service/library/video"
+	"exam-bank-system/apps/backend/internal/service/metrics"
+	"exam-bank-system/apps/backend/internal/service/notification"
+	"exam-bank-system/apps/backend/internal/service/question"
+	system "exam-bank-system/apps/backend/internal/service/system"
+	"exam-bank-system/apps/backend/internal/service/system/analytics"
+	image_processing "exam-bank-system/apps/backend/internal/service/system/image_processing"
+	"exam-bank-system/apps/backend/internal/service/system/performance"
+	"exam-bank-system/apps/backend/internal/service/system/security"
+	"exam-bank-system/apps/backend/internal/service/user/oauth"
+	"exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/services/email"
 	"github.com/sirupsen/logrus"
 )
 
 // Container holds all dependencies
 type Container struct {
 	// Database
-	DB *sql.DB
+	DB  *sql.DB
+	DBX *sqlx.DB // sqlx wrapper for advanced SQL operations (version control, bulk ops)
 
 	// Redis
 	RedisClient  *redis.Client
 	CacheService cache.CacheService
+	
+	// WebSocket & Real-time (Phase 3 - Task 3.3.1)
+	RedisPubSub      *redis.PubSubClient
+	WebSocketManager *websocket.ConnectionManager
+	WebSocketHandler *websocket.Handler
+	WebSocketServer  *server.WebSocketServer
+	RedisBridge      *websocket.RedisBridge
 
 	// OpenSearch
 	OpenSearchClient *opensearch.Client
@@ -62,28 +81,42 @@ type Container struct {
 	QuestionRepo           interfaces.QuestionRepository
 	QuestionCodeRepo       interfaces.QuestionCodeRepository
 	QuestionImageRepo      interfaces.QuestionImageRepository
+	QuestionVersionRepo    repository.QuestionVersionRepository // NEW: Version control support
 	ExamRepo               interfaces.ExamRepository
 	ContactRepo            *repository.ContactRepository
 	NewsletterRepo         *repository.NewsletterRepository
 	MapCodeRepo            *repository.MapCodeRepository
 	MapCodeTranslationRepo *repository.MapCodeTranslationRepository
+	BookRepo               repository.BookRepository
+	LibraryExamRepo        repository.LibraryExamRepository
+	LibraryVideoRepo       repository.LibraryVideoRepository
+	ItemRatingRepo         repository.ItemRatingRepository
+	UserBookmarkRepo       repository.UserBookmarkRepository
+	LibraryItemRepo        repository.LibraryItemRepository
+	MetricsRepo            interfaces.MetricsRepository // NEW: Metrics history repository
 
 	// Services
-	AuthMgmt              *auth.AuthMgmt
-	QuestionService       *question.QuestionService
-	QuestionFilterService *question.QuestionFilterService
-	ExamService           *exam.ExamService
-	ContactMgmt           *contact_mgmt.ContactMgmt
-	NewsletterMgmt        *newsletter_mgmt.NewsletterMgmt
-	MapCodeMgmt           *mapcode_mgmt.MapCodeMgmt
-	AutoGradingService    *scoring.AutoGradingService // NEW: Auto-grading service for exams
-	UnifiedJWTService     *auth.UnifiedJWTService     // UNIFIED: Single JWT service replacing JWTService and EnhancedJWTService
-	OAuthService          *oauth.OAuthService
-	SessionService        *session.SessionService
-	NotificationSvc       *notification.NotificationService
-	ResourceProtectionSvc *system.ResourceProtectionService
-	EmailService          *email.EmailService
-	PerformanceService    *performance.PerformanceService
+	AuthMgmt               *auth.AuthMgmt
+	QuestionService        *question.QuestionService
+	QuestionFilterService  *question.QuestionFilterService
+	QuestionVersionService *question.VersionService // NEW: Version control service
+	ExamService            *exam.ExamService
+	ContactMgmt            *contact_mgmt.ContactMgmt
+	NewsletterMgmt         *newsletter_mgmt.NewsletterMgmt
+	MapCodeMgmt            *mapcode_mgmt.MapCodeMgmt
+	BookMgmt               *book_mgmt.BookService
+	LibraryVideoService    *videosvc.Service
+	LibraryRatingService   *ratingsvc.Service
+	LibraryBookmarkService *bookmarksvc.Service
+	AutoGradingService     *scoring.AutoGradingService // NEW: Auto-grading service for exams
+	UnifiedJWTService      *auth.UnifiedJWTService     // UNIFIED: Single JWT service replacing JWTService and EnhancedJWTService
+	OAuthService           *oauth.OAuthService
+	SessionService         *session.SessionService
+	NotificationSvc        *notification.NotificationService
+	ResourceProtectionSvc  *system.ResourceProtectionService
+	EmailService           *email.EmailService
+	PerformanceService     *performance.PerformanceService
+	MetricsScheduler       *metrics.MetricsScheduler // NEW: Metrics recording scheduler
 
 	// Analytics Services
 	AnalyticsService        *analytics.AnalyticsService
@@ -116,6 +149,8 @@ type Container struct {
 	NewsletterGRPCService     *grpc.NewsletterServiceServer
 	NotificationGRPCService   *grpc.NotificationServiceServer
 	MapCodeGRPCService        *grpc.MapCodeServiceServer
+	BookGRPCService           *grpc.BookServiceServer
+	LibraryGRPCService        *grpc.LibraryServiceServer
 	AnalyticsGRPCService      *grpc.AnalyticsServiceServer // NEW: Analytics gRPC service
 
 	// Configuration
@@ -125,8 +160,12 @@ type Container struct {
 
 // NewContainer creates a new dependency injection container
 func NewContainer(db *sql.DB, jwtSecret string, cfg *config.Config) *Container {
+	// Wrap *sql.DB with sqlx for advanced features (version control, bulk operations)
+	dbx := sqlx.NewDb(db, "postgres")
+	
 	container := &Container{
 		DB:        db,
+		DBX:       dbx,
 		Config:    cfg,
 		JWTSecret: jwtSecret,
 	}
@@ -138,6 +177,9 @@ func NewContainer(db *sql.DB, jwtSecret string, cfg *config.Config) *Container {
 	container.initServices()
 	container.initMiddleware()
 	container.initGRPCServices()
+	
+	// Initialize WebSocket components (Phase 3 - Task 3.3.2)
+	container.initWebSocketComponents(&cfg.Redis)
 
 	return container
 }
@@ -148,13 +190,13 @@ func (c *Container) initRedis(cfg *config.RedisConfig) {
 	client, err := redis.NewClient(cfg)
 	if err != nil {
 		// Log error but don't fail startup - Redis is optional
-		logrus.WithError(err).Warn("Failed to initialize Redis client, caching will be disabled")
+		log.Printf("[WARN] Failed to initialize Redis client, caching will be disabled: %v", err)
 		c.RedisClient = nil
 		c.CacheService = cache.NewRedisService(nil) // Disabled cache service
 	} else {
 		c.RedisClient = client
 		c.CacheService = cache.NewRedisService(client)
-		logrus.Info("Redis client initialized successfully")
+		log.Println("[OK] Redis client initialized successfully")
 	}
 }
 
@@ -186,11 +228,11 @@ func (c *Container) initOpenSearch() {
 	client, err := opensearch.NewClient(c.OpenSearchConfig)
 	if err != nil {
 		// Log error but don't fail startup - OpenSearch is optional
-		logrus.WithError(err).Warn("Failed to initialize OpenSearch client, search will use PostgreSQL fallback")
+		log.Printf("[WARN] Failed to initialize OpenSearch client, search will use PostgreSQL fallback: %v", err)
 		c.OpenSearchClient = nil
 	} else {
 		c.OpenSearchClient = client
-		logrus.Info("OpenSearch client initialized successfully")
+		log.Println("[OK] OpenSearch client initialized successfully")
 	}
 }
 
@@ -199,27 +241,20 @@ func (c *Container) initRepositories() {
 	// Create logger for repositories
 	repoLogger := logrus.New()
 	repoLogger.SetLevel(logrus.InfoLevel)
-	repoLogger.SetFormatter(&logrus.JSONFormatter{
-		TimestampFormat: time.RFC3339,
-		FieldMap: logrus.FieldMap{
-			logrus.FieldKeyTime:  "timestamp",
-			logrus.FieldKeyLevel: "level",
-			logrus.FieldKeyMsg:   "message",
-		},
-	})
+	repoLogger.SetFormatter(util.StandardLogrusFormatter())
 
 	// Initialize all repositories with database connection
-	c.UserRepo = &repository.UserRepository{}                            // Legacy implementation
+	c.UserRepo = &repository.UserRepository{}                                 // Legacy implementation
 	c.UserRepoWrapper = repository.NewUserRepositoryWrapper(c.DB, repoLogger) // Interface wrapper with logger
 	c.AnswerRepo = &repository.AnswerRepository{}
-	c.SessionRepo = repository.NewSessionRepository(c.DB, repoLogger)    // Session repository with logger
-	c.OAuthAccountRepo = repository.NewOAuthAccountRepository(c.DB, repoLogger) // OAuth account repository with logger
+	c.SessionRepo = repository.NewSessionRepository(c.DB, repoLogger)               // Session repository with logger
+	c.OAuthAccountRepo = repository.NewOAuthAccountRepository(c.DB, repoLogger)     // OAuth account repository with logger
 	c.ResourceAccessRepo = repository.NewResourceAccessRepository(c.DB, repoLogger) // Resource access repository with logger
 	c.EnrollmentRepo = repository.NewEnrollmentRepository(c.DB)
 	c.NotificationRepo = repository.NewNotificationRepository(c.DB)
 	c.UserPreferenceRepo = repository.NewUserPreferenceRepository(c.DB, repoLogger) // User preference repository with logger
-	c.AuditLogRepo = repository.NewAuditLogRepository(c.DB, repoLogger) // Audit log repository with logger
-	c.RefreshTokenRepo = repository.NewRefreshTokenRepository(c.DB, repoLogger) // Refresh token repository with logger
+	c.AuditLogRepo = repository.NewAuditLogRepository(c.DB, repoLogger)             // Audit log repository with logger
+	c.RefreshTokenRepo = repository.NewRefreshTokenRepository(c.DB, repoLogger)     // Refresh token repository with logger
 	c.QuestionRepo = repository.NewQuestionRepository(c.DB)
 	c.QuestionCodeRepo = repository.NewQuestionCodeRepository(c.DB)
 	c.QuestionImageRepo = repository.NewQuestionImageRepository(c.DB)
@@ -228,6 +263,20 @@ func (c *Container) initRepositories() {
 	c.NewsletterRepo = repository.NewNewsletterRepository(c.DB)
 	c.MapCodeRepo = repository.NewMapCodeRepository(c.DB)
 	c.MapCodeTranslationRepo = repository.NewMapCodeTranslationRepository(c.DB)
+	c.BookRepo = repository.NewBookRepository(c.DB)
+	c.LibraryExamRepo = repository.NewLibraryExamRepository(c.DB)
+	c.LibraryVideoRepo = repository.NewLibraryVideoRepository(c.DB)
+	c.ItemRatingRepo = repository.NewItemRatingRepository(c.DB)
+	c.UserBookmarkRepo = repository.NewUserBookmarkRepository(c.DB)
+	c.LibraryItemRepo = repository.NewLibraryItemRepository(c.DB)
+	
+	// Initialize QuestionVersionRepository for version control
+	c.QuestionVersionRepo = repository.NewQuestionVersionRepository(c.DBX)
+	
+	// Initialize MetricsRepository for metrics history
+	metricsLogger := logrus.New()
+	metricsLogger.SetFormatter(util.StandardLogrusFormatter())
+	c.MetricsRepo = repository.NewMetricsRepository(c.DB, metricsLogger)
 }
 
 // initServices initializes all service dependencies
@@ -247,7 +296,7 @@ func (c *Container) initServices() {
 		},
 	})
 
-	// Initialize Unified JWT Service với logger
+	// Initialize Unified JWT Service vá»›i logger
 	var err error
 	c.UnifiedJWTService, err = auth.NewUnifiedJWTService(accessSecret, c.RefreshTokenRepo, jwtLogger)
 	if err != nil {
@@ -285,7 +334,7 @@ func (c *Container) initServices() {
 			logger.WithError(err).Warn("Failed to initialize ImageProcessingService, continuing without it")
 			imageProcessor = nil
 		} else {
-			logger.Info("ImageProcessingService initialized successfully")
+			log.Println("[OK] ImageProcessingService initialized successfully")
 		}
 	}
 
@@ -299,6 +348,12 @@ func (c *Container) initServices() {
 
 	// Initialize QuestionFilterService with database connection and OpenSearch client
 	c.QuestionFilterService = question.NewQuestionFilterService(c.DB, c.OpenSearchClient)
+	
+	// Initialize QuestionVersionService for version control
+	c.QuestionVersionService = question.NewVersionService(
+		c.QuestionVersionRepo,
+		c.QuestionRepo,
+	)
 
 	// Initialize ScoringService first
 	scoringService := scoring.NewScoringService()
@@ -326,6 +381,12 @@ func (c *Container) initServices() {
 	// Initialize MapCodeMgmt with repositories
 	c.MapCodeMgmt = mapcode_mgmt.NewMapCodeMgmt(c.MapCodeRepo, c.MapCodeTranslationRepo)
 
+	// Initialize Book management service
+	c.BookMgmt = book_mgmt.NewBookService(c.BookRepo)
+	c.LibraryVideoService = videosvc.NewService(c.LibraryVideoRepo)
+	c.LibraryRatingService = ratingsvc.NewService(c.ItemRatingRepo, c.LibraryItemRepo)
+	c.LibraryBookmarkService = bookmarksvc.NewService(c.UserBookmarkRepo)
+
 	// Initialize Notification and Session services first (needed by OAuth)
 	c.NotificationSvc = notification.NewNotificationService(c.NotificationRepo, c.UserPreferenceRepo)
 	c.SessionService = session.NewSessionService(c.SessionRepo, c.UserRepoWrapper, c.NotificationSvc)
@@ -338,21 +399,14 @@ func (c *Container) initServices() {
 	// Create logger for OAuth service
 	oauthLogger := logrus.New()
 	oauthLogger.SetLevel(logrus.InfoLevel)
-	oauthLogger.SetFormatter(&logrus.JSONFormatter{
-		TimestampFormat: time.RFC3339,
-		FieldMap: logrus.FieldMap{
-			logrus.FieldKeyTime:  "timestamp",
-			logrus.FieldKeyLevel: "level",
-			logrus.FieldKeyMsg:   "message",
-		},
-	})
+	oauthLogger.SetFormatter(util.StandardLogrusFormatter())
 
 	c.OAuthService = oauth.NewOAuthService(
 		c.UserRepoWrapper,
 		c.OAuthAccountRepo,
 		c.SessionRepo,
 		c.UnifiedJWTService, // Use UnifiedJWTService directly (implements IJWTService)
-		c.SessionService, // Pass the SessionService
+		c.SessionService,    // Pass the SessionService
 		googleClientID,
 		googleClientSecret,
 		googleRedirectURI,
@@ -384,6 +438,17 @@ func (c *Container) initServices() {
 	c.ExamSessionSecurity = security.NewExamSessionSecurity(c.DB, logger)
 	c.AntiCheatService = security.NewAntiCheatService(c.DB, c.ExamSessionSecurity, logger)
 	c.ExamRateLimitService = security.NewExamRateLimitService(c.DB, logger)
+	
+	// Metrics Scheduler - Records metrics every 5 minutes
+	metricsLogger := logrus.New()
+	metricsLogger.SetFormatter(util.StandardLogrusFormatter())
+	c.MetricsScheduler = metrics.NewMetricsScheduler(
+		c.DB,
+		c.UserRepoWrapper,
+		c.SessionRepo,
+		c.MetricsRepo,
+		metricsLogger,
+	)
 }
 
 // initMiddleware initializes all middleware dependencies
@@ -417,19 +482,35 @@ func (c *Container) initGRPCServices() {
 		bcryptCost,
 	)
 
-	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionService)
+	c.QuestionGRPCService = grpc.NewQuestionServiceServer(c.QuestionService, c.QuestionVersionService)
 	c.QuestionFilterGRPCService = grpc.NewQuestionFilterServiceServer(c.QuestionFilterService)
-	c.ExamGRPCService = grpc.NewExamServiceServer(c.ExamService, c.AutoGradingService)
+	c.ExamGRPCService = grpc.NewExamServiceServer(c.ExamService, c.AutoGradingService, c.ExamRepo)
 	c.ProfileGRPCService = grpc.NewProfileServiceServer(
 		c.UserRepoWrapper,
 		c.SessionService,
 		c.UserPreferenceRepo,
 	)
 	c.AdminGRPCService = grpc.NewAdminServiceServer(
-		c.UserRepoWrapper, c.AuditLogRepo, c.ResourceAccessRepo, c.EnrollmentRepo, c.NotificationSvc,
+		c.UserRepoWrapper,
+		c.MetricsRepo, // NEW: Metrics repository
+		c.AuditLogRepo,
+		c.ResourceAccessRepo,
+		c.EnrollmentRepo,
+		c.NotificationSvc,
+		c.SessionRepo,
+		c.NotificationRepo,
 	)
 	c.ContactGRPCService = grpc.NewContactServiceServer(c.ContactMgmt)
 	c.NewsletterGRPCService = grpc.NewNewsletterServiceServer(c.NewsletterMgmt)
+	c.BookGRPCService = grpc.NewBookServiceServer(c.BookMgmt)
+	c.LibraryGRPCService = grpc.NewLibraryServiceServer(
+		c.BookMgmt,
+		c.LibraryExamRepo,
+		c.LibraryVideoService,
+		c.LibraryRatingService,
+		c.LibraryBookmarkService,
+		c.LibraryItemRepo,
+	)
 	c.NotificationGRPCService = grpc.NewNotificationServiceServer(
 		c.NotificationRepo,
 		c.UserPreferenceRepo,
@@ -481,6 +562,16 @@ func (c *Container) GetContactGRPCService() *grpc.ContactServiceServer {
 // GetNewsletterGRPCService returns the newsletter gRPC service
 func (c *Container) GetNewsletterGRPCService() *grpc.NewsletterServiceServer {
 	return c.NewsletterGRPCService
+}
+
+// GetBookGRPCService returns the book gRPC service
+func (c *Container) GetBookGRPCService() *grpc.BookServiceServer {
+	return c.BookGRPCService
+}
+
+// GetLibraryGRPCService returns the library gRPC service
+func (c *Container) GetLibraryGRPCService() *grpc.LibraryServiceServer {
+	return c.LibraryGRPCService
 }
 
 // GetEnhancedUserGRPCService returns the enhanced user gRPC service with OAuth support
@@ -592,8 +683,148 @@ func (c *Container) GetAnalyticsGRPCService() *grpc.AnalyticsServiceServer {
 	return c.AnalyticsGRPCService
 }
 
+// initWebSocketComponents initializes WebSocket and Redis Pub/Sub components
+// Implements Phase 3 - Task 3.3.2: Initialize components
+func (c *Container) initWebSocketComponents(cfg *config.RedisConfig) {
+	// Skip if Redis or Pub/Sub is disabled
+	if !cfg.Enabled || !cfg.PubSubEnabled {
+		log.Println("[INFO] WebSocket/Pub/Sub disabled, skipping initialization")
+		return
+	}
+	
+	// Check if Redis client is available
+	if c.RedisClient == nil || !c.RedisClient.IsEnabled() {
+		log.Println("[WARN] Redis client not available, WebSocket/Pub/Sub disabled")
+		return
+	}
+	
+	// Create Redis Pub/Sub client
+	redisPubSub, err := redis.NewPubSubClient(c.RedisClient.GetClient())
+	if err != nil {
+		log.Printf("[WARN] Failed to create Redis Pub/Sub client, real-time notifications disabled: %v", err)
+		return
+	}
+	c.RedisPubSub = redisPubSub
+	
+	// Create WebSocket connection manager
+	c.WebSocketManager = websocket.NewConnectionManager()
+	
+	// Create JWT authenticator for WebSocket
+	jwtAuth := websocket.NewJWTAuthenticator(c.JWTSecret)
+	
+	// Create WebSocket handler
+	c.WebSocketHandler = websocket.NewHandler(c.WebSocketManager, jwtAuth)
+	
+	// Configure allowed origins
+	allowedOrigins := []string{
+		"http://localhost:3000",
+		"http://localhost:8080",
+		getEnvOrDefault("FRONTEND_URL", "http://localhost:3000"),
+	}
+	c.WebSocketHandler.SetAllowedOrigins(allowedOrigins)
+	
+	// Create Redis-WebSocket bridge
+	channelHelper := redis.NewChannelHelper(cfg.PubSubChannelPrefix)
+	c.RedisBridge = websocket.NewRedisBridge(c.RedisPubSub, c.WebSocketManager, channelHelper)
+	
+	// Create WebSocket server
+	wsConfig := &server.WebSocketServerConfig{
+		Port:            getEnvOrDefault("WEBSOCKET_PORT", "8081"),
+		AllowedOrigins:  allowedOrigins,
+		MaxMessageSize:  10 * 1024, // 10KB
+		RateLimit:       60,
+		ShutdownTimeout: 30 * time.Second,
+	}
+	c.WebSocketServer = server.NewWebSocketServer(
+		c.WebSocketManager,
+		c.WebSocketHandler,
+		c.RedisPubSub,
+		wsConfig,
+	)
+	
+	// Wire up Redis publisher to NotificationService
+	if c.NotificationSvc != nil {
+		c.NotificationSvc.SetRedisPublisher(c.RedisPubSub)
+		log.Println("[OK] Redis publisher connected to NotificationService")
+	}
+	
+	// Start bridge (connect Redis Pub/Sub to WebSocket)
+	if err := c.RedisBridge.Start(cfg.WorkerPoolSize); err != nil {
+		log.Printf("[WARN] Failed to start Redis-WebSocket bridge: %v", err)
+	} else {
+		log.Println("[OK] Redis-WebSocket bridge started successfully")
+	}
+	
+	log.Println("[OK] WebSocket components initialized successfully")
+}
+
+// StartWebSocketServer starts the WebSocket server in a goroutine
+// Should be called after container initialization
+func (c *Container) StartWebSocketServer() {
+	if c.WebSocketServer == nil {
+		log.Println("[INFO] WebSocket server not initialized, skipping")
+		return
+	}
+	
+	go func() {
+		log.Println("[INFO] Starting WebSocket server")
+		if err := c.WebSocketServer.Start(); err != nil {
+			log.Printf("[ERROR] WebSocket server error: %v", err)
+		}
+	}()
+}
+
+// StartMetricsScheduler starts the metrics recording scheduler
+func (c *Container) StartMetricsScheduler() {
+	if c.MetricsScheduler == nil {
+		log.Println("[WARN] [MetricsScheduler] Metrics scheduler not initialized, skipping")
+		return
+	}
+	
+	config := metrics.DefaultConfig()
+	if err := c.MetricsScheduler.Start(config); err != nil {
+		log.Printf("[ERROR] [MetricsScheduler] Failed to start metrics scheduler: %v", err)
+		return
+	}
+	
+	log.Printf("[OK] [MetricsScheduler] Metrics scheduler started successfully (recording_interval=%v, cleanup_interval=%v, retention_days=%v)",
+		config.RecordingInterval, config.CleanupInterval, config.RetentionDays)
+}
+
 // Cleanup performs cleanup operations
+// Implements Phase 3 - Task 3.3.3: Graceful shutdown in reverse order
 func (c *Container) Cleanup() {
+	log.Println("[INFO] Starting cleanup...")
+	
+	// Stop MetricsScheduler first
+	if c.MetricsScheduler != nil {
+		log.Println("[INFO] Stopping metrics scheduler...")
+		if err := c.MetricsScheduler.Stop(); err != nil {
+			log.Printf("[ERROR] Error stopping metrics scheduler: %v", err)
+		}
+	}
+	
+	// Stop WebSocket server
+	if c.WebSocketServer != nil {
+		if err := c.WebSocketServer.Shutdown(); err != nil {
+			log.Printf("[ERROR] Failed to shutdown WebSocket server: %v", err)
+		}
+	}
+	
+	// Stop Redis bridge
+	if c.RedisBridge != nil {
+		if err := c.RedisBridge.Stop(); err != nil {
+			log.Printf("[ERROR] Failed to stop Redis bridge: %v", err)
+		}
+	}
+	
+	// Stop Redis Pub/Sub
+	if c.RedisPubSub != nil {
+		if err := c.RedisPubSub.Stop(); err != nil {
+			log.Printf("[ERROR] Failed to stop Redis Pub/Sub: %v", err)
+		}
+	}
+	
 	// Stop rate limiter cleanup
 	if c.RateLimitInterceptor != nil {
 		c.RateLimitInterceptor.Stop()
@@ -612,6 +843,8 @@ func (c *Container) Cleanup() {
 	if c.DB != nil {
 		c.DB.Close()
 	}
+	
+	log.Println("[OK] Cleanup complete")
 }
 
 // getEnvOrDefault gets environment variable or returns default value

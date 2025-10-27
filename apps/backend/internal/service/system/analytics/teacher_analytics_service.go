@@ -1,4 +1,4 @@
-package analytics
+﻿package analytics
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -462,4 +462,5 @@ func (s *TeacherAnalyticsService) getTopExams(ctx context.Context, teacherID str
 
 	return exams, rows.Err()
 }
+
 

@@ -8,10 +8,8 @@
 import { UserServiceClient } from '@/generated/v1/UserServiceClientPb';
 import {
   LoginResponse,
-  GoogleLoginRequest,
   RegisterRequest,
   RegisterResponse,
-  RefreshTokenRequest,
   RefreshTokenResponse,
   VerifyEmailRequest,
   VerifyEmailResponse,
@@ -28,15 +26,15 @@ import {
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
-import { getGrpcUrl } from '@/lib/config/endpoints';
 import { logger } from '@/lib/utils/logger';
-// ✅ FIX: Import getAuthMetadata for CSRF token support
-import { getAuthMetadata } from './client';
+// ✅ FIX: Import GRPC_WEB_HOST and getAuthMetadata for CSRF token support
+import { GRPC_WEB_HOST, getAuthMetadata } from './client';
 
 /**
  * gRPC client configuration
+ * Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
  */
-const GRPC_ENDPOINT = getGrpcUrl();
+const GRPC_ENDPOINT = GRPC_WEB_HOST;
 
 // PRODUCTION: Fetch override code removed for clean production build
 
@@ -158,12 +156,19 @@ export class AuthService {
       ? `${email.substring(0, 2)}***@${email.split('@')[1] || '***'}`
       : '***';
 
-    const endpoint = `${GRPC_ENDPOINT}/v1.UserService/Login`;
+    // ✅ FIX: Call backend HTTP Gateway directly (bypass gRPC proxy)
+    // gRPC proxy expects protobuf binary, but we're sending JSON
+    // Backend HTTP Gateway supports JSON API at port 8080
+    const isServerSide = typeof window === 'undefined';
+    const backendUrl = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+
+    const endpoint = `${backendUrl}/v1.UserService/Login`;
 
     logger.debug('[AuthService] Login attempt', {
       operation: 'login',
       email: maskedEmail,
       endpoint,
+      isServerSide,
     });
 
     try {
@@ -356,11 +361,18 @@ export class AuthService {
    * This allows the method to be called from NextAuth signIn() callback (server-side)
    */
   static async googleLogin(idToken: string): Promise<LoginResponse> {
-    const endpoint = `${GRPC_ENDPOINT}/v1.UserService/GoogleLogin`;
+    // ✅ FIX: Use absolute URL for server-side fetch()
+    const isServerSide = typeof window === 'undefined';
+    const baseUrl = isServerSide
+      ? (process.env.NEXTAUTH_URL || 'http://localhost:3000')
+      : '';
+
+    const endpoint = `${baseUrl}${GRPC_ENDPOINT}/v1.UserService/GoogleLogin`;
 
     logger.debug('[AuthService] Google login attempt', {
       operation: 'googleLogin',
       endpoint,
+      isServerSide,
     });
 
     try {
@@ -419,12 +431,13 @@ export class AuthService {
         user.setEmail(data.user.email || '');
         user.setFirstName(data.user.firstName || '');
         user.setLastName(data.user.lastName || '');
-        user.setRole(data.user.role || UserRole.STUDENT);
+        // Technical: Use correct protobuf enum values with USER_ROLE_ and USER_STATUS_ prefixes
+        user.setRole(data.user.role || UserRole.USER_ROLE_STUDENT);
         user.setLevel(data.user.level || 1);
-        user.setStatus(data.user.status || UserStatus.ACTIVE);
+        user.setStatus(data.user.status || UserStatus.USER_STATUS_ACTIVE);
         user.setEmailVerified(data.user.emailVerified || false);
-        user.setCreatedAt(data.user.createdAt || '');
-        user.setUpdatedAt(data.user.updatedAt || '');
+        // Note: User protobuf message doesn't have createdAt/updatedAt fields
+        // These are only in UserProfile message (profile.proto)
         loginResponse.setUser(user);
       }
 

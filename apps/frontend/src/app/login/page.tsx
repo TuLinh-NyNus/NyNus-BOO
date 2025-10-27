@@ -22,6 +22,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Default callbackUrl will be determined by AuthContext based on user role
+  // If there's a callbackUrl in URL params, use it; otherwise let AuthContext decide
   const [callbackUrl, setCallbackUrl] = useState<string>('/dashboard');
 
   // Extract callbackUrl from URL parameters
@@ -97,39 +99,35 @@ export default function LoginPage() {
         });
         setError('Đăng nhập thất bại. Vui lòng kiểm tra thông tin đăng nhập.');
       } else if (result?.ok) {
-        logger.info('[LoginPage] Login successful, waiting for session cookie', {
+        logger.info('[LoginPage] Login successful, checking user role for redirect', {
           operation: 'emailLogin',
           email: maskedEmail,
           callbackUrl,
         });
 
-        // ✅ FIX: Wait for session cookie before redirect
-        // NextAuth sets session cookie in the response, but browser may follow redirect
-        // before cookie is persisted. Poll for cookie to ensure it's set.
-        const waitForSessionCookie = async (maxAttempts = 20): Promise<boolean> => {
-          for (let i = 0; i < maxAttempts; i++) {
-            const cookies = document.cookie;
-            // Check for both dev and production cookie names
-            if (cookies.includes('next-auth.session-token') || cookies.includes('__Secure-next-auth.session-token')) {
-              logger.debug(`[LoginPage] Session cookie found after ${i * 100}ms`);
-              return true;
-            }
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
-          logger.error('[LoginPage] Session cookie not found after 2000ms');
-          return false;
-        };
-
-        const cookieFound = await waitForSessionCookie();
-        if (!cookieFound) {
-          logger.warn('[LoginPage] Proceeding with redirect despite missing cookie');
+        // ✅ FIX: Get session to check user role before redirect
+        // NextAuth has set the session cookie, now fetch session to determine redirect
+        const { getSession } = await import('next-auth/react');
+        const session = await getSession();
+        
+        // Determine redirect URL based on user role
+        // ADMIN users go directly to admin page unless there's a specific callbackUrl
+        let redirectUrl = callbackUrl;
+        
+        if (session?.role === 'ADMIN' && callbackUrl === '/dashboard') {
+          // Admin user with default callbackUrl -> redirect to admin page
+          redirectUrl = '/3141592654/admin';
+          logger.debug('[LoginPage] Admin user detected, redirecting to admin page');
         }
-
-        // ✅ FIX: Use window.location.href for FULL PAGE RELOAD
-        // This forces a full page reload, ensuring NextAuth session is properly set
-        // before middleware checks authentication
-        logger.info('[LoginPage] Redirecting to dashboard', { callbackUrl });
-        window.location.href = callbackUrl;
+        
+        logger.info('[LoginPage] Performing full page redirect', { 
+          role: session?.role,
+          redirectUrl 
+        });
+        
+        // Use window.location.href for FULL PAGE RELOAD
+        // This ensures NextAuth session is properly loaded on next request
+        window.location.href = redirectUrl;
       } else {
         logger.warn('[LoginPage] Unexpected signIn result', {
           operation: 'emailLogin',
@@ -277,13 +275,15 @@ export default function LoginPage() {
                   required
                   disabled={loading}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground h-auto p-0"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                </Button>
               </div>
             </div>
 

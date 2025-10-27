@@ -1,17 +1,18 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/exam/scoring"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/service/exam"
+	"exam-bank-system/apps/backend/internal/service/exam/scoring"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -22,13 +23,19 @@ type ExamServiceServer struct {
 	v1.UnimplementedExamServiceServer
 	examService *exam.ExamService
 	autoGrading *scoring.AutoGradingService
+	examRepo    interfaces.ExamRepository
 }
 
 // NewExamServiceServer creates a new ExamServiceServer
-func NewExamServiceServer(examService *exam.ExamService, autoGrading *scoring.AutoGradingService) *ExamServiceServer {
+func NewExamServiceServer(
+	examService *exam.ExamService,
+	autoGrading *scoring.AutoGradingService,
+	examRepo interfaces.ExamRepository,
+) *ExamServiceServer {
 	return &ExamServiceServer{
 		examService: examService,
 		autoGrading: autoGrading,
+		examRepo:    examRepo,
 	}
 }
 
@@ -103,7 +110,7 @@ func (s *ExamServiceServer) GetExam(ctx context.Context, req *v1.GetExamRequest)
 // SubmitExam submits an exam attempt and auto-grades it
 func (s *ExamServiceServer) SubmitExam(ctx context.Context, req *v1.SubmitExamRequest) (*v1.SubmitExamResponse, error) {
 	// Get user from context for authorization
-	_, err := middleware.GetUserIDFromContext(ctx)
+	userID, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
@@ -113,23 +120,64 @@ func (s *ExamServiceServer) SubmitExam(ctx context.Context, req *v1.SubmitExamRe
 		return nil, status.Errorf(codes.InvalidArgument, "attempt ID is required")
 	}
 
+	// Get attempt to validate time and ownership
+	attempt, err := s.examRepo.GetAttempt(ctx, req.GetAttemptId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "attempt not found: %v", err)
+	}
+
+	// Verify ownership
+	if attempt.UserID != userID {
+		return nil, status.Errorf(codes.PermissionDenied, "not authorized for this attempt")
+	}
+
+	// Get exam to check duration
+	exam, err := s.examRepo.GetByID(ctx, attempt.ExamID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get exam: %v", err)
+	}
+
+	// Validate time limit (anti-cheat)
+	elapsed := time.Since(attempt.StartedAt).Minutes()
+	gracePeriodMinutes := 5.0 // 5 minute grace period for network delays
+	maxAllowedMinutes := float64(exam.DurationMinutes) + gracePeriodMinutes
+
+	if elapsed > maxAllowedMinutes {
+		return nil, status.Errorf(codes.DeadlineExceeded,
+			"submission time exceeded: %.1f minutes elapsed (allowed: %d + %d grace period)",
+			elapsed, exam.DurationMinutes, int(gracePeriodMinutes))
+	}
+
 	// Auto-grade the exam
 	_, err = s.autoGrading.AutoGradeExam(ctx, req.GetAttemptId())
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to grade exam: %v", err)
 	}
 
+	// Get the updated attempt with scores
+	updatedAttempt, err := s.examRepo.GetAttempt(ctx, req.GetAttemptId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get updated attempt: %v", err)
+	}
+
+	// Convert to proto ExamResult (using attempt data since entity.ExamResult doesn't have these fields)
+	protoResult := &v1.ExamResult{
+		Id:          req.GetAttemptId(), // Using attempt ID as result ID
+		AttemptId:   req.GetAttemptId(),
+		Score:       float64(updatedAttempt.Score),
+		TotalPoints: int32(updatedAttempt.TotalPoints),
+		Percentage:  float64(updatedAttempt.Percentage),
+		Passed:      updatedAttempt.Passed,
+		CreatedAt:   timestamppb.Now(),
+	}
+
 	// Convert grading result to protobuf response
-	// TODO: Create proper protobuf message for exam results when protobuf is regenerated
 	return &v1.SubmitExamResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam submitted and graded successfully",
 		},
-		// TODO: Add exam result fields when protobuf is regenerated
-		// Score: gradingResult.TotalScore,
-		// Percentage: gradingResult.Percentage,
-		// Passed: gradingResult.Passed,
+		Result: protoResult,
 	}, nil
 }
 
@@ -470,16 +518,64 @@ func (s *ExamServiceServer) StartExam(ctx context.Context, req *v1.StartExamRequ
 		return nil, status.Errorf(codes.InvalidArgument, "exam ID is required")
 	}
 
-	// Start exam attempt through service management layer
-	// TODO: Add StartExamAttempt method to ExamService service
-	_ = userID // Use userID when implementing
+	// Verify exam exists and is active
+	exam, err := s.examRepo.GetByID(ctx, req.GetExamId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "exam not found: %v", err)
+	}
+
+	if exam.Status != entity.ExamStatusActive {
+		return nil, status.Errorf(codes.FailedPrecondition, "exam is not active (status: %s)", exam.Status)
+	}
+
+	// Check user hasn't exceeded max attempts
+	attempts, err := s.examRepo.ListUserAttempts(ctx, userID, req.GetExamId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to check attempts: %v", err)
+	}
+
+	if len(attempts) >= exam.MaxAttempts {
+		return nil, status.Errorf(codes.ResourceExhausted, 
+			"maximum attempts reached (%d/%d)", len(attempts), exam.MaxAttempts)
+	}
+
+	// Create new attempt
+	attempt := &entity.ExamAttempt{
+		ID:            uuid.New().String(),
+		ExamID:        req.GetExamId(),
+		UserID:        userID,
+		AttemptNumber: len(attempts) + 1,
+		Status:        entity.AttemptStatusInProgress,
+		TotalPoints:   exam.TotalPoints,
+		StartedAt:     time.Now(),
+	}
+
+	err = s.examRepo.CreateAttempt(ctx, attempt)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create attempt: %v", err)
+	}
+
+	// Get question IDs (shuffle if required by exam settings)
+	questionIDs := exam.QuestionIDs
+	if exam.ShuffleQuestions {
+		// Simple shuffle implementation
+		shuffled := make([]string, len(questionIDs))
+		copy(shuffled, questionIDs)
+		// Note: In production, use crypto/rand for better randomization
+		for i := len(shuffled) - 1; i > 0; i-- {
+			j := int(time.Now().UnixNano()) % (i + 1)
+			shuffled[i], shuffled[j] = shuffled[j], shuffled[i]
+		}
+		questionIDs = shuffled
+	}
 
 	return &v1.StartExamResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam started successfully",
 		},
-		// TODO: Add ExamAttempt and question_ids when ExamService has StartExamAttempt method
+		Attempt:     convertAttemptToProto(attempt),
+		QuestionIds: questionIDs,
 	}, nil
 }
 
@@ -499,9 +595,34 @@ func (s *ExamServiceServer) SubmitAnswer(ctx context.Context, req *v1.SubmitAnsw
 		return nil, status.Errorf(codes.InvalidArgument, "question ID is required")
 	}
 
-	// Submit answer through service management layer
-	// TODO: Add SubmitExamAnswer method to ExamService service
-	_ = userID // Use userID when implementing
+	// Verify attempt exists and is in_progress
+	attempt, err := s.examRepo.GetAttempt(ctx, req.GetAttemptId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "attempt not found: %v", err)
+	}
+
+	if attempt.UserID != userID {
+		return nil, status.Errorf(codes.PermissionDenied, "not authorized for this attempt")
+	}
+
+	if attempt.Status != entity.AttemptStatusInProgress {
+		return nil, status.Errorf(codes.FailedPrecondition, 
+			"cannot submit answer: attempt status is %s", attempt.Status)
+	}
+
+	// Create or update answer
+	answer := &entity.ExamAnswer{
+		ID:         uuid.New().String(),
+		AttemptID:  req.GetAttemptId(),
+		QuestionID: req.GetQuestionId(),
+		AnswerData: req.GetAnswerData(),
+		AnsweredAt: time.Now(),
+	}
+
+	err = s.examRepo.SaveAnswer(ctx, answer)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to save answer: %v", err)
+	}
 
 	return &v1.SubmitAnswerResponse{
 		Response: &common.Response{
@@ -514,7 +635,7 @@ func (s *ExamServiceServer) SubmitAnswer(ctx context.Context, req *v1.SubmitAnsw
 // GetExamAttempt gets an exam attempt by ID
 func (s *ExamServiceServer) GetExamAttempt(ctx context.Context, req *v1.GetExamAttemptRequest) (*v1.GetExamAttemptResponse, error) {
 	// Get user from context for authorization
-	_, err := middleware.GetUserIDFromContext(ctx)
+	userID, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
@@ -524,22 +645,31 @@ func (s *ExamServiceServer) GetExamAttempt(ctx context.Context, req *v1.GetExamA
 		return nil, status.Errorf(codes.InvalidArgument, "attempt ID is required")
 	}
 
-	// Get exam attempt through service management layer
-	// TODO: Add GetExamAttempt method to ExamService service
+	// Get exam attempt
+	attempt, err := s.examRepo.GetAttempt(ctx, req.GetAttemptId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "attempt not found: %v", err)
+	}
+
+	// Authorization check - only allow user to see their own attempts
+	// TODO: Add admin/teacher role check if needed
+	if attempt.UserID != userID {
+		return nil, status.Errorf(codes.PermissionDenied, "not authorized to view this attempt")
+	}
 
 	return &v1.GetExamAttemptResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam attempt retrieved successfully",
 		},
-		// TODO: Add ExamAttempt when ExamService has GetExamAttempt method
+		Attempt: convertAttemptToProto(attempt),
 	}, nil
 }
 
 // GetExamResults gets results for an exam
 func (s *ExamServiceServer) GetExamResults(ctx context.Context, req *v1.GetExamResultsRequest) (*v1.GetExamResultsResponse, error) {
 	// Get user from context for authorization
-	_, err := middleware.GetUserIDFromContext(ctx)
+	userID, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
@@ -549,15 +679,28 @@ func (s *ExamServiceServer) GetExamResults(ctx context.Context, req *v1.GetExamR
 		return nil, status.Errorf(codes.InvalidArgument, "exam ID is required")
 	}
 
-	// Get exam results through repository
-	// TODO: Add GetExamResults method to ExamService service
+	// Get exam results for this exam
+	results, err := s.examRepo.GetResultsByExam(ctx, req.GetExamId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get results: %v", err)
+	}
+
+	// Authorization check - users can only see their own results unless admin/teacher
+	// TODO: Add role-based access control
+	_ = userID // For now, return all results (admin feature)
+
+	// Convert to protobuf
+	protoResults := make([]*v1.ExamResult, 0, len(results))
+	for _, result := range results {
+		protoResults = append(protoResults, convertResultToProto(result))
+	}
 
 	return &v1.GetExamResultsResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam results retrieved successfully",
 		},
-		Results: []*v1.ExamResult{}, // TODO: Implement when ExamService has this method
+		Results: protoResults,
 	}, nil
 }
 
@@ -574,22 +717,49 @@ func (s *ExamServiceServer) GetExamStatistics(ctx context.Context, req *v1.GetEx
 		return nil, status.Errorf(codes.InvalidArgument, "exam ID is required")
 	}
 
-	// Get exam statistics through repository
-	// TODO: Add GetExamStatistics method to ExamService service
+	// Get exam statistics
+	stats, err := s.examRepo.GetExamStatistics(ctx, req.GetExamId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get statistics: %v", err)
+	}
+
+	// Convert to protobuf
+	protoStats := &v1.ExamStatistics{
+		TotalAttempts:     int32(stats.TotalAttempts),
+		CompletedAttempts: int32(stats.CompletedAttempts),
+		AverageScore:      float32(stats.AverageScore),
+		PassRate:          float32(stats.PassRate),
+		AverageTimeSpent:  int32(stats.AverageTimeSpent),
+	}
+
+	// Convert question statistics if available
+	if stats.QuestionStats != nil {
+		protoQuestionStats := make([]*v1.QuestionStatistics, 0, len(stats.QuestionStats))
+		for _, qs := range stats.QuestionStats {
+			protoQuestionStats = append(protoQuestionStats, &v1.QuestionStatistics{
+				QuestionId:       qs.QuestionID,
+				CorrectAnswers:   int32(qs.CorrectAnswers),
+				TotalAnswers:     int32(qs.TotalAnswers),
+				CorrectRate:      float32(qs.CorrectRate),
+				AverageTimeSpent: float32(qs.AverageTimeSpent),
+			})
+		}
+		protoStats.QuestionStats = protoQuestionStats
+	}
 
 	return &v1.GetExamStatisticsResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "Exam statistics retrieved successfully",
 		},
-		// TODO: Add statistics fields when ExamService has this method
+		Statistics: protoStats,
 	}, nil
 }
 
 // GetUserPerformance gets user performance for an exam
 func (s *ExamServiceServer) GetUserPerformance(ctx context.Context, req *v1.GetUserPerformanceRequest) (*v1.GetUserPerformanceResponse, error) {
 	// Get user from context for authorization
-	_, err := middleware.GetUserIDFromContext(ctx)
+	currentUserID, err := middleware.GetUserIDFromContext(ctx)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get user from context: %v", err)
 	}
@@ -602,15 +772,36 @@ func (s *ExamServiceServer) GetUserPerformance(ctx context.Context, req *v1.GetU
 		return nil, status.Errorf(codes.InvalidArgument, "exam ID is required")
 	}
 
-	// Get user performance through repository
-	// TODO: Add GetUserPerformance method to ExamService service
+	// Authorization check - users can only see their own performance unless admin/teacher
+	// TODO: Add role-based access control
+	if req.GetUserId() != currentUserID {
+		// For now, allow (admin feature)
+		// In production, check if currentUserID has admin/teacher role
+	}
+
+	// Get user performance
+	performance, err := s.examRepo.GetUserPerformance(ctx, req.GetUserId(), req.GetExamId())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get performance: %v", err)
+	}
+
+	// Convert to protobuf
+	protoPerformance := &v1.UserPerformance{
+		UserId:         performance.UserID,
+		ExamId:         performance.ExamID,
+		AttemptsCount:  int32(performance.TotalAttempts),
+		BestScore:      float32(performance.BestScore),
+		AverageScore:   float32(performance.AverageScore),
+		TotalTimeSpent: 0, // TODO: Add TotalTimeSpent to entity.UserPerformance
+		// Note: Attempts field is repeated ExamAttempt - would need to fetch attempts separately
+	}
 
 	return &v1.GetUserPerformanceResponse{
 		Response: &common.Response{
 			Success: true,
 			Message: "User performance retrieved successfully",
 		},
-		// TODO: Add performance fields when ExamService has this method
+		Performance: protoPerformance,
 	}, nil
 }
 
@@ -910,3 +1101,115 @@ func convertExamYear(year int32) *int {
 	y := int(year)
 	return &y
 }
+
+// Conversion functions for ExamAttempt, ExamAnswer, ExamResult
+
+// convertAttemptStatusToProto converts entity.AttemptStatus to protobuf
+func convertAttemptStatusToProto(status entity.AttemptStatus) v1.AttemptStatus {
+	switch status {
+	case entity.AttemptStatusInProgress:
+		return v1.AttemptStatus_ATTEMPT_STATUS_IN_PROGRESS
+	case entity.AttemptStatusSubmitted:
+		return v1.AttemptStatus_ATTEMPT_STATUS_SUBMITTED
+	case entity.AttemptStatusGraded:
+		return v1.AttemptStatus_ATTEMPT_STATUS_GRADED
+	case entity.AttemptStatusCancelled:
+		return v1.AttemptStatus_ATTEMPT_STATUS_CANCELLED
+	default:
+		return v1.AttemptStatus_ATTEMPT_STATUS_UNSPECIFIED
+	}
+}
+
+// convertAttemptStatusFromProto converts protobuf to entity.AttemptStatus
+func convertAttemptStatusFromProto(status v1.AttemptStatus) entity.AttemptStatus {
+	switch status {
+	case v1.AttemptStatus_ATTEMPT_STATUS_IN_PROGRESS:
+		return entity.AttemptStatusInProgress
+	case v1.AttemptStatus_ATTEMPT_STATUS_SUBMITTED:
+		return entity.AttemptStatusSubmitted
+	case v1.AttemptStatus_ATTEMPT_STATUS_GRADED:
+		return entity.AttemptStatusGraded
+	case v1.AttemptStatus_ATTEMPT_STATUS_CANCELLED:
+		return entity.AttemptStatusCancelled
+	default:
+		return entity.AttemptStatusInProgress
+	}
+}
+
+// convertAttemptToProto converts entity.ExamAttempt to protobuf
+func convertAttemptToProto(attempt *entity.ExamAttempt) *v1.ExamAttempt {
+	if attempt == nil {
+		return nil
+	}
+
+	protoAttempt := &v1.ExamAttempt{
+		Id:               attempt.ID,
+		ExamId:           attempt.ExamID,
+		UserId:           attempt.UserID,
+		AttemptNumber:    int32(attempt.AttemptNumber),
+		Status:           convertAttemptStatusToProto(attempt.Status),
+		Score:            float64(attempt.Score),
+		TotalPoints:      int32(attempt.TotalPoints),
+		Percentage:       float64(attempt.Percentage),
+		Passed:           attempt.Passed,
+		TimeSpentSeconds: int32(attempt.TimeSpent),
+		StartedAt:        timestamppb.New(attempt.StartedAt),
+	}
+
+	if attempt.SubmittedAt != nil {
+		protoAttempt.SubmittedAt = timestamppb.New(*attempt.SubmittedAt)
+	}
+
+	return protoAttempt
+}
+
+// convertResultToProto converts entity.ExamResult to protobuf
+// Note: entity.ExamResult and proto ExamResult have different fields
+// This function is kept for compatibility but may need refactoring
+func convertResultToProto(result *entity.ExamResult) *v1.ExamResult {
+	if result == nil {
+		return nil
+	}
+
+	// entity.ExamResult doesn't have Score, TotalPoints, Percentage, Passed
+	// These fields are in ExamAttempt. This conversion is incomplete.
+	protoResult := &v1.ExamResult{
+		Id:          result.ID,
+		AttemptId:   result.AttemptID,
+		Score:       0,     // Not available in entity.ExamResult
+		TotalPoints: 0,     // Not available in entity.ExamResult
+		Percentage:  0,     // Not available in entity.ExamResult
+		Passed:      false, // Not available in entity.ExamResult
+		CreatedAt:   timestamppb.New(result.CreatedAt),
+	}
+
+	if result.Feedback != nil {
+		protoResult.Feedback = *result.Feedback
+	}
+
+	return protoResult
+}
+
+// convertAnswerToProto converts entity.ExamAnswer to protobuf
+func convertAnswerToProto(answer *entity.ExamAnswer) *v1.ExamAnswer {
+	if answer == nil {
+		return nil
+	}
+
+	protoAnswer := &v1.ExamAnswer{
+		Id:           answer.ID,
+		AttemptId:    answer.AttemptID,
+		QuestionId:   answer.QuestionID,
+		AnswerData:   answer.AnswerData,
+		PointsEarned: int32(answer.PointsEarned),
+		CreatedAt:    timestamppb.New(answer.AnsweredAt), // Using AnsweredAt as CreatedAt
+		UpdatedAt:    timestamppb.New(answer.AnsweredAt), // Using AnsweredAt as UpdatedAt
+	}
+
+	if answer.IsCorrect != nil {
+		protoAnswer.IsCorrect = *answer.IsCorrect
+	}
+
+	return protoAnswer
+}
+

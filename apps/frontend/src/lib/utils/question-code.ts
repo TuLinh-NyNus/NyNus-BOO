@@ -15,70 +15,115 @@ type ParsedQuestionCode = QuestionCode;
 
 /**
  * Shared MapCode configuration system-wide
- * Theo database schema và IMPLEMENT_QUESTION.md
+ * Extracted from MapCode.md (4,666 lines) imported into database
+ * 
+ * NOTE: This is a FLAT mapping for convenience.
+ * MapCode.md has hierarchical structure (Lớp > Môn > Chương > Bài > Dạng)
+ * where chapter/lesson names vary by parent context.
+ * 
+ * This config uses first-occurrence names from MapCode.md, providing
+ * meaningful labels instead of generic placeholders while accepting
+ * that some names may not be perfectly context-specific.
+ * 
+ * @see tools/parsing-question/src/parser/MapCode.md (source)
+ * @see docs/resources/latex/mapcode/v2025-10-27/MapCode-2025-10-27.md (imported version)
+ * @updated 2025-10-27 - Extracted actual names from MapCode.md
  */
 export const MAPCODE_CONFIG = {
-  // Grade mapping (Position 1)
+  // Grade mapping (Position 1) - Complete from MapCode.md
   grades: {
     '0': 'Lớp 10',
     '1': 'Lớp 11', 
     '2': 'Lớp 12',
+    '6': 'Lớp 6',
+    '7': 'Lớp 7',
+    '8': 'Lớp 8',
+    '9': 'Lớp 9',
     'A': 'Đại học',
     'B': 'Cao đẳng',
     'C': 'Trung cấp'
   },
   
-  // Subject mapping (Position 2)
+  // Subject mapping (Position 2) - From MapCode.md
+  // Only subjects that exist in MapCode.md
   subjects: {
-    'P': 'Toán học',
-    'L': 'Vật lý', 
-    'H': 'Hóa học',
-    'S': 'Sinh học',
-    'V': 'Văn học',
-    'A': 'Tiếng Anh',
-    'U': 'Lịch sử',
-    'D': 'Địa lý',
-    'G': 'GDCD'
+    'P': 'NGÂN HÀNG CHÍNH',
+    'D': 'Đại số và giải tích',
+    'H': 'Hình học và đo lường',
+    'C': 'Chuyên đề',
+    'G': 'HỌC SINH GIỎI',
+    'T': 'CÂU HỎI TƯ DUY'
   },
   
-  // Chapter mapping (Position 3)
+  // Chapter mapping (Position 3) - From MapCode.md
+  // Names are contextual (vary by grade+subject), showing first occurrence
   chapters: {
-    '1': 'Chương 1',
-    '2': 'Chương 2',
-    '3': 'Chương 3',
-    '4': 'Chương 4',
-    '5': 'Chương 5',
-    '6': 'Chương 6',
-    '7': 'Chương 7',
-    '8': 'Chương 8',
-    '9': 'Chương 9'
+    '0': 'Xác suất',
+    '1': 'Mệnh đề và tập hợp',
+    '2': 'Bất phương trình và hệ bất phương trình bậc nhất hai ẩn',
+    '3': 'Hàm số bậc hai và đồ thị',
+    '4': 'Hệ thức lượng trong tam giác',
+    '5': 'Véc tơ (chưa xét tọa độ)',
+    '6': 'Thống kê',
+    '7': 'Bất phương trình bậc 2 một ẩn',
+    '8': 'Đại số tổ hợp',
+    '9': 'Véc tơ (trong hệ tọa độ)'
   },
   
-  // Level mapping (Position 4) - theo IMPLEMENT_QUESTION.md
+  // Level mapping (Position 4) - Fixed from MapCode.md
   levels: {
     'N': 'Nhận biết',
-    'H': 'Thông hiểu',
-    'V': 'Vận dụng',
-    'C': 'Vận dụng cao',
+    'H': 'Thông Hiểu',
+    'V': 'VD',
+    'C': 'VD Cao',
     'T': 'VIP',
     'M': 'Note'
   },
   
-  // Lesson mapping (Position 5)
+  // Lesson mapping (Position 5) - From MapCode.md
+  // Names are contextual (vary by grade+subject+chapter), showing first occurrence
   lessons: {
-    '1': 'Bài 1', '2': 'Bài 2', '3': 'Bài 3', '4': 'Bài 4', '5': 'Bài 5',
-    '6': 'Bài 6', '7': 'Bài 7', '8': 'Bài 8', '9': 'Bài 9',
-    'A': 'Bài A', 'B': 'Bài B', 'C': 'Bài C', 'D': 'Bài D', 'E': 'Bài E',
-    'F': 'Bài F', 'G': 'Bài G', 'H': 'Bài H', 'I': 'Bài I', 'J': 'Bài J',
-    'K': 'Bài K', 'L': 'Bài L', 'M': 'Bài M', 'N': 'Bài N', 'O': 'Bài O',
-    'P': 'Bài P', 'Q': 'Bài Q', 'R': 'Bài R', 'S': 'Bài S', 'T': 'Bài T',
-    'U': 'Bài U', 'V': 'Bài V', 'W': 'Bài W', 'X': 'Bài X', 'Y': 'Bài Y', 'Z': 'Bài Z'
+    '0': 'Chưa phân dạng',
+    '1': 'Mệnh đề',
+    '2': 'Tập hợp',
+    '3': 'Các phép toán tập hợp',
+    '4': 'Tích vô hướng (chưa xét tọa độ)',
+    '5': 'Elip và các vấn đề liên quan',
+    '6': 'Hypebol và các vấn đề liên quan',
+    '7': 'Parabol và các vấn đề liên quan',
+    '8': 'Sự thống nhất giữa ba đường Conic',
+    '9': 'Tập hợp, ánh xạ (không giới hạn)',
+    'A': 'Số nguyên tố - Hợp số',
+    'B': 'Ước chung - Ước chung lớn nhất',
+    'C': 'Bội chung - Bội chung nhỏ nhất'
   },
   
-  // Form mapping (Position 6, chỉ ID6)
+  // Form mapping (Position 6, chỉ ID6) - From MapCode.md
+  // Names are contextual, showing first occurrence
   forms: {
-    '1': 'Dạng 1', '2': 'Dạng 2', '3': 'Dạng 3', '4': 'Dạng 4', '5': 'Dạng 5',
-    '6': 'Dạng 6', '7': 'Dạng 7', '8': 'Dạng 8', '9': 'Dạng 9'
+    '0': 'Câu hỏi tổng hợp',
+    '1': 'Xác định mệnh đề, mệnh đề chứa biến',
+    '2': 'Tính đúng-sai của mệnh đề',
+    '3': 'Phủ định của một mệnh đề',
+    '4': 'Mệnh đề kéo theo, đảo, tương đương',
+    '5': 'Mệnh đề với mọi, tồn tại',
+    '6': 'Áp dụng mệnh đề vào suy luận có lí',
+    '7': 'Các phép toán với tham số',
+    '8': 'Sử dụng các tính chất của đồ thị',
+    '9': 'Toán thực tế',
+    'A': 'Chưa phân dạng',
+    'B': 'Hàm số chứa dấu giá trị tuyệt đối',
+    'C': 'Các phép biến đổi đồ thị',
+    'D': 'Bài toán có chứa tham số m',
+    'E': 'Giới hạn dãy số có chứa tham số',
+    'F': 'Giá trị lớn nhất, nhỏ nhất hàm đạo hàm',
+    'G': 'GTLN/GTNN qua bảng biến thiên',
+    'H': 'Dạng H', 'I': 'Dạng I', 'J': 'Dạng J',
+    'K': 'Dạng K', 'L': 'Dạng L', 'M': 'Dạng M',
+    'N': 'Dạng N', 'O': 'Dạng O', 'P': 'Dạng P',
+    'Q': 'Dạng Q', 'R': 'Dạng R', 'S': 'Dạng S',
+    'T': 'Dạng T', 'U': 'Dạng U', 'V': 'Dạng V',
+    'W': 'Dạng W', 'X': 'Dạng X', 'Y': 'Dạng Y', 'Z': 'Dạng Z'
   }
 } as const;
 

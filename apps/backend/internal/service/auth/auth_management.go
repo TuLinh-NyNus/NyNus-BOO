@@ -1,8 +1,8 @@
-package auth
+﻿package auth
 
 import (
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
 	"os"
 )
 
@@ -43,3 +43,4 @@ func NewAuthMgmt(db database.QueryExecer, jwtService IJWTService) *AuthMgmt {
 		AuthService: NewAuthServiceWithJWT(jwtService),
 	}
 }
+

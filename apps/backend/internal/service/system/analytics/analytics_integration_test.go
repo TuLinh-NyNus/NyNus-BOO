@@ -1,11 +1,11 @@
-package analytics
+﻿package analytics
 
 import (
 	"context"
 	"database/sql"
 	"testing"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -307,3 +307,4 @@ func containsSubstring(s, substr string) bool {
 	}
 	return false
 }
+

@@ -6,6 +6,8 @@ import { MainLayout } from "@/components/layout";
 import { defaultThemePreloader } from "@/lib/theme-preloader";
 import { BrowserExtensionCleanup } from "@/components/common/browser-extension-cleanup";
 import { ErrorBoundary } from "@/components/common/error-boundary";
+import { GA4Script } from "@/components/analytics/ga4-script";
+import { CookieConsent } from "@/components/common/cookie-consent";
 
 const inter = Inter({
   subsets: ["latin", "latin-ext", "vietnamese"],
@@ -34,6 +36,9 @@ export default function RootLayout({
           }}
         />
 
+        {/* Google Analytics 4 - tracks user behavior */}
+        <GA4Script />
+
         {/* ✅ Browser extension cleanup đã được di chuyển sang safe component */}
       </head>
       <body
@@ -47,6 +52,13 @@ export default function RootLayout({
             </MainLayout>
             {/* ✅ Safe cleanup component thay thế cho dangerous script */}
             <BrowserExtensionCleanup />
+            
+            {/* Cookie Consent Banner - GDPR compliant */}
+            <CookieConsent 
+              position="bottom"
+              showPrivacyLink={true}
+              privacyPolicyUrl="/privacy"
+            />
           </AppProviders>
         </ErrorBoundary>
       </body>

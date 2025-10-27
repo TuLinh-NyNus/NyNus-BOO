@@ -99,6 +99,7 @@ export interface Question {
   status?: QuestionStatus;
   feedback?: number; // Điểm feedback trung bình
   difficulty?: QuestionDifficulty;
+  isFavorite?: boolean; // Đánh dấu câu hỏi yêu thích
 
   // Relations
   questionCodeId: string;
@@ -155,6 +156,7 @@ export interface QuestionFilters {
   hasAnswers?: boolean;
   hasSolution?: boolean;
   hasImages?: boolean;
+  onlyFavorites?: boolean; // Chỉ hiển thị câu hỏi yêu thích
 
   // Analytics filters
   usageCount?: { min?: number; max?: number };

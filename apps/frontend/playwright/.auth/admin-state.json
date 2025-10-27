@@ -1,0 +1,35 @@
+{
+  "cookies": [
+    {
+      "name": "next-auth.csrf-token",
+      "value": "e8a2496bd9a2051f37568cf144408f1e02a1c3b3744cba7430caf5fdbd4b14ca%7Cbcd50b799bfdeb96b18ed7b23627242ba831302d65b60bff8e19bc6f763c983d",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "next-auth.callback-url",
+      "value": "http%3A%2F%2Flocalhost%3A3000%2Fdashboard",
+      "domain": "localhost",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "next-auth.session-token",
+      "value": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoiZ0ZzMFJnVmNOMFI0VU00OHpteUpkejBFVXNfLW9Dd2lTdW1WUDB3bWNrekluejlXdzJQcTExdU1VUVgtaWhoUmNISUV2eGxQdlhUdWludkEycjBpbWcifQ..pSzsHf-reAdlOy1yKpM6hg.AQmsURdr6sWULuwHsC0f-7diII7aUiV8KLpTYnSZRvAlupqvEuC6j4qArXg2Qao8c7ydRmX8C-USle0_8ZiJpKw2FzcUZ6GfbkN6WE-d0imRYxaNSCxbm2A9QCAwRa6Yikv8q8fArdiCk8CCqBpTbvSuUahPibx7jm-86KBKVMqinTEbSLTefOTyLNDf1JoO9T9TghIU0dxELR6PmbDASMQwiHVLzU23TlTW7TZe3SzACB5BecdJGBggSIz1PrEJeJOLaihpFEaiLXYdKjUFqI1M34SPC0NWfZMZ1lsRaDhi61haPPfWR1L_1PVSYvYGoL2UfrZBgx9ym3U4JnVPDBQyBCR8Jfrkh9kr5H2q9XP2BI5DjIcZf-C4esnCqAnI0-gSZ6bRpmWaq-RhSEYgg_QQ9K9OKO0mEWt8dhwTLRxyJ1HCVlckEm2ijCnRTGTNU9_eBCPVBRS_ZWzKaFCE_NUrcffUzzgKBFYpuo3oIrJ26KmOC5ZXF1zCk5kLz4o3nJ9gOokF6rhz3bOAwKLDQ0eifO37SWwFpWkgEwm7WdvoSvK19MRYDs89nKKVlp3rdOzJCOPRPwj8oXfI1ZtrzPjZg6HIbPpYgjLo1BLV4UKn44guSlp2cIJm6nDehnzLhFz6sY-uZAehX7elV0agbcpKbjbnu-YTzCWU9cbvi-Z0H0q51czDOO6PuaeK5m43Ncruww9qdHH5x3F_wjPTF2RjtxhB-7He5YQgOY2CrhFZPt8EkDvjax3aOnMofqK8GzeN5jLpZMKkx7nVYmcduB2OElE6sLXEC-3iEbGz6S2W_ECNUKPlgqoE_PcRj2gOUjC9Tv4NlQ_o4jQch6KfJku5C9PHYzAvcBroWZ1CFfV-HzMFy63GpAQY9Af8DJxm.w8rvkuXGtiZ15aeEwx8P0jy4TZ_WZOlovzQyew_l4h4",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1761370650.174628,
+      "httpOnly": true,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

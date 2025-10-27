@@ -1,11 +1,11 @@
-package cache
+﻿package cache
 
 import (
 	"context"
 	"crypto/md5"
 	"fmt"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 )
 
 // ExamCacheHelper provides high-level caching operations for exam-related data
@@ -208,3 +208,4 @@ func (h *ExamCacheHelper) GetCacheStats() CacheStats {
 func (h *ExamCacheHelper) GetCacheHealth(ctx context.Context) map[string]interface{} {
 	return h.cache.Health(ctx)
 }
+

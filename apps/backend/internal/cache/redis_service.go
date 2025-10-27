@@ -1,4 +1,4 @@
-package cache
+﻿package cache
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/redis"
+	"exam-bank-system/apps/backend/internal/redis"
 )
 
 // RedisService implements CacheService using Redis
@@ -211,3 +211,4 @@ func (r *RedisService) Close() error {
 	}
 	return nil
 }
+

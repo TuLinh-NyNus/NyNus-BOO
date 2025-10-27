@@ -1,11 +1,11 @@
-package middleware
+﻿package middleware
 
 import (
 	"context"
 	"strconv"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
+	"exam-bank-system/apps/backend/pkg/proto/common"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -66,7 +66,7 @@ func NewRoleLevelInterceptor() *RoleLevelInterceptor {
 // Initialize role permissions for all endpoints
 func initializeRolePermissions() map[string]RoleRequirement {
 	return map[string]RoleRequirement{
-		// Admin Service - chỉ ADMIN
+		// Admin Service - chá»‰ ADMIN
 		"/v1.AdminService/ListUsers": {
 			AllowedRoles: []common.UserRole{common.UserRole_USER_ROLE_ADMIN},
 		},
@@ -86,13 +86,13 @@ func initializeRolePermissions() map[string]RoleRequirement {
 			AllowedRoles: []common.UserRole{common.UserRole_USER_ROLE_ADMIN},
 		},
 
-		// Question Management - TEACHER và ADMIN
+		// Question Management - TEACHER vÃ  ADMIN
 		"/v1.QuestionService/CreateQuestion": {
 			AllowedRoles: []common.UserRole{
 				common.UserRole_USER_ROLE_ADMIN,
 				common.UserRole_USER_ROLE_TEACHER,
 			},
-			MinLevel: 1, // Teacher phải có level >= 1
+			MinLevel: 1, // Teacher pháº£i cÃ³ level >= 1
 		},
 		"/v1.QuestionService/UpdateQuestion": {
 			AllowedRoles: []common.UserRole{
@@ -106,10 +106,10 @@ func initializeRolePermissions() map[string]RoleRequirement {
 				common.UserRole_USER_ROLE_ADMIN,
 				common.UserRole_USER_ROLE_TEACHER,
 			},
-			MinLevel: 3, // Chỉ teacher level cao mới được xóa
+			MinLevel: 3, // Chá»‰ teacher level cao má»›i Ä‘Æ°á»£c xÃ³a
 		},
 
-		// View Questions - Tất cả trừ GUEST
+		// View Questions - Táº¥t cáº£ trá»« GUEST
 		"/v1.QuestionService/GetQuestion": {
 			AllowedRoles: []common.UserRole{
 				common.UserRole_USER_ROLE_ADMIN,
@@ -127,13 +127,13 @@ func initializeRolePermissions() map[string]RoleRequirement {
 			},
 		},
 
-		// Exam Management - TEACHER level cao và ADMIN
+		// Exam Management - TEACHER level cao vÃ  ADMIN
 		"/v1.ExamService/CreateExam": {
 			AllowedRoles: []common.UserRole{
 				common.UserRole_USER_ROLE_ADMIN,
 				common.UserRole_USER_ROLE_TEACHER,
 			},
-			MinLevel: 2, // Teacher phải có level >= 2 để tạo exam
+			MinLevel: 2, // Teacher pháº£i cÃ³ level >= 2 Ä‘á»ƒ táº¡o exam
 		},
 		"/v1.ExamService/UpdateExam": {
 			AllowedRoles: []common.UserRole{
@@ -147,10 +147,10 @@ func initializeRolePermissions() map[string]RoleRequirement {
 				common.UserRole_USER_ROLE_ADMIN,
 				common.UserRole_USER_ROLE_TEACHER,
 			},
-			MinLevel: 5, // Chỉ teacher level rất cao mới được xóa exam
+			MinLevel: 5, // Chá»‰ teacher level ráº¥t cao má»›i Ä‘Æ°á»£c xÃ³a exam
 		},
 
-		// Exam Taking - STUDENT và TUTOR
+		// Exam Taking - STUDENT vÃ  TUTOR
 		"/v1.ExamService/StartExam": {
 			AllowedRoles: []common.UserRole{
 				common.UserRole_USER_ROLE_STUDENT,
@@ -164,7 +164,7 @@ func initializeRolePermissions() map[string]RoleRequirement {
 			},
 		},
 
-		// Results - Phụ thuộc vào level
+		// Results - Phá»¥ thuá»™c vÃ o level
 		"/v1.ExamService/GetResults": {
 			AllowedRoles: []common.UserRole{
 				common.UserRole_USER_ROLE_ADMIN,
@@ -172,16 +172,16 @@ func initializeRolePermissions() map[string]RoleRequirement {
 				common.UserRole_USER_ROLE_TUTOR,
 				common.UserRole_USER_ROLE_STUDENT,
 			},
-			// Student chỉ xem được kết quả của mình (check trong handler)
+			// Student chá»‰ xem Ä‘Æ°á»£c káº¿t quáº£ cá»§a mÃ¬nh (check trong handler)
 		},
 
-		// Tutoring Features - TUTOR với level phù hợp
+		// Tutoring Features - TUTOR vá»›i level phÃ¹ há»£p
 		"/v1.TutoringService/CreateStudyGroup": {
 			AllowedRoles: []common.UserRole{
 				common.UserRole_USER_ROLE_TUTOR,
 				common.UserRole_USER_ROLE_TEACHER,
 			},
-			MinLevel: 3, // Tutor phải có level >= 3
+			MinLevel: 3, // Tutor pháº£i cÃ³ level >= 3
 		},
 		"/v1.TutoringService/ScheduleTutoring": {
 			AllowedRoles: []common.UserRole{
@@ -190,7 +190,7 @@ func initializeRolePermissions() map[string]RoleRequirement {
 			MinLevel: 2,
 		},
 
-		// Profile Service - Tất cả user đã đăng nhập
+		// Profile Service - Táº¥t cáº£ user Ä‘Ã£ Ä‘Äƒng nháº­p
 		"/v1.ProfileService/GetProfile": {
 			AllowedRoles: []common.UserRole{
 				common.UserRole_USER_ROLE_ADMIN,
@@ -206,7 +206,7 @@ func initializeRolePermissions() map[string]RoleRequirement {
 				common.UserRole_USER_ROLE_TEACHER,
 				common.UserRole_USER_ROLE_TUTOR,
 				common.UserRole_USER_ROLE_STUDENT,
-				// GUEST không được update profile
+				// GUEST khÃ´ng Ä‘Æ°á»£c update profile
 			},
 		},
 	}
@@ -260,7 +260,7 @@ func (r *RoleLevelInterceptor) Unary() grpc.UnaryServerInterceptor {
 			// Get user level from context (need to add this to auth interceptor)
 			userLevel := getUserLevelFromContext(ctx)
 
-			// ADMIN và GUEST không có level
+			// ADMIN vÃ  GUEST khÃ´ng cÃ³ level
 			if roleEnum == common.UserRole_USER_ROLE_ADMIN ||
 				roleEnum == common.UserRole_USER_ROLE_GUEST {
 				// These roles don't have levels, skip level check
@@ -644,3 +644,4 @@ func IsResourceRestricted(resourceType string, resourceMetadata map[string]inter
 
 	return false
 }
+

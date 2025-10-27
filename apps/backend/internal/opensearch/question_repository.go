@@ -1,4 +1,4 @@
-package opensearch
+﻿package opensearch
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/jackc/pgtype"
 	"github.com/opensearch-project/opensearch-go/v2/opensearchapi"
 )
@@ -334,7 +334,7 @@ func (r *QuestionRepository) questionToDocument(question *entity.Question) map[s
 				// Add other suggestion inputs based on content analysis
 			},
 			"contexts": map[string]interface{}{
-				"subject": []string{"toán", "lý", "hóa", "sinh", "văn"},   // Extract from question code
+				"subject": []string{"toÃ¡n", "lÃ½", "hÃ³a", "sinh", "vÄƒn"},   // Extract from question code
 				"grade":   []string{"6", "7", "8", "9", "10", "11", "12"}, // Extract from question code
 			},
 		}
@@ -556,3 +556,4 @@ func (r *QuestionRepository) extractMatches(highlights map[string][]string) []st
 
 	return matches
 }
+

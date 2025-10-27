@@ -1,12 +1,12 @@
-package repository
+﻿package repository
 
 import (
 	"context"
 	"database/sql"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 )
@@ -241,3 +241,4 @@ func (r *ImageUploadErrorRepository) GetImageUploadStatistics(ctx context.Contex
 
 	return stats, nil
 }
+

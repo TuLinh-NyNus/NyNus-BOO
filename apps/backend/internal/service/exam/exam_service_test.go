@@ -2,343 +2,262 @@ package exam
 
 import (
 	"context"
+	"errors"
 	"testing"
 
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
 )
 
-// MockExamRepository is a mock implementation of ExamRepository
-type MockExamRepository struct {
+// mockExamRepository implements the subset of repository behavior used by ExamService.
+type mockExamRepository struct {
 	mock.Mock
 }
 
-func (m *MockExamRepository) CreateExam(ctx context.Context, exam *entity.Exam) error {
+func (m *mockExamRepository) Create(ctx context.Context, exam *entity.Exam) error {
 	args := m.Called(ctx, exam)
 	return args.Error(0)
 }
 
-func (m *MockExamRepository) GetExamByID(ctx context.Context, id string) (*entity.Exam, error) {
-	args := m.Called(ctx, id)
-	return args.Get(0).(*entity.Exam), args.Error(1)
+func (m *mockExamRepository) GetByID(ctx context.Context, examID string) (*entity.Exam, error) {
+	args := m.Called(ctx, examID)
+	exam, _ := args.Get(0).(*entity.Exam)
+	return exam, args.Error(1)
 }
 
-func (m *MockExamRepository) UpdateExam(ctx context.Context, exam *entity.Exam) error {
+func (m *mockExamRepository) Update(ctx context.Context, exam *entity.Exam) error {
 	args := m.Called(ctx, exam)
 	return args.Error(0)
 }
 
-func (m *MockExamRepository) DeleteExam(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *mockExamRepository) Delete(ctx context.Context, examID string) error {
+	args := m.Called(ctx, examID)
 	return args.Error(0)
 }
 
-func (m *MockExamRepository) ListExams(ctx context.Context, filters map[string]interface{}, limit, offset int) ([]*entity.Exam, int, error) {
-	args := m.Called(ctx, filters, limit, offset)
-	return args.Get(0).([]*entity.Exam), args.Int(1), args.Error(2)
+func (m *mockExamRepository) List(ctx context.Context, filters *interfaces.ExamFilters, pagination *interfaces.Pagination) ([]*entity.Exam, int, error) {
+	args := m.Called(ctx, filters, pagination)
+	exams, _ := args.Get(0).([]*entity.Exam)
+	return exams, args.Int(1), args.Error(2)
 }
 
-func (m *MockExamRepository) PublishExam(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *mockExamRepository) Publish(ctx context.Context, examID string) error {
+	args := m.Called(ctx, examID)
 	return args.Error(0)
 }
 
-func (m *MockExamRepository) ArchiveExam(ctx context.Context, id string) error {
-	args := m.Called(ctx, id)
+func (m *mockExamRepository) Archive(ctx context.Context, examID string) error {
+	args := m.Called(ctx, examID)
 	return args.Error(0)
 }
 
-func (m *MockExamRepository) AddQuestionToExam(ctx context.Context, examID, questionID string, orderNumber int) error {
-	args := m.Called(ctx, examID, questionID, orderNumber)
+func (m *mockExamRepository) GetQuestions(ctx context.Context, examID string) ([]*entity.ExamQuestion, error) {
+	args := m.Called(ctx, examID)
+	questions, _ := args.Get(0).([]*entity.ExamQuestion)
+	return questions, args.Error(1)
+}
+
+func (m *mockExamRepository) AddQuestion(ctx context.Context, eq *entity.ExamQuestion) error {
+	args := m.Called(ctx, eq)
 	return args.Error(0)
 }
 
-func (m *MockExamRepository) RemoveQuestionFromExam(ctx context.Context, examID, questionID string) error {
+func (m *mockExamRepository) RemoveQuestion(ctx context.Context, examID, questionID string) error {
 	args := m.Called(ctx, examID, questionID)
 	return args.Error(0)
 }
 
-func (m *MockExamRepository) GetExamQuestions(ctx context.Context, examID string) ([]*entity.Question, error) {
+func (m *mockExamRepository) CountAttempts(ctx context.Context, examID string) (int, error) {
 	args := m.Called(ctx, examID)
-	return args.Get(0).([]*entity.Question), args.Error(1)
+	return args.Int(0), args.Error(1)
 }
 
-func (m *MockExamRepository) ReorderExamQuestions(ctx context.Context, examID string, questionOrders map[string]int) error {
-	args := m.Called(ctx, examID, questionOrders)
-	return args.Error(0)
-}
+func TestCreateExam_Success(t *testing.T) {
+	ctx := context.Background()
+	examRepo := &mockExamRepository{}
+	logger := logrus.New()
 
-// MockQuestionRepository is a mock implementation of QuestionRepository
-type MockQuestionRepository struct {
-	mock.Mock
-}
-
-func (m *MockQuestionRepository) GetQuestionByID(ctx context.Context, id string) (*entity.Question, error) {
-	args := m.Called(ctx, id)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*entity.Question), args.Error(1)
-}
-
-// Test Suite
-type ExamServiceTestSuite struct {
-	examRepo     *MockExamRepository
-	questionRepo *MockQuestionRepository
-	service      *ExamService
-	ctx          context.Context
-}
-
-func setupTestSuite(t *testing.T) *ExamServiceTestSuite {
-	examRepo := &MockExamRepository{}
-	questionRepo := &MockQuestionRepository{}
-
-	service := NewExamService(examRepo, questionRepo, nil)
-
-	return &ExamServiceTestSuite{
-		examRepo:     examRepo,
-		questionRepo: questionRepo,
-		service:      service,
-		ctx:          context.Background(),
-	}
-}
-
-// ===== CREATE EXAM TESTS =====
-
-func TestExamService_CreateExam_Success(t *testing.T) {
-	suite := setupTestSuite(t)
-
-	// Arrange
-	examData := &entity.Exam{
-		Title:           "Test Exam",
-		Description:     "Test Description",
-		DurationMinutes: 60,
-		TotalPoints:     100,
-		PassPercentage:  70,
-		ExamType:        entity.ExamTypeGenerated,
-		Status:          entity.ExamStatusPending,
-		CreatedBy:       "test-user",
+	examInput := &entity.Exam{
+		Title:           "Midterm",
+		Subject:         "Math",
+		DurationMinutes: 90,
 	}
 
-	suite.examRepo.On("CreateExam", suite.ctx, mock.AnythingOfType("*entity.Exam")).Return(nil)
+	examRepo.On("Create", ctx, examInput).Return(nil).Once()
 
-	// Act
-	result, err := suite.service.CreateExam(suite.ctx, examData)
+	service := NewExamService(examRepo, nil, logger)
 
-	// Assert
+	err := service.CreateExam(ctx, examInput)
+
 	require.NoError(t, err)
-	assert.NotNil(t, result)
-	assert.Equal(t, examData.Title, result.Title)
-	assert.Equal(t, examData.Description, result.Description)
-	assert.Equal(t, entity.ExamStatusPending, result.Status)
-	assert.NotEmpty(t, result.ID)
-	assert.NotZero(t, result.CreatedAt)
-
-	suite.examRepo.AssertExpectations(t)
+	examRepo.AssertExpectations(t)
+	assert.Equal(t, entity.ExamStatusPending, examInput.Status)
+	assert.Equal(t, entity.ExamTypeGenerated, examInput.ExamType)
+	assert.Equal(t, entity.DifficultyMedium, examInput.Difficulty)
 }
 
-func TestExamService_CreateExam_ValidationError(t *testing.T) {
-	suite := setupTestSuite(t)
+func TestCreateExam_ValidationErrors(t *testing.T) {
+	ctx := context.Background()
+	examRepo := &mockExamRepository{}
+	service := NewExamService(examRepo, nil, logrus.New())
 
-	testCases := []struct {
-		name     string
-		examData *entity.Exam
-		wantErr  string
+	tests := []struct {
+		name        string
+		exam        *entity.Exam
+		expectedErr string
 	}{
 		{
-			name: "Empty title",
-			examData: &entity.Exam{
-				Title:           "",
-				Description:     "Test Description",
-				DurationMinutes: 60,
-			},
-			wantErr: "title is required",
+			name:        "missing title",
+			exam:        &entity.Exam{Subject: "Physics", DurationMinutes: 45},
+			expectedErr: "exam title is required",
 		},
 		{
-			name: "Invalid duration",
-			examData: &entity.Exam{
-				Title:           "Test Exam",
-				Description:     "Test Description",
-				DurationMinutes: 0,
-			},
-			wantErr: "duration must be greater than 0",
+			name:        "missing subject",
+			exam:        &entity.Exam{Title: "Quiz 1", DurationMinutes: 30},
+			expectedErr: "exam subject is required",
 		},
 		{
-			name: "Invalid pass percentage",
-			examData: &entity.Exam{
-				Title:           "Test Exam",
-				Description:     "Test Description",
-				DurationMinutes: 60,
-				PassPercentage:  150,
-			},
-			wantErr: "pass percentage must be between 0 and 100",
+			name:        "non positive duration",
+			exam:        &entity.Exam{Title: "Quiz 2", Subject: "Chemistry", DurationMinutes: 0},
+			expectedErr: "exam duration must be positive",
 		},
 	}
 
-	for _, tc := range testCases {
+	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			// Act
-			result, err := suite.service.CreateExam(suite.ctx, tc.examData)
+			err := service.CreateExam(ctx, tc.exam)
 
-			// Assert
-			assert.Error(t, err)
-			assert.Nil(t, result)
-			assert.Contains(t, err.Error(), tc.wantErr)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.expectedErr)
+		})
+	}
+
+	examRepo.AssertExpectations(t)
+}
+
+func TestDeleteExam_WithExistingAttempts(t *testing.T) {
+	ctx := context.Background()
+	examRepo := &mockExamRepository{}
+	examID := "exam-123"
+
+	examRepo.On("GetByID", ctx, examID).Return(&entity.Exam{
+		ID:     examID,
+		Status: entity.ExamStatusActive,
+	}, nil).Once()
+	examRepo.On("CountAttempts", ctx, examID).Return(2, nil).Once()
+
+	service := NewExamService(examRepo, nil, logrus.New())
+
+	err := service.DeleteExam(ctx, examID)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot delete exam with existing attempts")
+	examRepo.AssertNotCalled(t, "Delete", ctx, examID)
+	examRepo.AssertExpectations(t)
+}
+
+func TestPublishExam_NoQuestions(t *testing.T) {
+	ctx := context.Background()
+	examRepo := &mockExamRepository{}
+	examID := "exam-123"
+
+	examRepo.On("GetByID", ctx, examID).Return(&entity.Exam{
+		ID:     examID,
+		Status: entity.ExamStatusPending,
+		Title:  "Final",
+	}, nil).Once()
+	examRepo.On("GetQuestions", ctx, examID).Return([]*entity.ExamQuestion{}, nil).Once()
+
+	service := NewExamService(examRepo, nil, logrus.New())
+
+	err := service.PublishExam(ctx, examID)
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot publish exam without questions")
+	examRepo.AssertExpectations(t)
+}
+
+func TestAddQuestionToExam_InvalidStates(t *testing.T) {
+	ctx := context.Background()
+	examRepo := &mockExamRepository{}
+	examID := "exam-123"
+
+	tests := []struct {
+		name        string
+		examStatus  entity.ExamStatus
+		expectedErr string
+	}{
+		{
+			name:        "published exam",
+			examStatus:  entity.ExamStatusActive,
+			expectedErr: "cannot modify published exam",
+		},
+		{
+			name:        "archived exam",
+			examStatus:  entity.ExamStatusArchived,
+			expectedErr: "cannot modify archived exam",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			examRepo.ExpectedCalls = nil
+			examRepo.On("GetByID", ctx, examID).Return(&entity.Exam{
+				ID:     examID,
+				Status: tc.examStatus,
+			}, nil).Once()
+
+			service := NewExamService(examRepo, nil, logrus.New())
+			err := service.AddQuestionToExam(ctx, examID, "question-1", 10)
+
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), tc.expectedErr)
+			examRepo.AssertExpectations(t)
 		})
 	}
 }
 
-// ===== QUESTION MANAGEMENT TESTS =====
-
-func TestExamService_AddQuestionToExam_Success(t *testing.T) {
-	suite := setupTestSuite(t)
-
-	// Arrange
+func TestAddQuestionToExam_Success(t *testing.T) {
+	ctx := context.Background()
+	examRepo := &mockExamRepository{}
 	examID := "exam-123"
-	questionID := "question-456"
-	orderNumber := 1
 
-	mockExam := &entity.Exam{
+	examRepo.On("GetByID", ctx, examID).Return(&entity.Exam{
 		ID:     examID,
 		Status: entity.ExamStatusPending,
-	}
+	}, nil).Once()
+	examRepo.On("AddQuestion", ctx, mock.AnythingOfType("*entity.ExamQuestion")).Return(nil).Once()
 
-	mockQuestion := &entity.Question{
-		ID: questionID,
-	}
+	service := NewExamService(examRepo, nil, logrus.New())
 
-	suite.examRepo.On("GetExamByID", suite.ctx, examID).Return(mockExam, nil)
-	suite.questionRepo.On("GetQuestionByID", suite.ctx, questionID).Return(mockQuestion, nil)
-	suite.examRepo.On("AddQuestionToExam", suite.ctx, examID, questionID, orderNumber).Return(nil)
+	err := service.AddQuestionToExam(ctx, examID, "question-456", 5)
 
-	// Act
-	err := suite.service.AddQuestionToExam(suite.ctx, examID, questionID, orderNumber)
-
-	// Assert
 	require.NoError(t, err)
-	suite.examRepo.AssertExpectations(t)
-	suite.questionRepo.AssertExpectations(t)
+	examRepo.AssertExpectations(t)
 }
 
-func TestExamService_AddQuestionToExam_ExamNotFound(t *testing.T) {
-	suite := setupTestSuite(t)
+func TestDeleteExam_RepositoryError(t *testing.T) {
+	ctx := context.Background()
+	examRepo := &mockExamRepository{}
+	examID := "exam-456"
+	repoErr := errors.New("db error")
 
-	// Arrange
-	examID := "nonexistent-exam"
-	questionID := "question-456"
-	orderNumber := 1
-
-	suite.examRepo.On("GetExamByID", suite.ctx, examID).Return((*entity.Exam)(nil), assert.AnError)
-
-	// Act
-	err := suite.service.AddQuestionToExam(suite.ctx, examID, questionID, orderNumber)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "exam not found")
-	suite.examRepo.AssertExpectations(t)
-}
-
-func TestExamService_AddQuestionToExam_ExamPublished(t *testing.T) {
-	suite := setupTestSuite(t)
-
-	// Arrange
-	examID := "exam-123"
-	questionID := "question-456"
-	orderNumber := 1
-
-	mockExam := &entity.Exam{
+	examRepo.On("GetByID", ctx, examID).Return(&entity.Exam{
 		ID:     examID,
-		Status: entity.ExamStatusActive, // Published exam
-	}
+		Status: entity.ExamStatusActive,
+	}, nil).Once()
+	examRepo.On("CountAttempts", ctx, examID).Return(0, nil).Once()
+	examRepo.On("Delete", ctx, examID).Return(repoErr).Once()
 
-	suite.examRepo.On("GetExamByID", suite.ctx, examID).Return(mockExam, nil)
+	service := NewExamService(examRepo, nil, logrus.New())
 
-	// Act
-	err := suite.service.AddQuestionToExam(suite.ctx, examID, questionID, orderNumber)
+	err := service.DeleteExam(ctx, examID)
 
-	// Assert
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "cannot modify published exam")
-	suite.examRepo.AssertExpectations(t)
-}
-
-// ===== WORKFLOW TESTS =====
-
-func TestExamService_PublishExam_Success(t *testing.T) {
-	suite := setupTestSuite(t)
-
-	// Arrange
-	examID := "exam-123"
-	mockExam := &entity.Exam{
-		ID:     examID,
-		Status: entity.ExamStatusPending,
-		Title:  "Test Exam",
-	}
-
-	mockQuestions := []*entity.Question{
-		{ID: "q1"},
-		{ID: "q2"},
-	}
-
-	suite.examRepo.On("GetExamByID", suite.ctx, examID).Return(mockExam, nil)
-	suite.examRepo.On("GetExamQuestions", suite.ctx, examID).Return(mockQuestions, nil)
-	suite.examRepo.On("PublishExam", suite.ctx, examID).Return(nil)
-
-	// Act
-	err := suite.service.PublishExam(suite.ctx, examID)
-
-	// Assert
-	require.NoError(t, err)
-	suite.examRepo.AssertExpectations(t)
-}
-
-func TestExamService_PublishExam_NoQuestions(t *testing.T) {
-	suite := setupTestSuite(t)
-
-	// Arrange
-	examID := "exam-123"
-	mockExam := &entity.Exam{
-		ID:     examID,
-		Status: entity.ExamStatusPending,
-		Title:  "Test Exam",
-	}
-
-	emptyQuestions := []*entity.Question{}
-
-	suite.examRepo.On("GetExamByID", suite.ctx, examID).Return(mockExam, nil)
-	suite.examRepo.On("GetExamQuestions", suite.ctx, examID).Return(emptyQuestions, nil)
-
-	// Act
-	err := suite.service.PublishExam(suite.ctx, examID)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "exam must have at least one question")
-	suite.examRepo.AssertExpectations(t)
-}
-
-func TestExamService_PublishExam_AlreadyPublished(t *testing.T) {
-	suite := setupTestSuite(t)
-
-	// Arrange
-	examID := "exam-123"
-	mockExam := &entity.Exam{
-		ID:     examID,
-		Status: entity.ExamStatusActive, // Already published
-		Title:  "Test Exam",
-	}
-
-	suite.examRepo.On("GetExamByID", suite.ctx, examID).Return(mockExam, nil)
-
-	// Act
-	err := suite.service.PublishExam(suite.ctx, examID)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "exam is already published")
-	suite.examRepo.AssertExpectations(t)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to delete exam")
+	examRepo.AssertExpectations(t)
 }

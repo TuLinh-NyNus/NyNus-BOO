@@ -1,13 +1,13 @@
-package middleware
+﻿package middleware
 
 import (
 	"context"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/constant"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/session"
+	"exam-bank-system/apps/backend/internal/constant"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/internal/service/user/session"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -37,19 +37,19 @@ var ignoreAuthEndpoints = []string{
 	"/v1.NewsletterService/Subscribe",      // Public newsletter subscription
 	"/v1.NewsletterService/Unsubscribe",    // Public newsletter unsubscription
 	"/grpc.health.v1.Health/Check",
-	// GUEST access endpoints - preview các nội dung giới hạn
-	"/v1.QuestionService/GetPublicQuestions", // GUEST có thể xem một số câu hỏi demo
-	"/v1.ExamService/GetPublicExams",         // GUEST có thể xem exam preview
-	"/v1.CourseService/GetPublicCourses",     // GUEST có thể xem course preview
+	// GUEST access endpoints - preview cÃ¡c ná»™i dung giá»›i háº¡n
+	"/v1.QuestionService/GetPublicQuestions", // GUEST cÃ³ thá»ƒ xem má»™t sá»‘ cÃ¢u há»i demo
+	"/v1.ExamService/GetPublicExams",         // GUEST cÃ³ thá»ƒ xem exam preview
+	"/v1.CourseService/GetPublicCourses",     // GUEST cÃ³ thá»ƒ xem course preview
 }
 
-// Role-based access control (RBAC) configuration với 5 roles hierarchy
+// Role-based access control (RBAC) configuration vá»›i 5 roles hierarchy
 // Hierarchy: GUEST < STUDENT < TUTOR < TEACHER < ADMIN
 var rbacDecider = map[string][]string{
 	// User Management APIs
 	"/v1.UserService/GetUser":        {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.UserService/ListUsers":      {constant.RoleAdmin, constant.RoleTeacher},
-	"/v1.UserService/GetStudentList": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor}, // Tutors cần xem danh sách học sinh
+	"/v1.UserService/GetStudentList": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor}, // Tutors cáº§n xem danh sÃ¡ch há»c sinh
 
 	// Question Management APIs
 	"/v1.QuestionService/CreateQuestion":  {constant.RoleAdmin, constant.RoleTeacher},
@@ -59,7 +59,7 @@ var rbacDecider = map[string][]string{
 	"/v1.QuestionService/ListQuestions":   {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.QuestionService/ImportQuestions": {constant.RoleAdmin, constant.RoleTeacher},
 
-	// Question Filter Service APIs - Tất cả authenticated users có thể search questions
+	// Question Filter Service APIs - Táº¥t cáº£ authenticated users cÃ³ thá»ƒ search questions
 	"/v1.QuestionFilterService/ListQuestionsByFilter":      {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.QuestionFilterService/SearchQuestions":            {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.QuestionFilterService/GetQuestionsByQuestionCode": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
@@ -71,12 +71,12 @@ var rbacDecider = map[string][]string{
 	"/v1.ExamService/GetExam":    {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.ExamService/ListExams":  {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 
-	// Exam Attempt APIs - Students và Tutors có thể làm bài thi
+	// Exam Attempt APIs - Students vÃ  Tutors cÃ³ thá»ƒ lÃ m bÃ i thi
 	"/v1.ExamService/StartExam":  {constant.RoleStudent, constant.RoleTutor},
 	"/v1.ExamService/SubmitExam": {constant.RoleStudent, constant.RoleTutor},
 	"/v1.ExamService/GetResults": {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 
-	// Profile & Session Management APIs - Tất cả authenticated users
+	// Profile & Session Management APIs - Táº¥t cáº£ authenticated users
 	"/v1.ProfileService/GetProfile":        {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.ProfileService/UpdateProfile":     {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
 	"/v1.ProfileService/GetSessions":       {constant.RoleAdmin, constant.RoleTeacher, constant.RoleTutor, constant.RoleStudent},
@@ -104,12 +104,12 @@ var rbacDecider = map[string][]string{
 	"/v1.AdminService/GetAuditLogs":      {constant.RoleAdmin},
 	"/v1.AdminService/GetResourceAccess": {constant.RoleAdmin},
 
-	// GUEST-specific endpoints - Giới hạn content cho authenticated GUEST users
+	// GUEST-specific endpoints - Giá»›i háº¡n content cho authenticated GUEST users
 	"/v1.QuestionService/GetQuestionPreview": {constant.RoleGuest, constant.RoleStudent, constant.RoleTutor, constant.RoleTeacher, constant.RoleAdmin},
 	"/v1.ExamService/GetExamPreview":         {constant.RoleGuest, constant.RoleStudent, constant.RoleTutor, constant.RoleTeacher, constant.RoleAdmin},
 	"/v1.CourseService/GetCoursePreview":     {constant.RoleGuest, constant.RoleStudent, constant.RoleTutor, constant.RoleTeacher, constant.RoleAdmin},
 
-	// Level-based content access (sẽ được kiểm tra thêm trong interceptor logic)
+	// Level-based content access (sáº½ Ä‘Æ°á»£c kiá»ƒm tra thÃªm trong interceptor logic)
 	// Higher level users can access lower level content within same role
 }
 
@@ -219,7 +219,7 @@ func (interceptor *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 }
 
 // GetUserIDFromContext extracts user ID from context
-// Trích xuất user ID từ context (được inject bởi auth interceptor)
+// TrÃ­ch xuáº¥t user ID tá»« context (Ä‘Æ°á»£c inject bá»Ÿi auth interceptor)
 func GetUserIDFromContext(ctx context.Context) (string, error) {
 	userID, ok := ctx.Value(userIDKey).(string)
 	if !ok {
@@ -229,7 +229,7 @@ func GetUserIDFromContext(ctx context.Context) (string, error) {
 }
 
 // GetUserEmailFromContext extracts user email from context
-// Trích xuất user email từ context (được inject bởi auth interceptor)
+// TrÃ­ch xuáº¥t user email tá»« context (Ä‘Æ°á»£c inject bá»Ÿi auth interceptor)
 func GetUserEmailFromContext(ctx context.Context) (string, error) {
 	email, ok := ctx.Value(userEmailKey).(string)
 	if !ok {
@@ -239,7 +239,7 @@ func GetUserEmailFromContext(ctx context.Context) (string, error) {
 }
 
 // GetUserRoleFromContext extracts user role from context
-// Trích xuất user role từ context (được inject bởi auth interceptor)
+// TrÃ­ch xuáº¥t user role tá»« context (Ä‘Æ°á»£c inject bá»Ÿi auth interceptor)
 func GetUserRoleFromContext(ctx context.Context) (string, error) {
 	role, ok := ctx.Value(userRoleKey).(string)
 	if !ok {
@@ -249,11 +249,26 @@ func GetUserRoleFromContext(ctx context.Context) (string, error) {
 }
 
 // GetUserLevelFromContext extracts user level from context
-// Trích xuất user level từ context (được inject bởi auth interceptor)
+// TrÃ­ch xuáº¥t user level tá»« context (Ä‘Æ°á»£c inject bá»Ÿi auth interceptor)
 func GetUserLevelFromContext(ctx context.Context) (int, error) {
 	level, ok := ctx.Value(userLevelKey).(int)
 	if !ok {
 		return 0, status.Errorf(codes.Internal, ErrUserLevelNotFoundInContext)
 	}
 	return level, nil
+}
+
+
+// WithUserContext sets user identity information into context for downstream handlers.
+// Intended for tests and internal use; does not perform authorization checks.
+func WithUserContext(ctx context.Context, userID, email, role string, level int) context.Context {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	r := strings.ToUpper(strings.TrimSpace(role))
+	ctx = context.WithValue(ctx, userIDKey, strings.TrimSpace(userID))
+	ctx = context.WithValue(ctx, userEmailKey, strings.TrimSpace(email))
+	ctx = context.WithValue(ctx, userRoleKey, r)
+	ctx = context.WithValue(ctx, userLevelKey, level)
+	return ctx
 }

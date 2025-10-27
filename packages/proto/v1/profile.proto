@@ -1,15 +1,14 @@
 syntax = "proto3";
 
 package v1;
-
 // POLICY NOTE: This service follows gRPC-first design
 // HTTP annotations are kept for development and testing convenience via gRPC-Gateway
 // In production, clients should use gRPC directly for optimal performance and security
 // The HTTP gateway may be disabled in production environments
 import "google/api/annotations.proto";
 import "common/common.proto";
+import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
 
 // Profile messages
 message UserProfile {
@@ -29,8 +28,8 @@ message UserProfile {
   int32 level = 14;
   common.UserStatus status = 15;
   bool email_verified = 16;
-  string created_at = 17;
-  string updated_at = 18;
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
 }
 
 message GetProfileRequest {
@@ -70,9 +69,9 @@ message UserSession {
   string device_fingerprint = 6;
   string location = 7;
   bool is_active = 8;
-  string last_activity = 9;
-  string expires_at = 10;
-  string created_at = 11;
+  google.protobuf.Timestamp last_activity = 9;
+  google.protobuf.Timestamp expires_at = 10;
+  google.protobuf.Timestamp created_at = 11;
 }
 
 message GetSessionsRequest {
@@ -211,3 +210,7 @@ service ProfileService {
     };
   }
 }
+
+
+
+

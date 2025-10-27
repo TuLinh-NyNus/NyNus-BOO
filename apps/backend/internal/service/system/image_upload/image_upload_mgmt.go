@@ -1,4 +1,4 @@
-package image_upload
+﻿package image_upload
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/image_processing"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/system/image_processing"
+	"exam-bank-system/apps/backend/internal/util"
 )
 
 // ImageUploadMgmt manages image uploads with comprehensive error handling
@@ -81,7 +81,7 @@ func (m *ImageUploadMgmt) UploadImageWithErrorHandling(ctx context.Context, ques
 	localPath, err := m.processTikZWithErrorHandling(ctx, imageID, tikzCode)
 	if err != nil {
 		uploadError := m.createUploadError(imageID, entity.ImageUploadErrorTypeConversion, entity.ImageUploadErrorSeverityError,
-			fmt.Sprintf("TikZ processing failed: %v", err), "Kiểm tra lại cú pháp TikZ hoặc thử với code đơn giản hơn")
+			fmt.Sprintf("TikZ processing failed: %v", err), "Kiá»ƒm tra láº¡i cÃº phÃ¡p TikZ hoáº·c thá»­ vá»›i code Ä‘Æ¡n giáº£n hÆ¡n")
 		result.Errors = append(result.Errors, uploadError)
 
 		// Save error and update image status
@@ -165,7 +165,7 @@ func (m *ImageUploadMgmt) UploadImageWithErrorHandling(ctx context.Context, ques
 	result.Success = true
 	result.RemotePath = uploadResult.WebViewLink
 	result.UploadTime = time.Since(startTime)
-	result.Suggestions = []string{"Upload thành công"}
+	result.Suggestions = []string{"Upload thÃ nh cÃ´ng"}
 
 	return result, nil
 }
@@ -276,7 +276,7 @@ func (m *ImageUploadMgmt) getUploadErrorSuggestion(err error) string {
 		return suggestions[0].Action
 	}
 
-	return "Thử lại hoặc liên hệ support nếu vấn đề tiếp tục"
+	return "Thá»­ láº¡i hoáº·c liÃªn há»‡ support náº¿u váº¥n Ä‘á» tiáº¿p tá»¥c"
 }
 
 // createUploadError creates an upload error entity
@@ -510,3 +510,4 @@ func (m *ImageUploadMgmt) CleanupLocalCache(ctx context.Context, cacheDir string
 
 	return nil
 }
+

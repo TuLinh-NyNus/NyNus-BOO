@@ -1,4 +1,4 @@
-package question
+﻿package question
 
 import (
 	"context"
@@ -8,11 +8,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/latex"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/system/image_processing"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/latex"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/service/system/image_processing"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/sirupsen/logrus"
@@ -710,6 +710,23 @@ func (m *QuestionService) mapToFilterCriteria(filterQuery map[string]interface{}
 	return criteria
 }
 
+// ToggleFavorite toggles the favorite status of a question
+func (m *QuestionService) ToggleFavorite(ctx context.Context, questionID string, isFavorite bool) error {
+	// Validate question exists
+	_, err := m.questionRepo.GetByID(ctx, questionID)
+	if err != nil {
+		return fmt.Errorf("question not found: %v", err)
+	}
+
+	// Update favorite status
+	return m.questionRepo.ToggleFavorite(ctx, questionID, isFavorite)
+}
+
+// GetFavoriteQuestions retrieves all favorite questions with pagination
+func (m *QuestionService) GetFavoriteQuestions(ctx context.Context, offset, limit int) ([]*entity.Question, int, error) {
+	return m.questionRepo.GetFavorites(ctx, offset, limit)
+}
+
 // Types
 
 // SearchOptions contains search parameters
@@ -765,3 +782,4 @@ type ImportError struct {
 	ErrorMessage string
 	RowData      string
 }
+

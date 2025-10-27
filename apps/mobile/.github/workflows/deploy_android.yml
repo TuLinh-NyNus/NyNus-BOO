@@ -1,0 +1,74 @@
+name: Deploy Android
+
+on:
+  push:
+    tags:
+      - 'v*.*.*-android'
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: 'Build flavor'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.0'
+          channel: 'stable'
+          cache: true
+      
+      - name: Get dependencies
+        working-directory: apps/mobile
+        run: flutter pub get
+      
+      - name: Generate code
+        working-directory: apps/mobile
+        run: |
+          if [ -f "scripts/generate_proto.sh" ]; then
+            chmod +x scripts/generate_proto.sh
+            ./scripts/generate_proto.sh || true
+          fi
+          flutter pub run build_runner build --delete-conflicting-outputs
+      
+      - name: Run tests
+        working-directory: apps/mobile
+        run: flutter test --coverage
+      
+      - name: Analyze code
+        working-directory: apps/mobile
+        run: flutter analyze
+      
+      - name: Build App Bundle
+        working-directory: apps/mobile
+        run: |
+          flutter build appbundle \
+            --flavor ${{ github.event.inputs.flavor || 'production' }} \
+            --release \
+            --dart-define=ENVIRONMENT=${{ github.event.inputs.flavor || 'production' }}
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-release
+          path: apps/mobile/build/app/outputs/bundle/
+

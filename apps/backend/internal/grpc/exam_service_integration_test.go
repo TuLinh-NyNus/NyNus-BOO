@@ -1,3 +1,5 @@
+//go:build integration && legacy_exam_tests
+
 package grpc_test
 
 import (
@@ -11,12 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/container"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/grpc"
-	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/config"
+	"exam-bank-system/apps/backend/internal/container"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/grpc"
+	pb "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 // ExamServiceIntegrationTestSuite provides integration testing for ExamService

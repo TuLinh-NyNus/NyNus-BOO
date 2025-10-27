@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 	"github.com/lib/pq"
@@ -28,7 +28,7 @@ func NewQuestionRepository(db *sql.DB) interfaces.QuestionRepository {
 // Create creates a new question
 func (r *QuestionRepository) Create(ctx context.Context, question *entity.Question) error {
 	query := `
-		INSERT INTO questions (
+		INSERT INTO question (
 			id, raw_content, content, subcount, type, source,
 			answers, correct_answer, solution, tag, usage_count,
 			creator, status, feedback, difficulty, question_code_id,
@@ -75,6 +75,7 @@ func (r *QuestionRepository) Create(ctx context.Context, question *entity.Questi
 		question.Status.String,
 		question.Feedback.Int,
 		question.Difficulty.String,
+		question.IsFavorite.Bool,
 		question.QuestionCodeID.String,
 		question.CreatedAt.Time,
 		question.UpdatedAt.Time,
@@ -91,7 +92,7 @@ func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Qu
 			answers, correct_answer, solution, tag, usage_count,
 			creator, status, feedback, difficulty, question_code_id,
 			created_at, updated_at
-		FROM questions
+		FROM question
 		WHERE id = $1
 	`
 
@@ -174,7 +175,7 @@ func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Qu
 // Update updates an existing question
 func (r *QuestionRepository) Update(ctx context.Context, question *entity.Question) error {
 	query := `
-		UPDATE questions SET
+		UPDATE question SET
 			raw_content = $2,
 			content = $3,
 			subcount = $4,
@@ -226,7 +227,7 @@ func (r *QuestionRepository) Update(ctx context.Context, question *entity.Questi
 
 // Delete deletes a question
 func (r *QuestionRepository) Delete(ctx context.Context, id string) error {
-	query := `DELETE FROM questions WHERE id = $1`
+	query := `DELETE FROM question WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id)
 	return err
 }
@@ -251,7 +252,7 @@ func (r *QuestionRepository) CreateBatch(ctx context.Context, questions []*entit
 // createInTx creates a question within a transaction
 func (r *QuestionRepository) createInTx(ctx context.Context, tx *sql.Tx, question *entity.Question) error {
 	query := `
-		INSERT INTO questions (
+		INSERT INTO question (
 			id, raw_content, content, subcount, type, source,
 			answers, correct_answer, solution, tag, usage_count,
 			creator, status, feedback, difficulty, question_code_id,
@@ -318,7 +319,7 @@ func (r *QuestionRepository) GetByIDs(ctx context.Context, ids []string) ([]*ent
 			answers, correct_answer, solution, tag, usage_count,
 			creator, status, feedback, difficulty, question_code_id,
 			created_at, updated_at
-		FROM questions
+		FROM question
 		WHERE id = ANY($1)
 	`
 
@@ -339,7 +340,7 @@ func (r *QuestionRepository) GetAll(ctx context.Context, offset, limit int) ([]*
 			answers, correct_answer, solution, tag, usage_count,
 			creator, status, feedback, difficulty, question_code_id,
 			created_at, updated_at
-		FROM questions
+		FROM question
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
 	`
@@ -355,7 +356,7 @@ func (r *QuestionRepository) GetAll(ctx context.Context, offset, limit int) ([]*
 
 // Count returns the total number of questions
 func (r *QuestionRepository) Count(ctx context.Context) (int, error) {
-	query := `SELECT COUNT(*) FROM questions`
+	query := `SELECT COUNT(*) FROM question`
 	var count int
 	err := r.db.QueryRowContext(ctx, query).Scan(&count)
 	return count, err
@@ -369,8 +370,8 @@ func (r *QuestionRepository) FindWithFilters(ctx context.Context, criteria *inte
 	// Count query
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, whereClause)
 
@@ -387,8 +388,8 @@ func (r *QuestionRepository) FindWithFilters(ctx context.Context, criteria *inte
 			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
 			q.creator, q.status, q.feedback, q.difficulty, q.question_code_id,
 			q.created_at, q.updated_at
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		ORDER BY q.%s %s
 		LIMIT $%d OFFSET $%d
@@ -526,8 +527,8 @@ func (r *QuestionRepository) Search(ctx context.Context, searchCriteria interfac
 	// Count query
 	countQuery := fmt.Sprintf(`
 		SELECT COUNT(*)
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`, whereClause)
 
@@ -544,8 +545,8 @@ func (r *QuestionRepository) Search(ctx context.Context, searchCriteria interfac
 			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
 			q.creator, q.status, q.feedback, q.difficulty, q.question_code_id,
 			q.created_at, q.updated_at
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 		ORDER BY q.created_at DESC
 		LIMIT $%d OFFSET $%d
@@ -674,7 +675,7 @@ func (r *QuestionRepository) FindByQuestionCodeID(ctx context.Context, questionC
 			answers, correct_answer, solution, tag, usage_count,
 			creator, status, feedback, difficulty, question_code_id,
 			created_at, updated_at
-		FROM questions
+		FROM question
 		WHERE question_code_id = $1
 		ORDER BY created_at DESC
 	`
@@ -690,7 +691,7 @@ func (r *QuestionRepository) FindByQuestionCodeID(ctx context.Context, questionC
 
 // CountByQuestionCodeID counts questions with a specific question code ID
 func (r *QuestionRepository) CountByQuestionCodeID(ctx context.Context, questionCodeID string) (int, error) {
-	query := `SELECT COUNT(*) FROM questions WHERE question_code_id = $1`
+	query := `SELECT COUNT(*) FROM question WHERE question_code_id = $1`
 	var count int
 	err := r.db.QueryRowContext(ctx, query, questionCodeID).Scan(&count)
 	return count, err
@@ -702,8 +703,8 @@ func (r *QuestionRepository) GetStatistics(ctx context.Context, criteria *interf
 
 	// Base query with conditional WHERE
 	baseQuery := `
-		FROM questions q
-		JOIN question_codes qc ON q.question_code_id = qc.id
+		FROM question q
+		JOIN question_code qc ON q.question_code_id = qc.code
 		%s
 	`
 	baseQuery = fmt.Sprintf(baseQuery, whereClause)
@@ -754,23 +755,67 @@ func (r *QuestionRepository) GetStatistics(ctx context.Context, criteria *interf
 
 // UpdateStatus updates the status of a question
 func (r *QuestionRepository) UpdateStatus(ctx context.Context, id string, status string) error {
-	query := `UPDATE questions SET status = $2, updated_at = $3 WHERE id = $1`
+	query := `UPDATE question SET status = $2, updated_at = $3 WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id, status, time.Now())
 	return err
 }
 
 // UpdateUsageCount increments the usage count
 func (r *QuestionRepository) UpdateUsageCount(ctx context.Context, id string) error {
-	query := `UPDATE questions SET usage_count = usage_count + 1, updated_at = $2 WHERE id = $1`
+	query := `UPDATE question SET usage_count = usage_count + 1, updated_at = $2 WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id, time.Now())
 	return err
 }
 
 // UpdateFeedback updates the feedback score
 func (r *QuestionRepository) UpdateFeedback(ctx context.Context, id string, feedbackDelta int) error {
-	query := `UPDATE questions SET feedback = feedback + $2, updated_at = $3 WHERE id = $1`
+	query := `UPDATE question SET feedback = feedback + $2, updated_at = $3 WHERE id = $1`
 	_, err := r.db.ExecContext(ctx, query, id, feedbackDelta, time.Now())
 	return err
+}
+
+// ToggleFavorite toggles the favorite status of a question
+func (r *QuestionRepository) ToggleFavorite(ctx context.Context, id string, isFavorite bool) error {
+	query := `UPDATE question SET is_favorite = $2, updated_at = $3 WHERE id = $1`
+	_, err := r.db.ExecContext(ctx, query, id, isFavorite, time.Now())
+	return err
+}
+
+// GetFavorites retrieves all favorite questions with pagination
+func (r *QuestionRepository) GetFavorites(ctx context.Context, offset, limit int) ([]*entity.Question, int, error) {
+	// Get total count of favorites
+	countQuery := `SELECT COUNT(*) FROM question WHERE is_favorite = true`
+	var total int
+	err := r.db.QueryRowContext(ctx, countQuery).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Get favorite questions
+	query := `
+		SELECT 
+			id, raw_content, content, subcount, type, source,
+			answers, correct_answer, solution, tag, usage_count,
+			creator, status, feedback, difficulty, is_favorite, question_code_id,
+			created_at, updated_at
+		FROM question
+		WHERE is_favorite = true
+		ORDER BY updated_at DESC
+		LIMIT $1 OFFSET $2
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	questions, err := r.scanQuestionsWithFavorite(rows)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return questions, total, nil
 }
 
 // scanQuestions scans multiple question rows
@@ -853,3 +898,87 @@ func (r *QuestionRepository) scanQuestions(rows *sql.Rows) ([]*entity.Question, 
 
 	return questions, nil
 }
+
+// scanQuestionsWithFavorite scans multiple question rows including is_favorite field
+func (r *QuestionRepository) scanQuestionsWithFavorite(rows *sql.Rows) ([]*entity.Question, error) {
+	var questions []*entity.Question
+
+	for rows.Next() {
+		var q entity.Question
+		var tags pq.StringArray
+		var subcount, source, solution sql.NullString
+		var answers, correctAnswer sql.NullString
+
+		err := rows.Scan(
+			&q.ID.String,
+			&q.RawContent.String,
+			&q.Content.String,
+			&subcount,
+			&q.Type.String,
+			&source,
+			&answers,
+			&correctAnswer,
+			&solution,
+			&tags,
+			&q.UsageCount.Int,
+			&q.Creator.String,
+			&q.Status.String,
+			&q.Feedback.Int,
+			&q.Difficulty.String,
+			&q.IsFavorite.Bool,
+			&q.QuestionCodeID.String,
+			&q.CreatedAt.Time,
+			&q.UpdatedAt.Time,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		// Set statuses
+		q.ID.Status = pgtype.Present
+		q.RawContent.Status = pgtype.Present
+		q.Content.Status = pgtype.Present
+		q.Type.Status = pgtype.Present
+		q.UsageCount.Status = pgtype.Present
+		q.Creator.Status = pgtype.Present
+		q.Status.Status = pgtype.Present
+		q.Feedback.Status = pgtype.Present
+		q.Difficulty.Status = pgtype.Present
+		q.IsFavorite.Status = pgtype.Present
+		q.QuestionCodeID.Status = pgtype.Present
+		q.CreatedAt.Status = pgtype.Present
+		q.UpdatedAt.Status = pgtype.Present
+
+		// Handle nullable fields
+		if subcount.Valid {
+			q.Subcount.Set(subcount.String)
+		}
+		if source.Valid {
+			q.Source.Set(source.String)
+		}
+		if solution.Valid {
+			q.Solution.Set(solution.String)
+		}
+		if answers.Valid {
+			q.Answers.Set([]byte(answers.String))
+		}
+		if correctAnswer.Valid {
+			q.CorrectAnswer.Set([]byte(correctAnswer.String))
+		}
+
+		// Convert tags
+		if len(tags) > 0 {
+			q.Tag.Elements = make([]pgtype.Text, len(tags))
+			for i, tag := range tags {
+				q.Tag.Elements[i] = pgtype.Text{String: tag, Status: pgtype.Present}
+			}
+			q.Tag.Status = pgtype.Present
+		}
+
+		questions = append(questions, &q)
+	}
+
+	return questions, nil
+}
+

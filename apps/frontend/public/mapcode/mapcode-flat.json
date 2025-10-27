@@ -1,0 +1,77 @@
+{
+  "grades": {
+    "0": "Lớp 10",
+    "1": "Lớp 11",
+    "2": "Lớp 12",
+    "6": "Lớp 6",
+    "7": "Lớp 7",
+    "8": "Lớp 8",
+    "9": "Lớp 9"
+  },
+  "subjects": {
+    "0": "10 - Chưa phân dạng",
+    "P": "10-NGÂN HÀNG CHÍNH",
+    "D": "10 - Đại số và giải tích",
+    "H": "10 - Hình học và đo lường",
+    "C": "10 - CĐ",
+    "G": "10 - HỌC SINH GIỎI",
+    "T": "CÂU HỎI TƯ DUY"
+  },
+  "chapters": {
+    "0": "Chưa phân dạng",
+    "1": "Mệnh đề và tập hợp",
+    "2": "Bất phương trình và hệ bất phương trình bậc nhất hai ẩn",
+    "3": "Hàm số bậc hai và đồ thị",
+    "4": "Hệ thức lượng trong tam giác",
+    "5": "Véc tơ (chưa xét tọa độ)",
+    "6": "Thống kê",
+    "7": "Bất phương trình bậc 2 một ẩn",
+    "8": "Đại số tổ hợp",
+    "9": "Véc tơ (trong hệ tọa độ)",
+    "A": "Chưa phân dạng",
+    "C": "Chuyên Toán",
+    "K": "Môn Toán chung"
+  },
+  "lessons": {
+    "0": "Chưa phân dạng",
+    "1": "Không gian mẫu và biến cố",
+    "2": "Xác suất của biến cố",
+    "3": "Các phép toán tập hợp",
+    "4": "Tích vô hướng (chưa xét tọa độ)",
+    "5": "Elip và các vấn đề liên quan",
+    "6": "Hypebol và các vấn đề liên quan",
+    "7": "Parabol và các vấn đề liên quan",
+    "8": "Sự thống nhất giữa ba đường Conic",
+    "9": "Tập hợp, ánh xạ (không giới hạn)",
+    "A": "SỐ NGUYÊN TỐ. HỢP SỐ. PHÂN TÍCH MỘT SỐ RA THỪA SỐ NGUYÊN TỐ",
+    "B": "ƯỚC CHUNG. ƯỚC CHUNG LỚN NHẤT",
+    "C": "BỘI CHUNG. BỘI CHUNG NHỎ NHẤT"
+  },
+  "forms": {
+    "0": "Chưa phân dạng",
+    "1": "Lý thuyết tổng hợp",
+    "2": "Mô tả không gian mẫu, biến cố",
+    "3": "Đếm phần tử không gian mẫu, biến cố",
+    "4": "Mô tả biến cố đối",
+    "5": "Liên quan việc chọn đối tượng khác",
+    "6": "Liên quan hình học",
+    "7": "Liên quan việc đếm số",
+    "8": "Liên quan bàn tròn hoặc hoán vị lặp",
+    "9": "Liên quan vấn đề khác",
+    "A": "Chưa phân dạng",
+    "B": "Liên quan đến sơ đồ hình cây",
+    "C": "Liên quan đến viên bi",
+    "D": "Giải phương trình xác suất",
+    "E": "Giới hạn dãy số có chứa tham số",
+    "F": "giá trị lớn nhất, giá trị nhỏ nhất hàm đạo hàm",
+    "G": "giá trị lớn nhất, giá trị nhỏ nhất thông qua bảng biến thiên và đồ thị hàm đạo hàm"
+  },
+  "levels": {
+    "N": "Nhận biết",
+    "H": "Thông Hiểu",
+    "V": "VD",
+    "C": "VD Cao",
+    "T": "VIP",
+    "M": "Note"
+  }
+}

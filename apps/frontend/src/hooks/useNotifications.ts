@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { NotificationService, BackendNotification } from '@/services/grpc/notification.service';
 import { logger } from '@/lib/utils/logger';
+import { notificationCoordinator } from '@/lib/services/notification-coordinator';
 
 // ===== TYPES =====
 
@@ -314,12 +315,20 @@ export function useNotifications(): NotificationState & NotificationActions {
 
   // ===== EFFECTS =====
 
-  // Auto-fetch notifications when user logs in
+  // Auto-fetch notifications when user logs in (with coordinator to prevent duplicate calls)
   useEffect(() => {
-    if (isAuthenticated && user) {
-      fetchNotifications();
-    }
-  }, [isAuthenticated, user, fetchNotifications]);
+    if (!isAuthenticated || !user) return;
+
+    // Use notification coordinator to prevent multiple concurrent calls
+    // This ensures only ONE fetch happens even if multiple hooks mount simultaneously
+    notificationCoordinator.scheduleFetch(async () => {
+      await fetchNotifications();
+    }).catch((error) => {
+      logger.error('[useNotifications] Coordinated fetch failed', { error });
+    });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]); // Remove fetchNotifications from deps to prevent infinite loop
 
   // Auto-refresh notifications every 5 minutes
   useEffect(() => {

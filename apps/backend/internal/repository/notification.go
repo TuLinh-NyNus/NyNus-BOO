@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 )
 
@@ -21,6 +22,25 @@ type Notification struct {
 	ExpiresAt *time.Time
 }
 
+// NotificationWithUser combines notification with user information
+type NotificationWithUser struct {
+	Notification *Notification
+	UserEmail    string
+	UserName     string
+}
+
+// NotificationStats contains notification statistics
+type NotificationStats struct {
+	TotalSentToday      int
+	TotalUnread         int
+	NotificationsByType map[string]int
+	ReadRate            float64
+	MostActiveType      string
+	AverageReadTime     float64
+	SentThisWeek        int
+	GrowthPercentage    float64
+}
+
 // NotificationRepository handles notification data access
 type NotificationRepository interface {
 	Create(ctx context.Context, notification *Notification) error
@@ -33,6 +53,12 @@ type NotificationRepository interface {
 	Delete(ctx context.Context, id string) error
 	DeleteExpired(ctx context.Context) error
 	DeleteAllByUserID(ctx context.Context, userID string) error
+
+	// Admin methods
+	GetAllNotifications(ctx context.Context, limit, offset int, notifType, userID string, unreadOnly bool) ([]*NotificationWithUser, error)
+	GetAllNotificationsCount(ctx context.Context, notifType, userID string, unreadOnly bool) (int, error)
+	SearchNotifications(ctx context.Context, query string, limit, offset int) ([]*NotificationWithUser, error)
+	GetNotificationStats(ctx context.Context) (*NotificationStats, error)
 }
 
 // notificationRepository implements NotificationRepository
@@ -246,4 +272,244 @@ func (r *notificationRepository) DeleteAllByUserID(ctx context.Context, userID s
 	query := `DELETE FROM notifications WHERE user_id = $1`
 	_, err := r.db.ExecContext(ctx, query, userID)
 	return err
+}
+
+// GetAllNotifications gets all notifications with user info (admin method)
+func (r *notificationRepository) GetAllNotifications(ctx context.Context, limit, offset int, notifType, userID string, unreadOnly bool) ([]*NotificationWithUser, error) {
+	query := `
+		SELECT n.id, n.user_id, n.type, n.title, n.message, n.data,
+			   n.is_read, n.read_at, n.created_at, n.expires_at,
+			   u.email, COALESCE(u.first_name || ' ' || u.last_name, u.email) as user_name
+		FROM notifications n
+		JOIN users u ON n.user_id = u.id
+		WHERE (expires_at IS NULL OR expires_at > NOW())
+	`
+
+	args := []interface{}{}
+	argCount := 1
+
+	if notifType != "" {
+		query += fmt.Sprintf(` AND n.type = $%d`, argCount)
+		args = append(args, notifType)
+		argCount++
+	}
+
+	if userID != "" {
+		query += fmt.Sprintf(` AND n.user_id = $%d`, argCount)
+		args = append(args, userID)
+		argCount++
+	}
+
+	if unreadOnly {
+		query += ` AND n.is_read = false`
+	}
+
+	query += fmt.Sprintf(` ORDER BY n.created_at DESC LIMIT $%d OFFSET $%d`, argCount, argCount+1)
+	args = append(args, limit, offset)
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notifications []*NotificationWithUser
+	for rows.Next() {
+		n := &Notification{}
+		nwu := &NotificationWithUser{Notification: n}
+
+		err := rows.Scan(
+			&n.ID, &n.UserID, &n.Type, &n.Title, &n.Message, &n.Data,
+			&n.IsRead, &n.ReadAt, &n.CreatedAt, &n.ExpiresAt,
+			&nwu.UserEmail, &nwu.UserName,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		notifications = append(notifications, nwu)
+	}
+
+	return notifications, rows.Err()
+}
+
+// GetAllNotificationsCount gets total count of notifications (admin method)
+func (r *notificationRepository) GetAllNotificationsCount(ctx context.Context, notifType, userID string, unreadOnly bool) (int, error) {
+	query := `
+		SELECT COUNT(*)
+		FROM notifications n
+		WHERE (expires_at IS NULL OR expires_at > NOW())
+	`
+
+	args := []interface{}{}
+	argCount := 1
+
+	if notifType != "" {
+		query += fmt.Sprintf(` AND n.type = $%d`, argCount)
+		args = append(args, notifType)
+		argCount++
+	}
+
+	if userID != "" {
+		query += fmt.Sprintf(` AND n.user_id = $%d`, argCount)
+		args = append(args, userID)
+		argCount++
+	}
+
+	if unreadOnly {
+		query += ` AND n.is_read = false`
+	}
+
+	var count int
+	err := r.db.QueryRowContext(ctx, query, args...).Scan(&count)
+	return count, err
+}
+
+// SearchNotifications searches notifications by query (admin method)
+func (r *notificationRepository) SearchNotifications(ctx context.Context, query string, limit, offset int) ([]*NotificationWithUser, error) {
+	searchQuery := `
+		SELECT n.id, n.user_id, n.type, n.title, n.message, n.data,
+			   n.is_read, n.read_at, n.created_at, n.expires_at,
+			   u.email, COALESCE(u.first_name || ' ' || u.last_name, u.email) as user_name
+		FROM notifications n
+		JOIN users u ON n.user_id = u.id
+		WHERE (n.expires_at IS NULL OR n.expires_at > NOW())
+			AND (
+				n.title ILIKE $1
+				OR n.message ILIKE $1
+				OR u.email ILIKE $1
+			)
+		ORDER BY n.created_at DESC
+		LIMIT $2 OFFSET $3
+	`
+
+	searchPattern := "%" + query + "%"
+	rows, err := r.db.QueryContext(ctx, searchQuery, searchPattern, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var notifications []*NotificationWithUser
+	for rows.Next() {
+		n := &Notification{}
+		nwu := &NotificationWithUser{Notification: n}
+
+		err := rows.Scan(
+			&n.ID, &n.UserID, &n.Type, &n.Title, &n.Message, &n.Data,
+			&n.IsRead, &n.ReadAt, &n.CreatedAt, &n.ExpiresAt,
+			&nwu.UserEmail, &nwu.UserName,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		notifications = append(notifications, nwu)
+	}
+
+	return notifications, rows.Err()
+}
+
+// GetNotificationStats gets notification statistics (admin method)
+func (r *notificationRepository) GetNotificationStats(ctx context.Context) (*NotificationStats, error) {
+	stats := &NotificationStats{
+		NotificationsByType: make(map[string]int),
+	}
+
+	// Total sent today
+	err := r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM notifications
+		WHERE DATE(created_at) = CURRENT_DATE
+	`).Scan(&stats.TotalSentToday)
+	if err != nil {
+		return nil, err
+	}
+
+	// Total unread
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM notifications
+		WHERE is_read = false AND (expires_at IS NULL OR expires_at > NOW())
+	`).Scan(&stats.TotalUnread)
+	if err != nil {
+		return nil, err
+	}
+
+	// Notifications by type
+	rows, err := r.db.QueryContext(ctx, `
+		SELECT type, COUNT(*) as count
+		FROM notifications
+		WHERE (expires_at IS NULL OR expires_at > NOW())
+		GROUP BY type
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	maxCount := 0
+	for rows.Next() {
+		var notifType string
+		var count int
+		if err := rows.Scan(&notifType, &count); err != nil {
+			return nil, err
+		}
+		stats.NotificationsByType[notifType] = count
+		if count > maxCount {
+			maxCount = count
+			stats.MostActiveType = notifType
+		}
+	}
+
+	// Read rate
+	var totalNotifs, readNotifs int
+	err = r.db.QueryRowContext(ctx, `
+		SELECT
+			COUNT(*) as total,
+			COUNT(CASE WHEN is_read = true THEN 1 END) as read_count
+		FROM notifications
+		WHERE (expires_at IS NULL OR expires_at > NOW())
+	`).Scan(&totalNotifs, &readNotifs)
+	if err != nil {
+		return nil, err
+	}
+
+	if totalNotifs > 0 {
+		stats.ReadRate = float64(readNotifs) / float64(totalNotifs) * 100
+	}
+
+	// Average read time (in hours)
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (read_at - created_at)) / 3600), 0)
+		FROM notifications
+		WHERE is_read = true AND read_at IS NOT NULL
+	`).Scan(&stats.AverageReadTime)
+	if err != nil {
+		return nil, err
+	}
+
+	// Sent this week
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM notifications
+		WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE)
+	`).Scan(&stats.SentThisWeek)
+	if err != nil {
+		return nil, err
+	}
+
+	// Growth percentage (compare this week vs last week)
+	var lastWeekCount int
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM notifications
+		WHERE created_at >= DATE_TRUNC('week', CURRENT_DATE - INTERVAL '7 days')
+			AND created_at < DATE_TRUNC('week', CURRENT_DATE)
+	`).Scan(&lastWeekCount)
+	if err != nil {
+		return nil, err
+	}
+
+	if lastWeekCount > 0 {
+		stats.GrowthPercentage = float64(stats.SentThisWeek-lastWeekCount) / float64(lastWeekCount) * 100
+	}
+
+	return stats, nil
 }

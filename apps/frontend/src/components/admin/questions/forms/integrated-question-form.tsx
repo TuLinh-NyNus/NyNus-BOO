@@ -8,7 +8,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useForm, Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -39,12 +39,12 @@ import {
   TabsTrigger,
   // Alert,
   // AlertDescription,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  // Dialog,
+  // DialogContent,
+  // DialogDescription,
+  // DialogFooter,
+  // DialogHeader,
+  // DialogTitle,
 } from "@/components/ui";
 import {
   Save,
@@ -63,17 +63,21 @@ import {
 // Import form components
 import { AnswerForm } from "./answer-form";
 import { LaTeXEditor } from "./latex-editor";
+import { LatexImporter } from "./latex-importer";
 
 // Import management components
 import {
   QuestionValidationPanel,
   // QuestionPreview,
-  TeacherQuestionPreview
+  // TeacherQuestionPreview
 } from "../management";
+
+// Import preview modal
+import { QuestionPreviewModal } from "../question-preview-modal";
 
 // Import types
 import { Question, QuestionType, QuestionStatus, QuestionDifficulty } from "@/types/question";
-import { validateQuestion, QuestionValidationResult } from "@/lib/utils/question-management";
+import { ParsedQuestion } from "@/services/grpc/question-latex.service";
 
 // ===== VALIDATION SCHEMA =====
 
@@ -156,8 +160,6 @@ export function IntegratedQuestionForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  // TODO: Validation result state sẽ được sử dụng để hiển thị validation errors
-  const [validationResult, setValidationResult] = useState<QuestionValidationResult | null>(null);
   const [activeTab, setActiveTab] = useState("basic");
   
   // ===== FORM SETUP =====
@@ -205,26 +207,7 @@ export function IntegratedQuestionForm({
 
   // ===== EFFECTS =====
   
-  // Validate form data on change
-  useEffect(() => {
-    const subscription = form.watch((data) => {
-      if (data.content && data.type) {
-        const mockQuestion = {
-          ...data,
-          id: data.id || 'temp',
-          rawContent: data.content, // Thêm rawContent property
-          questionCodeId: data.questionCodeId || 'temp',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        } as Question;
-        
-        const result = validateQuestion(mockQuestion);
-        setValidationResult(result);
-      }
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [form]);
+  // No effects needed - validation is handled by QuestionValidationPanel component
   
   // ===== HANDLERS =====
   
@@ -236,6 +219,65 @@ export function IntegratedQuestionForm({
       console.error('Form submission error:', error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  /**
+   * Handle import từ LaTeX - tự động fill form với parsed data
+   */
+  const handleLatexImport = (parsedData: ParsedQuestion) => {
+    try {
+      // Parse answers
+      let answersArray: { content: string; isCorrect: boolean; id?: string; explanation?: string; }[] = [];
+      
+      if (parsedData.answers) {
+        // Answers có thể là string JSON hoặc array
+        const answersData = typeof parsedData.answers === 'string' 
+          ? JSON.parse(parsedData.answers) 
+          : parsedData.answers;
+        
+        if (Array.isArray(answersData)) {
+          answersArray = answersData.map((ans: any, idx: number) => ({
+            id: ans.id?.toString() || `answer-${idx}`,
+            content: ans.content || '',
+            isCorrect: ans.isCorrect || ans.is_correct || false,
+            explanation: ans.explanation || ''
+          }));
+        }
+      }
+
+      // Nếu không có answers, tạo 2 answers mặc định
+      if (answersArray.length === 0) {
+        answersArray = [
+          { content: "", isCorrect: true },
+          { content: "", isCorrect: false }
+        ];
+      }
+
+      // Map question type
+      const typeMap: Record<string, QuestionType> = {
+        'MC': QuestionType.MC,
+        'TF': QuestionType.TF,
+        'SA': QuestionType.SA,
+        'ES': QuestionType.ES,
+        'MA': QuestionType.MA,
+      };
+      const questionType = typeMap[parsedData.type] || QuestionType.MC;
+
+      // Set các giá trị vào form
+      form.setValue('questionCodeId', parsedData.question_code || '');
+      form.setValue('content', parsedData.content || '');
+      form.setValue('type', questionType);
+      form.setValue('answers', answersArray);
+      form.setValue('solution', parsedData.solution || '');
+      form.setValue('source', parsedData.source || '');
+
+      // Chuyển sang tab "Cơ bản" sau khi import
+      setActiveTab("basic");
+
+      console.log('LaTeX import successful:', parsedData);
+    } catch (error) {
+      console.error('Error importing LaTeX data:', error);
     }
   };
   
@@ -254,6 +296,13 @@ export function IntegratedQuestionForm({
   };
   
   const handlePreview = () => {
+    // Validate before preview
+    const currentData = form.getValues();
+    if (!currentData.content || currentData.content.trim().length === 0) {
+      // Show error toast if available
+      console.warn('Cannot preview: No content');
+      return;
+    }
     setShowPreviewDialog(true);
   };
   
@@ -542,16 +591,31 @@ export function IntegratedQuestionForm({
 
   // ===== MAIN RENDER =====
   
-  const currentFormData = form.getValues();
-  const mockQuestion = {
-    ...currentFormData,
-    id: currentFormData.id || 'preview',
-    rawContent: currentFormData.content || '', // Thêm rawContent property
-    questionCodeId: currentFormData.questionCodeId || 'preview',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    creator: 'Current User'
-  } as Question;
+  // Use useMemo to prevent creating new mockQuestion object on every render
+  // which causes infinite loop with QuestionValidationPanel
+  const mockQuestion = useMemo(() => {
+    const currentFormData = form.getValues();
+    return {
+      ...currentFormData,
+      id: currentFormData.id || 'preview',
+      rawContent: currentFormData.content || '',
+      questionCodeId: currentFormData.questionCodeId || 'preview',
+      createdAt: question?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      creator: 'Current User'
+    } as Question;
+  }, [
+    form.watch("content"),
+    form.watch("type"),
+    form.watch("answers"),
+    form.watch("difficulty"),
+    form.watch("status"),
+    form.watch("questionCodeId"),
+    form.watch("explanation"),
+    form.watch("solution"),
+    form.watch("tag"),
+    question?.createdAt
+  ]);
   
   return (
     <div className={`integrated-question-form ${className}`}>
@@ -570,13 +634,21 @@ export function IntegratedQuestionForm({
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-5">
+                    <TabsList className="grid w-full grid-cols-6">
+                      <TabsTrigger value="import">Import LaTeX</TabsTrigger>
                       <TabsTrigger value="basic">Cơ bản</TabsTrigger>
                       <TabsTrigger value="content">Nội dung</TabsTrigger>
                       <TabsTrigger value="answers">Đáp án</TabsTrigger>
                       <TabsTrigger value="explanations">Lời giải</TabsTrigger>
                       <TabsTrigger value="tags">Tags</TabsTrigger>
                     </TabsList>
+                    
+                    <TabsContent value="import" className="mt-6">
+                      <LatexImporter
+                        onImportSuccess={handleLatexImport}
+                        disabled={isLoading || isSubmitting}
+                      />
+                    </TabsContent>
                     
                     <TabsContent value="basic" className="mt-6">
                       {renderBasicInfo()}
@@ -665,54 +737,17 @@ export function IntegratedQuestionForm({
             showQualityScore={true}
             showSuggestions={true}
             showDetails={true}
-            onValidationChange={setValidationResult}
           />
-
-          {/* Display validation result if available */}
-          {validationResult && !validationResult.isValid && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle className="text-sm text-destructive">Lỗi validation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {validationResult.errors.map((error, index) => (
-                    <div key={index} className="text-sm text-destructive">
-                      <strong>{error.field}:</strong> {error.message}
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
       
-      {/* Preview Dialog */}
-      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Xem trước câu hỏi</DialogTitle>
-            <DialogDescription>
-              Xem trước câu hỏi như học sinh sẽ thấy
-            </DialogDescription>
-          </DialogHeader>
-          
-          <TeacherQuestionPreview
-            question={mockQuestion}
-            showAnswers={true}
-            showExplanation={true}
-            showMetadata={true}
-            showQualityScore={true}
-          />
-          
-          <DialogFooter>
-            <Button onClick={() => setShowPreviewDialog(false)}>
-              Đóng
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Question Preview Modal - New Implementation */}
+      <QuestionPreviewModal
+        question={mockQuestion}
+        isOpen={showPreviewDialog}
+        onClose={() => setShowPreviewDialog(false)}
+        title="Xem trước câu hỏi"
+      />
     </div>
   );
 }

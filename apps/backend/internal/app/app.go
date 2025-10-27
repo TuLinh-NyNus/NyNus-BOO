@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"path/filepath"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/config"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/container"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/migration"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/seeder"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/server"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/config"
+	"exam-bank-system/apps/backend/internal/container"
+	"exam-bank-system/apps/backend/internal/migration"
+	"exam-bank-system/apps/backend/internal/seeder"
+	"exam-bank-system/apps/backend/internal/server"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 
 	_ "github.com/lib/pq"
 	grpcServer "google.golang.org/grpc"
@@ -67,21 +68,21 @@ func (a *App) initDatabase() error {
 	// Configure optimized connection pool based on environment
 	if config.IsProduction() {
 		// Production settings - optimized for high concurrency and stability
-		a.db.SetMaxOpenConns(50)      // Increased for production load
-		a.db.SetMaxIdleConns(20)      // Higher idle connections for faster response
-		a.db.SetConnMaxLifetime(600)  // 10 minutes for production stability
-		a.db.SetConnMaxIdleTime(120)  // 2 minutes idle time for better resource utilization
-		log.Println("🔧 Database connection pool optimized for production")
+		a.db.SetMaxOpenConns(50)     // Increased for production load
+		a.db.SetMaxIdleConns(20)     // Higher idle connections for faster response
+		a.db.SetConnMaxLifetime(600) // 10 minutes for production stability
+		a.db.SetConnMaxIdleTime(120) // 2 minutes idle time for better resource utilization
+		log.Println("[CONFIG] Database connection pool optimized for production")
 	} else {
 		// Development settings - conservative resource usage
 		a.db.SetMaxOpenConns(25)     // Standard development setting
 		a.db.SetMaxIdleConns(10)     // Lower idle connections for development
 		a.db.SetConnMaxLifetime(300) // 5 minutes for development
 		a.db.SetConnMaxIdleTime(60)  // 1 minute idle time for development
-		log.Println("🔧 Database connection pool configured for development")
+		log.Println("[CONFIG] Database connection pool configured for development")
 	}
 
-	log.Printf("✅ Connected to PostgreSQL: %s@%s:%s/%s",
+	log.Printf("[OK] Connected to PostgreSQL: %s@%s:%s/%s",
 		a.config.Database.User,
 		a.config.Database.Host,
 		a.config.Database.Port,
@@ -136,6 +137,8 @@ func (a *App) initGRPCServer() error {
 	v1.RegisterAdminServiceServer(a.grpcServer, a.container.GetAdminGRPCService())
 	v1.RegisterContactServiceServer(a.grpcServer, a.container.GetContactGRPCService())
 	v1.RegisterNewsletterServiceServer(a.grpcServer, a.container.GetNewsletterGRPCService())
+	v1.RegisterBookServiceServer(a.grpcServer, a.container.GetBookGRPCService())
+	v1.RegisterLibraryServiceServer(a.grpcServer, a.container.GetLibraryGRPCService())
 	v1.RegisterNotificationServiceServer(a.grpcServer, a.container.GetNotificationGRPCService())
 	v1.RegisterMapCodeServiceServer(a.grpcServer, a.container.GetMapCodeGRPCService())
 	v1.RegisterAnalyticsServiceServer(a.grpcServer, a.container.GetAnalyticsGRPCService())
@@ -153,8 +156,21 @@ func (a *App) Run() error {
 
 	// Validate production configuration
 	if err := config.ValidateProductionConfig(a.config.Production); err != nil {
-		log.Printf("⚠️  Production config validation warning: %v", err)
+		log.Printf("[WARNING] Production config validation warning: %v", err)
 	}
+	
+	// Start WebSocket server if enabled (Phase 3 - Integration)
+	if a.config.Redis.Enabled && a.config.Redis.PubSubEnabled {
+		a.container.StartWebSocketServer()
+		log.Printf("[OK] WebSocket server started on port %s", 
+			getEnvOrDefault("WEBSOCKET_PORT", "8081"))
+	} else {
+		log.Println("[INFO] WebSocket/Pub/Sub disabled")
+	}
+	
+	// Start Metrics Scheduler (records metrics every 5 minutes)
+	a.container.StartMetricsScheduler()
+	log.Println("[OK] Metrics scheduler started (recording interval: 5 minutes, retention: 30 days)")
 
 	// Conditionally start HTTP server based on production settings
 	if a.config.Production.HTTPGatewayEnabled {
@@ -164,75 +180,86 @@ func (a *App) Run() error {
 		// Start HTTP server in a goroutine
 		go func() {
 			if err := a.httpServer.Start(); err != nil {
-				log.Printf("❌ HTTP server error: %v", err)
+				log.Printf("[ERROR] HTTP server error: %v", err)
 			}
 		}()
 
-		log.Printf("🌐 HTTP Gateway + gRPC-Web enabled on port %s", a.config.Server.HTTPPort)
+		log.Printf("[OK] HTTP Gateway + gRPC-Web enabled on port %s", a.config.Server.HTTPPort)
 	} else {
-		log.Println("🔒 HTTP Gateway disabled for production security")
+		log.Println("[INFO] HTTP Gateway disabled for production security")
 	}
 
 	// Create gRPC listener
+	log.Printf("[gRPC] Creating TCP listener on port %s...", a.config.Server.GRPCPort)
 	lis, err := net.Listen("tcp", ":"+a.config.Server.GRPCPort)
 	if err != nil {
+		log.Printf("[ERROR] Failed to create listener on port %s: %v", a.config.Server.GRPCPort, err)
 		return fmt.Errorf("failed to listen on port %s: %w", a.config.Server.GRPCPort, err)
 	}
+	log.Printf("[OK] TCP listener created successfully on port %s", a.config.Server.GRPCPort)
 
 	// Log startup information
+	log.Println("[INFO] Logging startup information...")
 	a.logStartupInfo()
+	log.Println("[OK] Startup information logged")
 
-	// Start gRPC server
-	log.Printf("🚀 Starting gRPC server on port %s...", a.config.Server.GRPCPort)
+	// Start gRPC server (BLOCKING CALL)
+	log.Printf("[STARTUP] Starting gRPC server on port %s...", a.config.Server.GRPCPort)
+	log.Println("[INFO] This is a BLOCKING call - server will run until stopped")
 	if err := a.grpcServer.Serve(lis); err != nil {
+		log.Printf("[ERROR] gRPC server stopped with error: %v", err)
 		return fmt.Errorf("failed to serve gRPC server: %w", err)
 	}
 
+	// This should NEVER be reached during normal operation
+	log.Println("[WARNING] gRPC server stopped without error - this is unexpected!")
 	return nil
 }
 
 // logStartupInfo logs application startup information
 func (a *App) logStartupInfo() {
-	log.Println("🚀 Exam Bank System gRPC Server starting...")
-	log.Printf("📍 gRPC Server listening on :%s", a.config.Server.GRPCPort)
-	log.Println("🗄️ Database: PostgreSQL")
-	log.Println("🌐 gRPC Services:")
+	log.Println("[STARTUP] Exam Bank System gRPC Server starting...")
+	log.Printf("[INFO] gRPC Server listening on :%s", a.config.Server.GRPCPort)
+	log.Println("[INFO] Database: PostgreSQL")
+	log.Println("[INFO] gRPC Services:")
 	log.Println("   - UserService (Login, Register, GetUser, ListUsers)")
 	log.Println("   - QuestionService (CreateQuestion, GetQuestion, ListQuestions, ImportQuestions)")
 	log.Println("   - QuestionFilterService (ListQuestionsByFilter, SearchQuestions, GetQuestionsByQuestionCode)")
 	log.Println("   - ExamService (CreateExam, GetExam, ListExams) [Basic Implementation]")
-	log.Println("🔐 Security:")
+	log.Println("   - BookService (ListBooks, GetBook, CreateBook, UpdateBook, DeleteBook, IncrementDownloadCount)")
+	log.Println("   - LibraryService (ListItems, GetItem, CreateItem, UpdateItem, DownloadItem) [Books only]")
+	log.Println("[INFO] Security:")
 	log.Println("   - JWT Authentication enabled")
 	log.Println("   - Role-based authorization (student, teacher, admin)")
-	log.Println("📋 Public endpoints:")
+	log.Println("[INFO] Public endpoints:")
 	log.Println("   - v1.UserService/Login")
 	log.Println("   - v1.UserService/Register")
-	log.Println("🔒 Protected endpoints:")
+	log.Println("[INFO] Protected endpoints:")
 	log.Println("   - v1.UserService/GetUser (own profile or admin/teacher)")
 	log.Println("   - v1.UserService/ListUsers (admin/teacher only)")
 }
 
 // Shutdown gracefully shuts down the application
 func (a *App) Shutdown() {
-	log.Println("🛑 Shutting down application...")
+	log.Println("[SHUTDOWN] Shutting down application...")
 
 	if a.grpcServer != nil {
-		log.Println("🔌 Stopping gRPC server...")
+		log.Println("[SHUTDOWN] Stopping gRPC server...")
 		a.grpcServer.GracefulStop()
 	}
 
 	if a.httpServer != nil {
-		log.Println("🔌 Stopping HTTP server...")
+		log.Println("[SHUTDOWN] Stopping HTTP server...")
 		// Note: In production, you might want to add context with timeout
 		a.httpServer.Stop(nil)
 	}
 
 	if a.container != nil {
-		log.Println("🧹 Cleaning up dependencies...")
+		log.Println("[CLEANUP] Cleaning up dependencies...")
 		a.container.Cleanup()
 	}
 
-	log.Println("✅ Application shutdown complete")
+	log.Println("[OK] Application shutdown complete")
 }
 
 // GetContainer returns the dependency injection container
@@ -270,10 +297,18 @@ func (a *App) seedDefaultData() error {
 	// Seed sample data for development (optional)
 	if a.config.Server.Environment == "development" {
 		if err := seeder.SeedSampleData(); err != nil {
-			log.Printf("⚠️  Warning: Failed to seed sample data: %v", err)
+			log.Printf("[WARNING] Failed to seed sample data: %v", err)
 			// Don't fail startup for sample data issues
 		}
 	}
 
 	return nil
+}
+
+// getEnvOrDefault gets environment variable or returns default
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

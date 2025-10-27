@@ -1,15 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
-  Bookmark, 
+  Star, 
   Trash2, 
   Eye,
   Download,
   AlertTriangle,
-  Plus
+  Plus,
+  RefreshCw
 } from 'lucide-react';
 
 import {
@@ -37,52 +38,50 @@ import {
   QuestionDifficulty
 } from '@/types/question';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
-import { useSavedQuestions } from '@/hooks';
+import { useFavoriteQuestions } from '@/hooks/question';
 
 /**
- * Saved Questions Page
- * Trang xem câu hỏi đã lưu trong localStorage
+ * Favorite Questions Page
+ * Trang xem câu hỏi yêu thích từ database
  */
 export default function SavedQuestionsPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Sử dụng custom hook để quản lý saved questions
-  const {
-    questions: savedQuestions,
-    removeQuestion,
-    clearAll,
-    exportToFile
-  } = useSavedQuestions();
+  // Sử dụng favorite questions hook
+  const { fetchFavorites, toggleFavorite, isLoading } = useFavoriteQuestions();
 
-  // State cho selected question modal
+  // State
+  const [favoriteQuestions, setFavoriteQuestions] = useState<Question[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, total: 0, pageSize: 20, totalPages: 0 });
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
 
-  /**
-   * Handle delete saved question
-   */
-  const handleDeleteSavedQuestion = (questionId: string) => {
-    try {
-      removeQuestion(questionId);
-      
-      // Close modal if deleting selected question
-      if (selectedQuestion?.id === questionId) {
-        setSelectedQuestion(null);
-      }
-      
-      toast({
-        title: 'Thành công',
-        description: 'Đã xóa câu hỏi khỏi danh sách lưu',
-        variant: 'success'
-      });
-    } catch (error) {
-      console.error('Lỗi khi xóa câu hỏi:', error);
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể xóa câu hỏi',
-        variant: 'destructive'
-      });
+  // Load favorites on mount
+  useEffect(() => {
+    loadFavorites();
+  }, [pagination.page]);
+
+  const loadFavorites = async () => {
+    const result = await fetchFavorites(pagination.page, pagination.pageSize);
+    setFavoriteQuestions(result.questions);
+    if (result.pagination) {
+      setPagination(prev => ({ ...prev, ...result.pagination }));
     }
+  };
+
+  /**
+   * Handle unfavorite question
+   */
+  const handleUnfavorite = async (questionId: string) => {
+    await toggleFavorite(questionId, true); // true = currently favorited
+    
+    // Close modal if unfavoriting selected question
+    if (selectedQuestion?.id === questionId) {
+      setSelectedQuestion(null);
+    }
+    
+    // Reload list
+    await loadFavorites();
   };
 
   /**
@@ -179,33 +178,22 @@ export default function SavedQuestionsPage() {
               Quay lại
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Câu hỏi đã lưu</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Câu hỏi yêu thích</h1>
               <p className="text-gray-600 mt-1">
-                Quản lý {savedQuestions.length} câu hỏi đã lưu trong localStorage
+                Quản lý {pagination.total} câu hỏi yêu thích từ cơ sở dữ liệu
               </p>
             </div>
           </div>
 
           <div className="flex gap-2">
-            {savedQuestions.length > 0 && (
-              <>
-                <Button 
-                  variant="outline"
-                  onClick={handleExportSaved}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Xuất file
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={handleClearAllSaved}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Xóa tất cả
-                </Button>
-              </>
-            )}
+            <Button 
+              variant="outline"
+              onClick={loadFavorites}
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Làm mới
+            </Button>
             <Button 
               onClick={() => router.push(ADMIN_PATHS.QUESTIONS)}
             >
@@ -218,19 +206,23 @@ export default function SavedQuestionsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bookmark className="h-5 w-5" />
-              Danh sách câu hỏi đã lưu
+              <Star className="h-5 w-5 text-yellow-500 fill-current" />
+              Danh sách câu hỏi yêu thích
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {savedQuestions.length === 0 ? (
+            {isLoading ? (
+              <div className="flex justify-center py-12">
+                <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : favoriteQuestions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Bookmark className="h-12 w-12 text-gray-400 mb-4" />
+                <Star className="h-12 w-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Chưa có câu hỏi nào được lưu
+                  Chưa có câu hỏi yêu thích
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Bạn chưa lưu câu hỏi nào vào localStorage
+                  Đánh dấu các câu hỏi yêu thích từ danh sách câu hỏi
                 </p>
                 <Button
                   onClick={() => router.push(ADMIN_PATHS.QUESTIONS_INPUT_LATEX)}
@@ -254,8 +246,8 @@ export default function SavedQuestionsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {(savedQuestions as Question[]).map((question) => (
-                      <TableRow key={(question as Question).id}>
+                    {favoriteQuestions.map((question) => (
+                      <TableRow key={question.id}>
                         <TableCell>
                           <div className="max-w-md">
                             <p className="font-medium text-gray-900 truncate">
@@ -316,10 +308,11 @@ export default function SavedQuestionsPage() {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              onClick={() => handleDeleteSavedQuestion(question.id)}
-                              className="text-red-600 hover:text-red-700"
+                              onClick={() => handleUnfavorite(question.id)}
+                              className="text-yellow-600 hover:text-yellow-700"
+                              title="Bỏ yêu thích"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Star className="h-4 w-4 fill-current" />
                             </Button>
                           </div>
                         </TableCell>
@@ -332,16 +325,27 @@ export default function SavedQuestionsPage() {
           </CardContent>
         </Card>
 
-        {/* localStorage info */}
-        {savedQuestions.length > 0 && (
-          <Alert>
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Lưu ý:</strong> Câu hỏi được lưu trong localStorage của trình duyệt. 
-              Dữ liệu sẽ bị mất nếu xóa cache hoặc dữ liệu trình duyệt. 
-              Hãy xuất file để sao lưu dữ liệu quan trọng.
-            </AlertDescription>
-          </Alert>
+        {/* Pagination */}
+        {favoriteQuestions.length > 0 && pagination.totalPages > 1 && (
+          <div className="flex justify-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+              disabled={pagination.page === 1 || isLoading}
+            >
+              Trang trước
+            </Button>
+            <div className="flex items-center px-4">
+              Trang {pagination.page} / {pagination.totalPages}
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.totalPages, prev.page + 1) }))}
+              disabled={pagination.page === pagination.totalPages || isLoading}
+            >
+              Trang sau
+            </Button>
+          </div>
         )}
 
         {/* Question detail modal */}
@@ -415,11 +419,11 @@ export default function SavedQuestionsPage() {
                     </Button>
                     <Button 
                       variant="outline"
-                      onClick={() => handleDeleteSavedQuestion(selectedQuestion.id)}
-                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleUnfavorite(selectedQuestion.id)}
+                      className="text-yellow-600 hover:text-yellow-700"
                     >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Xóa
+                      <Star className="h-4 w-4 mr-2 fill-current" />
+                      Bỏ yêu thích
                     </Button>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/util"
 )
 
 // ParseErrorRepository handles parse error data operations
@@ -404,3 +404,4 @@ func (r *ParseErrorRepository) GetErrorStatistics(ctx context.Context) (map[stri
 
 	return stats, nil
 }
+

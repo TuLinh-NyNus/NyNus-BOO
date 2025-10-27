@@ -1,4 +1,4 @@
-package grpc
+﻿package grpc
 
 import (
 	"context"
@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // NotificationServiceServer implements the NotificationService
@@ -291,11 +292,8 @@ func (s *NotificationServiceServer) CreateNotification(ctx context.Context, req 
 
 	// Parse expires_at if provided
 	var expiresAt *time.Time
-	if req.ExpiresAt != "" {
-		t, err := time.Parse(time.RFC3339, req.ExpiresAt)
-		if err != nil {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid expires_at format: %v", err)
-		}
+	if req.ExpiresAt != nil {
+		t := req.ExpiresAt.AsTime()
 		expiresAt = &t
 	}
 
@@ -355,33 +353,34 @@ func (s *NotificationServiceServer) CreateNotification(ctx context.Context, req 
 
 // toProtoNotification converts repository notification to proto notification
 func (s *NotificationServiceServer) toProtoNotification(n *repository.Notification) *v1.Notification {
-	proto := &v1.Notification{
-		Id:        n.ID,
-		UserId:    n.UserID,
-		Type:      n.Type,
-		Title:     n.Title,
-		Message:   n.Message,
-		IsRead:    n.IsRead,
-		CreatedAt: n.CreatedAt.Format(time.RFC3339),
-	}
-
-	// Convert JSON data to map
-	if len(n.Data) > 0 {
-		var data map[string]string
-		if err := json.Unmarshal(n.Data, &data); err == nil {
-			proto.Data = data
-		}
-	}
-
-	// Add read_at if available
-	if n.ReadAt != nil {
-		proto.ReadAt = n.ReadAt.Format(time.RFC3339)
-	}
-
-	// Add expires_at if available
-	if n.ExpiresAt != nil {
-		proto.ExpiresAt = n.ExpiresAt.Format(time.RFC3339)
-	}
-
-	return proto
+proto := &v1.Notification{
+	Id:        n.ID,
+	UserId:    n.UserID,
+	Type:      n.Type,
+	Title:     n.Title,
+	Message:   n.Message,
+	IsRead:    n.IsRead,
+	CreatedAt: timestamppb.New(n.CreatedAt),
 }
+
+// Convert JSON data to map
+if len(n.Data) > 0 {
+	var data map[string]string
+	if err := json.Unmarshal(n.Data, &data); err == nil {
+		proto.Data = data
+	}
+}
+
+// Add read_at if available
+if n.ReadAt != nil {
+	proto.ReadAt = timestamppb.New(*n.ReadAt)
+}
+
+// Add expires_at if available
+if n.ExpiresAt != nil {
+	proto.ExpiresAt = timestamppb.New(*n.ExpiresAt)
+}
+
+return proto
+}
+

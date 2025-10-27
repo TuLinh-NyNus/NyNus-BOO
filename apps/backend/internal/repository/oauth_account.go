@@ -1,4 +1,4 @@
-package repository
+﻿package repository
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/sirupsen/logrus"
 )
 
@@ -495,3 +495,4 @@ func (r *oauthAccountRepository) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
+

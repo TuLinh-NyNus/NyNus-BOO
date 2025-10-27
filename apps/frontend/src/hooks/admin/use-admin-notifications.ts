@@ -1,19 +1,35 @@
 /**
- * Use Admin Notifications Hook
- * Hook cho admin notifications với real-time simulation
+ * Admin Notifications Hook & Provider
+ * Centralised state to avoid duplicate gRPC calls that triggered rate limiting.
  */
 
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { AdminNotification, NotificationType } from '@/types/admin/header';
-import { adminHeaderMockService } from '@/lib/mockdata/admin';
-import { useMockWebSocket } from '@/components/admin/providers/mock-websocket-provider';
+import {
+  createContext,
+  createElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 
-/**
- * Notifications State Interface
- * Interface cho notifications state
- */
+import {
+  NotificationService,
+  type BackendNotification,
+} from '@/services/grpc/notification.service';
+import {
+  AdminNotification,
+  type NotificationType,
+} from '@/types/admin/header';
+import { logger } from '@/lib/utils/logger';
+import { useAuth } from '@/contexts/auth-context-grpc';
+// Phase 4 - Task 4.3.1: Import WebSocket hook
+import { useWebSocket } from '@/providers';
+
 interface NotificationsState {
   notifications: AdminNotification[];
   unreadCount: number;
@@ -22,10 +38,6 @@ interface NotificationsState {
   lastUpdated: Date | null;
 }
 
-/**
- * Notifications Actions Interface
- * Interface cho notifications actions
- */
 interface NotificationsActions {
   markAsRead: (notificationId: string) => void;
   markAllAsRead: () => void;
@@ -35,364 +47,558 @@ interface NotificationsActions {
   refreshNotifications: () => Promise<void>;
 }
 
-/**
- * Use Admin Notifications Return Type
- * Return type cho useAdminNotifications hook
- */
-interface UseAdminNotificationsReturn {
+export interface UseAdminNotificationsReturn {
   state: NotificationsState;
   actions: NotificationsActions;
-  // Convenience getters
   notifications: AdminNotification[];
   unreadCount: number;
   isLoading: boolean;
   error: string | null;
-  // Convenience actions
   markAsRead: (notificationId: string) => void;
   markAllAsRead: () => void;
   clearNotification: (notificationId: string) => void;
   addNotification: (notification: Omit<AdminNotification, 'id' | 'createdAt'>) => void;
 }
 
-/**
- * Use Admin Notifications Hook
- * Main hook cho notifications management
- */
-export function useAdminNotifications(): UseAdminNotificationsReturn {
+const MAX_CACHED_NOTIFICATIONS = 50;
+const MIN_FETCH_INTERVAL_MS = 750;
+
+const AdminNotificationsContext = createContext<UseAdminNotificationsReturn | undefined>(undefined);
+
+function mapBackendTypeToNotificationType(type: string | undefined): NotificationType {
+  const normalized = type?.toLowerCase() ?? '';
+
+  if (
+    normalized.includes('error') ||
+    normalized.includes('fail') ||
+    normalized.includes('alert') ||
+    normalized.includes('critical')
+  ) {
+    return 'error';
+  }
+
+  if (
+    normalized.includes('warn') ||
+    normalized.includes('risk') ||
+    normalized.includes('security')
+  ) {
+    return 'warning';
+  }
+
+  if (
+    normalized.includes('success') ||
+    normalized.includes('complete') ||
+    normalized.includes('done')
+  ) {
+    return 'success';
+  }
+
+  return 'info';
+}
+
+function deriveHref(data: Record<string, string> | undefined): string | undefined {
+  if (!data) return undefined;
+
+  return (
+    data.actionUrl ||
+    data.href ||
+    data.url ||
+    data.link ||
+    data.redirectUrl ||
+    undefined
+  );
+}
+
+function mapBackendNotificationToAdmin(notification: BackendNotification): AdminNotification {
+  const createdAt = notification.createdAt
+    ? new Date(notification.createdAt)
+    : new Date();
+
+  const href = deriveHref(notification.data);
+
+  return {
+    id: notification.id,
+    title: notification.title,
+    message: notification.message,
+    type: mapBackendTypeToNotificationType(notification.type),
+    timestamp: createdAt,
+    createdAt,
+    read: notification.isRead,
+    isRead: notification.isRead,
+    href,
+    icon: undefined,
+    data: notification.data,
+  };
+}
+
+function normalizeIncomingNotification(
+  notification: Partial<AdminNotification>
+): AdminNotification {
+  const timestamp = notification.timestamp
+    ? new Date(notification.timestamp)
+    : new Date();
+
+  const read = notification.read ?? false;
+  const isRead = notification.isRead ?? read;
+
+  return {
+    ...notification,
+    id:
+      notification.id ??
+      `notification-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    timestamp,
+    createdAt: timestamp,
+    read,
+    isRead,
+    type: notification.type ?? 'info',
+  } as AdminNotification;
+}
+
+export function AdminNotificationsProvider({ children }: { children: ReactNode }) {
   const [notificationsState, setNotificationsState] = useState<NotificationsState>({
     notifications: [],
     unreadCount: 0,
     isLoading: true,
     error: null,
-    lastUpdated: null
+    lastUpdated: null,
   });
 
-  const { lastMessage, isConnected } = useMockWebSocket();
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { isAuthenticated } = useAuth();
+  const fetchPromiseRef = useRef<Promise<void> | null>(null);
+  const lastFetchTimestampRef = useRef<number>(0);
+  const loadNotificationsRef = useRef<((force?: boolean) => Promise<void>) | null>(null); // ✅ FIX: Ref for stable reference
+  const initialFetchDoneRef = useRef<boolean>(false); // ✅ FIX: Prevent React Strict Mode double-fetch
+  
+  // Phase 4 - Task 4.3.1: Subscribe to WebSocket notifications
+  const { lastMessage: wsLastMessage, isConnected: wsIsConnected } = useWebSocket();
 
-  /**
-   * Load notifications
-   * Load notifications từ mock service
-   */
-  const loadNotifications = useCallback(async () => {
-    try {
+  const loadNotifications = useCallback(
+    async (force = false): Promise<void> => {
+      if (!isAuthenticated) {
+        setNotificationsState(prev => ({
+          ...prev,
+          notifications: [],
+          unreadCount: 0,
+          isLoading: false,
+          error: null,
+          lastUpdated: new Date(),
+        }));
+        return;
+      }
+
+      const now = Date.now();
+
+      if (!force) {
+        if (fetchPromiseRef.current) {
+          return fetchPromiseRef.current;
+        }
+
+        const elapsed = now - lastFetchTimestampRef.current;
+        if (elapsed < MIN_FETCH_INTERVAL_MS) {
+          return;
+        }
+      }
+
       setNotificationsState(prev => ({
         ...prev,
         isLoading: true,
-        error: null
+        error: null,
       }));
 
-      const mockNotifications = await adminHeaderMockService.getNotifications();
+      const fetchPromise = (async () => {
+        try {
+          const response = await NotificationService.getUserNotifications({
+            limit: MAX_CACHED_NOTIFICATIONS,
+          });
 
-      // Convert mock notifications to proper format
-      const notifications: AdminNotification[] = mockNotifications.map(n => ({
-        ...n,
-        isRead: n.read,
-        createdAt: n.timestamp,
-        href: n.actionUrl
-      }));
+          const notifications = response.notifications
+            .map(mapBackendNotificationToAdmin)
+            .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
-      const unreadCount = notifications.filter(n => !n.read).length;
+          setNotificationsState(prev => ({
+            ...prev,
+            notifications,
+            unreadCount:
+              response.unreadCount ??
+              notifications.filter(notification => !notification.read).length,
+            isLoading: false,
+            error: null,
+            lastUpdated: new Date(),
+          }));
+        } catch (error) {
+          logger.error('[AdminNotificationsProvider] Failed to load notifications', { error });
+          setNotificationsState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: error instanceof Error ? error.message : 'Failed to load notifications',
+          }));
+          throw error;
+        } finally {
+          fetchPromiseRef.current = null;
+          lastFetchTimestampRef.current = Date.now();
+        }
+      })();
 
-      setNotificationsState(prev => ({
-        ...prev,
-        notifications,
-        unreadCount,
-        isLoading: false,
-        lastUpdated: new Date()
-      }));
+      fetchPromiseRef.current = fetchPromise;
+      return fetchPromise;
+    },
+    [isAuthenticated],
+  );
 
-    } catch (error) {
-      setNotificationsState(prev => ({
-        ...prev,
-        error: error instanceof Error ? error.message : 'Failed to load notifications',
-        isLoading: false
-      }));
-    }
-  }, []);
+  // ✅ FIX: Update ref whenever loadNotifications changes
+  useEffect(() => {
+    loadNotificationsRef.current = loadNotifications;
+  }, [loadNotifications]);
 
-  /**
-   * Mark notification as read
-   * Đánh dấu notification đã đọc
-   */
-  const markAsRead = useCallback((notificationId: string) => {
-    setNotificationsState(prev => {
-      const updatedNotifications = prev.notifications.map(notification =>
-        notification.id === notificationId
-          ? { ...notification, read: true, isRead: true }
-          : notification
-      );
+  const markAsRead = useCallback(
+    (notificationId: string) => {
+      setNotificationsState(prev => {
+        const updatedNotifications = prev.notifications.map(notification =>
+          notification.id === notificationId
+            ? { ...notification, read: true, isRead: true }
+            : notification,
+        );
 
-      const unreadCount = updatedNotifications.filter(n => !n.read).length;
+        return {
+          ...prev,
+          notifications: updatedNotifications,
+          unreadCount: updatedNotifications.filter(notification => !notification.read).length,
+          lastUpdated: new Date(),
+        };
+      });
 
-      return {
-        ...prev,
-        notifications: updatedNotifications,
-        unreadCount
-      };
-    });
-  }, []);
+      NotificationService.markAsRead(notificationId).catch(error => {
+        logger.error('[AdminNotificationsProvider] Failed to mark notification as read', {
+          notificationId,
+          error,
+        });
+        loadNotifications(true).catch(() => {
+          /** swallow follow-up error */
+        });
+      });
+    },
+    [loadNotifications],
+  );
 
-  /**
-   * Mark all notifications as read
-   * Đánh dấu tất cả notifications đã đọc
-   */
   const markAllAsRead = useCallback(() => {
     setNotificationsState(prev => ({
       ...prev,
       notifications: prev.notifications.map(notification => ({
         ...notification,
         read: true,
-        isRead: true
+        isRead: true,
       })),
-      unreadCount: 0
+      unreadCount: 0,
+      lastUpdated: new Date(),
     }));
-  }, []);
 
-  /**
-   * Clear notification
-   * Xóa notification
-   */
-  const clearNotification = useCallback((notificationId: string) => {
-    setNotificationsState(prev => {
-      const updatedNotifications = prev.notifications.filter(
-        notification => notification.id !== notificationId
-      );
-
-      const unreadCount = updatedNotifications.filter(n => !n.read).length;
-
-      return {
-        ...prev,
-        notifications: updatedNotifications,
-        unreadCount
-      };
+    NotificationService.markAllAsRead().catch(error => {
+      logger.error('[AdminNotificationsProvider] Failed to mark all notifications as read', { error });
+      loadNotifications(true).catch(() => {
+        /** swallow follow-up error */
+      });
     });
-  }, []);
+  }, [loadNotifications]);
 
-  /**
-   * Clear all notifications
-   * Xóa tất cả notifications
-   */
+  const clearNotification = useCallback(
+    (notificationId: string) => {
+      setNotificationsState(prev => {
+        const notificationToRemove = prev.notifications.find(notification => notification.id === notificationId);
+        const notifications = prev.notifications.filter(notification => notification.id !== notificationId);
+        const wasUnread = notificationToRemove ? !notificationToRemove.read : false;
+
+        return {
+          ...prev,
+          notifications,
+          unreadCount: wasUnread ? Math.max(0, prev.unreadCount - 1) : prev.unreadCount,
+          lastUpdated: new Date(),
+        };
+      });
+
+      NotificationService.deleteNotification(notificationId).catch(error => {
+        logger.error('[AdminNotificationsProvider] Failed to delete notification', {
+          notificationId,
+          error,
+        });
+        loadNotifications(true).catch(() => {
+          /** swallow follow-up error */
+        });
+      });
+    },
+    [loadNotifications],
+  );
+
   const clearAllNotifications = useCallback(() => {
     setNotificationsState(prev => ({
       ...prev,
       notifications: [],
-      unreadCount: 0
+      unreadCount: 0,
+      lastUpdated: new Date(),
     }));
-  }, []);
 
-  /**
-   * Add new notification
-   * Thêm notification mới
-   */
-  const addNotification = useCallback((
-    notification: Omit<AdminNotification, 'id' | 'createdAt'>
-  ) => {
-    const newNotification: AdminNotification = {
-      ...notification,
-      id: `notification-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date(),
-      createdAt: new Date(),
-      read: false,
-      isRead: false
-    };
+    NotificationService.deleteAllNotifications().catch(error => {
+      logger.error('[AdminNotificationsProvider] Failed to delete all notifications', { error });
+      loadNotifications(true).catch(() => {
+        /** swallow follow-up error */
+      });
+    });
+  }, [loadNotifications]);
 
-    setNotificationsState(prev => ({
-      ...prev,
-      notifications: [newNotification, ...prev.notifications],
-      unreadCount: prev.unreadCount + 1
-    }));
-  }, []);
+  const addNotification = useCallback(
+    (notification: Omit<AdminNotification, 'id' | 'createdAt'>) => {
+      const normalizedNotification = normalizeIncomingNotification(notification);
 
-  /**
-   * Refresh notifications
-   * Refresh notifications từ server
-   */
+      setNotificationsState(prev => {
+        const notifications = [normalizedNotification, ...prev.notifications].slice(
+          0,
+          MAX_CACHED_NOTIFICATIONS,
+        );
+
+        return {
+          ...prev,
+          notifications,
+          unreadCount: normalizedNotification.read ? prev.unreadCount : prev.unreadCount + 1,
+          lastUpdated: new Date(),
+        };
+      });
+    },
+    [],
+  );
+
   const refreshNotifications = useCallback(async () => {
-    await loadNotifications();
+    await loadNotifications(true);
   }, [loadNotifications]);
-
+  
   /**
-   * Generate random notification
-   * Generate random notification cho simulation
-   */
-  const generateRandomNotification = useCallback(() => {
-    const notificationTypes: NotificationType[] = ['info', 'success', 'warning', 'error'];
-    const randomType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
-
-    const notifications = {
-      info: [
-        {
-          title: 'Người dùng mới đăng ký',
-          message: 'Có 3 người dùng mới đăng ký trong 10 phút qua',
-          type: 'info' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false,
-          href: '/3141592654/admin/users?filter=new'
-        },
-        {
-          title: 'Câu hỏi mới được tạo',
-          message: 'Giảng viên Nguyễn Văn A đã tạo 5 câu hỏi mới',
-          type: 'info' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false,
-          href: '/3141592654/admin/questions?filter=recent'
-        }
-      ],
-      success: [
-        {
-          title: 'Backup hoàn thành',
-          message: 'Sao lưu dữ liệu hệ thống đã hoàn thành thành công',
-          type: 'success' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false,
-          href: '/3141592654/admin/settings/backup'
-        },
-        {
-          title: 'Cập nhật thành công',
-          message: 'Hệ thống đã được cập nhật lên phiên bản mới',
-          type: 'success' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false
-        }
-      ],
-      warning: [
-        {
-          title: 'Dung lượng lưu trữ',
-          message: 'Dung lượng lưu trữ đã sử dụng 85%. Cần dọn dẹp dữ liệu',
-          type: 'warning' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false,
-          href: '/3141592654/admin/settings/storage'
-        },
-        {
-          title: 'Phiên đăng nhập sắp hết hạn',
-          message: 'Phiên đăng nhập của bạn sẽ hết hạn trong 10 phút',
-          type: 'warning' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false
-        }
-      ],
-      error: [
-        {
-          title: 'Lỗi kết nối database',
-          message: 'Không thể kết nối đến database. Vui lòng kiểm tra lại',
-          type: 'error' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false,
-          href: '/3141592654/admin/settings/database'
-        },
-        {
-          title: 'Lỗi gửi email',
-          message: 'Không thể gửi email thông báo. Kiểm tra cấu hình SMTP',
-          type: 'error' as NotificationType,
-          timestamp: new Date(),
-          read: false,
-          isRead: false,
-          href: '/3141592654/admin/settings/email'
-        }
-      ]
-    };
-
-    const typeNotifications = notifications[randomType];
-    const randomNotification = typeNotifications[Math.floor(Math.random() * typeNotifications.length)];
-
-    addNotification(randomNotification);
-  }, [addNotification]);
-
-  /**
-   * Handle WebSocket messages
-   * Xử lý WebSocket messages cho real-time notifications
+   * Handle WebSocket notifications
+   * Phase 4 - Task 4.3.1: Subscribe to WebSocket notifications
    */
   useEffect(() => {
-    if (lastMessage && typeof lastMessage === 'object' && 'type' in lastMessage) {
-      const message = lastMessage as { type: string; data?: unknown };
+    if (!wsLastMessage) return;
+    
+    try {
+      // Convert WebSocket notification to AdminNotification
+      const adminNotification: AdminNotification = {
+        id: wsLastMessage.id,
+        title: wsLastMessage.title,
+        message: wsLastMessage.message,
+        type: mapBackendTypeToNotificationType(wsLastMessage.type),
+        timestamp: new Date(wsLastMessage.timestamp),
+        createdAt: new Date(wsLastMessage.timestamp),
+        read: wsLastMessage.is_read || false,
+        isRead: wsLastMessage.is_read || false,
+        href: wsLastMessage.data?.action_url || wsLastMessage.data?.href,
+        data: wsLastMessage.data,
+      };
       
-      if (message.type === 'notification' && message.data) {
-        const notificationData = message.data as Omit<AdminNotification, 'id' | 'createdAt'>;
-        addNotification(notificationData);
+      // Add to state (task 4.3.2: Hybrid mode - WebSocket for real-time push)
+      setNotificationsState(prev => {
+        // Check for duplicates (task 4.3.2: Local state merge - deduplicate)
+        const exists = prev.notifications.some(n => n.id === adminNotification.id);
+        if (exists) {
+          logger.debug('[AdminNotifications] Duplicate WebSocket notification ignored', { id: adminNotification.id });
+          return prev;
+        }
+        
+        const notifications = [adminNotification, ...prev.notifications].slice(0, MAX_CACHED_NOTIFICATIONS);
+        const unreadCount = notifications.filter(n => !n.read).length;
+        
+        return {
+          ...prev,
+          notifications,
+          unreadCount,
+          lastUpdated: new Date(),
+        };
+      });
+      
+      logger.info('[AdminNotifications] WebSocket notification added', { 
+        id: adminNotification.id, 
+        title: adminNotification.title 
+      });
+    } catch (error) {
+      logger.error('[AdminNotifications] Failed to process WebSocket notification', { error });
+    }
+  }, [wsLastMessage]);
+
+  // ❌ DISABLED: Mock notification generator - using real data only
+  // Keep the function for potential manual testing, but don't auto-call it
+  // const generateRandomNotification = useCallback(() => {
+  //   const notificationTypes: NotificationType[] = ['info', 'success', 'warning', 'error'];
+  //   const randomType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
+
+  //   const notificationMap: Record<NotificationType, Omit<AdminNotification, 'id' | 'createdAt'>> = {
+  //     info: {
+  //       title: 'Người dùng mới đăng ký',
+  //       message: 'Có 3 người dùng mới đăng ký trong 10 phút qua',
+  //       type: 'info',
+  //       timestamp: new Date(),
+  //       read: false,
+  //       isRead: false,
+  //       href: '/3141592654/admin/users?filter=new',
+  //     },
+  //     success: {
+  //       title: 'Hoàn tất sao lưu hệ thống',
+  //       message: 'Backup dữ liệu hoàn thành lúc 02:15',
+  //       type: 'success',
+  //       timestamp: new Date(),
+  //       read: false,
+  //       isRead: false,
+  //       href: '/3141592654/admin/settings/backups',
+  //     },
+  //     warning: {
+  //       title: 'Cảnh báo hiệu suất',
+  //       message: 'Database response time cao hơn bình thường',
+  //       type: 'warning',
+  //       timestamp: new Date(),
+  //       read: false,
+  //       isRead: false,
+  //       href: '/3141592654/admin/analytics?tab=performance',
+  //     },
+  //     error: {
+  //       title: 'Lỗi xử lý đề thi',
+  //       message: 'Không thể đồng bộ đề thi',
+  //       type: 'error',
+  //       timestamp: new Date(),
+  //       read: false,
+  //       isRead: false,
+  //       href: '/3141592654/admin/exams/sync',
+  //     },
+  //   };
+
+  //   const candidates = notificationMap[randomType];
+  //   addNotification(candidates);
+  // }, [addNotification]);
+
+  // ❌ DISABLED: Mock WebSocket notifications - using real data only
+  // useEffect(() => {
+  //   if (!lastMessage || typeof lastMessage !== 'object') return;
+  //   if (!('type' in lastMessage) || lastMessage.type !== 'notification') return;
+
+  //   const payload = lastMessage.data as Record<string, unknown> | undefined;
+
+  //   addNotification({
+  //     title: (payload?.title as string) || 'Thông báo hệ thống',
+  //     message: (payload?.message as string) || '',
+  //     type: mapBackendTypeToNotificationType(payload?.type as string | undefined),
+  //     timestamp: payload?.timestamp ? new Date(String(payload.timestamp)) : new Date(),
+  //     read: Boolean(payload?.read),
+  //     isRead: Boolean(payload?.read),
+  //     actionUrl: (payload?.actionUrl as string) || (payload?.href as string),
+  //     href: (payload?.actionUrl as string) || (payload?.href as string),
+  //     data: payload as Record<string, string> | undefined,
+  //   });
+  // }, [lastMessage, addNotification]);
+
+  // ❌ DISABLED: Auto-generate mock notifications - using real data only
+  // useEffect(() => {
+  //   if (!isConnected) {
+  //     if (intervalRef.current) {
+  //       clearInterval(intervalRef.current);
+  //       intervalRef.current = null;
+  //     }
+  //     return;
+  //   }
+
+  //   intervalRef.current = setInterval(() => {
+  //     if (Math.random() < 0.3) {
+  //       generateRandomNotification();
+  //     }
+  //   }, 30_000);
+
+  //   return () => {
+  //     if (intervalRef.current) {
+  //       clearInterval(intervalRef.current);
+  //       intervalRef.current = null;
+  //     }
+  //   };
+  // }, [isConnected, generateRandomNotification]);
+
+  /**
+   * Initial load effect
+   * ✅ FIX: Remove loadNotifications from dependencies to prevent infinite loop
+   * Use ref to access latest function and initialFetchDoneRef to prevent double-fetch in React Strict Mode
+   */
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Only fetch once per authentication state change
+      if (!initialFetchDoneRef.current) {
+        initialFetchDoneRef.current = true;
+        
+        if (loadNotificationsRef.current) {
+          logger.info('[AdminNotificationsProvider] Initial fetch triggered');
+          loadNotificationsRef.current(true).catch(() => {
+            /** swallow initial error - already logged */
+          });
+        }
       }
+    } else {
+      // Reset when logged out
+      initialFetchDoneRef.current = false;
+      setNotificationsState(prev => ({
+        ...prev,
+        notifications: [],
+        unreadCount: 0,
+        isLoading: false,
+        error: null,
+      }));
     }
-  }, [lastMessage, addNotification]);
 
-  /**
-   * Setup real-time simulation
-   * Setup simulation cho real-time notifications
-   */
-  useEffect(() => {
-    // Generate random notifications every 30-60 seconds when connected
-    if (isConnected) {
-      const generateNotification = () => {
-        // 30% chance to generate a notification
-        if (Math.random() < 0.3) {
-          generateRandomNotification();
-        }
-      };
+    // Cleanup removed - no intervals used when using real data only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // ✅ FIX: Remove loadNotifications from dependencies
 
-      // Set random interval between 30-60 seconds
-      const randomInterval = 30000 + Math.random() * 30000;
-      intervalRef.current = setInterval(generateNotification, randomInterval);
-
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      };
-    }
-  }, [isConnected, generateRandomNotification]);
-
-  /**
-   * Load initial notifications
-   * Load notifications khi component mount
-   */
-  useEffect(() => {
-    loadNotifications();
-  }, [loadNotifications]);
-
-  // Create actions object
-  const actions: NotificationsActions = {
+  const contextValue = useMemo<UseAdminNotificationsReturn>(() => ({
+    state: notificationsState,
+    actions: {
+      markAsRead,
+      markAllAsRead,
+      clearNotification,
+      clearAllNotifications,
+      addNotification,
+      refreshNotifications,
+    },
+    notifications: notificationsState.notifications,
+    unreadCount: notificationsState.unreadCount,
+    isLoading: notificationsState.isLoading,
+    error: notificationsState.error,
+    markAsRead,
+    markAllAsRead,
+    clearNotification,
+    addNotification,
+  }), [
+    notificationsState,
     markAsRead,
     markAllAsRead,
     clearNotification,
     clearAllNotifications,
     addNotification,
-    refreshNotifications
-  };
+    refreshNotifications,
+  ]);
 
-  return {
-    state: notificationsState,
-    actions,
-    // Convenience getters
-    notifications: notificationsState.notifications,
-    unreadCount: notificationsState.unreadCount,
-    isLoading: notificationsState.isLoading,
-    error: notificationsState.error,
-    // Convenience actions
-    markAsRead,
-    markAllAsRead,
-    clearNotification,
-    addNotification
-  };
+  return createElement(
+    AdminNotificationsContext.Provider,
+    { value: contextValue },
+    children,
+  );
 }
 
-/**
- * Use Notification Toast Hook
- * Hook cho notification toast functionality
- */
+export function useAdminNotifications(): UseAdminNotificationsReturn {
+  const context = useContext(AdminNotificationsContext);
+
+  if (!context) {
+    throw new Error('useAdminNotifications must be used within an AdminNotificationsProvider');
+  }
+
+  return context;
+}
+
 export function useNotificationToast() {
   const { addNotification } = useAdminNotifications();
 
   const showToast = useCallback((
     title: string,
     message: string,
-    type: NotificationType = 'info'
+    type: NotificationType = 'info',
   ) => {
     addNotification({
       title,
@@ -400,19 +606,17 @@ export function useNotificationToast() {
       type,
       timestamp: new Date(),
       read: false,
-      isRead: false
+      isRead: false,
     });
   }, [addNotification]);
 
   return {
     showToast,
-    showInfo: (title: string, message: string) =>
-      showToast(title, message, 'info'),
-    showSuccess: (title: string, message: string) =>
-      showToast(title, message, 'success'),
-    showWarning: (title: string, message: string) =>
-      showToast(title, message, 'warning'),
-    showError: (title: string, message: string) =>
-      showToast(title, message, 'error')
+    showInfo: (title: string, message: string) => showToast(title, message, 'info'),
+    showSuccess: (title: string, message: string) => showToast(title, message, 'success'),
+    showWarning: (title: string, message: string) => showToast(title, message, 'warning'),
+    showError: (title: string, message: string) => showToast(title, message, 'error'),
   };
 }
+
+export default NotificationService;

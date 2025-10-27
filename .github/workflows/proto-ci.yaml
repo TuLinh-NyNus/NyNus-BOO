@@ -1,0 +1,85 @@
+name: Proto CI
+
+on:
+  pull_request:
+
+jobs:
+  proto:
+    name: Buf lint/build/breaking + deterministic codegen + build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Checkout baseline (main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: baseline
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Setup Buf (pinned)
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          version: 'v1.47.2'
+
+      - name: Install protoc plugins (Go) and add to PATH
+        shell: bash
+        run: |
+          set -euo pipefail
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.34.1
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.19.0
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Buf lint
+        shell: bash
+        run: |
+          set -euo pipefail
+          buf lint packages/proto
+
+      - name: Buf build (current) and baseline image
+        shell: bash
+        run: |
+          set -euo pipefail
+          buf build packages/proto
+          buf build baseline/packages/proto -o baseline.bin
+
+      - name: Buf breaking against baseline
+        shell: bash
+        run: |
+          set -euo pipefail
+          buf breaking packages/proto --against baseline.bin
+
+      - name: Buf generate (deterministic)
+        shell: bash
+        run: |
+          set -euo pipefail
+          buf generate -c packages/proto/buf.gen.yaml
+
+      - name: Verify deterministic codegen (no git diff)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! git diff --quiet; then
+            echo "Generated code differs from committed files. Run buf generate and commit the changes."
+            git --no-pager diff --stat
+            exit 1
+          fi
+
+      - name: Go build (module tidy)
+        shell: bash
+        run: |
+          set -euo pipefail
+          go mod tidy
+          go build ./...

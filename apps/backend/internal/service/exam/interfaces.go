@@ -1,8 +1,8 @@
-package exam
+﻿package exam
 
 import (
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/service/auth"
 )
 
 // RepositoryInterface defines the contract for exam data access
@@ -50,3 +50,4 @@ func NewService(repo RepositoryInterface, attemptRepo AttemptRepositoryInterface
 		authService: authService,
 	}
 }
+

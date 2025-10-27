@@ -7,30 +7,36 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/latex"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/middleware"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/question"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	v1 "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/latex"
+	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/service/question"
+	"exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 	"github.com/google/uuid"
 	"github.com/jackc/pgtype"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // QuestionServiceServer implements the QuestionService gRPC server
 type QuestionServiceServer struct {
 	v1.UnimplementedQuestionServiceServer
 	questionService *question.QuestionService
+	versionService  *question.VersionService
 }
 
 // NewQuestionServiceServer creates a new QuestionServiceServer
-func NewQuestionServiceServer(questionService *question.QuestionService) *QuestionServiceServer {
+func NewQuestionServiceServer(
+	questionService *question.QuestionService,
+	versionService *question.VersionService,
+) *QuestionServiceServer {
 	return &QuestionServiceServer{
 		questionService: questionService,
+		versionService:  versionService,
 	}
 }
 
@@ -429,6 +435,22 @@ func (s *QuestionServiceServer) ImportQuestions(ctx context.Context, req *v1.Imp
 
 // convertQuestionToProto converts a Question entity to proto
 func convertQuestionToProto(question *entity.Question) *v1.Question {
+	var createdAt *timestamppb.Timestamp
+	if question.CreatedAt.Status == pgtype.Present {
+		ts := timestamppb.New(question.CreatedAt.Time)
+		if ts.IsValid() {
+			createdAt = ts
+		}
+	}
+
+	var updatedAt *timestamppb.Timestamp
+	if question.UpdatedAt.Status == pgtype.Present {
+		ts := timestamppb.New(question.UpdatedAt.Time)
+		if ts.IsValid() {
+			updatedAt = ts
+		}
+	}
+
 	return &v1.Question{
 		Id:         util.PgTextToString(question.ID),
 		RawContent: util.PgTextToString(question.RawContent),
@@ -446,9 +468,10 @@ func convertQuestionToProto(question *entity.Question) *v1.Question {
 		Status:         convertQuestionStatus(util.PgTextToString(question.Status)),
 		Feedback:       int32(question.Feedback.Int),
 		Difficulty:     convertDifficulty(util.PgTextToString(question.Difficulty)),
+		IsFavorite:     question.IsFavorite.Bool,
 		QuestionCodeId: util.PgTextToString(question.QuestionCodeID),
-		CreatedAt:      question.CreatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
-		UpdatedAt:      question.UpdatedAt.Time.Format("2006-01-02T15:04:05Z07:00"),
+		CreatedAt:      createdAt,
+		UpdatedAt:      updatedAt,
 	}
 }
 
@@ -977,6 +1000,80 @@ func (s *QuestionServiceServer) ImportLatex(ctx context.Context, req *v1.ImportL
 		Errors:               errors,
 		QuestionCodesCreated: createdCodesList,
 		Summary:              summary,
+	}, nil
+}
+
+// ToggleFavorite toggles the favorite status of a question
+func (s *QuestionServiceServer) ToggleFavorite(ctx context.Context, req *v1.ToggleFavoriteRequest) (*v1.ToggleFavoriteResponse, error) {
+	// Validate request
+	if req.GetQuestionId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "question_id is required")
+	}
+
+	// Toggle favorite status
+	err := s.questionService.ToggleFavorite(ctx, req.GetQuestionId(), req.GetIsFavorite())
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			return nil, status.Errorf(codes.NotFound, err.Error())
+		}
+		return nil, status.Errorf(codes.Internal, "failed to toggle favorite: %v", err)
+	}
+
+	return &v1.ToggleFavoriteResponse{
+		Success:    true,
+		IsFavorite: req.GetIsFavorite(),
+		Response: &common.Response{
+			Success: true,
+			Message: fmt.Sprintf("Question favorite status updated to %v", req.GetIsFavorite()),
+		},
+	}, nil
+}
+
+// ListFavoriteQuestions lists all favorite questions with pagination
+func (s *QuestionServiceServer) ListFavoriteQuestions(ctx context.Context, req *v1.ListFavoriteQuestionsRequest) (*v1.ListFavoriteQuestionsResponse, error) {
+	// Get pagination parameters
+	page := req.GetPagination().GetPage()
+	pageSize := req.GetPagination().GetLimit()
+
+	// Set defaults
+	if pageSize == 0 {
+		pageSize = 20
+	}
+	if page == 0 {
+		page = 1
+	}
+
+	// Calculate offset
+	offset := int((page - 1) * pageSize)
+	limit := int(pageSize)
+
+	// Get favorite questions
+	questions, total, err := s.questionService.GetFavoriteQuestions(ctx, offset, limit)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get favorite questions: %v", err)
+	}
+
+	// Convert to proto
+	protoQuestions := make([]*v1.Question, len(questions))
+	for i, q := range questions {
+		protoQuestions[i] = convertQuestionToProto(q)
+	}
+
+	// Calculate pagination info
+	totalPages := int32((total + limit - 1) / limit)
+
+	return &v1.ListFavoriteQuestionsResponse{
+		Response: &common.Response{
+			Success: true,
+			Message: fmt.Sprintf("Retrieved %d favorite questions", len(questions)),
+		},
+		Questions: protoQuestions,
+		Pagination: &common.PaginationResponse{
+			Page:       page,
+			Limit:      pageSize,
+			TotalCount: int32(total),
+			TotalPages: totalPages,
+		},
 	}, nil
 }
 

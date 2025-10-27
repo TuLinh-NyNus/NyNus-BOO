@@ -6,14 +6,15 @@
 
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { User, Settings, LogOut, Shield, Bell, HelpCircle, Eye } from 'lucide-react';
-import { UserMenuProps, AdminUser } from '@/types/admin/header';
-import { adminHeaderMockService } from '@/lib/mockdata/admin';
+import { UserMenuProps } from '@/types/admin/header';
 import { cn } from '@/lib/utils';
 import { UserDisplay } from '@/components/features/auth/UserDisplay';
 import { useNotificationBadge } from '@/components/features/notifications/NotificationBadge';
 import { HydrationSafe } from '@/components/common/hydration-safe';
+import { useAuth } from '@/contexts/auth-context-grpc';
+import { useAdminNotifications } from '@/hooks/admin/use-admin-notifications';
 
 /**
  * User Menu Component
@@ -27,32 +28,37 @@ export function UserMenu({
   variant = 'default'
 }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const { user, isLoading: authLoading, logout } = useAuth();
+  const { unreadCount, actions } = useAdminNotifications();
+  const { refreshNotifications } = actions;
+
   // Notification badge hook
-  const { count: notificationCount } = useNotificationBadge(3); // Mock 3 notifications
+  const {
+    count: notificationCount,
+    setCount: setNotificationCount
+  } = useNotificationBadge(0);
 
-  /**
-   * Load user data
-   * Load thông tin user từ mock service
-   */
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        setIsLoading(true);
-        const userData = await adminHeaderMockService.getCurrentUser();
-        setUser(userData as unknown as AdminUser);
-      } catch (error) {
-        console.error('Failed to load user data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    setNotificationCount(unreadCount);
+  }, [unreadCount, setNotificationCount]);
 
-    loadUser();
-  }, []);
+  useEffect(() => {
+    if (isOpen) {
+      refreshNotifications().catch(error => {
+        console.error('Failed to refresh notifications', error);
+      });
+    }
+  }, [isOpen, refreshNotifications]);
+
+  const displayName = useMemo(() => {
+    if (!user) return 'Người dùng';
+    if (user.name) return user.name;
+
+    const composedName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim();
+    return composedName || user.email || 'Người dùng';
+  }, [user]);
 
   /**
    * Handle click outside
@@ -95,8 +101,9 @@ export function UserMenu({
         if (onLogoutClick) {
           onLogoutClick();
         } else {
-          // Default logout behavior
-          console.log('Logout clicked');
+          logout().catch(error => {
+            console.error('Logout failed', error);
+          });
         }
         break;
     }
@@ -109,7 +116,9 @@ export function UserMenu({
    * Render button để mở user menu với UserDisplay component
    */
   const renderUserTrigger = () => {
-    if (isLoading || !user) {
+    const isUserLoading = authLoading && !user;
+
+    if (isUserLoading) {
       return (
         <div className="flex items-center space-x-2 p-2" suppressHydrationWarning={true}>
           <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
@@ -123,24 +132,42 @@ export function UserMenu({
       );
     }
 
+    if (!user) {
+      return (
+        <button
+          type="button"
+          className={cn(
+            'flex items-center space-x-2 p-2 rounded-lg text-sm text-muted-foreground',
+            'hover:bg-accent/10 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary'
+          )}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <User className="w-4 h-4" />
+          <span>Tài khoản</span>
+        </button>
+      );
+    }
+
     return (
-      <UserDisplay
-        user={user}
-        variant={variant === 'compact' ? 'compact' : 'dropdown-trigger'}
-        size="md"
-        showRole={variant !== 'compact'}
-        showLevel={false}
-        showAvatar={true}
-        showNotificationBadge={true}
-        notificationCount={notificationCount}
-        onClick={() => setIsOpen(!isOpen)}
-        className={cn(
-          'hover:bg-accent/10 transition-colors duration-150',
-          'focus:outline-none focus:ring-2 focus:ring-primary',
-          isOpen && '[&_svg]:rotate-180'
-        )}
-        ariaLabel={`User menu for ${user.name}. ${isOpen ? 'Expanded' : 'Collapsed'}`}
-      />
+      <div className="flex-shrink-0">
+        <UserDisplay
+          user={user}
+          variant={variant === 'compact' ? 'compact' : 'dropdown-trigger'}
+          size="md"
+          showRole={variant !== 'compact'}
+          showLevel={false}
+          showAvatar={true}
+          showNotificationBadge={true}
+          notificationCount={notificationCount}
+          onClick={() => setIsOpen(!isOpen)}
+          className={cn(
+            'hover:bg-accent/10 transition-colors duration-150 rounded-lg',
+            'w-full',
+            isOpen && '[&_svg]:rotate-180'
+          )}
+          ariaLabel={`User menu for ${displayName}. ${isOpen ? 'Expanded' : 'Collapsed'}`}
+        />
+      </div>
     );
   };
 
@@ -238,9 +265,9 @@ export function UserMenu({
 
   return (
     <HydrationSafe fallback={
-      <div className="w-8 h-8 rounded-full bg-muted animate-pulse" />
+      <div className="w-8 h-8 rounded-full bg-muted animate-pulse flex-shrink-0" />
     }>
-      <div ref={dropdownRef} className={cn('relative', className)}>
+      <div ref={dropdownRef} className={cn('relative flex-shrink-0', className)}>
         {renderUserTrigger()}
         {renderUserDropdown()}
       </div>

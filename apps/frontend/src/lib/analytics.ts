@@ -1,244 +1,353 @@
 /**
- * Google Analytics 4 Integration
- * Utility functions for tracking events and user interactions
+ * Analytics Utility Library
+ * Google Analytics 4 (GA4) integration cho tracking user behavior
+ * 
+ * @author NyNus Development Team
+ * @version 1.0.0
+ * @created 2025-01-26
  */
 
-import React from 'react';
+// ===== TYPES =====
 
-// Extend Window interface để include gtag
+export interface AnalyticsEvent {
+  action: string;
+  category: string;
+  label?: string;
+  value?: number;
+  [key: string]: any;
+}
+
+export interface PageViewEvent {
+  page_path: string;
+  page_title: string;
+  page_location: string;
+}
+
+export interface QuestionEvent {
+  question_id: string;
+  question_type?: string;
+  category?: string;
+  difficulty?: string;
+}
+
+export interface SearchEvent {
+  search_term: string;
+  search_filters?: Record<string, any>;
+  result_count?: number;
+}
+
+// ===== GLOBAL GTAG DECLARATION =====
+
 declare global {
   interface Window {
-    gtag: (
-      command: 'config' | 'event' | 'js' | 'set',
-      targetId: string | Date | object,
-      config?: object
+    gtag?: (
+      command: string,
+      targetId: string | Date,
+      config?: Record<string, any>
     ) => void;
-    dataLayer: unknown[];
+    dataLayer?: any[];
   }
 }
 
+// ===== CONFIGURATION =====
+
+/**
+ * Get GA4 Measurement ID from environment
+ */
+export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || '';
+
+/**
+ * Check if analytics is enabled
+ */
+export const isAnalyticsEnabled = (): boolean => {
+  return Boolean(
+    GA_MEASUREMENT_ID && 
+    typeof window !== 'undefined' && 
+    window.gtag
+  );
+};
+
+// ===== CORE FUNCTIONS =====
+
 /**
  * Initialize Google Analytics
- * Call this in _app.tsx or layout.tsx
+ * Should be called in _app.tsx or root layout
  */
-export const initGA = (measurementId: string) => {
-  // Chỉ chạy trên client-side
-  if (typeof window === 'undefined') return;
+export const initAnalytics = (): void => {
+  if (!GA_MEASUREMENT_ID) {
+    console.warn('[Analytics] GA_MEASUREMENT_ID not found in environment variables');
+    return;
+  }
 
-  // Tạo script tag cho gtag
-  const script = document.createElement('script');
-  script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
-  document.head.appendChild(script);
-
-  // Initialize dataLayer và gtag function
+  // Initialize dataLayer
   window.dataLayer = window.dataLayer || [];
-  window.gtag = function(...args: unknown[]) {
-    window.dataLayer.push(args);
+  
+  console.log('[Analytics] Google Analytics initialized with ID:', GA_MEASUREMENT_ID);
+};
+
+/**
+ * Send pageview event to GA4
+ * @param url - Page URL
+ */
+export const pageview = (url: string, title?: string): void => {
+  if (!isAnalyticsEnabled()) return;
+
+  const event: PageViewEvent = {
+    page_path: url,
+    page_title: title || document.title,
+    page_location: window.location.href,
   };
 
-  // Configure GA4
-  window.gtag('js', new Date());
-  window.gtag('config', measurementId, {
-    page_title: document.title,
-    page_location: window.location.href,
+  window.gtag!('event', 'page_view', event);
+  
+  console.log('[Analytics] Page view tracked:', event);
+};
+
+/**
+ * Send custom event to GA4
+ * @param event - Event data
+ */
+export const event = (eventData: AnalyticsEvent): void => {
+  if (!isAnalyticsEnabled()) return;
+
+  const { action, category, label, value, ...otherParams } = eventData;
+
+  window.gtag!('event', action, {
+    event_category: category,
+    event_label: label,
+    value: value,
+    ...otherParams,
+  });
+
+  console.log('[Analytics] Event tracked:', eventData);
+};
+
+// ===== QUESTION-SPECIFIC EVENTS =====
+
+/**
+ * Track question view event
+ */
+export const trackQuestionView = (data: QuestionEvent): void => {
+  event({
+    action: 'view_question',
+    category: 'Questions',
+    label: data.question_id,
+    question_id: data.question_id,
+    question_type: data.question_type,
+    question_category: data.category,
+    question_difficulty: data.difficulty,
   });
 };
 
 /**
- * Track custom events
- * @param eventName - Tên event (VD: 'cta_click_start_learning')
- * @param parameters - Parameters bổ sung cho event
+ * Track question bookmark event
  */
-export const trackEvent = (eventName: string, parameters?: Record<string, unknown>) => {
-  // Chỉ track trên client-side và khi gtag available
-  if (typeof window === 'undefined' || !window.gtag) {
-    console.log('Analytics not available:', eventName, parameters);
-    return;
-  }
-
-  try {
-    window.gtag('event', eventName, {
-      // Default parameters
-      timestamp: new Date().toISOString(),
-      page_url: window.location.href,
-      page_title: document.title,
-      // Custom parameters
-      ...parameters,
-    });
-
-    // Log for debugging (remove in production)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📊 Analytics Event:', eventName, parameters);
-    }
-  } catch (error) {
-    console.error('Error tracking event:', error);
-  }
+export const trackQuestionBookmark = (data: QuestionEvent): void => {
+  event({
+    action: 'bookmark_question',
+    category: 'Questions',
+    label: data.question_id,
+    question_id: data.question_id,
+  });
 };
 
 /**
- * Track page views
- * @param url - URL của page
- * @param title - Title của page
+ * Track question share event
  */
-export const trackPageView = (url: string, title?: string) => {
-  if (typeof window === 'undefined' || !window.gtag) return;
+export const trackQuestionShare = (data: QuestionEvent & { share_method?: string }): void => {
+  event({
+    action: 'share_question',
+    category: 'Questions',
+    label: data.question_id,
+    question_id: data.question_id,
+    share_method: data.share_method || 'unknown',
+  });
+};
 
-  try {
-    window.gtag('event', 'page_view', {
-      page_location: url,
-      page_title: title || document.title,
-    });
-  } catch (error) {
-    console.error('Error tracking page view:', error);
-  }
+// ===== SEARCH EVENTS =====
+
+/**
+ * Track search query event
+ */
+export const trackSearch = (data: SearchEvent): void => {
+  event({
+    action: 'search',
+    category: 'Search',
+    label: data.search_term,
+    search_term: data.search_term,
+    search_filters: data.search_filters ? JSON.stringify(data.search_filters) : undefined,
+    result_count: data.result_count,
+  });
 };
 
 /**
- * Track user interactions
- * Predefined events cho NyNus
+ * Track filter application
  */
-export const analytics = {
-  // CTA clicks
-  ctaClick: (location: string, ctaText: string) => {
-    trackEvent('cta_click_start_learning', {
-      location,
-      cta_text: ctaText,
-      category: 'engagement',
-    });
-  },
+export const trackFilterApply = (filterType: string, filterValue: string): void => {
+  event({
+    action: 'apply_filter',
+    category: 'Filters',
+    label: `${filterType}: ${filterValue}`,
+    filter_type: filterType,
+    filter_value: filterValue,
+  });
+};
 
-  // Video interactions
-  videoModalOpen: (location: string) => {
-    trackEvent('video_modal_open', {
-      location,
-      category: 'engagement',
-    });
-  },
+// ===== ADMIN EVENTS =====
 
-  videoPlay: (videoId: string, location: string) => {
-    trackEvent('video_play', {
-      video_id: videoId,
-      location,
-      category: 'engagement',
-    });
-  },
-
-  // Search interactions
-  searchSubmit: (query: string, location: string) => {
-    trackEvent('search_submit', {
-      search_term: query,
-      location,
-      category: 'search',
-    });
-  },
-
-  // Course interactions
-  courseClick: (courseId: string, courseTitle: string, location: string) => {
-    trackEvent('featured_course_click', {
-      course_id: courseId,
-      course_title: courseTitle,
-      location,
-      category: 'course_engagement',
-    });
-  },
-
-  // Navigation
-  navigationClick: (linkText: string, destination: string) => {
-    trackEvent('navigation_click', {
-      link_text: linkText,
-      destination,
-      category: 'navigation',
-    });
-  },
-
-  // Form submissions
-  formSubmit: (formName: string, success: boolean) => {
-    trackEvent('form_submit', {
-      form_name: formName,
-      success,
-      category: 'form_interaction',
-    });
-  },
-
-  // User registration/login
-  userSignup: (method: string) => {
-    trackEvent('sign_up', {
-      method,
-      category: 'user_lifecycle',
-    });
-  },
-
-  userLogin: (method: string) => {
-    trackEvent('login', {
-      method,
-      category: 'user_lifecycle',
-    });
-  },
-
-  // Feature usage
-  featureClick: (featureName: string, location: string) => {
-    trackEvent('feature_click', {
-      feature_name: featureName,
-      location,
-      category: 'feature_usage',
-    });
-  },
-
-  // Social proof interactions
-  testimonialView: (testimonialId: string) => {
-    trackEvent('testimonial_view', {
-      testimonial_id: testimonialId,
-      category: 'social_proof',
-    });
-  },
-
-  // Error tracking
-  errorOccurred: (errorType: string, errorMessage: string, location: string) => {
-    trackEvent('error_occurred', {
-      error_type: errorType,
-      error_message: errorMessage,
-      location,
-      category: 'error_tracking',
-    });
-  },
+/**
+ * Track question creation (admin)
+ */
+export const trackQuestionCreate = (data: QuestionEvent): void => {
+  event({
+    action: 'create_question',
+    category: 'Admin',
+    label: data.question_type,
+    question_type: data.question_type,
+  });
 };
 
 /**
- * Hook để sử dụng analytics trong React components
+ * Track question update (admin)
+ */
+export const trackQuestionUpdate = (data: QuestionEvent): void => {
+  event({
+    action: 'update_question',
+    category: 'Admin',
+    label: data.question_id,
+    question_id: data.question_id,
+  });
+};
+
+/**
+ * Track question delete (admin)
+ */
+export const trackQuestionDelete = (data: QuestionEvent): void => {
+  event({
+    action: 'delete_question',
+    category: 'Admin',
+    label: data.question_id,
+    question_id: data.question_id,
+  });
+};
+
+/**
+ * Track bulk operation (admin)
+ */
+export const trackBulkOperation = (operation: string, count: number): void => {
+  event({
+    action: 'bulk_operation',
+    category: 'Admin',
+    label: operation,
+    operation_type: operation,
+    item_count: count,
+  });
+};
+
+// ===== ERROR TRACKING =====
+
+/**
+ * Track errors for monitoring
+ */
+export const trackError = (error: Error, context?: string): void => {
+  event({
+    action: 'error',
+    category: 'Errors',
+    label: error.message,
+    error_message: error.message,
+    error_stack: error.stack?.substring(0, 500), // Limit stack trace length
+    error_context: context,
+  });
+};
+
+// ===== USER INTERACTIONS =====
+
+/**
+ * Track button clicks
+ */
+export const trackButtonClick = (buttonName: string, location?: string): void => {
+  event({
+    action: 'button_click',
+    category: 'Engagement',
+    label: buttonName,
+    button_name: buttonName,
+    button_location: location,
+  });
+};
+
+/**
+ * Track form submissions
+ */
+export const trackFormSubmit = (formName: string, success: boolean): void => {
+  event({
+    action: 'form_submit',
+    category: 'Forms',
+    label: formName,
+    form_name: formName,
+    form_success: success,
+  });
+};
+
+// ===== CONSENT MANAGEMENT =====
+
+/**
+ * Update analytics consent
+ * For GDPR compliance
+ */
+export const updateConsent = (granted: boolean): void => {
+  if (!isAnalyticsEnabled()) return;
+
+  window.gtag!('consent', 'update', {
+    analytics_storage: granted ? 'granted' : 'denied',
+  });
+
+  console.log('[Analytics] Consent updated:', granted ? 'granted' : 'denied');
+};
+
+// ===== REACT HOOK =====
+
+/**
+ * useAnalytics Hook
+ * React hook for accessing analytics functions
  */
 export const useAnalytics = () => {
   return {
-    trackEvent,
-    trackPageView,
-    ...analytics,
+    trackEvent: event,
+    trackPageView: pageview,
+    trackQuestionView,
+    trackQuestionBookmark,
+    trackQuestionShare,
+    trackSearch,
+    trackFilterApply,
+    trackQuestionCreate,
+    trackQuestionUpdate,
+    trackQuestionDelete,
+    trackBulkOperation,
+    trackError,
+    trackButtonClick,
+    trackFormSubmit,
+    updateConsent,
+    isEnabled: isAnalyticsEnabled(),
   };
 };
 
-/**
- * Higher-order component để auto-track page views
- */
-export const withAnalytics = <P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  pageName?: string
-) => {
-  return function AnalyticsWrapper(props: P) {
-    React.useEffect(() => {
-      if (pageName) {
-        trackPageView(window.location.href, pageName);
-      }
-    }, []);
-
-    return React.createElement(WrappedComponent, props);
-  };
+// ===== EXPORTS =====
+export default {
+  init: initAnalytics,
+  pageview,
+  event,
+  trackQuestionView,
+  trackQuestionBookmark,
+  trackQuestionShare,
+  trackSearch,
+  trackFilterApply,
+  trackQuestionCreate,
+  trackQuestionUpdate,
+  trackQuestionDelete,
+  trackBulkOperation,
+  trackError,
+  trackButtonClick,
+  trackFormSubmit,
+  updateConsent,
+  isEnabled: isAnalyticsEnabled,
 };
-
-// Export default cho convenience
-const analyticsDefault = {
-  init: initGA,
-  track: trackEvent,
-  pageView: trackPageView,
-  ...analytics,
-};
-
-export default analyticsDefault;

@@ -1,9 +1,9 @@
-package interfaces
+﻿package interfaces
 
 import (
 	"context"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 )
 
 // QuestionRepository defines the interface for question data access
@@ -39,6 +39,10 @@ type QuestionRepository interface {
 	UpdateStatus(ctx context.Context, id string, status string) error
 	UpdateUsageCount(ctx context.Context, id string) error
 	UpdateFeedback(ctx context.Context, id string, feedbackDelta int) error
+	
+	// Favorite management
+	ToggleFavorite(ctx context.Context, id string, isFavorite bool) error
+	GetFavorites(ctx context.Context, offset, limit int) ([]*entity.Question, int, error)
 }
 
 // FilterCriteria contains all filter parameters
@@ -76,6 +80,7 @@ type FilterCriteria struct {
 	// Boolean filters
 	HasSolution *bool
 	HasSource   *bool
+	OnlyFavorites *bool
 
 	// Question code IDs
 	QuestionCodeIDs []string
@@ -136,3 +141,4 @@ type QuestionCodeRepository interface {
 	// Validation
 	Exists(ctx context.Context, code string) (bool, error)
 }
+

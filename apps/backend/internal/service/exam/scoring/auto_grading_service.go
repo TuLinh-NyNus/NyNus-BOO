@@ -1,4 +1,4 @@
-package scoring
+﻿package scoring
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	examInterfaces "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
-	questionInterfaces "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/entity"
+	examInterfaces "exam-bank-system/apps/backend/internal/repository/interfaces"
+	questionInterfaces "exam-bank-system/apps/backend/internal/repository/interfaces"
 )
 
 // AutoGradingService handles automatic exam grading
@@ -342,3 +342,4 @@ func (s *AutoGradingService) ReGradeExam(ctx context.Context, attemptID string) 
 	// Re-grade using the same logic as AutoGradeExam
 	return s.AutoGradeExam(ctx, attemptID)
 }
+

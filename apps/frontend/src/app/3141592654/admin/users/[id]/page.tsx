@@ -12,18 +12,16 @@ import { Textarea } from "@/components/ui/form/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
 import { Skeleton } from "@/components/ui";
 import { useToast } from '@/hooks';
-// ✅ Import mock data instead of API service
-import { getUserById } from '@/lib/mockdata';
 import { AdminUser } from '@/types/user/admin';
-import { UserRole, UserStatus } from '@/lib/mockdata/core-types';
+import { UserRole as ProtobufUserRole, UserStatus as ProtobufUserStatus } from '@/generated/common/common_pb';
+import { UserStatus as MockdataUserStatus } from '@/lib/mockdata/core-types';
 import {
   getProtobufRoleLabel,
   getProtobufStatusLabel,
   getProtobufRoleColor,
-  convertEnumRoleToProtobuf,
-  convertEnumStatusToProtobuf,
   isProtobufStatusEqual
 } from '@/lib/utils/type-converters';
+import { AdminService } from '@/services/grpc/admin.service';
 
 // Removed unused constants - using protobuf helpers instead
 
@@ -40,86 +38,81 @@ export default function AdminUserDetailPage() {
     firstName: '',
     lastName: '',
     email: '',
-    role: convertEnumRoleToProtobuf(UserRole.STUDENT),
+    role: ProtobufUserRole.USER_ROLE_STUDENT,
     isActive: true,
     adminNotes: '',
   });
 
-  // ✅ Sử dụng mock data thay vì API call
+  // Fetch user from real gRPC API
   const fetchUser = useCallback(async (id: string) => {
     try {
       setLoading(true);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const userData = getUserById(id);
-      
-      if (userData) {
-        setUser(userData);
-        setEditForm({
-          firstName: userData.firstName || '',
-          lastName: userData.lastName || '',
-          email: userData.email,
-          role: userData.role,
-          isActive: isProtobufStatusEqual(userData.status, UserStatus.ACTIVE),
-          adminNotes: userData.adminNotes || '',
-        });
-      } else {
-        // Mock user nếu không tìm thấy
-        const mockUser: AdminUser = {
-          id: id,
-          email: 'user@example.com',
-          firstName: 'John',
-          lastName: 'Doe',
-          role: convertEnumRoleToProtobuf(UserRole.STUDENT),
-          status: convertEnumStatusToProtobuf(UserStatus.ACTIVE),
-          emailVerified: true,
-          password_hash: '$2b$12$mockHashForTestUser',
-          level: 1,
-          maxConcurrentSessions: 3,
-          loginAttempts: 0,
-          activeSessionsCount: 1,
-          totalResourceAccess: 50,
-          lastLoginAt: new Date('2024-01-15T10:30:00Z'),
-          createdAt: new Date('2024-01-01T00:00:00Z'),
-          updatedAt: new Date('2024-01-15T10:30:00Z'),
-          adminNotes: 'Test user account',
-          maxConcurrentIPs: 3,
-          profile: {
-            bio: 'This is a test user',
-            phoneNumber: '0123456789',
-            completionRate: 75,
-          },
-          stats: {
-            totalCourses: 0,
-            totalLessons: 5,
-            totalExamResults: 12,
-            averageScore: 7.5,
-          },
-        };
-        
-        setUser(mockUser);
-        setEditForm({
-          firstName: mockUser.firstName || '',
-          lastName: mockUser.lastName || '',
-          email: mockUser.email,
-          role: mockUser.role,
-          isActive: isProtobufStatusEqual(mockUser.status, UserStatus.ACTIVE),
-          adminNotes: mockUser.adminNotes || '',
-        });
+
+      // Call real gRPC API - use listUsers with filter by ID
+      const response = await AdminService.listUsers({
+        filter: {
+          search_query: id // Search by ID or email
+        },
+        pagination: {
+          page: 1,
+          limit: 1
+        }
+      });
+
+      if (!response.success || !response.users || response.users.length === 0) {
+        throw new Error('User not found');
       }
-      
-      toast({
-        title: 'Thông báo',
-        description: 'Đang sử dụng dữ liệu mẫu (Mock Data)',
-        variant: 'default',
+
+      // Map gRPC user to AdminUser format
+      const grpcUser = response.users[0] as Record<string, unknown>;
+      const userData: AdminUser = {
+        id: String(grpcUser.id || ''),
+        email: String(grpcUser.email || ''),
+        firstName: grpcUser.first_name as string || '',
+        lastName: grpcUser.last_name as string || '',
+        username: grpcUser.username as string || '',
+        role: Number(grpcUser.role) as ProtobufUserRole,
+        status: Number(grpcUser.status) as ProtobufUserStatus,
+        level: Number(grpcUser.level) || 1,
+        isActive: Boolean(grpcUser.is_active),
+        emailVerified: Boolean(grpcUser.email_verified),
+        password_hash: String(grpcUser.password_hash || ''),
+        maxConcurrentSessions: Number(grpcUser.max_concurrent_sessions) || 3,
+        loginAttempts: Number(grpcUser.login_attempts) || 0,
+        activeSessionsCount: Number(grpcUser.active_sessions_count) || 0,
+        totalResourceAccess: Number(grpcUser.total_resource_access) || 0,
+        lastLoginAt: grpcUser.last_login_at ? new Date(String(grpcUser.last_login_at)) : undefined,
+        createdAt: grpcUser.created_at ? new Date(String(grpcUser.created_at)) : new Date(),
+        updatedAt: grpcUser.updated_at ? new Date(String(grpcUser.updated_at)) : new Date(),
+        adminNotes: grpcUser.admin_notes as string || '',
+        maxConcurrentIPs: Number(grpcUser.max_concurrent_ips) || 3,
+        profile: {
+          bio: '',
+          phoneNumber: '',
+          completionRate: 0,
+        },
+        stats: {
+          totalCourses: 0,
+          totalLessons: 0,
+          totalExamResults: 0,
+          averageScore: 0,
+        },
+      };
+
+      setUser(userData);
+      setEditForm({
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        email: userData.email,
+        role: userData.role,
+        isActive: isProtobufStatusEqual(userData.status, MockdataUserStatus.ACTIVE),
+        adminNotes: userData.adminNotes || '',
       });
     } catch (error) {
       console.error('Error fetching user:', error);
       toast({
         title: 'Lỗi',
-        description: 'Không thể tải thông tin người dùng',
+        description: error instanceof Error ? error.message : 'Không thể tải thông tin người dùng',
         variant: 'destructive',
       });
     } finally {
@@ -170,7 +163,7 @@ export default function AdminUserDetailPage() {
       lastName: user.lastName || '',
       email: user.email,
       role: user.role,
-      isActive: isProtobufStatusEqual(user.status, UserStatus.ACTIVE),
+      isActive: isProtobufStatusEqual(user.status, MockdataUserStatus.ACTIVE),
       adminNotes: user.adminNotes || '',
     });
     setEditing(false);
@@ -264,12 +257,12 @@ export default function AdminUserDetailPage() {
             {getProtobufRoleLabel(user.role)}
           </Badge>
           <div className="flex items-center gap-2">
-            {isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? (
+            {isProtobufStatusEqual(user.status, MockdataUserStatus.ACTIVE) ? (
               <UserCheck className="h-4 w-4 text-green-600" />
             ) : (
               <UserX className="h-4 w-4 text-red-600" />
             )}
-            <span className={isProtobufStatusEqual(user.status, UserStatus.ACTIVE) ? 'text-green-600' : 'text-red-600'}>
+            <span className={isProtobufStatusEqual(user.status, MockdataUserStatus.ACTIVE) ? 'text-green-600' : 'text-red-600'}>
               {getProtobufStatusLabel(user.status)}
             </span>
           </div>

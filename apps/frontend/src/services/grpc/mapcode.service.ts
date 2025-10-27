@@ -30,8 +30,7 @@ import {
 import { RpcError } from 'grpc-web';
 
 // gRPC client utilities
-import { getGrpcUrl } from '@/lib/config/endpoints';
-import { getAuthMetadata } from './client';
+import { GRPC_WEB_HOST, getAuthMetadata } from './client';
 
 // Frontend types (from mapcode-client.ts)
 export interface MapCodeVersionData {
@@ -86,8 +85,14 @@ export interface StorageInfoData {
 
 // ===== gRPC CLIENT INITIALIZATION =====
 
-const GRPC_ENDPOINT = getGrpcUrl();
-const mapcodeServiceClient = new MapCodeServiceClient(GRPC_ENDPOINT);
+// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
+// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
+const mapcodeServiceClient = new MapCodeServiceClient(GRPC_WEB_HOST, null, {
+  format: 'text', // Use text format for consistency with proto generation
+  withCredentials: false,
+  unaryInterceptors: [],
+  streamInterceptors: []
+});
 
 // ===== OBJECT MAPPERS =====
 

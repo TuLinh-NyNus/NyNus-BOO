@@ -42,6 +42,10 @@ export const ROUTE_PERMISSIONS = new Map<string, RoutePermission>([
   ['/admin/roles', { roles: ['ADMIN'], requireAuth: true }],
   ['/admin/permissions', { roles: ['ADMIN'], requireAuth: true }],
 
+  // ===== SECURE ADMIN ROUTES (Hidden Path) =====
+  // Security: Admin dashboard accessible via obfuscated path /3141592654/admin
+  ['/3141592654/admin', { roles: ['ADMIN'], requireAuth: true }],
+
   // ===== TEACHER ROUTES =====
   ['/teacher', { roles: ['TEACHER', 'ADMIN'], requireAuth: true }],
   ['/teacher/courses', { roles: ['TEACHER', 'ADMIN'], requireAuth: true }],

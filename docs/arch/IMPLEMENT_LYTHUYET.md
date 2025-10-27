@@ -86,7 +86,7 @@ Ví dụ proto (rút gọn)
 ```proto
 syntax = "proto3";
 package v1;
-option go_package = "github.com/AnhPhan49/exam-bank-system/packages/proto/v1;v1";
+option go_package = "exam-bank-system/packages/proto/v1;v1";
 
 enum PostType { POST_TYPE_UNSPECIFIED = 0; POST_TYPE_ARTICLE = 1; POST_TYPE_THEORY = 2; POST_TYPE_MATH_NOTE = 3; }
 message PostMetadata { string id=1; string slug=2; string title=3; repeated string tags=4; string category=5; PostType type=6; string author_id=7; int64 created_at=8; int64 updated_at=9; string hero_image_url=10; bool math_enabled=11; }
@@ -99,7 +99,7 @@ service BlogService { rpc GetPost(GetPostRequest) returns (GetPostResponse); }
 ```proto
 syntax = "proto3";
 package v1;
-option go_package = "github.com/AnhPhan49/exam-bank-system/packages/proto/v1;v1";
+option go_package = "exam-bank-system/packages/proto/v1;v1";
 message TikzSource { string template_id=1; string code=2; }
 message AssetRef { string asset_id=1; string url=2; string hash=3; int32 width=4; int32 height=5; string format=6; }
 message CompileTikzRequest { TikzSource source=1; }
@@ -110,7 +110,7 @@ service TikzCompilerService { rpc CompileTikz(CompileTikzRequest) returns (Compi
 ```proto
 syntax = "proto3";
 package v1;
-option go_package = "github.com/AnhPhan49/exam-bank-system/packages/proto/v1;v1";
+option go_package = "exam-bank-system/packages/proto/v1;v1";
 message SearchRequest { string query=1; string category=2; repeated string tags=3; int32 limit=4; }
 message SearchHit { string id=1; string slug=2; string title=3; string snippet=4; PostType type=5; float score=6; }
 service SearchService { rpc Search(SearchRequest) returns (stream SearchHit); }

@@ -73,38 +73,30 @@ const MOCK_SUGGESTIONS = {
 };
 
 /**
- * Subject dependencies based on grade
+ * Subject dependencies based on grade - Updated to match MapCode.md
+ * Only includes subjects that actually exist in MapCode.md
  */
 const GRADE_SUBJECT_DEPENDENCIES: Record<string, string[]> = {
-  '0': ['P', 'L', 'H', 'S', 'V', 'A'], // Mầm non
-  '1': ['P', 'L', 'H', 'S', 'V', 'A'], // Lớp 1
-  '2': ['P', 'L', 'H', 'S', 'V', 'A'], // Lớp 2
-  '3': ['P', 'L', 'H', 'S', 'V', 'A'], // Lớp 3
-  '4': ['P', 'L', 'H', 'S', 'V', 'A'], // Lớp 4
-  '5': ['P', 'L', 'H', 'S', 'V', 'A'], // Lớp 5
-  '6': ['P', 'L', 'H', 'S', 'V', 'A', 'E'], // Lớp 6
-  '7': ['P', 'L', 'H', 'S', 'V', 'A', 'E'], // Lớp 7
-  '8': ['P', 'L', 'H', 'S', 'V', 'A', 'E'], // Lớp 8
-  '9': ['P', 'L', 'H', 'S', 'V', 'A', 'E'], // Lớp 9
-  '10': ['P', 'L', 'H', 'S', 'V', 'A', 'E', 'T', 'D', 'G'], // Lớp 10
-  '11': ['P', 'L', 'H', 'S', 'V', 'A', 'E', 'T', 'D', 'G'], // Lớp 11
-  '12': ['P', 'L', 'H', 'S', 'V', 'A', 'E', 'T', 'D', 'G']  // Lớp 12
+  '0': ['P', 'D', 'H', 'C', 'G'], // Lớp 10
+  '1': ['P', 'D', 'H', 'C', 'G'], // Lớp 11
+  '2': ['P', 'D', 'H', 'C', 'G', 'T'], // Lớp 12
+  '6': ['P', 'D', 'H', 'G'], // Lớp 6
+  '7': ['P', 'D', 'H', 'G'], // Lớp 7
+  '8': ['P', 'D', 'H', 'G', 'T'], // Lớp 8
+  '9': ['P', 'D', 'H', 'G'] // Lớp 9
 };
 
 /**
- * Subject labels
+ * Subject labels - Updated from MapCode.md to match MAPCODE_CONFIG
+ * This prevents hydration mismatches between server and client
  */
 const SUBJECT_LABELS: Record<string, string> = {
-  'P': 'Toán',
-  'L': 'Ngữ văn',
-  'H': 'Hóa học',
-  'S': 'Sinh học',
-  'V': 'Vật lý',
-  'A': 'Tiếng Anh',
-  'E': 'GDCD',
-  'T': 'Lịch sử',
-  'D': 'Địa lý',
-  'G': 'Tin học'
+  'P': 'NGÂN HÀNG CHÍNH',
+  'D': 'Đại số và giải tích',
+  'H': 'Hình học và đo lường',
+  'C': 'Chuyên đề',
+  'G': 'HỌC SINH GIỎI',
+  'T': 'CÂU HỎI TƯ DUY'
 };
 
 // ===== COMPONENT =====

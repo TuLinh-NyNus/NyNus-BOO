@@ -5,9 +5,6 @@ package v1;
 import "common/common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
-
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
-
 // MapCode Management Service
 service MapCodeService {
   // Version Management
@@ -66,6 +63,13 @@ service MapCodeService {
   rpc GetStorageInfo(GetStorageInfoRequest) returns (GetStorageInfoResponse) {
     option (google.api.http) = {
       get: "/api/v1/mapcode/storage"
+    };
+  }
+
+  // Configuration Access
+  rpc GetMapCodeConfig(GetMapCodeConfigRequest) returns (GetMapCodeConfigResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/config"
     };
   }
 }
@@ -212,3 +216,27 @@ message GetStorageInfoResponse {
   common.Response status = 1;
   StorageInfo storage = 2;
 }
+
+// Configuration Access
+message GetMapCodeConfigRequest {
+  string version_id = 1;  // Optional: specific version, if empty use active
+}
+
+message GetMapCodeConfigResponse {
+  common.Response status = 1;
+  MapCodeConfig config = 2;
+}
+
+message MapCodeConfig {
+  string version = 1;
+  map<string, string> grades = 2;
+  map<string, string> subjects = 3;
+  map<string, string> chapters = 4;
+  map<string, string> levels = 5;
+  map<string, string> lessons = 6;
+  map<string, string> forms = 7;
+}
+
+
+
+

@@ -1,11 +1,11 @@
-package latex
+﻿package latex
 
 import (
 	"encoding/json"
 	"regexp"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 	"github.com/jackc/pgtype"
 )
 
@@ -34,22 +34,22 @@ func (ae *AnswerExtractor) IdentifyQuestionType(content string) string {
 	contentWithoutSolution := ae.removeSolutionForAnalysis(content)
 
 	// Priority order:
-	// 1. Check for choiceTF variants → TF
+	// 1. Check for choiceTF variants â†’ TF
 	if strings.Contains(contentWithoutSolution, "\\choiceTF") {
 		return string(entity.QuestionTypeTF)
 	}
 
-	// 2. Check for choice (not choiceTF) → MC
+	// 2. Check for choice (not choiceTF) â†’ MC
 	if strings.Contains(contentWithoutSolution, "\\choice") {
 		return string(entity.QuestionTypeMC)
 	}
 
-	// 3. Check for shortans → SA
+	// 3. Check for shortans â†’ SA
 	if strings.Contains(contentWithoutSolution, "\\shortans") {
 		return string(entity.QuestionTypeSA)
 	}
 
-	// 4. Check for matching → MA
+	// 4. Check for matching â†’ MA
 	if strings.Contains(contentWithoutSolution, "\\matching") {
 		return string(entity.QuestionTypeMA)
 	}
@@ -399,3 +399,4 @@ func (ae *AnswerExtractor) findClosingBrace(content string, startPos int) int {
 
 	return pos - 1 // Position of closing brace
 }
+

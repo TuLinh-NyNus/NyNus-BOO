@@ -135,18 +135,24 @@ export function AdminHeader({
    */
   const renderActionsSection = () => {
     return (
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 flex-shrink-0">
         {/* Theme Toggle */}
-        <UnifiedThemeToggle variant="ghost" size="md" />
+        <div className="flex-shrink-0">
+          <UnifiedThemeToggle variant="ghost" size="md" />
+        </div>
 
         {/* Notifications */}
         {showNotifications && (
-          <NotificationDropdown />
+          <div className="flex-shrink-0">
+            <NotificationDropdown />
+          </div>
         )}
 
         {/* User Menu */}
         {showUserMenu && (
-          <UserMenu />
+          <div className="flex-shrink-0">
+            <UserMenu />
+          </div>
         )}
       </div>
     );
@@ -163,13 +169,17 @@ export function AdminHeader({
       return (
         <>
           {/* Left section */}
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0 overflow-hidden">
             {renderMobileMenuButton()}
-            {renderBreadcrumbSection()}
+            <div className="hidden md:flex flex-1 min-w-0">
+              {renderBreadcrumbSection()}
+            </div>
           </div>
 
           {/* Center section */}
-          {renderSearchSection()}
+          <div className="hidden lg:flex flex-1 max-w-md">
+            {renderSearchSection()}
+          </div>
 
           {/* Right section */}
           {renderActionsSection()}
@@ -182,12 +192,14 @@ export function AdminHeader({
       return (
         <>
           {/* Left section */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {renderMobileMenuButton()}
           </div>
 
           {/* Center section */}
-          {renderSearchSection()}
+          <div className="hidden md:flex flex-1 max-w-md">
+            {renderSearchSection()}
+          </div>
 
           {/* Right section */}
           {renderActionsSection()}
@@ -200,9 +212,11 @@ export function AdminHeader({
       return (
         <>
           {/* Left section */}
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
+          <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0 overflow-hidden">
             {renderMobileMenuButton()}
-            {renderBreadcrumbSection()}
+            <div className="hidden md:flex flex-1 min-w-0">
+              {renderBreadcrumbSection()}
+            </div>
           </div>
 
           {/* Right section */}
@@ -215,7 +229,7 @@ export function AdminHeader({
     return (
       <>
         {/* Left section */}
-        <div className="flex items-center space-x-4 flex-1">
+        <div className="flex items-center space-x-2 sm:space-x-4 flex-1">
           {renderMobileMenuButton()}
         </div>
 
@@ -227,8 +241,8 @@ export function AdminHeader({
 
   return (
     <header className={getHeaderClasses()} style={getHeaderStyles()}>
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="px-2 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 gap-2 sm:gap-3 md:gap-4">
           {renderHeaderContent()}
         </div>
       </div>

@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/util"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -20,9 +20,9 @@ const (
 
 // Test user data
 var testUser = &entity.User{
-	ID:    util.StringToPgText("test-user-123"),
+	ID:    util.StringToPgText("student-123"),
 	Email: util.StringToPgText("test@nynus.com"),
-	Role:  util.StringToPgText("student"),
+	Role:  util.StringToPgText("STUDENT"),
 }
 
 // createTestLogger creates a logger for testing
@@ -34,11 +34,11 @@ func createTestLogger() *logrus.Logger {
 
 func TestNewUnifiedJWTService(t *testing.T) {
 	tests := []struct {
-		name      string
-		secret    string
-		logger    *logrus.Logger
-		wantErr   bool
-		errMsg    string
+		name    string
+		secret  string
+		logger  *logrus.Logger
+		wantErr bool
+		errMsg  string
 	}{
 		{
 			name:    "Valid secret with logger",
@@ -97,9 +97,9 @@ func TestUnifiedJWTService_GenerateToken(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "Nil user should not panic but may have empty fields",
+			name:    "Missing user fields",
 			user:    &entity.User{},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 
@@ -139,7 +139,7 @@ func TestUnifiedJWTService_GenerateAccessToken(t *testing.T) {
 	}{
 		{
 			name:    "Valid parameters",
-			userID:  "test-user-123",
+			userID:  "student-123",
 			email:   "test@nynus.com",
 			role:    "student",
 			level:   1,
@@ -151,11 +151,11 @@ func TestUnifiedJWTService_GenerateAccessToken(t *testing.T) {
 			email:   "test@nynus.com",
 			role:    "student",
 			level:   1,
-			wantErr: false, // Should still generate token
+			wantErr: true, // Validation should fail
 		},
 		{
 			name:    "Admin role with high level",
-			userID:  "admin-user-456",
+			userID:  "admin-456",
 			email:   "admin@nynus.com",
 			role:    "admin",
 			level:   5,
@@ -198,13 +198,13 @@ func TestUnifiedJWTService_GenerateRefreshToken(t *testing.T) {
 	}{
 		{
 			name:    "Valid userID",
-			userID:  "test-user-123",
+			userID:  "student-123",
 			wantErr: false,
 		},
 		{
 			name:    "Empty userID",
 			userID:  "",
-			wantErr: false, // Should still generate token
+			wantErr: true,
 		},
 	}
 
@@ -233,7 +233,7 @@ func TestUnifiedJWTService_ValidateToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate a valid token first
-	validToken, err := service.GenerateAccessToken("test-user", "test@nynus.com", "student", 1)
+	validToken, err := service.GenerateAccessToken("student-123", "test@nynus.com", "student", 1)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -273,7 +273,7 @@ func TestUnifiedJWTService_ValidateToken(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.NotNil(t, claims)
-				assert.Equal(t, "test-user", claims.UserID)
+				assert.Equal(t, "student-123", claims.UserID)
 				assert.Equal(t, "test@nynus.com", claims.Email)
 				assert.Equal(t, "student", claims.Role)
 			}
@@ -294,7 +294,7 @@ func TestUnifiedJWTService_ValidateAccessToken(t *testing.T) {
 		logger:        createTestLogger(),
 	}
 
-	expiredToken, err := expiredService.GenerateAccessToken("test-user", "test@nynus.com", "student", 1)
+	expiredToken, err := expiredService.GenerateAccessToken("student-123", "test@nynus.com", "student", 1)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -307,7 +307,7 @@ func TestUnifiedJWTService_ValidateAccessToken(t *testing.T) {
 			name:    "Expired token",
 			token:   expiredToken,
 			wantErr: true,
-			errMsg:  "token is expired",
+			errMsg:  "token has expired",
 		},
 	}
 
@@ -334,7 +334,7 @@ func TestUnifiedJWTService_ValidateRefreshToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Generate valid refresh token
-	validRefreshToken, err := service.GenerateRefreshToken("test-user-123")
+	validRefreshToken, err := service.GenerateRefreshToken("student-123")
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -347,7 +347,7 @@ func TestUnifiedJWTService_ValidateRefreshToken(t *testing.T) {
 			name:       "Valid refresh token",
 			token:      validRefreshToken,
 			wantErr:    false,
-			wantUserID: "test-user-123",
+			wantUserID: "student-123",
 		},
 		{
 			name:    "Empty refresh token",
@@ -380,7 +380,7 @@ func TestUnifiedJWTService_ValidateRefreshToken(t *testing.T) {
 func generateTokenWithWrongSecret(t *testing.T) string {
 	wrongService, err := NewUnifiedJWTService("wrong-secret", nil, createTestLogger())
 	require.NoError(t, err)
-	token, err := wrongService.GenerateAccessToken("test-user", "test@nynus.com", "student", 1)
+	token, err := wrongService.GenerateAccessToken("student-123", "test@nynus.com", "student", 1)
 	require.NoError(t, err)
 	return token
 }

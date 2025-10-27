@@ -30,9 +30,13 @@ const TabsTrigger = ({
   className?: string;
   onClick?: () => void;
 }) => (
-  <button onClick={onClick} className={`px-4 py-2 border-b-2 transition-colors ${className}`}>
+  <Button
+    onClick={onClick}
+    variant="ghost"
+    className={`px-4 py-2 border-b-2 transition-colors rounded-none ${className}`}
+  >
     {children}
-  </button>
+  </Button>
 );
 
 const TabsContent = ({

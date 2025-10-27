@@ -28,13 +28,23 @@ const (
 	QuestionService_ParseLatexQuestion_FullMethodName      = "/v1.QuestionService/ParseLatexQuestion"
 	QuestionService_CreateQuestionFromLatex_FullMethodName = "/v1.QuestionService/CreateQuestionFromLatex"
 	QuestionService_ImportLatex_FullMethodName             = "/v1.QuestionService/ImportLatex"
+	QuestionService_GetVersionHistory_FullMethodName       = "/v1.QuestionService/GetVersionHistory"
+	QuestionService_GetVersion_FullMethodName              = "/v1.QuestionService/GetVersion"
+	QuestionService_CompareVersions_FullMethodName         = "/v1.QuestionService/CompareVersions"
+	QuestionService_RevertToVersion_FullMethodName         = "/v1.QuestionService/RevertToVersion"
+	QuestionService_BulkUpdateQuestions_FullMethodName     = "/v1.QuestionService/BulkUpdateQuestions"
+	QuestionService_BulkDeleteQuestions_FullMethodName     = "/v1.QuestionService/BulkDeleteQuestions"
+	QuestionService_ToggleFavorite_FullMethodName          = "/v1.QuestionService/ToggleFavorite"
+	QuestionService_ListFavoriteQuestions_FullMethodName   = "/v1.QuestionService/ListFavoriteQuestions"
 )
 
 // QuestionServiceClient is the client API for QuestionService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 //
+// ============================================================================
 // Question service
+// ============================================================================
 type QuestionServiceClient interface {
 	CreateQuestion(ctx context.Context, in *CreateQuestionRequest, opts ...grpc.CallOption) (*CreateQuestionResponse, error)
 	GetQuestion(ctx context.Context, in *GetQuestionRequest, opts ...grpc.CallOption) (*GetQuestionResponse, error)
@@ -46,6 +56,23 @@ type QuestionServiceClient interface {
 	ParseLatexQuestion(ctx context.Context, in *ParseLatexQuestionRequest, opts ...grpc.CallOption) (*ParseLatexQuestionResponse, error)
 	CreateQuestionFromLatex(ctx context.Context, in *CreateQuestionFromLatexRequest, opts ...grpc.CallOption) (*CreateQuestionFromLatexResponse, error)
 	ImportLatex(ctx context.Context, in *ImportLatexRequest, opts ...grpc.CallOption) (*ImportLatexResponse, error)
+	// ============================================================================
+	// VERSION CONTROL OPERATIONS
+	// ============================================================================
+	GetVersionHistory(ctx context.Context, in *GetVersionHistoryRequest, opts ...grpc.CallOption) (*GetVersionHistoryResponse, error)
+	GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error)
+	CompareVersions(ctx context.Context, in *CompareVersionsRequest, opts ...grpc.CallOption) (*CompareVersionsResponse, error)
+	RevertToVersion(ctx context.Context, in *RevertToVersionRequest, opts ...grpc.CallOption) (*RevertToVersionResponse, error)
+	// ============================================================================
+	// BULK OPERATIONS
+	// ============================================================================
+	BulkUpdateQuestions(ctx context.Context, in *BulkUpdateQuestionsRequest, opts ...grpc.CallOption) (*BulkUpdateQuestionsResponse, error)
+	BulkDeleteQuestions(ctx context.Context, in *BulkDeleteQuestionsRequest, opts ...grpc.CallOption) (*BulkDeleteQuestionsResponse, error)
+	// ============================================================================
+	// FAVORITE OPERATIONS
+	// ============================================================================
+	ToggleFavorite(ctx context.Context, in *ToggleFavoriteRequest, opts ...grpc.CallOption) (*ToggleFavoriteResponse, error)
+	ListFavoriteQuestions(ctx context.Context, in *ListFavoriteQuestionsRequest, opts ...grpc.CallOption) (*ListFavoriteQuestionsResponse, error)
 }
 
 type questionServiceClient struct {
@@ -146,11 +173,93 @@ func (c *questionServiceClient) ImportLatex(ctx context.Context, in *ImportLatex
 	return out, nil
 }
 
+func (c *questionServiceClient) GetVersionHistory(ctx context.Context, in *GetVersionHistoryRequest, opts ...grpc.CallOption) (*GetVersionHistoryResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVersionHistoryResponse)
+	err := c.cc.Invoke(ctx, QuestionService_GetVersionHistory_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *questionServiceClient) GetVersion(ctx context.Context, in *GetVersionRequest, opts ...grpc.CallOption) (*GetVersionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetVersionResponse)
+	err := c.cc.Invoke(ctx, QuestionService_GetVersion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *questionServiceClient) CompareVersions(ctx context.Context, in *CompareVersionsRequest, opts ...grpc.CallOption) (*CompareVersionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CompareVersionsResponse)
+	err := c.cc.Invoke(ctx, QuestionService_CompareVersions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *questionServiceClient) RevertToVersion(ctx context.Context, in *RevertToVersionRequest, opts ...grpc.CallOption) (*RevertToVersionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RevertToVersionResponse)
+	err := c.cc.Invoke(ctx, QuestionService_RevertToVersion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *questionServiceClient) BulkUpdateQuestions(ctx context.Context, in *BulkUpdateQuestionsRequest, opts ...grpc.CallOption) (*BulkUpdateQuestionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BulkUpdateQuestionsResponse)
+	err := c.cc.Invoke(ctx, QuestionService_BulkUpdateQuestions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *questionServiceClient) BulkDeleteQuestions(ctx context.Context, in *BulkDeleteQuestionsRequest, opts ...grpc.CallOption) (*BulkDeleteQuestionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BulkDeleteQuestionsResponse)
+	err := c.cc.Invoke(ctx, QuestionService_BulkDeleteQuestions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *questionServiceClient) ToggleFavorite(ctx context.Context, in *ToggleFavoriteRequest, opts ...grpc.CallOption) (*ToggleFavoriteResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ToggleFavoriteResponse)
+	err := c.cc.Invoke(ctx, QuestionService_ToggleFavorite_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *questionServiceClient) ListFavoriteQuestions(ctx context.Context, in *ListFavoriteQuestionsRequest, opts ...grpc.CallOption) (*ListFavoriteQuestionsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListFavoriteQuestionsResponse)
+	err := c.cc.Invoke(ctx, QuestionService_ListFavoriteQuestions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QuestionServiceServer is the server API for QuestionService service.
 // All implementations should embed UnimplementedQuestionServiceServer
 // for forward compatibility.
 //
+// ============================================================================
 // Question service
+// ============================================================================
 type QuestionServiceServer interface {
 	CreateQuestion(context.Context, *CreateQuestionRequest) (*CreateQuestionResponse, error)
 	GetQuestion(context.Context, *GetQuestionRequest) (*GetQuestionResponse, error)
@@ -162,6 +271,23 @@ type QuestionServiceServer interface {
 	ParseLatexQuestion(context.Context, *ParseLatexQuestionRequest) (*ParseLatexQuestionResponse, error)
 	CreateQuestionFromLatex(context.Context, *CreateQuestionFromLatexRequest) (*CreateQuestionFromLatexResponse, error)
 	ImportLatex(context.Context, *ImportLatexRequest) (*ImportLatexResponse, error)
+	// ============================================================================
+	// VERSION CONTROL OPERATIONS
+	// ============================================================================
+	GetVersionHistory(context.Context, *GetVersionHistoryRequest) (*GetVersionHistoryResponse, error)
+	GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error)
+	CompareVersions(context.Context, *CompareVersionsRequest) (*CompareVersionsResponse, error)
+	RevertToVersion(context.Context, *RevertToVersionRequest) (*RevertToVersionResponse, error)
+	// ============================================================================
+	// BULK OPERATIONS
+	// ============================================================================
+	BulkUpdateQuestions(context.Context, *BulkUpdateQuestionsRequest) (*BulkUpdateQuestionsResponse, error)
+	BulkDeleteQuestions(context.Context, *BulkDeleteQuestionsRequest) (*BulkDeleteQuestionsResponse, error)
+	// ============================================================================
+	// FAVORITE OPERATIONS
+	// ============================================================================
+	ToggleFavorite(context.Context, *ToggleFavoriteRequest) (*ToggleFavoriteResponse, error)
+	ListFavoriteQuestions(context.Context, *ListFavoriteQuestionsRequest) (*ListFavoriteQuestionsResponse, error)
 }
 
 // UnimplementedQuestionServiceServer should be embedded to have
@@ -197,6 +323,30 @@ func (UnimplementedQuestionServiceServer) CreateQuestionFromLatex(context.Contex
 }
 func (UnimplementedQuestionServiceServer) ImportLatex(context.Context, *ImportLatexRequest) (*ImportLatexResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ImportLatex not implemented")
+}
+func (UnimplementedQuestionServiceServer) GetVersionHistory(context.Context, *GetVersionHistoryRequest) (*GetVersionHistoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVersionHistory not implemented")
+}
+func (UnimplementedQuestionServiceServer) GetVersion(context.Context, *GetVersionRequest) (*GetVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVersion not implemented")
+}
+func (UnimplementedQuestionServiceServer) CompareVersions(context.Context, *CompareVersionsRequest) (*CompareVersionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompareVersions not implemented")
+}
+func (UnimplementedQuestionServiceServer) RevertToVersion(context.Context, *RevertToVersionRequest) (*RevertToVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevertToVersion not implemented")
+}
+func (UnimplementedQuestionServiceServer) BulkUpdateQuestions(context.Context, *BulkUpdateQuestionsRequest) (*BulkUpdateQuestionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkUpdateQuestions not implemented")
+}
+func (UnimplementedQuestionServiceServer) BulkDeleteQuestions(context.Context, *BulkDeleteQuestionsRequest) (*BulkDeleteQuestionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BulkDeleteQuestions not implemented")
+}
+func (UnimplementedQuestionServiceServer) ToggleFavorite(context.Context, *ToggleFavoriteRequest) (*ToggleFavoriteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ToggleFavorite not implemented")
+}
+func (UnimplementedQuestionServiceServer) ListFavoriteQuestions(context.Context, *ListFavoriteQuestionsRequest) (*ListFavoriteQuestionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFavoriteQuestions not implemented")
 }
 func (UnimplementedQuestionServiceServer) testEmbeddedByValue() {}
 
@@ -380,6 +530,150 @@ func _QuestionService_ImportLatex_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _QuestionService_GetVersionHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVersionHistoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).GetVersionHistory(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_GetVersionHistory_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).GetVersionHistory(ctx, req.(*GetVersionHistoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuestionService_GetVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).GetVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_GetVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).GetVersion(ctx, req.(*GetVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuestionService_CompareVersions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompareVersionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).CompareVersions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_CompareVersions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).CompareVersions(ctx, req.(*CompareVersionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuestionService_RevertToVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevertToVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).RevertToVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_RevertToVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).RevertToVersion(ctx, req.(*RevertToVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuestionService_BulkUpdateQuestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkUpdateQuestionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).BulkUpdateQuestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_BulkUpdateQuestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).BulkUpdateQuestions(ctx, req.(*BulkUpdateQuestionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuestionService_BulkDeleteQuestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BulkDeleteQuestionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).BulkDeleteQuestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_BulkDeleteQuestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).BulkDeleteQuestions(ctx, req.(*BulkDeleteQuestionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuestionService_ToggleFavorite_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ToggleFavoriteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).ToggleFavorite(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_ToggleFavorite_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).ToggleFavorite(ctx, req.(*ToggleFavoriteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _QuestionService_ListFavoriteQuestions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFavoriteQuestionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QuestionServiceServer).ListFavoriteQuestions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: QuestionService_ListFavoriteQuestions_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QuestionServiceServer).ListFavoriteQuestions(ctx, req.(*ListFavoriteQuestionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // QuestionService_ServiceDesc is the grpc.ServiceDesc for QuestionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -422,6 +716,38 @@ var QuestionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ImportLatex",
 			Handler:    _QuestionService_ImportLatex_Handler,
+		},
+		{
+			MethodName: "GetVersionHistory",
+			Handler:    _QuestionService_GetVersionHistory_Handler,
+		},
+		{
+			MethodName: "GetVersion",
+			Handler:    _QuestionService_GetVersion_Handler,
+		},
+		{
+			MethodName: "CompareVersions",
+			Handler:    _QuestionService_CompareVersions_Handler,
+		},
+		{
+			MethodName: "RevertToVersion",
+			Handler:    _QuestionService_RevertToVersion_Handler,
+		},
+		{
+			MethodName: "BulkUpdateQuestions",
+			Handler:    _QuestionService_BulkUpdateQuestions_Handler,
+		},
+		{
+			MethodName: "BulkDeleteQuestions",
+			Handler:    _QuestionService_BulkDeleteQuestions_Handler,
+		},
+		{
+			MethodName: "ToggleFavorite",
+			Handler:    _QuestionService_ToggleFavorite_Handler,
+		},
+		{
+			MethodName: "ListFavoriteQuestions",
+			Handler:    _QuestionService_ListFavoriteQuestions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

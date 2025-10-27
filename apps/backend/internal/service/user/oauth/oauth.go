@@ -1,4 +1,4 @@
-package oauth
+﻿package oauth
 
 import (
 	"context"
@@ -8,46 +8,46 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/auth"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/common"
-	pb "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1"
+	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/pkg/proto/common"
+	pb "exam-bank-system/apps/backend/pkg/proto/v1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// OAuthService handles OAuth authentication với structured logging và validation
+// OAuthService handles OAuth authentication vá»›i structured logging vÃ  validation
 //
 // Business Logic:
-// - Xử lý Google OAuth authentication flow
-// - Tạo hoặc update user từ Google account
-// - Generate JWT tokens và session tokens
-// - Quản lý concurrent sessions (max 3 devices)
-// - Track login attempts và security events
+// - Xá»­ lÃ½ Google OAuth authentication flow
+// - Táº¡o hoáº·c update user tá»« Google account
+// - Generate JWT tokens vÃ  session tokens
+// - Quáº£n lÃ½ concurrent sessions (max 3 devices)
+// - Track login attempts vÃ  security events
 type OAuthService struct {
 	userRepo         repository.IUserRepository
 	oauthAccountRepo repository.OAuthAccountRepository
 	sessionRepo      repository.SessionRepository
 	googleClient     *GoogleClient
 	jwtService       auth.IJWTService   // REFACTORED: Use IJWTService interface
-	sessionService   SessionService     // Session management với 24h sliding window
+	sessionService   SessionService     // Session management vá»›i 24h sliding window
 	logger           *logrus.Logger     // Structured logging
 }
 
 // SessionService interface for session management
 //
 // Business Logic:
-// - CreateSession: Tạo session mới với 24h sliding window
-// - ValidateSession: Validate session token và extend expiry
-// - InvalidateAllUserSessions: Revoke tất cả sessions của user (logout all devices)
+// - CreateSession: Táº¡o session má»›i vá»›i 24h sliding window
+// - ValidateSession: Validate session token vÃ  extend expiry
+// - InvalidateAllUserSessions: Revoke táº¥t cáº£ sessions cá»§a user (logout all devices)
 type SessionService interface {
 	CreateSession(ctx context.Context, userID, sessionToken, ipAddress, userAgent, deviceFingerprint string) (*repository.Session, error)
 	ValidateSession(ctx context.Context, sessionToken string) (*repository.Session, error)
 	InvalidateAllUserSessions(ctx context.Context, userID string) error
 }
 
-// NewOAuthService creates a new OAuth service với dependency injection
+// NewOAuthService creates a new OAuth service vá»›i dependency injection
 //
 // Parameters:
 //   - userRepo: User repository cho database operations
@@ -101,23 +101,23 @@ type GooglePayload struct {
 	FamilyName    string `json:"family_name"`
 }
 
-// GoogleLogin handles Google OAuth authentication với validation và logging
+// GoogleLogin handles Google OAuth authentication vá»›i validation vÃ  logging
 //
 // Business Logic:
 // - Validate Google ID token
-// - Tạo user mới nếu chưa tồn tại
-// - Update Google ID và avatar nếu cần
-// - Generate JWT tokens và session tokens
+// - Táº¡o user má»›i náº¿u chÆ°a tá»“n táº¡i
+// - Update Google ID vÃ  avatar náº¿u cáº§n
+// - Generate JWT tokens vÃ  session tokens
 // - Track login activity
 //
 // Parameters:
-//   - ctx: Context với timeout và cancellation
-//   - idToken: Google ID token từ frontend
-//   - ipAddress: IP address của user (for security tracking)
+//   - ctx: Context vá»›i timeout vÃ  cancellation
+//   - idToken: Google ID token tá»« frontend
+//   - ipAddress: IP address cá»§a user (for security tracking)
 //
 // Returns:
-//   - *pb.LoginResponse: Response với access_token, refresh_token, session_token, user info
-//   - error: gRPC error với appropriate code
+//   - *pb.LoginResponse: Response vá»›i access_token, refresh_token, session_token, user info
+//   - error: gRPC error vá»›i appropriate code
 func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddress string) (*pb.LoginResponse, error) {
 	// Validate input parameters
 	if idToken == "" {
@@ -384,7 +384,7 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 
 // verifyGoogleIDToken validates Google ID token
 func (s *OAuthService) verifyGoogleIDToken(ctx context.Context, idToken string) (*GooglePayload, error) {
-	// Sử dụng GoogleClient để verify ID token
+	// Sá»­ dá»¥ng GoogleClient Ä‘á»ƒ verify ID token
 	userInfo, err := s.googleClient.VerifyIDToken(ctx, idToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate ID token: %w", err)
@@ -488,21 +488,21 @@ func (s *OAuthService) userStatusToProto(status string) common.UserStatus {
 	}
 }
 
-// RefreshToken refreshes the access token using refresh token với validation và logging
+// RefreshToken refreshes the access token using refresh token vá»›i validation vÃ  logging
 //
 // Business Logic:
 // - Validate refresh token
 // - Check user status (must be ACTIVE)
-// - Generate new access token và refresh token
+// - Generate new access token vÃ  refresh token
 // - Return new tokens
 //
 // Parameters:
-//   - ctx: Context với timeout và cancellation
-//   - refreshToken: Refresh token từ client
+//   - ctx: Context vá»›i timeout vÃ  cancellation
+//   - refreshToken: Refresh token tá»« client
 //
 // Returns:
-//   - *pb.RefreshTokenResponse: Response với new access_token và refresh_token
-//   - error: gRPC error với appropriate code
+//   - *pb.RefreshTokenResponse: Response vá»›i new access_token vÃ  refresh_token
+//   - error: gRPC error vá»›i appropriate code
 func (s *OAuthService) RefreshToken(ctx context.Context, refreshToken string) (*pb.RefreshTokenResponse, error) {
 	// Validate input
 	if refreshToken == "" {
@@ -545,7 +545,7 @@ func (s *OAuthService) RefreshToken(ctx context.Context, refreshToken string) (*
 		return nil, status.Errorf(codes.PermissionDenied, "user account is %s", user.Status)
 	}
 
-	// Generate new tokens với full user details
+	// Generate new tokens vá»›i full user details
 	s.logger.WithFields(logrus.Fields{
 		"operation": "RefreshToken",
 		"user_id":   user.ID,
@@ -588,3 +588,4 @@ func (s *OAuthService) RefreshToken(ctx context.Context, refreshToken string) (*
 		RefreshToken: newRefreshToken,
 	}, nil
 }
+

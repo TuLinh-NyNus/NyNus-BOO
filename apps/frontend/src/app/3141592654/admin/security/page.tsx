@@ -32,13 +32,12 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-// Import mockdata thay vì API calls
+// Import types from mockdata
 import {
-  getSecurityMetrics,
-  getSecurityEvents,
   type SecurityMetrics,
   type SecurityEvent
 } from "@/lib/mockdata";
+import { AdminService } from "@/services/grpc/admin.service";
 
 /**
  * Security Monitoring Dashboard Page
@@ -54,23 +53,66 @@ export default function SecurityMonitoringPage() {
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
 
   /**
-   * Fetch security metrics từ mockdata
-   * Thay thế API calls bằng mockdata functions
+   * Fetch security metrics từ real database via gRPC
+   * Call AdminService.getSecurityAlerts() để lấy security events
    */
   const fetchSecurityMetrics = async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Sử dụng mockdata thay vì API calls
-      const securityStats = getSecurityMetrics();
-      const eventsResponse = getSecurityEvents({
-        limit: 10,
-        page: 1,
+      // Call real gRPC API
+      const alertsResponse = await AdminService.getSecurityAlerts({
+        pagination: {
+          page: 1,
+          limit: 10
+        }
       });
 
-      setMetrics(securityStats);
-      setRecentEvents(eventsResponse.data || []);
+      if (!alertsResponse.success) {
+        throw new Error(alertsResponse.message || 'Failed to fetch security alerts');
+      }
+
+      // Map gRPC response to SecurityEvent format
+      const mappedEvents: SecurityEvent[] = (alertsResponse.alerts || []).map((alert: Record<string, unknown>, index: number) => ({
+        id: `event-${index + 1}`,
+        timestamp: new Date().toISOString(), // TODO: Add timestamp from backend
+        type: String(alert.alert_type || 'UNKNOWN'),
+        severity: 'HIGH', // TODO: Add severity from backend
+        userId: String(alert.user_id || ''),
+        userEmail: String(alert.user_id || ''), // TODO: Get email from backend
+        ipAddress: '0.0.0.0', // TODO: Add IP from backend
+        action: String(alert.alert_type || ''),
+        resource: 'SYSTEM',
+        details: String(alert.details || alert.message || ''),
+        status: 'UNRESOLVED' // TODO: Add status from backend
+      }));
+
+      // Calculate metrics from alerts (TODO: Add backend endpoint for metrics)
+      const totalEvents = mappedEvents.length;
+      const criticalEvents = mappedEvents.filter(e => e.severity === 'CRITICAL').length;
+      const highSeverityEvents = mappedEvents.filter(e => e.severity === 'HIGH').length;
+
+      setMetrics({
+        totalEvents,
+        criticalEvents,
+        highSeverityEvents,
+        eventsToday: totalEvents, // TODO: Filter by today
+        eventsThisWeek: totalEvents, // TODO: Filter by this week
+        eventsThisMonth: totalEvents, // TODO: Filter by this month
+        eventsByType: {}, // TODO: Calculate from events
+        eventsBySeverity: {
+          CRITICAL: criticalEvents,
+          HIGH: highSeverityEvents,
+          MEDIUM: 0,
+          LOW: 0
+        },
+        topThreats: [], // TODO: Calculate from events
+        riskScore: criticalEvents + highSeverityEvents, // Simple calculation
+        blockedIPs: 0, // TODO: Add from backend
+        suspiciousActivities: totalEvents
+      });
+      setRecentEvents(mappedEvents);
       setLastRefresh(new Date());
     } catch (error) {
       console.error("Failed to fetch security metrics:", error);

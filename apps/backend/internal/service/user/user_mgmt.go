@@ -1,11 +1,11 @@
-package user_mgmt
+﻿package user_mgmt
 
 import (
 	"context"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/database"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	userDomain "github.com/AnhPhan49/exam-bank-system/apps/backend/internal/service/user/domain"
+	"exam-bank-system/apps/backend/internal/database"
+	"exam-bank-system/apps/backend/internal/entity"
+	userDomain "exam-bank-system/apps/backend/internal/service/user/domain"
 )
 
 type IUserService interface {
@@ -26,3 +26,4 @@ func NewUserMgmt(db database.QueryExecer) *UserMgmt {
 		UserService: userDomain.NewUserService(),
 	}
 }
+

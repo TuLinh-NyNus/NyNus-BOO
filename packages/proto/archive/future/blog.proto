@@ -1,20 +1,20 @@
-syntax = "proto3";
+﻿syntax = "proto3";
 
 package v1;
 
 import "common/common.proto";
 
-option go_package = "github.com/AnhPhan49/exam-bank-system/apps/backend/pkg/proto/v1";
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
 
-// Loại bài viết
+// Loáº¡i bÃ i viáº¿t
 enum PostType {
   POST_TYPE_UNSPECIFIED = 0;
-  POST_TYPE_ARTICLE = 1;     // Bài blog chung
-  POST_TYPE_THEORY = 2;      // Lý thuyết
-  POST_TYPE_MATH_NOTE = 3;   // Ghi chú toán
+  POST_TYPE_ARTICLE = 1;     // BÃ i blog chung
+  POST_TYPE_THEORY = 2;      // LÃ½ thuyáº¿t
+  POST_TYPE_MATH_NOTE = 3;   // Ghi chÃº toÃ¡n
 }
 
-// Trạng thái bài viết (quy trình duyệt)
+// Tráº¡ng thÃ¡i bÃ i viáº¿t (quy trÃ¬nh duyá»‡t)
 enum PostStatus {
   POST_STATUS_UNSPECIFIED = 0;
   POST_STATUS_DRAFT = 1;
@@ -27,24 +27,24 @@ enum PostStatus {
 message PostMetadata {
   string id = 1;
   string slug = 2;                 // ASCII unique
-  string title = 3;                // Tiêu đề hiển thị (có dấu)
+  string title = 3;                // TiÃªu Ä‘á» hiá»ƒn thá»‹ (cÃ³ dáº¥u)
   repeated string tags = 4;
   string category = 5;
   PostType type = 6;
   string author_id = 7;
   int64 created_at = 8;
   int64 updated_at = 9;
-  string hero_asset_id = 10;       // Tham chiếu ảnh bìa (assets)
-  bool math_enabled = 11;          // Bật KaTeX/MathML phía client
-  PostStatus status = 12;          // Trạng thái hiện tại
-  int32 reading_time = 13;         // phút (ước lượng)
-  int64 published_at = 14;         // thời điểm publish (nếu đã publish)
+  string hero_asset_id = 10;       // Tham chiáº¿u áº£nh bÃ¬a (assets)
+  bool math_enabled = 11;          // Báº­t KaTeX/MathML phÃ­a client
+  PostStatus status = 12;          // Tráº¡ng thÃ¡i hiá»‡n táº¡i
+  int32 reading_time = 13;         // phÃºt (Æ°á»›c lÆ°á»£ng)
+  int64 published_at = 14;         // thá»i Ä‘iá»ƒm publish (náº¿u Ä‘Ã£ publish)
 }
 
 message PostContent {
   PostMetadata meta = 1;
-  string markdown = 2;             // Nội dung gốc
-  string macros_json = 3;          // Macro KaTeX theo bài (JSON)
+  string markdown = 2;             // Ná»™i dung gá»‘c
+  string macros_json = 3;          // Macro KaTeX theo bÃ i (JSON)
 }
 
 message CreatePostRequest { PostContent content = 1; }
@@ -87,16 +87,17 @@ message DeletePostRequest { string post_id = 1; }
 message DeletePostResponse { common.Response response = 1; }
 
 service BlogService {
-  // CRUD cơ bản
+  // CRUD cÆ¡ báº£n
   rpc CreatePost(CreatePostRequest) returns (CreatePostResponse);
   rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse);
   rpc GetPost(GetPostRequest) returns (GetPostResponse);
   rpc ListPosts(ListPostsRequest) returns (ListPostsResponse);
 
-  // Quy trình duyệt và xuất bản (tạm thời chỉ ADMIN mới được publish)
+  // Quy trÃ¬nh duyá»‡t vÃ  xuáº¥t báº£n (táº¡m thá»i chá»‰ ADMIN má»›i Ä‘Æ°á»£c publish)
   rpc SubmitForReview(SubmitForReviewRequest) returns (SubmitForReviewResponse);
   rpc ApprovePost(ApprovePostRequest) returns (ApprovePostResponse);
   rpc PublishPost(PublishPostRequest) returns (PublishPostResponse);
   rpc UnpublishPost(UnpublishPostRequest) returns (UnpublishPostResponse);
   rpc DeletePost(DeletePostRequest) returns (DeletePostResponse);
 }
+

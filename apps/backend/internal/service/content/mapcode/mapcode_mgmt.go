@@ -1,4 +1,4 @@
-package mapcode_mgmt
+﻿package mapcode_mgmt
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/repository"
 )
 
 // MapCodeMgmt handles MapCode version management and translation
@@ -134,6 +134,31 @@ func (m *MapCodeMgmt) DeleteVersion(ctx context.Context, versionID string) error
 // GetStorageInfo returns storage information
 func (m *MapCodeMgmt) GetStorageInfo(ctx context.Context) (*entity.MapCodeStorageInfo, error) {
 	return m.mapCodeRepo.GetStorageInfo(ctx)
+}
+
+// GetMapCodeConfig returns the full MapCode configuration
+func (m *MapCodeMgmt) GetMapCodeConfig(ctx context.Context, versionID string) (*entity.MapCodeConfig, error) {
+	var version *entity.MapCodeVersion
+	var err error
+
+	// If versionID is provided, use it; otherwise use active version
+	if versionID != "" {
+		version, err = m.mapCodeRepo.GetVersionByID(ctx, versionID)
+	} else {
+		version, err = m.GetActiveVersion(ctx)
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get version: %w", err)
+	}
+
+	// Load configuration from file
+	config, err := m.getOrLoadConfig(ctx, version)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load config: %w", err)
+	}
+
+	return config, nil
 }
 
 // TranslateQuestionCode translates a question code using active version with caching
@@ -268,6 +293,7 @@ func (m *MapCodeMgmt) loadMapCodeConfig(filePath string) (*entity.MapCodeConfig,
 }
 
 // parseMapCodeContent parses MapCode markdown content
+// Supports both structured format (## sections) and dash-based hierarchy format
 func (m *MapCodeMgmt) parseMapCodeContent(content string) (*entity.MapCodeConfig, error) {
 	config := &entity.MapCodeConfig{
 		Grades:   make(map[string]string),
@@ -278,7 +304,12 @@ func (m *MapCodeMgmt) parseMapCodeContent(content string) (*entity.MapCodeConfig
 		Forms:    make(map[string]string),
 	}
 
-	// Parse sections using regex
+	// Try dash-based format first (actual MapCode.md format)
+	if m.isDashBasedFormat(content) {
+		return m.parseDashBasedFormat(content)
+	}
+
+	// Fallback to structured format parsing
 	sections := map[string]map[string]string{
 		"Grade Mapping":   config.Grades,
 		"Subject Mapping": config.Subjects,
@@ -295,6 +326,115 @@ func (m *MapCodeMgmt) parseMapCodeContent(content string) (*entity.MapCodeConfig
 	}
 
 	return config, nil
+}
+
+// isDashBasedFormat checks if content uses dash-based hierarchy format
+func (m *MapCodeMgmt) isDashBasedFormat(content string) bool {
+	// Check for patterns like "-[X]", "----[X]", "-------[X]"
+	dashPatterns := []string{
+		`^-\[[^\]]+\]`,
+		`^----\[[^\]]+\]`,
+		`^-------\[[^\]]+\]`,
+	}
+	
+	lines := strings.Split(content, "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		for _, pattern := range dashPatterns {
+			matched, _ := regexp.MatchString(pattern, line)
+			if matched {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// parseDashBasedFormat parses MapCode content in dash-based hierarchy format
+func (m *MapCodeMgmt) parseDashBasedFormat(content string) (*entity.MapCodeConfig, error) {
+	config := &entity.MapCodeConfig{
+		Grades:   make(map[string]string),
+		Subjects: make(map[string]string),
+		Chapters: make(map[string]string),
+		Levels:   make(map[string]string),
+		Lessons:  make(map[string]string),
+		Forms:    make(map[string]string),
+	}
+
+	lines := strings.Split(content, "\n")
+	
+	for _, line := range lines {
+		trimmedLine := strings.TrimSpace(line)
+		
+		// Skip empty lines and comments
+		if trimmedLine == "" || strings.HasPrefix(trimmedLine, "%") {
+			continue
+		}
+
+		// Parse level/difficulty definitions: [X] Description
+		// e.g., [N] Nhận biết, [H] Thông Hiểu
+		if !strings.HasPrefix(trimmedLine, "-") && strings.HasPrefix(trimmedLine, "[") {
+			levelMatch := regexp.MustCompile(`^\[([^\]]+)\]\s*(.+)$`).FindStringSubmatch(trimmedLine)
+			if len(levelMatch) == 3 {
+				key := strings.TrimSpace(levelMatch[1])
+				value := strings.TrimSpace(levelMatch[2])
+				config.Levels[key] = value
+				continue
+			}
+		}
+
+		// Parse hierarchy levels based on dash count
+		dashCount := m.countLeadingDashes(line)
+		
+		switch dashCount {
+		case 1: // -[X] Lớp (Grade)
+			m.parseDashLine(line, 1, config.Grades)
+		case 4: // ----[X] Môn (Subject)
+			m.parseDashLine(line, 4, config.Subjects)
+		case 7: // -------[X] Chương (Chapter)
+			m.parseDashLine(line, 7, config.Chapters)
+		case 10: // ----------[X] Bài (Lesson)
+			m.parseDashLine(line, 10, config.Lessons)
+		case 13: // -------------[X] Dạng (Form)
+			m.parseDashLine(line, 13, config.Forms)
+		}
+	}
+
+	return config, nil
+}
+
+// countLeadingDashes counts the number of leading dashes in a line
+func (m *MapCodeMgmt) countLeadingDashes(line string) int {
+	count := 0
+	for _, char := range line {
+		if char == '-' {
+			count++
+		} else {
+			break
+		}
+	}
+	return count
+}
+
+// parseDashLine parses a single dash-based line and extracts key-value
+func (m *MapCodeMgmt) parseDashLine(line string, expectedDashes int, targetMap map[string]string) {
+	// Remove leading dashes
+	content := strings.TrimLeft(line, "-")
+	content = strings.TrimSpace(content)
+	
+	// Parse pattern: [X] Description
+	pattern := regexp.MustCompile(`^\[([^\]]+)\]\s*(.+)$`)
+	matches := pattern.FindStringSubmatch(content)
+	
+	if len(matches) == 3 {
+		key := strings.TrimSpace(matches[1])
+		value := strings.TrimSpace(matches[2])
+		
+		// Store in map if not already exists (keep first occurrence)
+		if _, exists := targetMap[key]; !exists {
+			targetMap[key] = value
+		}
+	}
 }
 
 // parseSection parses a specific section of MapCode content
@@ -343,14 +483,14 @@ func (m *MapCodeMgmt) translateCode(questionCode string, config *entity.MapCodeC
 	// Parse based on format (ID5 or ID6)
 	if len(questionCode) == 5 {
 		// ID5 format: XXXXX
-		parts = append(parts, m.translatePart(string(questionCode[0]), config.Grades, "Lớp"))
+		parts = append(parts, m.translatePart(string(questionCode[0]), config.Grades, "Lá»›p"))
 		parts = append(parts, m.translatePart(string(questionCode[1]), config.Subjects, ""))
 		parts = append(parts, m.translatePart(string(questionCode[2]), config.Chapters, ""))
 		parts = append(parts, m.translatePart(string(questionCode[3]), config.Levels, ""))
 		parts = append(parts, m.translatePart(string(questionCode[4]), config.Lessons, ""))
 	} else if len(questionCode) == 7 && questionCode[5] == '-' {
 		// ID6 format: XXXXX-X
-		parts = append(parts, m.translatePart(string(questionCode[0]), config.Grades, "Lớp"))
+		parts = append(parts, m.translatePart(string(questionCode[0]), config.Grades, "Lá»›p"))
 		parts = append(parts, m.translatePart(string(questionCode[1]), config.Subjects, ""))
 		parts = append(parts, m.translatePart(string(questionCode[2]), config.Chapters, ""))
 		parts = append(parts, m.translatePart(string(questionCode[3]), config.Levels, ""))
@@ -482,7 +622,7 @@ func (m *MapCodeMgmt) buildHierarchyNavigation(questionCode string, config *enti
 		nav.Grade = &HierarchyLevel{
 			Code:        string(questionCode[0]),
 			Name:        grade,
-			Description: "Lớp " + grade,
+			Description: "Lá»›p " + grade,
 		}
 		nav.Breadcrumbs = append(nav.Breadcrumbs, nav.Grade.Description)
 	}
@@ -553,3 +693,4 @@ func (m *MapCodeMgmt) WarmupCache(ctx context.Context) error {
 	_, err = m.getOrLoadConfig(ctx, activeVersion)
 	return err
 }
+

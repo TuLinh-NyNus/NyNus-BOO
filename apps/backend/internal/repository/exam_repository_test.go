@@ -1,10 +1,10 @@
-package repository
+﻿package repository
 
 import (
 	"testing"
 	"time"
 
-	"github.com/AnhPhan49/exam-bank-system/apps/backend/internal/entity"
+	"exam-bank-system/apps/backend/internal/entity"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -157,9 +157,9 @@ func TestExamRepository_MigrationMapping(t *testing.T) {
 	t.Run("Status migration mapping is correct", func(t *testing.T) {
 		// Test the mapping logic used in migration 000013
 		mappings := map[string]entity.ExamStatus{
-			"draft":     entity.ExamStatusPending,  // 'draft' → 'PENDING'
-			"published": entity.ExamStatusActive,   // 'published' → 'ACTIVE'
-			"archived":  entity.ExamStatusArchived, // 'archived' → 'ARCHIVED'
+			"draft":     entity.ExamStatusPending,  // 'draft' â†’ 'PENDING'
+			"published": entity.ExamStatusActive,   // 'published' â†’ 'ACTIVE'
+			"archived":  entity.ExamStatusArchived, // 'archived' â†’ 'ARCHIVED'
 		}
 
 		for oldValue, expectedNewValue := range mappings {
@@ -198,3 +198,4 @@ func BenchmarkExamRepository_EnumOperations(b *testing.B) {
 		}
 	})
 }
+

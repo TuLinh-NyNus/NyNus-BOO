@@ -7,6 +7,8 @@ import { Loader2, Shield, AlertTriangle } from "lucide-react";
 
 import { useAuth } from "@/contexts/auth-context-grpc";
 import { UserRole } from "@/generated/common/common_pb";
+import { useRedirectWithFeedback } from "@/hooks/auth/use-redirect-with-feedback";
+import { RedirectLoadingOverlay } from "@/components/ui/loading/redirect-loading-overlay";
 
 // Type alias for UserRole enum
 type UserRoleType = typeof UserRole[keyof typeof UserRole];
@@ -24,17 +26,21 @@ const ROLE_HIERARCHY: Record<number, number> = {
 };
 
 /**
- * Check if NextAuth session cookie exists
- * This is a more reliable way to check authentication than relying on useSession() status
- * because useSession() may not have fetched the session yet on initial page load
+ * ❌ REMOVED: hasSessionCookie() function
+ * 
+ * Previous implementation tried to detect HttpOnly cookie via document.cookie,
+ * which is IMPOSSIBLE - HttpOnly cookies are not accessible to JavaScript.
+ * 
+ * This was causing immediate logout after login because:
+ * 1. hasSessionCookie() always returned false (can't read HttpOnly cookie)
+ * 2. ProtectedRoute thought no session exists
+ * 3. Redirected to /login immediately
+ * 
+ * ✅ FIX: Rely ONLY on useSession() hook from NextAuth
+ * - sessionStatus === "loading" → wait
+ * - sessionStatus === "authenticated" → allow
+ * - sessionStatus === "unauthenticated" → redirect
  */
-function hasSessionCookie(): boolean {
-  if (typeof window === 'undefined') return false;
-
-  const cookies = document.cookie;
-  // Check for both dev and production cookie names
-  return cookies.includes('next-auth.session-token') || cookies.includes('__Secure-next-auth.session-token');
-}
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -58,107 +64,61 @@ export function ProtectedRoute({
   showUnauthorized = true,
 }: ProtectedRouteProps) {
   const { user, isLoading: authLoading, isAuthenticated } = useAuth();
-  const { status: sessionStatus, data: session } = useSession();
+  const { status: sessionStatus } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [isRedirecting, setIsRedirecting] = useState(false);
-  const [hasCookie, setHasCookie] = useState(false);
-  const [waitStartTime, setWaitStartTime] = useState<number | null>(null);
 
-  // ✅ NEW FIX: Check for session cookie on mount and when session changes
-  // This prevents redirect loop when session cookie exists but useSession() hasn't loaded yet
-  useEffect(() => {
-    const cookieExists = hasSessionCookie();
-    console.log('[ProtectedRoute] Cookie check:', {
-      cookieExists,
-      sessionStatus,
-      isAuthenticated,
-      hasUser: !!user,
-      pathname
-    });
-    setHasCookie(cookieExists);
+  // ✅ Use redirect with feedback hook
+  const { redirectToLogin, redirectWithFeedback, redirectState } = useRedirectWithFeedback();
 
-    // Start wait timer when cookie exists but not authenticated
-    if (cookieExists && !isAuthenticated && waitStartTime === null) {
-      setWaitStartTime(Date.now());
-    }
-    // Clear wait timer when authenticated
-    if (isAuthenticated && waitStartTime !== null) {
-      setWaitStartTime(null);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session, sessionStatus, isAuthenticated, user, pathname]); // Removed waitStartTime to prevent infinite loop
+  // ✅ SIMPLIFIED FIX: Combine loading states from both hooks
+  // Wait when either AuthContext or NextAuth session is loading
+  const isLoading = authLoading || sessionStatus === "loading";
 
-  // ✅ IMPROVED FIX: Combine loading states AND check for session cookie
-  // Wait for AuthContext OR if session cookie exists, wait for NextAuth to load it
-  const isLoading = authLoading || (hasCookie && sessionStatus === "loading");
+  // ✅ SIMPLIFIED FIX: Check authentication from both sources
+  // User is authenticated if EITHER NextAuth OR AuthContext confirms it
+  const isUserAuthenticated = sessionStatus === "authenticated" || isAuthenticated;
 
   useEffect(() => {
     console.log('[ProtectedRoute] Auth check:', {
       isLoading,
       isRedirecting,
-      hasCookie,
       sessionStatus,
       isAuthenticated,
+      isUserAuthenticated,
       hasUser: !!user,
-      pathname,
-      waitTime: waitStartTime ? `${Date.now() - waitStartTime}ms` : 'N/A'
+      pathname
     });
 
+    // Wait while loading or already redirecting
     if (isLoading || isRedirecting) {
       console.log('[ProtectedRoute] Waiting... (isLoading or isRedirecting)');
       return;
     }
 
-    // ✅ CRITICAL FIX: If session cookie exists, wait for AuthContext to load user
-    // This prevents redirect loop when:
-    // 1. Login succeeds → session cookie is set
-    // 2. Dashboard loads → ProtectedRoute mounts
-    // 3. AuthContext hasn't fetched user yet (isAuthenticated = false)
-    // 4. But session cookie EXISTS → user IS authenticated, just not loaded yet
-    // 5. Wait for AuthContext to fetch user instead of redirecting
-    //
-    // ⚠️ TIMEOUT: If waiting > 5 seconds, assume session is invalid and redirect
-    if (hasCookie && !isAuthenticated) {
-      const waitTime = waitStartTime ? Date.now() - waitStartTime : 0;
-      const TIMEOUT_MS = 5000; // 5 seconds timeout
-
-      if (waitTime < TIMEOUT_MS) {
-        console.log('[ProtectedRoute] Session cookie exists - waiting for AuthContext to load user...', {
-          waitTime: `${waitTime}ms`,
-          timeout: `${TIMEOUT_MS}ms`
-        });
-        // Don't redirect yet, give AuthContext time to fetch user
-        return;
-      } else {
-        console.warn('[ProtectedRoute] TIMEOUT - Session cookie exists but user not loaded after 5s, redirecting to login', {
-          waitTime: `${waitTime}ms`,
-          hasCookie,
-          isAuthenticated,
-          sessionStatus
-        });
-        // Timeout reached, redirect to login
-        // This handles edge cases like invalid session cookie or network errors
-      }
-    }
-
-    // Only redirect if NO session cookie AND not authenticated
-    // OR if timeout reached (handled above)
-    if (requireAuth && !isAuthenticated) {
+    // ✅ SIMPLIFIED FIX: Only redirect when DEFINITELY unauthenticated
+    // Both NextAuth and AuthContext agree user is not authenticated
+    if (requireAuth && !isUserAuthenticated) {
       console.log('[ProtectedRoute] NOT AUTHENTICATED - Redirecting to login', {
         requireAuth,
         isAuthenticated,
-        hasCookie,
-        sessionStatus
+        sessionStatus,
+        isUserAuthenticated
       });
       setIsRedirecting(true);
-      const loginUrl = redirectTo || `/login?callbackUrl=${encodeURIComponent(pathname)}`;
-      router.push(loginUrl);
+
+      // ✅ NEW: Use redirect with feedback instead of direct router.push
+      // Business Logic: Show toast + loading overlay trước khi redirect
+      redirectToLogin(pathname, {
+        showLoading: true,
+        delay: 200, // 200ms delay cho animation
+      });
       return;
     }
 
     // If authenticated, check role-based access
-    if (isAuthenticated && user) {
+    if (isUserAuthenticated && user) {
       console.log('[ProtectedRoute] AUTHENTICATED - Checking role access', {
         userRole: user.role,
         requiredRoles,
@@ -170,17 +130,34 @@ export function ProtectedRoute({
       if (!hasAccess && redirectTo) {
         console.log('[ProtectedRoute] ACCESS DENIED - Redirecting', { redirectTo });
         setIsRedirecting(true);
-        router.push(redirectTo);
+
+        // ✅ NEW: Use redirect with feedback for unauthorized access
+        redirectWithFeedback(redirectTo, {
+          showLoading: true,
+          delay: 200,
+          variant: 'unauthorized',
+        });
         return;
       }
     }
 
     console.log('[ProtectedRoute] All checks passed - Rendering children');
-  }, [isLoading, isAuthenticated, user, requireAuth, requiredRoles, minRole, minLevel, redirectTo, pathname, router, isRedirecting, sessionStatus, hasCookie, waitStartTime]);
+  }, [isLoading, isUserAuthenticated, user, requireAuth, requiredRoles, minRole, minLevel, redirectTo, pathname, router, isRedirecting, sessionStatus, redirectToLogin, redirectWithFeedback]);
 
   // Show loading state
   if (isLoading || isRedirecting) {
-    return fallback || <LoadingFallback />;
+    return (
+      <>
+        {fallback || <LoadingFallback />}
+        {/* ✅ NEW: Show redirect loading overlay */}
+        <RedirectLoadingOverlay
+          isVisible={redirectState.isRedirecting}
+          variant={redirectState.variant}
+          message={redirectState.message}
+          description={redirectState.description}
+        />
+      </>
+    );
   }
 
   // Check authentication
@@ -191,13 +168,13 @@ export function ProtectedRoute({
   // Check role-based access
   if (isAuthenticated && user) {
     const hasAccess = checkAccess(user, requiredRoles, minRole, minLevel);
-    
+
     if (!hasAccess) {
       if (!showUnauthorized) {
         return null;
       }
       return fallback || (
-        <UnauthorizedFallback 
+        <UnauthorizedFallback
           userRole={user.role}
           requiredRoles={requiredRoles}
           minRole={minRole}
@@ -208,7 +185,18 @@ export function ProtectedRoute({
   }
 
   // Render children if all checks pass
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      {/* ✅ NEW: Show redirect loading overlay globally */}
+      <RedirectLoadingOverlay
+        isVisible={redirectState.isRedirecting}
+        variant={redirectState.variant}
+        message={redirectState.message}
+        description={redirectState.description}
+      />
+    </>
+  );
 }
 
 // Helper function to check access permissions
