@@ -574,7 +574,7 @@ jobs:
           status: completed
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-release
           path: apps/mobile/build/app/outputs/bundle/productionRelease/
@@ -678,7 +678,7 @@ jobs:
             --apiKey $APP_STORE_CONNECT_API_KEY
       
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-release
           path: apps/mobile/build/ios/ipa/
