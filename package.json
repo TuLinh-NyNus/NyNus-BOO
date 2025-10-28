@@ -17,10 +17,12 @@
 	},
 	"dependencies": {
 		"gsap": "^3.13.0",
-		"keen-slider": "^6.8.6"
+		"keen-slider": "^6.8.6",
+		"react-loading-skeleton": "^3.5.0"
 	},
 	"devDependencies": {
 		"@bufbuild/buf": "^1.57.2",
+		"@types/katex": "^0.16.7",
 		"grpc-tools": "1.13.0",
 		"ts-protoc-gen": "^0.15.0"
 	}

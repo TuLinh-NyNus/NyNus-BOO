@@ -144,8 +144,8 @@ const RETRYABLE_ERRORS: Set<PrismaErrorType> = new Set([
  */
 const prismaCircuitBreaker = new CircuitBreaker({
   failureThreshold: 5,
-  resetTimeout: 60000, // 1 minute
-  monitorWindow: 300000, // 5 minutes
+  recoveryTimeout: 60000, // 1 minute
+  monitoringPeriod: 300000, // 5 minutes
 });
 
 // ===== ERROR CLASSIFICATION =====
@@ -291,24 +291,14 @@ export function handlePrismaError(
  */
 export async function executePrismaWithRetry<T>(
   operation: () => Promise<T>,
-  options: ErrorRecoveryOptions<T> = {}
+  options: ErrorRecoveryOptions = {}
 ): Promise<T> {
-  const result = await retryWithBackoff(operation, {
+  return await retryWithBackoff(operation, {
     maxRetries: 3,
-    retryDelay: 1000,
-    exponentialBackoff: true,
-    shouldRetry: (error) => {
-      const errorDetails = classifyPrismaError(error);
-      return errorDetails.isRetryable;
-    },
+    initialDelay: 1000,
+    backoffFactor: 2,
     ...options,
   });
-
-  if (!result.success) {
-    throw result.error;
-  }
-
-  return result.data!;
 }
 
 // ===== CIRCUIT BREAKER WRAPPER =====
@@ -329,7 +319,7 @@ export async function executePrismaWithCircuitBreaker<T>(
  */
 export async function executePrismaOperation<T>(
   operation: () => Promise<T>,
-  options: ErrorRecoveryOptions<T> = {}
+  options: ErrorRecoveryOptions = {}
 ): Promise<T> {
   return executePrismaWithCircuitBreaker(() =>
     executePrismaWithRetry(operation, options)

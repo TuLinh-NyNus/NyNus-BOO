@@ -18,7 +18,6 @@ import { updateConsent } from '@/lib/analytics';
 // ===== CONSTANTS =====
 
 const CONSENT_COOKIE_NAME = 'nynus_cookie_consent';
-const CONSENT_EXPIRES_DAYS = 365;
 
 // ===== TYPES =====
 

@@ -117,7 +117,13 @@ export function AdminSidebar({
 
   React.useEffect(() => {
     if (badgeError) {
-      console.error('[AdminSidebar] Failed to load sidebar badges', badgeError);
+      // Only log non-rate-limit errors as errors
+      const isRateLimit = badgeError.toLowerCase().includes('rate limit');
+      if (isRateLimit) {
+        console.warn('[AdminSidebar] Some badge data temporarily unavailable due to rate limit');
+      } else {
+        console.error('[AdminSidebar] Failed to load sidebar badges', badgeError);
+      }
     }
   }, [badgeError]);
 
@@ -134,7 +140,7 @@ export function AdminSidebar({
   const getSidebarClasses = () => {
     const baseClasses = [
       'theme-bg theme-fg theme-border border-r flex flex-col transition-all duration-300 ease-in-out',
-      'min-h-screen relative'
+      'h-full relative'
     ];
 
     const widthClasses = isCollapsed ? 'w-16' : 'w-64';

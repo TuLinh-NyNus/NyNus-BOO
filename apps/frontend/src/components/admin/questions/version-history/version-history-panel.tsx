@@ -18,7 +18,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   History,
@@ -124,7 +123,7 @@ const MOCK_VERSIONS: QuestionVersion[] = [
  */
 export function VersionHistoryPanel({
   isOpen,
-  questionId,
+  questionId: _questionId,
   currentVersion,
   onClose,
   onVersionRevert,
@@ -151,7 +150,7 @@ export function VersionHistoryPanel({
     setSelectedVersionForRevert(version);
   };
 
-  const handleConfirmRevert = async (reason: string) => {
+  const handleConfirmRevert = async (_reason: string) => {
     if (!selectedVersionForRevert) return;
 
     setIsReverting(true);

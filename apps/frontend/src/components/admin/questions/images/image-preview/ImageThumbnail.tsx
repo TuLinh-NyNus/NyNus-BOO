@@ -109,9 +109,15 @@ function getImageTypeDisplay(imageType: ImageType) {
  * Get image URL for display
  */
 function getImageUrl(image: QuestionImage): string {
-  // Priority: driveUrl > imagePath > fallback
+  // Priority: driveUrl (Cloudinary) > imagePath > fallback
   if (image.driveUrl) {
-    // Convert Google Drive view URL to direct image URL
+    // Cloudinary URLs are already direct image URLs
+    // Format: https://res.cloudinary.com/cloud_name/image/upload/...
+    if (image.driveUrl.includes('res.cloudinary.com')) {
+      return image.driveUrl;
+    }
+    
+    // Fallback for legacy Google Drive URLs
     const fileId = image.driveFileId || image.driveUrl.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
     if (fileId) {
       return `https://drive.google.com/uc?id=${fileId}`;

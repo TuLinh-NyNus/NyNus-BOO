@@ -36,6 +36,8 @@ import {
   Archive,
   Play,
   X,
+  FileText,
+  Upload,
 } from "lucide-react";
 
 // Import types
@@ -111,6 +113,7 @@ export interface ExamGridProps {
   onBulkPublish?: (examIds: string[]) => void;
   onBulkArchive?: (examIds: string[]) => void;
   onExport?: (examIds?: string[]) => void;
+  onImport?: () => void;
   
   /** Additional CSS classes */
   className?: string;
@@ -182,6 +185,7 @@ export function ExamGrid({
   onBulkPublish,
   onBulkArchive,
   onExport,
+  onImport,
   className,
 }: ExamGridProps) {
   
@@ -248,19 +252,29 @@ export function ExamGrid({
     <div className={cn("space-y-6", className)}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Quản lý đề thi</h2>
-          <p className="text-gray-600 mt-1">
-            {totalItems > 0 ? `${totalItems} đề thi` : 'Chưa có đề thi nào'}
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+            <FileText className="w-5 h-5 text-blue-600" />
+            <span className="text-base font-semibold text-blue-900">
+              Hiện có <span className="text-xl font-bold text-blue-600">{totalItems || exams.length}</span> đề thi
+            </span>
+          </div>
         </div>
         
-        {showCreateButton && (
-          <Button onClick={onCreateExam}>
-            <Plus className="w-4 h-4 mr-2" />
-            Tạo đề thi mới
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {onImport && (
+            <Button variant="outline" onClick={onImport}>
+              <Upload className="w-4 h-4 mr-2" />
+              Nhập đề thi
+            </Button>
+          )}
+          {showCreateButton && (
+            <Button onClick={onCreateExam}>
+              <Plus className="w-4 h-4 mr-2" />
+              Tạo đề thi mới
+            </Button>
+          )}
+        </div>
       </div>
       
       {/* Search and Filters */}
@@ -270,12 +284,12 @@ export function ExamGrid({
           {showSearch && (
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white w-4 h-4" />
                 <Input
                   placeholder="Tìm kiếm đề thi..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 bg-transparent border-white text-white hover:bg-white/10 hover:border-white focus:border-white focus:ring-white/20 placeholder:text-white/60"
                 />
               </div>
             </div>
@@ -287,13 +301,14 @@ export function ExamGrid({
               <Button
                 variant="outline"
                 onClick={() => setShowFiltersPanel(!showFiltersPanel)}
+                className="bg-transparent border-white text-white hover:bg-white/10 hover:border-white transition-all duration-200"
               >
                 <Filter className="w-4 h-4 mr-2" />
                 Bộ lọc
               </Button>
               
               <Select value={sortField} onValueChange={(value) => handleSort(value as ExamGridSortField)}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-40 bg-transparent border-white text-white hover:bg-white/10 hover:border-white focus:border-white focus:ring-white/20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -309,6 +324,7 @@ export function ExamGrid({
                 variant="outline"
                 size="sm"
                 onClick={() => handleSort(sortField)}
+                className="bg-transparent border-white text-white hover:bg-white/10 hover:border-white"
               >
                 {sortDirection === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
               </Button>
@@ -317,6 +333,7 @@ export function ExamGrid({
                 variant="outline"
                 size="sm"
                 onClick={() => onViewModeChange?.(viewMode === 'grid' ? 'list' : 'grid')}
+                className="bg-transparent border-white text-white hover:bg-white/10 hover:border-white"
               >
                 {viewMode === 'grid' ? <List className="w-4 h-4" /> : <Grid3X3 className="w-4 h-4" />}
               </Button>
@@ -327,22 +344,36 @@ export function ExamGrid({
       
       {/* Filters Panel */}
       {showFiltersPanel && (
-        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+        <div className="bg-slate-800 border border-slate-600 rounded-lg p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-white flex items-center gap-2">
+              <Filter className="w-4 h-4 text-slate-400" />
+              Bộ lọc
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFiltersPanel(false)}
+              className="text-slate-400 hover:text-white hover:bg-slate-700"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-300">
                 Trạng thái
               </label>
               <Select
-                value={activeFilters.status?.[0] || ''}
-                onValueChange={(value) => handleFilterChange('status', value ? [value] : [])}
+                value={activeFilters.status?.[0] || 'all'}
+                onValueChange={(value) => handleFilterChange('status', value === 'all' ? [] : [value])}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-white hover:bg-white/10 hover:border-white focus:border-white focus:ring-white/20 text-white text-sm h-9">
                   <SelectValue placeholder="Tất cả trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
                   {STATUS_OPTIONS.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -353,19 +384,19 @@ export function ExamGrid({
             </div>
             
             {/* Type Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-300">
                 Loại đề thi
               </label>
               <Select
-                value={activeFilters.examType?.[0] || ''}
-                onValueChange={(value) => handleFilterChange('examType', value ? [value] : [])}
+                value={activeFilters.examType?.[0] || 'all'}
+                onValueChange={(value) => handleFilterChange('examType', value === 'all' ? [] : [value])}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-white hover:bg-white/10 hover:border-white focus:border-white focus:ring-white/20 text-white text-sm h-9">
                   <SelectValue placeholder="Tất cả loại" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả loại</SelectItem>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
                   {TYPE_OPTIONS.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -376,19 +407,19 @@ export function ExamGrid({
             </div>
             
             {/* Difficulty Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-300">
                 Độ khó
               </label>
               <Select
-                value={activeFilters.difficulty?.[0] || ''}
-                onValueChange={(value) => handleFilterChange('difficulty', value ? [value] : [])}
+                value={activeFilters.difficulty?.[0] || 'all'}
+                onValueChange={(value) => handleFilterChange('difficulty', value === 'all' ? [] : [value])}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-transparent border-white hover:bg-white/10 hover:border-white focus:border-white focus:ring-white/20 text-white text-sm h-9">
                   <SelectValue placeholder="Tất cả độ khó" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tất cả độ khó</SelectItem>
+                  <SelectItem value="all">Tất cả độ khó</SelectItem>
                   {DIFFICULTY_OPTIONS.map(option => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -399,20 +430,21 @@ export function ExamGrid({
             </div>
             
             {/* Subject Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-slate-300">
                 Môn học
               </label>
               <Input
                 placeholder="Nhập môn học..."
                 value={activeFilters.subject?.[0] || ''}
                 onChange={(e) => handleFilterChange('subject', e.target.value ? [e.target.value] : [])}
+                className="bg-transparent border-white hover:bg-white/10 hover:border-white focus:border-white focus:ring-white/20 text-white placeholder:text-white/60 text-sm h-9"
               />
             </div>
           </div>
           
           {/* Clear Filters */}
-          <div className="flex justify-end">
+          <div className="flex justify-end pt-3 border-t border-white/20">
             <Button
               variant="outline"
               size="sm"
@@ -420,8 +452,9 @@ export function ExamGrid({
                 setActiveFilters({});
                 onFiltersChange?.({});
               }}
+              className="bg-transparent border-white text-white hover:bg-white/10 hover:border-white text-xs h-8"
             >
-              <X className="w-4 h-4 mr-2" />
+              <X className="w-3 h-3 mr-1" />
               Xóa bộ lọc
             </Button>
           </div>
@@ -487,7 +520,10 @@ export function ExamGrid({
       {loading ? (
         <div className={cn(
           "grid gap-6",
-          viewMode === 'grid' && `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridColumns}`,
+          viewMode === 'grid' && gridColumns === 1 && "grid-cols-1",
+          viewMode === 'grid' && gridColumns === 2 && "grid-cols-1 sm:grid-cols-2",
+          viewMode === 'grid' && gridColumns === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          viewMode === 'grid' && gridColumns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
           viewMode === 'list' && "grid-cols-1"
         )}>
           {Array.from({ length: itemsPerPage }).map((_, index) => (
@@ -502,7 +538,10 @@ export function ExamGrid({
       ) : (
         <div className={cn(
           "grid gap-6",
-          viewMode === 'grid' && `grid-cols-1 sm:grid-cols-2 lg:grid-cols-${gridColumns}`,
+          viewMode === 'grid' && gridColumns === 1 && "grid-cols-1",
+          viewMode === 'grid' && gridColumns === 2 && "grid-cols-1 sm:grid-cols-2",
+          viewMode === 'grid' && gridColumns === 3 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          viewMode === 'grid' && gridColumns === 4 && "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
           viewMode === 'list' && "grid-cols-1"
         )}>
           {exams.map((exam) => (

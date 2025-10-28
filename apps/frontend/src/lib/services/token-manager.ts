@@ -22,6 +22,8 @@ import type { User, Account } from 'next-auth';
 import { AuthService } from '@/services/grpc/auth.service';
 import { logger } from '@/lib/utils/logger';
 import { JWT_CONFIG } from '@/lib/config/auth-config';
+import { AuthErrorHandler, AuthErrorType } from '@/lib/utils/auth-error-handler';
+import { AuthMonitor } from '@/lib/utils/auth-monitor';
 
 /**
  * Backend tokens interface
@@ -136,14 +138,15 @@ export class TokenManager {
    * - Kiểm tra token expiry time
    * - Nếu còn < 5 phút thì auto-refresh
    * - Sử dụng refresh token để lấy access token mới
-   * - Nếu refresh failed thì return null (force re-login)
+   * - ✅ FIX: Graceful error handling - không force logout trừ khi thực sự cần thiết
    * 
    * @param token - NextAuth JWT token
-   * @returns Updated token hoặc null nếu refresh failed
+   * @returns Updated token (luôn return token để maintain session)
    */
   static async refreshTokenIfNeeded(token: JWT): Promise<JWT | null> {
     // Check if we have necessary data for refresh
     if (!token.backendTokenExpiry || !token.backendRefreshToken) {
+      logger.debug('[TokenManager] No backend token data - continuing with existing session');
       return token;
     }
 
@@ -151,10 +154,27 @@ export class TokenManager {
     const timeUntilExpiry = (token.backendTokenExpiry as number) - Date.now();
     const shouldRefresh = timeUntilExpiry < JWT_CONFIG.REFRESH_THRESHOLD_MS;
 
+    // ✅ FIX: Add comprehensive logging
+    logger.debug('[TokenManager] Token refresh check', {
+      timeUntilExpiry: Math.floor(timeUntilExpiry / 1000) + 's',
+      shouldRefresh,
+      refreshThreshold: JWT_CONFIG.REFRESH_THRESHOLD_MS / 1000 + 's',
+      hasRefreshToken: !!token.backendRefreshToken,
+    });
+
     // No need to refresh yet
     if (!shouldRefresh) {
       return token;
     }
+
+    // ✅ FIX: Record token refresh attempt
+    const startTime = Date.now();
+    const userId = token.sub; // NextAuth user ID
+    
+    AuthMonitor.recordTokenRefreshAttempt(userId, {
+      timeUntilExpiry: Math.floor(timeUntilExpiry / 1000),
+      refreshThreshold: JWT_CONFIG.REFRESH_THRESHOLD_MS / 1000,
+    });
 
     try {
       logger.info('[TokenManager] Token expiring soon, auto-refreshing...', {
@@ -170,17 +190,85 @@ export class TokenManager {
         token.backendRefreshToken = refreshed.getRefreshToken();
         token.backendTokenExpiry = Date.now() + JWT_CONFIG.ACCESS_TOKEN_EXPIRY_MS;
 
-        logger.info('[TokenManager] Token refreshed successfully');
+        // ✅ FIX: Record successful token refresh
+        const duration = Date.now() - startTime;
+        AuthMonitor.recordTokenRefreshSuccess(duration, userId, {
+          newTokenExpiry: token.backendTokenExpiry,
+        });
+
+        logger.info('[TokenManager] Token refreshed successfully', {
+          duration: duration + 'ms',
+        });
         return token;
       } else {
-        logger.error('[TokenManager] Token refresh failed - no new token received');
-        return null; // Force re-login
+        // ✅ FIX: Không force logout, chỉ log warning và continue với existing session
+        const duration = Date.now() - startTime;
+        AuthMonitor.recordTokenRefreshFailure(
+          AuthErrorType.UNKNOWN_ERROR,
+          'No new token received from backend',
+          duration,
+          { reason: 'empty_response' }
+        );
+
+        logger.warn('[TokenManager] Token refresh failed - no new token received, continuing with existing session');
+        
+        // ✅ Set retry time - thử refresh lại sau 2 phút
+        token.backendTokenExpiry = Date.now() + (2 * 60 * 1000); // Retry in 2 minutes
+        return token;
       }
     } catch (error) {
-      logger.error('[TokenManager] Token refresh failed', {
-        error: error instanceof Error ? error.message : String(error),
+      const duration = Date.now() - startTime;
+      
+      // ✅ FIX: Use AuthErrorHandler để classify error và determine action
+      const errorClassification = AuthErrorHandler.handleAuthError(error instanceof Error ? error : String(error), {
+        operation: 'refreshTokenIfNeeded',
+        tokenExpiry: token.backendTokenExpiry,
+        duration,
       });
-      return null; // Force re-login
+      
+      // ✅ FIX: Record token refresh failure với detailed error info
+      AuthMonitor.recordTokenRefreshFailure(
+        errorClassification.type,
+        errorClassification.message,
+        duration,
+        {
+          shouldForceLogout: errorClassification.shouldForceLogout,
+          shouldRetry: errorClassification.shouldRetry,
+          retryDelayMs: errorClassification.retryDelayMs,
+        }
+      );
+      
+      if (errorClassification.shouldForceLogout) {
+        // Refresh token thực sự expired hoặc account issues - cần logout
+        AuthMonitor.recordForcedLogout(userId, errorClassification.message, {
+          operation: 'token_refresh_failed',
+          errorType: errorClassification.type,
+        });
+
+        logger.error('[TokenManager] Error requires force logout', {
+          type: errorClassification.type,
+          message: errorClassification.message,
+          userMessage: errorClassification.userMessage,
+          duration: duration + 'ms',
+        });
+        return null; // Force re-login
+      } else {
+        // Network error hoặc server error - không force logout
+        logger.warn('[TokenManager] Error does not require logout - continuing with existing session', {
+          type: errorClassification.type,
+          message: errorClassification.message,
+          userMessage: errorClassification.userMessage,
+          shouldRetry: errorClassification.shouldRetry,
+          duration: duration + 'ms',
+        });
+        
+        // ✅ Use recommended retry delay từ error classification
+        const retryDelay = errorClassification.retryDelayMs || (2 * 60 * 1000); // Default 2 minutes
+        const maxRetryDelay = 5 * 60 * 1000; // Max 5 minutes
+        token.backendTokenExpiry = Date.now() + Math.min(retryDelay, maxRetryDelay);
+        
+        return token; // Keep existing session
+      }
     }
   }
 

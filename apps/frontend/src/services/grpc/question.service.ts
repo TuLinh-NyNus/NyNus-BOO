@@ -25,6 +25,7 @@ import {
 } from '@/generated/v1/question_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
+import { normalizeQuestionCode, resolveQuestionCode } from '@/lib/utils/question-code';
 
 // TODO: Temporarily disabled - need proper protobuf generation
 /*
@@ -151,7 +152,8 @@ function toUpdateReq(dto: UpdateQuestionRequestDTO): UpdateQuestionRequest {
 
 */
 
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { GRPC_WEB_HOST } from './config';
+import { getAuthMetadata } from './client';
 
 // gRPC client configuration
 // Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
@@ -541,32 +543,43 @@ export class QuestionService {
       const request = new ListFavoriteQuestionsRequest();
       const pagination = new PaginationRequest();
       pagination.setPage(page);
-      pagination.setPageSize(pageSize);
+      pagination.setLimit(pageSize);
       request.setPagination(pagination);
 
       const response = await questionServiceClient.listFavoriteQuestions(request, getAuthMetadata());
       const responseObj = response.toObject();
 
       // Map protobuf questions to frontend format
-      const questions = (responseObj.questionsList || []).map((q: any) => ({
-        id: q.id,
-        rawContent: q.rawContent,
-        content: q.content,
-        subcount: q.subcount,
-        type: q.type,
-        source: q.source,
-        solution: q.solution,
-        tag: q.tagList || [],
-        usageCount: q.usageCount,
-        creator: q.creator,
-        status: q.status,
-        feedback: q.feedback,
-        difficulty: q.difficulty,
-        isFavorite: q.isFavorite,
-        questionCodeId: q.questionCodeId,
-        createdAt: q.createdAt,
-        updatedAt: q.updatedAt,
-      }));
+      const questions = (responseObj.questionsList || []).map((q: any) => {
+        const { code: normalizedCode, details: questionCodeDetails } = normalizeQuestionCode(q);
+        const resolvedCode =
+          resolveQuestionCode({
+            ...q,
+            questionCodeId: normalizedCode,
+            questionCode: questionCodeDetails,
+          }) ?? '';
+
+        return {
+          id: q.id,
+          rawContent: q.rawContent,
+          content: q.content,
+          subcount: q.subcount,
+          type: q.type,
+          source: q.source,
+          solution: q.solution,
+          tag: q.tagList || [],
+          usageCount: q.usageCount,
+          creator: q.creator,
+          status: q.status,
+          feedback: q.feedback,
+          difficulty: q.difficulty,
+          isFavorite: q.isFavorite,
+          questionCodeId: resolvedCode,
+          questionCode: questionCodeDetails,
+          createdAt: q.createdAt,
+          updatedAt: q.updatedAt,
+        };
+      });
 
       return {
         success: responseObj.response?.success || false,
@@ -574,8 +587,8 @@ export class QuestionService {
         questions,
         pagination: responseObj.pagination ? {
           page: responseObj.pagination.page || page,
-          pageSize: responseObj.pagination.pageSize || pageSize,
-          total: responseObj.pagination.total || 0,
+          pageSize: responseObj.pagination.limit || pageSize,
+          total: responseObj.pagination.totalCount || 0,
           totalPages: responseObj.pagination.totalPages || 0
         } : undefined
       };

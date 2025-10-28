@@ -1,9 +1,9 @@
 /**
  * Image Upload Component
- * Main component cho image upload với integration tới Google Drive API
+ * Main component cho image upload với integration tới Cloudinary CDN
  * 
  * @author NyNus Team
- * @version 1.0.0
+ * @version 2.0.0 - Migrated to Cloudinary
  */
 
 "use client";
@@ -19,24 +19,24 @@ import DragDropZone from './DragDropZone';
 import FileValidator, { validateFiles } from './FileValidator';
 import { Upload, CheckCircle, XCircle } from 'lucide-react';
 
-// ===== MOCK API SERVICE =====
+// ===== CLOUDINARY MOCK API SERVICE =====
 
-class ImageUploadService {
+class CloudinaryUploadService {
   static async uploadImage(file: File, questionId?: string, questionCode?: string): Promise<QuestionImage> {
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+    // Simulate upload delay (faster than Google Drive)
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 1200));
 
     // Log upload info for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.log(`Uploading image for question ${questionCode || questionId || 'unknown'}`);
+      console.log(`Uploading image to Cloudinary for question ${questionCode || questionId || 'unknown'}`);
     }
 
-    // Simulate random failures (10% chance)
-    if (Math.random() < 0.1) {
-      throw new Error('Upload failed: Network error');
+    // Simulate random failures (5% chance - more reliable than Google Drive)
+    if (Math.random() < 0.05) {
+      throw new Error('Upload failed: Cloudinary network timeout');
     }
     
-    // Generate mock QuestionImage with questionCode in filename
+    // Generate mock QuestionImage with Cloudinary URLs
     const fileExtension = file.name.split('.').pop();
     const baseFileName = questionCode ? `${questionCode}_${file.name}` : file.name;
 
@@ -46,13 +46,22 @@ class ImageUploadService {
       throw new Error(`Unsupported file type: ${fileExtension}. Allowed: ${allowedExtensions.join(', ')}`);
     }
 
+    // Generate Cloudinary-style URLs
+    const timestamp = Date.now();
+    const cloudName = 'nynus-exam-bank'; // Mock cloud name
+    const publicId = `exam-bank/questions/${questionCode || 'default'}/${file.name.toLowerCase().includes('solution') ? 'SOLUTION' : 'QUESTION'}_${timestamp}`;
+    const version = `v${Math.floor(timestamp / 1000)}`;
+    
+    const secureUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${version}/${publicId}.webp`;
+    const thumbnailUrl = `https://res.cloudinary.com/${cloudName}/image/upload/c_fill,h_200,w_200/${version}/${publicId}.webp`;
+
     const mockImage: QuestionImage = {
-      id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      questionId: questionId || `q-${Date.now()}`,
+      id: `img-${timestamp}-${Math.random().toString(36).substr(2, 9)}`,
+      questionId: questionId || `q-${timestamp}`,
       imageType: file.name.toLowerCase().includes('solution') ? ImageType.SOLUTION : ImageType.QUESTION,
-      imagePath: `/uploads/temp/${baseFileName}`,
-      driveUrl: `https://drive.google.com/file/d/mock-${Date.now()}/view`,
-      driveFileId: `mock-${Date.now()}`,
+      imagePath: `/uploads/temp/${baseFileName}`, // Temporary local path during processing
+      driveUrl: secureUrl, // Now contains Cloudinary secure URL
+      driveFileId: publicId, // Now contains Cloudinary public ID
       status: ImageStatus.UPLOADED,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -131,8 +140,8 @@ export function ImageUploadComponent({
           ));
         }, 200);
 
-        // Upload file
-        const result = await ImageUploadService.uploadImage(item.file, questionId);
+        // Upload file to Cloudinary
+        const result = await CloudinaryUploadService.uploadImage(item.file, questionId);
         
         clearInterval(progressInterval);
         

@@ -25,7 +25,7 @@ NyNus sử dụng **OpenSearch** làm search engine chính với specialized Vie
 3. **Lọc nhanh**: Tìm kiếm theo nhiều tiêu chí kết hợp
 4. **Tìm kiếm toàn văn Vietnamese**: Trong nội dung câu hỏi với OpenSearch
 5. **Theo dõi sử dụng**: Thống kê độ phổ biến
-6. **Hỗ trợ media**: Hình ảnh từ Google Drive và TikZ compilation
+6. **Hỗ trợ media**: Hình ảnh từ Cloudinary CDN và TikZ compilation
 
 ### Yêu cầu hiệu suất
 - **Thời gian phản hồi**: <200ms (consistent), <500ms (complex queries)
@@ -174,9 +174,9 @@ CREATE TABLE question_image (
     id              TEXT PRIMARY KEY,           -- CUID generated ID
     question_id     TEXT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
     image_type      ImageType NOT NULL,         -- QUESTION hoặc SOLUTION
-    image_path      TEXT,                       -- Local path (temporary)
-    drive_url       TEXT,                       -- Google Drive URL
-    drive_file_id   VARCHAR(100),               -- Google Drive file ID
+    image_path      TEXT,                       -- Local path (temporary during processing)
+    drive_url       TEXT,                       -- Cloudinary CDN URL
+    drive_file_id   VARCHAR(100),               -- Cloudinary public ID
     status          ImageStatus DEFAULT 'PENDING', -- Upload status
     created_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -400,51 +400,43 @@ psql $DATABASE_URL -f apps/backend/internal/database/migrations/000004_exam_mana
 - ✅ **Transport**: Frontend ↔ Backend communication hoàn toàn sử dụng **gRPC/gRPC-Web**, KHÔNG có REST API
 - ✅ **Type Generation**: Prisma chỉ dùng để introspect database và generate TypeScript types cho frontend
 
-### 2. Google Drive API Setup
+### 2. Cloudinary Setup
 ```bash
-# Install Google APIs
-pnpm add googleapis google-auth-library
+# Install Cloudinary SDK
+go get github.com/cloudinary/cloudinary-go/v2
 
-# Environment variables cần thiết
-GOOGLE_DRIVE_CLIENT_ID=your-client-id
-GOOGLE_DRIVE_CLIENT_SECRET=your-client-secret
-GOOGLE_DRIVE_REFRESH_TOKEN=your-refresh-token
-GOOGLE_DRIVE_FOLDER_ID=your-root-folder-id
+# Environment variables required
+CLOUDINARY_ENABLED=true
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+CLOUDINARY_FOLDER=exam-bank/questions
 ```
 
-### 3. Google Drive Folder Structure
+### 3. Cloudinary Folder Structure
 Dựa trên MapCode hierarchy từ `apps/web/DATA/template/MapCode.md`:
 ```
-Google Drive/NyNus-Images/
+Cloudinary/exam-bank/questions/
 ├── 0/                          # Lớp 10
-│   └── P/                      # 10-NGÂN HÀNG CHÍNH
-│       └── 1/                  # Mệnh đề và tập hợp
-│           └── 1/              # Mệnh đề
-│               └── 1/          # Xác định mệnh đề, mệnh đề chứa biến
-│                   └── N/      # Nhận biết (Level cuối cùng)
-│                       ├── TL100022-QUES.webp
-│                       ├── TL100022-QUES-1.webp
-│                       └── TL100022-SOL.webp
+│   └── 0P1VH1/                # Question Code
+│       ├── QUESTION_1234567.webp
+│       ├── QUESTION_1234568.webp
+│       └── SOLUTION_1234567.webp
 └── 1/                          # Lớp 11
-    └── P/                      # 11-NGÂN HÀNG CHÍNH
-        └── 1/                  # HS lượng giác và phương trình lượng giác
-            └── 1/              # Góc lượng giác
-                └── 1/          # Câu hỏi lý thuyết
-                    └── V/      # VD (Vận dụng)
-                        └── ...
+    └── 1P1VH1/                # Question Code
+        └── ...
 ```
 
 ### 4. Image Processing Strategy
-**Option B: Local Cache + Upload (Recommended)**
+**Local Cache + Cloudinary Upload (Recommended)**
 ```
-LaTeX → Compile TikZ → WebP → Save Local → Upload to Drive → Update DB → Delete Local
+LaTeX → Compile TikZ → WebP → Save Local → Upload to Cloudinary → Update DB → Delete Local
 ```
 
 **Image Naming Convention:**
-- `{subcount}-QUES.webp` - Single question image
-- `{subcount}-QUES-1.webp` - Multiple question images
-- `{subcount}-SOL.webp` - Single solution image
-- `{subcount}-SOL-1.webp` - Multiple solution images
+- `{public_id}/QUESTION_{timestamp}.webp` - Question image
+- `{public_id}/SOLUTION_{timestamp}.webp` - Solution image
+- Automatic versioning by Cloudinary
 
 **QuestionImage Status Field:**
 ```prisma
@@ -801,7 +793,7 @@ Priority order:
 
 #### Caching Strategy
 - Redis cache cho frequently accessed questions (đã setup)
-- Google Drive cho images (không cần CDN)
+- Cloudinary CDN cho images (automatic caching with optimizations)
 - Query result caching cho complex filters
 
 #### Vietnamese Full-text Search Strategy
@@ -865,3 +857,235 @@ if (isGrpcError(error)) {
 - ✅ Backward compatibility maintained
 
 **Next Step**: Backend team implements missing gRPC services, frontend replaces mocks with real implementations! 🚀
+
+---
+
+## 📦 Image Storage Migration: Google Drive → Cloudinary
+
+### Overview
+Hệ thống đã migrate từ **Google Drive** sang **Cloudinary** cho lưu trữ hình ảnh câu hỏi. Cloudinary cung cấp:
+- ✅ CDN tự động với caching toàn cầu
+- ✅ Xử lý hình ảnh (resizing, transformation, optimization)
+- ✅ Quản lý phiên bản tự động
+- ✅ URL trực tiếp không cần OAuth
+- ✅ Hiệu suất cao cho 10,000+ concurrent users
+
+### Database Schema Changes
+```sql
+-- Table: question_image (NO SCHEMA CHANGE - semantic change only)
+-- drive_url:    Now stores Cloudinary secure URL
+-- drive_file_id: Now stores Cloudinary public ID
+-- image_path:   Still used for temporary local files during processing
+
+-- Example data:
+-- Before (Google Drive):
+--   drive_url: "https://drive.google.com/file/d/abc123/view"
+--   drive_file_id: "abc123"
+
+-- After (Cloudinary):
+--   drive_url: "https://res.cloudinary.com/cloud-name/image/upload/v123/exam-bank/questions/0P1VH1/QUESTION_1234567.webp"
+--   drive_file_id: "exam-bank/questions/0P1VH1/QUESTION_1234567"
+```
+
+### Backend Implementation
+
+#### 1. Configuration (`apps/backend/internal/config/config.go`)
+```go
+type CloudinaryConfig struct {
+	Enabled   bool   // Enable/disable Cloudinary uploads
+	CloudName string // Cloudinary cloud name
+	APIKey    string // API key for authentication
+	APISecret string // API secret for authentication
+	Folder    string // Base folder: "exam-bank/questions"
+}
+
+// Load from env:
+CLOUDINARY_ENABLED=true
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+CLOUDINARY_FOLDER=exam-bank/questions
+```
+
+#### 2. Uploader Service (`apps/backend/internal/service/system/image_processing/google_drive_uploader.go`)
+**NOW:** `cloudinary_uploader.go` - Replaces Google Drive uploader
+
+```go
+type CloudinaryUploader struct {
+	cloudName string
+	apiKey    string
+	apiSecret string
+	folder    string
+	logger    *logrus.Logger
+}
+
+func (u *CloudinaryUploader) UploadImage(ctx context.Context, localPath string, questionCode string, imageType string) (*UploadResult, error) {
+	// Generate public ID: exam-bank/questions/{questionCode}/{imageType}_{timestamp}
+	// Upload to Cloudinary with folder structure
+	// Return UploadResult with Cloudinary URLs
+}
+```
+
+**UploadResult Structure:**
+```go
+type UploadResult struct {
+	FileID         string // Cloudinary public ID
+	WebViewLink    string // Secure URL (direct image access)
+	WebContentLink string // Same as WebViewLink for Cloudinary
+	ThumbnailLink  string // Thumbnail URL with transformations
+	UploadedAt     time.Time
+}
+```
+
+#### 3. Image Upload Management
+```go
+// apps/backend/internal/service/system/image_upload/image_upload_mgmt.go
+type ImageUploadMgmt struct {
+	imageRepo       *repository.QuestionImageRepository
+	uploadErrorRepo *repository.ImageUploadErrorRepository
+	uploader        *image_processing.CloudinaryUploader  // Changed from GoogleDriveUploader
+	processor       *image_processing.ImageProcessingService
+	// ... other fields
+}
+
+// Upload flow:
+// 1. Create QuestionImage record (Status: PENDING)
+// 2. Process TikZ → WebP locally
+// 3. Upload to Cloudinary → Get URLs
+// 4. Update QuestionImage with Cloudinary URLs (Status: UPLOADED)
+// 5. Delete local file
+```
+
+### Frontend Implementation
+
+#### 1. ImageCard Component (`apps/frontend/src/components/admin/questions/images/image-gallery/ImageCard.tsx`)
+```typescript
+function getImageUrl(image: QuestionImage): string {
+  if (image.driveUrl) {
+    // Cloudinary URLs are already direct image URLs
+    if (image.driveUrl.includes('res.cloudinary.com')) {
+      return image.driveUrl; // Direct Cloudinary URL
+    }
+    
+    // Fallback for legacy Google Drive URLs
+    const fileId = image.driveFileId || image.driveUrl.match(/\/d\/([a-zA-Z0-9-_]+)/)?.[1];
+    if (fileId) {
+      return `https://drive.google.com/uc?id=${fileId}`;
+    }
+  }
+  
+  if (image.imagePath) {
+    return image.imagePath;
+  }
+  
+  return '/images/placeholder-image.png';
+}
+```
+
+#### 2. Image Type Hints
+```typescript
+// QuestionImage type (unchanged structure, semantic change)
+interface QuestionImage {
+  id: string;
+  questionId: string;
+  imageType: ImageType;          // 'QUESTION' | 'SOLUTION'
+  imagePath?: string;            // Local path during processing
+  driveUrl?: string;             // NOW: Cloudinary secure URL
+  driveFileId?: string;          // NOW: Cloudinary public ID
+  status: ImageStatus;           // PENDING, UPLOADING, UPLOADED, FAILED
+  createdAt: Date;
+  updatedAt: Date;
+}
+```
+
+### Cloudinary Features Used
+
+#### 1. Folder Organization
+```
+Cloudinary Organization:
+exam-bank/
+├── questions/
+│   ├── 0P1VH1/
+│   │   ├── QUESTION_1234567.webp
+│   │   ├── SOLUTION_1234567.webp
+│   │   └── ... (auto-versioned by Cloudinary)
+│   ├── 1P1VH1/
+│   └── ...
+```
+
+#### 2. URL Transformations
+```
+Direct URL:
+https://res.cloudinary.com/cloud-name/image/upload/v123/exam-bank/questions/0P1VH1/QUESTION.webp
+
+Thumbnail (auto-transformation):
+https://res.cloudinary.com/cloud-name/image/upload/c_fill,h_200,w_200/v123/.../QUESTION.webp?w=200&h=200&c=fill
+
+Resized (mobile):
+https://res.cloudinary.com/cloud-name/image/upload/w_400,q_auto,f_webp/v123/.../QUESTION.webp
+```
+
+#### 3. Features
+- **Automatic CORS**: Images are publicly accessible
+- **Version Control**: `v123` allows rollback if needed
+- **Optimization**: Automatic format selection (WebP for modern browsers)
+- **Caching**: Global CDN with edge caching
+- **Responsive**: Cloudinary handles responsive image serving
+
+### Migration Checklist
+
+```
+Backend:
+- [x] Add Cloudinary config to config.go
+- [x] Create CloudinaryUploader service (replaces GoogleDriveUploader)
+- [x] Update ImageUploadMgmt to use CloudinaryUploader
+- [ ] Implement actual Cloudinary SDK integration (use cloudinary-go)
+- [ ] Add retry logic for failed uploads
+- [ ] Implement delete functionality for cleanup
+
+Frontend:
+- [x] Update ImageCard getImageUrl() for Cloudinary URLs
+- [x] Update ImageThumbnail getImageUrl() for Cloudinary URLs
+- [ ] Update ImageUploadComponent to use Cloudinary API directly
+- [ ] Add Cloudinary SDK for client-side uploads
+- [ ] Test image preview and gallery display
+
+Documentation:
+- [x] Update IMPLEMENT_QUESTION.md
+- [x] Replace Google Drive references with Cloudinary
+- [x] Update setup instructions
+- [ ] Create Cloudinary setup guide
+- [ ] Add troubleshooting guide
+
+Testing:
+- [ ] Unit tests for CloudinaryUploader
+- [ ] Integration tests for upload flow
+- [ ] E2E tests for image gallery display
+```
+
+### Environment Variables
+
+```bash
+# .env.local (Backend)
+CLOUDINARY_ENABLED=true
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+CLOUDINARY_FOLDER=exam-bank/questions
+
+# .env.local (Frontend - if using client-side uploads)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
+```
+
+### Benefits of Cloudinary Migration
+
+| Aspect | Google Drive | Cloudinary |
+|--------|-------------|-----------|
+| **Speed** | ~2-5s per image | <500ms with CDN |
+| **Auto Caching** | Manual | Global CDN automatic |
+| **Transformations** | None | Unlimited (resize, crop, etc.) |
+| **Storage** | 100GB limit | Enterprise scalable |
+| **API** | OAuth complex | Simple REST/SDK |
+| **Cost** | Free but limited | Pay-as-you-go (75GB free tier) |
+| **Versioning** | Manual | Automatic |
+| **Public Access** | Share link needed | Direct URL public by default |

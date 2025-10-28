@@ -10,6 +10,8 @@
  * - RealtimeDashboardMetrics
  * - useDashboardData
  * 
+ * ✅ FIX v2: Singleton pattern with module-level cache to prevent duplicate calls
+ * 
  * @author NyNus Development Team
  * @created 2025-10-25
  */
@@ -19,6 +21,24 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { AdminService } from '@/services/grpc/admin.service';
 import { logger } from '@/lib/utils/logger';
+
+// ===== MODULE-LEVEL SINGLETON CACHE =====
+// These variables persist across component remounts and React Strict Mode double-renders
+// Prevents duplicate API calls even when components unmount/remount
+
+// Stats cache
+let globalPendingRequest: Promise<void> | null = null;
+let globalLastFetch: Date | null = null;
+let globalStats: SystemStats | null = null;
+let globalLastRequestTime: number = 0; // Timestamp of last request for minimum interval check
+const MIN_REQUEST_INTERVAL = 8000; // 8 seconds minimum between requests (increased for rate limit protection)
+
+// Metrics history cache - ✅ FIX: Add caching for fetchMetricsHistory
+let globalMetricsPendingRequest: Promise<void> | null = null;
+let globalMetricsLastFetch: Date | null = null;
+let globalMetricsHistory: MetricsDataPoint[] = [];
+let globalMetricsLastRequestTime: number = 0; // Timestamp of last metrics request
+const MIN_METRICS_REQUEST_INTERVAL = 10000; // 10 seconds minimum between metrics requests (more conservative)
 
 // ===== TYPES =====
 
@@ -73,14 +93,14 @@ const AdminStatsContext = createContext<AdminStatsContextValue | undefined>(unde
 
 interface AdminStatsProviderProps {
   children: ReactNode;
-  cacheTimeout?: number; // Cache duration in milliseconds (default: 30 seconds)
+  cacheTimeout?: number; // Cache duration in milliseconds (default: 120 seconds)
   autoRefresh?: boolean; // Auto-refresh stats (default: false)
   refreshInterval?: number; // Auto-refresh interval in milliseconds (default: 5 minutes)
 }
 
 export function AdminStatsProvider({
   children,
-  cacheTimeout = 30000, // 30 seconds default
+  cacheTimeout = 120000, // ✅ FIX: 120 seconds (2 minutes) default - increased from 30s
   autoRefresh = false,
   refreshInterval = 5 * 60 * 1000, // 5 minutes default
 }: AdminStatsProviderProps) {
@@ -97,7 +117,6 @@ export function AdminStatsProvider({
 
   const fetchInProgressRef = useRef<boolean>(false);
   const autoRefreshTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const pendingRequestRef = useRef<Promise<void> | null>(null);
   const mountedRef = useRef<boolean>(false);
   const initialFetchDoneRef = useRef<boolean>(false);
   const retryCountRef = useRef<number>(0); // ✅ FIX: Use ref instead of state to avoid dependency cycle
@@ -109,75 +128,162 @@ export function AdminStatsProvider({
   /**
    * Fetch metrics history for sparklines
    * Gets last 7 data points for trending visualization
+   * 
+   * ✅ FIX: Add caching mechanism similar to fetchStats to prevent rate limit exceeded
    */
-  const fetchMetricsHistory = useCallback(async () => {
-    if (!mountedRef.current) return;
+  const fetchMetricsHistory = useCallback(async (force = false) => {
+    // ===== GLOBAL REQUEST DEDUPLICATION =====
+    // Check global pending request first (survives component remounts)
+    if (globalMetricsPendingRequest && !force) {
+      logger.debug('[AdminStatsContext] Global metrics request already in progress, returning existing promise');
+      return globalMetricsPendingRequest;
+    }
 
-    try {
-      setHistoryLoading(true);
-      
-      const response = await AdminService.getMetricsHistory({
-        limit: 7, // Last 7 data points for sparkline
+    // ===== MINIMUM INTERVAL CHECK =====
+    // Prevent requests more frequent than MIN_METRICS_REQUEST_INTERVAL (10s)
+    const timeSinceLastRequest = Date.now() - globalMetricsLastRequestTime;
+    if (!force && timeSinceLastRequest < MIN_METRICS_REQUEST_INTERVAL) {
+      const waitTime = MIN_METRICS_REQUEST_INTERVAL - timeSinceLastRequest;
+      logger.debug('[AdminStatsContext] Too soon since last metrics request, skipping', {
+        timeSinceLastRequest: `${timeSinceLastRequest}ms`,
+        minInterval: `${MIN_METRICS_REQUEST_INTERVAL}ms`,
+        waitTime: `${waitTime}ms`,
       });
+      return;
+    }
 
-      if (response.success && response.dataPoints) {
-        setMetricsHistory(response.dataPoints);
-        logger.debug('[AdminStatsContext] Metrics history fetched successfully', {
-          points: response.dataPoints.length,
+    // ===== GLOBAL CACHE CHECK =====
+    // Use global cache that survives component remounts (30 seconds cache)
+    const metricsTimeout = 30000; // 30 seconds cache for metrics history
+    if (!force && globalMetricsLastFetch && globalMetricsHistory.length > 0) {
+      const cacheAge = Date.now() - globalMetricsLastFetch.getTime();
+      if (cacheAge < metricsTimeout) {
+        logger.debug('[AdminStatsContext] Using global cached metrics history', {
+          cacheAge: `${cacheAge}ms`,
+          cacheTimeout: `${metricsTimeout}ms`,
+          points: globalMetricsHistory.length,
         });
-      } else {
-        logger.error('[AdminStatsContext] Failed to fetch metrics history', {
-          message: response.message,
-        });
-      }
-    } catch (err) {
-      logger.error('[AdminStatsContext] Error fetching metrics history', { 
-        error: err instanceof Error ? err.message : 'Unknown error'
-      });
-    } finally {
-      if (mountedRef.current) {
-        setHistoryLoading(false);
+        // Update component state from global cache
+        setMetricsHistory(globalMetricsHistory);
+        return;
       }
     }
+
+    // ===== FETCH LOGIC =====
+    const fetchPromise = (async () => {
+      if (!mountedRef.current) {
+        logger.debug('[AdminStatsContext] Component unmounted, skipping metrics fetch');
+        return;
+      }
+
+      globalMetricsLastRequestTime = Date.now(); // Update global last request time
+      setHistoryLoading(true);
+
+      try {
+        logger.info('[AdminStatsContext] 🚀 Fetching metrics history from backend (global singleton)');
+        
+        const response = await AdminService.getMetricsHistory({
+          limit: 7, // Last 7 data points for sparkline
+        });
+
+        if (!mountedRef.current) {
+          logger.debug('[AdminStatsContext] Component unmounted during metrics fetch, discarding result');
+          return;
+        }
+
+        if (response.success && response.dataPoints) {
+          // ✅ FIX: Update BOTH component state AND global cache
+          const fetchTime = new Date();
+          
+          // Update global cache (persists across remounts)
+          globalMetricsHistory = response.dataPoints;
+          globalMetricsLastFetch = fetchTime;
+          
+          // Update component state
+          setMetricsHistory(response.dataPoints);
+
+          logger.info('[AdminStatsContext] ✅ Metrics history fetched successfully (cached globally)', {
+            points: response.dataPoints.length,
+            cacheTimeout: `${metricsTimeout}ms`,
+          });
+        } else {
+          logger.error('[AdminStatsContext] Failed to fetch metrics history', {
+            message: response.message,
+          });
+        }
+      } catch (err) {
+        if (!mountedRef.current) return;
+
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        
+        // Silent fail for permission errors - these are expected on non-dashboard pages
+        if (errorMessage.includes('403') || errorMessage.includes('Forbidden') || errorMessage.includes('permission')) {
+          logger.debug('[AdminStatsContext] Metrics history not available (permission restricted)', {
+            operation: 'fetchMetricsHistory',
+          });
+        } else {
+          logger.error('[AdminStatsContext] ❌ Failed to fetch metrics history', {
+            operation: 'fetchMetricsHistory',
+            errorMessage,
+            timeSinceLastRequest: `${Date.now() - globalMetricsLastRequestTime}ms`,
+          });
+        }
+      } finally {
+        if (mountedRef.current) {
+          setHistoryLoading(false);
+        }
+        globalMetricsPendingRequest = null; // Clear global pending request
+      }
+    })();
+
+    globalMetricsPendingRequest = fetchPromise; // Set global pending request
+    return fetchPromise;
   }, []);
 
   /**
    * Fetch system stats from backend
-   * ✅ FIX: Refactored to prevent dependency cycle and add request deduplication
+   * ✅ FIX v2: Singleton pattern with module-level cache to prevent ALL duplicate calls
    *
    * Features:
-   * - Request deduplication with pendingRequestRef (prevents concurrent requests)
-   * - Functional updates to avoid state dependencies
+   * - Module-level cache survives component remounts and React Strict Mode
+   * - Global request deduplication (even across different component instances)
+   * - Minimum interval enforcement (5s between requests)
    * - Exponential backoff retry for rate limit errors
-   * - Mounted check to prevent memory leaks
-   * - Debounce on initial fetch to prevent hydration duplicate calls
+   * - Functional updates to avoid state dependencies
    */
   const fetchStats = useCallback(async (force = false) => {
-    // ===== REQUEST DEDUPLICATION =====
-    // If there's already a pending request, return that promise instead of making a new request
-    // This prevents multiple components from making concurrent requests to the same endpoint
-    if (pendingRequestRef.current && !force) {
-      logger.debug('[AdminStatsContext] Request already in progress, returning existing promise', {
-        fetchInProgress: fetchInProgressRef.current,
-      });
-      return pendingRequestRef.current;
+    // ===== GLOBAL REQUEST DEDUPLICATION =====
+    // Check global pending request first (survives component remounts)
+    if (globalPendingRequest && !force) {
+      logger.debug('[AdminStatsContext] Global request already in progress, returning existing promise');
+      return globalPendingRequest;
     }
 
-    // ===== CACHE CHECK =====
-    // Check cache validity using functional approach to avoid state dependencies
-    if (!force) {
-      const shouldUseCache = (() => {
-        const currentStats = stats;
-        const currentLastFetch = lastFetch;
+    // ===== MINIMUM INTERVAL CHECK =====
+    // Prevent requests more frequent than MIN_REQUEST_INTERVAL (5s)
+    const timeSinceLastRequest = Date.now() - globalLastRequestTime;
+    if (!force && timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      logger.debug('[AdminStatsContext] Too soon since last request, skipping', {
+        timeSinceLastRequest: `${timeSinceLastRequest}ms`,
+        minInterval: `${MIN_REQUEST_INTERVAL}ms`,
+        waitTime: `${waitTime}ms`,
+      });
+      return;
+    }
 
-        if (!currentLastFetch || !currentStats) return false;
-
-        const cacheAge = Date.now() - currentLastFetch.getTime();
-        return cacheAge < cacheTimeout;
-      })();
-
-      if (shouldUseCache) {
-        logger.debug('[AdminStatsContext] Using cached stats');
+    // ===== GLOBAL CACHE CHECK =====
+    // Use global cache that survives component remounts
+    if (!force && globalLastFetch && globalStats) {
+      const cacheAge = Date.now() - globalLastFetch.getTime();
+      if (cacheAge < cacheTimeout) {
+        logger.debug('[AdminStatsContext] Using global cached stats', {
+          cacheAge: `${cacheAge}ms`,
+          cacheTimeout: `${cacheTimeout}ms`,
+        });
+        // Update component state from global cache
+        setStats(globalStats);
+        setLastFetch(globalLastFetch);
         return;
       }
     }
@@ -190,11 +296,12 @@ export function AdminStatsProvider({
       }
 
       fetchInProgressRef.current = true;
+      globalLastRequestTime = Date.now(); // Update global last request time
       setLoading(true);
       setError(null);
 
       try {
-        logger.debug('[AdminStatsContext] Fetching system stats from backend');
+        logger.info('[AdminStatsContext] 🚀 Fetching system stats from backend (global singleton)');
 
         const response = await AdminService.getSystemStats();
 
@@ -207,15 +314,23 @@ export function AdminStatsProvider({
           throw new Error(response.message || 'Failed to fetch system stats');
         }
 
-        // ✅ FIX: Use functional updates to avoid dependency on current state
+        // ✅ FIX: Update BOTH component state AND global cache
+        const fetchTime = new Date();
+        
+        // Update global cache (persists across remounts)
+        globalStats = response.stats;
+        globalLastFetch = fetchTime;
+        
+        // Update component state
         setStats(() => response.stats);
-        setLastFetch(() => new Date());
+        setLastFetch(() => fetchTime);
         retryCountRef.current = 0; // Reset retry count on success
 
-        logger.debug('[AdminStatsContext] System stats fetched successfully', {
+        logger.info('[AdminStatsContext] ✅ System stats fetched successfully (cached globally)', {
           total_users: response.stats.total_users,
           active_users: response.stats.active_users,
           total_sessions: response.stats.total_sessions,
+          cacheTimeout: `${cacheTimeout}ms`,
         });
       } catch (err) {
         if (!mountedRef.current) return;
@@ -230,19 +345,20 @@ export function AdminStatsProvider({
         // Increment retry count for exponential backoff
         retryCountRef.current += 1;
 
-        logger.error('[AdminStatsContext] Failed to fetch system stats', {
+        logger.error('[AdminStatsContext] ❌ Failed to fetch system stats', {
           operation: 'fetchStats',
           errorName: err instanceof Error ? err.name : 'Unknown',
           errorMessage,
           isRateLimitError,
           retryCount: retryCountRef.current,
+          timeSinceLastRequest: `${Date.now() - globalLastRequestTime}ms`,
         });
 
         // ===== EXPONENTIAL BACKOFF RETRY =====
         // Only retry for rate limit errors, not authentication errors
         if (isRateLimitError && retryCountRef.current < 3) {
-          const backoffDelay = Math.min(1000 * Math.pow(2, retryCountRef.current - 1), 10000); // Max 10s
-          logger.debug('[AdminStatsContext] Scheduling retry with exponential backoff', {
+          const backoffDelay = Math.min(2000 * Math.pow(2, retryCountRef.current - 1), 30000); // Max 30s
+          logger.warn('[AdminStatsContext] ⏳ Scheduling retry with exponential backoff', {
             retryCount: retryCountRef.current,
             delay: `${backoffDelay}ms`,
           });
@@ -258,15 +374,13 @@ export function AdminStatsProvider({
           setLoading(false);
         }
         fetchInProgressRef.current = false;
-        pendingRequestRef.current = null;
+        globalPendingRequest = null; // Clear global pending request
       }
     })();
 
-    pendingRequestRef.current = fetchPromise;
+    globalPendingRequest = fetchPromise; // Set global pending request
     return fetchPromise;
-  }, [cacheTimeout]); // ✅ FIX: Remove lastFetch and stats to prevent dependency cycle
-  // Reason: fetchStats uses closure to access stats/lastFetch, doesn't need them as dependencies
-  // Cache check (line 116-117) uses local variables, functional updates (line 157-158) don't need current state
+  }, [cacheTimeout]);
 
   // ✅ FIX: Update fetchStatsRef whenever fetchStats changes
   useEffect(() => {
@@ -280,29 +394,57 @@ export function AdminStatsProvider({
   const refresh = useCallback(async () => {
     logger.debug('[AdminStatsContext] Manual refresh triggered');
     await fetchStats(true);
-  }, [fetchStats]);
+    // Also refresh metrics history - ✅ FIX: Pass force=true to bypass cache
+    await fetchMetricsHistory(true);
+  }, [fetchStats, fetchMetricsHistory]);
 
   // ===== EFFECTS =====
 
   /**
    * Initial fetch on mount with debounce
-   * Uses initialFetchDoneRef to prevent duplicate fetch in React Strict Mode
+   * Uses global cache to prevent duplicate fetch across component remounts
    * Debounce prevents rapid duplicate calls during React hydration
    * 
-   * ✅ FIX: Remove fetchStats from dependency array to prevent infinite loop
+   * ✅ FIX v2: Use global cache + longer debounce (2000ms) to handle React Strict Mode
    * The effect should only run once on mount, not when fetchStats changes
    */
   useEffect(() => {
     mountedRef.current = true;
     logger.info('[AdminStatsContext] Mount effect triggered', {
       initialFetchDone: initialFetchDoneRef.current,
-      hasPendingTimer: !!debounceTimerRef.current
+      hasPendingTimer: !!debounceTimerRef.current,
+      hasGlobalCache: !!globalStats,
+      globalCacheAge: globalLastFetch ? `${Date.now() - globalLastFetch.getTime()}ms` : 'none',
     });
 
-    // Only fetch once on initial mount
+    // Check global cache first - if available, use it immediately
+    if (globalStats && globalLastFetch) {
+      const cacheAge = Date.now() - globalLastFetch.getTime();
+      if (cacheAge < cacheTimeout) {
+        logger.info('[AdminStatsContext] 🎯 Using existing global cache on mount (skipping fetch)', {
+          cacheAge: `${cacheAge}ms`,
+          cacheTimeout: `${cacheTimeout}ms`,
+        });
+        setStats(globalStats);
+        setLastFetch(globalLastFetch);
+        
+        // ✅ FIX: Also check and use metrics history cache
+        if (globalMetricsHistory.length > 0 && globalMetricsLastFetch) {
+          const metricsCacheAge = Date.now() - globalMetricsLastFetch.getTime();
+          if (metricsCacheAge < 30000) { // 30 seconds cache
+            logger.info('[AdminStatsContext] 🎯 Using existing global metrics cache on mount');
+            setMetricsHistory(globalMetricsHistory);
+          }
+        }
+        
+        return; // Skip fetch entirely
+      }
+    }
+
+    // Only fetch once on initial mount if no global cache
     if (!initialFetchDoneRef.current) {
       initialFetchDoneRef.current = true;
-      logger.info('[AdminStatsContext] Setting up debounced fetch (500ms delay for React Strict Mode)');
+      logger.info('[AdminStatsContext] Setting up debounced fetch (2000ms delay for React Strict Mode)');
 
       // Debounce initial fetch to prevent duplicate calls during hydration
       // This is especially important in Next.js 14 App Router with React Strict Mode
@@ -312,12 +454,14 @@ export function AdminStatsProvider({
 
       debounceTimerRef.current = setTimeout(() => {
         if (mountedRef.current && fetchStatsRef.current) {
-          logger.info('[AdminStatsContext] Executing debounced initial fetch NOW');
+          logger.info('[AdminStatsContext] ⏱️ Executing debounced initial fetch NOW');
           fetchStatsRef.current();
+          // Also fetch metrics history for charts
+          fetchMetricsHistory();
         } else {
           logger.warn('[AdminStatsContext] Skipped fetch - component unmounted or no fetchRef');
         }
-      }, 500); // ✅ FIX: 500ms to handle React Strict Mode double-render
+      }, 3000); // ✅ FIX: 3000ms (3s) to handle React Strict Mode double-render + concurrent components + multiple tabs
     } else {
       logger.debug('[AdminStatsContext] Skipping fetch - already done (React Strict Mode second render)');
     }

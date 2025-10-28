@@ -1,6 +1,6 @@
-'use client';
+﻿'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus,
@@ -8,8 +8,7 @@ import {
   Upload,
   FileText,
   Bookmark,
-  Map,
-  Star
+  Map
 } from 'lucide-react';
 import {
   Button,
@@ -20,7 +19,6 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui';
 import { useToast } from '@/hooks';
-import { useFavoriteQuestions } from '@/hooks/question';
 import { ADMIN_PATHS } from '@/lib/admin-paths';
 // FIXED: Re-enable imports after fixing infinite loop
 import { ComprehensiveQuestionFiltersNew } from '@/components/admin/questions/filters';
@@ -42,8 +40,7 @@ export default function AdminQuestionsPage() {
   const { toast } = useToast();
   const { trackBulkOp } = useAdminAnalytics();
   
-  // Favorite functionality hook
-  const { toggleFavorite } = useFavoriteQuestions();
+  // Favorite functionality removed - not used in current implementation
 
   // FIXED: Re-enable store hooks after fixing infinite loop
   // Store selectors
@@ -62,10 +59,51 @@ export default function AdminQuestionsPage() {
   const fetchQuestions = useQuestionStore((s) => s.fetchQuestions);
   const deselectAllQuestions = useQuestionStore((s) => s.deselectAllQuestions);
   const selectQuestion = useQuestionStore((s) => s.selectQuestion);
-  const updateQuestionInStore = useQuestionStore((s) => s.updateQuestion);
 
   // Convert Set to Array only when needed for component props
   const selectedIds = useMemo(() => Array.from(selectedIdsSet), [selectedIdsSet]);
+
+  // Load questions on component mount
+  useEffect(() => {
+    console.log('?? [AdminQuestionsPage] useEffect triggered - checking if need to fetch questions');
+
+    const state = useQuestionStore.getState();
+    const hasQuestions = state.questions.length > 0;
+    const hasIncompleteCodes = state.questions.some((question) => {
+      const code = question.questionCodeId?.trim();
+      return !code || code.toUpperCase() === 'N/A';
+    });
+
+    console.log('?? [AdminQuestionsPage] Current state:', {
+      hasFetchedQuestions: state.hasFetchedQuestions,
+      isLoading: state.isLoading,
+      questionsLength: state.questions.length,
+      hasIncompleteCodes,
+      error: state.error
+    });
+
+    if (!state.isLoading && (!hasQuestions || hasIncompleteCodes)) {
+      console.log('?? [AdminQuestionsPage] Calling fetchQuestions - missing or incomplete question codes');
+      fetchQuestions().catch((error) => {
+        console.error('? [AdminQuestionsPage] fetchQuestions failed:', error);
+      });
+    } else {
+      console.log('?? [AdminQuestionsPage] Skipping fetchQuestions', {
+        questionsLength: state.questions.length,
+        isLoading: state.isLoading,
+        reason: hasQuestions ? 'questions already loaded with codes' : 'currently loading'
+      });
+    }
+  }, [fetchQuestions]);
+
+  // Log when questions data changes
+  useEffect(() => {
+    console.log('📝 [AdminQuestionsPage] Questions data updated:', {
+      count: questions.length,
+      isLoading,
+      error: useQuestionStore.getState().error
+    });
+  }, [questions.length, isLoading]);
 
   // Bulk operations state
   const [showBulkEditModal, setShowBulkEditModal] = useState(false);
@@ -143,18 +181,7 @@ export default function AdminQuestionsPage() {
     }
   }, [deleteQuestion, toast, fetchQuestions, lastAppliedFilters]);
 
-  // Favorite handler
-  const handleFavorite = useCallback(async (id: string) => {
-    const question = questions.find(q => q.id === id);
-    if (!question) return;
-    
-    const newStatus = await toggleFavorite(id, question.isFavorite || false);
-    
-    // Update question in store với optimistic UI
-    if (updateQuestionInStore) {
-      updateQuestionInStore(id, { isFavorite: newStatus });
-    }
-  }, [questions, toggleFavorite, updateQuestionInStore]);
+  // Favorite handler removed - not used in current implementation
 
   // Bulk operation handlers
   const handleBulkEdit = useCallback(async (data: BulkEditData) => {
@@ -361,3 +388,10 @@ export default function AdminQuestionsPage() {
     </div>
   );
 }
+
+
+
+
+
+
+

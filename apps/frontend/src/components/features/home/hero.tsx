@@ -245,7 +245,7 @@ const Hero = () => {
                   className="flex items-center bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
                   style={{ width: '280px', height: '80px' }}
                   onClick={() => {
-                    analytics.ctaClick('hero_section', heroData.ctaButtons.primary.text);
+                    analytics.trackButtonClick('hero_cta_primary', 'hero_section');
                   }}
                 >
                   {/* Card Icon with Animation */}
@@ -326,7 +326,7 @@ const Hero = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
                   setIsVideoModalOpen(true);
-                  analytics.videoModalOpen('hero_section');
+                  analytics.trackButtonClick('video_modal_open', 'hero_section');
                 }}
                 aria-label="Phát video giới thiệu"
               >

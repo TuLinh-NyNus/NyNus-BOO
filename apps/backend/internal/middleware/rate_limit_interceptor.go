@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 // RateLimitInterceptor handles rate limiting for API endpoints
 type RateLimitInterceptor struct {
 	// Store rate limiters per user/IP
+	// Keyed by "<method>|<identifier>" so each RPC has an isolated bucket per caller
 	limiters     map[string]*userLimiter
 	limiterMutex sync.RWMutex
 
@@ -127,10 +129,18 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		// Reason: Multiple dashboard components (7+ hooks/components) fetch stats simultaneously
 		// during page load with React Strict Mode double-render. Backend caching (10s TTL) reduces actual database load.
 		// Very high limit allows concurrent requests from different components without blocking.
-		// ✅ FIX: Increased from 30/50 to 100/200 to handle React Strict Mode + multiple concurrent components
+		// ✅ FIX: Increased to 200/500 to handle React Strict Mode + multiple concurrent components + browser tabs
 		"/v1.AdminService/GetSystemStats": {
-			RequestsPerSecond: 100, // 100 requests per second - supports React Strict Mode + 7+ concurrent components
-			Burst:             200,  // Allow burst of 200 for initial dashboard load with multiple components + double-render
+			RequestsPerSecond: 200, // 200 requests per second - supports React Strict Mode + 10+ concurrent components + multiple tabs
+			Burst:             500, // Allow burst of 500 for initial dashboard load with multiple components + double-render + multiple tabs
+			PerUser:           true,
+		},
+		// Admin metrics history - higher limit for sparkline data with caching
+		// Used by dashboard components to fetch time series data for charts
+		// ✅ FIX: Increased rate limit + added frontend caching to prevent rate limit exceeded
+		"/v1.AdminService/GetMetricsHistory": {
+			RequestsPerSecond: 50,  // 50 requests per second - higher limit with frontend caching (10s interval + 30s cache)
+			Burst:             100, // Allow burst of 100 for initial dashboard load with React Strict Mode + multiple tabs
 			PerUser:           true,
 		},
 		"/v1.AdminService/GetSecurityAlerts": {
@@ -197,7 +207,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		// Notification operations - higher limits for read operations
 		// ✅ FIX: Increased to handle React Strict Mode double-render + multiple notification components
 		"/v1.NotificationService/GetNotifications": {
-			RequestsPerSecond: 50, // 50 requests per second - supports React Strict Mode
+			RequestsPerSecond: 50,  // 50 requests per second - supports React Strict Mode
 			Burst:             100, // Allow burst of 100 for initial page load with double-render
 			PerUser:           true,
 		},
@@ -220,7 +230,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		// Library/Book operations - higher limit for browsing
 		// ✅ FIX: Increased to handle React Strict Mode double-render
 		"/v1.BookService/ListBooks": {
-			RequestsPerSecond: 50, // 50 requests per second - supports React Strict Mode
+			RequestsPerSecond: 50,  // 50 requests per second - supports React Strict Mode
 			Burst:             100, // Allow burst of 100 for initial dashboard load with double-render
 			PerUser:           true,
 		},
@@ -271,7 +281,7 @@ func (r *RateLimitInterceptor) Unary() grpc.UnaryServerInterceptor {
 		}
 
 		// Get or create rate limiter for this identifier
-		limiter := r.getLimiter(identifier, config)
+		limiter := r.getLimiter(info.FullMethod, identifier, config)
 
 		// Check rate limit
 		if !limiter.Allow() {
@@ -320,9 +330,11 @@ func (r *RateLimitInterceptor) getIdentifier(ctx context.Context, perUser bool) 
 }
 
 // Get or create rate limiter for an identifier
-func (r *RateLimitInterceptor) getLimiter(identifier string, config RateLimitConfig) *rate.Limiter {
+func (r *RateLimitInterceptor) getLimiter(method string, identifier string, config RateLimitConfig) *rate.Limiter {
+	key := r.limiterKey(method, identifier)
+
 	r.limiterMutex.RLock()
-	if ul, exists := r.limiters[identifier]; exists {
+	if ul, exists := r.limiters[key]; exists {
 		ul.lastAccess = time.Now()
 		r.limiterMutex.RUnlock()
 		return ul.limiter
@@ -334,17 +346,20 @@ func (r *RateLimitInterceptor) getLimiter(identifier string, config RateLimitCon
 	defer r.limiterMutex.Unlock()
 
 	// Double-check after acquiring write lock
-	if ul, exists := r.limiters[identifier]; exists {
+	if ul, exists := r.limiters[key]; exists {
 		ul.lastAccess = time.Now()
 		return ul.limiter
 	}
 
 	// Create new rate limiter
 	limiter := rate.NewLimiter(rate.Limit(config.RequestsPerSecond), config.Burst)
-	r.limiters[identifier] = &userLimiter{
+	r.limiters[key] = &userLimiter{
 		limiter:    limiter,
 		lastAccess: time.Now(),
 	}
+
+	fmt.Printf("[RATE_LIMIT] Created limiter for %s | Identifier: %s | Limit: %.2f/s burst %d\n",
+		method, identifier, config.RequestsPerSecond, config.Burst)
 
 	return limiter
 }
@@ -383,10 +398,11 @@ func (r *RateLimitInterceptor) GetRateLimitStatus(ctx context.Context, method st
 		return config.Burst, time.Now()
 	}
 
+	key := r.limiterKey(method, identifier)
 	r.limiterMutex.RLock()
 	defer r.limiterMutex.RUnlock()
 
-	if ul, exists := r.limiters[identifier]; exists {
+	if ul, exists := r.limiters[key]; exists {
 		// Approximate remaining requests
 		tokens := ul.limiter.Tokens()
 		remaining = int(tokens)
@@ -407,6 +423,14 @@ func (r *RateLimitInterceptor) ResetRateLimit(identifier string) {
 	r.limiterMutex.Lock()
 	defer r.limiterMutex.Unlock()
 
-	delete(r.limiters, identifier)
+	for key := range r.limiters {
+		if strings.HasSuffix(key, "|"+identifier) {
+			delete(r.limiters, key)
+		}
+	}
 	fmt.Printf("Rate limit reset for: %s\n", identifier)
+}
+
+func (r *RateLimitInterceptor) limiterKey(method string, identifier string) string {
+	return method + "|" + identifier
 }

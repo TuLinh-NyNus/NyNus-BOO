@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/feedback/use-toast';
-import { cn } from '@/lib/utils';
 import type { LibraryItemKind } from '@/services/grpc/library.service';
 
 const DEFAULT_TYPES: LibraryItemKind[] = ['book', 'exam', 'video'];
@@ -56,7 +55,7 @@ export default function PublicLibraryPage() {
     sortOrder,
     filter: {
       types: selectedTypes,
-      subject,
+      subjects: subject ? [subject] : undefined,
       grades: grade ? [grade] : undefined,
       bookType,
       examType,
@@ -215,12 +214,12 @@ export default function PublicLibraryPage() {
           items={items}
           loading={loading}
           onPreview={(item) => handleOpenPreview(item.id)}
-          onBookmark={(item, next) =>
-            withToast(
+          onBookmark={async (item, next) => {
+            await withToast(
               actions.bookmark(item.id, next),
               next ? 'Đã thêm vào danh sách bookmark.' : 'Đã gỡ khỏi bookmark.',
-            )
-          }
+            );
+          }}
         />
 
         {totalPages > 1 && (
@@ -275,14 +274,14 @@ export default function PublicLibraryPage() {
         open={Boolean(selectedItemId)}
         item={activePreviewItem}
         onClose={handleClosePreview}
-        onBookmark={(next) =>
-          withToast(
+        onBookmark={async (next) => {
+          await withToast(
             actions.bookmark(selectedItemId as string, next),
             next ? 'Đã thêm vào bookmark.' : 'Đã gỡ khỏi bookmark.',
-          )
-        }
-        onDownload={() =>
-          withToast(
+          );
+        }}
+        onDownload={async () => {
+          await withToast(
             actions.download(selectedItemId as string).then((result) => {
               if (result.downloadUrl) {
                 window.open(result.downloadUrl, '_blank', 'noopener');
@@ -290,14 +289,14 @@ export default function PublicLibraryPage() {
               return result;
             }),
             'Đang mở đường dẫn tải xuống.',
-          )
-        }
-        onRate={(value, review) =>
-          withToast(
+          );
+        }}
+        onRate={async (value, review) => {
+          await withToast(
             actions.rate(selectedItemId as string, value, review),
             'Cảm ơn bạn đã đánh giá tài liệu.',
-          )
-        }
+          );
+        }}
         bookmarking={actions.state.loading}
         downloading={actions.state.loading}
         ratingLoading={actions.state.loading}

@@ -14,7 +14,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,7 +99,6 @@ export default function AdminSessionsPage() {
         const uniqueIPs = new Set(response.sessions.map(s => s.ip_address));
         
         // Calculate average session duration (in minutes)
-        const now = new Date();
         const durations = activeSessions
           .map(s => {
             const created = new Date(s.created_at);
@@ -129,7 +128,7 @@ export default function AdminSessionsPage() {
   /**
    * Fetch all active sessions from real backend with user data
    */
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -224,7 +223,7 @@ export default function AdminSessionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.search]);
 
   /**
    * Helper: Extract browser from user agent
@@ -358,13 +357,13 @@ export default function AdminSessionsPage() {
 
       return () => clearInterval(interval);
     }
-  }, [autoRefresh]); // ✅ Only depend on autoRefresh flag to prevent infinite loop
+  }, [autoRefresh, fetchSessions]); // ✅ Include fetchSessions dependency
 
   // Initial data load
   useEffect(() => {
     fetchSessions();
     fetchStats();
-  }, []); // ✅ Only run on mount to prevent infinite loop
+  }, [fetchSessions]); // ✅ Include fetchSessions dependency
 
   // Filter sessions based on current filters
   const filteredSessions = sessions.filter(session => {

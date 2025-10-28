@@ -32,6 +32,7 @@ interface BasicFiltersRowProps {
   onFiltersChange: (filters: Partial<QuestionFilters>) => void;
   isAdvancedOpen: boolean;
   onToggleAdvanced: () => void;
+  onApplyFilters: () => void;
   isLoading?: boolean;
 }
 
@@ -51,6 +52,7 @@ export function BasicFiltersRow({
   onFiltersChange,
   isAdvancedOpen,
   onToggleAdvanced,
+  onApplyFilters,
   isLoading = false
 }: BasicFiltersRowProps) {
   // DEBUG: Log trong useEffect để tránh hydration mismatch
@@ -88,11 +90,47 @@ export function BasicFiltersRow({
 
   return (
     <div className="bg-card/50 backdrop-blur-sm border border-border/60 rounded-lg p-4 shadow-sm admin-card">
-      {/* Grid with 9 columns: Subcount + Grade + Subject + Chapter + Lesson + Level + Form + Type + Toggle */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-4 items-end">
+      {/* Row 1: Labels + Filter Button */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-4 mb-2 items-center">
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Subcount</Label>
+        </div>
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Lớp</Label>
+        </div>
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Môn học</Label>
+        </div>
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Chương</Label>
+        </div>
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Bài</Label>
+        </div>
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Mức độ</Label>
+        </div>
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Dạng</Label>
+        </div>
+        <div className="flex items-center">
+          <Label className="text-base font-semibold text-foreground">Loại câu hỏi</Label>
+        </div>
+        <div className="flex items-center">
+          <Button
+            onClick={onApplyFilters}
+            className="h-6 w-full text-xs"
+            disabled={isLoading}
+          >
+            Lọc
+          </Button>
+        </div>
+      </div>
+
+      {/* Row 2: Input/Select fields + Advanced Button */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-9 gap-4 items-center">
         {/* 1. Subcount Search */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Subcount</Label>
+        <div>
           <Input
             placeholder="VD: TL.100022"
             value={filters.subcount || ''}
@@ -103,14 +141,13 @@ export function BasicFiltersRow({
         </div>
 
         {/* 2. Lớp (Grade) - From MapCode */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Lớp</Label>
+        <div>
           <Select
             value={getSingleValue('grade')}
             onValueChange={(value) => handleArrayFilterChange('grade', value)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 hover:bg-transparent hover:border-input">
               <SelectValue placeholder="Chọn lớp" />
             </SelectTrigger>
             <SelectContent>
@@ -125,14 +162,13 @@ export function BasicFiltersRow({
         </div>
 
         {/* 3. Môn học (Subject) - From MapCode */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Môn học</Label>
+        <div>
           <Select
             value={getSingleValue('subject')}
             onValueChange={(value) => handleArrayFilterChange('subject', value)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 hover:bg-transparent hover:border-input">
               <SelectValue placeholder="Chọn môn" />
             </SelectTrigger>
             <SelectContent>
@@ -147,14 +183,13 @@ export function BasicFiltersRow({
         </div>
 
         {/* 4. Chương (Chapter) - From MapCode */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Chương</Label>
+        <div>
           <Select
             value={getSingleValue('chapter')}
             onValueChange={(value) => handleArrayFilterChange('chapter', value)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 hover:bg-transparent hover:border-input">
               <SelectValue placeholder="Chọn chương" />
             </SelectTrigger>
             <SelectContent>
@@ -169,14 +204,13 @@ export function BasicFiltersRow({
         </div>
 
         {/* 5. Bài (Lesson) - From MapCode */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Bài</Label>
+        <div>
           <Select
             value={getSingleValue('lesson')}
             onValueChange={(value) => handleArrayFilterChange('lesson', value)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 hover:bg-transparent hover:border-input">
               <SelectValue placeholder="Chọn bài" />
             </SelectTrigger>
             <SelectContent>
@@ -191,14 +225,13 @@ export function BasicFiltersRow({
         </div>
 
         {/* 6. Mức độ (Level) - From MapCode */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Mức độ</Label>
+        <div>
           <Select
             value={getSingleValue('level')}
             onValueChange={(value) => handleArrayFilterChange('level', value)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 hover:bg-transparent hover:border-input">
               <SelectValue placeholder="Chọn mức độ" />
             </SelectTrigger>
             <SelectContent>
@@ -213,14 +246,13 @@ export function BasicFiltersRow({
         </div>
 
         {/* 7. Dạng (Form - Position 6, chỉ ID6) */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Dạng</Label>
+        <div>
           <Select
             value={getSingleValue('form')}
             onValueChange={(value) => handleArrayFilterChange('form', value)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 hover:bg-transparent hover:border-input">
               <SelectValue placeholder="Chọn dạng" />
             </SelectTrigger>
             <SelectContent>
@@ -235,14 +267,13 @@ export function BasicFiltersRow({
         </div>
 
         {/* 8. Question Type */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground">Loại câu hỏi</Label>
+        <div>
           <Select
             value={getSingleValue('type')}
             onValueChange={(value) => handleArrayFilterChange('type', value)}
             disabled={isLoading}
           >
-            <SelectTrigger className="h-10">
+            <SelectTrigger className="h-10 hover:bg-transparent hover:border-input">
               <SelectValue placeholder="Chọn loại" />
             </SelectTrigger>
             <SelectContent>
@@ -257,8 +288,7 @@ export function BasicFiltersRow({
         </div>
 
         {/* 9. Toggle Advanced Button */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-foreground invisible">Toggle</Label>
+        <div>
           <Button
             variant="outline"
             onClick={onToggleAdvanced}

@@ -11,40 +11,15 @@
 import React, { useState, useCallback } from "react";
 import { useFieldArray, Control, useWatch } from "react-hook-form";
 import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  // Input,
-  Textarea,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  // CardTitle,
   Badge,
-  Checkbox,
   Alert,
   AlertDescription,
-  Collapsible,
-  CollapsibleContent,
-  // CollapsibleTrigger,
 } from "@/components/ui";
 import {
   Plus,
-  Minus,
-  ChevronDown,
-  ChevronRight,
-  CheckCircle,
-  // XCircle,
   AlertTriangle,
-  Eye,
-  EyeOff
 } from "lucide-react";
-
-// Import LaTeX components
-import { LaTeXPreview } from "@/components/common/latex";
 
 // Import AnswerItem component
 import { AnswerItem } from "./answer-item";

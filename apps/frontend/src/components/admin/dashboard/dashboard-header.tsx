@@ -10,6 +10,7 @@ import { RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 import { Button } from '@/components/ui/form/button';
 import { Badge } from '@/components/ui/display/badge';
+import { QuickActions } from './quick-actions';
 
 /**
  * Dashboard Header Props
@@ -145,6 +146,9 @@ export function DashboardHeader({
       <div className="flex items-center gap-3">
         {/* Status Badge */}
         {getStatusBadge()}
+
+        {/* Quick Actions */}
+        <QuickActions />
 
         {/* Refresh Button */}
         <Button

@@ -78,21 +78,16 @@ export function DashboardStats() {
   const { overview } = analyticsData;
 
   return (
-    <div className="space-y-8" suppressHydrationWarning>
+    <div className="space-y-8">
       {/* Thống kê người dùng tổng quan */}
-      <div suppressHydrationWarning>
-        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-purple-500/10 backdrop-blur-xl border border-white/10 shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-blue-500/50">
-              <span className="text-2xl">👥</span>
-            </div>
-            <div>
-              <h3 className="text-2xl font-black bg-gradient-to-r from-blue-400 via-cyan-400 to-purple-400 bg-clip-text text-transparent">
-                Thống kê người dùng
-              </h3>
-              <p className="text-sm text-muted-foreground/80 mt-1 font-medium">Tổng quan về người dùng và hoạt động trong hệ thống</p>
-            </div>
-          </div>
+      <div>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            Thống kê người dùng
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Tổng quan về người dùng và hoạt động trong hệ thống
+          </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
           <StatCard
@@ -133,18 +128,13 @@ export function DashboardStats() {
 
       {/* Thống kê nội dung hệ thống */}
       <div>
-        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-red-500/10 backdrop-blur-xl border border-white/10 shadow-lg">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-2xl shadow-amber-500/50">
-              <span className="text-2xl">📚</span>
-            </div>
-            <div>
-              <h3 className="text-2xl font-black bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
-                Thống kê nội dung
-              </h3>
-              <p className="text-sm text-muted-foreground/80 mt-1 font-medium">Khóa học, câu hỏi và tài liệu học tập</p>
-            </div>
-          </div>
+        <div className="mb-6">
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            Thống kê nội dung
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Khóa học, câu hỏi và tài liệu học tập
+          </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
           <StatCard

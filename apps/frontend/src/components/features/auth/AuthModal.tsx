@@ -79,7 +79,7 @@ export function AuthModal({
         }
       }}
     >
-      <DialogContent className="max-w-4xl p-0 gap-0">
+      <DialogContent className="max-w-4xl p-0 gap-0" hideCloseButton={true}>
         <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
           {/* Left Side - Illustration */}
           {showIllustration && (

@@ -11,24 +11,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Plus,
-  Download,
-  Upload,
-  FileText,
-  BarChart3,
-  Settings
-} from 'lucide-react';
-
-// UI Components
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui';
+// UI Components removed - not used in current implementation
 
 // Hooks
 import { useToast } from '@/hooks';
@@ -48,6 +31,8 @@ import { ADMIN_PATHS } from '@/lib/admin-paths';
 
 // ===== TYPES =====
 
+export type ExamViewMode = 'grid' | 'list';
+
 interface AdminExamPageState {
   exams: Exam[];
   loading: boolean;
@@ -55,6 +40,7 @@ interface AdminExamPageState {
   selectedIds: string[];
   totalItems: number;
   currentPage: number;
+  viewMode: ExamViewMode;
 }
 
 // ===== CONSTANTS =====
@@ -72,6 +58,7 @@ const DEFAULT_STATE: AdminExamPageState = {
   selectedIds: [],
   totalItems: 0,
   currentPage: 1,
+  viewMode: 'grid', // Default to grid view
 };
 
 // ===== MAIN COMPONENT =====
@@ -98,11 +85,19 @@ export default function AdminExamPage() {
     try {
       // ✅ Use separate filters state instead of state.filters
       const response = await ExamService.listExams(filters);
+      
+      // Debug: Log response to check data
+      console.log('ExamService.listExams response:', {
+        examsCount: response.exams.length,
+        total: response.total,
+        page: response.page,
+        pageSize: response.pageSize
+      });
 
       setState(prev => ({
         ...prev,
         exams: response.exams,
-        totalItems: response.total,
+        totalItems: response.total || response.exams.length,
         loading: false,
       }));
     } catch (error) {
@@ -226,6 +221,14 @@ export default function AdminExamPage() {
     setState(prev => ({ ...prev, selectedIds }));
   };
 
+  const handleViewModeChange = (mode: ExamViewMode) => {
+    setState(prev => ({ ...prev, viewMode: mode }));
+    // Optionally persist to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('exam-view-mode', mode);
+    }
+  };
+
   const handleBulkDelete = async (examIds: string[]) => {
     if (!confirm(`Bạn có chắc chắn muốn xóa ${examIds.length} đề thi đã chọn?`)) {
       return;
@@ -298,70 +301,18 @@ export default function AdminExamPage() {
     console.log('Export handled by BulkOperations');
   };
 
-  const handleAnalytics = () => {
-    router.push(ADMIN_PATHS.EXAMS_ANALYTICS);
+  const handleImport = () => {
+    // This will trigger the import dialog in BulkOperations
+    // For now, just log - actual implementation will be in BulkOperations
+    console.log('Import triggered from header button');
   };
 
-  const handleSettings = () => {
-    router.push(ADMIN_PATHS.EXAMS_SETTINGS);
-  };
+  // Analytics and Settings handlers removed - not used in current implementation
 
   // ===== RENDER =====
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý đề thi</h1>
-          <p className="text-muted-foreground">
-            Tạo, chỉnh sửa và quản lý đề thi trong hệ thống
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={handleAnalytics}>
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Thống kê
-          </Button>
-          
-          <Button variant="outline" onClick={handleSettings}>
-            <Settings className="h-4 w-4 mr-2" />
-            Cài đặt
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Thao tác
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleExport}>
-                <Download className="h-4 w-4 mr-2" />
-                Xuất dữ liệu
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Upload className="h-4 w-4 mr-2" />
-                Nhập dữ liệu
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <FileText className="h-4 w-4 mr-2" />
-                Báo cáo
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button onClick={handleCreateExam}>
-            <Plus className="h-4 w-4 mr-2" />
-            Tạo đề thi
-          </Button>
-        </div>
-      </div>
-
       {/* Bulk Operations */}
       <BulkOperations
         selectedExams={state.exams.filter(exam => state.selectedIds.includes(exam.id))}
@@ -383,13 +334,15 @@ export default function AdminExamPage() {
         exams={state.exams}
         loading={state.loading}
         error={state.error}
+        viewMode={state.viewMode}
         totalItems={state.totalItems}
         currentPage={state.currentPage}
         selectedIds={state.selectedIds}
         showFilters={true}
         showSearch={true}
         showBulkActions={false} // Handled by BulkOperations component
-        showCreateButton={false} // We have our own create button
+        showCreateButton={true} // Show create button in grid header
+        onViewModeChange={handleViewModeChange}
         onFiltersChange={handleFiltersChange}
         onPageChange={handlePageChange}
         onSelectionChange={handleSelectionChange}
@@ -403,6 +356,7 @@ export default function AdminExamPage() {
         onBulkPublish={handleBulkPublish}
         onBulkArchive={handleBulkArchive}
         onExport={handleExport}
+        onImport={handleImport}
       />
     </div>
   );

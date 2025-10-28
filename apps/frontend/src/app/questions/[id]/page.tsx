@@ -305,7 +305,7 @@ export default async function QuestionDetailPage({ params }: QuestionDetailPageP
                   </button>
                 </div>
                 <div className="prose prose-lg max-w-none">
-                  <div dangerouslySetInnerHTML={{ __html: question.solution.replace(/\$([^$]+)\$/g, '<span class="math-inline">$1</span>') }} />
+                  <div dangerouslySetInnerHTML={{ __html: question.solution?.replace(/\$([^$]+)\$/g, '<span class="math-inline">$1</span>') || 'Không có lời giải' }} />
                 </div>
               </div>
             </div>

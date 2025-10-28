@@ -45,10 +45,11 @@ const BACKEND_GRPC_URL = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
   const startTime = performance.now();
-  const grpcPath = params.path.join('/');
+  const resolvedParams = await params;
+  const grpcPath = resolvedParams.path.join('/');
   
   logger.debug('[gRPC Proxy] Incoming request', {
     path: grpcPath,
@@ -280,6 +281,179 @@ export async function POST(
 }
 
 /**
+ * GET /api/grpc/[...path]
+ * 
+ * Handle HTTP GET requests for gRPC Gateway endpoints
+ * Some gRPC services expose HTTP GET endpoints via gRPC Gateway
+ * 
+ * @param request - Next.js request object
+ * @param params - Dynamic route parameters
+ * @returns Backend HTTP response
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  const startTime = performance.now();
+  const resolvedParams = await params;
+  const grpcPath = resolvedParams.path.join('/');
+  
+  logger.debug('[gRPC Proxy] GET request', {
+    path: grpcPath,
+    method: 'GET',
+    searchParams: request.nextUrl.searchParams.toString(),
+  });
+
+  try {
+    // ===== AUTHENTICATION CHECK =====
+    
+    // Get NextAuth session (server-side only)
+    const session = await auth();
+    
+    if (!session) {
+      logger.warn('[gRPC Proxy] No session found for GET request', {
+        path: grpcPath,
+      });
+      
+      return new NextResponse(JSON.stringify({
+        error: 'Unauthorized',
+        message: 'No active session'
+      }), {
+        status: 401,
+        headers: {
+          'content-type': 'application/json',
+        }
+      });
+    }
+
+    logger.debug('[gRPC Proxy] Session found for GET request', {
+      userEmail: session.user?.email,
+      hasBackendToken: !!session.backendAccessToken,
+    });
+
+    // ===== PREPARE BACKEND REQUEST =====
+    
+    // Extract CSRF token from request headers
+    const csrfToken = request.headers.get('x-csrf-token');
+    
+    // Build backend URL with query parameters
+    const backendUrl = new URL(`${BACKEND_GRPC_URL}/${grpcPath}`);
+    
+    // Forward all query parameters
+    request.nextUrl.searchParams.forEach((value, key) => {
+      backendUrl.searchParams.set(key, value);
+    });
+    
+    logger.debug('[gRPC Proxy] Forwarding GET to backend', {
+      url: backendUrl.toString(),
+      hasCSRF: !!csrfToken,
+    });
+
+    // ===== FORWARD REQUEST TO BACKEND =====
+
+    // Prepare headers for backend HTTP call
+    const backendHeaders: HeadersInit = {
+      // Forward content type
+      'Content-Type': 'application/json',
+
+      // Forward CSRF token if present
+      ...(csrfToken && { 'x-csrf-token': csrfToken }),
+
+      // Forward cookies to backend for CSRF validation
+      ...(request.headers.get('cookie') && { 'Cookie': request.headers.get('cookie')! }),
+
+      // Forward user agent for audit logs
+      'User-Agent': request.headers.get('user-agent') || 'gRPC-Proxy-GET',
+
+      // Forward client IP for security
+      'X-Forwarded-For': request.headers.get('x-forwarded-for') ||
+                         request.headers.get('x-real-ip') ||
+                         'unknown',
+
+      // Add Authorization header from session
+      ...(session.backendAccessToken && { 'Authorization': `Bearer ${session.backendAccessToken}` }),
+    };
+
+    // Make GET request to backend
+    const backendResponse = await fetch(backendUrl.toString(), {
+      method: 'GET',
+      headers: backendHeaders,
+      // Don't follow redirects
+      redirect: 'manual',
+    });
+
+    logger.debug('[gRPC Proxy] Backend GET response received', {
+      path: grpcPath,
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
+      contentType: backendResponse.headers.get('content-type'),
+    });
+
+    // ===== RETURN RESPONSE TO CLIENT =====
+    
+    // Read backend response body
+    const responseBody = await backendResponse.text();
+    
+    // Forward backend response to client
+    const responseHeaders = new Headers();
+    
+    // Copy important headers from backend response
+    const headersToForward = [
+      'content-type',
+      'cache-control',
+      'etag',
+    ];
+    
+    headersToForward.forEach(header => {
+      const value = backendResponse.headers.get(header);
+      if (value) {
+        responseHeaders.set(header, value);
+      }
+    });
+
+    // Log performance metrics
+    const duration = performance.now() - startTime;
+    logger.info('[gRPC Proxy] GET request completed', {
+      path: grpcPath,
+      status: backendResponse.status,
+      duration: `${duration.toFixed(2)}ms`,
+      bodySize: responseBody.length,
+    });
+
+    // Return response with same status code as backend
+    return new NextResponse(responseBody, {
+      status: backendResponse.status,
+      headers: responseHeaders,
+    });
+
+  } catch (error) {
+    // ===== ERROR HANDLING =====
+    
+    const duration = performance.now() - startTime;
+
+    logger.error(
+      '[gRPC Proxy] GET request failed',
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        path: grpcPath,
+        duration: `${duration.toFixed(2)}ms`,
+      }
+    );
+
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    return new NextResponse(JSON.stringify({
+      error: 'Internal Server Error',
+      message: errorMessage
+    }), {
+      status: 500,
+      headers: {
+        'content-type': 'application/json',
+      }
+    });
+  }
+}
+
+/**
  * OPTIONS /api/grpc/[...path]
  * 
  * Handle CORS preflight requests
@@ -287,9 +461,10 @@ export async function POST(
  */
 export async function OPTIONS(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const grpcPath = params.path.join('/');
+  const resolvedParams = await params;
+  const grpcPath = resolvedParams.path.join('/');
   
   logger.debug('[gRPC Proxy] CORS preflight', { path: grpcPath });
 
@@ -297,7 +472,7 @@ export async function OPTIONS(
     status: 204,
     headers: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, X-Grpc-Web, X-User-Agent, X-CSRF-Token, Authorization',
       'Access-Control-Max-Age': '86400', // 24 hours
     },

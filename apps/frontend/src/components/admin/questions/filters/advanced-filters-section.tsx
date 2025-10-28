@@ -16,7 +16,6 @@ import {
 } from '@/components/ui';
 import { EnhancedCheckbox } from '@/components/ui/enhanced-checkbox';
 import { QuestionFilters, QuestionStatus } from '@/types/question';
-import { useDebounce } from '@/hooks';
 
 /**
  * Advanced Filters Section Component
@@ -69,15 +68,8 @@ export function AdvancedFiltersSection({
     filters.usageCount?.max || 100
   ]);
 
-  // Debounce content search
-  const debouncedContentSearch = useDebounce(contentSearch, 300);
-
-  // Update filters when debounced search changes
-  React.useEffect(() => {
-    if (debouncedContentSearch !== filters.keyword) {
-      onFiltersChange({ keyword: debouncedContentSearch });
-    }
-  }, [debouncedContentSearch, filters.keyword, onFiltersChange]);
+  // Don't auto-apply content search anymore
+  // User must click "Lọc" button to apply filters
 
   /**
    * Handle filter changes
@@ -178,11 +170,14 @@ export function AdvancedFiltersSection({
           <Input
             placeholder="Tìm kiếm trong nội dung câu hỏi..."
             value={contentSearch}
-            onChange={(e) => setContentSearch(e.target.value)}
+            onChange={(e) => {
+              setContentSearch(e.target.value);
+              handleFilterChange('keyword', e.target.value);
+            }}
             disabled={isLoading}
             className="w-full"
           />
-          <p className="text-xs text-muted-foreground">Debouncing 300ms</p>
+          <p className="text-xs text-muted-foreground">Nhấn nút &quot;Lọc&quot; để áp dụng</p>
         </div>
 
         {/* Usage Count Range */}
@@ -235,7 +230,7 @@ export function AdvancedFiltersSection({
             onValueChange={(value) => handleFilterChange('status', value === 'all' ? undefined : [value])}
             disabled={isLoading}
           >
-            <SelectTrigger>
+            <SelectTrigger className="hover:bg-background hover:border-border">
               <SelectValue placeholder="Chọn trạng thái" />
             </SelectTrigger>
             <SelectContent>
@@ -260,7 +255,7 @@ export function AdvancedFiltersSection({
             onValueChange={(value) => handleFilterChange('creator', value === 'all' ? undefined : [value])}
             disabled={isLoading}
           >
-            <SelectTrigger>
+            <SelectTrigger className="hover:bg-background hover:border-border">
               <SelectValue placeholder="Chọn người tạo" />
             </SelectTrigger>
             <SelectContent>
@@ -325,10 +320,10 @@ export function AdvancedFiltersSection({
               <Badge
                 key={tag}
                 variant={isSelected ? "default" : "outline"}
-                className={`cursor-pointer transition-colors ${
+                className={`cursor-pointer ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                    : 'hover:bg-muted'
+                    ? 'bg-primary text-primary-foreground'
+                    : ''
                 }`}
                 onClick={() => handleTagToggle(tag)}
               >

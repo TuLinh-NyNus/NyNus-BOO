@@ -1,238 +1,697 @@
 /**
- * Error Recovery Utilities
- * Utilities cho error recovery và graceful degradation
- *
- * @author NyNus Team
- * @version 1.0.0
+ * Enhanced Error Recovery System
+ * ==============================
+ * 
+ * Advanced error recovery mechanisms for authentication and network errors
+ * Provides intelligent recovery strategies based on error types and context
+ * 
+ * Features:
+ * - Smart error classification
+ * - Context-aware recovery strategies
+ * - Automatic retry with exponential backoff
+ * - Network connectivity monitoring
+ * - User-friendly error reporting
+ * - Recovery success tracking
+ * 
+ * @author NyNus Development Team
+ * @version 2.0.0 - Phase 2 Auto-Retry Implementation
  */
 
+import { getSession } from 'next-auth/react';
+import { AuthHelpers } from '@/lib/utils/auth-helpers';
+import { GrpcErrorHandler, GrpcErrorType } from '@/lib/utils/grpc-error-handler';
 import { logger } from '@/lib/utils/logger';
+import { toast } from 'sonner';
+import type { RpcError } from 'grpc-web';
 
-// ===== TYPES =====
-
-export interface ErrorRecoveryOptions<T = unknown> {
-  /** Max retry attempts */
-  maxRetries?: number;
-  /** Retry delay (ms) */
-  retryDelay?: number;
-  /** Exponential backoff */
-  exponentialBackoff?: boolean;
-  /** Fallback value */
-  fallbackValue?: T;
-  /** Error callback */
-  onError?: (error: Error, attempt: number) => void;
-  /** Success callback */
-  onSuccess?: (result: T, attempt: number) => void;
-  /** Should retry predicate */
-  shouldRetry?: (error: Error, attempt: number) => boolean;
+/**
+ * Recovery strategy types
+ */
+export enum RecoveryStrategy {
+  TOKEN_REFRESH = 'TOKEN_REFRESH',
+  NETWORK_RETRY = 'NETWORK_RETRY',
+  FALLBACK_API = 'FALLBACK_API',
+  CACHE_FALLBACK = 'CACHE_FALLBACK',
+  USER_INTERVENTION = 'USER_INTERVENTION',
+  GRACEFUL_DEGRADATION = 'GRACEFUL_DEGRADATION',
+  FORCE_LOGOUT = 'FORCE_LOGOUT',
+  NO_RECOVERY = 'NO_RECOVERY',
 }
 
-export interface RetryResult<T> {
-  /** Success flag */
+/**
+ * Recovery context information
+ */
+export interface RecoveryContext {
+  operation: string;
+  userAction?: string;
+  retryCount: number;
+  maxRetries: number;
+  originalError: Error;
+  timestamp: number;
+  userAgent?: string;
+  networkStatus?: 'online' | 'offline' | 'slow';
+}
+
+/**
+ * Recovery result
+ */
+export interface RecoveryResult {
   success: boolean;
-  /** Result data */
-  data?: T;
-  /** Error if failed */
-  error?: Error;
-  /** Number of attempts made */
-  attempts: number;
-  /** Total time taken */
-  totalTime: number;
+  strategy: RecoveryStrategy;
+  message: string;
+  shouldRetry: boolean;
+  retryDelay?: number;
+  data?: any;
+  fallbackUsed?: boolean;
 }
-
-export interface CircuitBreakerOptions {
-  /** Failure threshold */
-  failureThreshold?: number;
-  /** Reset timeout (ms) */
-  resetTimeout?: number;
-  /** Monitor window (ms) */
-  monitorWindow?: number;
-}
-
-export interface CircuitBreakerState {
-  /** Current state */
-  state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
-  /** Failure count */
-  failureCount: number;
-  /** Last failure time */
-  lastFailureTime: number;
-  /** Success count */
-  successCount: number;
-}
-
-// ===== CONSTANTS =====
-
-const DEFAULT_RETRY_OPTIONS: Required<Omit<ErrorRecoveryOptions, 'fallbackValue' | 'onError' | 'onSuccess' | 'shouldRetry'>> = {
-  maxRetries: 3,
-  retryDelay: 1000,
-  exponentialBackoff: true
-};
-
-const DEFAULT_CIRCUIT_BREAKER_OPTIONS: Required<CircuitBreakerOptions> = {
-  failureThreshold: 5,
-  resetTimeout: 60000, // 1 minute
-  monitorWindow: 300000 // 5 minutes
-};
-
-// ===== RETRY UTILITIES =====
 
 /**
- * Retry function với exponential backoff
+ * Recovery statistics
  */
-export async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  options: ErrorRecoveryOptions<T> = {}
-): Promise<RetryResult<T>> {
-  const {
-    maxRetries = DEFAULT_RETRY_OPTIONS.maxRetries,
-    retryDelay = DEFAULT_RETRY_OPTIONS.retryDelay,
-    exponentialBackoff = DEFAULT_RETRY_OPTIONS.exponentialBackoff,
-    fallbackValue,
-    onError,
-    onSuccess,
-    shouldRetry = () => true
-  } = options;
+interface RecoveryStats {
+  totalAttempts: number;
+  successfulRecoveries: number;
+  failedRecoveries: number;
+  strategyCounts: Record<RecoveryStrategy, number>;
+  averageRecoveryTime: number;
+}
 
-  const startTime = performance.now();
-  let lastError: Error;
-  
-  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+/**
+ * Network connectivity monitor
+ */
+class NetworkMonitor {
+  private static instance: NetworkMonitor;
+  private isOnline = navigator.onLine;
+  private connectionSpeed: 'fast' | 'slow' | 'unknown' = 'unknown';
+  private listeners: ((status: 'online' | 'offline' | 'slow') => void)[] = [];
+
+  static getInstance(): NetworkMonitor {
+    if (!NetworkMonitor.instance) {
+      NetworkMonitor.instance = new NetworkMonitor();
+    }
+    return NetworkMonitor.instance;
+  }
+
+  private constructor() {
+    // Monitor online/offline status
+    window.addEventListener('online', () => {
+      this.isOnline = true;
+      this.notifyListeners('online');
+    });
+
+    window.addEventListener('offline', () => {
+      this.isOnline = false;
+      this.notifyListeners('offline');
+    });
+
+    // Monitor connection speed (simplified)
+    this.checkConnectionSpeed();
+  }
+
+  private async checkConnectionSpeed(): Promise<void> {
     try {
-      const result = await fn();
-      const totalTime = performance.now() - startTime;
+      const startTime = Date.now();
+      await fetch('/api/health', { method: 'HEAD', cache: 'no-cache' });
+      const duration = Date.now() - startTime;
       
-      onSuccess?.(result, attempt);
+      this.connectionSpeed = duration > 2000 ? 'slow' : 'fast';
       
-      return {
-        success: true,
-        data: result,
-        attempts: attempt,
-        totalTime
-      };
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      
-      onError?.(lastError, attempt);
-      
-      // Check if we should retry
-      if (attempt > maxRetries || !shouldRetry(lastError, attempt)) {
-        break;
+      if (this.connectionSpeed === 'slow') {
+        this.notifyListeners('slow');
       }
-      
-      // Calculate delay với exponential backoff
-      const delay = exponentialBackoff 
-        ? retryDelay * Math.pow(2, attempt - 1)
-        : retryDelay;
-      
-      // Add jitter để avoid thundering herd
-      const jitter = Math.random() * 0.1 * delay;
-      const finalDelay = delay + jitter;
-      
-      await new Promise(resolve => setTimeout(resolve, finalDelay));
+    } catch {
+      this.connectionSpeed = 'unknown';
     }
   }
-  
-  const totalTime = performance.now() - startTime;
-  
-  return {
-    success: false,
-    data: fallbackValue,
-    error: lastError!,
-    attempts: maxRetries + 1,
-    totalTime
-  };
-}
 
-/**
- * Retry cho sync functions
- */
-export function retrySyncWithBackoff<T>(
-  fn: () => T,
-  options: ErrorRecoveryOptions<T> = {}
-): RetryResult<T> {
-  const {
-    maxRetries = DEFAULT_RETRY_OPTIONS.maxRetries,
-    fallbackValue,
-    onError,
-    onSuccess,
-    shouldRetry = () => true
-  } = options;
+  private notifyListeners(status: 'online' | 'offline' | 'slow'): void {
+    this.listeners.forEach(listener => listener(status));
+  }
 
-  const startTime = performance.now();
-  let lastError: Error;
-  
-  for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
-    try {
-      const result = fn();
-      const totalTime = performance.now() - startTime;
-      
-      onSuccess?.(result, attempt);
-      
-      return {
-        success: true,
-        data: result,
-        attempts: attempt,
-        totalTime
-      };
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-      
-      onError?.(lastError, attempt);
-      
-      // Check if we should retry
-      if (attempt > maxRetries || !shouldRetry(lastError, attempt)) {
-        break;
-      }
+  getStatus(): 'online' | 'offline' | 'slow' {
+    if (!this.isOnline) return 'offline';
+    return this.connectionSpeed === 'slow' ? 'slow' : 'online';
+  }
+
+  addListener(listener: (status: 'online' | 'offline' | 'slow') => void): void {
+    this.listeners.push(listener);
+  }
+
+  removeListener(listener: (status: 'online' | 'offline' | 'slow') => void): void {
+    const index = this.listeners.indexOf(listener);
+    if (index > -1) {
+      this.listeners.splice(index, 1);
     }
   }
-  
-  const totalTime = performance.now() - startTime;
-  
-  return {
-    success: false,
-    data: fallbackValue,
-    error: lastError!,
-    attempts: maxRetries + 1,
-    totalTime
-  };
 }
 
-// ===== CIRCUIT BREAKER =====
-
 /**
- * Circuit Breaker Class
- * Implements circuit breaker pattern cho error recovery
+ * Enhanced Error Recovery Class
  */
-export class CircuitBreaker {
-  private state: CircuitBreakerState;
-  private options: Required<CircuitBreakerOptions>;
-  private failures: number[] = [];
+export class ErrorRecovery {
+  private static stats: RecoveryStats = {
+    totalAttempts: 0,
+    successfulRecoveries: 0,
+    failedRecoveries: 0,
+    strategyCounts: {} as Record<RecoveryStrategy, number>,
+    averageRecoveryTime: 0,
+  };
 
-  constructor(options: CircuitBreakerOptions = {}) {
-    this.options = { ...DEFAULT_CIRCUIT_BREAKER_OPTIONS, ...options };
-    this.state = {
-      state: 'CLOSED',
-      failureCount: 0,
-      lastFailureTime: 0,
-      successCount: 0
+  private static networkMonitor = NetworkMonitor.getInstance();
+
+  /**
+   * Main error recovery entry point
+   * 
+   * @param error - The error that occurred
+   * @param context - Context information about the error
+   * @returns Promise<RecoveryResult> - Recovery result
+   */
+  static async handleError(error: Error, context: RecoveryContext): Promise<RecoveryResult> {
+    const startTime = Date.now();
+    this.stats.totalAttempts++;
+
+    logger.info(`[ErrorRecovery] Handling error in ${context.operation}`, {
+      error: error.message,
+      retryCount: context.retryCount,
+      maxRetries: context.maxRetries,
+    });
+
+    try {
+      // Classify error and determine strategy
+      const strategy = this.determineRecoveryStrategy(error, context);
+      this.updateStrategyCount(strategy);
+
+      // Execute recovery strategy
+      const result = await this.executeRecoveryStrategy(strategy, error, context);
+
+      // Update statistics
+      const duration = Date.now() - startTime;
+      if (result.success) {
+        this.stats.successfulRecoveries++;
+        this.updateAverageRecoveryTime(duration);
+      } else {
+        this.stats.failedRecoveries++;
+      }
+
+      logger.info(`[ErrorRecovery] Recovery ${result.success ? 'successful' : 'failed'}`, {
+        strategy,
+        duration: `${duration}ms`,
+        message: result.message,
+      });
+
+      return result;
+
+    } catch (recoveryError) {
+      this.stats.failedRecoveries++;
+      
+      logger.error('[ErrorRecovery] Recovery process failed:', { 
+        error: recoveryError instanceof Error ? recoveryError.message : String(recoveryError) 
+      });
+      
+      return {
+        success: false,
+        strategy: RecoveryStrategy.NO_RECOVERY,
+        message: 'Không thể khôi phục từ lỗi này',
+        shouldRetry: false,
+      };
+    }
+  }
+
+  /**
+   * Determine the best recovery strategy for the given error
+   */
+  private static determineRecoveryStrategy(error: Error, context: RecoveryContext): RecoveryStrategy {
+    const rpcError = error as RpcError;
+    const networkStatus = this.networkMonitor.getStatus();
+
+    // Token expiry errors
+    if (GrpcErrorHandler.isTokenExpiredError(rpcError)) {
+      return RecoveryStrategy.TOKEN_REFRESH;
+    }
+
+    // Network connectivity issues
+    if (networkStatus === 'offline') {
+      return RecoveryStrategy.CACHE_FALLBACK;
+    }
+
+    if (networkStatus === 'slow' || GrpcErrorHandler.isNetworkError?.(rpcError)) {
+      return RecoveryStrategy.NETWORK_RETRY;
+    }
+
+    // Authentication errors (non-token expiry)
+    if (GrpcErrorHandler.isAuthenticationError?.(rpcError)) {
+      return context.retryCount === 0 
+        ? RecoveryStrategy.TOKEN_REFRESH 
+        : RecoveryStrategy.FORCE_LOGOUT;
+    }
+
+    // Server errors (retryable)
+    if (rpcError.code >= 13 && rpcError.code <= 16) {
+      return context.retryCount < context.maxRetries 
+        ? RecoveryStrategy.NETWORK_RETRY 
+        : RecoveryStrategy.GRACEFUL_DEGRADATION;
+    }
+
+    // Permission errors
+    if (rpcError.code === 7) { // PERMISSION_DENIED
+      return RecoveryStrategy.USER_INTERVENTION;
+    }
+
+    // Validation errors
+    if (rpcError.code === 3) { // INVALID_ARGUMENT
+      return RecoveryStrategy.NO_RECOVERY;
+    }
+
+    // Default strategy
+    return context.retryCount < context.maxRetries 
+      ? RecoveryStrategy.NETWORK_RETRY 
+      : RecoveryStrategy.GRACEFUL_DEGRADATION;
+  }
+
+  /**
+   * Execute the determined recovery strategy
+   */
+  private static async executeRecoveryStrategy(
+    strategy: RecoveryStrategy,
+    error: Error,
+    context: RecoveryContext
+  ): Promise<RecoveryResult> {
+    switch (strategy) {
+      case RecoveryStrategy.TOKEN_REFRESH:
+        return await this.recoverFromTokenExpiry(context);
+
+      case RecoveryStrategy.NETWORK_RETRY:
+        return await this.recoverFromNetworkError(context);
+
+      case RecoveryStrategy.CACHE_FALLBACK:
+        return await this.recoverWithCacheFallback(context);
+
+      case RecoveryStrategy.GRACEFUL_DEGRADATION:
+        return await this.recoverWithGracefulDegradation(context);
+
+      case RecoveryStrategy.USER_INTERVENTION:
+        return await this.recoverWithUserIntervention(error, context);
+
+      case RecoveryStrategy.FORCE_LOGOUT:
+        return await this.recoverWithForceLogout(context);
+
+      case RecoveryStrategy.NO_RECOVERY:
+      default:
+        return {
+          success: false,
+          strategy,
+          message: 'Không thể khôi phục từ lỗi này',
+          shouldRetry: false,
+        };
+    }
+  }
+
+  /**
+   * Recover from token expiry by refreshing token
+   */
+  private static async recoverFromTokenExpiry(context: RecoveryContext): Promise<RecoveryResult> {
+    try {
+      logger.info('[ErrorRecovery] Attempting token refresh recovery');
+
+      // Get session from NextAuth
+      const session = await getSession();
+      if (!session?.backendRefreshToken) {
+        throw new Error('No refresh token available');
+      }
+
+      // ✅ FIX: Use dynamic import to avoid circular dependency
+      const { AuthService } = await import('@/services/grpc/auth.service');
+      const response = await AuthService.refreshToken(session.backendRefreshToken);
+      if (!response.getAccessToken()) {
+        throw new Error('No access token in refresh response');
+      }
+
+      // Update localStorage
+      AuthHelpers.saveAccessToken(response.getAccessToken());
+
+      toast.success('Phiên đăng nhập đã được làm mới', {
+        duration: 2000,
+        position: 'bottom-right',
+      });
+
+      return {
+        success: true,
+        strategy: RecoveryStrategy.TOKEN_REFRESH,
+        message: 'Token đã được làm mới thành công',
+        shouldRetry: true,
+        retryDelay: 1000,
+      };
+
+    } catch (error) {
+      logger.error('[ErrorRecovery] Token refresh recovery failed:', { 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+
+      // If refresh token is expired, force logout
+      if (error instanceof Error && error.message.includes('refresh token')) {
+        return await this.recoverWithForceLogout(context);
+      }
+
+      return {
+        success: false,
+        strategy: RecoveryStrategy.TOKEN_REFRESH,
+        message: 'Không thể làm mới token',
+        shouldRetry: false,
+      };
+    }
+  }
+
+  /**
+   * Recover from network errors with retry
+   */
+  private static async recoverFromNetworkError(context: RecoveryContext): Promise<RecoveryResult> {
+    try {
+      logger.info('[ErrorRecovery] Attempting network retry recovery');
+
+      // Wait for network to stabilize
+      const retryDelay = Math.min(1000 * Math.pow(2, context.retryCount), 10000); // Max 10 seconds
+      
+      // Test connectivity
+      await fetch('/api/health', { 
+        method: 'HEAD',
+        signal: AbortSignal.timeout(5000),
+      });
+
+      toast.info('Kết nối mạng đã ổn định. Đang thử lại...', {
+        duration: 2000,
+        position: 'bottom-right',
+      });
+
+      return {
+        success: true,
+        strategy: RecoveryStrategy.NETWORK_RETRY,
+        message: 'Kết nối mạng đã được khôi phục',
+        shouldRetry: true,
+        retryDelay,
+      };
+
+    } catch (error) {
+      logger.warn('[ErrorRecovery] Network still unavailable:', { 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+
+      return {
+        success: false,
+        strategy: RecoveryStrategy.NETWORK_RETRY,
+        message: 'Kết nối mạng vẫn chưa ổn định',
+        shouldRetry: context.retryCount < context.maxRetries,
+        retryDelay: 5000,
+      };
+    }
+  }
+
+  /**
+   * Recover using cached data
+   */
+  private static async recoverWithCacheFallback(context: RecoveryContext): Promise<RecoveryResult> {
+    try {
+      logger.info('[ErrorRecovery] Attempting cache fallback recovery');
+
+      // Try to get cached data (simplified implementation)
+      const cacheKey = `cache_${context.operation}`;
+      const cachedData = localStorage.getItem(cacheKey);
+
+      if (cachedData) {
+        toast.info('Đang sử dụng dữ liệu đã lưu (offline)', {
+          duration: 3000,
+          position: 'bottom-right',
+        });
+
+        return {
+          success: true,
+          strategy: RecoveryStrategy.CACHE_FALLBACK,
+          message: 'Sử dụng dữ liệu cache thành công',
+          shouldRetry: false,
+          data: JSON.parse(cachedData),
+          fallbackUsed: true,
+        };
+      }
+
+      return {
+        success: false,
+        strategy: RecoveryStrategy.CACHE_FALLBACK,
+        message: 'Không có dữ liệu cache khả dụng',
+        shouldRetry: false,
+      };
+
+    } catch (error) {
+      logger.error('[ErrorRecovery] Cache fallback failed:', { 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+      
+      return {
+        success: false,
+        strategy: RecoveryStrategy.CACHE_FALLBACK,
+        message: 'Lỗi khi truy cập cache',
+        shouldRetry: false,
+      };
+    }
+  }
+
+  /**
+   * Recover with graceful degradation
+   */
+  private static async recoverWithGracefulDegradation(context: RecoveryContext): Promise<RecoveryResult> {
+    logger.info('[ErrorRecovery] Applying graceful degradation');
+
+    toast.warning('Một số tính năng có thể bị hạn chế do lỗi hệ thống', {
+      duration: 4000,
+      position: 'top-center',
+    });
+
+    return {
+      success: true,
+      strategy: RecoveryStrategy.GRACEFUL_DEGRADATION,
+      message: 'Chế độ hoạt động hạn chế được kích hoạt',
+      shouldRetry: false,
+      fallbackUsed: true,
     };
   }
 
   /**
-   * Execute function với circuit breaker protection
+   * Recover with user intervention
    */
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
-    // Check circuit state
-    if (this.state.state === 'OPEN') {
-      if (this.shouldAttemptReset()) {
-        this.state.state = 'HALF_OPEN';
+  private static async recoverWithUserIntervention(error: Error, context: RecoveryContext): Promise<RecoveryResult> {
+    logger.info('[ErrorRecovery] Requesting user intervention');
+
+    const errorMessage = error.message || 'Lỗi không xác định';
+    
+    toast.error(`Cần can thiệp thủ công: ${errorMessage}`, {
+      duration: 6000,
+      position: 'top-center',
+      action: {
+        label: 'Thử lại',
+        onClick: () => window.location.reload(),
+      },
+    });
+
+    return {
+      success: false,
+      strategy: RecoveryStrategy.USER_INTERVENTION,
+      message: 'Cần can thiệp của người dùng',
+      shouldRetry: false,
+    };
+  }
+
+  /**
+   * Recover with force logout
+   */
+  private static async recoverWithForceLogout(context: RecoveryContext): Promise<RecoveryResult> {
+    logger.info('[ErrorRecovery] Forcing logout for security');
+
+    // Clear tokens
+    AuthHelpers.clearTokens();
+
+    toast.error('Phiên đăng nhập không hợp lệ. Đang chuyển hướng...', {
+      duration: 4000,
+      position: 'top-center',
+    });
+
+    // Redirect to login
+    setTimeout(() => {
+      const currentPath = window.location.pathname;
+      const redirectUrl = `/login?reason=security_logout&redirect=${encodeURIComponent(currentPath)}`;
+      window.location.href = redirectUrl;
+    }, 2000);
+
+    return {
+      success: true,
+      strategy: RecoveryStrategy.FORCE_LOGOUT,
+      message: 'Đăng xuất bảo mật đã được thực hiện',
+      shouldRetry: false,
+    };
+  }
+
+  /**
+   * Update strategy usage count
+   */
+  private static updateStrategyCount(strategy: RecoveryStrategy): void {
+    if (!this.stats.strategyCounts[strategy]) {
+      this.stats.strategyCounts[strategy] = 0;
+    }
+    this.stats.strategyCounts[strategy]++;
+  }
+
+  /**
+   * Update average recovery time
+   */
+  private static updateAverageRecoveryTime(duration: number): void {
+    if (this.stats.successfulRecoveries === 1) {
+      this.stats.averageRecoveryTime = duration;
+    } else {
+      const totalTime = this.stats.averageRecoveryTime * (this.stats.successfulRecoveries - 1) + duration;
+      this.stats.averageRecoveryTime = totalTime / this.stats.successfulRecoveries;
+    }
+  }
+
+  /**
+   * Get recovery statistics
+   */
+  static getStats(): Readonly<RecoveryStats> {
+    return { ...this.stats };
+  }
+
+  /**
+   * Reset statistics
+   */
+  static resetStats(): void {
+    this.stats = {
+      totalAttempts: 0,
+      successfulRecoveries: 0,
+      failedRecoveries: 0,
+      strategyCounts: {} as Record<RecoveryStrategy, number>,
+      averageRecoveryTime: 0,
+    };
+  }
+
+  /**
+   * Get network monitor instance
+   */
+  static getNetworkMonitor(): NetworkMonitor {
+    return this.networkMonitor;
+  }
+}
+
+/**
+ * Convenience function for handling authentication errors
+ */
+export async function handleAuthError(error: any, context: string): Promise<boolean> {
+  const recoveryContext: RecoveryContext = {
+    operation: context,
+    retryCount: 0,
+    maxRetries: 2,
+    originalError: error,
+    timestamp: Date.now(),
+    userAgent: navigator.userAgent,
+    networkStatus: ErrorRecovery.getNetworkMonitor().getStatus(),
+  };
+
+  const result = await ErrorRecovery.handleError(error, recoveryContext);
+  return result.success;
+}
+
+/**
+ * Error Recovery Options for retry operations
+ */
+export interface ErrorRecoveryOptions {
+  maxRetries?: number;
+  initialDelay?: number;
+  maxDelay?: number;
+  backoffFactor?: number;
+  timeout?: number;
+}
+
+/**
+ * Retry function with exponential backoff
+ */
+export async function retryWithBackoff<T>(
+  operation: () => Promise<T>,
+  options: ErrorRecoveryOptions = {}
+): Promise<T> {
+  const {
+    maxRetries = 3,
+    initialDelay = 1000,
+    maxDelay = 10000,
+    backoffFactor = 2,
+    timeout = 30000
+  } = options;
+
+  let lastError: Error;
+  let delay = initialDelay;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Operation timeout')), timeout);
+      });
+
+      return await Promise.race([operation(), timeoutPromise]);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      if (attempt === maxRetries) {
+        break;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay = Math.min(delay * backoffFactor, maxDelay);
+    }
+  }
+
+  throw lastError!;
+}
+
+/**
+ * Circuit Breaker State
+ */
+export enum CircuitBreakerState {
+  CLOSED = 'CLOSED',
+  OPEN = 'OPEN',
+  HALF_OPEN = 'HALF_OPEN'
+}
+
+/**
+ * Circuit Breaker Configuration
+ */
+export interface CircuitBreakerConfig {
+  failureThreshold?: number;
+  recoveryTimeout?: number;
+  monitoringPeriod?: number;
+}
+
+/**
+ * Circuit Breaker Implementation
+ */
+export class CircuitBreaker {
+  private state: CircuitBreakerState = CircuitBreakerState.CLOSED;
+  private failureCount = 0;
+  private lastFailureTime = 0;
+  private readonly config: Required<CircuitBreakerConfig>;
+
+  constructor(config: CircuitBreakerConfig = {}) {
+    this.config = {
+      failureThreshold: config.failureThreshold ?? 5,
+      recoveryTimeout: config.recoveryTimeout ?? 60000,
+      monitoringPeriod: config.monitoringPeriod ?? 10000
+    };
+  }
+
+  async execute<T>(operation: () => Promise<T>): Promise<T> {
+    if (this.state === CircuitBreakerState.OPEN) {
+      if (Date.now() - this.lastFailureTime > this.config.recoveryTimeout) {
+        this.state = CircuitBreakerState.HALF_OPEN;
       } else {
         throw new Error('Circuit breaker is OPEN');
       }
     }
 
     try {
-      const result = await fn();
+      const result = await operation();
       this.onSuccess();
       return result;
     } catch (error) {
@@ -241,183 +700,32 @@ export class CircuitBreaker {
     }
   }
 
-  /**
-   * Handle successful execution
-   */
   private onSuccess(): void {
-    this.state.successCount++;
-    
-    if (this.state.state === 'HALF_OPEN') {
-      this.state.state = 'CLOSED';
-      this.state.failureCount = 0;
-      this.failures = [];
-    }
+    this.failureCount = 0;
+    this.state = CircuitBreakerState.CLOSED;
   }
 
-  /**
-   * Handle failed execution
-   */
   private onFailure(): void {
-    const now = Date.now();
-    this.state.failureCount++;
-    this.state.lastFailureTime = now;
-    this.failures.push(now);
-    
-    // Clean old failures outside monitor window
-    this.failures = this.failures.filter(
-      time => now - time < this.options.monitorWindow
-    );
-    
-    // Check if should open circuit
-    if (this.failures.length >= this.options.failureThreshold) {
-      this.state.state = 'OPEN';
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+
+    if (this.failureCount >= this.config.failureThreshold) {
+      this.state = CircuitBreakerState.OPEN;
     }
   }
 
-  /**
-   * Check if should attempt reset
-   */
-  private shouldAttemptReset(): boolean {
-    return Date.now() - this.state.lastFailureTime > this.options.resetTimeout;
-  }
-
-  /**
-   * Get current state
-   */
   getState(): CircuitBreakerState {
-    return { ...this.state };
+    return this.state;
   }
 
-  /**
-   * Reset circuit breaker
-   */
   reset(): void {
-    this.state = {
-      state: 'CLOSED',
-      failureCount: 0,
-      lastFailureTime: 0,
-      successCount: 0
-    };
-    this.failures = [];
-  }
-}
-
-// ===== GRACEFUL DEGRADATION =====
-
-/**
- * Graceful degradation wrapper
- * Business Logic: Thử primary function trước, nếu fail thì fallback
- * - Retry với exponential backoff
- * - Nếu tất cả retries fail, sử dụng fallback function
- * - Log warning khi phải dùng fallback
- */
-export async function withGracefulDegradation<T>(
-  primaryFn: () => Promise<T>,
-  fallbackFn: () => Promise<T> | T,
-  options: ErrorRecoveryOptions<T> = {}
-): Promise<T> {
-  try {
-    const result = await retryWithBackoff(primaryFn, options);
-    if (result.success) {
-      return result.data!;
-    }
-    throw result.error!;
-  } catch (error) {
-    logger.warn('[ErrorRecovery] Primary function failed, using fallback', {
-      operation: 'gracefulDegradation',
-      error: error instanceof Error ? error.message : String(error),
-    });
-    return await fallbackFn();
+    this.state = CircuitBreakerState.CLOSED;
+    this.failureCount = 0;
+    this.lastFailureTime = 0;
   }
 }
 
 /**
- * Safe execution với fallback
+ * Export types and classes
  */
-export function safeExecute<T>(
-  fn: () => T,
-  fallbackValue: T,
-  onError?: (error: Error) => void
-): T {
-  try {
-    return fn();
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    onError?.(err);
-    return fallbackValue;
-  }
-}
-
-/**
- * Safe async execution với fallback
- */
-export async function safeExecuteAsync<T>(
-  fn: () => Promise<T>,
-  fallbackValue: T,
-  onError?: (error: Error) => void
-): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error));
-    onError?.(err);
-    return fallbackValue;
-  }
-}
-
-// ===== ERROR CLASSIFICATION =====
-
-/**
- * Classify error types
- */
-export function classifyError(error: Error): {
-  type: 'network' | 'timeout' | 'validation' | 'permission' | 'server' | 'client' | 'unknown';
-  isRetryable: boolean;
-  severity: 'low' | 'medium' | 'high' | 'critical';
-} {
-  const message = error.message.toLowerCase();
-  const name = error.name.toLowerCase();
-  
-  // Network errors
-  if (message.includes('network') || message.includes('fetch') || name.includes('networkerror')) {
-    return { type: 'network', isRetryable: true, severity: 'medium' };
-  }
-  
-  // Timeout errors
-  if (message.includes('timeout') || name.includes('timeout')) {
-    return { type: 'timeout', isRetryable: true, severity: 'medium' };
-  }
-  
-  // Validation errors
-  if (message.includes('validation') || message.includes('invalid') || name.includes('validation')) {
-    return { type: 'validation', isRetryable: false, severity: 'low' };
-  }
-  
-  // Permission errors
-  if (message.includes('unauthorized') || message.includes('forbidden') || message.includes('permission')) {
-    return { type: 'permission', isRetryable: false, severity: 'high' };
-  }
-  
-  // Server errors (5xx)
-  if (message.includes('server') || message.includes('internal') || message.includes('5')) {
-    return { type: 'server', isRetryable: true, severity: 'high' };
-  }
-  
-  // Client errors (4xx)
-  if (message.includes('client') || message.includes('bad request') || message.includes('4')) {
-    return { type: 'client', isRetryable: false, severity: 'medium' };
-  }
-  
-  // Unknown errors
-  return { type: 'unknown', isRetryable: false, severity: 'medium' };
-}
-
-/**
- * Should retry based on error classification
- */
-export function shouldRetryError(error: Error, attempt: number, maxRetries: number): boolean {
-  if (attempt >= maxRetries) return false;
-  
-  const classification = classifyError(error);
-  return classification.isRetryable;
-}
+export { NetworkMonitor };

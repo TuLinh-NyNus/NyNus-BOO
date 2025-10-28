@@ -270,7 +270,7 @@ function buildSortOptions(filters: QuestionFilters): SortOptions[] {
   
   // Determine sort field
   let field: SortField = SortField.SORT_FIELD_CREATED_AT;
-  let order: SortOrder = filters.sortDir === 'asc' ? SortOrder.SORT_ORDER_ASC : SortOrder.SORT_ORDER_DESC;
+  const order: SortOrder = filters.sortDir === 'asc' ? SortOrder.SORT_ORDER_ASC : SortOrder.SORT_ORDER_DESC;
 
   if (filters.sortBy) {
     switch (filters.sortBy) {
@@ -380,6 +380,18 @@ export function parseFilterListResponse(response: ListQuestionsByFilterResponse)
     const createdAtTimestamp = q.getCreatedAt();
     const updatedAtTimestamp = q.getUpdatedAt();
 
+    const questionCodeId = q.getQuestionCodeId();
+    
+    // DEBUG: Log question code ID
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📝 [parseFilterListResponse] Question:', {
+        id: q.getId(),
+        questionCodeId: questionCodeId,
+        type: typeof questionCodeId,
+        isEmpty: !questionCodeId || questionCodeId === '',
+      });
+    }
+
     return {
       id: q.getId(),
       raw_content: q.getRawContent(),
@@ -400,8 +412,8 @@ export function parseFilterListResponse(response: ListQuestionsByFilterResponse)
       status: q.getStatus(),
       feedback: q.getFeedback(),
       difficulty: q.getDifficulty(),
-      question_code_id: q.getQuestionCodeId(),
-      questionCodeId: q.getQuestionCodeId(),
+      question_code_id: questionCodeId,
+      questionCodeId: questionCodeId,
       created_at: createdAtTimestamp ? createdAtTimestamp.toDate().toISOString() : new Date().toISOString(),
       createdAt: createdAtTimestamp ? createdAtTimestamp.toDate().toISOString() : new Date().toISOString(),
       updated_at: updatedAtTimestamp ? updatedAtTimestamp.toDate().toISOString() : new Date().toISOString(),

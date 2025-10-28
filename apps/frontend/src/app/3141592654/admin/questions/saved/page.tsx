@@ -1,14 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ArrowLeft, 
   Star, 
-  Trash2, 
   Eye,
-  Download,
-  AlertTriangle,
   Plus,
   RefreshCw
 } from 'lucide-react';
@@ -25,11 +22,8 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
-  Alert,
-  AlertDescription
+  TableRow
 } from '@/components/ui';
-import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/ui/feedback/error-boundary';
 
 import { 
@@ -46,7 +40,6 @@ import { useFavoriteQuestions } from '@/hooks/question';
  */
 export default function SavedQuestionsPage() {
   const router = useRouter();
-  const { toast } = useToast();
 
   // Sử dụng favorite questions hook
   const { fetchFavorites, toggleFavorite, isLoading } = useFavoriteQuestions();
@@ -56,18 +49,18 @@ export default function SavedQuestionsPage() {
   const [pagination, setPagination] = useState({ page: 1, total: 0, pageSize: 20, totalPages: 0 });
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
 
-  // Load favorites on mount
-  useEffect(() => {
-    loadFavorites();
-  }, [pagination.page]);
-
-  const loadFavorites = async () => {
+  const loadFavorites = useCallback(async () => {
     const result = await fetchFavorites(pagination.page, pagination.pageSize);
     setFavoriteQuestions(result.questions);
     if (result.pagination) {
       setPagination(prev => ({ ...prev, ...result.pagination }));
     }
-  };
+  }, [pagination.page, pagination.pageSize, fetchFavorites]);
+
+  // Load favorites on mount
+  useEffect(() => {
+    loadFavorites();
+  }, [pagination.page, loadFavorites]);
 
   /**
    * Handle unfavorite question
@@ -91,48 +84,7 @@ export default function SavedQuestionsPage() {
     setSelectedQuestion(question);
   };
 
-  /**
-   * Handle clear all saved questions
-   */
-  const handleClearAllSaved = () => {
-    try {
-      clearAll();
-      setSelectedQuestion(null);
-      
-      toast({
-        title: 'Thành công',
-        description: 'Đã xóa tất cả câu hỏi đã lưu',
-        variant: 'success'
-      });
-    } catch {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể xóa câu hỏi',
-        variant: 'destructive'
-      });
-    }
-  };
-
-  /**
-   * Handle export saved questions
-   */
-  const handleExportSaved = () => {
-    const success = exportToFile();
-    
-    if (success) {
-      toast({
-        title: 'Thành công',
-        description: 'Đã xuất file câu hỏi đã lưu',
-        variant: 'success'
-      });
-    } else {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể xuất file',
-        variant: 'destructive'
-      });
-    }
-  };
+  // Clear all and export functions removed - not used in current implementation
 
   /**
    * Render question type badge

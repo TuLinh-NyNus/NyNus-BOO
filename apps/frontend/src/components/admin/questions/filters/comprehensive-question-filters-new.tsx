@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { QuestionFilters } from '@/types/question';
 import { useQuestionFiltersUrl } from '@/hooks';
 import { BasicFiltersRow } from './basic-filters-row';
@@ -31,6 +30,12 @@ export function ComprehensiveQuestionFilters({
   defaultFilters = {}
 }: ComprehensiveQuestionFiltersProps) {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+  
+  // Local filter state (not applied until user clicks "Lọc" button)
+  const [localFilters, setLocalFilters] = useState<QuestionFilters>(defaultFilters as QuestionFilters);
+  
+  // Applied filters (synced to URL and parent)
+  const [appliedFilters, setAppliedFilters] = useState<QuestionFilters>(defaultFilters as QuestionFilters);
 
   // URL sync hook
   const {
@@ -45,11 +50,20 @@ export function ComprehensiveQuestionFilters({
   });
 
   /**
-   * Handle filter changes from child components
+   * Handle filter changes from child components (local state only)
+   * Don't apply until user clicks "Lọc" button
    */
   const handleFiltersChange = useCallback((newFilters: Partial<QuestionFilters>) => {
-    updateFilters(newFilters);
-  }, [updateFilters]);
+    setLocalFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+  
+  /**
+   * Apply filters when user clicks "Lọc" button
+   */
+  const handleApplyFilters = useCallback(() => {
+    setAppliedFilters(localFilters);
+    updateFilters(localFilters);
+  }, [localFilters, updateFilters]);
 
   /**
    * Toggle advanced section
@@ -62,9 +76,11 @@ export function ComprehensiveQuestionFilters({
    * Handle reset all filters
    */
   const handleResetAll = useCallback(() => {
+    setLocalFilters(defaultFilters as QuestionFilters);
+    setAppliedFilters(defaultFilters as QuestionFilters);
     resetFilters();
     setIsAdvancedOpen(false);
-  }, [resetFilters]);
+  }, [resetFilters, defaultFilters]);
 
   /**
    * Notify parent when filters change
@@ -106,111 +122,45 @@ export function ComprehensiveQuestionFilters({
     <div className="space-y-4">
       {/* Basic Filters Row - Always Visible */}
       <BasicFiltersRow
-        filters={filters}
+        filters={localFilters}
         onFiltersChange={handleFiltersChange}
         isAdvancedOpen={isAdvancedOpen}
         onToggleAdvanced={handleToggleAdvanced}
+        onApplyFilters={handleApplyFilters}
         isLoading={isLoading}
       />
 
       {/* Advanced Filters Section - Collapsible */}
-      <AnimatePresence>
-        {isAdvancedOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: 'easeInOut'
-            }}
-            style={{ overflow: 'hidden' }}
-          >
-            <AdvancedFiltersSection
-              filters={filters}
-              onFiltersChange={handleFiltersChange}
-              isOpen={isAdvancedOpen}
-              isLoading={isLoading}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {isAdvancedOpen && (
+        <div>
+          <AdvancedFiltersSection
+            filters={localFilters}
+            onFiltersChange={handleFiltersChange}
+            isOpen={isAdvancedOpen}
+            isLoading={isLoading}
+          />
+        </div>
+      )}
 
       {/* Filter Chips - Show active filters (positioned after advanced filters) */}
       <FilterChips
-        filters={filters}
-        updateFilters={updateFilters}
-        resetFilters={resetFilters}
+        filters={appliedFilters}
+        updateFilters={(newFilters) => {
+          setLocalFilters(prev => ({ ...prev, ...newFilters }));
+          setAppliedFilters(prev => ({ ...prev, ...newFilters }));
+          updateFilters(newFilters);
+        }}
+        resetFilters={handleResetAll}
       />
 
-      {/* Filter Summary */}
-      {isInitialized && (
-        <FilterSummary
-          filters={filters}
-          onReset={handleResetAll}
-          isLoading={isLoading}
-        />
-      )}
+      {/* Filter Summary - Removed */}
     </div>
   );
 }
 
 /**
- * Filter Summary Component
- * Hiển thị tóm tắt các filters đang active
+ * Filter Summary Component removed - not used in current implementation
  */
-interface FilterSummaryProps {
-  filters: QuestionFilters;
-  onReset: () => void;
-  isLoading: boolean;
-}
-
-function FilterSummary({ filters, onReset, isLoading }: FilterSummaryProps) {
-  const activeFiltersCount = React.useMemo(() => {
-    let count = 0;
-    
-    // Count non-empty filters
-    Object.entries(filters).forEach(([key, value]) => {
-      if (key === 'page' || key === 'pageSize') return; // Skip pagination
-      
-      if (value !== undefined && value !== null && value !== '') {
-        if (Array.isArray(value) && value.length > 0) count++;
-        else if (!Array.isArray(value)) count++;
-      }
-    });
-
-    return count;
-  }, [filters]);
-
-  if (activeFiltersCount === 0) return null;
-
-  return (
-    <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-lg px-4 py-3">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-foreground">
-          Đang áp dụng {activeFiltersCount} bộ lọc
-        </span>
-        {filters.keyword && (
-          <span className="text-xs bg-primary/20 text-primary-foreground px-2 py-1 rounded">
-            Tìm kiếm: &quot;{filters.keyword}&quot;
-          </span>
-        )}
-        {filters.subcount && (
-          <span className="text-xs bg-primary/20 text-primary-foreground px-2 py-1 rounded">
-            Subcount: {filters.subcount}
-          </span>
-        )}
-      </div>
-      
-      <button
-        onClick={onReset}
-        disabled={isLoading}
-        className="text-sm text-primary hover:text-primary/80 font-medium disabled:opacity-50">
-        Xóa tất cả
-      </button>
-    </div>
-  );
-}
 
 // Export for backward compatibility
 export default ComprehensiveQuestionFilters;

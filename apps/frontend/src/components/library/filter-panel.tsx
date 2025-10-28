@@ -217,12 +217,12 @@ export function LibraryFilterPanel({
         <div className="grid gap-4 md:grid-cols-3">
           <div className="flex flex-col gap-2">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">Môn học</Label>
-            <Select value={subject ?? ''} onValueChange={(value) => onSubjectChange(value || undefined)}>
+            <Select value={subject ?? 'all'} onValueChange={(value) => onSubjectChange(value === 'all' ? undefined : value)}>
               <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30">
                 <SelectValue placeholder="Tất cả môn" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-border/60 bg-background/95 shadow-lg">
-                <SelectItem value="">Tất cả môn</SelectItem>
+                <SelectItem value="all">Tất cả môn</SelectItem>
                 {SUBJECT_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -234,12 +234,12 @@ export function LibraryFilterPanel({
 
           <div className="flex flex-col gap-2">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">Khối lớp</Label>
-            <Select value={grade ?? ''} onValueChange={(value) => onGradeChange(value || undefined)}>
+            <Select value={grade ?? 'all'} onValueChange={(value) => onGradeChange(value === 'all' ? undefined : value)}>
               <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30">
                 <SelectValue placeholder="Tất cả khối lớp" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-border/60 bg-background/95 shadow-lg">
-                <SelectItem value="">Tất cả khối lớp</SelectItem>
+                <SelectItem value="all">Tất cả khối lớp</SelectItem>
                 {GRADE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -251,12 +251,12 @@ export function LibraryFilterPanel({
 
           <div className="flex flex-col gap-2">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground">Vai trò tối thiểu</Label>
-            <Select value={requiredRole ?? ''} onValueChange={(value) => onRequiredRoleChange(value || undefined)}>
+            <Select value={requiredRole ?? 'all'} onValueChange={(value) => onRequiredRoleChange(value === 'all' ? undefined : value)}>
               <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30">
                 <SelectValue placeholder="Tất cả vai trò" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border-border/60 bg-background/95 shadow-lg">
-                <SelectItem value="">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
                 {ROLE_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
@@ -271,12 +271,12 @@ export function LibraryFilterPanel({
           {selectedTypes.includes('book') && (
             <div className="flex flex-col gap-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">Loại sách</Label>
-              <Select value={bookType ?? ''} onValueChange={(value) => onBookTypeChange(value || undefined)}>
+              <Select value={bookType ?? 'all'} onValueChange={(value) => onBookTypeChange(value === 'all' ? undefined : value)}>
                 <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30">
                   <SelectValue placeholder="Tất cả" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border/60 bg-background/95 shadow-lg">
-                  <SelectItem value="">Tất cả</SelectItem>
+                  <SelectItem value="all">Tất cả</SelectItem>
                   {BOOK_TYPE_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}
@@ -291,12 +291,12 @@ export function LibraryFilterPanel({
             <>
               <div className="flex flex-col gap-2">
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Loại đề</Label>
-                <Select value={examType ?? ''} onValueChange={(value) => onExamTypeChange(value || undefined)}>
+                <Select value={examType ?? 'all'} onValueChange={(value) => onExamTypeChange(value === 'all' ? undefined : value)}>
                   <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30">
                     <SelectValue placeholder="Tất cả" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-border/60 bg-background/95 shadow-lg">
-                    <SelectItem value="">Tất cả</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     {EXAM_TYPE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -307,12 +307,12 @@ export function LibraryFilterPanel({
               </div>
               <div className="flex flex-col gap-2">
                 <Label className="text-xs uppercase tracking-wide text-muted-foreground">Độ khó</Label>
-                <Select value={difficulty ?? ''} onValueChange={(value) => onDifficultyChange(value || undefined)}>
+                <Select value={difficulty ?? 'all'} onValueChange={(value) => onDifficultyChange(value === 'all' ? undefined : value)}>
                   <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30">
                     <SelectValue placeholder="Tất cả" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-border/60 bg-background/95 shadow-lg">
-                    <SelectItem value="">Tất cả</SelectItem>
+                    <SelectItem value="all">Tất cả</SelectItem>
                     {DIFFICULTY_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -327,12 +327,12 @@ export function LibraryFilterPanel({
           {selectedTypes.includes('video') && (
             <div className="flex flex-col gap-2">
               <Label className="text-xs uppercase tracking-wide text-muted-foreground">Chất lượng video</Label>
-              <Select value={videoQuality ?? ''} onValueChange={(value) => onVideoQualityChange(value || undefined)}>
+              <Select value={videoQuality ?? 'all'} onValueChange={(value) => onVideoQualityChange(value === 'all' ? undefined : value)}>
                 <SelectTrigger className="h-11 rounded-xl border-border/50 bg-muted/30">
                   <SelectValue placeholder="Tất cả" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-border/60 bg-background/95 shadow-lg">
-                  <SelectItem value="">Tất cả</SelectItem>
+                  <SelectItem value="all">Tất cả</SelectItem>
                   {VIDEO_QUALITY_OPTIONS.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
                       {option.label}

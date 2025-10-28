@@ -10,45 +10,20 @@
  */
 
 import * as grpcWeb from 'grpc-web';
-import { getGrpcUrl } from '@/lib/config/endpoints';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
 import { logger } from '@/lib/logger';
-
-// ===== CONFIGURATION =====
-
-/**
- * Enable API proxy for gRPC calls
- *
- * When true: Client → /api/grpc/[...path] → Backend
- * When false: Client → Backend (direct gRPC-Web)
- *
- * Default: true (required for NextAuth v5 httpOnly cookies)
- */
-const USE_API_PROXY = process.env.NEXT_PUBLIC_USE_GRPC_PROXY !== 'false'; // Default true
+// ✅ PHASE 2: Import gRPC configuration (moved to avoid circular dependency)
+import { GRPC_WEB_HOST, GRPC_CONFIG } from './config';
+// ✅ PHASE 2: Import auth interceptor
+import { getAuthInterceptor, interceptGrpcCall } from './interceptors/auth-interceptor';
 
 /**
- * gRPC endpoint configuration
- *
- * If USE_API_PROXY = true:  Uses /api/grpc (Next.js API route)
- * If USE_API_PROXY = false: Uses backend URL directly
- */
-export const GRPC_WEB_HOST = USE_API_PROXY
-  ? '/api/grpc'  // Route through Next.js API proxy
-  : getGrpcUrl(); // Direct to backend
-
-// Log gRPC configuration
-logger.debug('gRPC Client initialized', {
-  host: GRPC_WEB_HOST,
-  useProxy: USE_API_PROXY,
-  mode: USE_API_PROXY ? 'API Proxy' : 'Direct gRPC-Web',
-});
-
-/**
- * Get authentication metadata for gRPC calls
+ * Get authentication metadata for gRPC calls (LEGACY)
  *
  * IMPORTANT: When using API proxy, Authorization header is added by proxy
  * Client only needs to send CSRF token
  *
+ * @deprecated Use getAuthMetadataWithInterceptor() for new code
  * @returns gRPC metadata object
  */
 export function getAuthMetadata(): grpcWeb.Metadata {
@@ -72,11 +47,89 @@ export function getAuthMetadata(): grpcWeb.Metadata {
     const token = localStorage.getItem('nynus-auth-token');
     if (token) {
       md['authorization'] = `Bearer ${token}`;
-      logger.debug(`Authorization token added (${USE_API_PROXY ? 'proxy fallback' : 'direct mode'})`);
-    } else if (!USE_API_PROXY) {
+      logger.debug(`Authorization token added (${GRPC_CONFIG.useProxy ? 'proxy fallback' : 'direct mode'})`);
+    } else if (!GRPC_CONFIG.useProxy) {
       logger.warn('No authorization token in localStorage (direct mode)');
     }
   }
 
   return md;
+}
+
+/**
+ * Get authentication metadata with interceptor support (PHASE 2)
+ * 
+ * This function works with the AuthInterceptor to provide:
+ * - Automatic token refresh
+ * - Retry logic on token expiry
+ * - Fresh token for each request
+ *
+ * @returns Promise<Record<string, string>> - Authentication metadata
+ */
+export async function getAuthMetadataWithInterceptor(): Promise<Record<string, string>> {
+  const interceptor = getAuthInterceptor();
+  const metadata: Record<string, string> = {};
+
+  if (typeof window !== 'undefined') {
+    // Get fresh token through interceptor
+    try {
+      const token = await interceptor['getFreshToken']?.() || AuthHelpers.getAccessToken();
+      if (token) {
+        metadata['authorization'] = `Bearer ${token}`;
+      }
+    } catch (error) {
+      logger.warn('[getAuthMetadataWithInterceptor] Failed to get fresh token:', { 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+      // Fallback to existing token
+      const fallbackToken = AuthHelpers.getAccessToken();
+      if (fallbackToken) {
+        metadata['authorization'] = `Bearer ${fallbackToken}`;
+      }
+    }
+
+    // Add CSRF token
+    const csrfToken = AuthHelpers.getCSRFToken();
+    if (csrfToken) {
+      metadata['x-csrf-token'] = csrfToken;
+    }
+  }
+
+  return metadata;
+}
+
+/**
+ * Wrapper function for making intercepted gRPC calls
+ * 
+ * This is the recommended way to make gRPC calls with automatic:
+ * - Token refresh
+ * - Retry on token expiry
+ * - Error handling
+ * 
+ * @example
+ * ```typescript
+ * const response = await makeInterceptedGrpcCall(
+ *   request,
+ *   async (req, metadata) => {
+ *     const client = getUserServiceClient();
+ *     return await client.getCurrentUser(req, metadata);
+ *   },
+ *   'getCurrentUser'
+ * );
+ * ```
+ */
+export async function makeInterceptedGrpcCall<TRequest, TResponse>(
+  request: TRequest,
+  grpcCall: (request: TRequest, metadata: Record<string, string>) => Promise<TResponse>,
+  context: string = 'grpc-call'
+): Promise<TResponse> {
+  return await interceptGrpcCall(
+    request,
+    async (req, metadata) => {
+      // If no metadata provided, get fresh metadata
+      const finalMetadata = metadata || await getAuthMetadataWithInterceptor();
+      return await grpcCall(req, finalMetadata);
+    },
+    context
+  );
 }

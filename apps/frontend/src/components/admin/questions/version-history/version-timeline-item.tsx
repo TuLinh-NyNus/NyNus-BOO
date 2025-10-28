@@ -29,7 +29,7 @@ export interface QuestionVersion {
   versionNumber: number;
   questionId: string;
   content: string;
-  structuredAnswers?: any;
+  structuredAnswers?: Record<string, unknown>;
   changedBy: string;
   changedByName?: string;
   changeReason?: string;

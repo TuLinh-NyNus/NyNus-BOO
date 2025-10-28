@@ -338,27 +338,20 @@ export function RealtimeDashboardMetrics({
 
   return (
     <div className="space-y-6">
-      {/* Modern Section Header with Glassmorphism */}
-      <div className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-blue-500/10 backdrop-blur-xl border border-white/10 shadow-lg">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 via-cyan-500 to-blue-500 flex items-center justify-center shadow-2xl shadow-emerald-500/50 animate-pulse">
-            <Activity className="h-7 w-7 text-white" />
-          </div>
-          <div>
-            <h3 className="text-2xl font-black bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
-              Thống kê Real-time
-            </h3>
-            <p className="text-sm text-muted-foreground/80 mt-1 font-medium">Dữ liệu cập nhật liên tục từ hệ thống</p>
-          </div>
+      {/* Section Header - Simplified */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h3 className="text-xl font-bold text-foreground mb-2">
+            Thống kê Real-time
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Dữ liệu cập nhật liên tục từ hệ thống
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-500 animate-ping absolute" />
-          <div className="w-3 h-3 rounded-full bg-emerald-500" />
-          <Badge variant="outline" className="bg-emerald-500/20 border-emerald-400/50 text-emerald-300 font-bold backdrop-blur-sm">
-            <Activity className="h-3 w-3 mr-1.5" />
-            LIVE
-          </Badge>
-        </div>
+        <Badge variant="outline" className="bg-emerald-500/20 border-emerald-400/50 text-emerald-300 font-bold">
+          <Activity className="h-3 w-3 mr-1.5" />
+          LIVE
+        </Badge>
       </div>
 
       {/* Modern Bento Grid */}

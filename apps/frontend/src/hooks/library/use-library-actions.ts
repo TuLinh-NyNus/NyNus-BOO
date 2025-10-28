@@ -35,8 +35,9 @@ export function useLibraryActions(): LibraryActions {
       setState({ loading: true, error: null });
       try {
         const result = await fn();
-        if ((result as any)?.success === false) {
-          const message = (result as any)?.errors?.[0] ?? (result as any)?.message ?? 'Thao tác thất bại';
+        const resultWithStatus = result as { success?: boolean; errors?: string[]; message?: string };
+        if (resultWithStatus?.success === false) {
+          const message = resultWithStatus?.errors?.[0] ?? resultWithStatus?.message ?? 'Thao tác thất bại';
           setState({ loading: false, error: message });
         } else {
           setState({ loading: false, error: null });

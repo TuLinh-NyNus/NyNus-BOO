@@ -16,7 +16,9 @@ import {
   Plus,
   ChevronUp,
   ChevronDown,
-  Settings
+  Settings,
+  FileQuestion,
+  Sparkles
 } from "lucide-react";
 
 // UI Components
@@ -359,10 +361,26 @@ export function SelectedQuestionsPreview({
       
       <CardContent>
         {totalQuestions === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Plus className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Chưa có câu hỏi nào được chọn</p>
-            <p className="text-sm">Nhấn &quot;Chọn câu hỏi&quot; để thêm câu hỏi vào đề thi</p>
+          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <div className="relative mb-4">
+              <FileQuestion className="w-16 h-16 text-muted-foreground/40" />
+              <Sparkles className="w-6 h-6 text-primary absolute -top-1 -right-1" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              Chưa có câu hỏi nào
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-sm mb-6">
+              Thêm câu hỏi từ ngân hàng để tạo đề thi. Bạn có thể chọn nhiều câu hỏi cùng lúc và sắp xếp thứ tự sau.
+            </p>
+            <Button 
+              onClick={onOpenSelector} 
+              disabled={!allowEdit}
+              size="lg"
+              className="gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Thêm câu hỏi ngay
+            </Button>
           </div>
         ) : (
           <div className="space-y-3">

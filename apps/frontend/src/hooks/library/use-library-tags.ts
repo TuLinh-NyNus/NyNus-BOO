@@ -3,9 +3,8 @@
  * React hook for managing library tags
  */
 
-import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/ui/use-toast';
 import * as LibraryTagsService from '@/services/grpc/library-tags.service';
 
 export function useLibraryTags(params?: LibraryTagsService.ListTagsParams) {

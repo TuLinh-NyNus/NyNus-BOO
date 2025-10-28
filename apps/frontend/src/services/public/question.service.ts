@@ -9,6 +9,7 @@
 
 import { QuestionService } from '../grpc/question.service';
 import { QuestionFilterService } from '../grpc/question-filter.service';
+import { normalizeQuestionCode, resolveQuestionCode } from '@/lib/utils/question-code';
 
 // ===== TYPES =====
 
@@ -51,14 +52,21 @@ export interface RelatedQuestion {
  * Map backend question data to public format
  */
 function mapToPublicQuestion(data: any): PublicQuestion {
+  const { code: normalizedCode } = normalizeQuestionCode(data);
+  const resolvedCode =
+    resolveQuestionCode({
+      ...data,
+      questionCodeId: normalizedCode,
+    }) ?? '';
+
   return {
     id: data.id,
-    questionCodeId: data.question_code_id || data.questionCodeId || '',
+    questionCodeId: resolvedCode,
     content: data.content || '',
     rawContent: data.raw_content || data.rawContent,
     type: data.type || 'MULTIPLE_CHOICE',
     difficulty: data.difficulty,
-    category: data.category || extractCategoryFromCode(data.question_code_id),
+    category: data.category || extractCategoryFromCode(resolvedCode),
     answers: data.structured_answers?.map((a: any) => ({
       id: a.id,
       content: a.content,
@@ -150,10 +158,16 @@ export class PublicQuestionService {
         .slice(0, limit)
         .map((item: any) => {
           const q = item.question;
+          const { code: relatedCode } = normalizeQuestionCode(q);
+          const resolvedRelatedCode =
+            resolveQuestionCode({
+              ...q,
+              questionCodeId: relatedCode,
+            }) ?? relatedCode;
           return {
             id: q.id,
             title: q.content.substring(0, 100), // First 100 chars as title
-            category: extractCategoryFromCode(q.question_code_id),
+            category: extractCategoryFromCode(resolvedRelatedCode),
             difficulty: q.difficulty || 'MEDIUM',
           };
         });
@@ -185,12 +199,20 @@ export class PublicQuestionService {
         },
       });
       
-      return response.questions.map((q: any) => ({
-        id: q.id,
-        title: q.content.substring(0, 100),
-        category: extractCategoryFromCode(q.question_code_id),
-        difficulty: q.difficulty || 'MEDIUM',
-      }));
+      return response.questions.map((q: any) => {
+        const { code: normalizedCode } = normalizeQuestionCode(q);
+        const resolvedRecentCode =
+          resolveQuestionCode({
+            ...q,
+            questionCodeId: normalizedCode,
+          }) ?? normalizedCode;
+        return {
+          id: q.id,
+          title: q.content.substring(0, 100),
+          category: extractCategoryFromCode(resolvedRecentCode),
+          difficulty: q.difficulty || 'MEDIUM',
+        };
+      });
     } catch (error) {
       console.error('Error fetching recent questions:', error);
       return [];

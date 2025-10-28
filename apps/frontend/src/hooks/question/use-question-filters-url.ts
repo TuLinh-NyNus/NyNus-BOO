@@ -102,7 +102,12 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
 
   // Initialize filters from URL params on mount
   const [filters, setFilters] = useState<QuestionFilters>(() => {
-    return parseFiltersFromUrlHelper(searchParams, memoizedDefaultFilters);
+    try {
+      return parseFiltersFromUrlHelper(searchParams, memoizedDefaultFilters);
+    } catch (error) {
+      console.warn('Failed to parse filters from URL, using defaults:', error);
+      return { ...memoizedDefaultFilters } as QuestionFilters;
+    }
   });
 
   const [isInitialized, setIsInitialized] = useState(false);
@@ -188,7 +193,8 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
       const updated = { ...prev, ...newFilters };
 
       // Reset page to 1 when filters change (except when page itself is being updated)
-      if (!('page' in newFilters) && Object.keys(newFilters).length > 0) {
+      // Only reset if page is not already 1 to prevent unnecessary updates
+      if (!('page' in newFilters) && Object.keys(newFilters).length > 0 && prev.page !== 1) {
         updated.page = 1;
       }
 
@@ -246,6 +252,8 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
 
   // FIXED: Listen to URL changes (browser navigation) with memoized defaultFilters
   useEffect(() => {
+    if (!isInitialized) return; // Don't sync during initialization
+    
     const newFilters = parseFiltersFromUrl(searchParams, memoizedDefaultFilters);
 
     // Use ref to compare with current filters to avoid stale closure
@@ -263,7 +271,7 @@ export function useQuestionFiltersUrl(options: UseQuestionFiltersUrlOptions = {}
         _isUpdatingFromUrlRef.current = false;
       }, 0);
     }
-  }, [searchParams, memoizedDefaultFilters, parseFiltersFromUrl]);
+  }, [searchParams, memoizedDefaultFilters, parseFiltersFromUrl, isInitialized]);
 
   // FIXED: Sync URL when shouldSyncUrl flag is set (with debouncing)
   useEffect(() => {

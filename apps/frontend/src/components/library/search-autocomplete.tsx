@@ -339,7 +339,7 @@ export function LibrarySearchAutocomplete({
                   Không tìm thấy gợi ý
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Nhấn Enter để tìm kiếm "{value}"
+                  Nhấn Enter để tìm kiếm &quot;{value}&quot;
                 </p>
               </div>
             )}

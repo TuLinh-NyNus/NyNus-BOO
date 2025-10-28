@@ -10,6 +10,7 @@
 
 import React, { memo } from "react";
 import { Control, useWatch } from "react-hook-form";
+import { AnswerItemData } from "./answer-form";
 import {
   FormControl,
   FormField,
@@ -41,7 +42,7 @@ import { LaTeXPreview } from "@/components/common/latex";
 export interface AnswerItemProps {
   field: Record<"id", string>;
   index: number;
-  control: Control<any>;
+  control: Control<{ answers: AnswerItemData[] }>;
   isExpanded: boolean;
   hasPreview: boolean;
   minAnswers: number;

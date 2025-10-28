@@ -3,11 +3,11 @@
  * Handles search suggestions and autocomplete
  */
 
-import { LibraryServiceClient } from '@/generated/proto/v1/library_grpc_web_pb';
+import { LibraryServiceClient } from '@/generated/v1/LibraryServiceClientPb';
 import {
   SearchSuggestionsRequest,
   SearchSuggestion,
-} from '@/generated/proto/v1/library_pb';
+} from '@/generated/v1/library_pb';
 
 const client = new LibraryServiceClient(
   process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080',

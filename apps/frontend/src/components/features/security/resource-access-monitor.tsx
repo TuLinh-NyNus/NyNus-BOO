@@ -407,11 +407,11 @@ export function ResourceAccessMonitor() {
       params.search = searchQuery;
     }
     
-    if (resourceTypeFilter) {
+    if (resourceTypeFilter && resourceTypeFilter !== 'all') {
       params.resourceType = resourceTypeFilter;
     }
     
-    if (riskScoreFilter) {
+    if (riskScoreFilter && riskScoreFilter !== 'all') {
       params.minRiskScore = parseInt(riskScoreFilter);
     }
 
@@ -479,7 +479,7 @@ export function ResourceAccessMonitor() {
               <SelectValue placeholder="Loại tài nguyên" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tất cả</SelectItem>
+              <SelectItem value="all">Tất cả</SelectItem>
               <SelectItem value="VIDEO">Video</SelectItem>
               <SelectItem value="PDF">PDF</SelectItem>
               <SelectItem value="COURSE">Khóa học</SelectItem>
@@ -492,7 +492,7 @@ export function ResourceAccessMonitor() {
               <SelectValue placeholder="Điểm rủi ro" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tất cả</SelectItem>
+              <SelectItem value="all">Tất cả</SelectItem>
               <SelectItem value="70">Cao (≥70)</SelectItem>
               <SelectItem value="40">Trung bình (≥40)</SelectItem>
               <SelectItem value="0">Thấp (≥0)</SelectItem>

@@ -56,18 +56,13 @@ import {
 import { QuestionDifficulty } from '@/types/question';
 
 // gRPC client utilities
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { getAuthMetadata } from './client';
+import { createGrpcClient } from './client-factory';
 
 // ===== gRPC CLIENT INITIALIZATION =====
 
-// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
-// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
-const examServiceClient = new ExamServiceClient(GRPC_WEB_HOST, null, {
-  format: 'text', // Use text format for consistency with proto generation
-  withCredentials: false,
-  unaryInterceptors: [],
-  streamInterceptors: []
-});
+// ✅ FIX: Use client factory for lazy initialization
+const getExamServiceClient = createGrpcClient(ExamServiceClient, 'ExamService');
 
 // ===== ENUM MAPPERS =====
 
@@ -318,7 +313,7 @@ export const ExamService = {
       // Question IDs
       if (examData.questionIds) request.setQuestionIdsList(examData.questionIds);
 
-      const response = await examServiceClient.createExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().createExam(request, getAuthMetadata());
       const exam = response.getExam();
 
       if (!exam) {
@@ -341,7 +336,7 @@ export const ExamService = {
       const request = new GetExamRequest();
       request.setId(examId);
 
-      const response = await examServiceClient.getExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().getExam(request, getAuthMetadata());
       const exam = response.getExam();
 
       if (!exam) {
@@ -385,7 +380,7 @@ export const ExamService = {
       if (examData.examCode) request.setExamCode(examData.examCode);
       if (examData.fileUrl) request.setFileUrl(examData.fileUrl);
 
-      const response = await examServiceClient.updateExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().updateExam(request, getAuthMetadata());
       const exam = response.getExam();
 
       if (!exam) {
@@ -408,7 +403,7 @@ export const ExamService = {
       const request = new DeleteExamRequest();
       request.setId(examId);
 
-      const response = await examServiceClient.deleteExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().deleteExam(request, getAuthMetadata());
       const responseObj = response.getResponse();
 
       return {
@@ -434,7 +429,7 @@ export const ExamService = {
       pagination.setLimit(filters?.limit || 20);
       request.setPagination(pagination);
 
-      const response = await examServiceClient.listExams(request, getAuthMetadata());
+      const response = await getExamServiceClient().listExams(request, getAuthMetadata());
       const exams = response.getExamsList().map(mapExamFromPb);
       const paginationResponse = response.getPagination();
 
@@ -456,7 +451,7 @@ export const ExamService = {
       const request = new PublishExamRequest();
       request.setExamId(examId);
 
-      const response = await examServiceClient.publishExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().publishExam(request, getAuthMetadata());
       const exam = response.getExam();
 
       if (!exam) {
@@ -475,7 +470,7 @@ export const ExamService = {
       const request = new ArchiveExamRequest();
       request.setExamId(examId);
 
-      const response = await examServiceClient.archiveExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().archiveExam(request, getAuthMetadata());
       const exam = response.getExam();
 
       if (!exam) {
@@ -495,7 +490,7 @@ export const ExamService = {
       const request = new StartExamRequest();
       request.setExamId(examId);
 
-      const response = await examServiceClient.startExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().startExam(request, getAuthMetadata());
       const attempt = response.getAttempt();
 
       if (!attempt) {
@@ -514,7 +509,7 @@ export const ExamService = {
       const request = new SubmitExamRequest();
       request.setAttemptId(attemptId);
 
-      const response = await examServiceClient.submitExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().submitExam(request, getAuthMetadata());
       const result = response.getResult();
 
       if (!result) {
@@ -535,7 +530,7 @@ export const ExamService = {
       request.setQuestionId(questionId);
       request.setAnswerData(answerData);
 
-      const response = await examServiceClient.submitAnswer(request, getAuthMetadata());
+      const response = await getExamServiceClient().submitAnswer(request, getAuthMetadata());
       const responseObj = response.getResponse();
 
       return {
@@ -552,7 +547,7 @@ export const ExamService = {
       const request = new GetExamResultsRequest();
       request.setExamId(examId);
 
-      const response = await examServiceClient.getExamResults(request, getAuthMetadata());
+      const response = await getExamServiceClient().getExamResults(request, getAuthMetadata());
       const results = response.getResultsList();
 
       if (!results || results.length === 0) {
@@ -571,7 +566,7 @@ export const ExamService = {
       const request = new GetExamStatisticsRequest();
       request.setExamId(examId);
 
-      const response = await examServiceClient.getExamStatistics(request, getAuthMetadata());
+      const response = await getExamServiceClient().getExamStatistics(request, getAuthMetadata());
       const stats = response.getStatistics();
 
       if (!stats) {
@@ -605,7 +600,7 @@ export const ExamService = {
       const request = new GetExamAttemptRequest();
       request.setAttemptId(attemptId);
 
-      const response = await examServiceClient.getExamAttempt(request, getAuthMetadata());
+      const response = await getExamServiceClient().getExamAttempt(request, getAuthMetadata());
       const attempt = response.getAttempt();
 
       if (!attempt) {
@@ -628,7 +623,7 @@ export const ExamService = {
       request.setPoints(points);
       request.setOrder(order);
 
-      const response = await examServiceClient.addQuestionToExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().addQuestionToExam(request, getAuthMetadata());
       const responseObj = response.getResponse();
 
       return {
@@ -646,7 +641,7 @@ export const ExamService = {
       request.setExamId(examId);
       request.setQuestionId(questionId);
 
-      const response = await examServiceClient.removeQuestionFromExam(request, getAuthMetadata());
+      const response = await getExamServiceClient().removeQuestionFromExam(request, getAuthMetadata());
       const responseObj = response.getResponse();
 
       return {
@@ -673,7 +668,7 @@ export const ExamService = {
 
       request.setQuestionOrdersList(questionOrders);
 
-      const response = await examServiceClient.reorderExamQuestions(request, getAuthMetadata());
+      const response = await getExamServiceClient().reorderExamQuestions(request, getAuthMetadata());
       const responseObj = response.getResponse();
 
       return {

@@ -27,6 +27,9 @@ type Config struct {
 	// Google Drive configuration
 	GoogleDrive GoogleDriveConfig
 
+	// Cloudinary configuration
+	Cloudinary CloudinaryConfig
+
 	// Redis configuration
 	Redis RedisConfig
 
@@ -76,6 +79,16 @@ type GoogleDriveConfig struct {
 	ClientSecret string
 	RefreshToken string
 	RootFolderID string
+}
+
+// CloudinaryConfig holds Cloudinary configuration
+type CloudinaryConfig struct {
+	Enabled   bool
+	CloudName string
+	APIKey    string
+	APISecret string
+	Folder    string // e.g., "exam-bank/questions"
+	UseRealSDK bool  // Flag to switch between simulation and real SDK
 }
 
 // RedisConfig holds Redis configuration
@@ -131,6 +144,14 @@ func LoadConfig() *Config {
 			ClientSecret: getEnv("DRIVE_CLIENT_SECRET", ""),
 			RefreshToken: getEnv("DRIVE_REFRESH_TOKEN", ""),
 			RootFolderID: getEnv("DRIVE_ROOT_FOLDER_ID", ""),
+		},
+		Cloudinary: CloudinaryConfig{
+			Enabled:    getEnv("CLOUDINARY_ENABLED", "false") == "true",
+			CloudName:  getEnv("CLOUDINARY_CLOUD_NAME", ""),
+			APIKey:     getEnv("CLOUDINARY_API_KEY", ""),
+			APISecret:  getEnv("CLOUDINARY_API_SECRET", ""),
+			Folder:     getEnv("CLOUDINARY_FOLDER", "exam-bank/questions"),
+			UseRealSDK: getEnv("CLOUDINARY_USE_REAL_SDK", "false") == "true",
 		},
 		Redis: RedisConfig{
 			URL:                 getEnv("REDIS_URL", "redis://localhost:6379"),

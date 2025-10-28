@@ -26,7 +26,8 @@ import {
   LibraryItemPayload,
 } from '@/generated/v1/library_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { GRPC_WEB_HOST } from './config';
+import { getAuthMetadata } from './client';
 
 // ====== Kiểu dữ liệu FE ======
 
@@ -283,7 +284,7 @@ function mapLibraryItem(item: LibraryItem): LibraryItemView {
     title: item.getName(),
     type: toItemKind(item.getType()),
     description: item.getDescription(),
-    category: item.getCategory(),
+    category: item.getRequiredRole() || 'general',
     fileUrl: item.getFileUrl(),
     fileId: item.getFileId(),
     thumbnailUrl: item.getThumbnailUrl(),

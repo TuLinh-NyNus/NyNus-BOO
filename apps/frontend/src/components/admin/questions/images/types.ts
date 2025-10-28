@@ -1,9 +1,9 @@
 /**
- * Google Drive Integration UI Types
+ * Cloudinary Integration UI Types
  * TypeScript interfaces cho image upload, preview, và gallery components
  * 
  * @author NyNus Team
- * @version 1.0.0
+ * @version 2.0.0 - Migrated to Cloudinary
  */
 
 import { QuestionImage, ImageType, ImageStatus } from '@/lib/mockdata/shared/core-types';

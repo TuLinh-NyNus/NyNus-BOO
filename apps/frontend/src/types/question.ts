@@ -103,6 +103,7 @@ export interface Question {
 
   // Relations
   questionCodeId: string;
+  questionCode?: QuestionCode;
 
   // Timestamps
   createdAt: string;
@@ -124,6 +125,7 @@ export interface QuestionDraft {
   correctAnswer?: CorrectAnswer;
   source?: string;
   questionCodeId?: string;
+  questionCode?: QuestionCode;
 }
 
 // Filter interface cho question list - Extended version

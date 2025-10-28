@@ -58,8 +58,8 @@ export interface BulkEditModalProps {
 const STATUS_OPTIONS = [
   { value: QuestionStatus.DRAFT, label: 'Nháp', color: 'bg-gray-500' },
   { value: QuestionStatus.PENDING, label: 'Chờ duyệt', color: 'bg-yellow-500' },
-  { value: QuestionStatus.APPROVED, label: 'Đã duyệt', color: 'bg-green-500' },
-  { value: QuestionStatus.REJECTED, label: 'Từ chối', color: 'bg-red-500' },
+  { value: QuestionStatus.ACTIVE, label: 'Hoạt động', color: 'bg-green-500' },
+  { value: QuestionStatus.INACTIVE, label: 'Không hoạt động', color: 'bg-red-500' },
   { value: QuestionStatus.ARCHIVED, label: 'Lưu trữ', color: 'bg-gray-400' },
 ];
 

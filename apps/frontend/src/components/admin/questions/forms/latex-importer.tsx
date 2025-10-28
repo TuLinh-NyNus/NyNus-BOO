@@ -49,11 +49,18 @@ import { QuestionType } from "@/types/question";
 export interface LatexImporterProps {
   onImportSuccess: (parsedData: ParsedQuestion) => void;
   disabled?: boolean;
+  onReset?: () => void;
+  onProcessing?: (isProcessing: boolean) => void;
 }
 
 // ===== COMPONENT =====
 
-export function LatexImporter({ onImportSuccess, disabled = false }: LatexImporterProps) {
+export function LatexImporter({
+  onImportSuccess,
+  disabled = false,
+  onReset,
+  onProcessing
+}: LatexImporterProps) {
   // ===== STATE =====
   const [latexContent, setLatexContent] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -64,28 +71,17 @@ export function LatexImporter({ onImportSuccess, disabled = false }: LatexImport
   // ===== HANDLERS =====
 
   /**
-   * Xử lý parse LaTeX content
+   * Xử lý parse LaTeX content với validation và error handling cải tiến
    */
   const handleParse = async () => {
-    // Validation
-    if (!latexContent.trim()) {
-      setErrors(["Vui lòng nhập nội dung LaTeX"]);
-      return;
-    }
-
-    // Check if content contains \begin{ex}
-    if (!latexContent.includes("\\begin{ex}")) {
-      setErrors(["Nội dung LaTeX phải chứa \\begin{ex}...\\end{ex}"]);
-      return;
-    }
-
+    if (onProcessing) onProcessing(true);
     setIsProcessing(true);
     setErrors([]);
     setWarnings([]);
     setParsedData(null);
 
     try {
-      // Call backend parse API
+      // Call backend parse API với validation tự động
       const response = await QuestionLatexService.parseLatex({
         latex_content: latexContent,
         is_base64: false,
@@ -101,13 +97,21 @@ export function LatexImporter({ onImportSuccess, disabled = false }: LatexImport
           setErrors([]);
         }
       } else {
-        setErrors(response.errors.length > 0 ? response.errors : ["Không thể parse LaTeX. Vui lòng kiểm tra định dạng."]);
+        // Hiển thị lỗi chi tiết từ validation hoặc parsing
+        const errorMessages = response.errors.length > 0 
+          ? response.errors 
+          : ["Không thể phân tích LaTeX. Vui lòng kiểm tra định dạng."];
+        setErrors(errorMessages);
       }
     } catch (error) {
       console.error("Parse error:", error);
-      setErrors([error instanceof Error ? error.message : "Đã xảy ra lỗi khi parse LaTeX"]);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Đã xảy ra lỗi không xác định khi phân tích LaTeX";
+      setErrors([errorMessage]);
     } finally {
       setIsProcessing(false);
+      if (onProcessing) onProcessing(false);
     }
   };
 
@@ -128,6 +132,9 @@ export function LatexImporter({ onImportSuccess, disabled = false }: LatexImport
     setParsedData(null);
     setErrors([]);
     setWarnings([]);
+    if (onReset) {
+      onReset();
+    }
   };
 
   // ===== RENDER HELPERS =====
@@ -302,8 +309,8 @@ export function LatexImporter({ onImportSuccess, disabled = false }: LatexImport
   // ===== MAIN RENDER =====
 
   return (
-    <Card className="w-full">
-      <CardHeader>
+    <Card className="w-full h-full flex flex-col overflow-hidden">
+      <CardHeader className="flex-shrink-0">
         <CardTitle className="flex items-center gap-2">
           <Code className="h-5 w-5" />
           Import từ LaTeX
@@ -314,20 +321,20 @@ export function LatexImporter({ onImportSuccess, disabled = false }: LatexImport
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="flex-1 flex flex-col space-y-4 overflow-hidden">
         {/* LaTeX Input */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">
+        <div className="flex-1 flex flex-col space-y-2 overflow-hidden">
+          <label className="text-sm font-medium flex-shrink-0">
             Nội dung LaTeX gốc
           </label>
           <Textarea
             value={latexContent}
             onChange={(e) => setLatexContent(e.target.value)}
             placeholder={`Ví dụ:\n\\begin{ex}%[Nguồn: Đề thi thử 2024]%[1A1N1]\n    Tìm đạo hàm của hàm số $y = x^2 + 3x + 1$?\n    \\choice\n    {\\True $y' = 2x + 3$}\n    {$y' = 2x$}\n    {$y' = x + 3$}\n    {$y' = 2x^2$}\n    \\loigiai{\n        Áp dụng công thức đạo hàm: $(x^n)' = nx^{n-1}$\n    }\n\\end{ex}`}
-            className="min-h-[300px] font-mono text-sm"
+            className="flex-1 font-mono text-sm resize-none overflow-auto"
             disabled={disabled || isProcessing}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground flex-shrink-0">
             💡 Mẹo: Sao chép toàn bộ block <code>\begin&#123;ex&#125;</code> bao gồm cả metadata và lời giải
           </p>
         </div>

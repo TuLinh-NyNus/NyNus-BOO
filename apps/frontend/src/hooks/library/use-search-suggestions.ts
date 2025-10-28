@@ -3,9 +3,9 @@
  * React hook for search suggestions and autocomplete
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useDebounce } from '@/hooks/use-debounce';
+import { useDebounce } from '@/hooks/performance/use-debounce';
 import * as LibrarySearchService from '@/services/grpc/library-search.service';
 
 export function useSearchSuggestions(initialQuery: string = '', limit: number = 10) {

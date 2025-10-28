@@ -21,8 +21,10 @@ import {
   QuestionType,
   QuestionStatus,
   QuestionDifficulty,
-  type QuestionFilters
+  type QuestionFilters,
+  type CorrectAnswer
 } from '@/types/question';
+import { normalizeQuestionCode, resolveQuestionCode } from '@/lib/utils/question-code';
 
 import { QuestionService } from '@/services/grpc/question.service';
 import { QuestionFilterService } from '@/services/grpc/question-filter.service';
@@ -31,9 +33,7 @@ import {
   createGetRequest,
   createUpdateRequest,
   createDeleteRequest,
-  createListRequest,
   draftToCreateRequest,
-  parseListResponse,
   parseCreateResponse,
   parseGetResponse,
   parseUpdateResponse,
@@ -325,29 +325,44 @@ export const useQuestionStore = create<QuestionStoreState>()(
               const parsed = parseFilterListResponse(response);
               
               // Map QuestionDetail to Question domain type
-              const mappedQuestions = (parsed.questions || []).map((q: any) => ({
-                id: q.id,
-                rawContent: q.raw_content || q.rawContent,
-                content: q.content,
-                subcount: q.subcount,
-                type: q.type,
-                source: q.source,
-                solution: q.solution,
-                explanation: q.solution, // Use solution as explanation
-                tag: q.tags || q.tag || [],
-                usageCount: q.usage_count || q.usageCount || 0,
-                creator: q.creator,
-                status: q.status,
-                feedback: q.feedback || 0,
-                difficulty: q.difficulty,
-                questionCodeId: q.question_code_id || q.questionCodeId,
-                createdAt: q.created_at || q.createdAt || new Date().toISOString(),
-                updatedAt: q.updated_at || q.updatedAt || new Date().toISOString(),
-                isFavorite: q.is_favorite || q.isFavorite || false,
-                // Parse answers if available
-                answers: q.answers ? (typeof q.answers === 'string' ? JSON.parse(q.answers) : q.answers) : undefined,
-                correctAnswer: q.correct_answer || q.correctAnswer,
-              }));
+              const mappedQuestions = (parsed.questions || []).map((q: Record<string, unknown>) => {
+                const { code: normalizedCode, details: questionCodeDetails } = normalizeQuestionCode(q);
+                const resolvedCode =
+                  resolveQuestionCode({
+                    ...q,
+                    questionCodeId: normalizedCode,
+                    questionCode: questionCodeDetails,
+                  }) ?? '';
+
+                return {
+                  id: String(q.id || ''),
+                  rawContent: String(q.rawContent || q.raw_content || ''),
+                  content: String(q.content || ''),
+                  subcount: String(q.subcount || ''),
+                  type: q.type as QuestionType,
+                  source: String(q.source || ''),
+                  solution: String(q.solution || ''),
+                  explanation: String(q.solution || ''), // Use solution as explanation
+                  tag: Array.isArray(q.tag) ? q.tag : (Array.isArray(q.tags) ? q.tags : []),
+                  usageCount: Number(q.usageCount || q.usage_count || 0),
+                  creator: String(q.creator || ''),
+                  status: q.status as QuestionStatus,
+                  feedback: Number(q.feedback || 0),
+                  difficulty: q.difficulty as QuestionDifficulty,
+                  questionCodeId: resolvedCode,
+                  questionCode: questionCodeDetails,
+                  createdAt: String(q.createdAt || q.created_at || new Date().toISOString()),
+                  updatedAt: String(q.updatedAt || q.updated_at || new Date().toISOString()),
+                  isFavorite: Boolean(q.isFavorite || q.is_favorite || false),
+                  // Parse answers if available
+                  answers: q.answers
+                    ? typeof q.answers === 'string'
+                      ? JSON.parse(q.answers)
+                      : q.answers
+                    : undefined,
+                  correctAnswer: (q.correctAnswer || q.correct_answer) as CorrectAnswer | undefined,
+                };
+              });
 
               set((state) => {
                 state.questions = append

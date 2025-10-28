@@ -1,6 +1,9 @@
 /**
  * Book Service Client (gRPC-Web)
  * Minimal wrapper to fetch book data for admin features
+ * 
+ * ✅ FIX: Added module-level cache to prevent rate limit errors
+ * Similar pattern to AdminStatsContext
  */
 
 import { RpcError, StatusCode } from 'grpc-web';
@@ -11,7 +14,8 @@ import {
   Book
 } from '@/generated/v1/book_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { GRPC_WEB_HOST } from './config';
+import { getAuthMetadata } from './client';
 
 // gRPC client configuration (matching other service clients)
 const bookServiceClient = new BookServiceClient(GRPC_WEB_HOST, null, {
@@ -21,6 +25,18 @@ const bookServiceClient = new BookServiceClient(GRPC_WEB_HOST, null, {
   streamInterceptors: []
 });
 
+// ===== MODULE-LEVEL SINGLETON CACHE =====
+// Prevents duplicate API calls and rate limit errors
+// Pattern matches AdminStatsContext implementation
+
+let globalBookCountCache: number | null = null;
+let globalBookCountLastFetch: Date | null = null;
+let globalBookCountPendingRequest: Promise<number> | null = null;
+let globalLastRequestTime: number = 0;
+
+const BOOK_COUNT_CACHE_TIMEOUT = 120000; // 120 seconds (2 minutes)
+const MIN_REQUEST_INTERVAL = 5000; // 5 seconds minimum between requests
+
 // Convert gRPC error to user-friendly string
 function handleGrpcError(error: RpcError): string {
   if (error.code === StatusCode.UNIMPLEMENTED) {
@@ -28,9 +44,17 @@ function handleGrpcError(error: RpcError): string {
     return 'Book service is not available';
   }
 
-  console.error('gRPC BookService error:', error);
+  // ✅ FIX: Don't log rate limit errors as errors
+  const isRateLimitError = error.message?.toLowerCase().includes('rate limit');
+  if (isRateLimitError) {
+    console.warn('[BookService] Rate limit exceeded, using cached data if available');
+  } else {
+    console.error('gRPC BookService error:', error);
+  }
 
   switch (error.code) {
+    case StatusCode.RESOURCE_EXHAUSTED: // Rate limit error code
+      return 'rate limit exceeded';
     case StatusCode.INVALID_ARGUMENT:
       return error.message || 'Invalid input provided';
     case StatusCode.NOT_FOUND:
@@ -194,16 +218,111 @@ export class BookService {
 
   /**
    * Convenience helper returning only the total number of books.
+   * 
+   * ✅ FIX: Added module-level caching to prevent rate limit errors
+   * Features:
+   * - Global cache survives component remounts (120s cache)
+   * - Request deduplication (only one request at a time)
+   * - Minimum interval enforcement (5s between requests)
+   * - Graceful rate limit handling (returns cached value or 0)
    */
   static async getBookCount(): Promise<number> {
-    const result = await BookService.listBooks({ pagination: { page: 1, limit: 1 } });
-
-    if (!result.success) {
-      const errorMessage = result.errors[0] || result.message || 'Unable to load book statistics';
-      throw new Error(errorMessage);
+    // ===== GLOBAL REQUEST DEDUPLICATION =====
+    if (globalBookCountPendingRequest) {
+      console.debug('[BookService] Request already in progress, returning existing promise');
+      return globalBookCountPendingRequest;
     }
 
-    return result.pagination?.totalCount ?? result.books.length ?? 0;
+    // ===== MINIMUM INTERVAL CHECK =====
+    const timeSinceLastRequest = Date.now() - globalLastRequestTime;
+    if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+      const waitTime = MIN_REQUEST_INTERVAL - timeSinceLastRequest;
+      console.debug('[BookService] Too soon since last request, using cache', {
+        timeSinceLastRequest: `${timeSinceLastRequest}ms`,
+        minInterval: `${MIN_REQUEST_INTERVAL}ms`,
+        waitTime: `${waitTime}ms`,
+      });
+      // Return cached value or 0 if no cache
+      return globalBookCountCache ?? 0;
+    }
+
+    // ===== GLOBAL CACHE CHECK =====
+    if (globalBookCountLastFetch && globalBookCountCache !== null) {
+      const cacheAge = Date.now() - globalBookCountLastFetch.getTime();
+      if (cacheAge < BOOK_COUNT_CACHE_TIMEOUT) {
+        console.debug('[BookService] Using global cached book count', {
+          cacheAge: `${cacheAge}ms`,
+          cacheTimeout: `${BOOK_COUNT_CACHE_TIMEOUT}ms`,
+          count: globalBookCountCache,
+        });
+        return globalBookCountCache;
+      }
+    }
+
+    // ===== FETCH LOGIC =====
+    const fetchPromise = (async () => {
+      globalLastRequestTime = Date.now();
+
+      try {
+        console.info('[BookService] 🚀 Fetching book count from backend (global singleton)');
+
+        const result = await BookService.listBooks({ pagination: { page: 1, limit: 1 } });
+
+        if (!result.success) {
+          const errorMessage = result.errors[0] || result.message || 'Unable to load book statistics';
+          
+          // ✅ FIX: Check if it's a rate limit error
+          const isRateLimitError = errorMessage.toLowerCase().includes('rate limit');
+          
+          if (isRateLimitError) {
+            console.warn('[BookService] ⚠️ Rate limit hit, returning cached value or 0', {
+              cachedValue: globalBookCountCache,
+            });
+            // Return cached value if available, otherwise 0
+            return globalBookCountCache ?? 0;
+          }
+          
+          // For other errors, throw
+          throw new Error(errorMessage);
+        }
+
+        const count = result.pagination?.totalCount ?? result.books.length ?? 0;
+
+        // Update global cache
+        globalBookCountCache = count;
+        globalBookCountLastFetch = new Date();
+
+        console.info('[BookService] ✅ Book count fetched successfully (cached globally)', {
+          count,
+          cacheTimeout: `${BOOK_COUNT_CACHE_TIMEOUT}ms`,
+        });
+
+        return count;
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unable to load book statistics';
+        const isRateLimitError = errorMessage.toLowerCase().includes('rate limit');
+
+        if (isRateLimitError) {
+          console.warn('[BookService] ⚠️ Rate limit error caught, returning cached value or 0', {
+            cachedValue: globalBookCountCache,
+          });
+          // Return cached value if available, otherwise 0
+          return globalBookCountCache ?? 0;
+        }
+
+        // For non-rate-limit errors, log and throw
+        console.error('[BookService] ❌ Failed to fetch book count', {
+          operation: 'getBookCount',
+          errorMessage,
+        });
+        throw new Error(errorMessage);
+      } finally {
+        globalBookCountPendingRequest = null;
+      }
+    })();
+
+    globalBookCountPendingRequest = fetchPromise;
+    return fetchPromise;
   }
 }
 

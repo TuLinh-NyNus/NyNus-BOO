@@ -101,12 +101,13 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       setConnectionState('connecting');
     });
 
-    const unsubNotification = wsService.on('notification', (data: WebSocketNotification) => {
-      console.log('[WS Provider] Notification received:', data);
-      setLastMessage(data);
+    const unsubNotification = wsService.on('notification', (data: unknown) => {
+      const notification = data as WebSocketNotification;
+      console.log('[WS Provider] Notification received:', notification);
+      setLastMessage(notification);
     });
 
-    const unsubError = wsService.on('error', (error: any) => {
+    const unsubError = wsService.on('error', (error: unknown) => {
       console.error('[WS Provider] Error:', error);
     });
 
@@ -126,7 +127,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
    * Implements task 4.2.4: Reconnect on token refresh
    */
   const reconnect = useCallback(() => {
-    if (typeof window === 'undefined') {
+    if (typeof window === 'undefined' || !wsService) {
       return;
     }
     
@@ -146,6 +147,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
    * Send message function
    */
   const send = useCallback((message: WebSocketMessage) => {
+    if (!wsService) {
+      console.warn('[WS Provider] Cannot send message - service not available');
+      return;
+    }
     wsService.send(message);
   }, [wsService]);
 

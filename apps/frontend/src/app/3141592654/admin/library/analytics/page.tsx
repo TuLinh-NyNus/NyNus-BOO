@@ -222,9 +222,9 @@ export default function AdminLibraryAnalyticsPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [summary, setSummary] = useState<AnalyticsSummary>(MOCK_SUMMARY);
-  const [mostDownloaded, setMostDownloaded] = useState<LibraryItemStats[]>(MOCK_MOST_DOWNLOADED);
-  const [highestRated, setHighestRated] = useState<LibraryItemStats[]>(MOCK_HIGHEST_RATED);
-  const [recentlyAdded, setRecentlyAdded] = useState<LibraryItemStats[]>(MOCK_RECENTLY_ADDED);
+  const [mostDownloaded] = useState<LibraryItemStats[]>(MOCK_MOST_DOWNLOADED);
+  const [highestRated] = useState<LibraryItemStats[]>(MOCK_HIGHEST_RATED);
+  const [recentlyAdded] = useState<LibraryItemStats[]>(MOCK_RECENTLY_ADDED);
 
   // Load data
   const loadData = async () => {
@@ -245,7 +245,7 @@ export default function AdminLibraryAnalyticsPage() {
         title: 'Làm mới thành công',
         description: 'Dữ liệu analytics đã được cập nhật',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Lỗi',
         description: 'Không thể tải dữ liệu analytics',

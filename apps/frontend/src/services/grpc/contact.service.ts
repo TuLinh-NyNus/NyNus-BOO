@@ -18,7 +18,7 @@ import {
 } from '@/generated/v1/contact_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
-import { GRPC_WEB_HOST } from './client';
+import { GRPC_WEB_HOST } from './config';
 
 // gRPC client configuration
 // Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default

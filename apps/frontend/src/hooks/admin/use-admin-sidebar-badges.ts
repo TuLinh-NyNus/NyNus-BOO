@@ -48,6 +48,7 @@ export function useAdminSidebarBadges() {
   /**
    * Load counts that are not provided by AdminStats (books, notifications).
    * ✅ FIX: Keep dependencies but store in ref to prevent loop
+   * ✅ FIX: Silent error handling for rate limit - don't push to errors array
    */
   const loadCounts = useCallback(async (): Promise<LoadResult> => {
     const results = await Promise.allSettled([
@@ -68,14 +69,26 @@ export function useAdminSidebarBadges() {
       updates.books = booksResult.value;
     } else {
       const reason = booksResult.reason as Error;
-      errors.push(reason?.message || 'Unable to load book statistics');
+      // Only add to errors if not a rate limit issue
+      const isRateLimit = reason?.message?.toLowerCase().includes('rate limit');
+      if (!isRateLimit) {
+        errors.push(reason?.message || 'Unable to load book statistics');
+      }
     }
 
     if (notificationsResult.status === 'fulfilled') {
       updates.notifications = notificationsResult.value;
     } else {
       const reason = notificationsResult.reason as Error;
-      errors.push(reason?.message || 'Unable to load notification statistics');
+      // Silent handling for rate limit - notification service already logs warning
+      const isRateLimit = reason?.message?.toLowerCase().includes('rate limit');
+      if (!isRateLimit) {
+        errors.push(reason?.message || 'Unable to load notification statistics');
+      }
+      // Set notifications to 0 if rate limited (service returns 0 on rate limit)
+      if (isRateLimit) {
+        updates.notifications = 0;
+      }
     }
 
     return { updates, errors };
@@ -119,7 +132,6 @@ export function useAdminSidebarBadges() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency - only run once on mount
 
   /**

@@ -305,6 +305,7 @@ export const authConfig: NextAuthConfig = {
     /**
      * JWT Callback
      * Quản lý tokens trong JWT
+     * ✅ FIX: Separate NextAuth session lifecycle từ backend token refresh
      */
     async jwt({ token, account, user }) {
       // Persist backend tokens returned from credentials flow (account is undefined for credentials)
@@ -319,17 +320,27 @@ export const authConfig: NextAuthConfig = {
         TokenManager.setDefaultRoleForOAuth(token, account.provider);
       }
 
-      // Auto-refresh backend token if expiring soon
-      const refreshedToken = await TokenManager.refreshTokenIfNeeded(token);
-      if (!refreshedToken) {
-        // Refresh failed - force re-login
-        return null as unknown as typeof token;
+      // ✅ FIX: Separate backend token refresh từ NextAuth session lifecycle
+      // NextAuth session không phụ thuộc vào backend token refresh success/failure
+      try {
+        const refreshedToken = await TokenManager.refreshTokenIfNeeded(token);
+        if (refreshedToken) {
+          // Backend token refresh thành công - use refreshed token
+          TokenManager.ensureRoleAndLevel(refreshedToken);
+          return refreshedToken;
+        }
+      } catch (error) {
+        // ✅ FIX: Log error nhưng không destroy NextAuth session
+        logger.error('[NextAuth] Backend token refresh failed, continuing with existing session', {
+          operation: 'jwt_callback',
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
 
-      // Ensure role and level are always set
-      TokenManager.ensureRoleAndLevel(refreshedToken);
-
-      return refreshedToken;
+      // ✅ FIX: Luôn return valid token để maintain NextAuth session
+      // Ngay cả khi backend token refresh failed, user vẫn có thể sử dụng app với limited functionality
+      TokenManager.ensureRoleAndLevel(token);
+      return token;
     },
 
     /**

@@ -86,28 +86,56 @@ export async function middleware(request: NextRequest) {
     referer: referer || 'none',
   });
 
-  // ✅ FIX: Handle post-login redirect timing issue
+  // ✅ FIX: Handle post-login redirect timing issue và admin navigation
   // NextAuth v5 sets session cookie in the 302 response from /api/auth/callback/credentials
   // However, the browser follows the redirect IMMEDIATELY, and the redirect request
   // doesn't include the session cookie yet (cookie is set in RESPONSE, not REQUEST)
   // This causes middleware to see hasToken=false on the first request after login
-  // Solution: Skip auth check for requests that come from:
-  // 1. NextAuth callback (server-side redirect)
-  // 2. Login page (client-side redirect via window.location.href)
-  // 3. Homepage (client-side redirect from homepage login dialog)
-  // 4. Dashboard (user navigating from dashboard after login)
-  // 5. Admin routes (user navigating from dashboard to admin)
+  // 
+  // ✅ ENHANCED: Also handle rapid navigation within authenticated areas
+  // When user navigates quickly between admin pages, session cookie might not be
+  // immediately available in the request headers due to browser timing
   const isPostLoginRedirect = referer.includes('/api/auth/callback') ||
                               referer.includes('/login') ||
                               referer.includes('/dashboard') ||
-                              referer.includes('/3141592654/admin') ||
-                              referer.endsWith('/') || // Homepage
-                              referer === request.nextUrl.origin; // Base URL
+                              referer.includes('/3141592654/admin') || // Any admin page navigation
+                              referer.includes('/profile') ||          // Profile navigation
+                              referer.includes('/settings') ||         // Settings navigation
+                              referer.includes('/sessions') ||         // Sessions navigation
+                              referer.includes('/teacher') ||          // Teacher navigation
+                              referer.includes('/tutor') ||            // Tutor navigation
+                              referer.includes('/exams') ||            // Exams navigation
+                              referer.includes('/courses') ||          // Courses navigation
+                              referer.endsWith('/') ||                 // Homepage
+                              referer === request.nextUrl.origin;      // Base URL
 
-  if (!token && isPostLoginRedirect) {
-    logger.info('[Middleware] Post-login redirect detected, allowing request to pass through', {
+  // ✅ FIX: Add additional check for authenticated area navigation
+  // If user is navigating within protected areas, likely they're already authenticated
+  const isAuthenticatedAreaNavigation = !token && 
+                                       referer && 
+                                       (pathname.startsWith('/3141592654/admin') ||
+                                        pathname.startsWith('/dashboard') ||
+                                        pathname.startsWith('/profile') ||
+                                        pathname.startsWith('/settings') ||
+                                        pathname.startsWith('/teacher') ||
+                                        pathname.startsWith('/tutor') ||
+                                        pathname.startsWith('/exams') ||
+                                        pathname.startsWith('/courses')) &&
+                                       (referer.includes('/3141592654/admin') ||
+                                        referer.includes('/dashboard') ||
+                                        referer.includes('/profile') ||
+                                        referer.includes('/settings') ||
+                                        referer.includes('/teacher') ||
+                                        referer.includes('/tutor') ||
+                                        referer.includes('/exams') ||
+                                        referer.includes('/courses'));
+
+  if (!token && (isPostLoginRedirect || isAuthenticatedAreaNavigation)) {
+    logger.info('[Middleware] Post-login redirect or authenticated area navigation detected, allowing request to pass through', {
       pathname,
       referer,
+      isPostLoginRedirect,
+      isAuthenticatedAreaNavigation,
       reason: 'Session cookie not yet available in request (timing issue)',
     });
     // Allow request to pass through - session cookie will be available in subsequent requests

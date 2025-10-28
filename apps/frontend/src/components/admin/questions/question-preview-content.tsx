@@ -122,9 +122,9 @@ export function QuestionPreviewContent({
         {/* Meta Badges */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {/* Category Badge */}
-          {question.category && (
+          {'category' in question && (question as any).category && (
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-              {question.category}
+              {String((question as any).category)}
             </Badge>
           )}
 
@@ -212,10 +212,10 @@ export function QuestionPreviewContent({
             <div className="space-y-3">
               {question.answers!.map((answer, index) => (
                 <div
-                  key={answer.id || index}
+                  key={('id' in answer ? answer.id : undefined) || index}
                   className={cn(
                     'p-4 rounded-lg border-2 transition-colors',
-                    answer.isCorrect
+                    ('isCorrect' in answer ? answer.isCorrect : false)
                       ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30'
                       : 'border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/30'
                   )}
@@ -224,7 +224,7 @@ export function QuestionPreviewContent({
                     {/* Answer Letter */}
                     <span className={cn(
                       'font-bold flex-shrink-0',
-                      answer.isCorrect
+                      ('isCorrect' in answer ? answer.isCorrect : false)
                         ? 'text-green-700 dark:text-green-400'
                         : 'text-gray-700 dark:text-gray-400'
                     )}>
@@ -234,12 +234,12 @@ export function QuestionPreviewContent({
                     {/* Answer Content */}
                     <div className="flex-1 min-w-0">
                       <div className="whitespace-pre-wrap break-words">
-                        {answer.content}
+                        {'content' in answer ? answer.content : `${answer.left} - ${answer.right}`}
                       </div>
                     </div>
 
                     {/* Correct Indicator */}
-                    {answer.isCorrect && (
+                    {('isCorrect' in answer ? answer.isCorrect : false) && (
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
                         <span className="text-sm font-medium text-green-700 dark:text-green-400">
@@ -250,10 +250,10 @@ export function QuestionPreviewContent({
                   </div>
 
                   {/* Answer Explanation (if available) */}
-                  {answer.explanation && showSolution && (
+                  {('explanation' in answer ? answer.explanation : null) && showSolution && (
                     <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        <span className="font-medium">Giải thích:</span> {answer.explanation}
+                        <span className="font-medium">Giải thích:</span> {'explanation' in answer ? answer.explanation : ''}
                       </p>
                     </div>
                   )}

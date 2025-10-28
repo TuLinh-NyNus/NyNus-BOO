@@ -158,10 +158,10 @@ export default function CreateQuestionPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 dark:from-slate-950 dark:to-slate-900">
-        <div className="container mx-auto p-6 space-y-6">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 dark:from-slate-950 dark:to-slate-900 flex flex-col">
+        <div className="container mx-auto p-6 flex-1 flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6 flex-shrink-0">
             <div className="flex items-center gap-4">
               <Button 
                 variant="ghost" 
@@ -181,12 +181,14 @@ export default function CreateQuestionPage() {
           </div>
 
           {/* IntegratedQuestionForm */}
-          <IntegratedQuestionForm
-            mode="create"
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            onSaveDraft={handleSaveDraft}
-          />
+          <div className="flex-1 overflow-hidden">
+            <IntegratedQuestionForm
+              mode="create"
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              onSaveDraft={handleSaveDraft}
+            />
+          </div>
         </div>
       </div>
     </ErrorBoundary>

@@ -36,6 +36,7 @@ import {
   TabsList,
   TabsTrigger,
   Separator,
+  Progress,
 } from "@/components/ui";
 
 // Icons
@@ -49,6 +50,8 @@ import {
   FileText,
   Eye,
   Loader2,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 
 // Types
@@ -194,7 +197,7 @@ export function ExamForm({
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isDirty },
+    formState: { errors, touchedFields },
     reset,
   } = useForm<ExamFormData>({
     defaultValues: exam ? {
@@ -240,6 +243,25 @@ export function ExamForm({
   const examType = watch('examType');
   const questionIds = watch('questionIds');
   const tags = watch('tags');
+  const title = watch('title');
+  const subject = watch('subject');
+  const durationMinutes = watch('durationMinutes');
+  const totalPoints = watch('totalPoints');
+  const passPercentage = watch('passPercentage');
+  
+  // Calculate progress for required fields - only count user-touched fields
+  const requiredFields = [
+    { name: 'title', value: title, label: 'Tiêu đề', isUserFilled: title && title.trim().length > 0 },
+    { name: 'examType', value: examType, label: 'Loại đề thi', isUserFilled: touchedFields.examType && !!examType },
+    { name: 'subject', value: subject, label: 'Môn học', isUserFilled: subject && subject.trim().length > 0 },
+    { name: 'durationMinutes', value: durationMinutes, label: 'Thời gian', isUserFilled: touchedFields.durationMinutes && durationMinutes > 0 },
+    { name: 'totalPoints', value: totalPoints, label: 'Tổng điểm', isUserFilled: touchedFields.totalPoints && totalPoints > 0 },
+    { name: 'passPercentage', value: passPercentage, label: 'Điểm đạt', isUserFilled: touchedFields.passPercentage && passPercentage >= 0 },
+  ];
+  
+  const completedRequiredFields = requiredFields.filter(field => field.isUserFilled).length;
+  
+  const progressPercentage = Math.round((completedRequiredFields / requiredFields.length) * 100);
   
   // Local state
   const [newTag, setNewTag] = useState('');
@@ -338,12 +360,12 @@ export function ExamForm({
     <div className={cn("max-w-4xl mx-auto", className)}>
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-1">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">
               {mode === 'create' ? 'Tạo đề thi mới' : 'Chỉnh sửa đề thi'}
             </h2>
-            <p className="text-gray-600 mt-1">
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-1">
               {mode === 'create' 
                 ? 'Tạo đề thi mới từ ngân hàng câu hỏi hoặc nhập đề thi chính thức'
                 : 'Cập nhật thông tin và cài đặt đề thi'
@@ -351,12 +373,12 @@ export function ExamForm({
             </p>
           </div>
           
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <Button
               type="button"
               variant="outline"
               onClick={handlePreview}
-              disabled={!isDirty}
+              className="w-full sm:w-auto"
             >
               <Eye className="w-4 h-4 mr-2" />
               Xem trước
@@ -366,6 +388,7 @@ export function ExamForm({
               type="button"
               variant="outline"
               onClick={onCancel}
+              className="w-full sm:w-auto"
             >
               <X className="w-4 h-4 mr-2" />
               Hủy
@@ -374,6 +397,7 @@ export function ExamForm({
             <Button
               type="submit"
               disabled={submitting}
+              className="w-full sm:w-auto"
             >
               {submitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -385,24 +409,66 @@ export function ExamForm({
           </div>
         </div>
         
+        {/* Progress Indicator */}
+        {progressPercentage < 100 && (
+          <Card className="bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  {progressPercentage === 100 ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Hoàn thành: {completedRequiredFields}/{requiredFields.length} trường bắt buộc
+                    </span>
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                      {progressPercentage}%
+                    </span>
+                  </div>
+                  <Progress value={progressPercentage} className="h-2 bg-slate-200 dark:bg-slate-700 [&>div]:bg-slate-600 dark:[&>div]:bg-slate-400" />
+                  {progressPercentage < 100 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {requiredFields
+                        .filter(field => !field.isUserFilled)
+                        .map(field => (
+                          <Badge key={field.name} variant="outline" className="text-xs bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300">
+                            {field.label}
+                          </Badge>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
         {/* Form Tabs */}
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'basic' | 'settings' | 'questions')}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="basic">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Thông tin cơ bản
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <TabsTrigger value="basic" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">Thông tin cơ bản</span>
+              <span className="sm:hidden">Thông tin</span>
             </TabsTrigger>
-            <TabsTrigger value="questions">
-              <FileText className="w-4 h-4 mr-2" />
-              Câu hỏi ({questionIds.length})
+            <TabsTrigger value="metadata" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+              <School className="w-4 h-4" />
+              <span>Phân loại</span>
             </TabsTrigger>
-            <TabsTrigger value="settings">
-              <Settings className="w-4 h-4 mr-2" />
-              Cài đặt
+            <TabsTrigger value="settings" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+              <Settings className="w-4 h-4" />
+              <span>Cài đặt</span>
             </TabsTrigger>
-            <TabsTrigger value="metadata">
-              <School className="w-4 h-4 mr-2" />
-              Phân loại
+            <TabsTrigger value="questions" className="flex items-center justify-center gap-1 sm:gap-2 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-700 data-[state=active]:text-slate-900 dark:data-[state=active]:text-slate-100 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200">
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Câu hỏi ({questionIds.length})</span>
+              <span className="sm:hidden">CH ({questionIds.length})</span>
             </TabsTrigger>
           </TabsList>
           
@@ -773,12 +839,11 @@ export function ExamForm({
                       name="grade"
                       control={control}
                       render={({ field }) => (
-                        <Select value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)}>
+                        <Select value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(value === '' ? undefined : parseInt(value))}>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn khối lớp" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Không xác định</SelectItem>
                             {GRADES.map(grade => (
                               <SelectItem key={grade} value={grade.toString()}>
                                 Lớp {grade}

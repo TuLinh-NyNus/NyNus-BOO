@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       <WebSocketProvider>
         <AdminNotificationsProvider>
           <AdminLayoutProvider>
-            <AdminStatsProvider cacheTimeout={30000} autoRefresh={false}>
+            <AdminStatsProvider cacheTimeout={120000} autoRefresh={false}>
               <DarkThemeProvider className="admin-layout-override fixed inset-0 flex h-screen z-50">
               {/* Admin Sidebar */}
               <AdminSidebar />
@@ -56,9 +56,9 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                 <AdminHeader />
 
                 {/* Main Content - Improved spacing và responsive design */}
-                <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 text-foreground overflow-y-auto admin-main-content">
+                <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 text-foreground overflow-y-auto overflow-x-hidden admin-main-content">
                   {/* Page Content với proper spacing */}
-                  <div className="min-h-full max-w-full overflow-x-hidden admin-container">
+                  <div className="min-h-full w-full">
                     <div className="w-full max-w-7xl mx-auto space-y-6">
                       {children}
                     </div>

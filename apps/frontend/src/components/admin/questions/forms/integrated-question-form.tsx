@@ -33,10 +33,7 @@ import {
   CardHeader,
   CardTitle,
   Badge,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
+  Separator,
   // Alert,
   // AlertDescription,
   // Dialog,
@@ -59,18 +56,15 @@ import {
   FileText,
   // Zap
 } from "lucide-react";
+import Skeleton from "react-loading-skeleton";
+import 'react-loading-skeleton/dist/skeleton.css';
 
 // Import form components
-import { AnswerForm } from "./answer-form";
+import { AnswerForm, AnswerItemData } from "./answer-form";
 import { LaTeXEditor } from "./latex-editor";
 import { LatexImporter } from "./latex-importer";
 
-// Import management components
-import {
-  QuestionValidationPanel,
-  // QuestionPreview,
-  // TeacherQuestionPreview
-} from "../management";
+// Import management components removed - not used in current implementation
 
 // Import preview modal
 import { QuestionPreviewModal } from "../question-preview-modal";
@@ -160,8 +154,9 @@ export function IntegratedQuestionForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState("basic");
-  
+  const [isParsed, setIsParsed] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+
   // ===== FORM SETUP =====
   
   const form = useForm<QuestionFormData>({
@@ -237,10 +232,10 @@ export function IntegratedQuestionForm({
           : parsedData.answers;
         
         if (Array.isArray(answersData)) {
-          answersArray = answersData.map((ans: any, idx: number) => ({
+          answersArray = answersData.map((ans: Partial<AnswerItemData>, idx: number) => ({
             id: ans.id?.toString() || `answer-${idx}`,
             content: ans.content || '',
-            isCorrect: ans.isCorrect || ans.is_correct || false,
+            isCorrect: ans.isCorrect || (ans as any).is_correct || false,
             explanation: ans.explanation || ''
           }));
         }
@@ -273,7 +268,7 @@ export function IntegratedQuestionForm({
       form.setValue('source', parsedData.source || '');
 
       // Chuyển sang tab "Cơ bản" sau khi import
-      setActiveTab("basic");
+      setIsParsed(true);
 
       console.log('LaTeX import successful:', parsedData);
     } catch (error) {
@@ -618,129 +613,132 @@ export function IntegratedQuestionForm({
   ]);
   
   return (
-    <div className={`integrated-question-form ${className}`}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Form */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                {mode === 'create' ? 'Tạo câu hỏi mới' : 'Chỉnh sửa câu hỏi'}
-              </CardTitle>
-            </CardHeader>
-            
-            <CardContent>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                  <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-6">
-                      <TabsTrigger value="import">Import LaTeX</TabsTrigger>
-                      <TabsTrigger value="basic">Cơ bản</TabsTrigger>
-                      <TabsTrigger value="content">Nội dung</TabsTrigger>
-                      <TabsTrigger value="answers">Đáp án</TabsTrigger>
-                      <TabsTrigger value="explanations">Lời giải</TabsTrigger>
-                      <TabsTrigger value="tags">Tags</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="import" className="mt-6">
-                      <LatexImporter
-                        onImportSuccess={handleLatexImport}
-                        disabled={isLoading || isSubmitting}
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="basic" className="mt-6">
-                      {renderBasicInfo()}
-                    </TabsContent>
-                    
-                    <TabsContent value="content" className="mt-6">
-                      {renderQuestionContent()}
-                    </TabsContent>
-                    
-                    <TabsContent value="answers" className="mt-6">
-                      {renderAnswers()}
-                    </TabsContent>
-                    
-                    <TabsContent value="explanations" className="mt-6">
-                      {renderExplanations()}
-                    </TabsContent>
-
-                    <TabsContent value="tags" className="mt-6">
-                      {renderTagsManagement()}
-                    </TabsContent>
-                  </Tabs>
-                  
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-between pt-6 border-t">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handlePreview}
-                        disabled={isLoading || isSubmitting}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Xem trước
-                      </Button>
-                      
-                      {onSaveDraft && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={handleSaveDraft}
-                          disabled={isLoading || isSubmitting || isSavingDraft}
-                        >
-                          {isSavingDraft ? (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          ) : (
-                            <FileText className="h-4 w-4 mr-2" />
-                          )}
-                          Lưu nháp
-                        </Button>
-                      )}
-                      
-                      {onCancel && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={onCancel}
-                          disabled={isLoading || isSubmitting}
-                        >
-                          Hủy
-                        </Button>
-                      )}
-                    </div>
-                    
-                    <Button
-                      type="submit"
-                      disabled={isLoading || isSubmitting || !form.formState.isValid}
-                    >
-                      {isSubmitting ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Save className="h-4 w-4 mr-2" />
-                      )}
-                      {mode === 'create' ? 'Tạo câu hỏi' : 'Cập nhật'}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </CardContent>
-          </Card>
-        </div>
-        
-        {/* Validation Panel */}
-        <div className="lg:col-span-1">
-          <QuestionValidationPanel
-            question={mockQuestion}
-            showQualityScore={true}
-            showSuggestions={true}
-            showDetails={true}
+    <div className={`integrated-question-form ${className} h-full`}>
+      <div className="h-full grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
+        {/* Left Column: LaTeX Importer */}
+        <div className="lg:col-span-1 h-full overflow-hidden">
+          <LatexImporter
+            onImportSuccess={handleLatexImport}
+            disabled={isLoading || isSubmitting}
+            onReset={() => setIsParsed(false)}
+            onProcessing={setIsParsing}
           />
         </div>
+
+        {/* Right Column: Parsed Results / Form */}
+        <div className="lg:col-span-1 h-full overflow-hidden">
+          {isParsing ? (
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex-shrink-0">
+                <Skeleton height={30} width={200} />
+              </CardHeader>
+              <CardContent className="flex-1 pt-6 space-y-4 overflow-hidden">
+                <Skeleton count={3} height={40} />
+                <Skeleton height={150} />
+                <Skeleton count={2} height={40} />
+              </CardContent>
+            </Card>
+          ) : !isParsed ? (
+            <Card className="h-full flex items-center justify-center">
+              <CardContent className="pt-6">
+                <div className="flex flex-col items-center justify-center text-center text-muted-foreground p-8">
+                  <FileText size={48} className="mb-4 opacity-50" />
+                  <h3 className="text-lg font-semibold text-foreground">Kết quả phân tích</h3>
+                  <p className="mt-2 text-sm max-w-xs">
+                    Nhập nội dung LaTeX vào khung bên trái và nhấn &quot;Trích xuất&quot; để xem kết quả và tinh chỉnh câu hỏi tại đây.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex-shrink-0">
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Kiểm tra & Tinh chỉnh
+                </CardTitle>
+              </CardHeader>
+
+              <CardContent className="flex-1 overflow-hidden">
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(handleSubmit)} className="h-full flex flex-col">
+                    <div className="flex-1 overflow-y-auto space-y-6 pr-2">
+                      {renderBasicInfo()}
+                      <Separator />
+                      {renderQuestionContent()}
+                      <Separator />
+                      {renderAnswers()}
+                      <Separator />
+                      {renderExplanations()}
+                      <Separator />
+                      {renderTagsManagement()}
+                    </div>
+
+                    {/* Action Buttons - Fixed at bottom */}
+                    <div className="flex-shrink-0 flex items-center justify-between pt-4 border-t bg-background/95 backdrop-blur">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreview}
+                          disabled={isLoading || isSubmitting}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Xem trước
+                        </Button>
+
+                        {onSaveDraft && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleSaveDraft}
+                            disabled={isLoading || isSubmitting || isSavingDraft}
+                          >
+                            {isSavingDraft ? (
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                              <FileText className="h-4 w-4 mr-2" />
+                            )}
+                            Lưu nháp
+                          </Button>
+                        )}
+
+                        {onCancel && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={onCancel}
+                            disabled={isLoading || isSubmitting}
+                          >
+                            Hủy
+                          </Button>
+                        )}
+                      </div>
+
+                      <Button
+                        type="submit"
+                        size="sm"
+                        disabled={isLoading || isSubmitting || !form.formState.isValid}
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Save className="h-4 w-4 mr-2" />
+                        )}
+                        {mode === 'create' ? 'Tạo câu hỏi' : 'Cập nhật'}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-      
+
       {/* Question Preview Modal - New Implementation */}
       <QuestionPreviewModal
         question={mockQuestion}

@@ -9,9 +9,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
-import { QuestionService } from '@/services/grpc/question.service';
 import { QuestionFilterService } from '@/services/grpc/question-filter.service';
-import { Question, QuestionFilters, QuestionListResponse, QuestionType, QuestionStatus, QuestionDifficulty } from '@/types/question';
+import { Question, QuestionFilters, QuestionListResponse, QuestionType, QuestionStatus, QuestionDifficulty, CorrectAnswer } from '@/types/question';
 import { useDebounce } from '../performance/useDebounce';
 import { createFilterListRequest, parseFilterListResponse } from '@/lib/adapters/question-filter.adapter';
 
@@ -173,26 +172,26 @@ export function useQuestionFilters(
       const parsed = parseFilterListResponse(response);
 
       // Map QuestionDetail to Question domain type
-      const mappedQuestions: Question[] = (parsed.questions || []).map((q: any) => ({
-        id: q.id,
-        content: q.content,
-        rawContent: q.raw_content || q.rawContent,
+      const mappedQuestions: Question[] = (parsed.questions || []).map((q: Record<string, unknown>) => ({
+        id: String(q.id || ''),
+        content: String(q.content || ''),
+        rawContent: String(q.raw_content || q.rawContent || ''),
         type: q.type as QuestionType,
-        tag: q.tags || q.tag || [],
-        questionCodeId: q.question_code_id || q.questionCodeId,
+        tag: Array.isArray(q.tags) ? q.tags : (Array.isArray(q.tag) ? q.tag : []),
+        questionCodeId: String(q.question_code_id || q.questionCodeId || ''),
         status: q.status as QuestionStatus,
         difficulty: q.difficulty as QuestionDifficulty,
-        source: q.source || '',
-        solution: q.solution || '',
-        subcount: q.subcount || '',
-        usageCount: q.usage_count || q.usageCount || 0,
-        creator: q.creator || '',
-        feedback: q.feedback || 0,
-        createdAt: q.created_at || q.createdAt || new Date().toISOString(),
-        updatedAt: q.updated_at || q.updatedAt || new Date().toISOString(),
-        isFavorite: q.is_favorite || q.isFavorite || false,
+        source: String(q.source || ''),
+        solution: String(q.solution || ''),
+        subcount: String(q.subcount || ''),
+        usageCount: Number(q.usage_count || q.usageCount || 0),
+        creator: String(q.creator || ''),
+        feedback: Number(q.feedback || 0),
+        createdAt: String(q.created_at || q.createdAt || new Date().toISOString()),
+        updatedAt: String(q.updated_at || q.updatedAt || new Date().toISOString()),
+        isFavorite: Boolean(q.is_favorite || q.isFavorite || false),
         answers: q.answers ? (typeof q.answers === 'string' ? JSON.parse(q.answers) : q.answers) : undefined,
-        correctAnswer: q.correct_answer || q.correctAnswer,
+        correctAnswer: (q.correct_answer || q.correctAnswer) as CorrectAnswer | undefined,
       }));
 
       // Update state

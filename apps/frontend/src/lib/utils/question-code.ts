@@ -11,6 +11,174 @@ import { QuestionCode } from '@/types/question';
 // Type alias for backward compatibility
 type ParsedQuestionCode = QuestionCode;
 
+/**
+ * Chuẩn hoá dữ liệu mã câu hỏi từ nhiều nguồn (gRPC, REST, Prisma...)
+ * để luôn trả về chuỗi code và thông tin chi tiết (nếu có).
+ */
+export function normalizeQuestionCode(
+  value: any
+): { code: string; details?: QuestionCode } {
+  if (!value) {
+    return { code: '' };
+  }
+
+  const getMember = (obj: any, key: string) => {
+    if (!obj) return undefined;
+    const candidate = obj[key];
+    if (typeof candidate === 'function') {
+      try {
+        return candidate.call(obj);
+      } catch {
+        return undefined;
+      }
+    }
+    return candidate;
+  };
+
+  const pickString = (obj: any, keys: string[]): string | undefined => {
+    for (const key of keys) {
+      const valueFromKey = getMember(obj, key);
+      if (typeof valueFromKey === 'string' && valueFromKey.trim().length > 0) {
+        return valueFromKey;
+      }
+    }
+    return undefined;
+  };
+
+  const relation =
+    getMember(value, 'question_code') ??
+    getMember(value, 'questionCode') ??
+    getMember(value, 'questionCodeInfo') ??
+    getMember(value, 'codeInfo') ??
+    getMember(value, 'getQuestionCode') ??
+    getMember(value, 'getQuestionCodeInfo') ??
+    undefined;
+
+  const rawCodeCandidate =
+    pickString(value, [
+      'question_code_id',
+      'questionCodeId',
+      'questionCodeID',
+      'code',
+      'Code',
+      'getQuestionCodeId',
+      'getCode',
+    ]) ??
+    pickString(relation, ['code', 'Code', 'getCode']);
+
+  let code = rawCodeCandidate ? String(rawCodeCandidate).trim() : '';
+  if (code.toUpperCase() === 'N/A') {
+    code = '';
+  }
+
+  if (!relation) {
+    return { code };
+  }
+
+  const format =
+    pickString(relation, ['format', 'Format']) ??
+    pickString(relation, ['getFormat']);
+  const grade =
+    pickString(relation, ['grade', 'Grade']) ??
+    pickString(relation, ['getGrade']);
+  const subject =
+    pickString(relation, ['subject', 'Subject']) ??
+    pickString(relation, ['getSubject']);
+  const chapter =
+    pickString(relation, ['chapter', 'Chapter']) ??
+    pickString(relation, ['getChapter']);
+  const lesson =
+    pickString(relation, ['lesson', 'Lesson']) ??
+    pickString(relation, ['getLesson']);
+  const form =
+    pickString(relation, ['form', 'Form']) ??
+    pickString(relation, ['getForm']);
+  const level =
+    pickString(relation, ['level', 'Level']) ??
+    pickString(relation, ['getLevel']);
+  const isValid =
+    getMember(relation, 'isValid') ??
+    getMember(relation, 'IsValid') ??
+    getMember(relation, 'getIsValid') ??
+    undefined;
+  const error =
+    getMember(relation, 'error') ??
+    getMember(relation, 'Error') ??
+    getMember(relation, 'getError') ??
+    undefined;
+
+  if (!format || !grade || !subject || !chapter || !lesson || !level) {
+    return { code };
+  }
+
+  let detailedCode = (relation.code ?? relation.Code ?? code ?? '').trim();
+  if (detailedCode.toUpperCase() === 'N/A') {
+    detailedCode = '';
+  }
+
+  const details: QuestionCode = {
+    code: detailedCode,
+    format: format as QuestionCode['format'],
+    grade,
+    subject,
+    chapter,
+    lesson,
+    form: form ?? undefined,
+    level,
+    isValid,
+    error,
+  };
+
+  return {
+    code: details.code || code,
+    details,
+  };
+}
+
+/**
+ * Lấy mã câu hỏi hiển thị (đã loại bỏ giá trị rỗng/N/A) từ bất kỳ đối tượng nào.
+ */
+export function resolveQuestionCode(value: any): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const getMember = (obj: any, key: string) => {
+    if (!obj) return undefined;
+    const candidate = obj[key];
+    if (typeof candidate === 'function') {
+      try {
+        return candidate.call(obj);
+      } catch {
+        return undefined;
+      }
+    }
+    return candidate;
+  };
+
+  const normalized = normalizeQuestionCode(value);
+  const candidates = [
+    normalized.code,
+    normalized.details?.code,
+    value.questionCode?.code,
+    value.questionCodeId,
+    value.question_code_id,
+    value.questionCodeID,
+    getMember(value, 'getQuestionCodeId'),
+    getMember(value, 'getCode'),
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== 'string') continue;
+    const trimmed = candidate.trim();
+    if (trimmed && trimmed.toUpperCase() !== 'N/A') {
+      return trimmed;
+    }
+  }
+
+  return undefined;
+}
+
 // ===== MAPCODE CONFIGURATION =====
 
 /**

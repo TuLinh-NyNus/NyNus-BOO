@@ -14,8 +14,7 @@ import {
   ListQuestionsByFilterRequest,
   QuestionType,
   QuestionStatus,
-  QuestionDifficulty,
-  PaginationRequest
+  QuestionDifficulty
 } from '@/types/question.types';
 import { QuestionService } from '@/services/grpc/question.service';
 import { QuestionFilterService } from '@/services/grpc/question-filter.service';
@@ -151,11 +150,8 @@ export function useQuestionManagement(
       
       // MIGRATION: Use QuestionFilterService with proper filter structure
       const filterRequest: ListQuestionsByFilterRequest = {
-        pagination: {
-          page: state.currentPage,
-          limit: state.pageSize,
-          sort: [{ field: 1, order: 2 }] // SORT_FIELD_CREATED_AT, SORT_ORDER_DESC
-        },
+        page: state.currentPage,
+        limit: state.pageSize,
         ...(request || {})
       };
       
@@ -163,7 +159,7 @@ export function useQuestionManagement(
       
       // Response from QuestionFilterService has different structure
       updateState({
-        questions: (response.questions || []).map((q: any) => ({
+        questions: (response.questions || []).map((q: Record<string, unknown>) => ({
           ...q,
           tags: q.tags || q.tag || [],
           answers: q.answers || '',

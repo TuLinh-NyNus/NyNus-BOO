@@ -18,7 +18,6 @@ import {
   AuditLog,
   ResourceAccess,
   SecurityAlert,
-  // Temporarily add placeholders until proto regeneration
   GetMetricsHistoryRequest,
   GetMetricsHistoryResponse,
   MetricsDataPoint,
@@ -27,9 +26,11 @@ import { PaginationRequest } from '@/generated/common/common_pb';
 import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 import { User } from '@/generated/v1/user_pb';
 import { RpcError } from 'grpc-web';
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { getAuthMetadata } from './client';
+import { createGrpcClient } from './client-factory';
 
-// Temporary types until proto regeneration
+// MetricsDataPoint interface for type safety
+// Matches the protobuf MetricsDataPoint structure
 export interface MetricsDataPointType {
   timestamp: Date;
   total_users: number;
@@ -39,15 +40,8 @@ export interface MetricsDataPointType {
   suspicious_activities: number;
 }
 
-// gRPC client configuration
-// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
-// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
-const adminServiceClient = new AdminServiceClient(GRPC_WEB_HOST, null, {
-  format: 'text', // Use text format for consistency with proto generation
-  withCredentials: false,
-  unaryInterceptors: [],
-  streamInterceptors: []
-});
+// ✅ FIX: Use client factory for lazy initialization
+const getAdminServiceClient = createGrpcClient(AdminServiceClient, 'AdminService');
 
 // Handle gRPC errors
 function handleGrpcError(error: RpcError): string {
@@ -122,7 +116,7 @@ export class AdminService {
         request.setFilter(filter);
       }
 
-      const response = await adminServiceClient.listUsers(request, getAuthMetadata());
+      const response = await getAdminServiceClient().listUsers(request, getAuthMetadata());
       const responseObj = response.toObject();
       
       return {
@@ -151,7 +145,7 @@ export class AdminService {
       request.setNewRole(req.new_role);
       if (req.level !== undefined) request.setLevel(req.level);
 
-      const response = await adminServiceClient.updateUserRole(request, getAuthMetadata());
+      const response = await getAdminServiceClient().updateUserRole(request, getAuthMetadata());
       const responseObj = response.toObject();
       
       return {
@@ -177,7 +171,7 @@ export class AdminService {
       request.setUserId(req.user_id);
       request.setNewLevel(req.new_level);
 
-      const response = await adminServiceClient.updateUserLevel(request, getAuthMetadata());
+      const response = await getAdminServiceClient().updateUserLevel(request, getAuthMetadata());
       const responseObj = response.toObject();
       
       return {
@@ -204,7 +198,7 @@ export class AdminService {
       request.setNewStatus(req.new_status);
       if (req.reason) request.setReason(req.reason);
 
-      const response = await adminServiceClient.updateUserStatus(request, getAuthMetadata());
+      const response = await getAdminServiceClient().updateUserStatus(request, getAuthMetadata());
       const responseObj = response.toObject();
       
       return {
@@ -243,7 +237,7 @@ export class AdminService {
       if (req.start_date) request.setStartDate(req.start_date);
       if (req.end_date) request.setEndDate(req.end_date);
 
-      const response = await adminServiceClient.getAuditLogs(request, getAuthMetadata());
+      const response = await getAdminServiceClient().getAuditLogs(request, getAuthMetadata());
       const responseObj = response.toObject();
       
       return {
@@ -285,7 +279,7 @@ export class AdminService {
       if (req.start_date) request.setStartDate(req.start_date);
       if (req.end_date) request.setEndDate(req.end_date);
 
-      const response = await adminServiceClient.getResourceAccess(request, getAuthMetadata());
+      const response = await getAdminServiceClient().getResourceAccess(request, getAuthMetadata());
       const responseObj = response.toObject();
       
       return {
@@ -335,7 +329,7 @@ export class AdminService {
       if (req.alert_type) request.setAlertType(req.alert_type);
       if (req.unresolved_only !== undefined) request.setUnresolvedOnly(req.unresolved_only);
 
-      const response = await adminServiceClient.getSecurityAlerts(request, getAuthMetadata());
+      const response = await getAdminServiceClient().getSecurityAlerts(request, getAuthMetadata());
       const responseObj = response.toObject();
       
       return {
@@ -366,7 +360,7 @@ export class AdminService {
     try {
       const request = new GetSystemStatsRequest();
 
-      const response = await adminServiceClient.getSystemStats(request, getAuthMetadata());
+      const response = await getAdminServiceClient().getSystemStats(request, getAuthMetadata());
       const responseObj = response.toObject();
       const stats = response.getStats();
       
@@ -398,6 +392,8 @@ export class AdminService {
   /**
    * Get metrics history for sparklines/charts
    * Lấy lịch sử metrics để vẽ sparklines và charts
+   * 
+   * ✅ FIX: Converted from HTTP GET to gRPC client to utilize rate limiting and consistency
    */
   static async getMetricsHistory(options: {
     startTime?: Date;
@@ -406,47 +402,55 @@ export class AdminService {
     limit?: number;
   } = {}): Promise<any> {
     try {
-      // For now, use fetch API until proto is regenerated
-      // TODO: Replace with proper gRPC-web call after proto regeneration
-      const params = new URLSearchParams();
-      if (options.limit) params.append('limit', options.limit.toString());
-      if (options.intervalSeconds) params.append('interval_seconds', options.intervalSeconds.toString());
+      const request = new GetMetricsHistoryRequest();
       
-      const response = await fetch(`${GRPC_WEB_HOST}/api/v1/admin/metrics/history?${params}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...getAuthMetadata(),
-        },
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Set limit (default: 7 for sparklines)
+      if (options.limit) {
+        request.setLimit(options.limit);
+      }
+      
+      // Set interval in seconds
+      if (options.intervalSeconds) {
+        request.setIntervalSeconds(options.intervalSeconds);
+      }
+      
+      // Set start time
+      if (options.startTime) {
+        const startTimestamp = new Timestamp();
+        startTimestamp.fromDate(options.startTime);
+        request.setStartTime(startTimestamp);
+      }
+      
+      // Set end time
+      if (options.endTime) {
+        const endTimestamp = new Timestamp();
+        endTimestamp.fromDate(options.endTime);
+        request.setEndTime(endTimestamp);
       }
 
-      const data = await response.json();
+      const response = await getAdminServiceClient().getMetricsHistory(request, getAuthMetadata());
+      const responseObj = response.toObject();
       
       return {
-        success: true,
-        message: 'Metrics history retrieved successfully',
-        errors: [],
-        dataPoints: data.data_points?.map((point: any) => ({
-          timestamp: new Date(point.timestamp),
-          total_users: point.total_users || 0,
-          active_users: point.active_users || 0,
-          total_sessions: point.total_sessions || 0,
-          active_sessions: point.active_sessions || 0,
-          suspicious_activities: point.suspicious_activities || 0,
-        })) || [],
-        totalPoints: data.total_points || 0,
+        success: responseObj.response?.success || false,
+        message: responseObj.response?.message || '',
+        errors: responseObj.response?.errorsList || [],
+        dataPoints: response.getDataPointsList().map(point => ({
+          timestamp: point.getTimestamp()?.toDate() || new Date(),
+          total_users: point.getTotalUsers() || 0,
+          active_users: point.getActiveUsers() || 0,
+          total_sessions: point.getTotalSessions() || 0,
+          active_sessions: point.getActiveSessions() || 0,
+          suspicious_activities: point.getSuspiciousActivities() || 0,
+        })),
+        totalPoints: responseObj.totalPoints || 0,
       };
     } catch (error) {
-      console.error('Failed to fetch metrics history:', error);
+      const errorMessage = handleGrpcError(error as RpcError);
       return {
         success: false,
-        message: 'Failed to fetch metrics history',
-        errors: [error instanceof Error ? error.message : 'Unknown error'],
+        message: errorMessage,
+        errors: [errorMessage],
         dataPoints: [],
         totalPoints: 0,
       };
@@ -508,7 +512,7 @@ export class AdminService {
         request.setSearchQuery(searchQuery);
       }
 
-      const response = await adminServiceClient.getAllUserSessions(request, getAuthMetadata());
+      const response = await getAdminServiceClient().getAllUserSessions(request, getAuthMetadata());
       const responseObj = response.toObject();
 
       return {
@@ -635,7 +639,7 @@ export class AdminService {
       }
 
       const response = await new Promise((resolve, reject) => {
-        adminServiceClient.getAllNotifications(request, getAuthMetadata(), (err, res) => {
+        getAdminServiceClient().getAllNotifications(request, getAuthMetadata(), (err, res) => {
           if (err) reject(err);
           else resolve(res);
         });
@@ -715,7 +719,7 @@ export class AdminService {
       const request = new GetNotificationStatsRequest();
 
       const response = await new Promise((resolve, reject) => {
-        adminServiceClient.getNotificationStats(request, getAuthMetadata(), (err, res) => {
+        getAdminServiceClient().getNotificationStats(request, getAuthMetadata(), (err, res) => {
           if (err) reject(err);
           else resolve(res);
         });

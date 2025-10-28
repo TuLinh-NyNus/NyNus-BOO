@@ -5,11 +5,11 @@
  */
 
 // EventEmitter for TypeScript
-type EventCallback = (data: any) => void;
+type EventCallback = (data: unknown) => void;
 
 interface EventEmitter {
   on(event: string, callback: EventCallback): () => void;
-  emit(event: string, data: any): void;
+  emit(event: string, data: unknown): void;
   removeAllListeners(event?: string): void;
 }
 
@@ -35,7 +35,7 @@ class SimpleEventEmitter implements EventEmitter {
     };
   }
 
-  emit(event: string, data: any): void {
+  emit(event: string, data: unknown): void {
     const callbacks = this.events.get(event);
     if (callbacks) {
       callbacks.forEach(callback => callback(data));
@@ -53,7 +53,7 @@ class SimpleEventEmitter implements EventEmitter {
 
 export interface WebSocketMessage {
   type: string;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
 }
 
 export interface WebSocketNotification {
@@ -62,7 +62,7 @@ export interface WebSocketNotification {
   type: string;
   title: string;
   message: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   timestamp: string;
   is_read?: boolean;
   expires_at?: string;
@@ -72,7 +72,7 @@ export interface WebSocketResponse {
   type: string;
   success: boolean;
   message?: string;
-  data?: any;
+  data?: unknown;
   timestamp: string;
 }
 

@@ -3,6 +3,7 @@ module exam-bank-system/apps/backend
 go 1.23.0
 
 require (
+	github.com/cloudinary/cloudinary-go/v2 v2.7.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/oklog/ulid/v2 v2.1.0

@@ -88,12 +88,13 @@ func (r *QuestionRepository) Create(ctx context.Context, question *entity.Questi
 func (r *QuestionRepository) GetByID(ctx context.Context, id string) (*entity.Question, error) {
 	query := `
 		SELECT 
-			id, raw_content, content, subcount, type, source,
-			answers, correct_answer, solution, tag, usage_count,
-			creator, status, feedback, difficulty, question_code_id,
-			created_at, updated_at
-		FROM question
-		WHERE id = $1
+			q.id, q.raw_content, q.content, q.subcount, q.type, q.source,
+			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
+			q.creator, q.status, q.feedback, q.difficulty, qc.code as question_code_id,
+			q.created_at, q.updated_at
+		FROM question q
+		LEFT JOIN question_code qc ON q.question_code_id = qc.code
+		WHERE q.id = $1
 	`
 
 	var q entity.Question
@@ -315,12 +316,13 @@ func (r *QuestionRepository) GetByIDs(ctx context.Context, ids []string) ([]*ent
 
 	query := `
 		SELECT 
-			id, raw_content, content, subcount, type, source,
-			answers, correct_answer, solution, tag, usage_count,
-			creator, status, feedback, difficulty, question_code_id,
-			created_at, updated_at
-		FROM question
-		WHERE id = ANY($1)
+			q.id, q.raw_content, q.content, q.subcount, q.type, q.source,
+			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
+			q.creator, q.status, q.feedback, q.difficulty, qc.code as question_code_id,
+			q.created_at, q.updated_at
+		FROM question q
+		LEFT JOIN question_code qc ON q.question_code_id = qc.code
+		WHERE q.id = ANY($1)
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, pq.Array(ids))
@@ -336,12 +338,13 @@ func (r *QuestionRepository) GetByIDs(ctx context.Context, ids []string) ([]*ent
 func (r *QuestionRepository) GetAll(ctx context.Context, offset, limit int) ([]*entity.Question, error) {
 	query := `
 		SELECT 
-			id, raw_content, content, subcount, type, source,
-			answers, correct_answer, solution, tag, usage_count,
-			creator, status, feedback, difficulty, question_code_id,
-			created_at, updated_at
-		FROM question
-		ORDER BY created_at DESC
+			q.id, q.raw_content, q.content, q.subcount, q.type, q.source,
+			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
+			q.creator, q.status, q.feedback, q.difficulty, qc.code as question_code_id,
+			q.created_at, q.updated_at
+		FROM question q
+		LEFT JOIN question_code qc ON q.question_code_id = qc.code
+		ORDER BY q.created_at DESC
 		LIMIT $1 OFFSET $2
 	`
 
@@ -386,7 +389,7 @@ func (r *QuestionRepository) FindWithFilters(ctx context.Context, criteria *inte
 		SELECT 
 			q.id, q.raw_content, q.content, q.subcount, q.type, q.source,
 			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
-			q.creator, q.status, q.feedback, q.difficulty, q.question_code_id,
+			q.creator, q.status, q.feedback, q.difficulty, qc.code as question_code_id,
 			q.created_at, q.updated_at
 		FROM question q
 		JOIN question_code qc ON q.question_code_id = qc.code
@@ -543,7 +546,7 @@ func (r *QuestionRepository) Search(ctx context.Context, searchCriteria interfac
 		SELECT 
 			q.id, q.raw_content, q.content, q.subcount, q.type, q.source,
 			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
-			q.creator, q.status, q.feedback, q.difficulty, q.question_code_id,
+			q.creator, q.status, q.feedback, q.difficulty, qc.code as question_code_id,
 			q.created_at, q.updated_at
 		FROM question q
 		JOIN question_code qc ON q.question_code_id = qc.code
@@ -671,13 +674,14 @@ func (r *QuestionRepository) extractSnippet(content, query string) string {
 func (r *QuestionRepository) FindByQuestionCodeID(ctx context.Context, questionCodeID string) ([]*entity.Question, error) {
 	query := `
 		SELECT 
-			id, raw_content, content, subcount, type, source,
-			answers, correct_answer, solution, tag, usage_count,
-			creator, status, feedback, difficulty, question_code_id,
-			created_at, updated_at
-		FROM question
-		WHERE question_code_id = $1
-		ORDER BY created_at DESC
+			q.id, q.raw_content, q.content, q.subcount, q.type, q.source,
+			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
+			q.creator, q.status, q.feedback, q.difficulty, qc.code as question_code_id,
+			q.created_at, q.updated_at
+		FROM question q
+		LEFT JOIN question_code qc ON q.question_code_id = qc.code
+		WHERE q.question_code_id = $1
+		ORDER BY q.created_at DESC
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, questionCodeID)
@@ -794,13 +798,14 @@ func (r *QuestionRepository) GetFavorites(ctx context.Context, offset, limit int
 	// Get favorite questions
 	query := `
 		SELECT 
-			id, raw_content, content, subcount, type, source,
-			answers, correct_answer, solution, tag, usage_count,
-			creator, status, feedback, difficulty, is_favorite, question_code_id,
-			created_at, updated_at
-		FROM question
-		WHERE is_favorite = true
-		ORDER BY updated_at DESC
+			q.id, q.raw_content, q.content, q.subcount, q.type, q.source,
+			q.answers, q.correct_answer, q.solution, q.tag, q.usage_count,
+			q.creator, q.status, q.feedback, q.difficulty, q.is_favorite, qc.code as question_code_id,
+			q.created_at, q.updated_at
+		FROM question q
+		LEFT JOIN question_code qc ON q.question_code_id = qc.code
+		WHERE q.is_favorite = true
+		ORDER BY q.updated_at DESC
 		LIMIT $1 OFFSET $2
 	`
 

@@ -13,15 +13,7 @@ import {
   Alert,
   AlertDescription,
   Badge,
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-  Skeleton,
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
+  Skeleton
 } from '@/components/ui';
 import { useToast } from '@/components/ui/feedback/use-toast';
 import { ErrorBoundary } from '@/components/common/error-boundary';
@@ -425,9 +417,9 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
           </div>
         </header>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
           {/* LaTeX Input using LaTeXEditor component */}
-          <Card>
+          <Card className="xl:col-span-2">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
@@ -458,13 +450,12 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Use LaTeXEditor component - Responsive height */}
+              {/* Use LaTeXEditor component - Auto-resize height */}
               <LaTeXEditor
                 value={latexContent}
                 onChange={setLatexContent}
                 showPreview={showPreview}
-                height="300px"
-                className="sm:h-[400px]"
+                height="860px"
                 placeholder="Nhập nội dung LaTeX..."
               />
 
@@ -496,7 +487,7 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
           </Card>
 
           {/* Preview & Result */}
-          <Card>
+          <Card className="xl:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Eye className="h-5 w-5" aria-hidden="true" />
@@ -542,7 +533,7 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
                   {(() => {
                     const validationWarnings = validateQuestion(parsedQuestion);
                     return validationWarnings.length > 0 && (
-                      <Alert variant="warning" className="mb-4">
+                      <Alert variant="destructive" className="mb-4">
                         <AlertDescription>
                           <div className="space-y-1">
                             <p className="font-medium">⚠️ Cảnh báo validation:</p>
@@ -687,151 +678,6 @@ Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đo�
           </Card>
         </div>
 
-        {/* LaTeX Examples - Collapsible */}
-        <Card>
-          <Accordion type="single" collapsible className="w-full">
-            <AccordionItem value="examples" className="border-0">
-              <CardHeader className="pb-0">
-                <AccordionTrigger className="hover:no-underline py-4">
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Ví dụ LaTeX
-                    <Badge variant="outline" className="ml-2">
-                      Nhấn để xem
-                    </Badge>
-                  </CardTitle>
-                </AccordionTrigger>
-              </CardHeader>
-              <AccordionContent>
-                <CardContent className="pt-4">
-                  <Tabs defaultValue="multiple-choice">
-              <TabsList>
-                <TabsTrigger value="multiple-choice">Trắc nghiệm</TabsTrigger>
-                <TabsTrigger value="true-false">Đúng/Sai</TabsTrigger>
-                <TabsTrigger value="essay">Tự luận</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="multiple-choice" className="mt-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <pre className="text-sm font-mono whitespace-pre-wrap">
-{`\\begin{ex}%[Nguồn: "Sách giáo khoa Toán 12"]%[2P5VN]
-[TL.100022]
-Tìm giá trị lớn nhất của hàm số $f(x) = x^3 - 3x^2 + 2$ trên đoạn $[0, 3]$.
-\\choice
-{$-2$}
-{$0$}
-{\\True $2$}
-{$6$}
-\\loigiai{
-    Tính đạo hàm $f'(x) = 3x^2 - 6x = 3x(x-2)$.
-    $f'(x) = 0 \\Leftrightarrow x = 0$ hoặc $x = 2$.
-    Tính $f(0) = 2$, $f(2) = -2$, $f(3) = 2$.
-    Vậy giá trị lớn nhất là $2$.
-}
-\\end{ex}`}
-                  </pre>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => handleCopyToClipboard(sampleLatex)}
-                    aria-label="Sao chép ví dụ câu hỏi trắc nghiệm"
-                  >
-                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
-                    Sao chép
-                  </Button>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="true-false" className="mt-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <pre className="text-sm font-mono whitespace-pre-wrap">
-{`\\begin{ex}%[Nguồn: "Sách giáo khoa Toán 8"]%[T8C5B1M1]
-[SC006]
-Phát biểu: "Trong tam giác vuông, bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông." Đúng hay sai?
-\\choice
-{\\True Đúng}
-{Sai}
-\\loigiai{
-    Đây chính là định lý Pythagoras.
-}
-\\end{ex}`}
-                  </pre>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => handleCopyToClipboard(`\\begin{ex}%[Nguồn: "Sách giáo khoa Toán 8"]%[T8C5B1M1]
-[SC006]
-Phát biểu: "Trong tam giác vuông, bình phương cạnh huyền bằng tổng bình phương hai cạnh góc vuông." Đúng hay sai?
-\\choice
-{\\True Đúng}
-{Sai}
-\\loigiai{
-    Đây chính là định lý Pythagoras.
-}
-\\end{ex}`)}
-                    aria-label="Sao chép ví dụ câu hỏi đúng sai"
-                  >
-                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
-                    Sao chép
-                  </Button>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="essay" className="mt-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <pre className="text-sm font-mono whitespace-pre-wrap">
-{`\\begin{ex}%[Nguồn: "Đề thi THPT QG 2023"]%[2P3VH2]
-[TL.200045]
-Giải phương trình: $\\log_2(x+1) + \\log_2(x-1) = 3$
-\\loigiai{
-    Điều kiện: $x > 1$
-    
-    Phương trình tương đương:
-    $\\log_2[(x+1)(x-1)] = 3$
-    $\\log_2(x^2-1) = 3$
-    $x^2-1 = 2^3 = 8$
-    $x^2 = 9$
-    $x = \\pm 3$
-    
-    Kết hợp điều kiện $x > 1$, ta có $x = 3$.
-}
-\\end{ex}`}
-                  </pre>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="mt-2"
-                    onClick={() => handleCopyToClipboard(`\\begin{ex}%[Nguồn: "Đề thi THPT QG 2023"]%[2P3VH2]
-[TL.200045]
-Giải phương trình: $\\log_2(x+1) + \\log_2(x-1) = 3$
-\\loigiai{
-    Điều kiện: $x > 1$
-    
-    Phương trình tương đương:
-    $\\log_2[(x+1)(x-1)] = 3$
-    $\\log_2(x^2-1) = 3$
-    $x^2-1 = 2^3 = 8$
-    $x^2 = 9$
-    $x = \\pm 3$
-    
-    Kết hợp điều kiện $x > 1$, ta có $x = 3$.
-}
-\\end{ex}`)}
-                    aria-label="Sao chép ví dụ câu hỏi tự luận"
-                  >
-                    <Copy className="h-4 w-4 mr-2" aria-hidden="true" />
-                    Sao chép
-                  </Button>
-                </div>
-              </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </Card>
       </div>
     </ErrorBoundary>
   );

@@ -3,13 +3,13 @@
  * Handles all analytics-related API operations
  */
 
-import { LibraryServiceClient } from '@/generated/proto/v1/library_grpc_web_pb';
+import { LibraryServiceClient } from '@/generated/v1/LibraryServiceClientPb';
 import {
   GetAnalyticsRequest,
   GetTopItemsRequest,
   AnalyticsResponse,
   TopItemsResponse,
-} from '@/generated/proto/v1/library_pb';
+} from '@/generated/v1/library_pb';
 
 const client = new LibraryServiceClient(
   process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080',

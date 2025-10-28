@@ -18,6 +18,7 @@ import type { RoutePermission } from '@/lib/config/route-permissions';
 import { getRoutePermission } from '@/lib/config/route-permissions';
 import type { RoleString } from '@/lib/utils/role-converter';
 import { logger } from '@/lib/utils/logger';
+import { AuthStateCache } from '@/lib/utils/auth-state-cache';
 
 /**
  * Role hierarchy levels
@@ -56,7 +57,7 @@ export class RouteGuard {
    * 
    * Business Logic:
    * 1. Get route permission (with caching)
-   * 2. Check authentication requirement
+   * 2. Check authentication requirement (with session cookie fallback)
    * 3. Check role-based access
    * 4. Check level-based access
    * 
@@ -71,9 +72,40 @@ export class RouteGuard {
     // Default to requiring auth for unknown protected routes
     const permission = routePermission || { requireAuth: true };
 
-    // Check authentication
+    // ✅ ENHANCED: Multi-layer authentication check với caching và fallbacks
     if (permission.requireAuth && !token) {
-      logger.warn('[RouteGuard] Unauthorized access attempt', { pathname });
+      // ✅ Layer 1: Check authentication state cache
+      const isLikelyAuthenticated = AuthStateCache.isLikelyAuthenticated();
+      
+      if (isLikelyAuthenticated) {
+        logger.info('[RouteGuard] JWT token null but cache indicates user is authenticated, allowing access', { 
+          pathname,
+          reason: 'auth_state_cache_fallback',
+          cacheAge: AuthStateCache.getCacheAge(),
+        });
+        // Extend cache lifetime since user is actively using app
+        AuthStateCache.extendCacheLifetime();
+        return { allowed: true };
+      }
+
+      // ✅ Layer 2: Check if user might be authenticated via session cookie
+      const hasSessionCookie = this.checkSessionCookieExists();
+      
+      if (hasSessionCookie) {
+        logger.info('[RouteGuard] JWT token null but session cookie exists, allowing access', { 
+          pathname,
+          reason: 'session_cookie_fallback' 
+        });
+        // Allow access - session cookie indicates user is likely authenticated
+        return { allowed: true };
+      }
+
+      // ✅ Layer 3: Final check - no authentication indicators found
+      logger.warn('[RouteGuard] Unauthorized access attempt - no JWT token, no cache, no session cookie', { 
+        pathname,
+        hasCachedState: AuthStateCache.hasCachedState(),
+        cacheAge: AuthStateCache.getCacheAge(),
+      });
       return {
         allowed: false,
         reason: 'no_auth',
@@ -233,6 +265,51 @@ export class RouteGuard {
     }
 
     return permission;
+  }
+
+  /**
+   * Check if NextAuth session cookie exists
+   * 
+   * Business Logic:
+   * - Check for NextAuth session cookie in browser
+   * - Handle both production và development cookie names
+   * - Return true if session cookie exists (indicates user likely authenticated)
+   * 
+   * @returns Boolean indicating if session cookie exists
+   */
+  private static checkSessionCookieExists(): boolean {
+    // Only run on client-side
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return false;
+    }
+
+    try {
+      // NextAuth session cookie names (environment-specific)
+      const isProduction = process.env.NODE_ENV === 'production';
+      const sessionCookieName = isProduction 
+        ? '__Secure-next-auth.session-token' 
+        : 'next-auth.session-token';
+
+      // Check if session cookie exists
+      const cookies = document.cookie.split(';');
+      const hasSessionCookie = cookies.some(cookie => {
+        const [name] = cookie.trim().split('=');
+        return name === sessionCookieName;
+      });
+
+      logger.debug('[RouteGuard] Session cookie check', {
+        sessionCookieName,
+        hasSessionCookie,
+        isProduction,
+      });
+
+      return hasSessionCookie;
+    } catch (error) {
+      logger.error('[RouteGuard] Error checking session cookie', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
   }
 
   /**

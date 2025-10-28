@@ -23,7 +23,8 @@ import {
 
 } from '@/generated/v1/question_filter_pb';
 import { RpcError } from 'grpc-web';
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { GRPC_WEB_HOST } from './config';
+import { getAuthMetadata } from './client';
 
 // gRPC client configuration
 // Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
@@ -74,82 +75,97 @@ function mapQuestionDetailFromPb(q: QuestionDetail): any {
 export class QuestionFilterService {
   static async listQuestionsByFilter(dto: any): Promise<any> {
     try {
-      const request = new ListQuestionsByFilterRequest();
-      
-      // Set QuestionCodeFilter
-      if (dto.question_code_filter) {
-        const codeFilter = new QuestionCodeFilter();
-        if (dto.question_code_filter.grades) codeFilter.setGradesList(dto.question_code_filter.grades);
-        if (dto.question_code_filter.subjects) codeFilter.setSubjectsList(dto.question_code_filter.subjects);
-        if (dto.question_code_filter.chapters) codeFilter.setChaptersList(dto.question_code_filter.chapters);
-        if (dto.question_code_filter.levels) codeFilter.setLevelsList(dto.question_code_filter.levels);
-        if (dto.question_code_filter.lessons) codeFilter.setLessonsList(dto.question_code_filter.lessons);
-        if (dto.question_code_filter.forms) codeFilter.setFormsList(dto.question_code_filter.forms);
-        if (dto.question_code_filter.include_id5 !== undefined) codeFilter.setIncludeId5(dto.question_code_filter.include_id5);
-        if (dto.question_code_filter.include_id6 !== undefined) codeFilter.setIncludeId6(dto.question_code_filter.include_id6);
-        request.setQuestionCodeFilter(codeFilter);
-      }
-      
-      // Set MetadataFilter
-      if (dto.metadata_filter) {
-        const metaFilter = new MetadataFilter();
-        if (dto.metadata_filter.types) metaFilter.setTypesList(dto.metadata_filter.types);
-        if (dto.metadata_filter.statuses) metaFilter.setStatusesList(dto.metadata_filter.statuses);
-        if (dto.metadata_filter.difficulties) metaFilter.setDifficultiesList(dto.metadata_filter.difficulties);
-        if (dto.metadata_filter.creators) metaFilter.setCreatorsList(dto.metadata_filter.creators);
-        if (dto.metadata_filter.tags) metaFilter.setTagsList(dto.metadata_filter.tags);
-        if (dto.metadata_filter.require_all_tags !== undefined) metaFilter.setRequireAllTags(dto.metadata_filter.require_all_tags);
-        if (dto.metadata_filter.subcount_pattern) metaFilter.setSubcountPattern(dto.metadata_filter.subcount_pattern);
-        if (dto.metadata_filter.min_usage_count !== undefined) metaFilter.setMinUsageCount(dto.metadata_filter.min_usage_count);
-        if (dto.metadata_filter.max_usage_count !== undefined) metaFilter.setMaxUsageCount(dto.metadata_filter.max_usage_count);
-        if (dto.metadata_filter.min_feedback !== undefined) metaFilter.setMinFeedback(dto.metadata_filter.min_feedback);
-        if (dto.metadata_filter.max_feedback !== undefined) metaFilter.setMaxFeedback(dto.metadata_filter.max_feedback);
-        request.setMetadataFilter(metaFilter);
-      }
-      
-      // Set DateRangeFilter
-      if (dto.date_filter) {
-        const dateFilter = new DateRangeFilter();
-        // Note: You may need to convert date strings to Timestamp objects
-        // This is a simplified version
-        request.setDateFilter(dateFilter);
-      }
-      
-      // Set ContentFilter
-      if (dto.content_filter) {
-        const contentFilter = new ContentFilter();
-        if (dto.content_filter.has_images !== undefined) contentFilter.setHasImages(dto.content_filter.has_images);
-        if (dto.content_filter.has_solution !== undefined) contentFilter.setHasSolution(dto.content_filter.has_solution);
-        if (dto.content_filter.has_answers !== undefined) contentFilter.setHasAnswers(dto.content_filter.has_answers);
-        if (dto.content_filter.has_feedback !== undefined) contentFilter.setHasFeedback(dto.content_filter.has_feedback);
-        if (dto.content_filter.has_tags !== undefined) contentFilter.setHasTags(dto.content_filter.has_tags);
-        if (dto.content_filter.content_search) contentFilter.setContentSearch(dto.content_filter.content_search);
-        if (dto.content_filter.solution_search) contentFilter.setSolutionSearch(dto.content_filter.solution_search);
-        request.setContentFilter(contentFilter);
-      }
-      
-      // Set Pagination
-      if (dto.pagination) {
-        const pagination = new FilterPagination();
-        pagination.setPage(dto.pagination.page || 1);
-        pagination.setLimit(dto.pagination.limit || 20);
-        
-        // Set sorting
-        if (dto.pagination.sort && dto.pagination.sort.length > 0) {
-          const sortList = dto.pagination.sort.map((s: any) => {
-            const sortOption = new SortOptions();
-            sortOption.setField(s.field || SortField.SORT_FIELD_CREATED_AT);
-            sortOption.setOrder(s.order === 'asc' ? SortOrder.SORT_ORDER_ASC : SortOrder.SORT_ORDER_DESC);
-            return sortOption;
-          });
-          pagination.setSortList(sortList);
+      const isProtoRequest =
+        dto instanceof ListQuestionsByFilterRequest ||
+        (dto && typeof dto.serializeBinary === 'function' && typeof dto.getPagination === 'function');
+      const request = isProtoRequest ? dto : new ListQuestionsByFilterRequest();
+
+      if (!isProtoRequest) {
+        // Set QuestionCodeFilter
+        if (dto.question_code_filter) {
+          const codeFilter = new QuestionCodeFilter();
+          if (dto.question_code_filter.grades) codeFilter.setGradesList(dto.question_code_filter.grades);
+          if (dto.question_code_filter.subjects) codeFilter.setSubjectsList(dto.question_code_filter.subjects);
+          if (dto.question_code_filter.chapters) codeFilter.setChaptersList(dto.question_code_filter.chapters);
+          if (dto.question_code_filter.levels) codeFilter.setLevelsList(dto.question_code_filter.levels);
+          if (dto.question_code_filter.lessons) codeFilter.setLessonsList(dto.question_code_filter.lessons);
+          if (dto.question_code_filter.forms) codeFilter.setFormsList(dto.question_code_filter.forms);
+          if (dto.question_code_filter.include_id5 !== undefined) codeFilter.setIncludeId5(dto.question_code_filter.include_id5);
+          if (dto.question_code_filter.include_id6 !== undefined) codeFilter.setIncludeId6(dto.question_code_filter.include_id6);
+          request.setQuestionCodeFilter(codeFilter);
         }
         
-        request.setPagination(pagination);
+        // Set MetadataFilter
+        if (dto.metadata_filter) {
+          const metaFilter = new MetadataFilter();
+          if (dto.metadata_filter.types) metaFilter.setTypesList(dto.metadata_filter.types);
+          if (dto.metadata_filter.statuses) metaFilter.setStatusesList(dto.metadata_filter.statuses);
+          if (dto.metadata_filter.difficulties) metaFilter.setDifficultiesList(dto.metadata_filter.difficulties);
+          if (dto.metadata_filter.creators) metaFilter.setCreatorsList(dto.metadata_filter.creators);
+          if (dto.metadata_filter.tags) metaFilter.setTagsList(dto.metadata_filter.tags);
+          if (dto.metadata_filter.require_all_tags !== undefined) metaFilter.setRequireAllTags(dto.metadata_filter.require_all_tags);
+          if (dto.metadata_filter.subcount_pattern) metaFilter.setSubcountPattern(dto.metadata_filter.subcount_pattern);
+          if (dto.metadata_filter.min_usage_count !== undefined) metaFilter.setMinUsageCount(dto.metadata_filter.min_usage_count);
+          if (dto.metadata_filter.max_usage_count !== undefined) metaFilter.setMaxUsageCount(dto.metadata_filter.max_usage_count);
+          if (dto.metadata_filter.min_feedback !== undefined) metaFilter.setMinFeedback(dto.metadata_filter.min_feedback);
+          if (dto.metadata_filter.max_feedback !== undefined) metaFilter.setMaxFeedback(dto.metadata_filter.max_feedback);
+          request.setMetadataFilter(metaFilter);
+        }
+        
+        // Set DateRangeFilter
+        if (dto.date_filter) {
+          const dateFilter = new DateRangeFilter();
+          // Note: You may need to convert date strings to Timestamp objects
+          // This is a simplified version
+          request.setDateFilter(dateFilter);
+        }
+        
+        // Set ContentFilter
+        if (dto.content_filter) {
+          const contentFilter = new ContentFilter();
+          if (dto.content_filter.has_images !== undefined) contentFilter.setHasImages(dto.content_filter.has_images);
+          if (dto.content_filter.has_solution !== undefined) contentFilter.setHasSolution(dto.content_filter.has_solution);
+          if (dto.content_filter.has_answers !== undefined) contentFilter.setHasAnswers(dto.content_filter.has_answers);
+          if (dto.content_filter.has_feedback !== undefined) contentFilter.setHasFeedback(dto.content_filter.has_feedback);
+          if (dto.content_filter.has_tags !== undefined) contentFilter.setHasTags(dto.content_filter.has_tags);
+          if (dto.content_filter.content_search) contentFilter.setContentSearch(dto.content_filter.content_search);
+          if (dto.content_filter.solution_search) contentFilter.setSolutionSearch(dto.content_filter.solution_search);
+          request.setContentFilter(contentFilter);
+        }
+        
+        // Set Pagination
+        if (dto.pagination) {
+          const pagination = new FilterPagination();
+          pagination.setPage(dto.pagination.page || 1);
+          pagination.setLimit(dto.pagination.limit || 20);
+          
+          // Set sorting
+          if (dto.pagination.sort && dto.pagination.sort.length > 0) {
+            const sortList = dto.pagination.sort.map((s: any) => {
+              const sortOption = new SortOptions();
+              const fieldValue = s.field || SortField.SORT_FIELD_CREATED_AT;
+              const orderValue = s.order === 'asc' ? SortOrder.SORT_ORDER_ASC : SortOrder.SORT_ORDER_DESC;
+              sortOption.setField(
+                typeof fieldValue === 'number'
+                  ? fieldValue
+                  : SortField.SORT_FIELD_CREATED_AT
+              );
+              sortOption.setOrder(orderValue);
+              return sortOption;
+            });
+            pagination.setSortList(sortList);
+          }
+          
+          request.setPagination(pagination);
+        }
       }
 
       const response = await questionFilterServiceClient.listQuestionsByFilter(request, getAuthMetadata());
-      
+
+      if (isProtoRequest) {
+        return response;
+      }
+
       return {
         questions: response.getQuestionsList().map(mapQuestionDetailFromPb),
         total_count: response.getTotalCount(),

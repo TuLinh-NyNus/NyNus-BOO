@@ -28,8 +28,7 @@ import {
   Edit,
   Star,
   Hash,
-  Clock,
-  User
+  Clock
 } from "lucide-react";
 
 // Import components
@@ -39,6 +38,7 @@ import { LaTeXContent } from "@/components/common/latex";
 
 // Import types
 import { Question } from "@/types/question";
+import { resolveQuestionCode } from "@/lib/utils/question-code";
 import { SortColumn, QuestionSortKey } from "@/lib/utils/question-sorting";
 
 // ===== TYPES =====
@@ -92,7 +92,9 @@ const COLUMN_DEFINITIONS: ColumnDefinition[] = [
     render: (question) => (
       <div className="flex items-center gap-1">
         <Hash className="h-3 w-3 text-muted-foreground" />
-        <span className="font-mono text-xs">{question.questionCodeId}</span>
+        <span className="font-mono text-xs">
+          {resolveQuestionCode(question) || 'N/A'}
+        </span>
       </div>
     )
   },
@@ -177,19 +179,6 @@ const COLUMN_DEFINITIONS: ColumnDefinition[] = [
         <span className="text-xs text-muted-foreground">-</span>
       );
     }
-  },
-  {
-    key: 'creator',
-    label: 'Người tạo',
-    sortable: true,
-    priority: 'low',
-    minWidth: '100px',
-    render: (question) => (
-      <div className="flex items-center gap-1">
-        <User className="h-3 w-3 text-muted-foreground" />
-        <span className="text-xs">{question.creator || 'Không xác định'}</span>
-      </div>
-    )
   },
   {
     key: 'createdAt',

@@ -11,7 +11,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from '@react-pdf/renderer';
 import { Question, QuestionType } from '@/types/question';
 
@@ -252,8 +251,8 @@ function QuestionItem({
           <View style={[styles.badge, styles.badgeType]}>
             <Text>{question.type}</Text>
           </View>
-          <View style={[styles.badgeDifficulty, getDifficultyStyle(question.difficulty)]}>
-            <Text>{question.difficulty}</Text>
+          <View style={[styles.badgeDifficulty, getDifficultyStyle(question.difficulty || 'EASY')]}>
+            <Text>{question.difficulty || 'EASY'}</Text>
           </View>
         </View>
       </View>
@@ -267,16 +266,16 @@ function QuestionItem({
           <Text style={styles.answersTitle}>Các đáp án:</Text>
           {question.answers.map((answer, idx) => (
             <View
-              key={answer.id}
+              key={'id' in answer ? answer.id : `${idx}`}
               style={[
                 styles.answerItem,
-                answer.isCorrect ? styles.answerItemCorrect : styles.answerItemDefault,
+                ('isCorrect' in answer ? answer.isCorrect : false) ? styles.answerItemCorrect : styles.answerItemDefault,
               ]}
             >
               <Text style={styles.answerLabel}>
                 {getAnswerLabel(idx, question.type)}.
               </Text>
-              <Text style={styles.answerText}>{stripHtml(answer.content)}</Text>
+              <Text style={styles.answerText}>{stripHtml('content' in answer ? answer.content : `${answer.left} - ${answer.right}`)}</Text>
             </View>
           ))}
         </View>

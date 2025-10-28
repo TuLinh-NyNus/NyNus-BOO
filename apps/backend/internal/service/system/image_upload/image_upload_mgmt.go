@@ -21,7 +21,7 @@ import (
 type ImageUploadMgmt struct {
 	imageRepo       *repository.QuestionImageRepository
 	uploadErrorRepo *repository.ImageUploadErrorRepository
-	uploader        *image_processing.GoogleDriveUploader
+	uploader        *image_processing.CloudinaryUploader
 	processor       *image_processing.ImageProcessingService
 	retryPolicy     *entity.ImageUploadRetryPolicy
 	cleanupPolicy   *entity.ImageCacheCleanupPolicy
@@ -32,7 +32,7 @@ type ImageUploadMgmt struct {
 func NewImageUploadMgmt(
 	imageRepo *repository.QuestionImageRepository,
 	uploadErrorRepo *repository.ImageUploadErrorRepository,
-	uploader *image_processing.GoogleDriveUploader,
+	uploader *image_processing.CloudinaryUploader,
 	processor *image_processing.ImageProcessingService,
 	logger *logrus.Logger,
 ) *ImageUploadMgmt {

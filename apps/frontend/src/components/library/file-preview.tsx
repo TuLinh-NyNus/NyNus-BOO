@@ -72,7 +72,7 @@ function isImageFile(fileUrl?: string, fileType?: string): boolean {
  */
 function isPdfFile(fileUrl?: string, fileType?: string): boolean {
   const ext = getFileExtension(fileUrl, fileType);
-  return ext === 'pdf' || fileType?.includes('pdf');
+  return ext === 'pdf' || (fileType?.includes('pdf') ?? false);
 }
 
 export function LibraryFilePreview({

@@ -6,9 +6,10 @@ import "time"
 // Định nghĩa các hằng số cho cấu hình JWT tokens
 
 const (
-	// AccessTokenExpiry là thời gian hết hạn của access token (15 phút)
+	// AccessTokenExpiry là thời gian hết hạn của access token (60 phút)
 	// Access token có thời gian ngắn để giảm thiểu rủi ro nếu bị đánh cắp
-	AccessTokenExpiry = 15 * time.Minute
+	// ✅ INCREASED: From 15 minutes to 60 minutes to reduce token expiry errors
+	AccessTokenExpiry = 60 * time.Minute
 
 	// RefreshTokenExpiry là thời gian hết hạn của refresh token (7 ngày)
 	// Refresh token có thời gian dài hơn để user không phải đăng nhập lại thường xuyên

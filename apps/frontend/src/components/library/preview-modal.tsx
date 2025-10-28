@@ -189,7 +189,7 @@ export function LibraryPreviewModal({
                 fileUrl={item.fileUrl}
                 thumbnailUrl={item.thumbnailUrl}
                 youtubeUrl={item.metadata.kind === 'video' ? item.metadata.youtubeUrl : undefined}
-                fileType={item.fileType}
+                fileType={item.fileUrl ? item.fileUrl.split('.').pop() : undefined}
                 kind={item.metadata.kind}
                 title={item.title}
                 className="mb-6"

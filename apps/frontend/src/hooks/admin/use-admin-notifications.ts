@@ -170,7 +170,7 @@ export function AdminNotificationsProvider({ children }: { children: ReactNode }
   const initialFetchDoneRef = useRef<boolean>(false); // ✅ FIX: Prevent React Strict Mode double-fetch
   
   // Phase 4 - Task 4.3.1: Subscribe to WebSocket notifications
-  const { lastMessage: wsLastMessage, isConnected: wsIsConnected } = useWebSocket();
+  const { lastMessage: wsLastMessage } = useWebSocket();
 
   const loadNotifications = useCallback(
     async (force = false): Promise<void> => {
@@ -544,7 +544,6 @@ export function AdminNotificationsProvider({ children }: { children: ReactNode }
     }
 
     // Cleanup removed - no intervals used when using real data only
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // ✅ FIX: Remove loadNotifications from dependencies
 
   const contextValue = useMemo<UseAdminNotificationsReturn>(() => ({

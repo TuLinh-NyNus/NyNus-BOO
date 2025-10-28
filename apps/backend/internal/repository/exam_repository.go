@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -10,6 +10,7 @@ import (
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 // ExamRepository handles database operations for exams
@@ -115,6 +116,7 @@ func (r *ExamRepository) GetByID(ctx context.Context, id string) (*entity.Exam, 
 	`
 
 	var exam entity.Exam
+	var tags pq.StringArray
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&exam.ID,
 		&exam.Title,
@@ -128,7 +130,7 @@ func (r *ExamRepository) GetByID(ctx context.Context, id string) (*entity.Exam, 
 		&exam.Subject,
 		&exam.Grade,
 		&exam.Difficulty,
-		&exam.Tags,
+		&tags,
 		&exam.ShuffleQuestions,
 		&exam.ShowResults,
 		&exam.MaxAttempts,
@@ -149,6 +151,9 @@ func (r *ExamRepository) GetByID(ctx context.Context, id string) (*entity.Exam, 
 		}
 		return nil, fmt.Errorf("failed to get exam: %w", err)
 	}
+
+	// Convert pq.StringArray to []string
+	exam.Tags = append([]string(nil), tags...)
 
 	// Load question IDs
 	exam.QuestionIDs, err = r.getExamQuestionIDs(id)
@@ -336,6 +341,7 @@ func (r *ExamRepository) List(ctx context.Context, filters *interfaces.ExamFilte
 	exams := []*entity.Exam{}
 	for rows.Next() {
 		var exam entity.Exam
+		var tags pq.StringArray
 		err := rows.Scan(
 			&exam.ID,
 			&exam.Title,
@@ -349,7 +355,7 @@ func (r *ExamRepository) List(ctx context.Context, filters *interfaces.ExamFilte
 			&exam.Subject,
 			&exam.Grade,
 			&exam.Difficulty,
-			&exam.Tags,
+			&tags,
 			&exam.ShuffleQuestions,
 			&exam.ShowResults,
 			&exam.MaxAttempts,
@@ -366,6 +372,9 @@ func (r *ExamRepository) List(ctx context.Context, filters *interfaces.ExamFilte
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan exam: %w", err)
 		}
+
+		// Convert pq.StringArray to []string
+		exam.Tags = append([]string(nil), tags...)
 
 		// Initialize QuestionIDs as empty slice
 		exam.QuestionIDs = []string{}
@@ -983,6 +992,7 @@ func (r *ExamRepository) GetByIDs(ctx context.Context, examIDs []string) ([]*ent
 	exams := []*entity.Exam{}
 	for rows.Next() {
 		var exam entity.Exam
+		var tags pq.StringArray
 		err := rows.Scan(
 			&exam.ID,
 			&exam.Title,
@@ -996,7 +1006,7 @@ func (r *ExamRepository) GetByIDs(ctx context.Context, examIDs []string) ([]*ent
 			&exam.Subject,
 			&exam.Grade,
 			&exam.Difficulty,
-			&exam.Tags,
+			&tags,
 			&exam.ShuffleQuestions,
 			&exam.ShowResults,
 			&exam.MaxAttempts,
@@ -1013,6 +1023,9 @@ func (r *ExamRepository) GetByIDs(ctx context.Context, examIDs []string) ([]*ent
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan exam: %w", err)
 		}
+
+		// Convert pq.StringArray to []string
+		exam.Tags = append([]string(nil), tags...)
 
 		// Initialize QuestionIDs as empty slice
 		exam.QuestionIDs = []string{}
@@ -1066,6 +1079,7 @@ func (r *ExamRepository) FindByCreator(ctx context.Context, creatorID string, pa
 	exams := []*entity.Exam{}
 	for rows.Next() {
 		var exam entity.Exam
+		var tags pq.StringArray
 		err := rows.Scan(
 			&exam.ID,
 			&exam.Title,
@@ -1079,7 +1093,7 @@ func (r *ExamRepository) FindByCreator(ctx context.Context, creatorID string, pa
 			&exam.Subject,
 			&exam.Grade,
 			&exam.Difficulty,
-			&exam.Tags,
+			&tags,
 			&exam.ShuffleQuestions,
 			&exam.ShowResults,
 			&exam.MaxAttempts,
@@ -1096,6 +1110,9 @@ func (r *ExamRepository) FindByCreator(ctx context.Context, creatorID string, pa
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan exam: %w", err)
 		}
+
+		// Convert pq.StringArray to []string
+		exam.Tags = append([]string(nil), tags...)
 
 		// Initialize QuestionIDs as empty slice
 		exam.QuestionIDs = []string{}
@@ -1149,6 +1166,7 @@ func (r *ExamRepository) FindBySubject(ctx context.Context, subject string, pagi
 	exams := []*entity.Exam{}
 	for rows.Next() {
 		var exam entity.Exam
+		var tags pq.StringArray
 		err := rows.Scan(
 			&exam.ID,
 			&exam.Title,
@@ -1162,7 +1180,7 @@ func (r *ExamRepository) FindBySubject(ctx context.Context, subject string, pagi
 			&exam.Subject,
 			&exam.Grade,
 			&exam.Difficulty,
-			&exam.Tags,
+			&tags,
 			&exam.ShuffleQuestions,
 			&exam.ShowResults,
 			&exam.MaxAttempts,
@@ -1179,6 +1197,9 @@ func (r *ExamRepository) FindBySubject(ctx context.Context, subject string, pagi
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan exam: %w", err)
 		}
+
+		// Convert pq.StringArray to []string
+		exam.Tags = append([]string(nil), tags...)
 
 		// Initialize QuestionIDs as empty slice
 		exam.QuestionIDs = []string{}
@@ -1232,6 +1253,7 @@ func (r *ExamRepository) FindByGrade(ctx context.Context, grade int, pagination 
 	exams := []*entity.Exam{}
 	for rows.Next() {
 		var exam entity.Exam
+		var tags pq.StringArray
 		err := rows.Scan(
 			&exam.ID,
 			&exam.Title,
@@ -1245,7 +1267,7 @@ func (r *ExamRepository) FindByGrade(ctx context.Context, grade int, pagination 
 			&exam.Subject,
 			&exam.Grade,
 			&exam.Difficulty,
-			&exam.Tags,
+			&tags,
 			&exam.ShuffleQuestions,
 			&exam.ShowResults,
 			&exam.MaxAttempts,
@@ -1262,6 +1284,9 @@ func (r *ExamRepository) FindByGrade(ctx context.Context, grade int, pagination 
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan exam: %w", err)
 		}
+
+		// Convert pq.StringArray to []string
+		exam.Tags = append([]string(nil), tags...)
 
 		// Initialize QuestionIDs as empty slice
 		exam.QuestionIDs = []string{}
@@ -1348,6 +1373,7 @@ func (r *ExamRepository) FindOfficialExams(ctx context.Context, filters *interfa
 	exams := []*entity.Exam{}
 	for rows.Next() {
 		var exam entity.Exam
+		var tags pq.StringArray
 		err := rows.Scan(
 			&exam.ID,
 			&exam.Title,
@@ -1361,7 +1387,7 @@ func (r *ExamRepository) FindOfficialExams(ctx context.Context, filters *interfa
 			&exam.Subject,
 			&exam.Grade,
 			&exam.Difficulty,
-			&exam.Tags,
+			&tags,
 			&exam.ShuffleQuestions,
 			&exam.ShowResults,
 			&exam.MaxAttempts,
@@ -1378,6 +1404,9 @@ func (r *ExamRepository) FindOfficialExams(ctx context.Context, filters *interfa
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan exam: %w", err)
 		}
+
+		// Convert pq.StringArray to []string
+		exam.Tags = append([]string(nil), tags...)
 
 		// Initialize QuestionIDs as empty slice
 		exam.QuestionIDs = []string{}

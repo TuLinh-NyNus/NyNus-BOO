@@ -76,13 +76,13 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
         e.preventDefault();
         setShowDetails(!showDetails);
         // Track keyboard interaction
-        analytics.featureClick(feature.title, 'features_section_keyboard');
+        analytics.trackButtonClick('feature_click', 'features_section_keyboard');
         break;
       case 'Escape':
         setShowDetails(false);
         break;
     }
-  }, [showDetails, analytics, feature.title]);
+  }, [showDetails, analytics]);
 
   // Semantic color schemes based on feature purpose - IMPROVED CONTRAST FOR LIGHT MODE
   const semanticColorSchemes = {
@@ -265,11 +265,12 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
               onClick={() => {
                 setShowDetails(!showDetails);
                 // Track details expansion
-                analytics.trackEvent('feature_details_toggle', {
+                analytics.trackEvent({
+                  action: 'feature_details_toggle',
+                  category: 'feature_engagement',
                   feature_name: feature.title,
-                  action: !showDetails ? 'expand' : 'collapse',
-                  location: 'features_section',
-                  category: 'feature_engagement'
+                  toggle_action: !showDetails ? 'expand' : 'collapse',
+                  location: 'features_section'
                 });
               }}
               className="text-xs text-foreground hover:text-foreground underline underline-offset-4 decoration-1 transition-colors duration-300 min-h-[44px] min-w-[44px] flex items-center justify-center -m-2 p-2 rounded-lg"
@@ -284,12 +285,13 @@ const FeatureCard = ({ feature, index, delay = 0 }: FeatureCardProps) => {
             aria-label={`${feature.cta.text} - ${feature.title}`}
             onClick={() => {
               // Track feature CTA click
-              analytics.trackEvent('feature_cta_click', {
+              analytics.trackEvent({
+                action: 'feature_cta_click',
+                category: 'feature_engagement',
                 feature_name: feature.title,
                 cta_text: feature.cta.text,
                 destination: feature.cta.href,
-                location: 'features_section',
-                category: 'feature_engagement'
+                location: 'features_section'
               });
             }}
           >
@@ -344,9 +346,10 @@ const Features = () => {
 
   // Track section view on mount
   React.useEffect(() => {
-    analytics.trackEvent('features_section_view', {
-      location: 'features_section',
+    analytics.trackEvent({
+      action: 'features_section_view',
       category: 'page_engagement',
+      location: 'features_section',
       total_features: featuresData.features.length
     });
   }, [analytics]);
@@ -373,41 +376,45 @@ const Features = () => {
       case 'ArrowLeft':
         e.preventDefault();
         emblaApi?.scrollPrev();
-        analytics.trackEvent('features_scroll_keyboard', {
+        analytics.trackEvent({
+          action: 'features_scroll_keyboard',
+          category: 'navigation',
           direction: 'left',
           method: 'keyboard',
-          location: 'features_section',
-          category: 'navigation'
+          location: 'features_section'
         });
         break;
       case 'ArrowRight':
         e.preventDefault();
         emblaApi?.scrollNext();
-        analytics.trackEvent('features_scroll_keyboard', {
+        analytics.trackEvent({
+          action: 'features_scroll_keyboard',
+          category: 'navigation',
           direction: 'right',
           method: 'keyboard',
-          location: 'features_section',
-          category: 'navigation'
+          location: 'features_section'
         });
         break;
       case 'Home':
         e.preventDefault();
         emblaApi?.scrollTo(0);
-        analytics.trackEvent('features_scroll_keyboard', {
+        analytics.trackEvent({
+          action: 'features_scroll_keyboard',
+          category: 'navigation',
           direction: 'home',
           method: 'keyboard',
-          location: 'features_section',
-          category: 'navigation'
+          location: 'features_section'
         });
         break;
       case 'End':
         e.preventDefault();
         emblaApi?.scrollTo(featuresData.features.length - 1);
-        analytics.trackEvent('features_scroll_keyboard', {
+        analytics.trackEvent({
+          action: 'features_scroll_keyboard',
+          category: 'navigation',
           direction: 'end',
           method: 'keyboard',
-          location: 'features_section',
-          category: 'navigation'
+          location: 'features_section'
         });
         break;
     }
@@ -521,11 +528,12 @@ const Features = () => {
               <button
                 onClick={() => {
                   emblaApi?.scrollPrev();
-                  analytics.trackEvent('features_scroll_floating', {
+                  analytics.trackEvent({
+                    action: 'features_scroll_floating',
+                    category: 'navigation',
                     direction: 'left',
                     method: 'floating_button',
-                    location: 'features_section',
-                    category: 'navigation'
+                    location: 'features_section'
                   });
                 }}
                 className={`group p-3 rounded-full bg-muted/50 border border-border transition-all duration-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none hover:bg-muted hover:border-border opacity-80 hover:opacity-100`}
@@ -540,11 +548,12 @@ const Features = () => {
               <button
                 onClick={() => {
                   emblaApi?.scrollNext();
-                  analytics.trackEvent('features_scroll_floating', {
+                  analytics.trackEvent({
+                    action: 'features_scroll_floating',
+                    category: 'navigation',
                     direction: 'right',
                     method: 'floating_button',
-                    location: 'features_section',
-                    category: 'navigation'
+                    location: 'features_section'
                   });
                 }}
                 className={`group p-3 rounded-full bg-muted/50 border border-border transition-all duration-300 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:outline-none hover:bg-muted hover:border-border opacity-80 hover:opacity-100`}

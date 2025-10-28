@@ -14,13 +14,14 @@ export interface AnalyticsEvent {
   category: string;
   label?: string;
   value?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface PageViewEvent {
   page_path: string;
   page_title: string;
   page_location: string;
+  [key: string]: unknown;
 }
 
 export interface QuestionEvent {
@@ -32,7 +33,7 @@ export interface QuestionEvent {
 
 export interface SearchEvent {
   search_term: string;
-  search_filters?: Record<string, any>;
+  search_filters?: Record<string, unknown>;
   result_count?: number;
 }
 
@@ -43,9 +44,9 @@ declare global {
     gtag?: (
       command: string,
       targetId: string | Date,
-      config?: Record<string, any>
+      config?: Record<string, unknown>
     ) => void;
-    dataLayer?: any[];
+    dataLayer?: unknown[];
   }
 }
 
@@ -332,7 +333,7 @@ export const useAnalytics = () => {
 };
 
 // ===== EXPORTS =====
-export default {
+const analyticsModule = {
   init: initAnalytics,
   pageview,
   event,
@@ -351,3 +352,5 @@ export default {
   updateConsent,
   isEnabled: isAnalyticsEnabled,
 };
+
+export default analyticsModule;

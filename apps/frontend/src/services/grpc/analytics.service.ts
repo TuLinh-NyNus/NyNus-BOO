@@ -21,7 +21,8 @@ import {
 import { RpcError } from 'grpc-web';
 
 // gRPC client utilities
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { GRPC_WEB_HOST } from './config';
+import { getAuthMetadata } from './client';
 
 // Error handling
 function handleGrpcError(error: RpcError): string {

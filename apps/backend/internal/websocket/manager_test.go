@@ -1,12 +1,10 @@
 package websocket
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"nhooyr.io/websocket"
 )
 
@@ -222,7 +220,7 @@ func TestConnectionManager_ConcurrentAccess(t *testing.T) {
 
 	t.Run("concurrent register and unregister", func(t *testing.T) {
 		done := make(chan bool)
-		
+
 		// Concurrent registrations
 		for i := 0; i < 10; i++ {
 			go func(id int) {
@@ -332,4 +330,3 @@ func createMockWebSocketConn(t *testing.T) *websocket.Conn {
 // 1. Use httptest.NewServer with websocket.Accept
 // 2. Use websocket.Dial to create real test connections
 // 3. Create mock implementation of websocket.Conn interface
-

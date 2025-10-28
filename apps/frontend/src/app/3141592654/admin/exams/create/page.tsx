@@ -11,7 +11,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Eye, FileText } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -100,88 +100,26 @@ export default function AdminCreateExamPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Quay lại
-          </Button>
-          
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Tạo đề thi mới</h1>
-            <p className="text-muted-foreground">
-              Tạo đề thi với quyền quản trị viên
-            </p>
-          </div>
-        </div>
+      {/* Simple Back Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleBack}
+        className="gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Quay lại
+      </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => {
-              toast({
-                title: 'Thông báo',
-                description: 'Tính năng lưu nháp đang được phát triển',
-                variant: 'default'
-              });
-            }}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Lưu nháp
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={() => {
-              toast({
-                title: 'Thông báo',
-                description: 'Tính năng xem trước đang được phát triển',
-                variant: 'default'
-              });
-            }}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Xem trước
-          </Button>
-        </div>
-      </div>
-
-      {/* Admin Notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start gap-3">
-          <FileText className="h-5 w-5 text-blue-600 mt-0.5" />
-          <div>
-            <h3 className="font-medium text-blue-900">Quyền quản trị viên</h3>
-            <p className="text-sm text-blue-700 mt-1">
-              Với quyền quản trị viên, bạn có thể:
-            </p>
-            <ul className="text-sm text-blue-700 mt-2 space-y-1">
-              <li>• Tạo đề thi và xuất bản ngay lập tức</li>
-              <li>• Truy cập tất cả câu hỏi trong hệ thống</li>
-              <li>• Thiết lập cấu hình nâng cao</li>
-              <li>• Quản lý quyền truy cập đề thi</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Exam Form */}
-      <div className="bg-white rounded-lg border">
-        <ExamForm
-          mode="create"
-          loading={loading}
-          submitting={submitting}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          onPreview={handlePreview}
-        />
-      </div>
+      {/* Exam Form - với header riêng của nó */}
+      <ExamForm
+        mode="create"
+        loading={loading}
+        submitting={submitting}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        onPreview={handlePreview}
+      />
 
       {/* Exam Preview */}
       <ExamPreview

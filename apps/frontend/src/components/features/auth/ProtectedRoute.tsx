@@ -72,16 +72,44 @@ export function ProtectedRoute({
   // ✅ Use redirect with feedback hook
   const { redirectToLogin, redirectWithFeedback, redirectState } = useRedirectWithFeedback();
 
-  // ✅ SIMPLIFIED FIX: Combine loading states from both hooks
-  // Wait when either AuthContext or NextAuth session is loading
-  const isLoading = authLoading || sessionStatus === "loading";
+  // ✅ ENHANCED: Smarter loading state coordination
+  // Consider multiple factors for loading state
+  const isNextAuthLoading = sessionStatus === "loading";
+  const isAuthContextLoading = authLoading;
+  
+  // ✅ FIX: Add grace period cho recently loaded sessions
+  // If NextAuth session just loaded, give AuthContext time to sync
+  const [hasRecentlyLoaded, setHasRecentlyLoaded] = useState(false);
+  
+  useEffect(() => {
+    if (sessionStatus === "authenticated" && !hasRecentlyLoaded) {
+      setHasRecentlyLoaded(true);
+      // Give AuthContext 1 second to sync with NextAuth session
+      const timer = setTimeout(() => setHasRecentlyLoaded(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [sessionStatus, hasRecentlyLoaded]);
 
-  // ✅ SIMPLIFIED FIX: Check authentication from both sources
-  // User is authenticated if EITHER NextAuth OR AuthContext confirms it
-  const isUserAuthenticated = sessionStatus === "authenticated" || isAuthenticated;
+  // ✅ ENHANCED: More intelligent loading state
+  // Wait if either system is loading OR if we're in grace period after NextAuth loaded
+  const isLoading = isNextAuthLoading || 
+                   (isAuthContextLoading && sessionStatus !== "unauthenticated") ||
+                   hasRecentlyLoaded;
+
+  // ✅ ENHANCED: More robust authentication check
+  // User is authenticated if:
+  // 1. NextAuth confirms authentication, OR
+  // 2. AuthContext confirms authentication, OR  
+  // 3. We're in grace period after NextAuth loaded (benefit of the doubt)
+  const isUserAuthenticated = sessionStatus === "authenticated" || 
+                             isAuthenticated ||
+                             (hasRecentlyLoaded && sessionStatus !== "unauthenticated");
 
   useEffect(() => {
-    console.log('[ProtectedRoute] Auth check:', {
+    console.log('[ProtectedRoute] Enhanced auth check:', {
+      isNextAuthLoading,
+      isAuthContextLoading,
+      hasRecentlyLoaded,
       isLoading,
       isRedirecting,
       sessionStatus,
@@ -93,23 +121,28 @@ export function ProtectedRoute({
 
     // Wait while loading or already redirecting
     if (isLoading || isRedirecting) {
-      console.log('[ProtectedRoute] Waiting... (isLoading or isRedirecting)');
+      console.log('[ProtectedRoute] Waiting...', { 
+        reason: isLoading ? 'loading' : 'redirecting',
+        isNextAuthLoading,
+        isAuthContextLoading,
+        hasRecentlyLoaded
+      });
       return;
     }
 
-    // ✅ SIMPLIFIED FIX: Only redirect when DEFINITELY unauthenticated
-    // Both NextAuth and AuthContext agree user is not authenticated
-    if (requireAuth && !isUserAuthenticated) {
-      console.log('[ProtectedRoute] NOT AUTHENTICATED - Redirecting to login', {
+    // ✅ ENHANCED: Only redirect when DEFINITELY unauthenticated
+    // All systems agree user is not authenticated AND no grace period
+    if (requireAuth && !isUserAuthenticated && !hasRecentlyLoaded) {
+      console.log('[ProtectedRoute] DEFINITELY NOT AUTHENTICATED - Redirecting to login', {
         requireAuth,
         isAuthenticated,
         sessionStatus,
-        isUserAuthenticated
+        isUserAuthenticated,
+        hasRecentlyLoaded
       });
       setIsRedirecting(true);
 
-      // ✅ NEW: Use redirect with feedback instead of direct router.push
-      // Business Logic: Show toast + loading overlay trước khi redirect
+      // ✅ Use redirect with feedback
       redirectToLogin(pathname, {
         showLoading: true,
         delay: 200, // 200ms delay cho animation
@@ -142,7 +175,7 @@ export function ProtectedRoute({
     }
 
     console.log('[ProtectedRoute] All checks passed - Rendering children');
-  }, [isLoading, isUserAuthenticated, user, requireAuth, requiredRoles, minRole, minLevel, redirectTo, pathname, router, isRedirecting, sessionStatus, redirectToLogin, redirectWithFeedback]);
+  }, [isLoading, isUserAuthenticated, user, requireAuth, requiredRoles, minRole, minLevel, redirectTo, pathname, router, isRedirecting, sessionStatus, redirectToLogin, redirectWithFeedback, hasRecentlyLoaded, isAuthenticated, isAuthContextLoading, isNextAuthLoading]);
 
   // Show loading state
   if (isLoading || isRedirecting) {

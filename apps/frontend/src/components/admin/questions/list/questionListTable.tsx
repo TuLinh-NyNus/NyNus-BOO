@@ -36,8 +36,6 @@ import {
   Archive,
   HelpCircle,
 } from "lucide-react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 
 // Import types từ lib/types
 import { 
@@ -45,6 +43,7 @@ import {
   QuestionType, 
   QuestionStatus 
 } from "@/types/question";
+import { resolveQuestionCode } from "@/lib/utils/question-code";
 
 /**
  * Props for QuestionListTable component
@@ -99,51 +98,66 @@ export function QuestionListTable({
   };
 
   /**
-   * Get status badge
+   * Get status badge (icon only)
    */
-  const getStatusBadge = (status: QuestionStatus) => {
-    const configs = {
-      [QuestionStatus.ACTIVE]: { label: "Hoạt động", variant: "default" as const, icon: CheckCircle },
-      [QuestionStatus.PENDING]: { label: "Chờ duyệt", variant: "secondary" as const, icon: Clock },
-      [QuestionStatus.INACTIVE]: { label: "Không hoạt động", variant: "outline" as const, icon: XCircle },
-      [QuestionStatus.ARCHIVED]: { label: "Lưu trữ", variant: "destructive" as const, icon: Archive },
-      [QuestionStatus.DRAFT]: { label: "Bản nháp", variant: "secondary" as const, icon: Clock },
+  const getStatusBadge = (status: QuestionStatus | string | number) => {
+    const configs: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
+      // String enum values
+      'ACTIVE': { label: "Hoạt động", color: "text-green-600", icon: CheckCircle },
+      'PENDING': { label: "Chờ duyệt", color: "text-yellow-600", icon: Clock },
+      'INACTIVE': { label: "Không hoạt động", color: "text-gray-600", icon: XCircle },
+      'ARCHIVED': { label: "Lưu trữ", color: "text-red-600", icon: Archive },
+      'DRAFT': { label: "Bản nháp", color: "text-blue-600", icon: Clock },
+      // Numeric values from backend
+      '1': { label: "Hoạt động", color: "text-green-600", icon: CheckCircle },
+      '2': { label: "Chờ duyệt", color: "text-yellow-600", icon: Clock },
+      '3': { label: "Không hoạt động", color: "text-gray-600", icon: XCircle },
+      '4': { label: "Lưu trữ", color: "text-red-600", icon: Archive },
+      '5': { label: "Bản nháp", color: "text-blue-600", icon: Clock },
     };
 
-    const config = configs[status];
+    const statusKey = String(status);
+    const config = configs[statusKey];
+    
     if (!config) {
       const FallbackIcon = HelpCircle;
       return (
-        <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
-          <FallbackIcon className="h-3 w-3" />
-          {status || "Khong xac dinh"}
-        </Badge>
+        <div className="flex items-center justify-center" title="Không xác định">
+          <FallbackIcon className="h-5 w-5 text-muted-foreground" />
+        </div>
       );
     }
     const Icon = config.icon;
 
     return (
-      <Badge variant={config.variant} className="flex items-center gap-1">
-        <Icon className="h-3 w-3" />
-        {config.label}
-      </Badge>
+      <div className="flex items-center justify-center" title={config.label}>
+        <Icon className={`h-5 w-5 ${config.color}`} />
+      </div>
     );
   };
 
   /**
-   * Get question type badge
+   * Get question type badge with abbreviations
    */
-  const getTypeBadge = (type: QuestionType) => {
-    const typeLabels = {
-      [QuestionType.MC]: "Trắc nghiệm",
-      [QuestionType.MULTIPLE_CHOICE]: "Trắc nghiệm",
-      [QuestionType.TF]: "Đúng/Sai",
-      [QuestionType.SA]: "Trả lời ngắn",
-      [QuestionType.ES]: "Tự luận",
-      [QuestionType.MA]: "Ghép đôi",
+  const getTypeBadge = (type: QuestionType | string | number) => {
+    const typeLabels: Record<string, string> = {
+      // String enum values
+      'MC': "MC",
+      'MULTIPLE_CHOICE': "MC",
+      'TF': "TF",
+      'SA': "SA",
+      'ES': "ES",
+      'MA': "MA",
+      // Numeric values from backend
+      '1': "MC", // Trắc nghiệm
+      '2': "TF", // Đúng/Sai
+      '3': "ES", // Tự luận
+      '4': "SA", // Trả lời ngắn
+      '5': "MA", // Ghép đôi
     };
 
-    return <Badge variant="outline">{typeLabels[type] || type}</Badge>;
+    const typeKey = String(type);
+    return <Badge variant="outline">{typeLabels[typeKey] || type}</Badge>;
   };
 
   /**
@@ -154,19 +168,6 @@ export function QuestionListTable({
     return content.substring(0, maxLength) + "...";
   };
 
-  /**
-   * Format date safely
-   */
-  const formatDate = (dateValue: string | Date | null | undefined) => {
-    if (!dateValue) return "N/A";
-    try {
-      const date = new Date(dateValue);
-      if (isNaN(date.getTime())) return "N/A";
-      return format(date, "dd/MM/yyyy", { locale: vi });
-    } catch {
-      return "N/A";
-    }
-  };
 
   return (
     <div className="rounded-md border">
@@ -186,9 +187,7 @@ export function QuestionListTable({
             <TableHead>Loại</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead>Mã câu hỏi</TableHead>
-            <TableHead>Người tạo</TableHead>
             <TableHead>Sử dụng</TableHead>
-            <TableHead>Ngày tạo</TableHead>
             <TableHead className="w-12">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
@@ -218,14 +217,10 @@ export function QuestionListTable({
               <TableCell>{question.status && getStatusBadge(question.status)}</TableCell>
               <TableCell>
                 <code className="text-xs bg-muted px-1 py-0.5 rounded">
-                  {question.questionCodeId}
+                  {resolveQuestionCode(question) || 'N/A'}
                 </code>
               </TableCell>
-              <TableCell className="text-sm">{question.creator}</TableCell>
               <TableCell className="text-sm">{question.usageCount || 0}</TableCell>
-              <TableCell className="text-sm">
-                {formatDate(question.createdAt)}
-              </TableCell>
               <TableCell>
                 <DropdownMenu>
                   {/*

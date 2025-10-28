@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { Plus, Edit, Trash2, Archive, Tag as TagIcon, TrendingUp, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Tag as TagIcon, TrendingUp, Search } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

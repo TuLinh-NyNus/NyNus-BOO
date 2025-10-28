@@ -235,13 +235,11 @@ export function ExamCard({
   return (
     <Card 
       className={cn(
-        "group relative transition-all duration-200 hover:shadow-md",
-        "border border-gray-200 hover:border-gray-300",
+        "group relative transition-all duration-200 hover:shadow-lg bg-slate-800/50 backdrop-blur-sm",
+        "border border-slate-600/50 hover:border-slate-500",
         selected && "ring-2 ring-blue-500 border-blue-500",
-        size === 'sm' && "h-48",
-        size === 'md' && "h-56", 
-        size === 'lg' && "h-64",
-        viewMode === 'compact' && "h-auto",
+        // Flexible height instead of fixed
+        viewMode === 'compact' ? "h-auto" : "min-h-[14rem] h-auto",
         className
       )}
       onClick={() => onSelect?.(exam)}
@@ -254,7 +252,7 @@ export function ExamCard({
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <h3 className={cn(
-              "font-semibold text-gray-900 truncate",
+              "font-semibold text-white truncate",
               size === 'sm' && "text-sm",
               size === 'md' && "text-base",
               size === 'lg' && "text-lg"
@@ -264,7 +262,7 @@ export function ExamCard({
             
             {viewMode !== 'compact' && (
               <p className={cn(
-                "text-gray-600 mt-1 line-clamp-2",
+                "text-white/80 mt-1 line-clamp-2",
                 size === 'sm' && "text-xs",
                 size === 'md' && "text-sm",
                 size === 'lg' && "text-base"
@@ -332,42 +330,42 @@ export function ExamCard({
 
       {/* Content */}
       <CardContent className={cn(
-        "pt-0",
+        "pt-0 pb-3",
         viewMode === 'compact' && "py-2"
       )}>
         {/* Metadata */}
         <div className={cn(
-          "grid gap-2 text-sm text-gray-600",
+          "grid gap-2 text-sm text-white",
           viewMode === 'compact' ? "grid-cols-2" : "grid-cols-1"
         )}>
           <div className="flex items-center">
-            <BookOpen className="w-4 h-4 mr-2 text-gray-400" />
+            <BookOpen className="w-4 h-4 mr-2 text-white/60" />
             <span className="truncate">{exam.subject}</span>
             {exam.grade && (
-              <span className="ml-1 text-gray-400">- Lớp {exam.grade}</span>
+              <span className="ml-1 text-white/60">- Lớp {exam.grade}</span>
             )}
           </div>
           
           <div className="flex items-center">
-            <Clock className="w-4 h-4 mr-2 text-gray-400" />
+            <Clock className="w-4 h-4 mr-2 text-white/60" />
             <span>{formatDuration(exam.durationMinutes)}</span>
           </div>
           
           <div className="flex items-center">
-            <Hash className="w-4 h-4 mr-2 text-gray-400" />
+            <Hash className="w-4 h-4 mr-2 text-white/60" />
             <span>{exam.questionIds.length} câu hỏi</span>
           </div>
           
           {exam.examType === ExamType.OFFICIAL && exam.sourceInstitution && (
             <div className="flex items-center">
-              <School className="w-4 h-4 mr-2 text-gray-400" />
+              <School className="w-4 h-4 mr-2 text-white/60" />
               <span className="truncate">{exam.sourceInstitution}</span>
             </div>
           )}
           
           {exam.examType === ExamType.OFFICIAL && exam.examYear && (
             <div className="flex items-center">
-              <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+              <Calendar className="w-4 h-4 mr-2 text-white/60" />
               <span>Năm {exam.examYear}</span>
             </div>
           )}
@@ -376,7 +374,7 @@ export function ExamCard({
         {/* Progress */}
         {showProgress && viewMode !== 'compact' && (
           <div className="mt-4">
-            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+            <div className="flex items-center justify-between text-xs text-white/70 mb-1">
               <span>Tiến độ hoàn thành</span>
               <span>{progress}%</span>
             </div>
@@ -385,84 +383,87 @@ export function ExamCard({
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
+        <div className="flex items-center justify-between mt-4 text-xs text-white/50">
           <span>Tạo: {formatDate(exam.createdAt)}</span>
           {exam.creator && (
             <span className="truncate ml-2">bởi {exam.creator.name}</span>
           )}
         </div>
-      </CardContent>
 
-      {/* Quick Actions Overlay */}
-      {showActions && viewMode !== 'compact' && (
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-white via-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-          <div className="flex items-center justify-between">
-            <div className="flex space-x-2">
-              {exam.status === ExamStatus.ACTIVE && (
+        {/* Quick Actions - Integrated in content (no overlay covering) */}
+        {showActions && viewMode !== 'compact' && (
+          <div className="mt-4 pt-3 border-t border-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex gap-2">
+                {exam.status === ExamStatus.ACTIVE && (
+                  <Button
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onTakeExam?.(exam);
+                    }}
+                  >
+                    <Play className="w-3 h-3 mr-1" />
+                    Làm bài
+                  </Button>
+                )}
+                
+                {exam.status === ExamStatus.PENDING && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPublish?.(exam);
+                    }}
+                  >
+                    <Play className="w-3 h-3 mr-1" />
+                    Xuất bản
+                  </Button>
+                )}
+              </div>
+              
+              <div className="flex gap-1">
                 <Button
                   size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onTakeExam?.(exam);
+                    onEdit?.(exam);
                   }}
                 >
-                  <Play className="w-4 h-4 mr-1" />
-                  Làm bài
+                  <Edit className="w-3 h-3" />
                 </Button>
-              )}
-              
-              {exam.status === ExamStatus.PENDING && (
+                
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onPublish?.(exam);
+                    onDuplicate?.(exam);
                   }}
                 >
-                  <Play className="w-4 h-4 mr-1" />
-                  Xuất bản
+                  <Copy className="w-3 h-3" />
                 </Button>
-              )}
-            </div>
-            
-            <div className="flex space-x-1">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit?.(exam);
-                }}
-              >
-                <Edit className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDuplicate?.(exam);
-                }}
-              >
-                <Copy className="w-4 h-4" />
-              </Button>
-              
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete?.(exam);
-                }}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
+                
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete?.(exam);
+                  }}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </CardContent>
     </Card>
   );
 }

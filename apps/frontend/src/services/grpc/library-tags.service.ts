@@ -3,7 +3,7 @@
  * Handles all tag-related API operations
  */
 
-import { LibraryServiceClient } from '@/generated/proto/v1/library_grpc_web_pb';
+import { LibraryServiceClient } from '@/generated/v1/LibraryServiceClientPb';
 import {
   CreateTagRequest,
   GetTagRequest,
@@ -12,7 +12,7 @@ import {
   DeleteTagRequest,
   GetPopularTagsRequest,
   Tag,
-} from '@/generated/proto/v1/library_pb';
+} from '@/generated/v1/library_pb';
 import { BoolValue } from 'google-protobuf/google/protobuf/wrappers_pb';
 
 const client = new LibraryServiceClient(

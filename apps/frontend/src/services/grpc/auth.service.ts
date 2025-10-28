@@ -27,8 +27,11 @@ import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
 import { logger } from '@/lib/utils/logger';
-// ✅ FIX: Import GRPC_WEB_HOST and getAuthMetadata for CSRF token support
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+// ✅ FIX: Import GRPC_WEB_HOST from config to avoid circular dependency
+import { GRPC_WEB_HOST } from './config';
+import { getAuthMetadata, makeInterceptedGrpcCall } from './client';
+// ✅ PHASE 1: Import enhanced error handler
+import { GrpcErrorHandler, handleGrpcError, getGrpcErrorMessage } from '@/lib/utils/grpc-error-handler';
 
 /**
  * gRPC client configuration
@@ -103,17 +106,25 @@ function getUserServiceClient(): UserServiceClient {
  * Business Logic: Convert gRPC error codes thành Vietnamese error messages
  * - Map gRPC status codes sang user-friendly messages
  * - Handle specific error cases (locked account, suspended, etc.)
+ * - ✅ PHASE 1: Enhanced with automatic error recovery
  *
  * @param error - RpcError from gRPC call
+ * @param context - Context where error occurred
  * @returns User-friendly error message in Vietnamese
  */
-function handleGrpcError(error: RpcError): string {
-  logger.error('[AuthService] gRPC Error occurred', {
+function handleGrpcErrorLegacy(error: RpcError, context: string = 'AuthService'): string {
+  logger.error(`[AuthService] gRPC Error in ${context}`, {
     operation: 'handleGrpcError',
     code: error.code,
     message: error.message,
     metadata: error.metadata,
   });
+  
+  // ✅ PHASE 1: Use enhanced error handler for token expiry
+  if (GrpcErrorHandler.isTokenExpiredError(error)) {
+    GrpcErrorHandler.handleTokenExpiredError(error, context);
+    return 'Phiên đăng nhập đã hết hạn. Đang làm mới trang...';
+  }
   
   switch (error.code) {
     case 3: // INVALID_ARGUMENT
@@ -345,8 +356,13 @@ export class AuthService {
       const response = await client.register(request, getAuthMetadata());
       return response;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
-      throw new Error(errorMessage);
+      // ✅ PHASE 1: Use enhanced error handler
+      const handled = await handleGrpcError(error as RpcError, 'register');
+      if (!handled) {
+        const errorMessage = handleGrpcErrorLegacy(error as RpcError, 'register');
+        throw new Error(errorMessage);
+      }
+      throw error; // Re-throw if handled by error handler
     }
   }
 
@@ -469,8 +485,8 @@ export class AuthService {
    * Refresh access token using refresh token
    * Business Logic: Làm mới access token khi hết hạn
    * - Sử dụng refresh token để lấy access token mới
-   * - Tự động lưu token mới vào localStorage
-   * - Nếu refresh failed thì clear tokens (force re-login)
+   * - ✅ FIX: Add retry logic với exponential backoff
+   * - ✅ FIX: Phân biệt error types - chỉ clear tokens khi thực sự cần thiết
    *
    * ✅ SERVER-SIDE COMPATIBLE: Uses fetch() instead of gRPC-Web client
    * This allows the method to be called from NextAuth jwt() callback (server-side)
@@ -480,85 +496,193 @@ export class AuthService {
       throw new Error('No refresh token available');
     }
 
-    const endpoint = `${GRPC_ENDPOINT}/v1.UserService/RefreshToken`;
+    // ✅ FIX: Call backend HTTP Gateway directly (same as login method)
+    // Cannot use GRPC_ENDPOINT (/api/grpc) with fetch() - it expects binary protobuf
+    // Backend HTTP Gateway supports JSON API at port 8080
+    const isServerSide = typeof window === 'undefined';
+    const backendUrl = process.env.NEXT_PUBLIC_GRPC_URL || 'http://localhost:8080';
+    const endpoint = `${backendUrl}/v1.UserService/RefreshToken`;
+    
+    const maxRetries = 3;
+    let lastError: Error;
 
     logger.debug('[AuthService] Refresh token attempt', {
       operation: 'refreshToken',
       endpoint,
+      isServerSide,
+      maxRetries,
     });
 
-    try {
-      // ✅ USES FETCH - WORKS ON SERVER-SIDE!
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          refreshToken
-        })
-      });
+    // ✅ FIX: Add retry logic với exponential backoff
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        logger.debug('[AuthService] Refresh token attempt', {
+          operation: 'refreshToken',
+          attempt,
+          maxRetries,
+          endpoint,
+        });
 
-      logger.debug('[AuthService] Refresh token response received', {
-        operation: 'refreshToken',
-        status: response.status,
-        ok: response.ok,
-      });
+        // ✅ USES FETCH - WORKS ON SERVER-SIDE!
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            refreshToken
+          }),
+          // ✅ FIX: Add timeout để tránh hang
+          signal: AbortSignal.timeout(10000) // 10 second timeout
+        });
 
-      if (!response.ok) {
+        logger.debug('[AuthService] Refresh token response received', {
+          operation: 'refreshToken',
+          attempt,
+          status: response.status,
+          ok: response.ok,
+        });
+
+        if (response.ok) {
+          // ✅ Success case
+          const data = await response.json();
+
+          // Convert JSON response to protobuf-like object for compatibility
+          const refreshResponse = new RefreshTokenResponse();
+          if (data.accessToken) {
+            refreshResponse.setAccessToken(data.accessToken);
+            refreshResponse.setRefreshToken(data.refreshToken || refreshToken); // Use new refresh token if provided, otherwise keep old one
+          }
+
+          // Update access token in localStorage
+          if (refreshResponse.getAccessToken()) {
+            AuthHelpers.saveAccessToken(refreshResponse.getAccessToken());
+          }
+
+          logger.info('[AuthService] Token refreshed successfully', {
+            operation: 'refreshToken',
+            attempt,
+          });
+
+          return refreshResponse;
+        }
+
+        // ✅ FIX: Handle error responses với proper classification
         const errorData = await response.json().catch(() => ({}));
         let errorMessage = errorData.message || `HTTP ${response.status}: ${response.statusText}`;
 
-        // Handle specific error cases
+        // ✅ FIX: Classify errors để decide retry strategy
         if (response.status === 401) {
-          errorMessage = 'Refresh token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.';
+          // Refresh token expired - không retry, cần logout
+          errorMessage = 'REFRESH_TOKEN_EXPIRED: Refresh token không hợp lệ hoặc đã hết hạn.';
+          logger.error('[AuthService] Refresh token expired - no retry', {
+            operation: 'refreshToken',
+            status: response.status,
+            error: errorMessage,
+          });
+          
+          // Clear tokens chỉ khi refresh token thực sự expired
+          AuthHelpers.clearTokens();
+          throw new Error(errorMessage);
         } else if (response.status === 403) {
-          errorMessage = 'Không có quyền làm mới token. Vui lòng đăng nhập lại.';
-        } else if (response.status === 500) {
-          errorMessage = 'Lỗi server khi làm mới token. Vui lòng thử lại sau.';
+          // Permission denied - không retry
+          errorMessage = 'PERMISSION_DENIED: Không có quyền làm mới token.';
+          logger.error('[AuthService] Permission denied - no retry', {
+            operation: 'refreshToken',
+            status: response.status,
+            error: errorMessage,
+          });
+          throw new Error(errorMessage);
+        } else if (response.status >= 500) {
+          // Server error - có thể retry
+          errorMessage = `SERVER_ERROR: Lỗi server khi làm mới token (${response.status}).`;
+          logger.warn('[AuthService] Server error - will retry', {
+            operation: 'refreshToken',
+            attempt,
+            status: response.status,
+            error: errorMessage,
+          });
+          
+          if (attempt < maxRetries) {
+            // ✅ Retry với exponential backoff
+            const delayMs = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+            logger.debug('[AuthService] Retrying after delay', {
+              operation: 'refreshToken',
+              attempt,
+              delayMs,
+            });
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+            continue;
+          }
+          
+          throw new Error(errorMessage);
+        } else {
+          // Client error (4xx) - không retry
+          errorMessage = `CLIENT_ERROR: Lỗi client khi làm mới token (${response.status}).`;
+          logger.error('[AuthService] Client error - no retry', {
+            operation: 'refreshToken',
+            status: response.status,
+            error: errorMessage,
+          });
+          throw new Error(errorMessage);
         }
-
-        logger.error('[AuthService] Refresh token failed', {
+      } catch (error) {
+        lastError = error as Error;
+        
+        // ✅ FIX: Phân biệt network errors và application errors
+        if (error instanceof Error) {
+          if (error.name === 'AbortError') {
+            // Timeout error - có thể retry
+            logger.warn('[AuthService] Request timeout - will retry', {
+              operation: 'refreshToken',
+              attempt,
+              error: error.message,
+            });
+          } else if (error.message.includes('REFRESH_TOKEN_EXPIRED') || 
+                     error.message.includes('PERMISSION_DENIED') || 
+                     error.message.includes('CLIENT_ERROR')) {
+            // Application errors - không retry
+            logger.error('[AuthService] Application error - no retry', {
+              operation: 'refreshToken',
+              error: error.message,
+            });
+            throw error;
+          } else {
+            // Network error - có thể retry
+            logger.warn('[AuthService] Network error - will retry', {
+              operation: 'refreshToken',
+              attempt,
+              error: error.message,
+            });
+          }
+        }
+        
+        // ✅ Retry logic cho network errors
+        if (attempt < maxRetries) {
+          const delayMs = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+          logger.debug('[AuthService] Retrying after network error', {
+            operation: 'refreshToken',
+            attempt,
+            delayMs,
+            error: lastError.message,
+          });
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+          continue;
+        }
+        
+        // ✅ FIX: Không clear tokens cho network errors
+        logger.error('[AuthService] All retry attempts failed', {
           operation: 'refreshToken',
-          status: response.status,
-          error: errorMessage,
+          maxRetries,
+          finalError: lastError.message,
         });
-
-        // If refresh fails, clear tokens (force re-login)
-        AuthHelpers.clearTokens();
-        throw new Error(errorMessage);
+        
+        throw lastError;
       }
-
-      const data = await response.json();
-
-      // Convert JSON response to protobuf-like object for compatibility
-      const refreshResponse = new RefreshTokenResponse();
-      if (data.accessToken) {
-        refreshResponse.setAccessToken(data.accessToken);
-        refreshResponse.setRefreshToken(data.refreshToken || refreshToken); // Use new refresh token if provided, otherwise keep old one
-      }
-
-      // Update access token in localStorage
-      if (refreshResponse.getAccessToken()) {
-        AuthHelpers.saveAccessToken(refreshResponse.getAccessToken());
-      }
-
-      logger.debug('[AuthService] Token refreshed successfully', {
-        operation: 'refreshToken',
-      });
-
-      return refreshResponse;
-    } catch (error) {
-      // If refresh fails, clear tokens (force re-login)
-      AuthHelpers.clearTokens();
-
-      logger.error('[AuthService] Refresh token exception', {
-        operation: 'refreshToken',
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      throw error;
     }
+
+    // Should never reach here, but just in case
+    throw lastError!;
   }
 
   /**
@@ -574,7 +698,7 @@ export class AuthService {
       const response = await client.verifyEmail(request, getAuthMetadata());
       return response;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
+      const errorMessage = getGrpcErrorMessage(error as RpcError);
       throw new Error(errorMessage);
     }
   }
@@ -607,7 +731,7 @@ export class AuthService {
       const response = await client.sendVerificationEmail(request);
       return response;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
+      const errorMessage = getGrpcErrorMessage(error as RpcError);
       throw new Error(errorMessage);
     }
     */
@@ -626,7 +750,7 @@ export class AuthService {
       const response = await client.forgotPassword(request, getAuthMetadata());
       return response;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
+      const errorMessage = getGrpcErrorMessage(error as RpcError);
       throw new Error(errorMessage);
     }
   }
@@ -648,29 +772,30 @@ export class AuthService {
       const response = await client.resetPassword(request, getAuthMetadata());
       return response;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
+      const errorMessage = getGrpcErrorMessage(error as RpcError);
       throw new Error(errorMessage);
     }
   }
 
   /**
    * Get current authenticated user with enhanced error handling
+   * ✅ PHASE 2: Uses interceptor for automatic token refresh and retry
    */
   static async getCurrentUser(): Promise<GetUserResponse> {
     console.log('[AUTH_SERVICE] Getting current user...');
 
-    // Check if we have a valid token before making the request
-    const token = AuthHelpers.getAccessToken();
-    if (!token || !AuthHelpers.isTokenValid(token)) {
-      throw new Error('No valid authentication token available');
-    }
-
     const request = new GetUserRequest();
 
     try {
-      const client = getUserServiceClient();
-      // ✅ FIX: Pass metadata with CSRF token - THIS WAS THE MISSING PIECE!
-      const response = await client.getCurrentUser(request, getAuthMetadata());
+      // ✅ PHASE 2: Use intercepted gRPC call with automatic retry
+      const response = await makeInterceptedGrpcCall(
+        request,
+        async (req, metadata) => {
+          const client = getUserServiceClient();
+          return await client.getCurrentUser(req, metadata);
+        },
+        'getCurrentUser'
+      );
 
       logger.debug('[AuthService] Successfully retrieved current user', {
         operation: 'getCurrentUser',
@@ -679,11 +804,14 @@ export class AuthService {
 
       return response;
     } catch (error) {
-      logger.error('[AuthService] Failed to get current user', {
+      logger.error('[AuthService] Failed to get current user after all retries', {
         operation: 'getCurrentUser',
         error: error instanceof Error ? error.message : String(error),
       });
-      const errorMessage = handleGrpcError(error as RpcError);
+      
+      // ✅ PHASE 2: Interceptor already handled token refresh and retries
+      // If we reach here, it's a non-recoverable error
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get current user';
       throw new Error(errorMessage);
     }
   }

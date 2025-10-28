@@ -13,6 +13,9 @@ import {
 } from '@/lib/utils/protobuf-converters';
 import { devLogger } from '@/lib/utils/dev-logger';
 import { logger } from '@/lib/utils/logger';
+import { AuthStateCache } from '@/lib/utils/auth-state-cache';
+// ✅ PHASE 2: Import proactive token manager
+import { startProactiveTokenRefresh, stopProactiveTokenRefresh } from '@/lib/services/proactive-token-manager';
 
 /**
  * Unified Auth Context Types - SIMPLIFIED
@@ -101,7 +104,7 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
         // No backend token, use session data directly (Google OAuth case)
         hasInitializedRef.current = true; // Mark as initialized
         devLogger.debug('[AUTH] Using session data directly (no backend token)');
-        setUser({
+        const userData = {
           id: session.user.id || session.user.email || '',
           email: session.user.email || '',
           firstName: session.user.name?.split(' ')[0] || '',
@@ -112,13 +115,28 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
           emailVerified: true,
           createdAt: new Date(),
           updatedAt: new Date(),
+        };
+        setUser(userData);
+        
+        // ✅ Cache authentication state
+        AuthStateCache.setAuthState({
+          isAuthenticated: true,
+          userId: userData.id,
+          email: userData.email,
+          role: 'STUDENT', // Convert enum to string
+          level: 1,
         });
+        
         setIsLoading(false);
       } else if (session.backendAccessToken && !AuthHelpers.isTokenValid(session.backendAccessToken) && !hasInitializedRef.current) {
         // ✅ NEW: Token exists but is invalid/expired
         hasInitializedRef.current = true; // Mark as initialized to prevent retry
         devLogger.warn('[AUTH] Backend token is invalid/expired, clearing auth state');
         AuthHelpers.clearTokens();
+        
+        // ✅ Clear authentication state cache
+        AuthStateCache.clearAuthState();
+        
         setUser(null);
         setIsLoading(false);
       } else if (hasInitializedRef.current && user) {
@@ -178,6 +196,17 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
       devLogger.info('[AUTH] Successfully fetched user:', userData.email);
       setUser(userData);
+
+      // ✅ Cache authentication state
+      AuthStateCache.setAuthState({
+        isAuthenticated: true,
+        userId: userData.id,
+        email: userData.email,
+        role: userData.role === UserRole.USER_ROLE_ADMIN ? 'ADMIN' :
+              userData.role === UserRole.USER_ROLE_TEACHER ? 'TEACHER' :
+              userData.role === UserRole.USER_ROLE_TUTOR ? 'TUTOR' : 'STUDENT',
+        level: userData.level || 1,
+      });
 
       // Store user data in localStorage for persistence
       if (typeof window !== 'undefined') {
@@ -477,6 +506,9 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       // Clear tokens
       AuthHelpers.clearTokens();
 
+      // ✅ Clear authentication state cache
+      AuthStateCache.clearAuthState();
+
       // Clear user state
       setUser(null);
 
@@ -583,8 +615,27 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // SIMPLIFIED: Remove complex token refresh interval
-  // NextAuth handles token refresh automatically
+  // ✅ PHASE 2: Proactive Token Manager Integration
+  useEffect(() => {
+    if (user && !isLoading) {
+      // Start proactive token refresh when user is authenticated
+      logger.info('[AuthContext] Starting proactive token refresh for authenticated user');
+      startProactiveTokenRefresh({
+        silentMode: false, // Show notifications
+        checkInterval: 2 * 60 * 1000, // Check every 2 minutes
+        refreshThreshold: 5 * 60, // Refresh when < 5 minutes left
+      });
+    } else {
+      // Stop when user logs out or is not authenticated
+      logger.info('[AuthContext] Stopping proactive token refresh');
+      stopProactiveTokenRefresh();
+    }
+
+    // Cleanup on unmount
+    return () => {
+      stopProactiveTokenRefresh();
+    };
+  }, [user, isLoading]);
 
   // Memoize unified context value to prevent unnecessary re-renders
   const contextValue = useMemo((): AuthContextType => ({

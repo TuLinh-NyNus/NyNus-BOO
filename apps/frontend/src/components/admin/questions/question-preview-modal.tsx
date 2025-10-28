@@ -24,7 +24,6 @@ import {
   DialogHeader,
   DialogTitle,
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
   Badge,
@@ -38,7 +37,7 @@ import {
   EyeOff,
   X,
 } from 'lucide-react';
-import { Question, QuestionType } from '@/types/question';
+import { Question } from '@/types/question';
 import { cn } from '@/lib/utils';
 import { QuestionPreviewContent } from './question-preview-content';
 

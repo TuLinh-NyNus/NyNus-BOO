@@ -16,15 +16,18 @@ export const isStaging = process.env.APP_ENV === 'staging';
 
 export const JWT_CONFIG = {
   // Token expiry times (in milliseconds)
-  ACCESS_TOKEN_EXPIRY_MS: 15 * 60 * 1000, // 15 minutes
+  // ✅ INCREASED: From 15 minutes to 60 minutes to reduce token expiry errors
+  ACCESS_TOKEN_EXPIRY_MS: 60 * 60 * 1000, // 60 minutes
   REFRESH_TOKEN_EXPIRY_MS: 7 * 24 * 60 * 60 * 1000, // 7 days
   
   // Token expiry times (in seconds for backend compatibility)
-  ACCESS_TOKEN_EXPIRY_SECONDS: 15 * 60, // 15 minutes
+  // ✅ INCREASED: From 15 minutes to 60 minutes to reduce token expiry errors
+  ACCESS_TOKEN_EXPIRY_SECONDS: 60 * 60, // 60 minutes
   REFRESH_TOKEN_EXPIRY_SECONDS: 7 * 24 * 60 * 60, // 7 days
   
   // Token refresh threshold (refresh when token expires in X ms)
-  REFRESH_THRESHOLD_MS: 5 * 60 * 1000, // 5 minutes before expiry
+  // ✅ IMPROVED: From 5 minutes to 10 minutes for earlier refresh
+  REFRESH_THRESHOLD_MS: 10 * 60 * 1000, // 10 minutes before expiry
   
   // JWT issuer
   ISSUER: 'exam-bank-system',

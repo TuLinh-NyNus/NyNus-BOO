@@ -26,7 +26,6 @@ import {
   Archive,
   AlertTriangle,
   TrendingUp,
-  Users,
   FileCheck,
 } from 'lucide-react';
 
@@ -273,7 +272,7 @@ export default function AdminLibraryPage() {
 
   // Prepare filters
   const filters = useMemo(() => {
-    const filter: any = {};
+    const filter: Record<string, unknown> = {};
     
     if (typeFilter !== 'all') {
       filter.types = [typeFilter];
@@ -286,10 +285,10 @@ export default function AdminLibraryPage() {
   }, [typeFilter]);
 
   // Fetch data
-  const { items, loading, error, totalCount, refresh } = useLibraryItems({
+  const { items, loading, error, refresh } = useLibraryItems({
     pagination: { page: 1, limit: 100 },
     search,
-    sortBy: sortField as any,
+    sortBy: sortField as 'created_at' | 'title' | 'download_count' | 'rating',
     sortOrder,
     filter: filters,
   });

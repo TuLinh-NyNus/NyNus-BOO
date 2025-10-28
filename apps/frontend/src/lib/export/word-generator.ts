@@ -11,13 +11,8 @@ import {
   TextRun,
   AlignmentType,
   HeadingLevel,
-  UnderlineType,
   BorderStyle,
   ShadingType,
-  Table,
-  TableCell,
-  TableRow,
-  WidthType,
   convertInchesToTwip,
 } from 'docx';
 import { saveAs } from 'file-saver';
@@ -71,12 +66,12 @@ function getDifficultyText(difficulty: string): string {
  */
 function getQuestionTypeText(type: QuestionType): string {
   const typeMap: Record<QuestionType, string> = {
+    MC: 'Trắc nghiệm',
     MULTIPLE_CHOICE: 'Trắc nghiệm',
-    TRUE_FALSE: 'Đúng/Sai',
-    ESSAY: 'Tự luận',
-    SHORT_ANSWER: 'Trả lời ngắn',
-    FILL_IN_THE_BLANK: 'Điền vào chỗ trống',
-    MATCHING: 'Nối đáp án',
+    TF: 'Đúng/Sai',
+    SA: 'Trả lời ngắn',
+    ES: 'Tự luận',
+    MA: 'Nối đáp án',
   };
   return typeMap[type] || type;
 }
@@ -139,7 +134,7 @@ function createQuestionHeader(question: Question, index: number): Paragraph[] {
         }),
         new TextRun({
           text: `  [ ${getQuestionTypeText(question.type)} | ${getDifficultyText(
-            question.difficulty
+            question.difficulty || 'EASY'
           )} ]`,
           size: 20, // 10pt
           color: '4A5568',
@@ -180,16 +175,20 @@ function createAnswers(question: Question): Paragraph[] {
 
   const paragraphs: Paragraph[] = [
     new Paragraph({
-      text: 'Các đáp án:',
-      bold: true,
-      size: 22, // 11pt
+      children: [
+        new TextRun({
+          text: 'Các đáp án:',
+          bold: true,
+          size: 22, // 11pt
+        }),
+      ],
       spacing: { before: 100, after: 100 },
     }),
   ];
 
   question.answers.forEach((answer, idx) => {
     const label = getAnswerLabel(idx, question.type);
-    const isCorrect = answer.isCorrect;
+    const isCorrect = 'isCorrect' in answer ? answer.isCorrect : false;
 
     paragraphs.push(
       new Paragraph({
@@ -201,7 +200,7 @@ function createAnswers(question: Question): Paragraph[] {
             color: isCorrect ? '065F46' : '1A1A2E', // Green for correct, navy for others
           }),
           new TextRun({
-            text: stripHtml(answer.content),
+            text: stripHtml('content' in answer ? answer.content : `${answer.left} - ${answer.right}`),
             size: 22,
             color: isCorrect ? '065F46' : '1A1A2E',
           }),
@@ -229,10 +228,14 @@ function createSolution(solution: string): Paragraph[] {
       spacing: { before: 100 },
     }),
     new Paragraph({
-      text: 'Lời giải:',
-      bold: true,
-      size: 22,
-      color: '1E3A8A', // Blue 800
+      children: [
+        new TextRun({
+          text: 'Lời giải:',
+          bold: true,
+          size: 22,
+          color: '1E3A8A', // Blue 800
+        }),
+      ],
       spacing: { after: 100 },
     }),
     new Paragraph({

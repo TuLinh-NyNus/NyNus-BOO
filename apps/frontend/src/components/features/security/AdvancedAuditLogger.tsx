@@ -184,7 +184,7 @@ export const AdvancedAuditLogger: React.FC<AdvancedAuditLoggerProps> = ({
   const handleFilterChange = useCallback((key: keyof AuditFilters, value: string) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value || undefined
+      [key]: (value && value !== 'all') ? value : undefined
     }));
     setCurrentPage(1);
   }, []);
@@ -293,7 +293,7 @@ export const AdvancedAuditLogger: React.FC<AdvancedAuditLoggerProps> = ({
                 <SelectValue placeholder="Chọn hành động" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
                 {ACTION_TYPES.map(action => (
                   <SelectItem key={action} value={action}>{action}</SelectItem>
                 ))}
@@ -308,7 +308,7 @@ export const AdvancedAuditLogger: React.FC<AdvancedAuditLoggerProps> = ({
                 <SelectValue placeholder="Chọn tài nguyên" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
                 {RESOURCE_TYPES.map(resource => (
                   <SelectItem key={resource} value={resource}>{resource}</SelectItem>
                 ))}
@@ -323,7 +323,7 @@ export const AdvancedAuditLogger: React.FC<AdvancedAuditLoggerProps> = ({
                 <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tất cả</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
                 <SelectItem value="true">Thành công</SelectItem>
                 <SelectItem value="false">Thất bại</SelectItem>
               </SelectContent>

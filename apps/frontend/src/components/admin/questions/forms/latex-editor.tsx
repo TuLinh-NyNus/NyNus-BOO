@@ -9,13 +9,13 @@
 "use client";
 
 import React, { useState, useCallback, useRef } from "react";
+import * as monaco from 'monaco-editor';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   Button,
-  Textarea,
   Badge,
   Tabs,
   TabsContent,
@@ -28,6 +28,13 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  CardFooter,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui";
 import {
   Eye,
@@ -36,18 +43,17 @@ import {
   Type,
   Zap,
   Copy,
-  // Download,
-  // Settings,
-  HelpCircle,
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Maximize2,
-  Minimize2
+  Maximize2
 } from "lucide-react";
 
 // Import LaTeX components
 import { LaTeXContent, useLatexValidation } from "@/components/common/latex";
+
+// Import Monaco LaTeX Editor
+import { MonacoLatexEditor, MonacoLatexEditorRef } from "@/components/common/editors/monaco-latex-editor";
 
 // ===== TYPES =====
 
@@ -65,7 +71,31 @@ export interface LaTeXEditorProps {
 
 // ===== LATEX TEMPLATES =====
 
-const LATEX_TEMPLATES = [
+const QUESTION_STRUCTURE_TEMPLATES = [
+  {
+    category: "Cấu trúc câu hỏi",
+    items: [
+      {
+        name: "Trắc nghiệm (1 đáp án đúng)",
+        code: `\\begin{ex}%[Mã câu hỏi]%[Nguồn]\nNội dung câu hỏi ở đây...\n\\choice\n{\\True Đáp án A (đúng)}\n{Đáp án B}\n{Đáp án C}\n{Đáp án D}\n\\loigiai{\nLời giải chi tiết...\n}\n\\end{ex}`
+      },
+      {
+        name: "Trắc nghiệm (nhiều đáp án đúng)",
+        code: `\\begin{ex}%[Mã câu hỏi]%[Nguồn]\nNội dung câu hỏi...\n\\choice[m]\n{\\True Đáp án A (đúng)}\n{Đáp án B}\n{\\True Đáp án C (đúng)}\n{Đáp án D}\n\\loigiai{\nLời giải chi tiết...\n}\n\\end{ex}`
+      },
+      {
+        name: "Đúng/Sai",
+        code: `\\begin{ex}%[Mã câu hỏi]%[Nguồn]\nPhát biểu này là đúng hay sai?\n\\choice\n{\\True Đúng}\n{Sai}\n\\loigiai{\nGiải thích tại sao... \n}\n\\end{ex}`
+      },
+      {
+        name: "Điền vào chỗ trống",
+        code: `\\begin{ex}%[Mã câu hỏi]%[Nguồn]\nĐiền vào chỗ trống: Trái đất quay quanh ...\n\\choice\n{\\True Mặt trời}\n\\loigiai{\nTrái đất là một hành tinh trong hệ mặt trời.\n}\n\\end{ex}`
+      }
+    ]
+  }
+];
+
+const SYMBOL_TEMPLATES = [
   {
     category: "Cơ bản",
     items: [
@@ -98,6 +128,8 @@ const LATEX_TEMPLATES = [
   }
 ];
 
+const LATEX_TEMPLATES = [...QUESTION_STRUCTURE_TEMPLATES, ...SYMBOL_TEMPLATES];
+
 // ===== MAIN COMPONENT =====
 
 export function LaTeXEditor({
@@ -114,11 +146,15 @@ export function LaTeXEditor({
   // ===== STATE =====
   
   const [isPreviewVisible, setIsPreviewVisible] = useState(showPreview);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cursorPosition, setCursorPosition] = useState<monaco.Position | null>(null);
+  const [activeTab, setActiveTab] = useState("editor");
+
+  const monacoEditorRef = useRef<MonacoLatexEditorRef>(null);
   
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  // ===== MONACO EDITOR SETUP =====
+  
+  // Monaco setup is handled by MonacoLatexEditor component
   
   // ===== VALIDATION =====
   
@@ -126,30 +162,19 @@ export function LaTeXEditor({
   
   // ===== HANDLERS =====
   
-  const handleTextChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
-    setCursorPosition(e.target.selectionStart);
+  const handleEditorChange = useCallback((newValue: string) => {
     onChange(newValue);
   }, [onChange]);
   
+  const handleCursorPositionChange = useCallback((position: monaco.Position) => {
+    setCursorPosition(position);
+  }, []);
+  
   const handleInsertTemplate = useCallback((template: string) => {
-    if (!textareaRef.current) return;
+    if (!monacoEditorRef.current) return;
 
-    const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const newValue = value.substring(0, start) + template + value.substring(end);
-
-    onChange(newValue);
-    setSelectedTemplate(template);
-
-    // Set cursor position after template
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + template.length, start + template.length);
-      setCursorPosition(start + template.length);
-    }, 0);
-  }, [value, onChange]);
+    monacoEditorRef.current.insertText(template);
+  }, []);
   
   const handleCopyToClipboard = useCallback(() => {
     navigator.clipboard.writeText(value);
@@ -159,16 +184,20 @@ export function LaTeXEditor({
     setIsPreviewVisible(!isPreviewVisible);
   }, [isPreviewVisible]);
   
-  const handleToggleFullscreen = useCallback(() => {
-    setIsFullscreen(!isFullscreen);
-  }, [isFullscreen]);
+  const handleToggleModal = useCallback(() => {
+    setIsModalOpen(!isModalOpen);
+  }, [isModalOpen]);
+
+  const handleCopyTemplate = useCallback((template: string) => {
+    navigator.clipboard.writeText(template);
+    // Optionally, show a toast notification
+  }, []);
 
   /**
-   * Handle cursor position change
+   * Handle Monaco editor mount
    */
-  const handleCursorChange = useCallback((event: React.SyntheticEvent<HTMLTextAreaElement>) => {
-    const target = event.target as HTMLTextAreaElement;
-    setCursorPosition(target.selectionStart);
+  const handleEditorMount = useCallback((_editor: monaco.editor.IStandaloneCodeEditor) => {
+    // Editor is ready, can perform additional setup if needed
   }, []);
   
   // ===== RENDER HELPERS =====
@@ -186,15 +215,23 @@ export function LaTeXEditor({
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant={isPreviewVisible ? "default" : "ghost"}
                   size="sm"
                   onClick={handleTogglePreview}
+                  className={`transition-all duration-200 ${
+                    isPreviewVisible 
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                      : 'hover:bg-muted'
+                  }`}
                 >
                   {isPreviewVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  <span className="ml-1 text-xs font-medium">
+                    {isPreviewVisible ? 'Ẩn' : 'Xem trước'}
+                  </span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {isPreviewVisible ? 'Ẩn xem trước' : 'Hiện xem trước'}
+                {isPreviewVisible ? 'Ẩn panel xem trước bên phải' : 'Hiện panel xem trước bên phải'}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -225,13 +262,13 @@ export function LaTeXEditor({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleToggleFullscreen}
+                  onClick={handleToggleModal}
                 >
-                  {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                  <Maximize2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {isFullscreen ? 'Thu nhỏ' : 'Toàn màn hình'}
+                Mở rộng editor
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -267,25 +304,43 @@ export function LaTeXEditor({
    */
   const renderTemplates = () => {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6 max-w-full">
         {LATEX_TEMPLATES.map((category) => (
-          <div key={category.category}>
-            <h4 className="font-medium text-sm mb-2">{category.category}</h4>
-            <div className="grid grid-cols-2 gap-2">
+          <div key={category.category} className="w-full">
+            <h4 className="font-medium text-sm mb-3 text-foreground sticky top-0 bg-background/95 backdrop-blur py-2 border-b">
+              {category.category}
+            </h4>
+            <div className="grid grid-cols-1 gap-3">
               {category.items.map((item) => (
-                <Button
-                  key={item.name}
-                  variant={selectedTemplate === item.code ? "default" : "outline"}
-                  size="sm"
-                  className="justify-start text-xs h-auto p-2"
-                  onClick={() => handleInsertTemplate(item.code)}
-                  disabled={disabled}
-                >
-                  <div className="text-left">
-                    <div className="font-medium">{item.name}</div>
-                    <code className="text-xs text-muted-foreground">{item.code}</code>
-                  </div>
-                </Button>
+                <Card key={item.name} className="overflow-hidden hover:shadow-md transition-shadow w-full">
+                  <CardHeader className="p-3 pb-2">
+                    <CardTitle className="text-sm font-semibold truncate">{item.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3 pt-0 bg-muted/50">
+                    <pre className="text-xs font-mono whitespace-pre-wrap overflow-x-auto max-w-full">
+                      <code className="break-all">{item.code}</code>
+                    </pre>
+                  </CardContent>
+                  <CardFooter className="p-2 flex justify-end gap-2 bg-background/50 flex-wrap">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => handleCopyTemplate(item.code)}
+                      disabled={disabled}
+                    >
+                      <Copy className="h-3 w-3 mr-1" /> Sao chép
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => handleInsertTemplate(item.code)}
+                      disabled={disabled}
+                    >
+                      <Zap className="h-3 w-3 mr-1" /> Chèn
+                    </Button>
+                  </CardFooter>
+                </Card>
               ))}
             </div>
           </div>
@@ -321,12 +376,12 @@ export function LaTeXEditor({
   
   // ===== MAIN RENDER =====
   
-  const containerClasses = `latex-editor ${isFullscreen ? 'fixed inset-0 z-50 bg-background' : ''} ${className}`;
-  const editorHeight = isFullscreen ? 'calc(100vh - 200px)' : height;
+  const containerClasses = `latex-editor ${className}`;
+  const editorHeight = height;
   
   return (
-    <Card className={containerClasses}>
-      <CardHeader className="pb-2">
+    <Card className={`${containerClasses} overflow-hidden`}>
+      <CardHeader className="pb-2 flex-shrink-0">
         <CardTitle className="flex items-center gap-2 text-base">
           <Code className="h-4 w-4" />
           LaTeX Editor
@@ -335,11 +390,11 @@ export function LaTeXEditor({
       
       {renderToolbar()}
       
-      <CardContent className="p-0">
-        <div className="grid grid-cols-1 lg:grid-cols-3 h-full">
-          {/* Editor */}
-          <div className={`${isPreviewVisible ? 'lg:col-span-2' : 'lg:col-span-3'} border-r`}>
-            <Tabs defaultValue="editor" className="h-full">
+      <CardContent className="p-0 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-hidden">
+          {/* Editor and Templates */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <div className="p-2 border-b flex-shrink-0">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="editor" className="flex items-center gap-2">
                   <Type className="h-4 w-4" />
@@ -350,83 +405,204 @@ export function LaTeXEditor({
                   Templates
                 </TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="editor" className="mt-0 h-full">
-                <Textarea
-                  ref={textareaRef}
-                  value={value}
-                  onChange={handleTextChange}
-                  onSelect={handleCursorChange}
-                  onKeyUp={handleCursorChange}
-                  onClick={handleCursorChange}
-                  placeholder={placeholder}
-                  disabled={disabled}
-                  className="border-0 resize-none focus-visible:ring-0 rounded-none"
-                  style={{ height: editorHeight }}
-                />
-              </TabsContent>
-              
-              <TabsContent value="templates" className="mt-0 p-4 overflow-y-auto" style={{ height: editorHeight }}>
-                {renderTemplates()}
-              </TabsContent>
-            </Tabs>
-          </div>
-          
-          {/* Preview */}
-          {isPreviewVisible && (
-            <div className="lg:col-span-1">
-              <div className="p-4 h-full overflow-y-auto" style={{ height: editorHeight }}>
-                <div className="flex items-center gap-2 mb-3">
-                  <Eye className="h-4 w-4" />
-                  <span className="font-medium text-sm">Xem trước</span>
-                </div>
-                
-                {value ? (
-                  <div className="prose prose-sm max-w-none">
-                    <LaTeXContent
-                      content={value}
-                      safeMode={true}
-                      expandable={true}
-                      showStats={false}
+            </div>
+
+            <TabsContent value="editor" className="mt-0 flex-1 overflow-hidden">
+              <div className="h-full grid grid-cols-1 lg:grid-cols-3 overflow-hidden">
+                <div className={`${isPreviewVisible ? 'lg:col-span-2' : 'lg:col-span-3'} border-r flex flex-col overflow-hidden`}>
+                  <div className="flex-1 overflow-hidden">
+                    <MonacoLatexEditor
+                      ref={monacoEditorRef}
+                      value={value}
+                      onChange={handleEditorChange}
+                      onMount={handleEditorMount}
+                      onCursorPositionChange={handleCursorPositionChange}
+                      placeholder={placeholder}
+                      disabled={disabled}
+                      height={editorHeight}
+                      showMinimap={false}
+                      showLineNumbers={true}
+                      wordWrap={true}
+                      fontSize={14}
+                      enableAutoCompletion={true}
+                      className="border-0 rounded-none"
                     />
                   </div>
-                ) : (
-                  <div className="text-muted-foreground text-sm italic">
-                    Nhập nội dung để xem trước...
+                  <div className="flex-shrink-0">
+                    {renderValidationErrors()}
+                  </div>
+                </div>
+                {/* Preview */}
+                {isPreviewVisible && (
+                  <div className="lg:col-span-1 hidden lg:flex flex-col overflow-hidden">
+                    <div className="p-4 flex-1 overflow-y-auto">
+                      <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+                        <Eye className="h-4 w-4" />
+                        <span className="font-medium text-sm">Xem trước</span>
+                      </div>
+                      <div className="overflow-auto">
+                        {value ? (
+                          <div className="prose prose-sm max-w-none break-words">
+                            <LaTeXContent
+                              content={value}
+                              safeMode={true}
+                              expandable={true}
+                              showStats={false}
+                            />
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground text-sm italic">
+                            Nhập nội dung để xem trước...
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          )}
-        </div>
-        
-        {renderValidationErrors()}
-      </CardContent>
-      
-      {/* Status Bar */}
-      <div className="px-4 py-2 border-t bg-muted/50 flex items-center justify-between text-xs text-muted-foreground">
-        <div className="flex items-center gap-4">
-          <span>Độ dài: {value.length} ký tự</span>
-          <span>Vị trí con trỏ: {cursorPosition}</span>
-          <span>Dòng: {value.substring(0, cursorPosition).split('\n').length}</span>
-        </div>
-        {validation.isValid ? (
-          <span className="text-green-600">✓ LaTeX hợp lệ</span>
-        ) : (
-          <span className="text-red-600">⚠ Có lỗi LaTeX</span>
-        )}
-      </div>
+            </TabsContent>
 
-      {/* Help */}
-      <div className="p-4 border-t bg-muted/50">
-        <Alert>
-          <HelpCircle className="h-4 w-4" />
-          <AlertDescription className="text-xs">
-            <strong>Hướng dẫn LaTeX:</strong> Sử dụng $...$ cho inline math, $$...$$ cho display math.
-            Ví dụ: $a^2 + b^2 = c^2$ hoặc $$\int_0^1 f(t) dt = 1$$
-          </AlertDescription>
-        </Alert>
-      </div>
+            <TabsContent value="templates" className="mt-0 flex-1 overflow-hidden">
+              <div className="p-4 h-full overflow-y-auto">
+                {renderTemplates()}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </CardContent>
+
+      {/* Modal Dialog for Expanded Editor */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-[95vw] w-[95vw] h-[90vh] flex flex-col p-4 gap-0">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Code className="h-5 w-5" />
+              LaTeX Editor - Chế độ mở rộng
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Soạn thảo LaTeX với không gian làm việc rộng rãi hơn
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-hidden min-h-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+              <TabsList className="grid w-full grid-cols-2 mb-3 flex-shrink-0">
+                <TabsTrigger value="editor" className="flex items-center gap-2">
+                  <Type className="h-4 w-4" />
+                  Editor
+                </TabsTrigger>
+                <TabsTrigger value="templates" className="flex items-center gap-2">
+                  <Zap className="h-4 w-4" />
+                  Templates
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="editor" className="flex-1 overflow-hidden mt-0">
+                <div className={`h-full gap-3 overflow-hidden ${
+                  isPreviewVisible ? 'grid grid-cols-1 lg:grid-cols-2' : 'flex flex-col'
+                }`}>
+                  <div className="flex flex-col overflow-hidden">
+                    <div className="flex items-center justify-between mb-2 flex-shrink-0">
+                      <span className="text-sm font-medium">Nội dung LaTeX</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant={isPreviewVisible ? "default" : "outline"}
+                          size="sm"
+                          onClick={handleTogglePreview}
+                          className={`transition-all duration-200 ${
+                            isPreviewVisible 
+                              ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          {isPreviewVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          <span className="ml-1 text-xs font-medium">
+                            {isPreviewVisible ? 'Ẩn' : 'Xem trước'}
+                          </span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleCopyToClipboard}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-h-0 overflow-hidden">
+                      <MonacoLatexEditor
+                        value={value}
+                        onChange={handleEditorChange}
+                        onCursorPositionChange={handleCursorPositionChange}
+                        placeholder={placeholder}
+                        disabled={disabled}
+                        height="60vh"
+                        showMinimap={true}
+                        showLineNumbers={true}
+                        wordWrap={true}
+                        fontSize={14}
+                        enableAutoCompletion={true}
+                        className="border-0 rounded-none"
+                      />
+                    </div>
+                    <div className="flex-shrink-0">
+                      {renderValidationErrors()}
+                    </div>
+                  </div>
+                  
+                  {isPreviewVisible && (
+                    <div className="flex flex-col overflow-hidden">
+                      <div className="flex items-center gap-2 mb-2 flex-shrink-0">
+                        <Eye className="h-4 w-4" />
+                        <span className="text-sm font-medium">Xem trước</span>
+                      </div>
+                      <div className="flex-1 min-h-0 overflow-y-auto border rounded-md p-3 bg-muted/50">
+                        {value ? (
+                          <div className="prose prose-sm max-w-none break-words">
+                            <LaTeXContent
+                              content={value}
+                              safeMode={true}
+                              expandable={true}
+                              showStats={false}
+                            />
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground text-sm italic flex items-center justify-center h-full">
+                            Nhập nội dung để xem trước...
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="templates" className="flex-1 overflow-hidden mt-0">
+                <div className="h-full overflow-y-auto">
+                  {renderTemplates()}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <DialogFooter className="pt-3 border-t">
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <span>Độ dài: {value.length} ký tự</span>
+                <span>Vị trí con trỏ: {cursorPosition ? `${cursorPosition.lineNumber}:${cursorPosition.column}` : '1:1'}</span>
+                {validation.isValid ? (
+                  <span className="text-green-600">✓ LaTeX hợp lệ</span>
+                ) : (
+                  <span className="text-red-600">⚠ Có lỗi LaTeX</span>
+                )}
+              </div>
+              <Button size="sm" onClick={() => setIsModalOpen(false)}>
+                Đóng
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

@@ -11,6 +11,7 @@
 
 // gRPC-Web imports
 import { NotificationServiceClient } from '@/generated/v1/NotificationServiceClientPb';
+import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';
 import {
   Notification as PbNotification,
   GetNotificationsRequest,
@@ -23,7 +24,8 @@ import {
 import { RpcError } from 'grpc-web';
 
 // gRPC client utilities
-import { GRPC_WEB_HOST, getAuthMetadata } from './client';
+import { getAuthMetadata } from './client';
+import { createGrpcClient } from './client-factory';
 
 // ===== FRONTEND TYPES =====
 
@@ -57,14 +59,8 @@ export interface CreateNotificationRequestData {
 
 // ===== gRPC CLIENT INITIALIZATION =====
 
-// Uses GRPC_WEB_HOST which routes through API proxy (/api/grpc) by default
-// ✅ FIX: Add format option to match proto generation config (mode=grpcwebtext)
-const notificationServiceClient = new NotificationServiceClient(GRPC_WEB_HOST, null, {
-  format: 'text', // Use text format for consistency with proto generation
-  withCredentials: false,
-  unaryInterceptors: [],
-  streamInterceptors: []
-});
+// ✅ FIX: Use client factory for lazy initialization
+const getNotificationServiceClient = createGrpcClient(NotificationServiceClient, 'NotificationService');
 
 // ===== OBJECT MAPPERS =====
 
@@ -88,23 +84,94 @@ function mapNotificationFromPb(pbNotification: PbNotification): BackendNotificat
     message: notificationObj.message,
     data: dataMap,
     isRead: notificationObj.isRead,
-    readAt: notificationObj.readAt || undefined,
-    createdAt: notificationObj.createdAt,
-    expiresAt: notificationObj.expiresAt || undefined,
+    readAt: notificationObj.readAt ? String(notificationObj.readAt) : undefined,
+    createdAt: String(notificationObj.createdAt || ''),
+    expiresAt: notificationObj.expiresAt ? String(notificationObj.expiresAt) : undefined,
   };
+}
+
+// ===== CACHING MECHANISM =====
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+const cache = new Map<string, CacheEntry<unknown>>();
+const CACHE_DURATION = 30000; // 30 seconds cache
+
+/**
+ * Get cached data if still valid
+ */
+function getCachedData<T>(key: string): T | null {
+  const entry = cache.get(key) as CacheEntry<T> | undefined;
+  if (!entry) return null;
+  
+  const isExpired = Date.now() - entry.timestamp > CACHE_DURATION;
+  if (isExpired) {
+    cache.delete(key);
+    return null;
+  }
+  
+  return entry.data;
+}
+
+/**
+ * Set cached data
+ */
+function setCachedData<T>(key: string, data: T): void {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
+/**
+ * Clear cache by pattern
+ */
+function clearCache(pattern?: string): void {
+  if (!pattern) {
+    cache.clear();
+    return;
+  }
+  
+  const keysToDelete: string[] = [];
+  cache.forEach((_, key) => {
+    if (key.includes(pattern)) {
+      keysToDelete.push(key);
+    }
+  });
+  
+  keysToDelete.forEach(key => cache.delete(key));
 }
 
 // ===== ERROR HANDLING =====
 
 /**
+ * Check if error is rate limit error
+ */
+function isRateLimitError(error: RpcError): boolean {
+  return error.code === 8 || // RESOURCE_EXHAUSTED
+         error.message?.toLowerCase().includes('rate limit');
+}
+
+/**
  * Handle gRPC errors and convert to user-friendly messages
  */
-function handleGrpcError(error: RpcError): string {
-  console.error('gRPC Error:', error);
+function handleGrpcError(error: RpcError, options?: { silent?: boolean }): string {
+  const isRateLimit = isRateLimitError(error);
+  
+  // Log based on error type
+  if (isRateLimit) {
+    if (!options?.silent) {
+      console.warn('[NotificationService] Rate limit exceeded, using cached data if available');
+    }
+  } else {
+    console.error('[NotificationService] gRPC Error:', error);
+  }
+  
   switch (error.code) {
     case 3: return error.message || 'Dữ liệu không hợp lệ';
     case 5: return 'Không tìm thấy thông báo';
     case 7: return 'Bạn không có quyền thực hiện thao tác này';
+    case 8: return error.message || 'Vui lòng thử lại sau';
     case 14: return 'Dịch vụ tạm thời không khả dụng';
     case 16: return 'Vui lòng đăng nhập để tiếp tục';
     default: return error.message || 'Đã xảy ra lỗi không xác định';
@@ -117,14 +184,26 @@ export class NotificationService {
   /**
    * Get user notifications with pagination
    * Lấy danh sách thông báo của user
+   * 
+   * ✅ FIX: Added caching and graceful error handling for rate limit
    */
   static async getUserNotifications(params: {
     page?: number;
     limit?: number;
     unreadOnly?: boolean;
   } = {}): Promise<NotificationListResponse> {
+    const { page = 1, limit = 20, unreadOnly = false } = params;
+    const cacheKey = `notification:list:${page}:${limit}:${unreadOnly}`;
+    
+    // Check cache first (only for first page to keep data fresh)
+    if (page === 1) {
+      const cached = getCachedData<NotificationListResponse>(cacheKey);
+      if (cached !== null) {
+        return cached;
+      }
+    }
+    
     try {
-      const { page = 1, limit = 20, unreadOnly = false } = params;
       const offset = (page - 1) * limit;
 
       const request = new GetNotificationsRequest();
@@ -132,16 +211,38 @@ export class NotificationService {
       request.setOffset(offset);
       request.setUnreadOnly(unreadOnly);
 
-      const response = await notificationServiceClient.getNotifications(request, getAuthMetadata());
+      const response = await getNotificationServiceClient().getNotifications(request, getAuthMetadata());
       const notifications = response.getNotificationsList().map(mapNotificationFromPb);
       
-      return {
+      const result = {
         notifications,
         total: response.getTotal(),
         unreadCount: response.getUnreadCount(),
       };
+      
+      // Cache the result (only for first page)
+      if (page === 1) {
+        setCachedData(cacheKey, result);
+      }
+      
+      return result;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
+      const rpcError = error as RpcError;
+      const isRateLimit = isRateLimitError(rpcError);
+      
+      // Handle rate limit gracefully
+      if (isRateLimit) {
+        console.warn('[NotificationService] Rate limit exceeded for getUserNotifications, returning empty list');
+        // Return empty list instead of throwing error
+        return {
+          notifications: [],
+          total: 0,
+          unreadCount: 0,
+        };
+      }
+      
+      // For other errors, still throw
+      const errorMessage = handleGrpcError(rpcError);
       throw new Error(errorMessage);
     }
   }
@@ -149,18 +250,44 @@ export class NotificationService {
   /**
    * Get unread count
    * Lấy số lượng thông báo chưa đọc
+   * 
+   * ✅ FIX: Added caching and graceful error handling for rate limit
    */
   static async getUnreadCount(): Promise<number> {
+    const cacheKey = 'notification:unread-count';
+    
+    // Check cache first
+    const cached = getCachedData<number>(cacheKey);
+    if (cached !== null) {
+      return cached;
+    }
+    
     try {
       const request = new GetNotificationsRequest();
       request.setLimit(1);
       request.setOffset(0);
       request.setUnreadOnly(true);
 
-      const response = await notificationServiceClient.getNotifications(request, getAuthMetadata());
-      return response.getUnreadCount();
+      const response = await getNotificationServiceClient().getNotifications(request, getAuthMetadata());
+      const count = response.getUnreadCount();
+      
+      // Cache the result
+      setCachedData(cacheKey, count);
+      
+      return count;
     } catch (error) {
-      const errorMessage = handleGrpcError(error as RpcError);
+      const rpcError = error as RpcError;
+      const isRateLimit = isRateLimitError(rpcError);
+      
+      // Handle rate limit gracefully
+      if (isRateLimit) {
+        console.warn('[NotificationService] Rate limit exceeded for getUnreadCount, returning 0');
+        // Return 0 instead of throwing error
+        return 0;
+      }
+      
+      // For other errors, still throw
+      const errorMessage = handleGrpcError(rpcError);
       throw new Error(errorMessage);
     }
   }
@@ -168,14 +295,23 @@ export class NotificationService {
   /**
    * Mark notification as read
    * Đánh dấu thông báo đã đọc
+   * 
+   * ✅ FIX: Clear cache after mutation
    */
   static async markAsRead(notificationId: string): Promise<boolean> {
     try {
       const request = new MarkAsReadRequest();
       request.setId(notificationId);
 
-      const response = await notificationServiceClient.markAsRead(request, getAuthMetadata());
-      return response.getSuccess();
+      const response = await getNotificationServiceClient().markAsRead(request, getAuthMetadata());
+      const success = response.getSuccess();
+      
+      // Clear notification cache to force refresh
+      if (success) {
+        clearCache('notification:');
+      }
+      
+      return success;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
       throw new Error(errorMessage);
@@ -185,13 +321,22 @@ export class NotificationService {
   /**
    * Mark all notifications as read
    * Đánh dấu tất cả thông báo đã đọc
+   * 
+   * ✅ FIX: Clear cache after mutation
    */
   static async markAllAsRead(): Promise<boolean> {
     try {
       const request = new MarkAllAsReadRequest();
 
-      const response = await notificationServiceClient.markAllAsRead(request, getAuthMetadata());
-      return response.getMarkedCount() > 0;
+      const response = await getNotificationServiceClient().markAllAsRead(request, getAuthMetadata());
+      const success = response.getMarkedCount() > 0;
+      
+      // Clear notification cache to force refresh
+      if (success) {
+        clearCache('notification:');
+      }
+      
+      return success;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
       throw new Error(errorMessage);
@@ -201,14 +346,23 @@ export class NotificationService {
   /**
    * Delete notification
    * Xóa thông báo
+   * 
+   * ✅ FIX: Clear cache after mutation
    */
   static async deleteNotification(notificationId: string): Promise<boolean> {
     try {
       const request = new DeleteNotificationRequest();
       request.setId(notificationId);
 
-      const response = await notificationServiceClient.deleteNotification(request, getAuthMetadata());
-      return response.getSuccess();
+      const response = await getNotificationServiceClient().deleteNotification(request, getAuthMetadata());
+      const success = response.getSuccess();
+      
+      // Clear notification cache to force refresh
+      if (success) {
+        clearCache('notification:');
+      }
+      
+      return success;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
       throw new Error(errorMessage);
@@ -218,13 +372,22 @@ export class NotificationService {
   /**
    * Delete all notifications
    * Xóa tất cả thông báo
+   * 
+   * ✅ FIX: Clear cache after mutation
    */
   static async deleteAllNotifications(): Promise<number> {
     try {
       const request = new DeleteAllNotificationsRequest();
 
-      const response = await notificationServiceClient.deleteAllNotifications(request, getAuthMetadata());
-      return response.getDeletedCount();
+      const response = await getNotificationServiceClient().deleteAllNotifications(request, getAuthMetadata());
+      const deletedCount = response.getDeletedCount();
+      
+      // Clear notification cache to force refresh
+      if (deletedCount > 0) {
+        clearCache('notification:');
+      }
+      
+      return deletedCount;
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);
       throw new Error(errorMessage);
@@ -234,6 +397,8 @@ export class NotificationService {
   /**
    * Create notification (admin only)
    * Tạo thông báo (chỉ admin)
+   * 
+   * ✅ FIX: Clear cache after mutation
    */
   static async createNotification(requestData: CreateNotificationRequestData): Promise<BackendNotification | null> {
     try {
@@ -251,11 +416,20 @@ export class NotificationService {
       }
       
       if (requestData.expiresAt) {
-        request.setExpiresAt(requestData.expiresAt);
+        const timestamp = new Timestamp();
+        const date = new Date(requestData.expiresAt);
+        timestamp.setSeconds(Math.floor(date.getTime() / 1000));
+        timestamp.setNanos((date.getTime() % 1000) * 1000000);
+        request.setExpiresAt(timestamp);
       }
 
-      const response = await notificationServiceClient.createNotification(request, getAuthMetadata());
+      const response = await getNotificationServiceClient().createNotification(request, getAuthMetadata());
       const notification = response.getNotification();
+      
+      // Clear notification cache to force refresh
+      if (notification) {
+        clearCache('notification:');
+      }
       
       return notification ? mapNotificationFromPb(notification) : null;
     } catch (error) {

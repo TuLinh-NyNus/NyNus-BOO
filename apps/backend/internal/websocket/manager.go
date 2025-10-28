@@ -27,32 +27,32 @@ type Client struct {
 type ConnectionManager struct {
 	// connections maps userID to client connection
 	connections map[string]*Client
-	
+
 	// mu protects the connections map
 	mu sync.RWMutex
-	
+
 	// register channel for new client connections
 	register chan *Client
-	
+
 	// unregister channel for client disconnections
 	unregister chan *Client
-	
+
 	// broadcast channel for broadcasting messages to all clients
 	broadcast chan []byte
-	
+
 	// userBroadcast channel for broadcasting to specific user
 	userBroadcast chan *UserMessage
-	
+
 	// roleBroadcast channel for broadcasting to specific role
 	roleBroadcast chan *RoleMessage
-	
+
 	// logger for logging
 	logger *log.Logger
-	
+
 	// ctx for graceful shutdown
 	ctx    context.Context
 	cancel context.CancelFunc
-	
+
 	// metrics
 	metrics *ConnectionMetrics
 }
@@ -82,7 +82,7 @@ type ConnectionMetrics struct {
 // NewConnectionManager creates a new connection manager
 func NewConnectionManager() *ConnectionManager {
 	ctx, cancel := context.WithCancel(context.Background())
-	
+
 	return &ConnectionManager{
 		connections:   make(map[string]*Client),
 		register:      make(chan *Client, 10),
@@ -108,9 +108,9 @@ func (m *ConnectionManager) RegisterClient(userID, role string, conn *websocket.
 		SendCh:   make(chan []byte, 256),
 		lastPing: time.Now(),
 	}
-	
+
 	m.register <- client
-	
+
 	return client
 }
 
@@ -127,7 +127,7 @@ func (m *ConnectionManager) UnregisterClient(client *Client) {
 func (m *ConnectionManager) GetConnection(userID string) (*Client, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	client, exists := m.connections[userID]
 	return client, exists
 }
@@ -137,7 +137,7 @@ func (m *ConnectionManager) GetConnection(userID string) (*Client, bool) {
 func (m *ConnectionManager) GetConnectionCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	return len(m.connections)
 }
 
@@ -147,11 +147,11 @@ func (m *ConnectionManager) BroadcastToUser(userID string, message []byte) error
 	if userID == "" {
 		return fmt.Errorf("userID cannot be empty")
 	}
-	
+
 	if len(message) == 0 {
 		return fmt.Errorf("message cannot be empty")
 	}
-	
+
 	select {
 	case m.userBroadcast <- &UserMessage{UserID: userID, Message: message}:
 		return nil
@@ -166,7 +166,7 @@ func (m *ConnectionManager) BroadcastToAll(message []byte) error {
 	if len(message) == 0 {
 		return fmt.Errorf("message cannot be empty")
 	}
-	
+
 	select {
 	case m.broadcast <- message:
 		return nil
@@ -181,11 +181,11 @@ func (m *ConnectionManager) BroadcastToRole(role string, message []byte) error {
 	if role == "" {
 		return fmt.Errorf("role cannot be empty")
 	}
-	
+
 	if len(message) == 0 {
 		return fmt.Errorf("message cannot be empty")
 	}
-	
+
 	select {
 	case m.roleBroadcast <- &RoleMessage{Role: role, Message: message}:
 		return nil
@@ -198,28 +198,28 @@ func (m *ConnectionManager) BroadcastToRole(role string, message []byte) error {
 // Implements task 2.1.4: Handle concurrent access with channels
 func (m *ConnectionManager) Run() {
 	m.logger.Printf("[INFO] Connection manager started")
-	
+
 	// Start heartbeat checker
 	go m.heartbeatChecker()
-	
+
 	for {
 		select {
 		case <-m.ctx.Done():
 			m.logger.Printf("[INFO] Connection manager stopping")
 			return
-			
+
 		case client := <-m.register:
 			m.handleRegister(client)
-			
+
 		case client := <-m.unregister:
 			m.handleUnregister(client)
-			
+
 		case message := <-m.broadcast:
 			m.handleBroadcast(message)
-			
+
 		case userMsg := <-m.userBroadcast:
 			m.handleUserBroadcast(userMsg)
-			
+
 		case roleMsg := <-m.roleBroadcast:
 			m.handleRoleBroadcast(roleMsg)
 		}
@@ -230,25 +230,27 @@ func (m *ConnectionManager) Run() {
 func (m *ConnectionManager) handleRegister(client *Client) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	// Close existing connection for the same user
 	if existing, exists := m.connections[client.UserID]; exists {
 		m.logger.Printf("[WARN] Closing existing connection for user %s", client.UserID)
 		close(existing.SendCh)
-		existing.Conn.Close(websocket.StatusNormalClosure, "New connection established")
+		if existing.Conn != nil {
+			existing.Conn.Close(websocket.StatusNormalClosure, "New connection established")
+		}
 	}
-	
+
 	m.connections[client.UserID] = client
-	
+
 	// Update metrics
 	m.metrics.mu.Lock()
 	m.metrics.TotalConnections++
 	m.metrics.ActiveConnections = int64(len(m.connections))
 	m.metrics.mu.Unlock()
-	
-	m.logger.Printf("[INFO] Client registered: userID=%s, total_connections=%d", 
+
+	m.logger.Printf("[INFO] Client registered: userID=%s, total_connections=%d",
 		client.UserID, len(m.connections))
-	
+
 	// Start client writer goroutine
 	go m.clientWriter(client)
 }
@@ -257,17 +259,17 @@ func (m *ConnectionManager) handleRegister(client *Client) {
 func (m *ConnectionManager) handleUnregister(client *Client) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	if _, exists := m.connections[client.UserID]; exists {
 		delete(m.connections, client.UserID)
 		close(client.SendCh)
-		
+
 		// Update metrics
 		m.metrics.mu.Lock()
 		m.metrics.ActiveConnections = int64(len(m.connections))
 		m.metrics.mu.Unlock()
-		
-		m.logger.Printf("[INFO] Client unregistered: userID=%s, remaining_connections=%d", 
+
+		m.logger.Printf("[INFO] Client unregistered: userID=%s, remaining_connections=%d",
 			client.UserID, len(m.connections))
 	}
 }
@@ -280,7 +282,7 @@ func (m *ConnectionManager) handleBroadcast(message []byte) {
 		clients = append(clients, client)
 	}
 	m.mu.RUnlock()
-	
+
 	for _, client := range clients {
 		select {
 		case client.SendCh <- message:
@@ -289,7 +291,7 @@ func (m *ConnectionManager) handleBroadcast(message []byte) {
 			m.logger.Printf("[WARN] Failed to queue broadcast message for user %s (channel full)", client.UserID)
 		}
 	}
-	
+
 	m.logger.Printf("[DEBUG] Broadcast message sent to %d clients", len(clients))
 }
 
@@ -298,12 +300,12 @@ func (m *ConnectionManager) handleUserBroadcast(userMsg *UserMessage) {
 	m.mu.RLock()
 	client, exists := m.connections[userMsg.UserID]
 	m.mu.RUnlock()
-	
+
 	if !exists {
 		m.logger.Printf("[WARN] User %s not connected, message dropped", userMsg.UserID)
 		return
 	}
-	
+
 	select {
 	case client.SendCh <- userMsg.Message:
 		m.logger.Printf("[DEBUG] Message sent to user %s", userMsg.UserID)
@@ -322,7 +324,7 @@ func (m *ConnectionManager) handleRoleBroadcast(roleMsg *RoleMessage) {
 		}
 	}
 	m.mu.RUnlock()
-	
+
 	for _, client := range clients {
 		select {
 		case client.SendCh <- roleMsg.Message:
@@ -331,7 +333,7 @@ func (m *ConnectionManager) handleRoleBroadcast(roleMsg *RoleMessage) {
 			m.logger.Printf("[WARN] Failed to queue role broadcast for user %s (channel full)", client.UserID)
 		}
 	}
-	
+
 	m.logger.Printf("[DEBUG] Role broadcast sent to %d clients (role=%s)", len(clients), roleMsg.Role)
 }
 
@@ -339,7 +341,7 @@ func (m *ConnectionManager) handleRoleBroadcast(roleMsg *RoleMessage) {
 func (m *ConnectionManager) clientWriter(client *Client) {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case message, ok := <-client.SendCh:
@@ -347,34 +349,44 @@ func (m *ConnectionManager) clientWriter(client *Client) {
 				// Channel closed, exit
 				return
 			}
-			
+
+			if client.Conn == nil {
+				m.logger.Printf("[WARN] No WebSocket connection for user %s, dropping message", client.UserID)
+				continue
+			}
+
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			err := client.Conn.Write(ctx, websocket.MessageText, message)
 			cancel()
-			
+
 			if err != nil {
 				m.logger.Printf("[ERROR] Failed to write to client %s: %v", client.UserID, err)
 				m.UnregisterClient(client)
 				return
 			}
-			
+
 			// Update metrics
 			m.metrics.mu.Lock()
 			m.metrics.MessagesSent++
 			m.metrics.mu.Unlock()
-			
+
 		case <-ticker.C:
 			// Send ping (implements task 2.1.5: Heartbeat/ping-pong)
+			if client.Conn == nil {
+				m.logger.Printf("[WARN] No WebSocket connection for user %s, skipping heartbeat", client.UserID)
+				continue
+			}
+
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 			err := client.Conn.Ping(ctx)
 			cancel()
-			
+
 			if err != nil {
 				m.logger.Printf("[WARN] Ping failed for client %s: %v", client.UserID, err)
 				m.UnregisterClient(client)
 				return
 			}
-			
+
 			client.mu.Lock()
 			client.lastPing = time.Now()
 			client.mu.Unlock()
@@ -387,7 +399,7 @@ func (m *ConnectionManager) clientWriter(client *Client) {
 func (m *ConnectionManager) heartbeatChecker() {
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-m.ctx.Done():
@@ -406,19 +418,21 @@ func (m *ConnectionManager) checkDeadConnections() {
 		clients = append(clients, client)
 	}
 	m.mu.RUnlock()
-	
+
 	now := time.Now()
 	deadTimeout := 90 * time.Second // 90 seconds without ping = dead
-	
+
 	for _, client := range clients {
 		client.mu.RLock()
 		lastPing := client.lastPing
 		client.mu.RUnlock()
-		
+
 		if now.Sub(lastPing) > deadTimeout {
 			m.logger.Printf("[WARN] Dead connection detected for user %s, disconnecting", client.UserID)
 			m.UnregisterClient(client)
-			client.Conn.Close(websocket.StatusGoingAway, "Connection timeout")
+			if client.Conn != nil {
+				client.Conn.Close(websocket.StatusGoingAway, "Connection timeout")
+			}
 		}
 	}
 }
@@ -427,10 +441,10 @@ func (m *ConnectionManager) checkDeadConnections() {
 // Implements task 2.1.4: Graceful shutdown handling
 func (m *ConnectionManager) Stop() error {
 	m.logger.Printf("[INFO] Stopping connection manager")
-	
+
 	// Cancel context to stop Run loop
 	m.cancel()
-	
+
 	// Close all connections
 	m.mu.Lock()
 	clients := make([]*Client, 0, len(m.connections))
@@ -438,17 +452,19 @@ func (m *ConnectionManager) Stop() error {
 		clients = append(clients, client)
 	}
 	m.mu.Unlock()
-	
+
 	for _, client := range clients {
 		close(client.SendCh)
-		client.Conn.Close(websocket.StatusNormalClosure, "Server shutting down")
+		if client.Conn != nil {
+			client.Conn.Close(websocket.StatusNormalClosure, "Server shutting down")
+		}
 	}
-	
+
 	// Clear connections
 	m.mu.Lock()
 	m.connections = make(map[string]*Client)
 	m.mu.Unlock()
-	
+
 	m.logger.Printf("[INFO] Connection manager stopped")
 	return nil
 }
@@ -458,7 +474,7 @@ func (m *ConnectionManager) Stop() error {
 func (m *ConnectionManager) GetMetrics() ConnectionMetrics {
 	m.metrics.mu.RLock()
 	defer m.metrics.mu.RUnlock()
-	
+
 	return ConnectionMetrics{
 		TotalConnections:  m.metrics.TotalConnections,
 		ActiveConnections: m.metrics.ActiveConnections,
@@ -472,12 +488,12 @@ func (m *ConnectionManager) GetMetrics() ConnectionMetrics {
 func (m *ConnectionManager) GetAllConnections() []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	userIDs := make([]string, 0, len(m.connections))
 	for userID := range m.connections {
 		userIDs = append(userIDs, userID)
 	}
-	
+
 	return userIDs
 }
 
@@ -487,7 +503,7 @@ func (m *ConnectionManager) SendJSON(userID string, v interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
 	}
-	
+
 	return m.BroadcastToUser(userID, message)
 }
 
@@ -497,7 +513,6 @@ func (m *ConnectionManager) BroadcastJSON(v interface{}) error {
 	if err != nil {
 		return fmt.Errorf("failed to marshal message: %w", err)
 	}
-	
+
 	return m.BroadcastToAll(message)
 }
-
