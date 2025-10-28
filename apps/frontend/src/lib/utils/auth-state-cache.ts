@@ -226,7 +226,7 @@ export class AuthStateCache {
 
     try {
       return sessionStorage.getItem(this.CACHE_KEY) !== null;
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }

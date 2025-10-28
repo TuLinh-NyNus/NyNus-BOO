@@ -16,6 +16,19 @@
 import { logger } from '@/lib/utils/logger';
 
 /**
+ * Context information for error handling
+ */
+interface AuthErrorContext {
+  operation?: string;
+  attempt?: number;
+  userId?: string;
+  timestamp?: Date;
+  tokenExpiry?: number;
+  duration?: number;
+  additionalInfo?: Record<string, unknown>;
+}
+
+/**
  * Authentication error types
  */
 export enum AuthErrorType {
@@ -68,7 +81,7 @@ export class AuthErrorHandler {
    * @param context - Context information (operation, attempt, etc.)
    * @returns AuthErrorClassification với recommended actions
    */
-  static classifyError(error: Error | string, context?: Record<string, any>): AuthErrorClassification {
+  static classifyError(error: Error | string, context?: AuthErrorContext): AuthErrorClassification {
     const errorMessage = error instanceof Error ? error.message : error;
     const errorName = error instanceof Error ? error.name : 'UnknownError';
     
@@ -216,7 +229,7 @@ export class AuthErrorHandler {
    * @param context - Context information
    * @returns AuthErrorClassification với recommended actions
    */
-  static handleAuthError(error: Error | string, context?: Record<string, any>): AuthErrorClassification {
+  static handleAuthError(error: Error | string, context?: AuthErrorContext): AuthErrorClassification {
     const classification = this.classifyError(error, context);
     
     logger.info('[AuthErrorHandler] Error classified', {
@@ -284,7 +297,7 @@ export class AuthErrorHandler {
    * @param context - Additional context
    * @returns User-friendly error message in Vietnamese
    */
-  static getUserMessage(error: Error | string, context?: Record<string, any>): string {
+  static getUserMessage(error: Error | string, context?: AuthErrorContext): string {
     const classification = this.classifyError(error, context);
     return classification.userMessage;
   }

@@ -53,7 +53,7 @@ class CloudinaryUploadService {
     const version = `v${Math.floor(timestamp / 1000)}`;
     
     const secureUrl = `https://res.cloudinary.com/${cloudName}/image/upload/${version}/${publicId}.webp`;
-    const thumbnailUrl = `https://res.cloudinary.com/${cloudName}/image/upload/c_fill,h_200,w_200/${version}/${publicId}.webp`;
+    const _thumbnailUrl = `https://res.cloudinary.com/${cloudName}/image/upload/c_fill,h_200,w_200/${version}/${publicId}.webp`;
 
     const mockImage: QuestionImage = {
       id: `img-${timestamp}-${Math.random().toString(36).substr(2, 9)}`,

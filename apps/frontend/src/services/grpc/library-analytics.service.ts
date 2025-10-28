@@ -7,8 +7,6 @@ import { LibraryServiceClient } from '@/generated/v1/LibraryServiceClientPb';
 import {
   GetAnalyticsRequest,
   GetTopItemsRequest,
-  AnalyticsResponse,
-  TopItemsResponse,
 } from '@/generated/v1/library_pb';
 
 const client = new LibraryServiceClient(

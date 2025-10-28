@@ -6,6 +6,7 @@
  */
 
 import { Download, Star, TrendingUp, Eye, Clock, Award } from 'lucide-react';
+import Image from 'next/image';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -158,9 +159,11 @@ function ItemStatsRow({
       {/* Thumbnail */}
       {item.thumbnailUrl && (
         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
-          <img 
+          <Image 
             src={item.thumbnailUrl} 
             alt={item.title}
+            width={48}
+            height={48}
             className="h-full w-full object-cover"
           />
         </div>

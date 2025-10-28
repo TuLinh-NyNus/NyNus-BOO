@@ -222,7 +222,7 @@ export class TokenManager {
       // ✅ FIX: Use AuthErrorHandler để classify error và determine action
       const errorClassification = AuthErrorHandler.handleAuthError(error instanceof Error ? error : String(error), {
         operation: 'refreshTokenIfNeeded',
-        tokenExpiry: token.backendTokenExpiry,
+        tokenExpiry: typeof token.backendTokenExpiry === 'number' ? token.backendTokenExpiry : undefined,
         duration,
       });
       

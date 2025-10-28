@@ -339,7 +339,6 @@ func (c *Container) initServices() {
 	}
 
 	// Initialize CloudinaryUploader if configured
-	var cloudinaryUploader *image_processing.CloudinaryUploader
 	if appConfig.Cloudinary.Enabled {
 		cloudinaryConfig := &image_processing.CloudinaryConfig{
 			CloudName:  appConfig.Cloudinary.CloudName,
@@ -349,11 +348,9 @@ func (c *Container) initServices() {
 			UseRealSDK: appConfig.Cloudinary.UseRealSDK,
 		}
 
-		var err error
-		cloudinaryUploader, err = image_processing.NewCloudinaryUploader(cloudinaryConfig, logger)
+		_, err := image_processing.NewCloudinaryUploader(cloudinaryConfig, logger)
 		if err != nil {
 			logger.WithError(err).Warn("Failed to initialize CloudinaryUploader, continuing without it")
-			cloudinaryUploader = nil
 		} else {
 			mode := "SIMULATION"
 			if appConfig.Cloudinary.UseRealSDK {

@@ -4,6 +4,7 @@ interface FooterAnalyticsEvent {
   event_category: string;
   event_label: string;
   value?: string | number;
+  [key: string]: unknown;
 }
 
 export const useFooterAnalytics = () => {

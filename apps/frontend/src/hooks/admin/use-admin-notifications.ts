@@ -387,7 +387,8 @@ export function AdminNotificationsProvider({ children }: { children: ReactNode }
         createdAt: new Date(wsLastMessage.timestamp),
         read: wsLastMessage.is_read || false,
         isRead: wsLastMessage.is_read || false,
-        href: wsLastMessage.data?.action_url || wsLastMessage.data?.href,
+        href: (typeof wsLastMessage.data?.action_url === 'string' ? wsLastMessage.data.action_url : undefined) || 
+              (typeof wsLastMessage.data?.href === 'string' ? wsLastMessage.data.href : undefined),
         data: wsLastMessage.data,
       };
       

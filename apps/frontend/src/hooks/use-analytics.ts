@@ -12,6 +12,7 @@
 import { useEffect, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import * as analytics from '@/lib/analytics';
+import type { AnalyticsEvent, QuestionEvent, SearchEvent } from '@/lib/analytics';
 
 // ===== TYPES =====
 
@@ -76,16 +77,34 @@ export function useAnalytics(options?: {
     analytics.pageview(url);
   }, [pathname, searchParams, trackPageviews]);
 
-  // Memoize tracking functions
-  const trackEvent = useCallback(analytics.event, []);
-  const trackQuestionView = useCallback(analytics.trackQuestionView, []);
-  const trackQuestionBookmark = useCallback(analytics.trackQuestionBookmark, []);
-  const trackQuestionShare = useCallback(analytics.trackQuestionShare, []);
-  const trackSearch = useCallback(analytics.trackSearch, []);
-  const trackFilterApply = useCallback(analytics.trackFilterApply, []);
-  const trackButtonClick = useCallback(analytics.trackButtonClick, []);
-  const trackFormSubmit = useCallback(analytics.trackFormSubmit, []);
-  const trackError = useCallback(analytics.trackError, []);
+  // Memoize tracking functions with correct signatures from analytics.ts
+  const trackEvent = useCallback((eventData: AnalyticsEvent) => {
+    return analytics.event(eventData);
+  }, []);
+  const trackQuestionView = useCallback((data: QuestionEvent) => {
+    return analytics.trackQuestionView(data);
+  }, []);
+  const trackQuestionBookmark = useCallback((data: QuestionEvent) => {
+    return analytics.trackQuestionBookmark(data);
+  }, []);
+  const trackQuestionShare = useCallback((data: QuestionEvent & { share_method?: string }) => {
+    return analytics.trackQuestionShare(data);
+  }, []);
+  const trackSearch = useCallback((data: SearchEvent) => {
+    return analytics.trackSearch(data);
+  }, []);
+  const trackFilterApply = useCallback((filterType: string, filterValue: string) => {
+    return analytics.trackFilterApply(filterType, filterValue);
+  }, []);
+  const trackButtonClick = useCallback((buttonName: string, location?: string) => {
+    return analytics.trackButtonClick(buttonName, location);
+  }, []);
+  const trackFormSubmit = useCallback((formName: string, success: boolean) => {
+    return analytics.trackFormSubmit(formName, success);
+  }, []);
+  const trackError = useCallback((error: Error, context?: string) => {
+    return analytics.trackError(error, context);
+  }, []);
 
   return {
     trackEvent,
@@ -152,7 +171,7 @@ export function useSearchAnalytics() {
 
   const trackSearchQuery = useCallback((
     query: string,
-    filters?: Record<string, any>,
+    filters?: Record<string, unknown>,
     resultCount?: number
   ) => {
     trackSearch({

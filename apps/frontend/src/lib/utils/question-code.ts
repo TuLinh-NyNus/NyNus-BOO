@@ -16,15 +16,15 @@ type ParsedQuestionCode = QuestionCode;
  * để luôn trả về chuỗi code và thông tin chi tiết (nếu có).
  */
 export function normalizeQuestionCode(
-  value: any
+  value: unknown
 ): { code: string; details?: QuestionCode } {
   if (!value) {
     return { code: '' };
   }
 
-  const getMember = (obj: any, key: string) => {
-    if (!obj) return undefined;
-    const candidate = obj[key];
+  const getMember = (obj: unknown, key: string) => {
+    if (!obj || typeof obj !== 'object') return undefined;
+    const candidate = (obj as Record<string, unknown>)[key];
     if (typeof candidate === 'function') {
       try {
         return candidate.call(obj);
@@ -35,7 +35,7 @@ export function normalizeQuestionCode(
     return candidate;
   };
 
-  const pickString = (obj: any, keys: string[]): string | undefined => {
+  const pickString = (obj: unknown, keys: string[]): string | undefined => {
     for (const key of keys) {
       const valueFromKey = getMember(obj, key);
       if (typeof valueFromKey === 'string' && valueFromKey.trim().length > 0) {
@@ -138,14 +138,14 @@ export function normalizeQuestionCode(
 /**
  * Lấy mã câu hỏi hiển thị (đã loại bỏ giá trị rỗng/N/A) từ bất kỳ đối tượng nào.
  */
-export function resolveQuestionCode(value: any): string | undefined {
+export function resolveQuestionCode(value: unknown): string | undefined {
   if (!value) {
     return undefined;
   }
 
-  const getMember = (obj: any, key: string) => {
-    if (!obj) return undefined;
-    const candidate = obj[key];
+  const getMember = (obj: unknown, key: string) => {
+    if (!obj || typeof obj !== 'object') return undefined;
+    const candidate = (obj as Record<string, unknown>)[key];
     if (typeof candidate === 'function') {
       try {
         return candidate.call(obj);
@@ -157,13 +157,14 @@ export function resolveQuestionCode(value: any): string | undefined {
   };
 
   const normalized = normalizeQuestionCode(value);
+  const obj = value as Record<string, unknown>;
   const candidates = [
     normalized.code,
     normalized.details?.code,
-    value.questionCode?.code,
-    value.questionCodeId,
-    value.question_code_id,
-    value.questionCodeID,
+    (getMember(obj, 'questionCode') as { code?: string })?.code,
+    getMember(obj, 'questionCodeId') as string | undefined,
+    getMember(obj, 'question_code_id') as string | undefined,
+    getMember(obj, 'questionCodeID') as string | undefined,
     getMember(value, 'getQuestionCodeId'),
     getMember(value, 'getCode'),
   ];

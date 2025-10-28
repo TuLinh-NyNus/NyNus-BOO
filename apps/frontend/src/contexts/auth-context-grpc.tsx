@@ -6,6 +6,20 @@ import { signIn, signOut as nextAuthSignOut, useSession, getSession, getCsrfToke
 import { SessionProvider } from 'next-auth/react';
 import { AuthService, AuthHelpers } from '@/services/grpc/auth.service';
 import { type User } from '@/types/user';
+
+// Extended user type for handling additional properties that might exist in session.user
+interface ExtendedSessionUser {
+  id?: string;
+  userId?: string;
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  role?: number;
+  avatar?: string;
+}
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import {
   convertProtobufUserToLocal,
@@ -243,15 +257,16 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           logger.info('[AuthContext] Using NextAuth session as fallback');
           
+          const extendedUser = session.user as ExtendedSessionUser;
           const fallbackUser: User = {
-            id: (session.user as any).userId || session.user.id || '',
-            email: session.user.email || '',
-            firstName: (session.user as any).firstName || '',
-            lastName: (session.user as any).lastName || '',
-            name: (session.user as any).displayName || session.user.name || '',
-            role: (session.user as any).role || 0, // 0 = STUDENT enum value
+            id: extendedUser.userId || extendedUser.id || '',
+            email: extendedUser.email || '',
+            firstName: extendedUser.firstName || '',
+            lastName: extendedUser.lastName || '',
+            name: extendedUser.displayName || extendedUser.name || '',
+            role: extendedUser.role || 0, // 0 = STUDENT enum value
             status: 1, // 1 = ACTIVE enum value
-            avatar: (session.user as any).avatar || session.user.image || undefined,
+            avatar: extendedUser.avatar || extendedUser.image || undefined,
             emailVerified: true,
             createdAt: new Date(),
             updatedAt: new Date(),

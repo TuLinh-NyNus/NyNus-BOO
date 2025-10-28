@@ -60,7 +60,16 @@ import Skeleton from "react-loading-skeleton";
 import 'react-loading-skeleton/dist/skeleton.css';
 
 // Import form components
-import { AnswerForm, AnswerItemData } from "./answer-form";
+import { AnswerForm } from "./answer-form";
+
+// Type for handling parsed data that might have different property names
+interface ParsedAnswerData {
+  id?: string;
+  content?: string;
+  isCorrect?: boolean;
+  is_correct?: boolean; // Alternative naming from backend
+  explanation?: string;
+}
 import { LaTeXEditor } from "./latex-editor";
 import { LatexImporter } from "./latex-importer";
 
@@ -232,10 +241,10 @@ export function IntegratedQuestionForm({
           : parsedData.answers;
         
         if (Array.isArray(answersData)) {
-          answersArray = answersData.map((ans: Partial<AnswerItemData>, idx: number) => ({
+          answersArray = answersData.map((ans: ParsedAnswerData, idx: number) => ({
             id: ans.id?.toString() || `answer-${idx}`,
             content: ans.content || '',
-            isCorrect: ans.isCorrect || (ans as any).is_correct || false,
+            isCorrect: ans.isCorrect || ans.is_correct || false,
             explanation: ans.explanation || ''
           }));
         }
@@ -600,15 +609,7 @@ export function IntegratedQuestionForm({
       creator: 'Current User'
     } as Question;
   }, [
-    form.watch("content"),
-    form.watch("type"),
-    form.watch("answers"),
-    form.watch("difficulty"),
-    form.watch("status"),
-    form.watch("questionCodeId"),
-    form.watch("explanation"),
-    form.watch("solution"),
-    form.watch("tag"),
+    form,
     question?.createdAt
   ]);
   

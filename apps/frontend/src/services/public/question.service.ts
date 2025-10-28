@@ -13,6 +13,38 @@ import { normalizeQuestionCode, resolveQuestionCode } from '@/lib/utils/question
 
 // ===== TYPES =====
 
+interface BackendAnswerData {
+  id: string;
+  content: string;
+  is_correct?: boolean;
+  explanation?: string;
+}
+
+interface BackendQuestionData {
+  id: string;
+  questionCodeId?: string;
+  content: string;
+  rawContent?: string;
+  type: string;
+  difficulty?: string;
+  category?: string;
+  structured_answers?: BackendAnswerData[];
+  solution?: string;
+  tags?: string[];
+  views?: number;
+  rating?: number;
+  author?: string;
+  source?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: unknown;
+}
+
+interface SearchResultItem {
+  question: BackendQuestionData;
+  relevanceScore?: number;
+}
+
 export interface PublicQuestion {
   id: string;
   questionCodeId: string;
@@ -51,7 +83,7 @@ export interface RelatedQuestion {
 /**
  * Map backend question data to public format
  */
-function mapToPublicQuestion(data: any): PublicQuestion {
+function mapToPublicQuestion(data: BackendQuestionData): PublicQuestion {
   const { code: normalizedCode } = normalizeQuestionCode(data);
   const resolvedCode =
     resolveQuestionCode({
@@ -63,24 +95,24 @@ function mapToPublicQuestion(data: any): PublicQuestion {
     id: data.id,
     questionCodeId: resolvedCode,
     content: data.content || '',
-    rawContent: data.raw_content || data.rawContent,
+    rawContent: (data.raw_content || data.rawContent) as string | undefined,
     type: data.type || 'MULTIPLE_CHOICE',
     difficulty: data.difficulty,
     category: data.category || extractCategoryFromCode(resolvedCode),
-    answers: data.structured_answers?.map((a: any) => ({
+    answers: data.structured_answers?.map((a: BackendAnswerData) => ({
       id: a.id,
       content: a.content,
-      isCorrect: a.is_correct || a.isCorrect || false,
+      isCorrect: a.is_correct || false,
       explanation: a.explanation,
     })) || [],
     solution: data.solution,
-    tags: data.tag || data.tags || [],
+    tags: (Array.isArray(data.tag) ? data.tag : Array.isArray(data.tags) ? data.tags : []) as string[],
     views: 0, // TODO: Implement view tracking
     rating: 0, // TODO: Implement rating system
-    author: data.creator || 'Unknown',
-    source: data.source,
-    createdAt: data.created_at || data.createdAt || new Date().toISOString(),
-    updatedAt: data.updated_at || data.updatedAt,
+    author: (typeof data.creator === 'string' ? data.creator : 'Unknown'),
+    source: (typeof data.source === 'string' ? data.source : undefined),
+    createdAt: (typeof (data.created_at || data.createdAt) === 'string' ? (data.created_at || data.createdAt) : new Date().toISOString()) as string,
+    updatedAt: (typeof (data.updated_at || data.updatedAt) === 'string' ? (data.updated_at || data.updatedAt) : undefined) as string | undefined,
   };
 }
 
@@ -154,9 +186,9 @@ export class PublicQuestionService {
       
       // Filter out the source question and map to RelatedQuestion format
       const related = searchResults.questions
-        .filter((item: any) => item.question.id !== questionId)
+        .filter((item: SearchResultItem) => item.question.id !== questionId)
         .slice(0, limit)
-        .map((item: any) => {
+        .map((item: SearchResultItem) => {
           const q = item.question;
           const { code: relatedCode } = normalizeQuestionCode(q);
           const resolvedRelatedCode =
@@ -199,7 +231,7 @@ export class PublicQuestionService {
         },
       });
       
-      return response.questions.map((q: any) => {
+      return response.questions.map((q: BackendQuestionData) => {
         const { code: normalizedCode } = normalizeQuestionCode(q);
         const resolvedRecentCode =
           resolveQuestionCode({

@@ -211,7 +211,7 @@ export class GrpcErrorHandler {
    */
   private static async executeRecoveryAction(
     classification: ErrorClassification,
-    context: string
+    _context: string
   ): Promise<boolean> {
     switch (classification.recoveryAction) {
       case RecoveryAction.REFRESH_PAGE:

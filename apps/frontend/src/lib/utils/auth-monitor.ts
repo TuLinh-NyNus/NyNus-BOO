@@ -56,7 +56,7 @@ export interface AuthEvent {
   duration?: number;
   errorType?: AuthErrorType;
   errorMessage?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -132,7 +132,7 @@ export class AuthMonitor {
   /**
    * Record login attempt
    */
-  static recordLoginAttempt(userId?: string, metadata?: Record<string, any>): void {
+  static recordLoginAttempt(userId?: string, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.LOGIN_ATTEMPT,
       userId,
@@ -145,7 +145,7 @@ export class AuthMonitor {
   /**
    * Record login success
    */
-  static recordLoginSuccess(userId: string, duration: number, metadata?: Record<string, any>): void {
+  static recordLoginSuccess(userId: string, duration: number, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.LOGIN_SUCCESS,
       userId,
@@ -159,7 +159,7 @@ export class AuthMonitor {
   /**
    * Record login failure
    */
-  static recordLoginFailure(errorType: AuthErrorType, errorMessage: string, duration: number, metadata?: Record<string, any>): void {
+  static recordLoginFailure(errorType: AuthErrorType, errorMessage: string, duration: number, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.LOGIN_FAILURE,
       operation: 'login',
@@ -174,7 +174,7 @@ export class AuthMonitor {
   /**
    * Record token refresh attempt
    */
-  static recordTokenRefreshAttempt(userId?: string, metadata?: Record<string, any>): void {
+  static recordTokenRefreshAttempt(userId?: string, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.TOKEN_REFRESH_ATTEMPT,
       userId,
@@ -187,7 +187,7 @@ export class AuthMonitor {
   /**
    * Record token refresh success
    */
-  static recordTokenRefreshSuccess(duration: number, userId?: string, metadata?: Record<string, any>): void {
+  static recordTokenRefreshSuccess(duration: number, userId?: string, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.TOKEN_REFRESH_SUCCESS,
       userId,
@@ -201,7 +201,7 @@ export class AuthMonitor {
   /**
    * Record token refresh failure
    */
-  static recordTokenRefreshFailure(errorType: AuthErrorType, errorMessage: string, duration: number, metadata?: Record<string, any>): void {
+  static recordTokenRefreshFailure(errorType: AuthErrorType, errorMessage: string, duration: number, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.TOKEN_REFRESH_FAILURE,
       operation: 'token_refresh',
@@ -216,7 +216,7 @@ export class AuthMonitor {
   /**
    * Record session creation
    */
-  static recordSessionCreated(userId: string, sessionId?: string, metadata?: Record<string, any>): void {
+  static recordSessionCreated(userId: string, sessionId?: string, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.SESSION_CREATED,
       userId,
@@ -230,7 +230,7 @@ export class AuthMonitor {
   /**
    * Record forced logout
    */
-  static recordForcedLogout(userId?: string, reason?: string, metadata?: Record<string, any>): void {
+  static recordForcedLogout(userId?: string, reason?: string, metadata?: Record<string, unknown>): void {
     this.recordEvent({
       type: AuthEventType.FORCED_LOGOUT,
       userId,

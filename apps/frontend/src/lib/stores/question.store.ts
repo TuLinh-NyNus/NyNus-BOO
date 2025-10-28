@@ -43,7 +43,8 @@ import {
   createFilterListRequest,
   parseFilterListResponse,
   validateQuestionFilters,
-  logFilterRequest
+  logFilterRequest,
+  type RawQuestionData
 } from '@/lib/adapters/question-filter.adapter';
 import { SelectionState, CacheEntry, createInitialSelectionState } from '@/lib/stores/shared/store-patterns';
 
@@ -325,7 +326,7 @@ export const useQuestionStore = create<QuestionStoreState>()(
               const parsed = parseFilterListResponse(response);
               
               // Map QuestionDetail to Question domain type
-              const mappedQuestions = (parsed.questions || []).map((q: Record<string, unknown>) => {
+              const mappedQuestions = (parsed.questions || []).map((q: RawQuestionData) => {
                 const { code: normalizedCode, details: questionCodeDetails } = normalizeQuestionCode(q);
                 const resolvedCode =
                   resolveQuestionCode({
@@ -360,7 +361,7 @@ export const useQuestionStore = create<QuestionStoreState>()(
                       ? JSON.parse(q.answers)
                       : q.answers
                     : undefined,
-                  correctAnswer: (q.correctAnswer || q.correct_answer) as CorrectAnswer | undefined,
+                  correctAnswer: (q.correctAnswer || q.correct_answer) as unknown as CorrectAnswer | undefined,
                 };
               });
 

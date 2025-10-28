@@ -121,18 +121,21 @@ function buildMetadataFilter(filters: QuestionFilters): MetadataFilter | undefin
   if (filters.type) {
     const types = ensureArray(filters.type);
     // Convert to protobuf enum values (these are numbers)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadataFilter.setTypesList(types as any);
   }
 
   // Set status filter
   if (filters.status) {
     const statuses = ensureArray(filters.status);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadataFilter.setStatusesList(statuses as any);
   }
 
   // Set difficulty filter
   if (filters.difficulty) {
     const difficulties = ensureArray(filters.difficulty);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadataFilter.setDifficultiesList(difficulties as any);
   }
 
@@ -363,17 +366,58 @@ export function createFilterListRequest(
   return request;
 }
 
-/**
- * Parse ListQuestionsByFilterResponse to domain format
- */
-export function parseFilterListResponse(response: ListQuestionsByFilterResponse): {
-  questions: any[];
+// ===== TYPES =====
+
+interface FilterSummary {
+  [key: string]: unknown;
+}
+
+export interface RawQuestionData {
+  id: string;
+  raw_content: string;
+  rawContent: string;
+  content: string;
+  subcount: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  type: any; // protobuf QuestionType
+  source: string;
+  answers: string;
+  correct_answer: string;
+  correctAnswer: string;
+  solution: string;
+  tags: string[];
+  tag: string[];
+  usage_count: number;
+  usageCount: number;
+  creator: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  status: any; // protobuf QuestionStatus  
+  feedback: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  difficulty: any; // protobuf DifficultyLevel
+  question_code_id: string;
+  questionCodeId: string;
+  created_at: string;
+  createdAt: string;
+  updated_at: string;
+  updatedAt: string;
+  is_favorite?: boolean;
+  isFavorite?: boolean;
+}
+
+interface FilterListResponseResult {
+  questions: RawQuestionData[];
   total: number;
   page: number;
   pageSize: number;
   totalPages: number;
-  filterSummary?: any;
-} {
+  filterSummary?: FilterSummary;
+}
+
+/**
+ * Parse ListQuestionsByFilterResponse to domain format
+ */
+export function parseFilterListResponse(response: ListQuestionsByFilterResponse): FilterListResponseResult {
   const questionsList = response.getQuestionsList();
   const questions = questionsList.map((q: QuestionDetail) => {
     // Get timestamps

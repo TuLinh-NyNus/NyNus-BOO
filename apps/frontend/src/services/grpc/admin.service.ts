@@ -19,8 +19,6 @@ import {
   ResourceAccess,
   SecurityAlert,
   GetMetricsHistoryRequest,
-  GetMetricsHistoryResponse,
-  MetricsDataPoint,
 } from '@/generated/v1/admin_pb';
 import { PaginationRequest } from '@/generated/common/common_pb';
 import { Timestamp } from 'google-protobuf/google/protobuf/timestamp_pb';

@@ -19,7 +19,7 @@
 
 import { getSession } from 'next-auth/react';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
-import { GrpcErrorHandler, GrpcErrorType } from '@/lib/utils/grpc-error-handler';
+import { GrpcErrorHandler } from '@/lib/utils/grpc-error-handler';
 import { logger } from '@/lib/utils/logger';
 import { toast } from 'sonner';
 import type { RpcError } from 'grpc-web';
@@ -61,7 +61,7 @@ export interface RecoveryResult {
   message: string;
   shouldRetry: boolean;
   retryDelay?: number;
-  data?: any;
+  data?: unknown;
   fallbackUsed?: boolean;
 }
 
@@ -456,7 +456,7 @@ export class ErrorRecovery {
   /**
    * Recover with graceful degradation
    */
-  private static async recoverWithGracefulDegradation(context: RecoveryContext): Promise<RecoveryResult> {
+  private static async recoverWithGracefulDegradation(_context: RecoveryContext): Promise<RecoveryResult> {
     logger.info('[ErrorRecovery] Applying graceful degradation');
 
     toast.warning('Một số tính năng có thể bị hạn chế do lỗi hệ thống', {
@@ -476,7 +476,7 @@ export class ErrorRecovery {
   /**
    * Recover with user intervention
    */
-  private static async recoverWithUserIntervention(error: Error, context: RecoveryContext): Promise<RecoveryResult> {
+  private static async recoverWithUserIntervention(error: Error, _context: RecoveryContext): Promise<RecoveryResult> {
     logger.info('[ErrorRecovery] Requesting user intervention');
 
     const errorMessage = error.message || 'Lỗi không xác định';
@@ -501,7 +501,7 @@ export class ErrorRecovery {
   /**
    * Recover with force logout
    */
-  private static async recoverWithForceLogout(context: RecoveryContext): Promise<RecoveryResult> {
+  private static async recoverWithForceLogout(_context: RecoveryContext): Promise<RecoveryResult> {
     logger.info('[ErrorRecovery] Forcing logout for security');
 
     // Clear tokens
@@ -580,18 +580,19 @@ export class ErrorRecovery {
 /**
  * Convenience function for handling authentication errors
  */
-export async function handleAuthError(error: any, context: string): Promise<boolean> {
+export async function handleAuthError(error: Error | string, context: string): Promise<boolean> {
+  const errorObj = error instanceof Error ? error : new Error(error);
   const recoveryContext: RecoveryContext = {
     operation: context,
     retryCount: 0,
     maxRetries: 2,
-    originalError: error,
+    originalError: errorObj,
     timestamp: Date.now(),
     userAgent: navigator.userAgent,
     networkStatus: ErrorRecovery.getNetworkMonitor().getStatus(),
   };
 
-  const result = await ErrorRecovery.handleError(error, recoveryContext);
+  const result = await ErrorRecovery.handleError(errorObj, recoveryContext);
   return result.success;
 }
 

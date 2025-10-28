@@ -122,9 +122,9 @@ export function QuestionPreviewContent({
         {/* Meta Badges */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {/* Category Badge */}
-          {'category' in question && (question as any).category && (
+          {'category' in question && (question as Question & { category?: string }).category && (
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-              {String((question as any).category)}
+              {String((question as Question & { category?: string }).category)}
             </Badge>
           )}
 

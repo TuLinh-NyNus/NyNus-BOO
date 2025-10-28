@@ -12,6 +12,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// UploadResult represents the result of an image upload to Cloudinary
+type UploadResult struct {
+	FileID         string    // Cloudinary public ID
+	WebViewLink    string    // Secure URL (direct image access)
+	WebContentLink string    // Same as WebViewLink for Cloudinary
+	ThumbnailLink  string    // Thumbnail URL with transformations
+	UploadedAt     time.Time // Upload timestamp
+}
+
 // CloudinaryUploader handles image uploads to Cloudinary
 type CloudinaryUploader struct {
 	cloudName  string
@@ -141,12 +150,13 @@ func (u *CloudinaryUploader) uploadWithRealSDK(ctx context.Context, localPath st
 	}).Info("Uploading to Cloudinary using real SDK")
 
 	// Prepare upload parameters
+	overwrite := true
 	uploadParams := uploader.UploadParams{
 		PublicID:     publicID,
 		Folder:       u.folder,
 		ResourceType: "image",
 		Format:       "webp",
-		Overwrite:    true,
+		Overwrite:    &overwrite,
 		Tags:         []string{"exam-bank", "question-image"},
 	}
 

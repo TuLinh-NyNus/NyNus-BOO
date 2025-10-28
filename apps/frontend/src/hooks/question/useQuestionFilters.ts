@@ -12,7 +12,7 @@ import { useQuestionFiltersStore } from '@/lib/stores/question-filters';
 import { QuestionFilterService } from '@/services/grpc/question-filter.service';
 import { Question, QuestionFilters, QuestionListResponse, QuestionType, QuestionStatus, QuestionDifficulty, CorrectAnswer } from '@/types/question';
 import { useDebounce } from '../performance/useDebounce';
-import { createFilterListRequest, parseFilterListResponse } from '@/lib/adapters/question-filter.adapter';
+import { createFilterListRequest, parseFilterListResponse, type RawQuestionData } from '@/lib/adapters/question-filter.adapter';
 
 // ===== INTERFACES =====
 
@@ -172,7 +172,7 @@ export function useQuestionFilters(
       const parsed = parseFilterListResponse(response);
 
       // Map QuestionDetail to Question domain type
-      const mappedQuestions: Question[] = (parsed.questions || []).map((q: Record<string, unknown>) => ({
+      const mappedQuestions: Question[] = (parsed.questions || []).map((q: RawQuestionData) => ({
         id: String(q.id || ''),
         content: String(q.content || ''),
         rawContent: String(q.raw_content || q.rawContent || ''),
@@ -191,7 +191,7 @@ export function useQuestionFilters(
         updatedAt: String(q.updated_at || q.updatedAt || new Date().toISOString()),
         isFavorite: Boolean(q.is_favorite || q.isFavorite || false),
         answers: q.answers ? (typeof q.answers === 'string' ? JSON.parse(q.answers) : q.answers) : undefined,
-        correctAnswer: (q.correct_answer || q.correctAnswer) as CorrectAnswer | undefined,
+        correctAnswer: (q.correct_answer || q.correctAnswer) as unknown as CorrectAnswer | undefined,
       }));
 
       // Update state

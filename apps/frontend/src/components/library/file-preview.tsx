@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { FileText, Play, Image as ImageIcon, ExternalLink, Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -173,9 +174,11 @@ export function LibraryFilePreview({
   if (isImage && fileUrl && previewMode === 'embed') {
     return (
       <div className={cn('relative overflow-hidden rounded-2xl bg-muted', className)}>
-        <img
+        <Image
           src={fileUrl}
           alt={title}
+          width={800}
+          height={600}
           onLoad={handleImageLoad}
           onError={handleImageError}
           className="h-auto w-full object-contain"
@@ -195,9 +198,11 @@ export function LibraryFilePreview({
       {/* Thumbnail */}
       <div className="relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5">
         {thumbnailUrl && !error ? (
-          <img
+          <Image
             src={thumbnailUrl}
             alt={title}
+            width={400}
+            height={225}
             onLoad={handleImageLoad}
             onError={handleImageError}
             className="h-full w-full object-cover"

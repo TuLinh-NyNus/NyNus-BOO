@@ -9,7 +9,7 @@
  */
 
 import * as monaco from 'monaco-editor';
-import { latexCommands } from './latex-language';
+import { latexCommands as _latexCommands } from './latex-language';
 
 // Helper function to create a default range for completion items
 function createDefaultRange(): monaco.IRange {
@@ -22,7 +22,7 @@ function createDefaultRange(): monaco.IRange {
 }
 
 // Helper function to add range to completion items
-function addRangeToItems(items: Omit<monaco.languages.CompletionItem, 'range'>[]): monaco.languages.CompletionItem[] {
+function _addRangeToItems(items: Omit<monaco.languages.CompletionItem, 'range'>[]): monaco.languages.CompletionItem[] {
   return items.map(item => ({
     ...item,
     range: createDefaultRange()
@@ -202,7 +202,7 @@ export const mathOperators: monaco.languages.CompletionItem[] = [
 // ===== COMPLETION PROVIDER =====
 
 export const latexCompletionProvider: monaco.languages.CompletionItemProvider = {
-  provideCompletionItems: (model, position, context, token) => {
+  provideCompletionItems: (model, position, _context, _token) => {
     const word = model.getWordUntilPosition(position);
     const range = {
       startLineNumber: position.lineNumber,

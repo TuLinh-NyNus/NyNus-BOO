@@ -13,7 +13,7 @@ import * as grpcWeb from 'grpc-web';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
 import { logger } from '@/lib/logger';
 // ✅ PHASE 2: Import gRPC configuration (moved to avoid circular dependency)
-import { GRPC_WEB_HOST, GRPC_CONFIG } from './config';
+import { GRPC_CONFIG } from './config';
 // ✅ PHASE 2: Import auth interceptor
 import { getAuthInterceptor, interceptGrpcCall } from './interceptors/auth-interceptor';
 

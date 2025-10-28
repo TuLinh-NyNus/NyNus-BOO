@@ -30,7 +30,7 @@ const DEFAULT_CLIENT_OPTIONS = {
  * @returns Function that returns initialized client instance
  */
 export function createGrpcClient<T>(
-  ClientClass: new (endpoint: string, credentials?: any, options?: any) => T,
+  ClientClass: new (endpoint: string, credentials?: { [index: string]: string } | null, options?: { [index: string]: unknown } | null) => T,
   serviceName: string
 ): () => T {
   let clientInstance: T | null = null;

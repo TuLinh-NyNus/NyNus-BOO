@@ -16,7 +16,6 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
 } from '@/generated/v1/user_pb';
-import { RpcError } from 'grpc-web';
 import { logger } from '@/lib/utils/logger';
 import { GRPC_WEB_HOST } from './config';
 import { makeInterceptedGrpcCall } from './client';
