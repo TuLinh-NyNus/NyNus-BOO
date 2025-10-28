@@ -6,8 +6,6 @@
  * @version 1.0.0
  */
 
-"use client";
-
 import React from 'react';
 import { Metadata } from 'next';
 import ImageManagementDashboard from './components/ImageManagementDashboard';

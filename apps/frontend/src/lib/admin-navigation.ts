@@ -24,7 +24,8 @@ import {
   FolderOpen,
   FileCheck,
   Upload,
-  Bookmark
+  Bookmark,
+  Images
 } from 'lucide-react';
 import { NavigationItem, NavigationSection } from '@/types/admin/sidebar';
 
@@ -96,6 +97,13 @@ export const ADMIN_NAVIGATION: NavigationItem[] = [
         name: 'Map ID',
         href: '/3141592654/admin/questions/map-id',
         icon: 'Map',
+        permissions: ['questions.read']
+      },
+      {
+        id: 'questions-images',
+        name: 'Quản lý hình ảnh',
+        href: '/3141592654/admin/questions/images',
+        icon: 'Images',
         permissions: ['questions.read']
       }
     ]
@@ -312,7 +320,8 @@ export const ICON_COMPONENTS = {
   FolderOpen,
   FileCheck,
   Upload,
-  Bookmark
+  Bookmark,
+  Images
 } as const;
 
 /**

@@ -21,8 +21,6 @@ import {
   Settings,
   RefreshCw,
   Database,
-  Cloud,
-  Activity,
   TrendingUp,
   HardDrive,
   CheckCircle,
@@ -285,7 +283,7 @@ export default function ImageManagementDashboard({
         </CardHeader>
         
         <CardContent>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} className="space-y-6">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="gallery" className="flex items-center gap-2">
                 <Images className="h-4 w-4" />
