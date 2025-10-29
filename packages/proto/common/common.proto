@@ -1,6 +1,9 @@
 syntax = "proto3";
 
 package common;
+
+option go_package = "exam-bank-system/apps/backend/pkg/proto/common";
+
 // Common response wrapper
 message Response {
   bool success = 1;

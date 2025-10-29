@@ -108,7 +108,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy via Docker Compose (if self-hosted)
-        if: secrets.DEPLOY_METHOD == 'docker-compose'
+        if: ${{ secrets.DEPLOY_METHOD == 'docker-compose' }}
         run: |
           scp -o StrictHostKeyChecking=no \
               -i ${{ secrets.DEPLOY_SSH_KEY }} \
@@ -130,7 +130,7 @@ jobs:
           EOF
 
       - name: Deploy to Kubernetes (if using K8s)
-        if: secrets.DEPLOY_METHOD == 'kubernetes'
+        if: ${{ secrets.DEPLOY_METHOD == 'kubernetes' }}
         run: |
           echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
           export KUBECONFIG=kubeconfig
