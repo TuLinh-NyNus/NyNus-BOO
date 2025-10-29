@@ -62,6 +62,10 @@ jobs:
           chmod +x tools/scripts/gen-proto.sh
           make proto
 
+      - name: Format generated proto files
+        working-directory: ${{ env.WORKING_DIR }}
+        run: go fmt ./pkg/proto/...
+
       - name: Download dependencies
         working-directory: ${{ env.WORKING_DIR }}
         run: go mod download
@@ -166,6 +170,10 @@ jobs:
         run: |
           chmod +x tools/scripts/gen-proto.sh
           make proto
+
+      - name: Format generated proto files
+        working-directory: ${{ env.WORKING_DIR }}
+        run: go fmt ./pkg/proto/...
 
       - name: Download dependencies
         working-directory: ${{ env.WORKING_DIR }}
@@ -352,6 +360,10 @@ jobs:
         run: |
           chmod +x tools/scripts/gen-proto.sh
           make proto
+
+      - name: Format generated proto files
+        working-directory: ${{ env.WORKING_DIR }}
+        run: go fmt ./pkg/proto/...
 
       - name: Download dependencies
         working-directory: ${{ env.WORKING_DIR }}

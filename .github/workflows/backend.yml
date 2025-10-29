@@ -48,12 +48,15 @@ jobs:
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
         go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
         go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-        go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 
     - name: Generate proto files
       run: |
         chmod +x tools/scripts/gen-proto.sh
         make proto
+
+    - name: Format generated proto files
+      working-directory: ./apps/backend
+      run: go fmt ./pkg/proto/...
 
     - name: Download dependencies
       working-directory: ./apps/backend
@@ -98,12 +101,15 @@ jobs:
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
         go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
         go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-        go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 
     - name: Generate proto files
       run: |
         chmod +x tools/scripts/gen-proto.sh
         make proto
+
+    - name: Format generated proto files
+      working-directory: ./apps/backend
+      run: go fmt ./pkg/proto/...
 
     - name: Download dependencies
       working-directory: ./apps/backend
@@ -133,12 +139,15 @@ jobs:
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
         go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
         go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
-        go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
 
     - name: Generate proto files
       run: |
         chmod +x tools/scripts/gen-proto.sh
         make proto
+
+    - name: Format generated proto files
+      working-directory: ./apps/backend
+      run: go fmt ./pkg/proto/...
 
     - name: Download dependencies
       working-directory: ./apps/backend

@@ -56,6 +56,11 @@ jobs:
           chmod +x tools/scripts/gen-proto.sh
           make proto
 
+      - name: Format generated proto files (if Go)
+        if: matrix.language == 'go'
+        working-directory: ./apps/backend
+        run: go fmt ./pkg/proto/...
+
       - name: Setup Node (if JavaScript/TypeScript)
         if: matrix.language == 'javascript' || matrix.language == 'typescript'
         uses: actions/setup-node@v4
@@ -96,6 +101,10 @@ jobs:
         run: |
           chmod +x tools/scripts/gen-proto.sh
           make proto
+
+      - name: Format generated proto files
+        working-directory: ./apps/backend
+        run: go fmt ./pkg/proto/...
 
       - name: Download dependencies
         working-directory: ./apps/backend
@@ -248,6 +257,10 @@ jobs:
         run: |
           chmod +x tools/scripts/gen-proto.sh
           make proto
+
+      - name: Format generated proto files
+        working-directory: ./apps/backend
+        run: go fmt ./pkg/proto/...
 
       - name: Build Backend Image
         run: |
