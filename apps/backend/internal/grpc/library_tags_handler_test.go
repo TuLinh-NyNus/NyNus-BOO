@@ -83,8 +83,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			name: "successful create",
 			req: &CreateTagRequest{
-				Name:        "Toán học",
-				Description: "Môn toán",
+				Name:        "ToÃ¡n há»c",
+				Description: "MÃ´n toÃ¡n",
 				Color:       "#3b82f6",
 				IsTrending:  false,
 			},
@@ -218,12 +218,12 @@ func TestListTags(t *testing.T) {
 		{
 			name: "with search filter",
 			req: &ListTagsRequest{
-				Search: "toán",
+				Search: "toÃ¡n",
 				Limit:  5,
 			},
 			mockList: func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error) {
 				return []*entity.Tag{
-					{ID: "tag1", Name: "Toán học"},
+					{ID: "tag1", Name: "ToÃ¡n há»c"},
 				}, nil
 			},
 			expectError: false,

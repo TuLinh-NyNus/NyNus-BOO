@@ -6,36 +6,36 @@ import (
 )
 
 // ===== CUSTOM ERROR TYPES =====
-// Định nghĩa các error types cụ thể cho JWT operations
-// Tuân thủ Go error handling best practices và Clean Architecture principles
+// Äá»‹nh nghÄ©a cÃ¡c error types cá»¥ thá»ƒ cho JWT operations
+// TuÃ¢n thá»§ Go error handling best practices vÃ  Clean Architecture principles
 
 // ===== VALIDATION ERRORS =====
-// Errors liên quan đến input validation
+// Errors liÃªn quan Ä‘áº¿n input validation
 
 var (
 	// ErrEmptyUserID indicates user ID parameter is empty
-	// Business Rule: User ID là required field, không được empty
+	// Business Rule: User ID lÃ  required field, khÃ´ng Ä‘Æ°á»£c empty
 	ErrEmptyUserID = errors.New("user ID cannot be empty")
 
 	// ErrEmptyEmail indicates email parameter is empty
-	// Business Rule: Email là required field cho access token claims
+	// Business Rule: Email lÃ  required field cho access token claims
 	ErrEmptyEmail = errors.New("email cannot be empty")
 
 	// ErrEmptyRole indicates role parameter is empty
-	// Business Rule: Role là required field cho RBAC authorization
+	// Business Rule: Role lÃ  required field cho RBAC authorization
 	ErrEmptyRole = errors.New("role cannot be empty")
 
 	// ErrInvalidLevel indicates level parameter is out of valid range
-	// Business Rule: Level phải từ 0-9 cho STUDENT/TUTOR/TEACHER roles
+	// Business Rule: Level pháº£i tá»« 0-9 cho STUDENT/TUTOR/TEACHER roles
 	// Level 0 = default/no level, Level 1-9 = specific levels
 	ErrInvalidLevel = errors.New("level must be between 0 and 9")
 
 	// ErrEmptyToken indicates token string is empty
-	// Business Rule: Token string không được empty khi validate
+	// Business Rule: Token string khÃ´ng Ä‘Æ°á»£c empty khi validate
 	ErrEmptyToken = errors.New("token string cannot be empty")
 
 	// ErrEmptyRefreshToken indicates refresh token is empty
-	// Business Rule: Refresh token không được empty khi rotate
+	// Business Rule: Refresh token khÃ´ng Ä‘Æ°á»£c empty khi rotate
 	ErrEmptyRefreshToken = errors.New("refresh token cannot be empty")
 
 	// ErrEmptyIPAddress indicates IP address is empty
@@ -48,7 +48,7 @@ var (
 )
 
 // ===== TOKEN VALIDATION ERRORS =====
-// Errors liên quan đến JWT token validation
+// Errors liÃªn quan Ä‘áº¿n JWT token validation
 
 var (
 	// ErrTokenExpired indicates token has expired
@@ -57,28 +57,28 @@ var (
 	ErrTokenExpired = errors.New("token has expired")
 
 	// ErrTokenInvalidSignature indicates token signature is invalid
-	// Security: Token có thể bị tampered hoặc signed với wrong secret
+	// Security: Token cÃ³ thá»ƒ bá»‹ tampered hoáº·c signed vá»›i wrong secret
 	ErrTokenInvalidSignature = errors.New("token has invalid signature")
 
 	// ErrTokenInvalidClaims indicates token claims are invalid
-	// Business Rule: Claims phải có đầy đủ user_id, email, role
+	// Business Rule: Claims pháº£i cÃ³ Ä‘áº§y Ä‘á»§ user_id, email, role
 	ErrTokenInvalidClaims = errors.New("token has invalid claims")
 
 	// ErrTokenMalformed indicates token structure is malformed
-	// Business Rule: JWT phải có format header.payload.signature
+	// Business Rule: JWT pháº£i cÃ³ format header.payload.signature
 	ErrTokenMalformed = errors.New("token is malformed")
 
 	// ErrTokenInvalidMethod indicates token signing method is invalid
-	// Security: Chỉ accept HS256 signing method
+	// Security: Chá»‰ accept HS256 signing method
 	ErrTokenInvalidMethod = errors.New("token has invalid signing method")
 )
 
 // ===== REFRESH TOKEN ERRORS =====
-// Errors liên quan đến refresh token operations
+// Errors liÃªn quan Ä‘áº¿n refresh token operations
 
 var (
 	// ErrRefreshTokenNotFound indicates refresh token not found in database
-	// Business Rule: Token phải tồn tại trong database để valid
+	// Business Rule: Token pháº£i tá»“n táº¡i trong database Ä‘á»ƒ valid
 	ErrRefreshTokenNotFound = errors.New("refresh token not found")
 
 	// ErrRefreshTokenExpired indicates refresh token has expired
@@ -86,27 +86,27 @@ var (
 	ErrRefreshTokenExpired = errors.New("refresh token has expired")
 
 	// ErrRefreshTokenRevoked indicates refresh token has been revoked
-	// Business Rule: Revoked tokens không thể sử dụng lại
+	// Business Rule: Revoked tokens khÃ´ng thá»ƒ sá»­ dá»¥ng láº¡i
 	// Reasons: logout, password change, security breach
 	ErrRefreshTokenRevoked = errors.New("refresh token has been revoked")
 
 	// ErrRefreshTokenReused indicates refresh token reuse detected
-	// Security: Token reuse là dấu hiệu của replay attack
-	// Action: Revoke toàn bộ token family
+	// Security: Token reuse lÃ  dáº¥u hiá»‡u cá»§a replay attack
+	// Action: Revoke toÃ n bá»™ token family
 	ErrRefreshTokenReused = errors.New("refresh token reuse detected - security breach")
 
 	// ErrRefreshTokenInactive indicates refresh token is not active
-	// Business Rule: Chỉ active tokens mới có thể sử dụng
+	// Business Rule: Chá»‰ active tokens má»›i cÃ³ thá»ƒ sá»­ dá»¥ng
 	ErrRefreshTokenInactive = errors.New("refresh token is not active")
 )
 
 // ===== REPOSITORY ERRORS =====
-// Errors liên quan đến repository operations
+// Errors liÃªn quan Ä‘áº¿n repository operations
 
 var (
 	// ErrRefreshTokenRepoNil indicates refresh token repository is not configured
 	// Business Rule: Repository required cho database-backed token operations
-	// Nếu repo = nil, chỉ có thể dùng JWT-based tokens (less secure)
+	// Náº¿u repo = nil, chá»‰ cÃ³ thá»ƒ dÃ¹ng JWT-based tokens (less secure)
 	ErrRefreshTokenRepoNil = errors.New("refresh token repository is not configured")
 
 	// ErrRefreshTokenRevocationFailed indicates failed to revoke refresh token
@@ -115,32 +115,32 @@ var (
 )
 
 // ===== USER ERRORS =====
-// Errors liên quan đến user operations
+// Errors liÃªn quan Ä‘áº¿n user operations
 
 var (
 	// ErrUserInactive indicates user account is inactive
-	// Business Rule: Chỉ ACTIVE users mới có thể login/refresh tokens
+	// Business Rule: Chá»‰ ACTIVE users má»›i cÃ³ thá»ƒ login/refresh tokens
 	// Status: ACTIVE, INACTIVE, SUSPENDED, BANNED
 	ErrUserInactive = errors.New("user account is inactive")
 
 	// ErrUserSuspended indicates user account is suspended
-	// Business Rule: Suspended users không thể login/refresh tokens
+	// Business Rule: Suspended users khÃ´ng thá»ƒ login/refresh tokens
 	ErrUserSuspended = errors.New("user account is suspended")
 
 	// ErrUserBanned indicates user account is banned
-	// Business Rule: Banned users không thể login/refresh tokens
+	// Business Rule: Banned users khÃ´ng thá»ƒ login/refresh tokens
 	ErrUserBanned = errors.New("user account is banned")
 )
 
 // ===== JWT ERROR WRAPPER =====
-// JWTError wraps errors với context information cho better debugging
+// JWTError wraps errors vá»›i context information cho better debugging
 
-// JWTError wraps errors với operation context và user information
+// JWTError wraps errors vá»›i operation context vÃ  user information
 //
 // Business Logic:
-// - Cung cấp context về operation đang thực hiện
-// - Include user ID nếu có (for audit logging)
-// - Wrap underlying error để preserve error chain
+// - Cung cáº¥p context vá» operation Ä‘ang thá»±c hiá»‡n
+// - Include user ID náº¿u cÃ³ (for audit logging)
+// - Wrap underlying error Ä‘á»ƒ preserve error chain
 //
 // Example:
 //
@@ -151,16 +151,16 @@ var (
 //	}
 //	// Error message: "[JWT:GenerateAccessToken] user=01HQXYZ...: email cannot be empty"
 type JWTError struct {
-	// Op là tên operation đang thực hiện
+	// Op lÃ  tÃªn operation Ä‘ang thá»±c hiá»‡n
 	// Examples: "GenerateAccessToken", "ValidateToken", "RefreshTokenWithRotation"
 	Op string
 
-	// UserID là user ID liên quan đến error (optional)
-	// Dùng cho audit logging và debugging
+	// UserID lÃ  user ID liÃªn quan Ä‘áº¿n error (optional)
+	// DÃ¹ng cho audit logging vÃ  debugging
 	UserID string
 
-	// Err là underlying error
-	// Có thể là validation error, database error, hoặc business logic error
+	// Err lÃ  underlying error
+	// CÃ³ thá»ƒ lÃ  validation error, database error, hoáº·c business logic error
 	Err error
 }
 
@@ -174,7 +174,7 @@ func (e *JWTError) Error() string {
 }
 
 // Unwrap implements errors.Unwrap interface
-// Cho phép sử dụng errors.Is() và errors.As() để check underlying error
+// Cho phÃ©p sá»­ dá»¥ng errors.Is() vÃ  errors.As() Ä‘á»ƒ check underlying error
 //
 // Example:
 //
@@ -191,12 +191,12 @@ func (e *JWTError) Unwrap() error {
 // IsTokenExpiredError checks if error is token expired error
 //
 // Business Logic:
-// - Check if error is ErrTokenExpired hoặc wrapped JWTError với ErrTokenExpired
-// - Dùng errors.Is() để unwrap error chain
+// - Check if error is ErrTokenExpired hoáº·c wrapped JWTError vá»›i ErrTokenExpired
+// - DÃ¹ng errors.Is() Ä‘á»ƒ unwrap error chain
 //
 // Use Cases:
-// - Middleware cần distinguish expired token vs invalid token
-// - Client cần biết có nên refresh token hay re-login
+// - Middleware cáº§n distinguish expired token vs invalid token
+// - Client cáº§n biáº¿t cÃ³ nÃªn refresh token hay re-login
 //
 // Example:
 //
@@ -212,8 +212,8 @@ func IsTokenExpiredError(err error) bool {
 // IsTokenReuseError checks if error is token reuse error
 //
 // Security:
-// - Token reuse là critical security event
-// - Cần revoke toàn bộ token family và notify user
+// - Token reuse lÃ  critical security event
+// - Cáº§n revoke toÃ n bá»™ token family vÃ  notify user
 //
 // Use Cases:
 // - Detect replay attacks
@@ -234,8 +234,8 @@ func IsTokenReuseError(err error) bool {
 // IsUserInactiveError checks if error is user inactive error
 //
 // Business Logic:
-// - User account có thể INACTIVE, SUSPENDED, hoặc BANNED
-// - Cần distinguish để show appropriate error message
+// - User account cÃ³ thá»ƒ INACTIVE, SUSPENDED, hoáº·c BANNED
+// - Cáº§n distinguish Ä‘á»ƒ show appropriate error message
 //
 // Use Cases:
 // - Show different error messages for different statuses
@@ -244,7 +244,7 @@ func IsTokenReuseError(err error) bool {
 // Example:
 //
 //	if IsUserInactiveError(err) {
-//	  return "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."
+//	  return "TÃ i khoáº£n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a. Vui lÃ²ng liÃªn há»‡ quáº£n trá»‹ viÃªn."
 //	}
 func IsUserInactiveError(err error) bool {
 	return errors.Is(err, ErrUserInactive) ||

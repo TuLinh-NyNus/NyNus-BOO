@@ -268,21 +268,21 @@ func TestCalculateTFScore_DetailedScenarios(t *testing.T) {
 			description: "User selects one extra wrong answer",
 			selected:    []string{"A", "B", "C"},
 			correct:     []string{"A", "B"},
-			expected:    0.5, // 50% (3 correct: A✓, B✓, D✓(not selected))
+			expected:    0.5, // 50% (3 correct: Aâœ“, Bâœ“, Dâœ“(not selected))
 		},
 		{
 			name:        "Scenario 3: One missing selection",
 			description: "User misses one correct answer",
 			selected:    []string{"A"},
 			correct:     []string{"A", "B"},
-			expected:    0.5, // 50% (3 correct: A✓, C✓(not selected), D✓(not selected))
+			expected:    0.5, // 50% (3 correct: Aâœ“, Câœ“(not selected), Dâœ“(not selected))
 		},
 		{
 			name:        "Scenario 4: Half right, half wrong",
 			description: "User gets 2 correct, 2 wrong",
 			selected:    []string{"A", "C"},
 			correct:     []string{"A", "B"},
-			expected:    0.25, // 25% (2 correct: A✓, D✓(not selected))
+			expected:    0.25, // 25% (2 correct: Aâœ“, Dâœ“(not selected))
 		},
 		{
 			name:        "Scenario 5: Complete opposite",

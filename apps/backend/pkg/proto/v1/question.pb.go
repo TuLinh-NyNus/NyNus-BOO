@@ -101,11 +101,11 @@ type Question struct {
 	unknownFields protoimpl.UnknownFields
 
 	Id         string              `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RawContent string              `protobuf:"bytes,2,opt,name=raw_content,json=rawContent,proto3" json:"raw_content,omitempty"` // LaTeX gốc từ user
-	Content    string              `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`                         // Nội dung đã xử lý (cleaned)
+	RawContent string              `protobuf:"bytes,2,opt,name=raw_content,json=rawContent,proto3" json:"raw_content,omitempty"` // LaTeX gá»‘c tá»« user
+	Content    string              `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`                         // Ná»™i dung Ä‘Ã£ xá»­ lÃ½ (cleaned)
 	Subcount   string              `protobuf:"bytes,4,opt,name=subcount,proto3" json:"subcount,omitempty"`                       // [XX.N] format
 	Type       common.QuestionType `protobuf:"varint,5,opt,name=type,proto3,enum=common.QuestionType" json:"type,omitempty"`     // MC, TF, SA, ES, MA
-	Source     string              `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`                           // Nguồn câu hỏi
+	Source     string              `protobuf:"bytes,6,opt,name=source,proto3" json:"source,omitempty"`                           // Nguá»“n cÃ¢u há»i
 	// Structured answers for MC/TF or JSON string for complex types
 	//
 	// Types that are assignable to AnswerData:
@@ -118,23 +118,23 @@ type Question struct {
 	//	*Question_StructuredCorrect
 	//	*Question_JsonCorrectAnswer
 	CorrectAnswerData isQuestion_CorrectAnswerData `protobuf_oneof:"correct_answer_data"`
-	Solution          string                       `protobuf:"bytes,11,opt,name=solution,proto3" json:"solution,omitempty"` // Lời giải chi tiết
-	Tag               []string                     `protobuf:"bytes,12,rep,name=tag,proto3" json:"tag,omitempty"`           // Tags cho câu hỏi
+	Solution          string                       `protobuf:"bytes,11,opt,name=solution,proto3" json:"solution,omitempty"` // Lá»i giáº£i chi tiáº¿t
+	Tag               []string                     `protobuf:"bytes,12,rep,name=tag,proto3" json:"tag,omitempty"`           // Tags cho cÃ¢u há»i
 	// Metadata & Classification (optional, for filtering purposes only)
-	Grade   string `protobuf:"bytes,13,opt,name=grade,proto3" json:"grade,omitempty"`     // Lớp (0,1,2) - Optional classification
-	Subject string `protobuf:"bytes,14,opt,name=subject,proto3" json:"subject,omitempty"` // Môn học (P,L,H) - Optional classification
-	Chapter string `protobuf:"bytes,15,opt,name=chapter,proto3" json:"chapter,omitempty"` // Chương (1-9) - Optional classification
-	Level   string `protobuf:"bytes,16,opt,name=level,proto3" json:"level,omitempty"`     // Mức độ (N,H,V,C,T,M) - Optional classification
+	Grade   string `protobuf:"bytes,13,opt,name=grade,proto3" json:"grade,omitempty"`     // Lá»›p (0,1,2) - Optional classification
+	Subject string `protobuf:"bytes,14,opt,name=subject,proto3" json:"subject,omitempty"` // MÃ´n há»c (P,L,H) - Optional classification
+	Chapter string `protobuf:"bytes,15,opt,name=chapter,proto3" json:"chapter,omitempty"` // ChÆ°Æ¡ng (1-9) - Optional classification
+	Level   string `protobuf:"bytes,16,opt,name=level,proto3" json:"level,omitempty"`     // Má»©c Ä‘á»™ (N,H,V,C,T,M) - Optional classification
 	// Usage tracking
-	UsageCount     int32                  `protobuf:"varint,17,opt,name=usage_count,json=usageCount,proto3" json:"usage_count,omitempty"`              // Số lần sử dụng
-	Creator        string                 `protobuf:"bytes,18,opt,name=creator,proto3" json:"creator,omitempty"`                                       // Người tạo
+	UsageCount     int32                  `protobuf:"varint,17,opt,name=usage_count,json=usageCount,proto3" json:"usage_count,omitempty"`              // Sá»‘ láº§n sá»­ dá»¥ng
+	Creator        string                 `protobuf:"bytes,18,opt,name=creator,proto3" json:"creator,omitempty"`                                       // NgÆ°á»i táº¡o
 	Status         common.QuestionStatus  `protobuf:"varint,19,opt,name=status,proto3,enum=common.QuestionStatus" json:"status,omitempty"`             // ACTIVE, PENDING, INACTIVE, ARCHIVED
-	Feedback       int32                  `protobuf:"varint,20,opt,name=feedback,proto3" json:"feedback,omitempty"`                                    // Điểm feedback
+	Feedback       int32                  `protobuf:"varint,20,opt,name=feedback,proto3" json:"feedback,omitempty"`                                    // Äiá»ƒm feedback
 	Difficulty     common.DifficultyLevel `protobuf:"varint,21,opt,name=difficulty,proto3,enum=common.DifficultyLevel" json:"difficulty,omitempty"`    // EASY, MEDIUM, HARD, EXPERT
 	QuestionCodeId string                 `protobuf:"bytes,22,opt,name=question_code_id,json=questionCodeId,proto3" json:"question_code_id,omitempty"` // FK to QuestionCode
 	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,23,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,24,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	IsFavorite     bool                   `protobuf:"varint,25,opt,name=is_favorite,json=isFavorite,proto3" json:"is_favorite,omitempty"` // Đánh dấu câu hỏi yêu thích
+	IsFavorite     bool                   `protobuf:"varint,25,opt,name=is_favorite,json=isFavorite,proto3" json:"is_favorite,omitempty"` // ÄÃ¡nh dáº¥u cÃ¢u há»i yÃªu thÃ­ch
 	Code           string                 `protobuf:"bytes,26,opt,name=code,proto3" json:"code,omitempty"`                                // Actual code from question_code table (e.g., "0P1VH1")
 }
 
@@ -689,11 +689,11 @@ type CreateQuestionRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	RawContent string              `protobuf:"bytes,1,opt,name=raw_content,json=rawContent,proto3" json:"raw_content,omitempty"` // LaTeX gốc từ user
-	Content    string              `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`                         // Nội dung đã xử lý
+	RawContent string              `protobuf:"bytes,1,opt,name=raw_content,json=rawContent,proto3" json:"raw_content,omitempty"` // LaTeX gá»‘c tá»« user
+	Content    string              `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`                         // Ná»™i dung Ä‘Ã£ xá»­ lÃ½
 	Subcount   string              `protobuf:"bytes,3,opt,name=subcount,proto3" json:"subcount,omitempty"`                       // [XX.N] format
 	Type       common.QuestionType `protobuf:"varint,4,opt,name=type,proto3,enum=common.QuestionType" json:"type,omitempty"`     // MC, TF, SA, ES, MA
-	Source     string              `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`                           // Nguồn câu hỏi
+	Source     string              `protobuf:"bytes,5,opt,name=source,proto3" json:"source,omitempty"`                           // Nguá»“n cÃ¢u há»i
 	// Flexible answer format
 	//
 	// Types that are assignable to AnswerData:
@@ -706,13 +706,13 @@ type CreateQuestionRequest struct {
 	//	*CreateQuestionRequest_StructuredCorrect
 	//	*CreateQuestionRequest_JsonCorrectAnswer
 	CorrectAnswerData isCreateQuestionRequest_CorrectAnswerData `protobuf_oneof:"correct_answer_data"`
-	Solution          string                                    `protobuf:"bytes,10,opt,name=solution,proto3" json:"solution,omitempty"` // Lời giải chi tiết
-	Tag               []string                                  `protobuf:"bytes,11,rep,name=tag,proto3" json:"tag,omitempty"`           // Tags cho câu hỏi
+	Solution          string                                    `protobuf:"bytes,10,opt,name=solution,proto3" json:"solution,omitempty"` // Lá»i giáº£i chi tiáº¿t
+	Tag               []string                                  `protobuf:"bytes,11,rep,name=tag,proto3" json:"tag,omitempty"`           // Tags cho cÃ¢u há»i
 	// Optional classification fields
-	Grade          string                 `protobuf:"bytes,12,opt,name=grade,proto3" json:"grade,omitempty"`                                           // Lớp (0,1,2) - Optional
-	Subject        string                 `protobuf:"bytes,13,opt,name=subject,proto3" json:"subject,omitempty"`                                       // Môn học (P,L,H) - Optional
-	Chapter        string                 `protobuf:"bytes,14,opt,name=chapter,proto3" json:"chapter,omitempty"`                                       // Chương (1-9) - Optional
-	Level          string                 `protobuf:"bytes,15,opt,name=level,proto3" json:"level,omitempty"`                                           // Mức độ (N,H,V,C,T,M) - Optional
+	Grade          string                 `protobuf:"bytes,12,opt,name=grade,proto3" json:"grade,omitempty"`                                           // Lá»›p (0,1,2) - Optional
+	Subject        string                 `protobuf:"bytes,13,opt,name=subject,proto3" json:"subject,omitempty"`                                       // MÃ´n há»c (P,L,H) - Optional
+	Chapter        string                 `protobuf:"bytes,14,opt,name=chapter,proto3" json:"chapter,omitempty"`                                       // ChÆ°Æ¡ng (1-9) - Optional
+	Level          string                 `protobuf:"bytes,15,opt,name=level,proto3" json:"level,omitempty"`                                           // Má»©c Ä‘á»™ (N,H,V,C,T,M) - Optional
 	QuestionCodeId string                 `protobuf:"bytes,16,opt,name=question_code_id,json=questionCodeId,proto3" json:"question_code_id,omitempty"` // QuestionCode ID
 	Status         common.QuestionStatus  `protobuf:"varint,17,opt,name=status,proto3,enum=common.QuestionStatus" json:"status,omitempty"`             // ACTIVE, PENDING, INACTIVE, ARCHIVED
 	Difficulty     common.DifficultyLevel `protobuf:"varint,18,opt,name=difficulty,proto3,enum=common.DifficultyLevel" json:"difficulty,omitempty"`    // EASY, MEDIUM, HARD, EXPERT
@@ -1222,10 +1222,10 @@ type UpdateQuestionRequest struct {
 	Solution          string                                    `protobuf:"bytes,11,opt,name=solution,proto3" json:"solution,omitempty"`
 	Tag               []string                                  `protobuf:"bytes,12,rep,name=tag,proto3" json:"tag,omitempty"`
 	// Optional classification fields
-	Grade          string                 `protobuf:"bytes,13,opt,name=grade,proto3" json:"grade,omitempty"`     // Lớp (0,1,2) - Optional
-	Subject        string                 `protobuf:"bytes,14,opt,name=subject,proto3" json:"subject,omitempty"` // Môn học (P,L,H) - Optional
-	Chapter        string                 `protobuf:"bytes,15,opt,name=chapter,proto3" json:"chapter,omitempty"` // Chương (1-9) - Optional
-	Level          string                 `protobuf:"bytes,16,opt,name=level,proto3" json:"level,omitempty"`     // Mức độ (N,H,V,C,T,M) - Optional
+	Grade          string                 `protobuf:"bytes,13,opt,name=grade,proto3" json:"grade,omitempty"`     // Lá»›p (0,1,2) - Optional
+	Subject        string                 `protobuf:"bytes,14,opt,name=subject,proto3" json:"subject,omitempty"` // MÃ´n há»c (P,L,H) - Optional
+	Chapter        string                 `protobuf:"bytes,15,opt,name=chapter,proto3" json:"chapter,omitempty"` // ChÆ°Æ¡ng (1-9) - Optional
+	Level          string                 `protobuf:"bytes,16,opt,name=level,proto3" json:"level,omitempty"`     // Má»©c Ä‘á»™ (N,H,V,C,T,M) - Optional
 	QuestionCodeId string                 `protobuf:"bytes,17,opt,name=question_code_id,json=questionCodeId,proto3" json:"question_code_id,omitempty"`
 	Status         common.QuestionStatus  `protobuf:"varint,18,opt,name=status,proto3,enum=common.QuestionStatus" json:"status,omitempty"`
 	Difficulty     common.DifficultyLevel `protobuf:"varint,19,opt,name=difficulty,proto3,enum=common.DifficultyLevel" json:"difficulty,omitempty"`

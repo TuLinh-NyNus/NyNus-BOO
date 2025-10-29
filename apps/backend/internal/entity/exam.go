@@ -11,10 +11,10 @@ import (
 type ExamStatus string
 
 const (
-	ExamStatusActive   ExamStatus = "ACTIVE"   // Đã xuất bản, students có thể làm (was 'published')
-	ExamStatusPending  ExamStatus = "PENDING"  // Đang soạn thảo, chờ review (was 'draft')
-	ExamStatusInactive ExamStatus = "INACTIVE" // Tạm ngưng (new status)
-	ExamStatusArchived ExamStatus = "ARCHIVED" // Đã lưu trữ (was 'archived')
+	ExamStatusActive   ExamStatus = "ACTIVE"   // ÄÃ£ xuáº¥t báº£n, students cÃ³ thá»ƒ lÃ m (was 'published')
+	ExamStatusPending  ExamStatus = "PENDING"  // Äang soáº¡n tháº£o, chá» review (was 'draft')
+	ExamStatusInactive ExamStatus = "INACTIVE" // Táº¡m ngÆ°ng (new status)
+	ExamStatusArchived ExamStatus = "ARCHIVED" // ÄÃ£ lÆ°u trá»¯ (was 'archived')
 )
 
 // ExamType represents the type of exam
@@ -22,8 +22,8 @@ const (
 type ExamType string
 
 const (
-	ExamTypeGenerated ExamType = "generated" // Đề thi tạo từ ngân hàng câu hỏi
-	ExamTypeOfficial  ExamType = "official"  // Đề thi thật từ trường/sở
+	ExamTypeGenerated ExamType = "generated" // Äá» thi táº¡o tá»« ngÃ¢n hÃ ng cÃ¢u há»i
+	ExamTypeOfficial  ExamType = "official"  // Äá» thi tháº­t tá»« trÆ°á»ng/sá»Ÿ
 )
 
 // Difficulty represents the difficulty level of an exam
@@ -31,10 +31,10 @@ const (
 type Difficulty string
 
 const (
-	DifficultyEasy   Difficulty = "EASY"   // Dễ
-	DifficultyMedium Difficulty = "MEDIUM" // Trung bình
-	DifficultyHard   Difficulty = "HARD"   // Khó
-	DifficultyExpert Difficulty = "EXPERT" // Rất khó (aligned with Question system)
+	DifficultyEasy   Difficulty = "EASY"   // Dá»…
+	DifficultyMedium Difficulty = "MEDIUM" // Trung bÃ¬nh
+	DifficultyHard   Difficulty = "HARD"   // KhÃ³
+	DifficultyExpert Difficulty = "EXPERT" // Ráº¥t khÃ³ (aligned with Question system)
 )
 
 // Exam represents an exam definition
@@ -51,20 +51,20 @@ type Exam struct {
 	Status          ExamStatus `json:"status" db:"status"`
 
 	// Academic Classification (ESSENTIAL - from ExamSystem.md)
-	Subject    string     `json:"subject" db:"subject"`       // Môn học (REQUIRED)
-	Grade      *int       `json:"grade" db:"grade"`           // Khối lớp (1-12)
+	Subject    string     `json:"subject" db:"subject"`       // MÃ´n há»c (REQUIRED)
+	Grade      *int       `json:"grade" db:"grade"`           // Khá»‘i lá»›p (1-12)
 	Difficulty Difficulty `json:"difficulty" db:"difficulty"` // EASY, MEDIUM, HARD, EXPERT
-	Tags       []string   `json:"tags" db:"tags"`             // Tags tìm kiếm
+	Tags       []string   `json:"tags" db:"tags"`             // Tags tÃ¬m kiáº¿m
 
 	// Settings
 	ShuffleQuestions bool `json:"shuffle_questions" db:"shuffle_questions"`
 	ShowResults      bool `json:"show_results" db:"show_results"`
 	MaxAttempts      int  `json:"max_attempts" db:"max_attempts"`
 
-	// Official Exam Fields (OPTIONAL - chỉ cho exam_type = 'official')
-	SourceInstitution *string `json:"source_institution,omitempty" db:"source_institution"` // Tên trường/sở
-	ExamYear          *string `json:"exam_year,omitempty" db:"exam_year"`                   // Năm thi (VD: "2024")
-	ExamCode          *string `json:"exam_code,omitempty" db:"exam_code"`                   // Mã đề (VD: "001", "A")
+	// Official Exam Fields (OPTIONAL - chá»‰ cho exam_type = 'official')
+	SourceInstitution *string `json:"source_institution,omitempty" db:"source_institution"` // TÃªn trÆ°á»ng/sá»Ÿ
+	ExamYear          *string `json:"exam_year,omitempty" db:"exam_year"`                   // NÄƒm thi (VD: "2024")
+	ExamCode          *string `json:"exam_code,omitempty" db:"exam_code"`                   // MÃ£ Ä‘á» (VD: "001", "A")
 	FileURL           *string `json:"file_url,omitempty" db:"file_url"`                     // Link file PDF
 
 	// Integration Fields (NEW)

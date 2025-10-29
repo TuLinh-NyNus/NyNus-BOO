@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import "exam-bank-system/apps/backend/pkg/proto/common"
 

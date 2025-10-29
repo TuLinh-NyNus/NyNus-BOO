@@ -1,14 +1,14 @@
 package constant
 
 // User roles in the exam bank system - 5 roles hierarchy theo AUTH_COMPLETE_GUIDE.md
-// Format: UPPERCASE để match với database schema và protobuf enums
+// Format: UPPERCASE Ä‘á»ƒ match vá»›i database schema vÃ  protobuf enums
 const (
 	// 5-tier role system with hierarchy: GUEST < STUDENT < TUTOR < TEACHER < ADMIN
-	RoleGuest   = "GUEST"   // Khách (không đăng ký) - Không có level
-	RoleStudent = "STUDENT" // Học sinh - Level 1-9
-	RoleTutor   = "TUTOR"   // Gia sư - Level 1-9
-	RoleTeacher = "TEACHER" // Giáo viên - Level 1-9
-	RoleAdmin   = "ADMIN"   // Quản trị viên - Không có level
+	RoleGuest   = "GUEST"   // KhÃ¡ch (khÃ´ng Ä‘Äƒng kÃ½) - KhÃ´ng cÃ³ level
+	RoleStudent = "STUDENT" // Há»c sinh - Level 1-9
+	RoleTutor   = "TUTOR"   // Gia sÆ° - Level 1-9
+	RoleTeacher = "TEACHER" // GiÃ¡o viÃªn - Level 1-9
+	RoleAdmin   = "ADMIN"   // Quáº£n trá»‹ viÃªn - KhÃ´ng cÃ³ level
 )
 
 // ValidRoles contains all valid user roles

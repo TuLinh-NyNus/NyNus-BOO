@@ -1,4 +1,4 @@
-﻿package user_mgmt
+package user_mgmt
 
 import (
 	"exam-bank-system/apps/backend/internal/entity"

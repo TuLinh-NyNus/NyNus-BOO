@@ -1,4 +1,4 @@
-﻿package latex
+package latex
 
 import (
 	"encoding/json"

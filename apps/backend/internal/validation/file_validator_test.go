@@ -34,7 +34,7 @@ func TestValidateFilename(t *testing.T) {
 		{"dangerous chars question", "file?.pdf", true},
 		{"dangerous chars asterisk", "file*.pdf", true},
 		{"too long filename", strings.Repeat("a", 256) + ".pdf", true},
-		{"unicode filename", "tài-liệu.pdf", false},
+		{"unicode filename", "tÃ i-liá»‡u.pdf", false},
 	}
 
 	for _, tt := range tests {

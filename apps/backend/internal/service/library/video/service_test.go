@@ -63,7 +63,7 @@ func TestService_List(t *testing.T) {
 		{
 			name: "successful list",
 			filters: repository.LibraryVideoListFilters{
-				Subjects: []string{"Toán học"},
+				Subjects: []string{"ToÃ¡n há»c"},
 				Grades:   []string{"12"},
 				Limit:    10,
 				Offset:   0,

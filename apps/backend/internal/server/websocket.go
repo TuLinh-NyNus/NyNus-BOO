@@ -158,7 +158,7 @@ func (s *WebSocketServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleMetrics handles metrics requests
-// Implements task 2.3.4: Logging và monitoring
+// Implements task 2.3.4: Logging vÃ  monitoring
 func (s *WebSocketServer) handleMetrics(w http.ResponseWriter, r *http.Request) {
 	metrics := s.manager.GetMetrics()
 	

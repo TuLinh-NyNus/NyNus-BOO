@@ -6,62 +6,62 @@ import (
 )
 
 // ===== VALIDATION HELPER FUNCTIONS =====
-// Các helper functions để validate input parameters cho JWT operations
-// Tuân thủ Clean Code principles: Single Responsibility, Clear naming
+// CÃ¡c helper functions Ä‘á»ƒ validate input parameters cho JWT operations
+// TuÃ¢n thá»§ Clean Code principles: Single Responsibility, Clear naming
 
 // ===== CONSTANTS FOR VALIDATION =====
 
 const (
-	// MinUserIDLength là độ dài tối thiểu của User ID (ULID format)
+	// MinUserIDLength lÃ  Ä‘á»™ dÃ i tá»‘i thiá»ƒu cá»§a User ID (ULID format)
 	// ULID format: 26 characters (e.g., 01HQXYZ1234567890ABCDEFGH)
 	MinUserIDLength = 26
 
-	// MaxUserIDLength là độ dài tối đa của User ID
+	// MaxUserIDLength lÃ  Ä‘á»™ dÃ i tá»‘i Ä‘a cá»§a User ID
 	MaxUserIDLength = 26
 
-	// MinEmailLength là độ dài tối thiểu của email
+	// MinEmailLength lÃ  Ä‘á»™ dÃ i tá»‘i thiá»ƒu cá»§a email
 	// Example: a@b.c = 5 characters
 	MinEmailLength = 5
 
-	// MaxEmailLength là độ dài tối đa của email
+	// MaxEmailLength lÃ  Ä‘á»™ dÃ i tá»‘i Ä‘a cá»§a email
 	// RFC 5321: 254 characters
 	MaxEmailLength = 254
 
-	// MinRoleLength là độ dài tối thiểu của role
+	// MinRoleLength lÃ  Ä‘á»™ dÃ i tá»‘i thiá»ƒu cá»§a role
 	// Shortest role: "GUEST" = 5 characters
 	MinRoleLength = 5
 
-	// MaxRoleLength là độ dài tối đa của role
+	// MaxRoleLength lÃ  Ä‘á»™ dÃ i tá»‘i Ä‘a cá»§a role
 	// Longest role: "TEACHER" = 7 characters
 	MaxRoleLength = 7
 
-	// MinLevel là level tối thiểu
+	// MinLevel lÃ  level tá»‘i thiá»ƒu
 	// Level 0 = no level/default
 	MinLevel = 0
 
-	// MaxLevel là level tối đa
+	// MaxLevel lÃ  level tá»‘i Ä‘a
 	// Level 1-9 cho STUDENT/TUTOR/TEACHER
 	MaxLevel = 9
 
-	// MinTokenLength là độ dài tối thiểu của JWT token
+	// MinTokenLength lÃ  Ä‘á»™ dÃ i tá»‘i thiá»ƒu cá»§a JWT token
 	// JWT format: header.payload.signature (minimum ~100 characters)
 	MinTokenLength = 50
 
-	// MinRefreshTokenLength là độ dài tối thiểu của refresh token
+	// MinRefreshTokenLength lÃ  Ä‘á»™ dÃ i tá»‘i thiá»ƒu cá»§a refresh token
 	// Secure random token: base64 encoded 32 bytes = 44 characters
 	MinRefreshTokenLength = 40
 
-	// MinIPAddressLength là độ dài tối thiểu của IP address
+	// MinIPAddressLength lÃ  Ä‘á»™ dÃ i tá»‘i thiá»ƒu cá»§a IP address
 	// IPv6 compressed: 2 characters (e.g., "::")
 	// IPv6 localhost: 3 characters (e.g., "::1")
 	// IPv4: 7 characters (e.g., "1.1.1.1")
 	MinIPAddressLength = 2
 
-	// MaxIPAddressLength là độ dài tối đa của IP address
+	// MaxIPAddressLength lÃ  Ä‘á»™ dÃ i tá»‘i Ä‘a cá»§a IP address
 	// IPv6: 45 characters (e.g., "2001:0db8:85a3:0000:0000:8a2e:0370:7334")
 	MaxIPAddressLength = 45
 
-	// MinDeviceFingerprintLength là độ dài tối thiểu của device fingerprint
+	// MinDeviceFingerprintLength lÃ  Ä‘á»™ dÃ i tá»‘i thiá»ƒu cá»§a device fingerprint
 	// Device fingerprint: hash string (minimum 32 characters)
 	MinDeviceFingerprintLength = 32
 )
@@ -104,17 +104,17 @@ var (
 // ValidateUserID validates user ID parameter
 //
 // Business Rules:
-// - User ID không được empty
-// - User ID phải có một trong các formats:
+// - User ID khÃ´ng Ä‘Æ°á»£c empty
+// - User ID pháº£i cÃ³ má»™t trong cÃ¡c formats:
 //   * ULID (26 chars): 01HQXYZ1234567890ABCDEFGH
 //   * UUID (36 chars): 0082957e-7fd7-485b-a64a-b302251e380b
 //   * TEXT ID (pattern-NNN): student-001, admin-001, teacher-001, tutor-001
 //
 // Parameters:
-//   - userID: User ID cần validate
+//   - userID: User ID cáº§n validate
 //
 // Returns:
-//   - error: ErrEmptyUserID nếu empty, validation error nếu invalid format
+//   - error: ErrEmptyUserID náº¿u empty, validation error náº¿u invalid format
 //
 // Example:
 //
@@ -150,15 +150,15 @@ func ValidateUserID(userID string) error {
 // ValidateEmail validates email parameter
 //
 // Business Rules:
-// - Email không được empty
-// - Email phải có độ dài từ 5-254 characters
-// - Email phải match email regex pattern
+// - Email khÃ´ng Ä‘Æ°á»£c empty
+// - Email pháº£i cÃ³ Ä‘á»™ dÃ i tá»« 5-254 characters
+// - Email pháº£i match email regex pattern
 //
 // Parameters:
-//   - email: Email cần validate
+//   - email: Email cáº§n validate
 //
 // Returns:
-//   - error: ErrEmptyEmail nếu empty, validation error nếu invalid format
+//   - error: ErrEmptyEmail náº¿u empty, validation error náº¿u invalid format
 //
 // Example:
 //
@@ -192,15 +192,15 @@ func ValidateEmail(email string) error {
 // ValidateRole validates role parameter
 //
 // Business Rules:
-// - Role không được empty
-// - Role phải là một trong: GUEST, STUDENT, TUTOR, TEACHER, ADMIN
-// - Role phải uppercase
+// - Role khÃ´ng Ä‘Æ°á»£c empty
+// - Role pháº£i lÃ  má»™t trong: GUEST, STUDENT, TUTOR, TEACHER, ADMIN
+// - Role pháº£i uppercase
 //
 // Parameters:
-//   - role: Role cần validate
+//   - role: Role cáº§n validate
 //
 // Returns:
-//   - error: ErrEmptyRole nếu empty, validation error nếu invalid role
+//   - error: ErrEmptyRole náº¿u empty, validation error náº¿u invalid role
 //
 // Example:
 //
@@ -242,15 +242,15 @@ func ValidateRole(role string) error {
 // ValidateLevel validates level parameter
 //
 // Business Rules:
-// - Level phải từ 0-9
+// - Level pháº£i tá»« 0-9
 // - Level 0 = no level/default (for GUEST, ADMIN)
 // - Level 1-9 = specific levels (for STUDENT, TUTOR, TEACHER)
 //
 // Parameters:
-//   - level: Level cần validate
+//   - level: Level cáº§n validate
 //
 // Returns:
-//   - error: ErrInvalidLevel nếu out of range
+//   - error: ErrInvalidLevel náº¿u out of range
 //
 // Example:
 //
@@ -267,14 +267,14 @@ func ValidateLevel(level int) error {
 // ValidateTokenString validates token string parameter
 //
 // Business Rules:
-// - Token string không được empty
-// - Token string phải có độ dài tối thiểu (JWT format)
+// - Token string khÃ´ng Ä‘Æ°á»£c empty
+// - Token string pháº£i cÃ³ Ä‘á»™ dÃ i tá»‘i thiá»ƒu (JWT format)
 //
 // Parameters:
-//   - tokenString: Token string cần validate
+//   - tokenString: Token string cáº§n validate
 //
 // Returns:
-//   - error: ErrEmptyToken nếu empty, validation error nếu too short
+//   - error: ErrEmptyToken náº¿u empty, validation error náº¿u too short
 //
 // Example:
 //
@@ -300,14 +300,14 @@ func ValidateTokenString(tokenString string) error {
 // ValidateRefreshToken validates refresh token parameter
 //
 // Business Rules:
-// - Refresh token không được empty
-// - Refresh token phải có độ dài tối thiểu (secure random string)
+// - Refresh token khÃ´ng Ä‘Æ°á»£c empty
+// - Refresh token pháº£i cÃ³ Ä‘á»™ dÃ i tá»‘i thiá»ƒu (secure random string)
 //
 // Parameters:
-//   - refreshToken: Refresh token cần validate
+//   - refreshToken: Refresh token cáº§n validate
 //
 // Returns:
-//   - error: ErrEmptyRefreshToken nếu empty, validation error nếu too short
+//   - error: ErrEmptyRefreshToken náº¿u empty, validation error náº¿u too short
 //
 // Example:
 //
@@ -333,14 +333,14 @@ func ValidateRefreshToken(refreshToken string) error {
 // ValidateIPAddress validates IP address parameter
 //
 // Business Rules:
-// - IP address không được empty
-// - IP address phải là valid IPv4 hoặc IPv6
+// - IP address khÃ´ng Ä‘Æ°á»£c empty
+// - IP address pháº£i lÃ  valid IPv4 hoáº·c IPv6
 //
 // Parameters:
-//   - ipAddress: IP address cần validate
+//   - ipAddress: IP address cáº§n validate
 //
 // Returns:
-//   - error: ErrEmptyIPAddress nếu empty, validation error nếu invalid format
+//   - error: ErrEmptyIPAddress náº¿u empty, validation error náº¿u invalid format
 //
 // Example:
 //
@@ -374,14 +374,14 @@ func ValidateIPAddress(ipAddress string) error {
 // ValidateDeviceFingerprint validates device fingerprint parameter
 //
 // Business Rules:
-// - Device fingerprint không được empty
-// - Device fingerprint phải có độ dài tối thiểu (hash string)
+// - Device fingerprint khÃ´ng Ä‘Æ°á»£c empty
+// - Device fingerprint pháº£i cÃ³ Ä‘á»™ dÃ i tá»‘i thiá»ƒu (hash string)
 //
 // Parameters:
-//   - deviceFingerprint: Device fingerprint cần validate
+//   - deviceFingerprint: Device fingerprint cáº§n validate
 //
 // Returns:
-//   - error: ErrEmptyDeviceFingerprint nếu empty, validation error nếu too short
+//   - error: ErrEmptyDeviceFingerprint náº¿u empty, validation error náº¿u too short
 //
 // Example:
 //

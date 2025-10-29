@@ -13,7 +13,7 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
-// GoogleClient handles Google OAuth operations với validation và logging
+// GoogleClient handles Google OAuth operations vá»›i validation vÃ  logging
 //
 // Business Logic:
 // - Verify Google ID tokens
@@ -50,7 +50,7 @@ type TokenResponse struct {
 	Scope        string `json:"scope"`
 }
 
-// NewGoogleClient creates a new Google OAuth client với logger
+// NewGoogleClient creates a new Google OAuth client vá»›i logger
 //
 // Parameters:
 //   - clientID: Google OAuth client ID
@@ -78,20 +78,20 @@ func NewGoogleClient(clientID, clientSecret, redirectURI string, logger *logrus.
 	}
 }
 
-// VerifyIDToken verifies a Google ID token and returns user info với validation và logging
+// VerifyIDToken verifies a Google ID token and returns user info vá»›i validation vÃ  logging
 //
 // Business Logic:
-// - Validate ID token với Google's idtoken package
-// - Extract user information từ token claims
-// - Return user info hoặc error
+// - Validate ID token vá»›i Google's idtoken package
+// - Extract user information tá»« token claims
+// - Return user info hoáº·c error
 //
 // Parameters:
-//   - ctx: Context với timeout và cancellation
-//   - idToken: Google ID token từ frontend
+//   - ctx: Context vá»›i timeout vÃ  cancellation
+//   - idToken: Google ID token tá»« frontend
 //
 // Returns:
-//   - *GoogleUserInfo: User information từ Google
-//   - error: Validation error hoặc network error
+//   - *GoogleUserInfo: User information tá»« Google
+//   - error: Validation error hoáº·c network error
 func (c *GoogleClient) VerifyIDToken(ctx context.Context, idToken string) (*GoogleUserInfo, error) {
 	// Validate input
 	if idToken == "" {
@@ -150,20 +150,20 @@ func (c *GoogleClient) VerifyIDToken(ctx context.Context, idToken string) (*Goog
 	return userInfo, nil
 }
 
-// ExchangeCodeForToken exchanges an authorization code for tokens với validation và logging
+// ExchangeCodeForToken exchanges an authorization code for tokens vá»›i validation vÃ  logging
 //
 // Business Logic:
-// - Exchange authorization code for access_token và refresh_token
+// - Exchange authorization code for access_token vÃ  refresh_token
 // - Call Google's token endpoint
-// - Return tokens hoặc error
+// - Return tokens hoáº·c error
 //
 // Parameters:
-//   - ctx: Context với timeout và cancellation
-//   - code: Authorization code từ OAuth callback
+//   - ctx: Context vá»›i timeout vÃ  cancellation
+//   - code: Authorization code tá»« OAuth callback
 //
 // Returns:
-//   - *TokenResponse: Tokens từ Google (access_token, refresh_token, id_token)
-//   - error: Network error hoặc validation error
+//   - *TokenResponse: Tokens tá»« Google (access_token, refresh_token, id_token)
+//   - error: Network error hoáº·c validation error
 func (c *GoogleClient) ExchangeCodeForToken(ctx context.Context, code string) (*TokenResponse, error) {
 	// Validate input
 	if code == "" {
@@ -237,20 +237,20 @@ func (c *GoogleClient) ExchangeCodeForToken(ctx context.Context, code string) (*
 	return &tokenResp, nil
 }
 
-// GetUserInfo fetches user information using an access token với validation và logging
+// GetUserInfo fetches user information using an access token vá»›i validation vÃ  logging
 //
 // Business Logic:
-// - Fetch user information từ Google's userinfo endpoint
-// - Use access token để authenticate
-// - Return user info hoặc error
+// - Fetch user information tá»« Google's userinfo endpoint
+// - Use access token Ä‘á»ƒ authenticate
+// - Return user info hoáº·c error
 //
 // Parameters:
-//   - ctx: Context với timeout và cancellation
+//   - ctx: Context vá»›i timeout vÃ  cancellation
 //   - accessToken: Google access token
 //
 // Returns:
-//   - *GoogleUserInfo: User information từ Google
-//   - error: Network error hoặc validation error
+//   - *GoogleUserInfo: User information tá»« Google
+//   - error: Network error hoáº·c validation error
 func (c *GoogleClient) GetUserInfo(ctx context.Context, accessToken string) (*GoogleUserInfo, error) {
 	// Validate input
 	if accessToken == "" {
@@ -319,20 +319,20 @@ func (c *GoogleClient) GetUserInfo(ctx context.Context, accessToken string) (*Go
 	return &userInfo, nil
 }
 
-// RefreshAccessToken refreshes an access token using a refresh token với validation và logging
+// RefreshAccessToken refreshes an access token using a refresh token vá»›i validation vÃ  logging
 //
 // Business Logic:
 // - Refresh access token using refresh token
 // - Call Google's token endpoint
-// - Return new tokens hoặc error
+// - Return new tokens hoáº·c error
 //
 // Parameters:
-//   - ctx: Context với timeout và cancellation
+//   - ctx: Context vá»›i timeout vÃ  cancellation
 //   - refreshToken: Google refresh token
 //
 // Returns:
-//   - *TokenResponse: New tokens từ Google (access_token, refresh_token)
-//   - error: Network error hoặc validation error
+//   - *TokenResponse: New tokens tá»« Google (access_token, refresh_token)
+//   - error: Network error hoáº·c validation error
 func (c *GoogleClient) RefreshAccessToken(ctx context.Context, refreshToken string) (*TokenResponse, error) {
 	// Validate input
 	if refreshToken == "" {

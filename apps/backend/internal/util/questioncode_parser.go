@@ -168,10 +168,10 @@ func (p *QuestionCodeParser) isValidSubject(subject string) bool {
 // isValidLevel checks if level is valid (N, H, V, C, T, M)
 func (p *QuestionCodeParser) isValidLevel(level string) bool {
 	validLevels := map[string]bool{
-		"N": true, // Nhận biết (Recognition)
-		"H": true, // Thông hiểu (Understanding)
-		"V": true, // Vận dụng (Application)
-		"C": true, // Vận dụng cao (High Application)
+		"N": true, // Nháº­n biáº¿t (Recognition)
+		"H": true, // ThÃ´ng hiá»ƒu (Understanding)
+		"V": true, // Váº­n dá»¥ng (Application)
+		"C": true, // Váº­n dá»¥ng cao (High Application)
 		"T": true, // VIP
 		"M": true, // Note
 	}
@@ -190,7 +190,7 @@ func (p *QuestionCodeParser) isValidChapterOrLesson(value string) bool {
 // GenerateFolderPath generates the Google Drive folder path from components
 func (p *QuestionCodeParser) GenerateFolderPath(comp *QuestionCodeComponents) string {
 	// Format: Grade/Subject/Chapter/Lesson/Form/Level/
-	// Example: "0P1N1-1" → "0/P/1/1/1/N/"
+	// Example: "0P1N1-1" â†’ "0/P/1/1/1/N/"
 	path := fmt.Sprintf("%s/%s/%s/%s", comp.Grade, comp.Subject, comp.Chapter, comp.Lesson)
 
 	if comp.Form != "" {
@@ -206,11 +206,11 @@ func (p *QuestionCodeParser) GenerateFolderPath(comp *QuestionCodeComponents) st
 func (p *QuestionCodeParser) GetGradeName(grade string) string {
 	switch grade {
 	case "0":
-		return "Lớp 10"
+		return "Lá»›p 10"
 	case "1":
-		return "Lớp 11"
+		return "Lá»›p 11"
 	case "2":
-		return "Lớp 12"
+		return "Lá»›p 12"
 	default:
 		return "Unknown"
 	}
@@ -220,11 +220,11 @@ func (p *QuestionCodeParser) GetGradeName(grade string) string {
 func (p *QuestionCodeParser) GetSubjectName(subject string) string {
 	switch subject {
 	case "P":
-		return "Toán"
+		return "ToÃ¡n"
 	case "L":
-		return "Vật lý"
+		return "Váº­t lÃ½"
 	case "H":
-		return "Hóa học"
+		return "HÃ³a há»c"
 	default:
 		return "Unknown"
 	}
@@ -234,13 +234,13 @@ func (p *QuestionCodeParser) GetSubjectName(subject string) string {
 func (p *QuestionCodeParser) GetLevelName(level string) string {
 	switch level {
 	case "N":
-		return "Nhận biết"
+		return "Nháº­n biáº¿t"
 	case "H":
-		return "Thông hiểu"
+		return "ThÃ´ng hiá»ƒu"
 	case "V":
-		return "Vận dụng"
+		return "Váº­n dá»¥ng"
 	case "C":
-		return "Vận dụng cao"
+		return "Váº­n dá»¥ng cao"
 	case "T":
 		return "VIP"
 	case "M":
@@ -278,7 +278,7 @@ func (p *QuestionCodeParser) ToNumericValues(comp *QuestionCodeComponents) (grad
 }
 
 // convertToNumeric converts a single character to numeric value
-// 0-9 → 0-9, A-Z → 10-35
+// 0-9 â†’ 0-9, A-Z â†’ 10-35
 func (p *QuestionCodeParser) convertToNumeric(char string) (int, error) {
 	if len(char) != 1 {
 		return 0, fmt.Errorf("expected single character, got %s", char)

@@ -187,11 +187,11 @@ func (s *VersionService) generateChangeSummary(prev, current *entity.QuestionVer
 	}
 	
 	if prev.Difficulty != nil && current.Difficulty != nil && *prev.Difficulty != *current.Difficulty {
-		changes = append(changes, fmt.Sprintf("Difficulty changed: %s → %s", *prev.Difficulty, *current.Difficulty))
+		changes = append(changes, fmt.Sprintf("Difficulty changed: %s â†’ %s", *prev.Difficulty, *current.Difficulty))
 	}
 	
 	if prev.Status != nil && current.Status != nil && *prev.Status != *current.Status {
-		changes = append(changes, fmt.Sprintf("Status changed: %s → %s", *prev.Status, *current.Status))
+		changes = append(changes, fmt.Sprintf("Status changed: %s â†’ %s", *prev.Status, *current.Status))
 	}
 	
 	if len(prev.Tag) != len(current.Tag) {

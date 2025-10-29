@@ -448,13 +448,13 @@ func (s *Seeder) seedSampleExams() error {
 
 	sampleExams := []sampleExam{
 		{
-			Title:         "Đề thi thử THPT Quốc Gia 2024 - Toán",
-			Description:   "Đề thi thử chuẩn cấu trúc Bộ GD&ĐT cho kỳ thi THPT Quốc Gia môn Toán năm 2024.",
+			Title:         "Äá» thi thá»­ THPT Quá»‘c Gia 2024 - ToÃ¡n",
+			Description:   "Äá» thi thá»­ chuáº©n cáº¥u trÃºc Bá»™ GD&ÄT cho ká»³ thi THPT Quá»‘c Gia mÃ´n ToÃ¡n nÄƒm 2024.",
 			Category:      "Exam",
 			Subject:       "Math",
 			Grade:         "12",
-			Province:      "Hà Nội",
-			School:        "THPT Chu Văn An",
+			Province:      "HÃ  Ná»™i",
+			School:        "THPT Chu VÄƒn An",
 			AcademicYear:  "2023-2024",
 			Semester:      "2",
 			ExamDuration:  90,
@@ -471,13 +471,13 @@ func (s *Seeder) seedSampleExams() error {
 			Tags:          []string{"de-thi-thu", "toan-hoc", "thpt"},
 		},
 		{
-			Title:         "Đề thi giữa kỳ 1 2024 - Vật Lý 11",
-			Description:   "Đề thi giữa kỳ 1 môn Vật Lý lớp 11, có đáp án chi tiết.",
+			Title:         "Äá» thi giá»¯a ká»³ 1 2024 - Váº­t LÃ½ 11",
+			Description:   "Äá» thi giá»¯a ká»³ 1 mÃ´n Váº­t LÃ½ lá»›p 11, cÃ³ Ä‘Ã¡p Ã¡n chi tiáº¿t.",
 			Category:      "Exam",
 			Subject:       "Physics",
 			Grade:         "11",
-			Province:      "TP. Hồ Chí Minh",
-			School:        "THPT Lê Hồng Phong",
+			Province:      "TP. Há»“ ChÃ­ Minh",
+			School:        "THPT LÃª Há»“ng Phong",
 			AcademicYear:  "2023-2024",
 			Semester:      "1",
 			ExamDuration:  60,
@@ -611,8 +611,8 @@ func (s *Seeder) seedSampleVideos() error {
 
 	sampleVideos := []sampleVideo{
 		{
-			Title:          "Ôn tập Toán 12 - Chủ đề Hàm Số",
-			Description:    "Bài giảng tóm tắt kiến thức trọng tâm và dạng bài thường gặp về hàm số lớp 12.",
+			Title:          "Ã”n táº­p ToÃ¡n 12 - Chá»§ Ä‘á» HÃ m Sá»‘",
+			Description:    "BÃ i giáº£ng tÃ³m táº¯t kiáº¿n thá»©c trá»ng tÃ¢m vÃ  dáº¡ng bÃ i thÆ°á»ng gáº·p vá» hÃ m sá»‘ lá»›p 12.",
 			Category:       "Video",
 			Subject:        "Math",
 			Grade:          "12",
@@ -624,15 +624,15 @@ func (s *Seeder) seedSampleVideos() error {
 			YoutubeID:      "dQw4w9WgXcQ",
 			Duration:       1_800,
 			Quality:        "1080p",
-			InstructorName: "Thầy Nguyễn Minh",
+			InstructorName: "Tháº§y Nguyá»…n Minh",
 			RequiredRole:   "STUDENT",
 			RequiredLevel:  5,
 			TargetRoles:    []string{"STUDENT", "TUTOR", "TEACHER"},
 			Tags:           []string{"video-bai-giang", "toan-hoc", "lop12"},
 		},
 		{
-			Title:          "Lý thuyết Vật Lý 11 - Điện từ trường",
-			Description:    "Video bài giảng chi tiết về chương Điện từ trường dành cho học sinh lớp 11.",
+			Title:          "LÃ½ thuyáº¿t Váº­t LÃ½ 11 - Äiá»‡n tá»« trÆ°á»ng",
+			Description:    "Video bÃ i giáº£ng chi tiáº¿t vá» chÆ°Æ¡ng Äiá»‡n tá»« trÆ°á»ng dÃ nh cho há»c sinh lá»›p 11.",
 			Category:       "Video",
 			Subject:        "Physics",
 			Grade:          "11",
@@ -644,7 +644,7 @@ func (s *Seeder) seedSampleVideos() error {
 			YoutubeID:      "abcdefghijk",
 			Duration:       2_100,
 			Quality:        "720p",
-			InstructorName: "Cô Trần Thảo",
+			InstructorName: "CÃ´ Tráº§n Tháº£o",
 			RequiredRole:   "STUDENT",
 			RequiredLevel:  4,
 			TargetRoles:    []string{"STUDENT", "TUTOR", "TEACHER"},
@@ -802,7 +802,7 @@ func (s *Seeder) seedSampleLibraryEngagements() error {
 			ItemID:    books[0],
 			UserEmail: "student@exambank.com",
 			Rating:    5,
-			Review:    "Tài liệu rất hữu ích cho việc luyện thi.",
+			Review:    "TÃ i liá»‡u ráº¥t há»¯u Ã­ch cho viá»‡c luyá»‡n thi.",
 		})
 	}
 	if len(exams) > 0 && userIDs["teacher@exambank.com"] != "" {
@@ -810,7 +810,7 @@ func (s *Seeder) seedSampleLibraryEngagements() error {
 			ItemID:    exams[0],
 			UserEmail: "teacher@exambank.com",
 			Rating:    4,
-			Review:    "Đề thi bám sát cấu trúc chính thức, có thể dùng để luyện tập.",
+			Review:    "Äá» thi bÃ¡m sÃ¡t cáº¥u trÃºc chÃ­nh thá»©c, cÃ³ thá»ƒ dÃ¹ng Ä‘á»ƒ luyá»‡n táº­p.",
 		})
 	}
 	if len(videos) > 0 && userIDs["demo.student@exambank.com"] != "" {
@@ -818,7 +818,7 @@ func (s *Seeder) seedSampleLibraryEngagements() error {
 			ItemID:    videos[0],
 			UserEmail: "demo.student@exambank.com",
 			Rating:    5,
-			Review:    "Giảng viên truyền đạt dễ hiểu, phần recap cuối bài rất hữu ích.",
+			Review:    "Giáº£ng viÃªn truyá»n Ä‘áº¡t dá»… hiá»ƒu, pháº§n recap cuá»‘i bÃ i ráº¥t há»¯u Ã­ch.",
 		})
 	}
 

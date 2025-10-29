@@ -69,10 +69,10 @@ func TestGenerateUploadStatusTag(t *testing.T) {
 		status   string
 		expected string
 	}{
-		{"pending", "Chờ duyệt"},
-		{"approved", "Đã duyệt"},
-		{"rejected", "Từ chối"},
-		{"completed", "Đã hoàn thành"},
+		{"pending", "Chá» duyá»‡t"},
+		{"approved", "ÄÃ£ duyá»‡t"},
+		{"rejected", "Tá»« chá»‘i"},
+		{"completed", "ÄÃ£ hoÃ n thÃ nh"},
 		{"unknown", ""},
 	}
 
@@ -92,11 +92,11 @@ func TestAddExamTags(t *testing.T) {
 
 	tags := make(map[string]bool)
 	exam := &entity.LibraryExam{
-		Subject:       "Toán học",
+		Subject:       "ToÃ¡n há»c",
 		Grade:         "12",
 		Difficulty:    sql.NullString{String: "hard", Valid: true},
 		ExamType:      "final",
-		Province:      sql.NullString{String: "Hà Nội", Valid: true},
+		Province:      sql.NullString{String: "HÃ  Ná»™i", Valid: true},
 		AcademicYear:  "2024",
 		ExamDuration:  sql.NullInt32{Int32: 120, Valid: true},
 		QuestionCount: sql.NullInt32{Int32: 30, Valid: true},
@@ -105,14 +105,14 @@ func TestAddExamTags(t *testing.T) {
 	gen.addExamTags(tags, exam)
 
 	expectedTags := []string{
-		"Toán học",
-		"Lớp 12",
-		"Khó",
-		"Cuối kỳ",
-		"Hà Nội",
-		"Năm 2024",
-		"Dài (>90 phút)",
-		"Trung bình (20-50 câu)",
+		"ToÃ¡n há»c",
+		"Lá»›p 12",
+		"KhÃ³",
+		"Cuá»‘i ká»³",
+		"HÃ  Ná»™i",
+		"NÄƒm 2024",
+		"DÃ i (>90 phÃºt)",
+		"Trung bÃ¬nh (20-50 cÃ¢u)",
 	}
 
 	for _, expected := range expectedTags {
@@ -128,23 +128,23 @@ func TestAddVideoTags(t *testing.T) {
 
 	tags := make(map[string]bool)
 	video := &entity.LibraryVideo{
-		Subject:        "Hóa học",
+		Subject:        "HÃ³a há»c",
 		Grade:          "10",
 		Duration:       sql.NullInt32{Int32: 1200, Valid: true},
 		Quality:        sql.NullString{String: "1080p", Valid: true},
 		YoutubeURL:     "https://youtube.com/watch?v=abc123",
-		InstructorName: sql.NullString{String: "Thầy Nguyễn Văn A", Valid: true},
+		InstructorName: sql.NullString{String: "Tháº§y Nguyá»…n VÄƒn A", Valid: true},
 	}
 
 	gen.addVideoTags(tags, video)
 
 	expectedTags := []string{
-		"Hóa học",
-		"Lớp 10",
-		"Video trung bình (10-30 phút)",
+		"HÃ³a há»c",
+		"Lá»›p 10",
+		"Video trung bÃ¬nh (10-30 phÃºt)",
 		"Full HD",
 		"YouTube",
-		"Giảng viên: Thầy Nguyễn Văn A",
+		"Giáº£ng viÃªn: Tháº§y Nguyá»…n VÄƒn A",
 	}
 
 	for _, expected := range expectedTags {
@@ -174,7 +174,7 @@ func TestGenerateForExam(t *testing.T) {
 
 	exam := &entity.LibraryExam{
 		UploadStatus: "approved",
-		Subject:      "Toán học",
+		Subject:      "ToÃ¡n há»c",
 		Grade:        "12",
 		Difficulty:   sql.NullString{String: "medium", Valid: true},
 	}
@@ -189,7 +189,7 @@ func TestGenerateForExam(t *testing.T) {
 	}
 
 	// Check that some expected tags were created
-	expectedTagNames := []string{"Đề thi", "Đã duyệt", "Toán học", "Lớp 12"}
+	expectedTagNames := []string{"Äá» thi", "ÄÃ£ duyá»‡t", "ToÃ¡n há»c", "Lá»›p 12"}
 	for _, name := range expectedTagNames {
 		if _, exists := createdTags[name]; !exists {
 			t.Errorf("expected tag %s to be created", name)
@@ -217,7 +217,7 @@ func TestGenerateForVideo(t *testing.T) {
 
 	video := &entity.LibraryVideo{
 		UploadStatus: "pending",
-		Subject:      "Sinh học",
+		Subject:      "Sinh há»c",
 		Grade:        "8",
 		Duration:     sql.NullInt32{Int32: 500, Valid: true},
 		Quality:      sql.NullString{String: "720p", Valid: true},
@@ -233,7 +233,7 @@ func TestGenerateForVideo(t *testing.T) {
 		t.Error("expected at least one tag ID")
 	}
 
-	expectedTagNames := []string{"Video", "Chờ duyệt", "Sinh học", "Lớp 8"}
+	expectedTagNames := []string{"Video", "Chá» duyá»‡t", "Sinh há»c", "Lá»›p 8"}
 	for _, name := range expectedTagNames {
 		if _, exists := createdTags[name]; !exists {
 			t.Errorf("expected tag %s to be created", name)

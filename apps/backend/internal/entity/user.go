@@ -4,7 +4,7 @@ import (
 	"github.com/jackc/pgtype"
 )
 
-// Enhanced User struct theo thiết kế AUTH_COMPLETE_GUIDE.md
+// Enhanced User struct theo thiáº¿t káº¿ AUTH_COMPLETE_GUIDE.md
 type User struct {
 	// ===== CORE REQUIRED FIELDS (MVP) =====
 	ID           pgtype.Text        `json:"id"`
@@ -43,8 +43,8 @@ type User struct {
 	Gender      pgtype.Text `json:"gender,omitempty"`        // Analytics
 }
 
-// FieldMap trả về field names và pointers cho database scanning
-// Tất cả fields theo thứ tự trong enhanced database schema
+// FieldMap tráº£ vá» field names vÃ  pointers cho database scanning
+// Táº¥t cáº£ fields theo thá»© tá»± trong enhanced database schema
 func (e *User) FieldMap() ([]string, []interface{}) {
 	return []string{
 			// ===== CORE REQUIRED FIELDS =====

@@ -12,7 +12,7 @@ import (
 	"github.com/lib/pq"
 )
 
-// Allowed sort columns để tránh SQL injection
+// Allowed sort columns Ä‘á»ƒ trÃ¡nh SQL injection
 var allowedBookSortColumns = map[string]string{
 	"created_at":     "li.created_at",
 	"updated_at":     "li.updated_at",
@@ -21,7 +21,7 @@ var allowedBookSortColumns = map[string]string{
 	"title":          "li.name",
 }
 
-// BookListFilters định nghĩa bộ lọc truy vấn sách
+// BookListFilters Ä‘á»‹nh nghÄ©a bá»™ lá»c truy váº¥n sÃ¡ch
 type BookListFilters struct {
 	Limit     int
 	Offset    int
@@ -34,7 +34,7 @@ type BookListFilters struct {
 	SortOrder string
 }
 
-// BookRepository định nghĩa các thao tác dữ liệu cho BookService
+// BookRepository Ä‘á»‹nh nghÄ©a cÃ¡c thao tÃ¡c dá»¯ liá»‡u cho BookService
 type BookRepository interface {
 	List(ctx context.Context, filters BookListFilters) ([]*entity.Book, int, error)
 	GetByID(ctx context.Context, id string) (*entity.Book, error)
@@ -49,12 +49,12 @@ type bookRepository struct {
 	db *sql.DB
 }
 
-// NewBookRepository tạo repository mới
+// NewBookRepository táº¡o repository má»›i
 func NewBookRepository(db *sql.DB) BookRepository {
 	return &bookRepository{db: db}
 }
 
-// List trả về danh sách sách theo bộ lọc và tổng số bản ghi
+// List tráº£ vá» danh sÃ¡ch sÃ¡ch theo bá»™ lá»c vÃ  tá»•ng sá»‘ báº£n ghi
 func (r *bookRepository) List(ctx context.Context, filters BookListFilters) ([]*entity.Book, int, error) {
 	if filters.Limit <= 0 || filters.Limit > 100 {
 		filters.Limit = 20
@@ -224,7 +224,7 @@ func (r *bookRepository) List(ctx context.Context, filters BookListFilters) ([]*
 	return books, total, rows.Err()
 }
 
-// GetByID trả về sách theo ID
+// GetByID tráº£ vá» sÃ¡ch theo ID
 func (r *bookRepository) GetByID(ctx context.Context, id string) (*entity.Book, error) {
 	query := `
 		SELECT 
@@ -327,7 +327,7 @@ func (r *bookRepository) GetByID(ctx context.Context, id string) (*entity.Book, 
 	return book, nil
 }
 
-// Create thêm sách mới
+// Create thÃªm sÃ¡ch má»›i
 func (r *bookRepository) Create(ctx context.Context, book *entity.Book) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -418,7 +418,7 @@ func (r *bookRepository) Create(ctx context.Context, book *entity.Book) error {
 	return nil
 }
 
-// Update chỉnh sửa thông tin sách
+// Update chá»‰nh sá»­a thÃ´ng tin sÃ¡ch
 func (r *bookRepository) Update(ctx context.Context, book *entity.Book) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -533,7 +533,7 @@ func (r *bookRepository) Update(ctx context.Context, book *entity.Book) error {
 	return nil
 }
 
-// SoftDelete đặt sách về trạng thái archived để đảm bảo lịch sử
+// SoftDelete Ä‘áº·t sÃ¡ch vá» tráº¡ng thÃ¡i archived Ä‘á»ƒ Ä‘áº£m báº£o lá»‹ch sá»­
 func (r *bookRepository) SoftDelete(ctx context.Context, id string, archivedBy string) error {
 	result, err := r.db.ExecContext(ctx, `
 		UPDATE library_items
@@ -554,7 +554,7 @@ func (r *bookRepository) SoftDelete(ctx context.Context, id string, archivedBy s
 	return nil
 }
 
-// IncrementDownloadCount tăng download_count và ghi lịch sử
+// IncrementDownloadCount tÄƒng download_count vÃ  ghi lá»‹ch sá»­
 func (r *bookRepository) IncrementDownloadCount(ctx context.Context, id string, userID *string, ipAddress, userAgent string) (int, error) {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -604,7 +604,7 @@ func (r *bookRepository) IncrementDownloadCount(ctx context.Context, id string, 
 	return newCount, nil
 }
 
-// CountActive trả về tổng số sách đang active
+// CountActive tráº£ vá» tá»•ng sá»‘ sÃ¡ch Ä‘ang active
 func (r *bookRepository) CountActive(ctx context.Context) (int, error) {
 	var total int
 	err := r.db.QueryRowContext(ctx, `
@@ -616,7 +616,7 @@ func (r *bookRepository) CountActive(ctx context.Context) (int, error) {
 	return total, err
 }
 
-// upsertBookTags cập nhật quan hệ tag cho sách trong transaction
+// upsertBookTags cáº­p nháº­t quan há»‡ tag cho sÃ¡ch trong transaction
 func upsertBookTags(ctx context.Context, tx *sql.Tx, itemID string, tags []string) error {
 	cleanedTags := make([]string, 0, len(tags))
 	for _, tag := range tags {
@@ -660,7 +660,7 @@ func upsertBookTags(ctx context.Context, tx *sql.Tx, itemID string, tags []strin
 			args = append(args, id)
 		}
 
-		// Remove tags không còn trong danh sách mới
+		// Remove tags khÃ´ng cÃ²n trong danh sÃ¡ch má»›i
 		query := fmt.Sprintf(`
 			DELETE FROM item_tags
 			WHERE library_item_id = $1
@@ -670,7 +670,7 @@ func upsertBookTags(ctx context.Context, tx *sql.Tx, itemID string, tags []strin
 			return err
 		}
 
-		// Thêm quan hệ mới
+		// ThÃªm quan há»‡ má»›i
 		for _, tagID := range tagIDs {
 			if _, err := tx.ExecContext(ctx, `
 				INSERT INTO item_tags (library_item_id, tag_id)

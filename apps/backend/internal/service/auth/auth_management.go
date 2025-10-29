@@ -1,4 +1,4 @@
-﻿package auth
+package auth
 
 import (
 	"exam-bank-system/apps/backend/internal/database"

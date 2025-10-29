@@ -1,4 +1,4 @@
-﻿package exam
+package exam
 
 import (
 	"exam-bank-system/apps/backend/internal/entity"

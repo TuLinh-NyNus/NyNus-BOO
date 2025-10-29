@@ -136,11 +136,11 @@ type QuestionType int32
 
 const (
 	QuestionType_QUESTION_TYPE_UNSPECIFIED     QuestionType = 0
-	QuestionType_QUESTION_TYPE_MULTIPLE_CHOICE QuestionType = 1 // MC - Trắc nghiệm 1 đáp án
-	QuestionType_QUESTION_TYPE_TRUE_FALSE      QuestionType = 2 // TF - Đúng/Sai nhiều đáp án
-	QuestionType_QUESTION_TYPE_SHORT_ANSWER    QuestionType = 3 // SA - Trả lời ngắn
-	QuestionType_QUESTION_TYPE_ESSAY           QuestionType = 4 // ES - Tự luận
-	QuestionType_QUESTION_TYPE_MATCHING        QuestionType = 5 // MA - Ghép đôi
+	QuestionType_QUESTION_TYPE_MULTIPLE_CHOICE QuestionType = 1 // MC - Tráº¯c nghiá»‡m 1 Ä‘Ã¡p Ã¡n
+	QuestionType_QUESTION_TYPE_TRUE_FALSE      QuestionType = 2 // TF - ÄÃºng/Sai nhiá»u Ä‘Ã¡p Ã¡n
+	QuestionType_QUESTION_TYPE_SHORT_ANSWER    QuestionType = 3 // SA - Tráº£ lá»i ngáº¯n
+	QuestionType_QUESTION_TYPE_ESSAY           QuestionType = 4 // ES - Tá»± luáº­n
+	QuestionType_QUESTION_TYPE_MATCHING        QuestionType = 5 // MA - GhÃ©p Ä‘Ã´i
 )
 
 // Enum value maps for QuestionType.
@@ -194,10 +194,10 @@ type DifficultyLevel int32
 
 const (
 	DifficultyLevel_DIFFICULTY_LEVEL_UNSPECIFIED DifficultyLevel = 0
-	DifficultyLevel_DIFFICULTY_LEVEL_EASY        DifficultyLevel = 1 // Dễ
-	DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM      DifficultyLevel = 2 // Trung bình
-	DifficultyLevel_DIFFICULTY_LEVEL_HARD        DifficultyLevel = 3 // Khó
-	DifficultyLevel_DIFFICULTY_LEVEL_EXPERT      DifficultyLevel = 4 // Chuyên gia/Rất khó
+	DifficultyLevel_DIFFICULTY_LEVEL_EASY        DifficultyLevel = 1 // Dá»…
+	DifficultyLevel_DIFFICULTY_LEVEL_MEDIUM      DifficultyLevel = 2 // Trung bÃ¬nh
+	DifficultyLevel_DIFFICULTY_LEVEL_HARD        DifficultyLevel = 3 // KhÃ³
+	DifficultyLevel_DIFFICULTY_LEVEL_EXPERT      DifficultyLevel = 4 // ChuyÃªn gia/Ráº¥t khÃ³
 )
 
 // Enum value maps for DifficultyLevel.

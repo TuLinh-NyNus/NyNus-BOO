@@ -1,4 +1,4 @@
-﻿package parse_error
+package parse_error
 
 import (
 	"context"

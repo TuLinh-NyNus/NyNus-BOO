@@ -1,4 +1,4 @@
-﻿package image_upload
+package image_upload
 
 import (
 	"context"

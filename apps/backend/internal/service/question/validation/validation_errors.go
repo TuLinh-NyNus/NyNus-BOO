@@ -40,34 +40,34 @@ const (
 // Validation error messages in Vietnamese
 var ErrorMessages = map[string]string{
 	// Base structure errors
-	ErrorCodeInvalidJSON:         "Dữ liệu JSON không hợp lệ",
-	ErrorCodeMissingField:        "Thiếu trường bắt buộc: %s",
-	ErrorCodeInvalidFieldType:    "Kiểu dữ liệu không hợp lệ cho trường: %s",
-	ErrorCodeInvalidQuestionType: "Loại câu hỏi không hợp lệ: %s (phải là MC, TF, SA, hoặc ES)",
-	ErrorCodeInvalidUUID:         "UUID không hợp lệ: %s",
-	ErrorCodeInvalidDateTime:     "Định dạng thời gian không hợp lệ: %s (phải là RFC3339)",
+	ErrorCodeInvalidJSON:         "Dá»¯ liá»‡u JSON khÃ´ng há»£p lá»‡",
+	ErrorCodeMissingField:        "Thiáº¿u trÆ°á»ng báº¯t buá»™c: %s",
+	ErrorCodeInvalidFieldType:    "Kiá»ƒu dá»¯ liá»‡u khÃ´ng há»£p lá»‡ cho trÆ°á»ng: %s",
+	ErrorCodeInvalidQuestionType: "Loáº¡i cÃ¢u há»i khÃ´ng há»£p lá»‡: %s (pháº£i lÃ  MC, TF, SA, hoáº·c ES)",
+	ErrorCodeInvalidUUID:         "UUID khÃ´ng há»£p lá»‡: %s",
+	ErrorCodeInvalidDateTime:     "Äá»‹nh dáº¡ng thá»i gian khÃ´ng há»£p lá»‡: %s (pháº£i lÃ  RFC3339)",
 
 	// MC specific errors
-	ErrorCodeMCMissingSelection: "Câu hỏi trắc nghiệm phải có lựa chọn được chọn",
-	ErrorCodeMCInvalidAnswerID:  "ID đáp án không hợp lệ: %s",
+	ErrorCodeMCMissingSelection: "CÃ¢u há»i tráº¯c nghiá»‡m pháº£i cÃ³ lá»±a chá»n Ä‘Æ°á»£c chá»n",
+	ErrorCodeMCInvalidAnswerID:  "ID Ä‘Ã¡p Ã¡n khÃ´ng há»£p lá»‡: %s",
 
 	// TF specific errors
-	ErrorCodeTFInvalidStatements:       "Danh sách câu lệnh không hợp lệ",
-	ErrorCodeTFIncorrectStatementCount: "Câu hỏi đúng/sai phải có đúng 4 câu lệnh, hiện có: %d",
-	ErrorCodeTFMismatchedSelections:    "Danh sách selected_answer_ids không khớp với statements được chọn",
-	ErrorCodeTFInvalidStatementID:      "ID câu lệnh không hợp lệ: %s",
+	ErrorCodeTFInvalidStatements:       "Danh sÃ¡ch cÃ¢u lá»‡nh khÃ´ng há»£p lá»‡",
+	ErrorCodeTFIncorrectStatementCount: "CÃ¢u há»i Ä‘Ãºng/sai pháº£i cÃ³ Ä‘Ãºng 4 cÃ¢u lá»‡nh, hiá»‡n cÃ³: %d",
+	ErrorCodeTFMismatchedSelections:    "Danh sÃ¡ch selected_answer_ids khÃ´ng khá»›p vá»›i statements Ä‘Æ°á»£c chá»n",
+	ErrorCodeTFInvalidStatementID:      "ID cÃ¢u lá»‡nh khÃ´ng há»£p lá»‡: %s",
 
 	// SA specific errors
-	ErrorCodeSAMissingText:        "Câu trả lời ngắn phải có nội dung",
-	ErrorCodeSATextTooLong:        "Câu trả lời ngắn không được vượt quá 1000 ký tự",
-	ErrorCodeSAInvalidCaseSetting: "Cài đặt case_sensitive phải là boolean",
+	ErrorCodeSAMissingText:        "CÃ¢u tráº£ lá»i ngáº¯n pháº£i cÃ³ ná»™i dung",
+	ErrorCodeSATextTooLong:        "CÃ¢u tráº£ lá»i ngáº¯n khÃ´ng Ä‘Æ°á»£c vÆ°á»£t quÃ¡ 1000 kÃ½ tá»±",
+	ErrorCodeSAInvalidCaseSetting: "CÃ i Ä‘áº·t case_sensitive pháº£i lÃ  boolean",
 
 	// ES specific errors
-	ErrorCodeESMissingText:        "Bài luận phải có nội dung",
-	ErrorCodeESTextTooShort:       "Bài luận phải có ít nhất 10 ký tự",
-	ErrorCodeESInvalidWordCount:   "Số từ không hợp lệ: %d",
-	ErrorCodeESInvalidCharCount:   "Số ký tự không hợp lệ: %d",
-	ErrorCodeESInvalidManualScore: "Điểm thủ công không hợp lệ: %v",
+	ErrorCodeESMissingText:        "BÃ i luáº­n pháº£i cÃ³ ná»™i dung",
+	ErrorCodeESTextTooShort:       "BÃ i luáº­n pháº£i cÃ³ Ã­t nháº¥t 10 kÃ½ tá»±",
+	ErrorCodeESInvalidWordCount:   "Sá»‘ tá»« khÃ´ng há»£p lá»‡: %d",
+	ErrorCodeESInvalidCharCount:   "Sá»‘ kÃ½ tá»± khÃ´ng há»£p lá»‡: %d",
+	ErrorCodeESInvalidManualScore: "Äiá»ƒm thá»§ cÃ´ng khÃ´ng há»£p lá»‡: %v",
 }
 
 // NewValidationError creates a new validation error

@@ -1,8 +1,8 @@
 package grpc
 
-// TODO: Uncomment và implement sau khi proto files đã được update
+// TODO: Uncomment vÃ  implement sau khi proto files Ä‘Ã£ Ä‘Æ°á»£c update
 //
-// Các protobuf messages cần thêm vào proto/v1/question.proto:
+// CÃ¡c protobuf messages cáº§n thÃªm vÃ o proto/v1/question.proto:
 //
 // 1. GetVersionHistoryRequest / GetVersionHistoryResponse
 // 2. GetVersionRequest / GetVersionResponse
@@ -16,10 +16,10 @@ package grpc
 // Sau khi update proto:
 // 1. Run: cd packages/proto && buf generate
 // 2. Uncomment code trong question_version_handlers.go
-// 3. Build và test
+// 3. Build vÃ  test
 //
-// Chi tiết xem file: apps/backend/QUESTION_VERSION_CONTROL_IMPLEMENTATION.md
+// Chi tiáº¿t xem file: apps/backend/QUESTION_VERSION_CONTROL_IMPLEMENTATION.md
 
-// Stub comment để file không rỗng
+// Stub comment Ä‘á»ƒ file khÃ´ng rá»—ng
 const VersionHandlersStub = "Proto definitions pending"
 

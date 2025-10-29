@@ -1,4 +1,4 @@
-﻿package user_mgmt
+package user_mgmt
 
 import (
 	"context"

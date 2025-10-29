@@ -1,7 +1,7 @@
 package middleware
 
 // Auth Interceptor Constants
-// Định nghĩa các hằng số cho authentication interceptor
+// Äá»‹nh nghÄ©a cÃ¡c háº±ng sá»‘ cho authentication interceptor
 
 const (
 	// Authorization header constants

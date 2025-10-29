@@ -1,4 +1,4 @@
-﻿package bulk_import
+package bulk_import
 
 import (
 	"context"

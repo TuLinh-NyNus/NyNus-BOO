@@ -296,7 +296,7 @@ func (c *Container) initServices() {
 		},
 	})
 
-	// Initialize Unified JWT Service vá»›i logger
+	// Initialize Unified JWT Service vÃ¡Â»â€ºi logger
 	var err error
 	c.UnifiedJWTService, err = auth.NewUnifiedJWTService(accessSecret, c.RefreshTokenRepo, jwtLogger)
 	if err != nil {
