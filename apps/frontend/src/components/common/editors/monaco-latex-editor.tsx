@@ -24,6 +24,15 @@ export interface MonacoLatexEditorProps {
   language?: string;
   theme?: string;
   onMount?: (editor: any) => void;
+  onCursorPositionChange?: (position: any) => void;
+  onSelectionChange?: (selection: any) => void;
+  onContentChange?: (content: string) => void;
+  showMinimap?: boolean;
+  showLineNumbers?: boolean;
+  wordWrap?: boolean;
+  fontSize?: number;
+  enableAutoCompletion?: boolean;
+  className?: string;
   options?: any;
 }
 

@@ -1,197 +1,358 @@
 /**
- * Batch Request Manager
- * =====================
+ * Batch Request Manager for gRPC Performance Optimization
+ * =======================================================
  * 
- * Manages batching of gRPC requests to improve throughput and reduce latency.
- * Combines multiple requests into single batch operations where possible.
+ * Quản lý batching requests để cải thiện hiệu suất:
+ * - Kết hợp nhiều requests thành batch để giảm latency
+ * - Hỗ trợ priority-based execution
+ * - Tự động flush batch khi đạt size hoặc timeout
+ * - Theo dõi metrics hiệu suất
  * 
- * Features:
- * - Automatic request queuing with configurable batch size and time window
- * - Request deduplication and merging
- * - Concurrent batch limit management
- * - Memory-efficient operation tracking
- * - Comprehensive metrics and statistics
- * - Error handling with partial failure support
+ * Business Logic:
+ * - Requests được queue lại với timestamps
+ * - Batch được execute khi: size >= threshold HOẶC time window expired
+ * - Max 1-5 batches execute concurrently để tránh quá tải
+ * - Memory được manage để không vượt quá limit
+ * 
+ * Performance Targets:
+ * - Batch size >= 2 giảm latency 20%
+ * - Throughput >= 100 requests/sec
+ * - Memory overhead < 5MB
+ * - Không mất request
  * 
  * @author NyNus Development Team
- * @version 1.0.0 - Phase 3 Optimization
+ * @version 1.0.0 - Phase 3 Performance Optimization
  */
 
-export interface BatchRequest<T = any> {
+import { logger } from '@/lib/logger';
+
+/**
+ * Single batched request object
+ */
+interface BatchedRequest<TRequest> {
   id: string;
+  request: TRequest;
+  priority: 'high' | 'normal' | 'low';
   timestamp: number;
-  operation: string;
-  payload: T;
-  priority: number;
-  retries: number;
-  maxRetries: number;
-  resolve?: (value: any) => void;
-  reject?: (error: Error) => void;
-}
-
-export interface BatchConfig {
-  // Maximum number of requests to batch together
-  maxBatchSize: number;
-  
-  // Time window in ms to wait for more requests before executing
-  batchTimeWindowMs: number;
-  
-  // Maximum concurrent batches being processed
-  maxConcurrentBatches: number;
-  
-  // Maximum memory overhead in MB for queued requests
-  maxMemoryMB: number;
-  
-  // Enable request deduplication (same operation + payload)
-  enableDeduplication: boolean;
-  
-  // Enable request merging where possible
-  enableMerging: boolean;
-}
-
-export interface BatchMetrics {
-  // Total batches created and executed
-  totalBatches: number;
-  
-  // Total requests processed
-  totalRequests: number;
-  
-  // Average requests per batch
-  avgRequestsPerBatch: number;
-  
-  // Average batch latency in ms
-  avgBatchLatencyMs: number;
-  
-  // Total latency savings from batching (percentage)
-  latencySavingsPercent: number;
-  
-  // Current queue size
-  queueSize: number;
-  
-  // Memory usage estimate in MB
-  memoryUsageMB: number;
-  
-  // Failed requests count
-  failedRequests: number;
-  
-  // Success rate (percentage)
-  successRatePercent: number;
-}
-
-export interface BatchExecutionResult<T = any> {
-  successful: boolean;
-  batchId: string;
-  requestIds: string[];
-  results: Map<string, { data: T; latency: number }>;
-  errors: Map<string, Error>;
-  totalLatencyMs: number;
-  executionTime: number;
+  timeoutId?: NodeJS.Timeout;
 }
 
 /**
- * Batch Request Manager - Main class for request batching
+ * Batch object containing grouped requests
  */
-export class BatchRequestManager {
-  private requestQueue: Map<string, BatchRequest> = new Map();
-  private activeBatches: Set<string> = new Set();
+interface RequestBatch<TRequest, TResponse> {
+  id: string;
+  requests: BatchedRequest<TRequest>[];
+  createdAt: number;
+  executeAt?: number;
+  status: 'pending' | 'executing' | 'completed' | 'failed';
+  error?: Error;
+  results?: Map<string, TResponse | Error>;
+}
+
+/**
+ * Batching configuration
+ */
+interface BatchConfig {
+  // Max items in a batch before auto-flush
+  maxBatchSize: number;
+  // Time window (ms) before auto-flush
+  batchTimeWindow: number;
+  // Max concurrent batches executing
+  maxConcurrentBatches: number;
+  // Memory limit in MB
+  maxMemoryMB: number;
+}
+
+/**
+ * Metrics for batch processing
+ */
+interface BatchMetrics {
+  totalBatches: number;
+  totalRequests: number;
+  successfulBatches: number;
+  failedBatches: number;
+  avgBatchSize: number;
+  avgLatency: number;
+  memoryUsed: number;
+  latencySavings: number; // Percentage
+}
+
+/**
+ * BatchRequestManager - Centralized batch request handling
+ * 
+ * Quản lý batching requests để giảm latency và tăng throughput.
+ * Supports priority-based execution, automatic flushing, và metrics collection.
+ */
+export class BatchRequestManager<TRequest, TResponse> {
+  private queue: BatchedRequest<TRequest>[] = [];
+  private batches: Map<string, RequestBatch<TRequest, TResponse>> = new Map();
+  private config: BatchConfig;
   private metrics: BatchMetrics = {
     totalBatches: 0,
     totalRequests: 0,
-    avgRequestsPerBatch: 0,
-    avgBatchLatencyMs: 0,
-    latencySavingsPercent: 0,
-    queueSize: 0,
-    memoryUsageMB: 0,
-    failedRequests: 0,
-    successRatePercent: 100
+    successfulBatches: 0,
+    failedBatches: 0,
+    avgBatchSize: 0,
+    avgLatency: 0,
+    memoryUsed: 0,
+    latencySavings: 0
   };
-  
-  private config: BatchConfig;
-  private executorFn?: (requests: BatchRequest[]) => Promise<BatchExecutionResult>;
-  private batchTimer?: NodeJS.Timeout;
-  private operationStats: Map<string, { count: number; totalLatency: number }> = new Map();
+  private executingBatchCount = 0;
+  private flushTimeoutId?: NodeJS.Timeout;
+  private readonly executor: (batch: TRequest[]) => Promise<TResponse[]>;
+  private readonly serviceName: string;
 
-  constructor(config: Partial<BatchConfig> = {}) {
+  /**
+   * Initialize BatchRequestManager
+   * 
+   * @param executor - Function để execute batch requests
+   * @param serviceName - Name của service (cho logging)
+   * @param config - Optional batch configuration
+   */
+  constructor(
+    executor: (batch: TRequest[]) => Promise<TResponse[]>,
+    serviceName: string,
+    config?: Partial<BatchConfig>
+  ) {
+    this.executor = executor;
+    this.serviceName = serviceName;
     this.config = {
-      maxBatchSize: config.maxBatchSize ?? 10,
-      batchTimeWindowMs: config.batchTimeWindowMs ?? 100,
-      maxConcurrentBatches: config.maxConcurrentBatches ?? 5,
-      maxMemoryMB: config.maxMemoryMB ?? 10,
-      enableDeduplication: config.enableDeduplication ?? true,
-      enableMerging: config.enableMerging ?? true
-    };
-  }
-
-  /**
-   * Set the executor function that processes batches
-   */
-  setExecutor(executor: (requests: BatchRequest[]) => Promise<BatchExecutionResult>): void {
-    this.executorFn = executor;
-  }
-
-  /**
-   * Add a request to the batch queue
-   */
-  async addRequest<T>(
-    operation: string,
-    payload: T,
-    options: { priority?: number; maxRetries?: number } = {}
-  ): Promise<any> {
-    const { priority = 0, maxRetries = 3 } = options;
-
-    // Check if we can deduplicate
-    if (this.config.enableDeduplication) {
-      const existingRequest = this.findDuplicateRequest(operation, payload);
-      if (existingRequest) {
-        // Return a promise that resolves when the existing request completes
-        return new Promise((resolve, reject) => {
-          const originalResolve = existingRequest.resolve;
-          const originalReject = existingRequest.reject;
-          
-          existingRequest.resolve = (value) => {
-            originalResolve?.(value);
-            resolve(value);
-          };
-          existingRequest.reject = (error) => {
-            originalReject?.(error);
-            reject(error);
-          };
-        });
-      }
-    }
-
-    const requestId = this.generateRequestId();
-    const request: BatchRequest<T> = {
-      id: requestId,
-      timestamp: Date.now(),
-      operation,
-      payload,
-      priority,
-      retries: 0,
-      maxRetries,
-      resolve: undefined,
-      reject: undefined
+      maxBatchSize: config?.maxBatchSize ?? 10,
+      batchTimeWindow: config?.batchTimeWindow ?? 50, // 50ms default
+      maxConcurrentBatches: config?.maxConcurrentBatches ?? 3,
+      maxMemoryMB: config?.maxMemoryMB ?? 5
     };
 
-    // Add to queue
-    this.requestQueue.set(requestId, request);
-    this.updateMetrics();
-
-    // Return a promise that will be resolved when batch executes
-    return new Promise((resolve, reject) => {
-      request.resolve = resolve;
-      request.reject = reject;
-
-      // Schedule batch execution
-      this.scheduleBatchExecution();
+    logger.debug(`[BatchRequestManager] Initialized for ${serviceName}`, {
+      config: this.config
     });
   }
 
   /**
-   * Get current queue size
+   * Add request to queue
+   * 
+   * @param request - Request object
+   * @param priority - Priority level
+   * @returns Promise that resolves when batch completes
    */
-  getQueueSize(): number {
-    return this.requestQueue.size;
+  async enqueue(
+    request: TRequest,
+    priority: 'high' | 'normal' | 'low' = 'normal'
+  ): Promise<TResponse | Error> {
+    const requestId = this.generateId();
+    
+    const batchedRequest: BatchedRequest<TRequest> = {
+      id: requestId,
+      request,
+      priority,
+      timestamp: Date.now()
+    };
+
+    this.queue.push(batchedRequest);
+    this.metrics.totalRequests++;
+
+    // Check if we need to flush
+    if (this.shouldFlush()) {
+      await this.flush();
+    } else {
+      this.scheduleFlush();
+    }
+
+    // Wait for batch completion
+    return this.waitForResult(requestId);
+  }
+
+  /**
+   * Add multiple requests at once
+   * 
+   * @param requests - Array of requests
+   * @param priority - Priority level for all
+   * @returns Promise that resolves to array of results
+   */
+  async enqueueBatch(
+    requests: TRequest[],
+    priority: 'high' | 'normal' | 'low' = 'normal'
+  ): Promise<(TResponse | Error)[]> {
+    const promises = requests.map(req => this.enqueue(req, priority));
+    return Promise.all(promises);
+  }
+
+  /**
+   * Determine if batch should be flushed
+   */
+  private shouldFlush(): boolean {
+    // Check size
+    if (this.queue.length >= this.config.maxBatchSize) {
+      logger.debug(`[BatchRequestManager] Should flush: size threshold (${this.queue.length})`);
+      return true;
+    }
+
+    // Check memory
+    if (this.getMemoryUsage() > this.config.maxMemoryMB) {
+      logger.debug(`[BatchRequestManager] Should flush: memory threshold`);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Schedule automatic flush after time window
+   */
+  private scheduleFlush(): void {
+    // Clear existing timeout
+    if (this.flushTimeoutId) {
+      clearTimeout(this.flushTimeoutId);
+    }
+
+    // Schedule new flush
+    this.flushTimeoutId = setTimeout(() => {
+      this.flush().catch(err => {
+        logger.error(`[BatchRequestManager] Scheduled flush failed`, { error: err });
+      });
+    }, this.config.batchTimeWindow);
+  }
+
+  /**
+   * Flush current queue as batch(es)
+   */
+  private async flush(): Promise<void> {
+    if (this.queue.length === 0) {
+      return;
+    }
+
+    // Sort by priority (high > normal > low) then by timestamp
+    const sortedRequests = this.queue.sort((a, b) => {
+      const priorityOrder = { high: 0, normal: 1, low: 2 };
+      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (priorityDiff !== 0) return priorityDiff;
+      return a.timestamp - b.timestamp;
+    });
+
+    // Split into batches based on max concurrent
+    const availableSlots = this.config.maxConcurrentBatches - this.executingBatchCount;
+    const batchCount = Math.min(
+      Math.ceil(sortedRequests.length / this.config.maxBatchSize),
+      availableSlots
+    );
+
+    if (batchCount === 0) {
+      logger.debug(`[BatchRequestManager] No available slots for batch execution`);
+      this.scheduleFlush();
+      return;
+    }
+
+    this.queue = [];
+
+    // Create and execute batches
+    const batchPromises: Promise<void>[] = [];
+    for (let i = 0; i < batchCount; i++) {
+      const startIdx = (i * sortedRequests.length) / batchCount;
+      const endIdx = ((i + 1) * sortedRequests.length) / batchCount;
+      const batchRequests = sortedRequests.slice(
+        Math.floor(startIdx),
+        Math.ceil(endIdx)
+      );
+
+      if (batchRequests.length > 0) {
+        batchPromises.push(this.executeBatch(batchRequests));
+      }
+    }
+
+    // Wait for all batches to complete
+    await Promise.allSettled(batchPromises);
+
+    // Reschedule if there are remaining requests
+    if (this.queue.length > 0) {
+      this.scheduleFlush();
+    }
+  }
+
+  /**
+   * Execute a single batch
+   */
+  private async executeBatch(
+    requests: BatchedRequest<TRequest>[]
+  ): Promise<void> {
+    const batchId = this.generateId();
+    const batch: RequestBatch<TRequest, TResponse> = {
+      id: batchId,
+      requests,
+      createdAt: Date.now(),
+      status: 'pending',
+      results: new Map()
+    };
+
+    this.batches.set(batchId, batch);
+    this.executingBatchCount++;
+
+    try {
+      batch.status = 'executing';
+      batch.executeAt = Date.now();
+
+      // Extract just the request objects
+      const requestsToExecute = requests.map(r => r.request);
+
+      // Execute batch
+      const responses = await this.executor(requestsToExecute);
+
+      // Map results back to request IDs
+      responses.forEach((response, index) => {
+        const requestId = requests[index].id;
+        batch.results?.set(requestId, response);
+      });
+
+      batch.status = 'completed';
+      this.metrics.successfulBatches++;
+
+      logger.debug(`[BatchRequestManager] Batch ${batchId} completed`, {
+        size: requests.length,
+        duration: Date.now() - batch.executeAt!
+      });
+    } catch (error) {
+      batch.error = error as Error;
+      batch.status = 'failed';
+      this.metrics.failedBatches++;
+
+      // Store error for all requests in batch
+      requests.forEach(req => {
+        batch.results?.set(req.id, error as Error);
+      });
+
+      logger.error(`[BatchRequestManager] Batch ${batchId} failed`, {
+        error: error instanceof Error ? error.message : String(error),
+        size: requests.length
+      });
+    } finally {
+      this.executingBatchCount--;
+      this.updateMetrics();
+    }
+  }
+
+  /**
+   * Wait for request result
+   */
+  private async waitForResult(requestId: string, timeout = 30000): Promise<TResponse | Error> {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+      // Check all batches for this request
+      for (const batch of this.batches.values()) {
+        if (batch.results?.has(requestId)) {
+          const result = batch.results.get(requestId);
+          if (result instanceof Error) {
+            return result;
+          }
+          return result as TResponse;
+        }
+      }
+
+      // Wait a bit before checking again
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    return new Error(`Request ${requestId} timed out after ${timeout}ms`);
   }
 
   /**
@@ -202,256 +363,87 @@ export class BatchRequestManager {
   }
 
   /**
-   * Get operation-specific statistics
+   * Update metrics
    */
-  getOperationStats(operation?: string): Map<string, { count: number; avgLatency: number }> {
-    const result = new Map<string, { count: number; avgLatency: number }>();
-    
-    if (operation) {
-      const stats = this.operationStats.get(operation);
-      if (stats) {
-        result.set(operation, {
-          count: stats.count,
-          avgLatency: stats.totalLatency / stats.count
-        });
-      }
-    } else {
-      for (const [op, stats] of this.operationStats.entries()) {
-        result.set(op, {
-          count: stats.count,
-          avgLatency: stats.totalLatency / stats.count
-        });
-      }
-    }
-    
-    return result;
+  private updateMetrics(): void {
+    if (this.metrics.totalBatches === 0) return;
+
+    // Calculate average batch size
+    this.metrics.avgBatchSize = Math.round(
+      this.metrics.totalRequests / this.metrics.totalBatches
+    );
+
+    // Estimate latency savings (rough calculation)
+    // Assuming each individual request is ~100ms, batch saves 90% overhead
+    const estimatedSavings = this.metrics.avgBatchSize >= 2
+      ? ((this.metrics.avgBatchSize - 1) / this.metrics.avgBatchSize) * 100
+      : 0;
+    this.metrics.latencySavings = Math.round(estimatedSavings);
+
+    // Calculate memory usage
+    this.metrics.memoryUsed = this.getMemoryUsage();
   }
 
   /**
-   * Clear all queued requests
+   * Calculate current memory usage in MB
+   */
+  private getMemoryUsage(): number {
+    let size = 0;
+
+    // Queue size
+    size += this.queue.length * 100; // Rough estimate per request
+
+    // Batches size
+    for (const batch of this.batches.values()) {
+      size += batch.requests.length * 100;
+      size += batch.results?.size ?? 0 * 50;
+    }
+
+    // Convert to MB
+    return size / (1024 * 1024);
+  }
+
+  /**
+   * Generate unique ID
+   */
+  private generateId(): string {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Clear all pending requests and batches
    */
   clear(): void {
-    for (const [, request] of this.requestQueue.entries()) {
-      request.reject?.(new Error('Batch manager cleared'));
+    this.queue = [];
+    this.batches.clear();
+    if (this.flushTimeoutId) {
+      clearTimeout(this.flushTimeoutId);
     }
-    this.requestQueue.clear();
-    this.updateMetrics();
+    logger.info(`[BatchRequestManager] Cleared ${this.serviceName}`);
   }
 
   /**
-   * Flush all queued requests immediately
+   * Get queue size
    */
-  async flush(): Promise<void> {
-    if (this.batchTimer) {
-      clearTimeout(this.batchTimer);
-      this.batchTimer = undefined;
-    }
-
-    while (this.requestQueue.size > 0) {
-      await this.executeBatch();
-    }
+  getQueueSize(): number {
+    return this.queue.length;
   }
 
-  // ===== PRIVATE METHODS =====
-
-  private generateRequestId(): string {
-    return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  private scheduleBatchExecution(): void {
-    // If batch size reached, execute immediately
-    if (this.requestQueue.size >= this.config.maxBatchSize) {
-      this.executeBatch().catch(err => console.error('Batch execution error:', err));
-      return;
-    }
-
-    // If no timer scheduled, schedule one
-    if (!this.batchTimer && this.requestQueue.size > 0) {
-      this.batchTimer = setTimeout(() => {
-        this.batchTimer = undefined;
-        this.executeBatch().catch(err => console.error('Batch execution error:', err));
-      }, this.config.batchTimeWindowMs);
-    }
-  }
-
-  private async executeBatch(): Promise<void> {
-    // Check if we can process another batch
-    if (this.activeBatches.size >= this.config.maxConcurrentBatches || this.requestQueue.size === 0) {
-      return;
-    }
-
-    // Get next batch of requests
-    const batchRequests = this.getNextBatch();
-    if (batchRequests.length === 0) {
-      return;
-    }
-
-    const batchId = `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    this.activeBatches.add(batchId);
-
-    try {
-      const startTime = performance.now();
-
-      // Execute the batch
-      if (!this.executorFn) {
-        throw new Error('No executor function set for batch manager');
-      }
-
-      const result = await this.executorFn(batchRequests);
-
-      const executionTime = performance.now() - startTime;
-
-      // Process results
-      this.processBatchResults(batchRequests, result, executionTime);
-
-      // Update metrics
-      this.metrics.totalBatches++;
-      this.metrics.totalRequests += batchRequests.length;
-      this.metrics.avgBatchLatencyMs = 
-        (this.metrics.avgBatchLatencyMs * (this.metrics.totalBatches - 1) + executionTime) / 
-        this.metrics.totalBatches;
-
-      this.updateMetrics();
-
-      // Schedule next batch if there are pending requests
-      if (this.requestQueue.size > 0) {
-        this.scheduleBatchExecution();
-      }
-    } catch (error) {
-      // Handle batch-level error
-      const err = error instanceof Error ? error : new Error(String(error));
-      batchRequests.forEach(request => {
-        request.reject?.(err);
-      });
-      
-      this.metrics.failedRequests += batchRequests.length;
-      this.updateMetrics();
-    } finally {
-      this.activeBatches.delete(batchId);
-    }
-  }
-
-  private getNextBatch(): BatchRequest[] {
-    const batch: BatchRequest[] = [];
-    const sorted = Array.from(this.requestQueue.values())
-      .sort((a, b) => {
-        // Sort by priority (higher first), then by timestamp (older first)
-        if (a.priority !== b.priority) {
-          return b.priority - a.priority;
-        }
-        return a.timestamp - b.timestamp;
-      });
-
-    for (const request of sorted) {
-      if (batch.length >= this.config.maxBatchSize) {
-        break;
-      }
-
-      // Check if we can merge with existing requests in batch
-      if (this.config.enableMerging && this.canMergeRequests(batch, request)) {
-        // Merge will be handled in executor, just add it
-      }
-
-      batch.push(request);
-      this.requestQueue.delete(request.id);
-    }
-
-    return batch;
-  }
-
-  private canMergeRequests(batch: BatchRequest[], request: BatchRequest): boolean {
-    // Same operation can potentially be merged
-    return batch.some(r => r.operation === request.operation);
-  }
-
-  private processBatchResults(
-    requests: BatchRequest[],
-    result: BatchExecutionResult,
-    executionTime: number
-  ): void {
-    for (const request of requests) {
-      if (result.results.has(request.id)) {
-        const { data, latency } = result.results.get(request.id)!;
-        request.resolve?.(data);
-
-        // Update operation stats
-        const stats = this.operationStats.get(request.operation) || { count: 0, totalLatency: 0 };
-        stats.count++;
-        stats.totalLatency += latency;
-        this.operationStats.set(request.operation, stats);
-      } else if (result.errors.has(request.id)) {
-        const error = result.errors.get(request.id)!;
-        
-        // Retry logic
-        if (request.retries < request.maxRetries) {
-          request.retries++;
-          this.requestQueue.set(request.id, request);
-          this.scheduleBatchExecution();
-        } else {
-          request.reject?.(error);
-          this.metrics.failedRequests++;
-        }
-      }
-    }
-  }
-
-  private findDuplicateRequest(operation: string, payload: any): BatchRequest | undefined {
-    for (const [, request] of this.requestQueue.entries()) {
-      if (request.operation === operation && this.payloadsEqual(request.payload, payload)) {
-        return request;
-      }
-    }
-    return undefined;
-  }
-
-  private payloadsEqual(a: any, b: any): boolean {
-    try {
-      return JSON.stringify(a) === JSON.stringify(b);
-    } catch {
-      return a === b;
-    }
-  }
-
-  private updateMetrics(): void {
-    this.metrics.queueSize = this.requestQueue.size;
-    
-    // Estimate memory usage (rough approximation)
-    let memoryEstimate = 0;
-    for (const request of this.requestQueue.values()) {
-      memoryEstimate += JSON.stringify(request).length;
-    }
-    this.metrics.memoryUsageMB = memoryEstimate / (1024 * 1024);
-
-    // Calculate average requests per batch
-    if (this.metrics.totalBatches > 0) {
-      this.metrics.avgRequestsPerBatch = 
-        this.metrics.totalRequests / this.metrics.totalBatches;
-    }
-
-    // Calculate success rate
-    if (this.metrics.totalRequests > 0) {
-      this.metrics.successRatePercent = 
-        ((this.metrics.totalRequests - this.metrics.failedRequests) / this.metrics.totalRequests) * 100;
-    }
-
-    // Estimate latency savings (batch of N reduces latency by ~30-50% per batch)
-    if (this.metrics.avgRequestsPerBatch > 1) {
-      this.metrics.latencySavingsPercent = 
-        Math.min(50, (this.metrics.avgRequestsPerBatch - 1) * 10);
-    }
+  /**
+   * Get executing batch count
+   */
+  getExecutingBatchCount(): number {
+    return this.executingBatchCount;
   }
 }
 
 /**
- * Global singleton instance
+ * Export singleton factory for easy reuse
  */
-export const batchRequestManager = new BatchRequestManager({
-  maxBatchSize: 10,
-  batchTimeWindowMs: 100,
-  maxConcurrentBatches: 5,
-  maxMemoryMB: 10,
-  enableDeduplication: true,
-  enableMerging: true
-});
-
-export default batchRequestManager;
+export function createBatchRequestManager<TRequest, TResponse>(
+  executor: (batch: TRequest[]) => Promise<TResponse[]>,
+  serviceName: string,
+  config?: Partial<BatchConfig>
+): BatchRequestManager<TRequest, TResponse> {
+  return new BatchRequestManager(executor, serviceName, config);
+}

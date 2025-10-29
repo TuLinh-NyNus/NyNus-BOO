@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts';
 // Use protobuf enums and helper functions
-import { userRoleToString } from '@/generated/common';
-import { UserRole } from '@/generated/common/common_pb';
+import { userRoleToString } from '@/generated/v1/common_pb';
+import { UserRole } from '@/generated/v1/common_pb';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
