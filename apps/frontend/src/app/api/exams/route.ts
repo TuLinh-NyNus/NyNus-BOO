@@ -22,6 +22,7 @@
  */
 
 import { NextRequest } from 'next/server';
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { executePrismaOperation } from '@/lib/prisma/error-handler';
@@ -192,7 +193,7 @@ export async function POST(request: NextRequest) {
         // Create exam
         const newExam = await tx.exams.create({
           data: {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             title,
             description,
             instructions,
@@ -208,7 +209,7 @@ export async function POST(request: NextRequest) {
             shuffle_questions: shuffleQuestions,
             show_results: showResults,
             max_attempts: maxAttempts,
-            created_by: crypto.randomUUID(), // TODO: Get from auth session
+            created_by: randomUUID(), // TODO: Get from auth session
           },
         });
 
@@ -216,7 +217,7 @@ export async function POST(request: NextRequest) {
         if (questionIds.length > 0) {
           await tx.exam_questions.createMany({
             data: questionIds.map((questionId: string, index: number) => ({
-              id: crypto.randomUUID(),
+              id: randomUUID(),
               exam_id: newExam.id,
               question_id: questionId,
               order_number: index + 1,

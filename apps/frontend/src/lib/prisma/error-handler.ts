@@ -25,8 +25,83 @@
  */
 
 import { Prisma } from '@prisma/client';
-import { retryWithBackoff, CircuitBreaker, type ErrorRecoveryOptions } from '@/lib/utils/error-recovery';
 import { logger } from '@/lib/utils/logger';
+
+// Server-side only retry logic (no window/browser APIs)
+const retryWithBackoff = async (
+  fn: () => Promise<any>,
+  options: { maxRetries?: number; baseDelay?: number } = {}
+) => {
+  const { maxRetries = 3, baseDelay = 100 } = options;
+  let lastError: any;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (i < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, i);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
+};
+
+// Server-side circuit breaker (no window/browser APIs)
+class CircuitBreaker {
+  private failureCount = 0;
+  private lastFailureTime = 0;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+  
+  async execute(fn: () => Promise<any>) {
+    if (this.state === 'OPEN') {
+      if (Date.now() - this.lastFailureTime > 60000) {
+        this.state = 'HALF_OPEN';
+      } else {
+        throw new Error('Circuit breaker is OPEN');
+      }
+    }
+
+    try {
+      const result = await fn();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  getState() {
+    return this.state;
+  }
+
+  reset() {
+    this.failureCount = 0;
+    this.lastFailureTime = 0;
+    this.state = 'CLOSED';
+  }
+
+  private onSuccess() {
+    this.failureCount = 0;
+    this.state = 'CLOSED';
+  }
+
+  private onFailure() {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+    if (this.failureCount >= 5) {
+      this.state = 'OPEN';
+    }
+  }
+}
+
+interface ErrorRecoveryOptions {
+  maxRetries?: number;
+  baseDelay?: number;
+}
 
 // ===== TYPES =====
 
@@ -142,11 +217,7 @@ const RETRYABLE_ERRORS: Set<PrismaErrorType> = new Set([
 /**
  * Global circuit breaker for Prisma operations
  */
-const prismaCircuitBreaker = new CircuitBreaker({
-  failureThreshold: 5,
-  recoveryTimeout: 60000, // 1 minute
-  monitoringPeriod: 300000, // 5 minutes
-});
+const prismaCircuitBreaker = new CircuitBreaker();
 
 // ===== ERROR CLASSIFICATION =====
 
@@ -298,9 +369,7 @@ export async function executePrismaWithRetry<T>(
 ): Promise<T> {
   return await retryWithBackoff(operation, {
     maxRetries: 3,
-    initialDelay: 1000,
-    backoffFactor: 2,
-    ...options,
+    baseDelay: 1000,
   });
 }
 
