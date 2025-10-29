@@ -1,0 +1,43 @@
+# Code Owners for exam-bank-system repository
+# Automatic assignment of PR reviewers based on file changes
+
+# Global owners (all files)
+* @owner-name
+
+# Backend (Go + gRPC)
+apps/backend/ @backend-team
+apps/backend/cmd/ @backend-team
+apps/backend/internal/entity/ @backend-team
+apps/backend/internal/repository/ @backend-team
+apps/backend/internal/service/ @backend-team
+apps/backend/internal/grpc/ @backend-team
+apps/backend/internal/middleware/ @backend-team
+
+# Frontend (Next.js + TypeScript)
+apps/frontend/ @frontend-team
+apps/frontend/src/app/ @frontend-team
+apps/frontend/src/components/ @frontend-team
+apps/frontend/src/lib/ @frontend-team
+apps/frontend/src/hooks/ @frontend-team
+apps/frontend/src/contexts/ @frontend-team
+
+# Mobile (Flutter + Dart)
+apps/mobile/ @mobile-team
+apps/mobile/lib/core/ @mobile-team
+apps/mobile/lib/features/ @mobile-team
+apps/mobile/lib/shared/ @mobile-team
+
+# Shared & Infrastructure
+packages/proto/ @backend-team @frontend-team @mobile-team
+docker/ @devops-team
+docker/compose/ @devops-team
+scripts/ @devops-team
+
+# Configuration & Documentation
+.github/ @devops-team
+docs/ @documentation-team
+README.md @owner-name
+LICENSE @owner-name
+
+# CI/CD Workflows
+.github/workflows/ @devops-team

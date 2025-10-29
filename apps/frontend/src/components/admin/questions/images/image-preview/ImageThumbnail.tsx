@@ -130,7 +130,7 @@ function getImageUrl(image: QuestionImage): string {
   }
   
   // Fallback placeholder
-  return '/images/placeholder-image.png';
+  return '/images/placeholder-image.svg';
 }
 
 // ===== MAIN COMPONENT =====

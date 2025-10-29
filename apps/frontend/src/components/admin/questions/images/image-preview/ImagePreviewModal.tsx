@@ -61,7 +61,7 @@ function getPreviewImageUrl(image: QuestionImage): string {
     return image.imagePath;
   }
   
-  return '/images/placeholder-image.png';
+  return '/images/placeholder-image.svg';
 }
 
 // ===== MAIN COMPONENT =====

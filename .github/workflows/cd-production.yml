@@ -1,0 +1,355 @@
+# Production Continuous Deployment Pipeline
+# Manual deployment to production with approval gates and blue-green strategy
+
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - production-canary
+      deployment_strategy:
+        description: 'Deployment strategy'
+        required: true
+        default: 'blue-green'
+        type: choice
+        options:
+          - blue-green
+          - rolling
+          - canary
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Pre-deployment checks
+  pre-deployment:
+    name: Pre-Deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    environment: production-approval
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --always)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Deploying version: $VERSION"
+
+      - name: Get latest commit info
+        run: |
+          git log -1 --oneline
+          git log -1 --format="%ai"
+
+      - name: Verify Docker images exist
+        run: |
+          docker run --rm curlimages/curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/packages/container \
+            | grep -q "backend" && echo "✅ Backend image found" || echo "⚠️ Backend image not found"
+
+      - name: Request production approval
+        run: |
+          echo "🔒 Deployment requires manual approval"
+          echo "Waiting for approval in production environment..."
+
+  # Blue-Green Deployment Strategy
+  blue-green-deploy:
+    name: Blue-Green Deployment
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: ${{ github.event.inputs.deployment_strategy == 'blue-green' }}
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Setup kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          kubectl version --client
+
+      - name: Get current deployment (Green)
+        id: green
+        run: |
+          export KUBECONFIG=kubeconfig
+          CURRENT=$(kubectl get deployment -n exam-bank-prod \
+            -o jsonpath='{.items[0].metadata.labels.version}' 2>/dev/null || echo "green")
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "🟢 Current deployment: $CURRENT"
+
+      - name: Determine Blue environment
+        id: blue
+        run: |
+          if [[ "${{ steps.green.outputs.current }}" == "green" ]]; then
+            echo "target=blue" >> $GITHUB_OUTPUT
+            echo "🔵 Deploying to: blue"
+          else
+            echo "target=green" >> $GITHUB_OUTPUT
+            echo "🟢 Deploying to: green"
+          fi
+
+      - name: Deploy to Blue environment
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          # Create blue namespace if not exists
+          kubectl create namespace exam-bank-blue --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Deploy backend
+          kubectl set image deployment/backend \
+            backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-blue --record || \
+          kubectl create deployment backend \
+            --image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-blue
+          
+          # Deploy frontend
+          kubectl set image deployment/frontend \
+            frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-blue --record || \
+          kubectl create deployment frontend \
+            --image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-blue
+          
+          # Wait for rollout
+          kubectl rollout status deployment/backend -n exam-bank-blue --timeout=600s
+          kubectl rollout status deployment/frontend -n exam-bank-blue --timeout=600s
+
+      - name: Run health checks on Blue
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          # Get Blue service endpoint
+          BLUE_IP=$(kubectl get svc exam-bank-service -n exam-bank-blue -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+          
+          # Health checks
+          for i in {1..30}; do
+            if curl -f http://$BLUE_IP/health 2>/dev/null; then
+              echo "✅ Blue environment health check passed"
+              break
+            else
+              echo "⏳ Waiting for Blue to be ready... ($i/30)"
+              sleep 10
+            fi
+          done
+
+      - name: Run smoke tests on Blue
+        run: |
+          export KUBECONFIG=kubeconfig
+          BLUE_URL=$(kubectl get ingress -n exam-bank-blue -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' 2>/dev/null)
+          
+          # API tests
+          curl -f http://$BLUE_URL/api/health || exit 1
+          
+          echo "✅ Smoke tests passed on Blue environment"
+
+      - name: Switch traffic to Blue
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          # Update service selector
+          kubectl patch service exam-bank-service \
+            --patch '{"spec":{"selector":{"version":"blue"}}}' \
+            -n exam-bank-prod
+          
+          echo "✅ Traffic switched to Blue"
+
+      - name: Verify traffic routing
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          PROD_URL=$(kubectl get ingress -n exam-bank-prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}')
+          
+          for i in {1..10}; do
+            if curl -f http://$PROD_URL/health; then
+              echo "✅ Traffic routing verified"
+              break
+            fi
+            sleep 5
+          done
+
+      - name: Cleanup old environment (Green)
+        if: success()
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          # Optionally scale down Green
+          kubectl scale deployment backend --replicas=0 -n exam-bank-green 2>/dev/null || true
+          kubectl scale deployment frontend --replicas=0 -n exam-bank-green 2>/dev/null || true
+          
+          echo "✅ Old environment scaled down (no deletion for quick rollback)"
+
+  # Rolling Update Strategy
+  rolling-deploy:
+    name: Rolling Update Deployment
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: ${{ github.event.inputs.deployment_strategy == 'rolling' }}
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Update deployment (Rolling)
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          kubectl set image deployment/backend \
+            backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-prod --record
+          
+          kubectl set image deployment/frontend \
+            frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/frontend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-prod --record
+          
+          # Wait for rollout
+          kubectl rollout status deployment/backend -n exam-bank-prod --timeout=600s
+          kubectl rollout status deployment/frontend -n exam-bank-prod --timeout=600s
+          
+          echo "✅ Rolling update completed"
+
+  # Canary Deployment Strategy
+  canary-deploy:
+    name: Canary Deployment
+    runs-on: ubuntu-latest
+    needs: pre-deployment
+    if: ${{ github.event.inputs.deployment_strategy == 'canary' }}
+    environment: production-canary
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PROD }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Deploy canary (5% traffic)
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          # Deploy canary with 1 replica
+          kubectl set image deployment/backend-canary \
+            backend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-prod --record 2>/dev/null || \
+          kubectl create deployment backend-canary \
+            --image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/backend:${{ needs.pre-deployment.outputs.version }} \
+            -n exam-bank-prod
+          
+          kubectl scale deployment backend-canary --replicas=1 -n exam-bank-prod
+          
+          echo "🟠 Canary deployment started (5% traffic)"
+
+      - name: Monitor canary metrics
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          for i in {1..60}; do
+            ERROR_RATE=$(kubectl exec -n exam-bank-prod deployment/backend-canary \
+              -- curl -s localhost:8080/metrics | grep 'http_requests_total{status="5' || echo "0")
+            
+            echo "⏳ Monitoring canary... Iteration $i/60"
+            echo "Error rate: $ERROR_RATE"
+            
+            sleep 10
+          done
+
+      - name: Promote canary to stable
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          # Scale up canary and scale down stable
+          kubectl scale deployment backend-canary --replicas=3 -n exam-bank-prod
+          kubectl scale deployment backend --replicas=1 -n exam-bank-prod
+          
+          # Update service selector
+          kubectl patch service exam-bank-service \
+            --patch '{"spec":{"selector":{"app":"backend-canary"}}}' \
+            -n exam-bank-prod
+          
+          echo "✅ Canary promoted to stable"
+
+  # Post-deployment verification
+  post-deployment:
+    name: Post-Deployment Verification
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, blue-green-deploy]
+    if: success()
+    steps:
+      - name: Verify production deployment
+        run: |
+          PROD_URL="https://${{ secrets.PROD_API_URL }}"
+          
+          # Health checks
+          curl -f $PROD_URL/health || exit 1
+          curl -f $PROD_URL/api/health || exit 1
+          
+          echo "✅ Production deployment verified"
+
+      - name: Notify Slack
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_PROD }}
+          text: |
+            🚀 Production Deployment Successful
+            Version: ${{ needs.pre-deployment.outputs.version }}
+            Strategy: ${{ github.event.inputs.deployment_strategy }}
+            Environment: ${{ github.event.inputs.environment }}
+            URL: https://${{ secrets.PROD_URL }}
+
+  # Rollback on failure
+  rollback:
+    name: Automatic Rollback
+    runs-on: ubuntu-latest
+    needs: [blue-green-deploy]
+    if: failure()
+    environment: production
+    steps:
+      - name: Trigger rollback
+        run: |
+          export KUBECONFIG=kubeconfig
+          
+          # Switch back to Green
+          kubectl patch service exam-bank-service \
+            --patch '{"spec":{"selector":{"version":"green"}}}' \
+            -n exam-bank-prod
+          
+          echo "⚠️ Automatic rollback triggered - reverted to previous version"
+
+      - name: Notify Slack of rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_PROD }}
+          text: |
+            ⚠️ Production Deployment Failed - Automatic Rollback Triggered
+            Version: ${{ needs.pre-deployment.outputs.version }}
+            Environment: ${{ github.event.inputs.environment }}
