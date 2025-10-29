@@ -535,10 +535,10 @@ export class OfflineSyncManager {
   /**
    * Emit event
    */
-  private emitEvent(event: { type: string; progress?: SyncProgress; result?: SyncResult; error?: string }): void {
+  private emitEvent(event: { type: 'started' | 'progress' | 'completed' | 'error' | 'paused' | 'resumed'; progress?: SyncProgress; result?: SyncResult; error?: string }): void {
     this.listeners.forEach(listener => {
       try {
-        listener(event as { type: string; progress?: SyncProgress; result?: SyncResult; error?: string });
+        listener(event);
       } catch (err) {
         logger.error(`[${this.serviceName}] Listener error`, {
           error: err instanceof Error ? err.message : String(err)
