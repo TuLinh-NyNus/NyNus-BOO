@@ -20,9 +20,9 @@ type WebSocketServer struct {
 	redisPubSub *redis.PubSubClient
 	server      *http.Server
 	logger      *log.Logger
-	
+
 	// Configuration
-	port           string
+	port            string
 	shutdownTimeout time.Duration
 }
 
@@ -48,7 +48,7 @@ func NewWebSocketServer(
 			ShutdownTimeout: 30 * time.Second,
 		}
 	}
-	
+
 	// Configure handler
 	if len(config.AllowedOrigins) > 0 {
 		handler.SetAllowedOrigins(config.AllowedOrigins)
@@ -59,7 +59,7 @@ func NewWebSocketServer(
 	if config.RateLimit > 0 {
 		handler.SetRateLimit(config.RateLimit)
 	}
-	
+
 	return &WebSocketServer{
 		manager:         manager,
 		handler:         handler,
@@ -74,20 +74,20 @@ func NewWebSocketServer(
 func (s *WebSocketServer) Start() error {
 	// Setup HTTP routes
 	mux := http.NewServeMux()
-	
+
 	// WebSocket endpoint (task 2.3.2: Route setup)
 	mux.HandleFunc("/api/v1/ws/notifications", func(w http.ResponseWriter, r *http.Request) {
 		if err := s.handler.HandleWebSocket(w, r); err != nil {
 			s.logger.Printf("[ERROR] WebSocket handler error: %v", err)
 		}
 	})
-	
+
 	// Health check endpoint (task 2.3.2)
 	mux.HandleFunc("/api/v1/ws/health", s.handleHealth)
-	
+
 	// Metrics endpoint (task 2.3.4)
 	mux.HandleFunc("/api/v1/ws/metrics", s.handleMetrics)
-	
+
 	// Create HTTP server
 	s.server = &http.Server{
 		Addr:         ":" + s.port,
@@ -96,17 +96,17 @@ func (s *WebSocketServer) Start() error {
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
-	
+
 	s.logger.Printf("[INFO] Starting WebSocket server on port %s", s.port)
-	
+
 	// Start connection manager
 	go s.manager.Run()
-	
+
 	// Start HTTP server
 	if err := s.server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("failed to start WebSocket server: %w", err)
 	}
-	
+
 	return nil
 }
 
@@ -114,28 +114,28 @@ func (s *WebSocketServer) Start() error {
 // Implements task 2.3.3: Graceful shutdown
 func (s *WebSocketServer) Shutdown() error {
 	s.logger.Printf("[INFO] Shutting down WebSocket server")
-	
+
 	// Create shutdown context with timeout (task 2.3.3: Timeout 30s)
 	ctx, cancel := context.WithTimeout(context.Background(), s.shutdownTimeout)
 	defer cancel()
-	
+
 	// Stop accepting new connections
 	if err := s.server.Shutdown(ctx); err != nil {
 		s.logger.Printf("[ERROR] HTTP server shutdown error: %v", err)
 	}
-	
+
 	// Close all WebSocket connections (task 2.3.3)
 	if err := s.manager.Stop(); err != nil {
 		s.logger.Printf("[ERROR] Connection manager stop error: %v", err)
 	}
-	
+
 	// Unsubscribe from Redis (task 2.3.3)
 	if s.redisPubSub != nil {
 		if err := s.redisPubSub.Stop(); err != nil {
 			s.logger.Printf("[ERROR] Redis Pub/Sub stop error: %v", err)
 		}
 	}
-	
+
 	s.logger.Printf("[INFO] WebSocket server shutdown complete")
 	return nil
 }
@@ -148,10 +148,10 @@ func (s *WebSocketServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 		"active_connections":  s.manager.GetConnectionCount(),
 		"redis_pubsub_active": s.redisPubSub != nil && s.redisPubSub.IsSubscribed(),
 	}
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 	if err := json.NewEncoder(w).Encode(health); err != nil {
 		s.logger.Printf("[ERROR] Failed to encode health response: %v", err)
 	}
@@ -161,7 +161,7 @@ func (s *WebSocketServer) handleHealth(w http.ResponseWriter, r *http.Request) {
 // Implements task 2.3.4: Logging vÃ  monitoring
 func (s *WebSocketServer) handleMetrics(w http.ResponseWriter, r *http.Request) {
 	metrics := s.manager.GetMetrics()
-	
+
 	// Format as Prometheus-style metrics
 	prometheusMetrics := fmt.Sprintf(`# HELP websocket_connections_total Total WebSocket connections established
 # TYPE websocket_connections_total counter
@@ -189,7 +189,7 @@ websocket_errors_total %d
 		metrics.MessagesReceived,
 		metrics.Errors,
 	)
-	
+
 	w.Header().Set("Content-Type", "text/plain; version=0.0.4")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(prometheusMetrics))
@@ -207,13 +207,13 @@ func (s *WebSocketServer) addCORS(next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		}
-		
+
 		// Handle preflight
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -237,4 +237,3 @@ func (s *WebSocketServer) BroadcastToAll(message []byte) error {
 func (s *WebSocketServer) BroadcastToRole(role string, message []byte) error {
 	return s.manager.BroadcastToRole(role, message)
 }
-

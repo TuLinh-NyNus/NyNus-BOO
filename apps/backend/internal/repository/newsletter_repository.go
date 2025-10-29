@@ -429,4 +429,3 @@ func generateNewsletterID() string {
 	randomPart := uuid.New().String()[:8]
 	return fmt.Sprintf("newsletter-%d-%s", timestamp, randomPart)
 }
-

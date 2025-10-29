@@ -26,4 +26,3 @@ func NewUserMgmt(db database.QueryExecer) *UserMgmt {
 		UserService: userDomain.NewUserService(),
 	}
 }
-

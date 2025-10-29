@@ -399,4 +399,3 @@ func (ae *AnswerExtractor) findClosingBrace(content string, startPos int) int {
 
 	return pos - 1 // Position of closing brace
 }
-

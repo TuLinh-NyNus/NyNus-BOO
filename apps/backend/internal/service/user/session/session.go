@@ -380,4 +380,3 @@ func (s *SessionService) detectSuspiciousDevice(ctx context.Context, userID, new
 func (s *SessionService) checkForNewDevice(ctx context.Context, userID, ipAddress, deviceFingerprint string) bool {
 	return s.detectSuspiciousDevice(ctx, userID, deviceFingerprint)
 }
-

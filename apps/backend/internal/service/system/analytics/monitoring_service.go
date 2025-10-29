@@ -377,4 +377,3 @@ func (s *MonitoringService) RecordExamEvent(ctx context.Context, examID, userID,
 	// For now, just log the event
 	return nil
 }
-

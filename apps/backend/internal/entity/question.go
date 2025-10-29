@@ -59,8 +59,8 @@ type Question struct {
 	Creator        pgtype.Text        `json:"creator"`
 	Status         pgtype.Text        `json:"status"` // QuestionStatus enum
 	Feedback       pgtype.Int4        `json:"feedback"`
-	Difficulty     pgtype.Text        `json:"difficulty"` // QuestionDifficulty enum
-	IsFavorite     pgtype.Bool        `json:"is_favorite"`     // Favorite marking
+	Difficulty     pgtype.Text        `json:"difficulty"`  // QuestionDifficulty enum
+	IsFavorite     pgtype.Bool        `json:"is_favorite"` // Favorite marking
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	QuestionCodeID pgtype.Text        `json:"question_code_id"` // Foreign key to QuestionCode

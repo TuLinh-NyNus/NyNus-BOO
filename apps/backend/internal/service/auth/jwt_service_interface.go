@@ -291,5 +291,3 @@ type IJWTService interface {
 	//   - error: Validation error
 	ValidateToken(tokenString string) (*UnifiedClaims, error)
 }
-
-

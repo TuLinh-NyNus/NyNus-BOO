@@ -277,4 +277,3 @@ func IsValidationError(err error) bool {
 		errors.Is(err, ErrEmptyIPAddress) ||
 		errors.Is(err, ErrEmptyDeviceFingerprint)
 }
-

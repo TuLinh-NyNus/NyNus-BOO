@@ -160,4 +160,3 @@ func (r *QuestionTagRepository) CreateMultiple(ctx context.Context, db database.
 
 	return nil
 }
-

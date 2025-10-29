@@ -317,4 +317,3 @@ func getIPFromRequest(r *http.Request) string {
 	// Use RemoteAddr as fallback
 	return r.RemoteAddr
 }
-

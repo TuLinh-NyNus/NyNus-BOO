@@ -841,4 +841,3 @@ func (r *QuestionFilterRepository) generateHighlights(question entity.Question, 
 
 	return highlights
 }
-

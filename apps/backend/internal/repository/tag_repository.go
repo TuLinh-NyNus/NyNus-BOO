@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"exam-bank-system/apps/backend/internal/entity"
+	"github.com/google/uuid"
 )
 
 // TagRepository handles tag-related database operations
@@ -289,4 +289,3 @@ func (r *tagRepository) IncrementUsageCount(ctx context.Context, tagID string) e
 
 	return nil
 }
-

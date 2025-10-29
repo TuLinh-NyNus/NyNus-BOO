@@ -315,9 +315,9 @@ func (r *oauthAccountRepository) GetByUserID(ctx context.Context, userID string)
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":      "GetByUserID",
-		"user_id":        userID,
-		"account_count":  len(accounts),
+		"operation":     "GetByUserID",
+		"user_id":       userID,
+		"account_count": len(accounts),
 	}).Debug("OAuth accounts fetched successfully")
 
 	return accounts, nil
@@ -495,4 +495,3 @@ func (r *oauthAccountRepository) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
-

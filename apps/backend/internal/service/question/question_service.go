@@ -782,4 +782,3 @@ type ImportError struct {
 	ErrorMessage string
 	RowData      string
 }
-

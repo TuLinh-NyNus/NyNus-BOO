@@ -580,7 +580,7 @@ func validQuestionID() string {
 }
 
 // addQuestionID adds question_id to answer data if not present
-func addQuestionID(answerData map[string]interface{}) map[string]interface{}{
+func addQuestionID(answerData map[string]interface{}) map[string]interface{} {
 	if _, exists := answerData["question_id"]; !exists {
 		answerData["question_id"] = validQuestionID()
 	}

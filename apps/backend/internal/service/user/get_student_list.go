@@ -7,4 +7,3 @@ import (
 func (u *UserMgmt) GetStudentByPaging(offset int, limit int) (total int, users []entity.User, err error) {
 	return u.UserService.GetStudentByPaging(u.DB, offset, limit)
 }
-

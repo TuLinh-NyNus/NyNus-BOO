@@ -376,4 +376,3 @@ func nullableStringToSQL(t pgtype.Text) sql.NullString {
 	}
 	return sql.NullString{Valid: false}
 }
-

@@ -88,18 +88,18 @@ func TestNewService(t *testing.T) {
 
 func TestService_Submit(t *testing.T) {
 	tests := []struct {
-		name           string
-		itemID         string
-		userID         string
-		rating         int
-		review         string
-		mockUpsertErr  error
-		mockAggregate  repository.RatingAggregate
-		mockAggErr     error
-		mockUpdateErr  error
-		expectErr      bool
-		expectAvg      float64
-		expectCount    int
+		name          string
+		itemID        string
+		userID        string
+		rating        int
+		review        string
+		mockUpsertErr error
+		mockAggregate repository.RatingAggregate
+		mockAggErr    error
+		mockUpdateErr error
+		expectErr     bool
+		expectAvg     float64
+		expectCount   int
 	}{
 		{
 			name:          "successful submit",
@@ -119,28 +119,28 @@ func TestService_Submit(t *testing.T) {
 			expectCount:   10,
 		},
 		{
-			name:          "empty item ID",
-			itemID:        "",
-			userID:        "user-456",
-			rating:        5,
-			review:        "Great",
-			expectErr:     true,
+			name:      "empty item ID",
+			itemID:    "",
+			userID:    "user-456",
+			rating:    5,
+			review:    "Great",
+			expectErr: true,
 		},
 		{
-			name:          "empty user ID",
-			itemID:        "item-123",
-			userID:        "",
-			rating:        5,
-			review:        "Great",
-			expectErr:     true,
+			name:      "empty user ID",
+			itemID:    "item-123",
+			userID:    "",
+			rating:    5,
+			review:    "Great",
+			expectErr: true,
 		},
 		{
-			name:          "whitespace IDs",
-			itemID:        "   ",
-			userID:        "   ",
-			rating:        5,
-			review:        "Great",
-			expectErr:     true,
+			name:      "whitespace IDs",
+			itemID:    "   ",
+			userID:    "   ",
+			rating:    5,
+			review:    "Great",
+			expectErr: true,
 		},
 		{
 			name:          "upsert error",
@@ -246,16 +246,16 @@ func TestService_Remove(t *testing.T) {
 			expectCount:   8,
 		},
 		{
-			name:          "empty item ID",
-			itemID:        "",
-			userID:        "user-101",
-			expectErr:     true,
+			name:      "empty item ID",
+			itemID:    "",
+			userID:    "user-101",
+			expectErr: true,
 		},
 		{
-			name:          "empty user ID",
-			itemID:        "item-789",
-			userID:        "",
-			expectErr:     true,
+			name:      "empty user ID",
+			itemID:    "item-789",
+			userID:    "",
+			expectErr: true,
 		},
 		{
 			name:          "delete error",
@@ -340,16 +340,16 @@ func TestService_GetUserRating(t *testing.T) {
 			expectReview: "Very good",
 		},
 		{
-			name:       "empty item ID",
-			itemID:     "",
-			userID:     "user-xyz",
-			expectErr:  true,
+			name:      "empty item ID",
+			itemID:    "",
+			userID:    "user-xyz",
+			expectErr: true,
 		},
 		{
-			name:       "empty user ID",
-			itemID:     "item-abc",
-			userID:     "",
-			expectErr:  true,
+			name:      "empty user ID",
+			itemID:    "item-abc",
+			userID:    "",
+			expectErr: true,
 		},
 		{
 			name:       "not found",
@@ -396,4 +396,3 @@ func TestService_GetUserRating(t *testing.T) {
 		})
 	}
 }
-

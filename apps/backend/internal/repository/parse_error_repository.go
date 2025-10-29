@@ -404,4 +404,3 @@ func (r *ParseErrorRepository) GetErrorStatistics(ctx context.Context) (map[stri
 
 	return stats, nil
 }
-

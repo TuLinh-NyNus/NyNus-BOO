@@ -50,4 +50,3 @@ func NewService(repo RepositoryInterface, attemptRepo AttemptRepositoryInterface
 		authService: authService,
 	}
 }
-

@@ -128,4 +128,3 @@ func ConvertProtoToRole(role common.UserRole) string {
 		return RoleGuest // Default to guest for safety
 	}
 }
-

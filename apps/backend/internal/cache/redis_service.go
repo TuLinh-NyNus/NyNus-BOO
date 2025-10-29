@@ -211,4 +211,3 @@ func (r *RedisService) Close() error {
 	}
 	return nil
 }
-

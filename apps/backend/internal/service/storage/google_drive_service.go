@@ -50,7 +50,7 @@ func NewGoogleDriveService(config GoogleDriveConfig, logger *logrus.Logger) (*Go
 	// Initialize Google Drive service
 	// TODO: This requires actual credentials from environment or config
 	ctx := context.Background()
-	
+
 	if config.CredentialsJSON == "" {
 		logger.Warn("Google Drive credentials not provided - service will be in stub mode")
 		return &GoogleDriveService{
@@ -98,7 +98,7 @@ func (s *GoogleDriveService) UploadFile(ctx context.Context, filename string, mi
 	// Upload with retry logic
 	var uploadedFile *drive.File
 	var err error
-	
+
 	for attempt := 0; attempt <= s.maxRetries; attempt++ {
 		if attempt > 0 {
 			s.logger.WithField("attempt", attempt).Warn("Retrying upload")
@@ -152,7 +152,7 @@ func (s *GoogleDriveService) GetDownloadURL(ctx context.Context, fileID string) 
 		Context(ctx).
 		Fields("webContentLink").
 		Do()
-	
+
 	if err != nil {
 		return "", fmt.Errorf("failed to get file info: %w", err)
 	}
@@ -170,7 +170,7 @@ func (s *GoogleDriveService) GetFileInfo(ctx context.Context, fileID string) (*U
 		Context(ctx).
 		Fields("id, name, mimeType, size, webViewLink, webContentLink, thumbnailLink, createdTime").
 		Do()
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to get file info: %w", err)
 	}
@@ -215,7 +215,7 @@ func (s *GoogleDriveService) GenerateThumbnail(ctx context.Context, fileID strin
 		Context(ctx).
 		Fields("thumbnailLink").
 		Do()
-	
+
 	if err != nil {
 		return "", fmt.Errorf("failed to get thumbnail: %w", err)
 	}
@@ -247,7 +247,7 @@ func (s *GoogleDriveService) CreateFolder(ctx context.Context, folderName string
 		Context(ctx).
 		Fields("id").
 		Do()
-	
+
 	if err != nil {
 		return "", fmt.Errorf("failed to create folder: %w", err)
 	}
@@ -273,4 +273,3 @@ func maxRetries(configured int) int {
 	}
 	return configured
 }
-

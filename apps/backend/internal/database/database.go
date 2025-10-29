@@ -296,4 +296,3 @@ func Update(ctx context.Context, entity Entity, id string, execFunc func(ctx con
 	// Update excluding resource_path and created_at
 	return UpdateByID(ctx, entity, id, []string{"resource_path", "created_at"}, execFunc)
 }
-

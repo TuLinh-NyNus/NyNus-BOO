@@ -241,4 +241,3 @@ func (r *ImageUploadErrorRepository) GetImageUploadStatistics(ctx context.Contex
 
 	return stats, nil
 }
-

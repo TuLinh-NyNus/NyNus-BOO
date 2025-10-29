@@ -264,4 +264,3 @@ func (qcp *QuestionCodeParser) getLevelLabel(level string) string {
 		return "Má»©c " + level
 	}
 }
-

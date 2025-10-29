@@ -275,4 +275,3 @@ func createTestRedisClient(t *testing.T) *redis.Client {
 
 	return client
 }
-

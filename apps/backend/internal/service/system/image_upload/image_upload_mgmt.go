@@ -510,4 +510,3 @@ func (m *ImageUploadMgmt) CleanupLocalCache(ctx context.Context, cacheDir string
 
 	return nil
 }
-

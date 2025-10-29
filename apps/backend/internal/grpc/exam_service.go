@@ -535,7 +535,7 @@ func (s *ExamServiceServer) StartExam(ctx context.Context, req *v1.StartExamRequ
 	}
 
 	if len(attempts) >= exam.MaxAttempts {
-		return nil, status.Errorf(codes.ResourceExhausted, 
+		return nil, status.Errorf(codes.ResourceExhausted,
 			"maximum attempts reached (%d/%d)", len(attempts), exam.MaxAttempts)
 	}
 
@@ -606,7 +606,7 @@ func (s *ExamServiceServer) SubmitAnswer(ctx context.Context, req *v1.SubmitAnsw
 	}
 
 	if attempt.Status != entity.AttemptStatusInProgress {
-		return nil, status.Errorf(codes.FailedPrecondition, 
+		return nil, status.Errorf(codes.FailedPrecondition,
 			"cannot submit answer: attempt status is %s", attempt.Status)
 	}
 
@@ -1212,4 +1212,3 @@ func convertAnswerToProto(answer *entity.ExamAnswer) *v1.ExamAnswer {
 
 	return protoAnswer
 }
-

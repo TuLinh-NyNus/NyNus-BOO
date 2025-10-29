@@ -986,4 +986,3 @@ func (r *QuestionRepository) scanQuestionsWithFavorite(rows *sql.Rows) ([]*entit
 
 	return questions, nil
 }
-

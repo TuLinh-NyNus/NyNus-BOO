@@ -149,4 +149,3 @@ func extractUserAgent(md metadata.MD) string {
 	}
 	return ""
 }
-

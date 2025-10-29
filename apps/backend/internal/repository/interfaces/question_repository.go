@@ -39,7 +39,7 @@ type QuestionRepository interface {
 	UpdateStatus(ctx context.Context, id string, status string) error
 	UpdateUsageCount(ctx context.Context, id string) error
 	UpdateFeedback(ctx context.Context, id string, feedbackDelta int) error
-	
+
 	// Favorite management
 	ToggleFavorite(ctx context.Context, id string, isFavorite bool) error
 	GetFavorites(ctx context.Context, offset, limit int) ([]*entity.Question, int, error)
@@ -78,8 +78,8 @@ type FilterCriteria struct {
 	UpdatedBefore string
 
 	// Boolean filters
-	HasSolution *bool
-	HasSource   *bool
+	HasSolution   *bool
+	HasSource     *bool
 	OnlyFavorites *bool
 
 	// Question code IDs
@@ -141,4 +141,3 @@ type QuestionCodeRepository interface {
 	// Validation
 	Exists(ctx context.Context, code string) (bool, error)
 }
-

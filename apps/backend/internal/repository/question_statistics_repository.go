@@ -798,4 +798,3 @@ func (r *QuestionStatisticsRepository) GetQuestionCodeStatistics(ctx context.Con
 
 	return statistics, nil
 }
-

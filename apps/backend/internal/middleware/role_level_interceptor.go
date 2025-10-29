@@ -644,4 +644,3 @@ func IsResourceRestricted(resourceType string, resourceMetadata map[string]inter
 
 	return false
 }
-

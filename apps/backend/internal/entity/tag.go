@@ -20,4 +20,3 @@ type ItemTag struct {
 	TagID     string    `db:"tag_id" json:"tag_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
-

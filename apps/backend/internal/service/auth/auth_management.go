@@ -43,4 +43,3 @@ func NewAuthMgmt(db database.QueryExecer, jwtService IJWTService) *AuthMgmt {
 		AuthService: NewAuthServiceWithJWT(jwtService),
 	}
 }
-

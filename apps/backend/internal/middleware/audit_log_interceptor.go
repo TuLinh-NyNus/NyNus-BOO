@@ -338,4 +338,3 @@ func sanitizeResponseData(data map[string]interface{}, method string) {
 		// Token already removed
 	}
 }
-

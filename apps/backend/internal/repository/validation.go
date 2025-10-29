@@ -53,4 +53,3 @@ func validateSessionID(sessionID string) error {
 	}
 	return nil
 }
-

@@ -342,4 +342,3 @@ func (s *AutoGradingService) ReGradeExam(ctx context.Context, attemptID string) 
 	// Re-grade using the same logic as AutoGradeExam
 	return s.AutoGradeExam(ctx, attemptID)
 }
-

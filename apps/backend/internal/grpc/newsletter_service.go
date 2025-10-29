@@ -244,4 +244,3 @@ func (s *NewsletterServiceServer) entityToProto(e *entity.NewsletterSubscription
 
 	return proto
 }
-

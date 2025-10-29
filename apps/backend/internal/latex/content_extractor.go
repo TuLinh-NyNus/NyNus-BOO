@@ -72,7 +72,7 @@ func (ce *ContentExtractor) removeExTags(content string) string {
 func (ce *ContentExtractor) RemoveMetadataPatterns(content string) string {
 	patterns := []string{
 		`%\s*\[\s*[0-9A-Z]{5,6}(?:-[0-9A-Z])?\s*\]\s*%?`, // QuestionCode
-		`%\s*\[\s*Nguá»“n:?[^\]]+\s*\]\s*%?`,               // Source
+		`%\s*\[\s*Nguá»“n:?[^\]]+\s*\]\s*%?`,             // Source
 		`\[\s*[A-Z]{2}\.\d+\s*\]`,                        // Subcount
 	}
 

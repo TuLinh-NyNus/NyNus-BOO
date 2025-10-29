@@ -304,4 +304,3 @@ func getUserRoleFromContext(ctx context.Context) string {
 	}
 	return ""
 }
-

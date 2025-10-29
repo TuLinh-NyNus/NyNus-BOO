@@ -44,4 +44,3 @@ func (s *UserService) GetAll(db database.QueryExecer) ([]entity.User, error) {
 func (s *UserService) GetUsersByPaging(db database.QueryExecer, offset int, limit int) (total int, users []entity.User, err error) {
 	return s.userRepo.GetUsersByPaging(db, offset, limit)
 }
-

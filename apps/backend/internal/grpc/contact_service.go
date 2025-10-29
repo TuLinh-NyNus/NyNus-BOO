@@ -211,4 +211,3 @@ func (s *ContactServiceServer) entityToProto(e *entity.ContactSubmission) *v1.Co
 
 	return proto
 }
-

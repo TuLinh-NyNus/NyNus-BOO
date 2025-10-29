@@ -303,4 +303,3 @@ func nullableString(pgText pgtype.Text) interface{} {
 	}
 	return nil
 }
-

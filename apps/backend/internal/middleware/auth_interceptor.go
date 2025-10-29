@@ -258,7 +258,6 @@ func GetUserLevelFromContext(ctx context.Context) (int, error) {
 	return level, nil
 }
 
-
 // WithUserContext sets user identity information into context for downstream handlers.
 // Intended for tests and internal use; does not perform authorization checks.
 func WithUserContext(ctx context.Context, userID, email, role string, level int) context.Context {

@@ -136,24 +136,24 @@ func TestE2E_BasicExamFlow(t *testing.T) {
 
 	// Mock: Create attempt
 	mockRepo.On("CreateAttempt", ctx, mock.AnythingOfType("*entity.ExamAttempt")).Return(nil).Once()
-	
+
 	// First GetAttempt call returns in-progress attempt
 	mockRepo.On("GetAttempt", ctx, attemptID).Return(attempt, nil).Once()
-	
+
 	// Second GetAttempt call returns graded attempt (after submission)
 	submittedTime := time.Now()
 	gradedAttempt := &entity.ExamAttempt{
-		ID:             attemptID,
-		ExamID:         examID,
-		UserID:         userID,
-		Status:         entity.AttemptStatusGraded,
-		Score:          20,
-		TotalPoints:    20,
-		Percentage:     100.0,
-		Passed:         true,
-		StartedAt:      time.Now(),
-		SubmittedAt:    &submittedTime,
-		TimeSpent:      0,
+		ID:          attemptID,
+		ExamID:      examID,
+		UserID:      userID,
+		Status:      entity.AttemptStatusGraded,
+		Score:       20,
+		TotalPoints: 20,
+		Percentage:  100.0,
+		Passed:      true,
+		StartedAt:   time.Now(),
+		SubmittedAt: &submittedTime,
+		TimeSpent:   0,
 	}
 	mockRepo.On("GetAttempt", ctx, attemptID).Return(gradedAttempt, nil).Once()
 
@@ -169,11 +169,11 @@ func TestE2E_BasicExamFlow(t *testing.T) {
 
 	// Step 2: Submit Answers
 	questions := []struct {
-		questionID   string
-		questionType string
-		userAnswer   map[string]interface{}
+		questionID    string
+		questionType  string
+		userAnswer    map[string]interface{}
 		correctAnswer map[string]interface{}
-		maxPoints    float64
+		maxPoints     float64
 	}{
 		{
 			questionID:   "550e8400-e29b-41d4-a716-446655440001",
@@ -543,4 +543,3 @@ func TestE2E_TFScoringFlow(t *testing.T) {
 // ====================================================================================
 // Additional test scenarios will be added in subsequent commits
 // ====================================================================================
-

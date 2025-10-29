@@ -506,4 +506,3 @@ func (s *EnhancedUserServiceServer) SendVerificationEmail(ctx context.Context, r
 		},
 	}, nil
 }
-

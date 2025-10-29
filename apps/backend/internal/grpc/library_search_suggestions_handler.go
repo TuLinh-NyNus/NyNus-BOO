@@ -302,4 +302,3 @@ func (h *LibrarySearchSuggestionsHandler) GetRecentSearches(ctx context.Context,
 //         Suggestions: pbSuggestions,
 //     }, nil
 // }
-

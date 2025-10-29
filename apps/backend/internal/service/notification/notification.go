@@ -50,7 +50,7 @@ type NotificationService struct {
 	notificationRepo repository.NotificationRepository
 	userPrefRepo     repository.UserPreferenceRepository
 	// Redis publisher for real-time notifications (Phase 3 - Task 3.2.1)
-	redisPublisher   RedisPubSubPublisher
+	redisPublisher RedisPubSubPublisher
 }
 
 // RedisPubSubPublisher defines the interface for publishing to Redis Pub/Sub
@@ -148,7 +148,7 @@ func (s *NotificationService) CreateNotification(
 	if err != nil {
 		return fmt.Errorf("failed to create notification: %w", err)
 	}
-	
+
 	// Publish to Redis for real-time delivery (Phase 3 - Task 3.2.2: Step 2)
 	if s.redisPublisher != nil {
 		if err := s.publishToRedis(ctx, notification, data); err != nil {
@@ -157,7 +157,7 @@ func (s *NotificationService) CreateNotification(
 			log.Printf("[WARN] Failed to publish notification to Redis: %v", err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -167,37 +167,37 @@ func (s *NotificationService) publishToRedis(ctx context.Context, notification *
 	var dataMap map[string]interface{}
 	if data != nil {
 		dataMap = map[string]interface{}{
-			"priority":   data.Priority,
-			"action_url": data.ActionURL,
+			"priority":    data.Priority,
+			"action_url":  data.ActionURL,
 			"action_text": data.ActionText,
-			"image_url":  data.ImageURL,
-			"metadata":   data.Metadata,
+			"image_url":   data.ImageURL,
+			"metadata":    data.Metadata,
 		}
 	}
-	
+
 	redisNotification := map[string]interface{}{
-		"id":         notification.ID,
-		"user_id":    notification.UserID,
-		"type":       notification.Type,
-		"title":      notification.Title,
-		"message":    notification.Message,
-		"data":       dataMap,
-		"timestamp":  notification.CreatedAt.Format(time.RFC3339),
-		"is_read":    notification.IsRead,
+		"id":        notification.ID,
+		"user_id":   notification.UserID,
+		"type":      notification.Type,
+		"title":     notification.Title,
+		"message":   notification.Message,
+		"data":      dataMap,
+		"timestamp": notification.CreatedAt.Format(time.RFC3339),
+		"is_read":   notification.IsRead,
 	}
-	
+
 	if notification.ExpiresAt != nil {
 		redisNotification["expires_at"] = notification.ExpiresAt.Format(time.RFC3339)
 	}
-	
+
 	// Determine channel (user-specific channel)
 	// Channel format: notifications:user:{userID}
 	channel := fmt.Sprintf("notifications:user:%s", notification.UserID)
-	
+
 	// Publish to Redis with timeout
 	publishCtx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	
+
 	return s.redisPublisher.Publish(publishCtx, channel, redisNotification)
 }
 
@@ -457,4 +457,3 @@ func (s *NotificationService) CreateSystemBroadcast(
 	// TODO: Implement when user repository has ListAllActiveUsers method
 	return nil
 }
-

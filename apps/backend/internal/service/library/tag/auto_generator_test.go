@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/repository"
+	"github.com/sirupsen/logrus"
 )
 
 type mockTagRepository struct {
-	listTagsFunc   func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error)
-	createTagFunc  func(ctx context.Context, tag *entity.Tag) (*entity.Tag, error)
+	listTagsFunc  func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error)
+	createTagFunc func(ctx context.Context, tag *entity.Tag) (*entity.Tag, error)
 }
 
 func (m *mockTagRepository) ListTags(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error) {

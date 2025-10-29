@@ -320,4 +320,3 @@ func TestService_IncrementDownload(t *testing.T) {
 func stringPtr(s string) *string {
 	return &s
 }
-

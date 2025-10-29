@@ -252,4 +252,3 @@ type SubscriptionStats struct {
 	NewThisWeek       int `json:"new_this_week"`
 	NewThisMonth      int `json:"new_this_month"`
 }
-

@@ -57,7 +57,7 @@ type SessionAuthConfig struct {
 	HTTPOnly     bool
 
 	// Session refresh
-	RefreshInterval      time.Duration
+	RefreshInterval       time.Duration
 	SecurityCheckInterval time.Duration
 }
 
@@ -86,9 +86,9 @@ type SecurityAuthConfig struct {
 	BcryptCost int
 
 	// Security features
-	EnableCSRF           bool
-	EnableHSTS           bool
-	EnableXSSProtection  bool
+	EnableCSRF            bool
+	EnableHSTS            bool
+	EnableXSSProtection   bool
 	EnableSessionRotation bool
 
 	// Cookie security
@@ -102,16 +102,16 @@ type SecurityAuthConfig struct {
 // RateLimitAuthConfig holds rate limiting configuration
 type RateLimitAuthConfig struct {
 	// Login rate limiting
-	MaxLoginAttempts         int
-	LockDurationMinutes      int
-	LoginRateLimitPerMinute  int
+	MaxLoginAttempts        int
+	LockDurationMinutes     int
+	LoginRateLimitPerMinute int
 
 	// Registration rate limiting
-	RegistrationRateLimitPerHour int
+	RegistrationRateLimitPerHour  int
 	PasswordResetRateLimitPerHour int
 
 	// Risk scoring
-	RiskScoreThreshold           int
+	RiskScoreThreshold          int
 	HighRiskScore               int
 	SuspiciousActivityThreshold int
 }
@@ -124,22 +124,22 @@ type AuthFeatureFlags struct {
 	EnableTwoFactor     bool
 
 	// Email features
-	EnableEmailVerification bool
-	EnablePasswordReset     bool
+	EnableEmailVerification  bool
+	EnablePasswordReset      bool
 	EnableEmailNotifications bool
 
 	// Session features
-	EnableSessionManagement        bool
-	EnableDeviceManagement         bool
-	EnableConcurrentSessionLimits  bool
+	EnableSessionManagement       bool
+	EnableDeviceManagement        bool
+	EnableConcurrentSessionLimits bool
 
 	// Security features
-	EnableRiskScoring                    bool
-	EnableSuspiciousActivityDetection    bool
-	EnableAutoLogout                     bool
+	EnableRiskScoring                 bool
+	EnableSuspiciousActivityDetection bool
+	EnableAutoLogout                  bool
 
 	// Development features
-	EnableDebugLogging bool
+	EnableDebugLogging  bool
 	EnableAuthDebugging bool
 }
 
@@ -153,12 +153,12 @@ func LoadAuthConfig() *AuthConfig {
 	// JWT Configuration
 	jwtConfig := JWTAuthConfig{
 		Secret:        getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
-		AccessSecret:  getEnv("JWT_ACCESS_SECRET", ""), // Optional separate secret
+		AccessSecret:  getEnv("JWT_ACCESS_SECRET", ""),  // Optional separate secret
 		RefreshSecret: getEnv("JWT_REFRESH_SECRET", ""), // Optional separate secret
-		
+
 		AccessTokenExpiry:  15 * time.Minute,   // 15 minutes
 		RefreshTokenExpiry: 7 * 24 * time.Hour, // 7 days
-		
+
 		Issuer:           "exam-bank-system",
 		RefreshThreshold: 5 * time.Minute, // Refresh 5 minutes before expiry
 	}
@@ -175,11 +175,11 @@ func LoadAuthConfig() *AuthConfig {
 	sessionConfig := SessionAuthConfig{
 		Timeout:               24 * time.Hour, // 24 hours
 		MaxConcurrentSessions: getIntEnv("MAX_CONCURRENT_SESSIONS", 5),
-		
+
 		RequireHTTPS: isProduction,
 		SameSite:     "lax",
 		HTTPOnly:     true,
-		
+
 		RefreshInterval:       30 * time.Second, // 30 seconds
 		SecurityCheckInterval: 10 * time.Second, // 10 seconds
 	}
@@ -187,7 +187,7 @@ func LoadAuthConfig() *AuthConfig {
 	// OAuth Configuration
 	googleClientID := getEnv("GOOGLE_CLIENT_ID", "")
 	googleClientSecret := getEnv("GOOGLE_CLIENT_SECRET", "")
-	
+
 	oauthConfig := OAuthAuthConfig{
 		Google: GoogleOAuthConfig{
 			Enabled:      googleClientID != "" && googleClientSecret != "",
@@ -196,7 +196,7 @@ func LoadAuthConfig() *AuthConfig {
 			RedirectURI:  getEnv("GOOGLE_REDIRECT_URI", "http://localhost:3000/api/auth/callback/google"),
 			Scopes:       []string{"openid", "email", "profile"},
 		},
-		
+
 		Timeout:       30 * time.Second,
 		RetryAttempts: 3,
 	}
@@ -214,7 +214,7 @@ func LoadAuthConfig() *AuthConfig {
 		EnableHSTS:            isProduction,
 		EnableXSSProtection:   true,
 		EnableSessionRotation: true,
-		
+
 		SecureCookies: isProduction,
 		CookieDomain: func() string {
 			if isProduction {
@@ -222,20 +222,20 @@ func LoadAuthConfig() *AuthConfig {
 			}
 			return ""
 		}(),
-		
+
 		TrustHost: isDevelopment, // Only trust host in development
 	}
 
 	// Rate Limiting Configuration
 	rateLimitConfig := RateLimitAuthConfig{
-		MaxLoginAttempts:         5,
-		LockDurationMinutes:      30,
-		LoginRateLimitPerMinute:  5,
-		
+		MaxLoginAttempts:        5,
+		LockDurationMinutes:     30,
+		LoginRateLimitPerMinute: 5,
+
 		RegistrationRateLimitPerHour:  3,
 		PasswordResetRateLimitPerHour: 3,
-		
-		RiskScoreThreshold:           70,
+
+		RiskScoreThreshold:          70,
 		HighRiskScore:               85,
 		SuspiciousActivityThreshold: 80,
 	}
@@ -246,22 +246,22 @@ func LoadAuthConfig() *AuthConfig {
 		EnableEmailPassword: true,
 		EnableGoogleOAuth:   oauthConfig.Google.Enabled,
 		EnableTwoFactor:     false, // Future feature
-		
+
 		// Email features
 		EnableEmailVerification:  isProduction,
 		EnablePasswordReset:      true,
 		EnableEmailNotifications: false, // Future feature
-		
+
 		// Session features
 		EnableSessionManagement:       true,
 		EnableDeviceManagement:        true,
 		EnableConcurrentSessionLimits: false, // Simplified - disabled
-		
+
 		// Security features
 		EnableRiskScoring:                 false, // Simplified - disabled
 		EnableSuspiciousActivityDetection: false, // Simplified - disabled
 		EnableAutoLogout:                  true,
-		
+
 		// Development features
 		EnableDebugLogging:  isDevelopment,
 		EnableAuthDebugging: isDevelopment,
@@ -331,7 +331,7 @@ func (c *AuthConfig) GetJWTExpiry(isRefreshToken bool) (seconds int, minutes int
 	} else {
 		duration = c.JWT.AccessTokenExpiry
 	}
-	
+
 	seconds = int(duration.Seconds())
 	minutes = int(duration.Minutes())
 	milliseconds = duration.Milliseconds()

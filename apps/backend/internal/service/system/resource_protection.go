@@ -419,4 +419,3 @@ func (s *ResourceProtectionService) ResetUserRiskScore(ctx context.Context, user
 
 	return nil
 }
-

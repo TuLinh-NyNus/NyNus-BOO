@@ -218,7 +218,7 @@ func (c *PubSubClient) Start(workerPoolSize int) error {
 
 	// Create worker pool
 	messageChan := make(chan *redis.Message, 100)
-	
+
 	// Start workers
 	var wg sync.WaitGroup
 	for i := 0; i < workerPoolSize; i++ {
@@ -274,10 +274,10 @@ func (c *PubSubClient) processMessage(workerID int, msg *redis.Message) {
 		if c.matchPattern(pattern, msg.Channel) {
 			err := handler.HandleMessage(msg.Channel, []byte(msg.Payload))
 			if err != nil {
-				c.logger.Printf("[ERROR] Worker %d: Handler error for channel '%s': %v", 
+				c.logger.Printf("[ERROR] Worker %d: Handler error for channel '%s': %v",
 					workerID, msg.Channel, err)
 			} else {
-				c.logger.Printf("[DEBUG] Worker %d: Processed message from channel '%s'", 
+				c.logger.Printf("[DEBUG] Worker %d: Processed message from channel '%s'",
 					workerID, msg.Channel)
 			}
 			return
@@ -294,13 +294,13 @@ func (c *PubSubClient) matchPattern(pattern, channel string) bool {
 	if pattern == channel {
 		return true
 	}
-	
+
 	// Support wildcard patterns like "notifications:*"
 	if len(pattern) > 0 && pattern[len(pattern)-1] == '*' {
 		prefix := pattern[:len(pattern)-1]
 		return len(channel) >= len(prefix) && channel[:len(prefix)] == prefix
 	}
-	
+
 	return false
 }
 
@@ -351,4 +351,3 @@ func (c *PubSubClient) GetSubscribedChannels(ctx context.Context) ([]string, err
 
 	return channels, nil
 }
-

@@ -198,4 +198,3 @@ func BenchmarkExamRepository_EnumOperations(b *testing.B) {
 		}
 	})
 }
-

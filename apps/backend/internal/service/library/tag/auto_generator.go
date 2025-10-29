@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/repository"
+	"github.com/sirupsen/logrus"
 )
 
 // AutoTagGenerator generates tags automatically based on item metadata
@@ -292,4 +292,3 @@ func abs(n int) int {
 	}
 	return n
 }
-

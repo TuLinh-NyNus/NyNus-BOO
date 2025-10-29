@@ -274,4 +274,3 @@ func generateSubmissionID() string {
 	randomPart := uuid.New().String()[:8]
 	return fmt.Sprintf("contact-%d-%s", timestamp, randomPart)
 }
-

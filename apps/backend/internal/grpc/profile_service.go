@@ -391,4 +391,3 @@ func getSessionTokenFromContext(ctx context.Context) string {
 	// TODO: Implement session token extraction from context
 	return ""
 }
-

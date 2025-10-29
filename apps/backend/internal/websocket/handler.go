@@ -18,11 +18,11 @@ type Handler struct {
 	manager       *ConnectionManager
 	authenticator TokenAuthenticator
 	logger        *log.Logger
-	
+
 	// Configuration
-	maxMessageSize    int64
-	rateLimitPerMin   int
-	allowedOrigins    []string
+	maxMessageSize  int64
+	rateLimitPerMin int
+	allowedOrigins  []string
 }
 
 // TokenAuthenticator defines the interface for validating JWT tokens
@@ -38,11 +38,11 @@ type WebSocketMessage struct {
 
 // WebSocketResponse represents outgoing WebSocket messages
 type WebSocketResponse struct {
-	Type      string                 `json:"type"`
-	Success   bool                   `json:"success"`
-	Message   string                 `json:"message,omitempty"`
-	Data      interface{}            `json:"data,omitempty"`
-	Timestamp time.Time              `json:"timestamp"`
+	Type      string      `json:"type"`
+	Success   bool        `json:"success"`
+	Message   string      `json:"message,omitempty"`
+	Data      interface{} `json:"data,omitempty"`
+	Timestamp time.Time   `json:"timestamp"`
 }
 
 // NewHandler creates a new WebSocket handler
@@ -52,7 +52,7 @@ func NewHandler(manager *ConnectionManager, authenticator TokenAuthenticator) *H
 		authenticator:   authenticator,
 		logger:          log.New(log.Writer(), "[WebSocket Handler] ", log.LstdFlags),
 		maxMessageSize:  10 * 1024, // 10KB (task 2.2.4)
-		rateLimitPerMin: 60,         // 60 messages per minute
+		rateLimitPerMin: 60,        // 60 messages per minute
 		allowedOrigins: []string{
 			"http://localhost:3000",
 			"http://localhost:8080",
@@ -69,27 +69,27 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) error 
 		http.Error(w, "Origin not allowed", http.StatusForbidden)
 		return fmt.Errorf("origin not allowed: %s", r.Header.Get("Origin"))
 	}
-	
+
 	// Extract and validate JWT token
 	token := h.extractToken(r)
 	if token == "" {
 		http.Error(w, "Missing authentication token", http.StatusUnauthorized)
 		return fmt.Errorf("missing authentication token")
 	}
-	
+
 	// Validate token and get user info
 	userID, role, err := h.authenticator.ValidateToken(token)
 	if err != nil {
 		http.Error(w, "Invalid authentication token", http.StatusUnauthorized)
 		return fmt.Errorf("invalid token: %w", err)
 	}
-	
+
 	// Rate limiting check (per IP/user)
 	if !h.checkRateLimit(r.RemoteAddr, userID) {
 		http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 		return fmt.Errorf("rate limit exceeded for user %s", userID)
 	}
-	
+
 	// Upgrade HTTP connection to WebSocket
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		OriginPatterns:  h.allowedOrigins,
@@ -98,24 +98,24 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) error 
 	if err != nil {
 		return fmt.Errorf("failed to upgrade connection: %w", err)
 	}
-	
+
 	// Set read limit (task 2.2.4: Max message size)
 	conn.SetReadLimit(h.maxMessageSize)
-	
+
 	h.logger.Printf("[INFO] WebSocket connection established for user %s from %s", userID, r.RemoteAddr)
-	
+
 	// Register client
 	client := h.manager.RegisterClient(userID, role, conn)
-	
+
 	// Send welcome message
 	h.sendWelcome(client)
-	
+
 	// Handle messages
 	defer func() {
 		h.manager.UnregisterClient(client)
 		conn.Close(websocket.StatusNormalClosure, "Connection closed")
 	}()
-	
+
 	return h.handleMessages(r.Context(), client)
 }
 
@@ -124,27 +124,27 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) error 
 func (h *Handler) handleMessages(ctx context.Context, client *Client) error {
 	for {
 		var msg WebSocketMessage
-		
+
 		// Read message with timeout
 		readCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
 		err := wsjson.Read(readCtx, client.Conn, &msg)
 		cancel()
-		
+
 		if err != nil {
 			if websocket.CloseStatus(err) == websocket.StatusNormalClosure {
 				h.logger.Printf("[INFO] Client %s closed connection normally", client.UserID)
 				return nil
 			}
-			
+
 			h.logger.Printf("[ERROR] Failed to read message from client %s: %v", client.UserID, err)
 			return err
 		}
-		
+
 		// Update metrics
 		h.manager.metrics.mu.Lock()
 		h.manager.metrics.MessagesReceived++
 		h.manager.metrics.mu.Unlock()
-		
+
 		// Route message to appropriate handler
 		if err := h.routeMessage(ctx, client, &msg); err != nil {
 			h.logger.Printf("[ERROR] Failed to route message from client %s: %v", client.UserID, err)
@@ -160,23 +160,23 @@ func (h *Handler) routeMessage(ctx context.Context, client *Client, msg *WebSock
 	case "ping":
 		// Heartbeat (task 2.2.2)
 		return h.handlePing(client)
-		
+
 	case "subscribe":
 		// Subscribe to topics (task 2.2.2)
 		return h.handleSubscribe(client, msg.Payload)
-		
+
 	case "unsubscribe":
 		// Unsubscribe from topics (task 2.2.2)
 		return h.handleUnsubscribe(client, msg.Payload)
-		
+
 	case "mark_read":
 		// Mark notification as read (task 2.2.2)
 		return h.handleMarkRead(client, msg.Payload)
-		
+
 	case "ack":
 		// Acknowledge message receipt (task 2.2.2)
 		return h.handleAck(client, msg.Payload)
-		
+
 	default:
 		// Unknown message type (task 2.2.3: Invalid message format)
 		return fmt.Errorf("unknown message type: %s", msg.Type)
@@ -190,7 +190,7 @@ func (h *Handler) handlePing(client *Client) error {
 		Success:   true,
 		Timestamp: time.Now(),
 	}
-	
+
 	return h.sendResponse(client, &response)
 }
 
@@ -200,7 +200,7 @@ func (h *Handler) handleSubscribe(client *Client, payload map[string]interface{}
 	if !ok {
 		return fmt.Errorf("invalid topics format")
 	}
-	
+
 	topicStrings := make([]string, len(topics))
 	for i, topic := range topics {
 		topicStr, ok := topic.(string)
@@ -209,7 +209,7 @@ func (h *Handler) handleSubscribe(client *Client, payload map[string]interface{}
 		}
 		topicStrings[i] = topicStr
 	}
-	
+
 	response := WebSocketResponse{
 		Type:      "subscribed",
 		Success:   true,
@@ -217,7 +217,7 @@ func (h *Handler) handleSubscribe(client *Client, payload map[string]interface{}
 		Data:      topicStrings,
 		Timestamp: time.Now(),
 	}
-	
+
 	return h.sendResponse(client, &response)
 }
 
@@ -227,14 +227,14 @@ func (h *Handler) handleUnsubscribe(client *Client, payload map[string]interface
 	if !ok {
 		return fmt.Errorf("invalid topics format")
 	}
-	
+
 	response := WebSocketResponse{
 		Type:      "unsubscribed",
 		Success:   true,
 		Message:   fmt.Sprintf("Unsubscribed from %d topics", len(topics)),
 		Timestamp: time.Now(),
 	}
-	
+
 	return h.sendResponse(client, &response)
 }
 
@@ -244,7 +244,7 @@ func (h *Handler) handleMarkRead(client *Client, payload map[string]interface{})
 	if !ok {
 		return fmt.Errorf("invalid notification_id format")
 	}
-	
+
 	response := WebSocketResponse{
 		Type:      "marked_read",
 		Success:   true,
@@ -252,7 +252,7 @@ func (h *Handler) handleMarkRead(client *Client, payload map[string]interface{})
 		Data:      map[string]string{"notification_id": notificationID},
 		Timestamp: time.Now(),
 	}
-	
+
 	return h.sendResponse(client, &response)
 }
 
@@ -262,7 +262,7 @@ func (h *Handler) handleAck(client *Client, payload map[string]interface{}) erro
 	if !ok {
 		return fmt.Errorf("invalid message_id format")
 	}
-	
+
 	h.logger.Printf("[DEBUG] Received ack for message %s from user %s", messageID, client.UserID)
 	return nil
 }
@@ -273,7 +273,7 @@ func (h *Handler) sendResponse(client *Client, response *WebSocketResponse) erro
 	if err != nil {
 		return fmt.Errorf("failed to marshal response: %w", err)
 	}
-	
+
 	select {
 	case client.SendCh <- message:
 		return nil
@@ -290,7 +290,7 @@ func (h *Handler) sendError(client *Client, errorMsg string) {
 		Message:   errorMsg,
 		Timestamp: time.Now(),
 	}
-	
+
 	_ = h.sendResponse(client, &response)
 }
 
@@ -306,7 +306,7 @@ func (h *Handler) sendWelcome(client *Client) {
 		},
 		Timestamp: time.Now(),
 	}
-	
+
 	_ = h.sendResponse(client, &response)
 }
 
@@ -318,7 +318,7 @@ func (h *Handler) extractToken(r *http.Request) string {
 	if token != "" {
 		return token
 	}
-	
+
 	// Try Authorization header
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {
@@ -328,13 +328,13 @@ func (h *Handler) extractToken(r *http.Request) string {
 		}
 		return authHeader
 	}
-	
+
 	// Try cookie
 	cookie, err := r.Cookie("auth_token")
 	if err == nil && cookie.Value != "" {
 		return cookie.Value
 	}
-	
+
 	return ""
 }
 
@@ -344,12 +344,12 @@ func (h *Handler) isOriginAllowed(origin string) bool {
 	if origin == "" {
 		return true // Allow empty origin (same-origin)
 	}
-	
+
 	for _, allowed := range h.allowedOrigins {
 		if origin == allowed {
 			return true
 		}
-		
+
 		// Support wildcard matching
 		if strings.HasSuffix(allowed, "*") {
 			prefix := strings.TrimSuffix(allowed, "*")
@@ -358,7 +358,7 @@ func (h *Handler) isOriginAllowed(origin string) bool {
 			}
 		}
 	}
-	
+
 	return false
 }
 
@@ -384,4 +384,3 @@ func (h *Handler) SetMaxMessageSize(size int64) {
 func (h *Handler) SetRateLimit(limitPerMin int) {
 	h.rateLimitPerMin = limitPerMin
 }
-

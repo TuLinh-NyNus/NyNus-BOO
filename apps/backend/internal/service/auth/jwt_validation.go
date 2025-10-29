@@ -403,4 +403,3 @@ func ValidateDeviceFingerprint(deviceFingerprint string) error {
 
 	return nil
 }
-

@@ -83,23 +83,23 @@ type GoogleDriveConfig struct {
 
 // CloudinaryConfig holds Cloudinary configuration
 type CloudinaryConfig struct {
-	Enabled   bool
-	CloudName string
-	APIKey    string
-	APISecret string
-	Folder    string // e.g., "exam-bank/questions"
-	UseRealSDK bool  // Flag to switch between simulation and real SDK
+	Enabled    bool
+	CloudName  string
+	APIKey     string
+	APISecret  string
+	Folder     string // e.g., "exam-bank/questions"
+	UseRealSDK bool   // Flag to switch between simulation and real SDK
 }
 
 // RedisConfig holds Redis configuration
 type RedisConfig struct {
-	URL                 string
-	Password            string
-	Enabled             bool
-	MaxRetries          int
-	Timeout             string
-	PoolSize            int
-	MinIdleConns        int
+	URL          string
+	Password     string
+	Enabled      bool
+	MaxRetries   int
+	Timeout      string
+	PoolSize     int
+	MinIdleConns int
 	// Pub/Sub configuration (added for Phase 1 - Task 1.3.1)
 	PubSubEnabled       bool
 	PubSubChannelPrefix string
@@ -154,13 +154,13 @@ func LoadConfig() *Config {
 			UseRealSDK: getEnv("CLOUDINARY_USE_REAL_SDK", "false") == "true",
 		},
 		Redis: RedisConfig{
-			URL:                 getEnv("REDIS_URL", "redis://localhost:6379"),
-			Password:            getEnv("REDIS_PASSWORD", ""),
-			Enabled:             getEnv("REDIS_ENABLED", "true") == "true",
-			MaxRetries:          getIntEnv("REDIS_MAX_RETRIES", 3),
-			Timeout:             getEnv("REDIS_TIMEOUT", "5s"),
-			PoolSize:            getIntEnv("REDIS_POOL_SIZE", 10),
-			MinIdleConns:        getIntEnv("REDIS_MIN_IDLE_CONNS", 2),
+			URL:          getEnv("REDIS_URL", "redis://localhost:6379"),
+			Password:     getEnv("REDIS_PASSWORD", ""),
+			Enabled:      getEnv("REDIS_ENABLED", "true") == "true",
+			MaxRetries:   getIntEnv("REDIS_MAX_RETRIES", 3),
+			Timeout:      getEnv("REDIS_TIMEOUT", "5s"),
+			PoolSize:     getIntEnv("REDIS_POOL_SIZE", 10),
+			MinIdleConns: getIntEnv("REDIS_MIN_IDLE_CONNS", 2),
 			// Pub/Sub configuration (added for Phase 1 - Task 1.3.2)
 			PubSubEnabled:       getEnv("REDIS_PUBSUB_ENABLED", "true") == "true",
 			PubSubChannelPrefix: getEnv("REDIS_PUBSUB_CHANNEL_PREFIX", "exam_bank"),

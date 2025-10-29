@@ -57,4 +57,3 @@ type MetricsRepository interface {
 	// Useful for determining data retention status
 	GetOldestMetric(ctx context.Context) (*MetricsSnapshot, error)
 }
-

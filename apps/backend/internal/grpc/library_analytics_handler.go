@@ -401,4 +401,3 @@ func (h *LibraryAnalyticsHandler) GetSubjectDistribution(ctx context.Context) (m
 //
 //     return &pb.AnalyticsResponse{...}, nil
 // }
-

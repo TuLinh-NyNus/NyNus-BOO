@@ -15,7 +15,7 @@ import (
 var (
 	// ErrMetricsNotFound is returned when no metrics are found
 	ErrMetricsNotFound = errors.New("metrics not found")
-	
+
 	// ErrInvalidTimeRange is returned when time range is invalid
 	ErrInvalidTimeRange = errors.New("invalid time range: start time must be before end time")
 )
@@ -87,10 +87,10 @@ func (r *metricsRepository) RecordMetrics(ctx context.Context, snapshot *interfa
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"metrics_id":    snapshot.ID,
-		"recorded_at":   recordedAt,
-		"total_users":   snapshot.TotalUsers,
-		"active_users":  snapshot.ActiveUsers,
+		"metrics_id":   snapshot.ID,
+		"recorded_at":  recordedAt,
+		"total_users":  snapshot.TotalUsers,
+		"active_users": snapshot.ActiveUsers,
 	}).Debug("[MetricsRepository] Metrics recorded successfully")
 
 	return nil
@@ -433,4 +433,3 @@ func (r *metricsRepository) GetOldestMetric(ctx context.Context) (*interfaces.Me
 
 	return snapshot, nil
 }
-
