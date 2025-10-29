@@ -31,7 +31,7 @@ services:
       - "${DB_PORT:-5433}:5432"
     volumes:
       - ${POSTGRES_VOLUME:-postgres_data}:/var/lib/postgresql/data
-      - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../init/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - exam_bank_network
     restart: unless-stopped

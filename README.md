@@ -71,6 +71,37 @@ exam-bank-system/
 - **NewsletterService**: Newsletter subscriptions & campaigns
 - **NotificationService**: System notifications
 
+## 🐳 Docker Documentation
+
+### ⭐ New: Centralized Docker Hub
+
+All Docker configuration, scripts, and documentation have been consolidated into a single location for easier management and maintenance.
+
+**📍 Location:** `docker/` directory
+
+**Quick Navigation:**
+- 🚀 **Getting Started**: [docker/README_MASTER.md](docker/README_MASTER.md) - Main Docker hub
+- ⚡ **Quick Start**: [docker/QUICK_START.md](docker/QUICK_START.md) - 3-step setup in 5 minutes
+- 📖 **Development Guide**: [docker/DEVELOPMENT_GUIDE.md](docker/DEVELOPMENT_GUIDE.md) - Comprehensive setup & usage
+- ❓ **FAQ**: [docker/docs/FAQ.md](docker/docs/FAQ.md) - 40+ common questions answered
+- 🐛 **Troubleshooting**: [docker/TROUBLESHOOTING.md](docker/TROUBLESHOOTING.md) - Common issues & solutions
+- 🏭 **Production**: [docker/docs/PRODUCTION_GUIDE.md](docker/docs/PRODUCTION_GUIDE.md) - Production deployment
+
+**What's Included:**
+✅ All Dockerfiles (development & production)  
+✅ Docker Compose configurations  
+✅ Management scripts  
+✅ Database initialization  
+✅ Comprehensive documentation  
+
+**Resources:**
+- **Dockerfiles**: `docker/build/` - 5 Dockerfiles (backend, frontend, both dev & prod)
+- **Scripts**: `docker/scripts/` - PowerShell scripts for easy Docker management
+- **Database**: `docker/init/` - Database initialization & seed data
+- **Documentation**: `docker/docs/` - Complete Docker guides & FAQ
+
+---
+
 ## 🚀 Tech Stack thực tế
 
 ### Backend (Go)
@@ -161,23 +192,26 @@ For Google login functionality, you need OAuth credentials:
 ```
 
 #### 🐳 **Full Docker Stack** (Production-like environment)
+
+All Docker configurations have been centralized in the `docker/` directory for easier management.
+
 ```powershell
 # Development Docker environment
-.\scripts\docker\docker-dev.ps1
+.\docker\scripts\docker-dev.ps1
 
 # Production Docker environment
-.\scripts\docker\docker-prod.ps1
-
-# Advanced Docker setup
-.\scripts\docker\setup-docker.ps1
+.\docker\scripts\docker-prod.ps1
 
 # Options
-.\scripts\docker\docker-dev.ps1 -Build        # Force rebuild images
-.\scripts\docker\docker-dev.ps1 -Stop         # Stop all services
-.\scripts\docker\docker-dev.ps1 -Clean        # Clean up containers & volumes
-.\scripts\docker\docker-dev.ps1 -Logs         # View service logs
-.\scripts\docker\docker-dev.ps1 -Status       # Check service status
+.\docker\scripts\docker-dev.ps1 -Build        # Force rebuild images
+.\docker\scripts\docker-dev.ps1 -Stop         # Stop all services
+.\docker\scripts\docker-dev.ps1 -Clean        # Clean up containers & volumes
+.\docker\scripts\docker-dev.ps1 -Logs         # View service logs
+.\docker\scripts\docker-dev.ps1 -Status       # Check service status
 ```
+
+**📍 Docker Documentation:**
+For detailed Docker setup, troubleshooting, and common questions, see: [docker/README_MASTER.md](docker/README_MASTER.md)
 
 #### ⚡ **Hybrid Mode** (Docker DB + Native apps)
 ```powershell

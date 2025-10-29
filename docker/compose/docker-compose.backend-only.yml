@@ -28,7 +28,7 @@ services:
       - "${DB_PORT:-5433}:5432"
     volumes:
       - ${POSTGRES_VOLUME:-postgres_data}:/var/lib/postgresql/data
-      - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../init/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - exam_bank_network
     restart: unless-stopped
@@ -52,7 +52,7 @@ services:
   backend:
     build:
       context: ../..
-      dockerfile: ${BACKEND_DOCKERFILE:-docker/backend.Dockerfile}
+      dockerfile: ${BACKEND_DOCKERFILE:-docker/build/backend.dev.Dockerfile}
     container_name: ${BACKEND_CONTAINER_NAME:-nynus_backend}
     environment:
       # Database connection (connect to postgres container)

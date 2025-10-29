@@ -202,7 +202,7 @@ db-shell: ## Connect to database shell
 ## Docker
 docker-build: ## Build Docker image
 	@echo "$(BLUE)🐳 Building Docker image...$(NC)"
-	@docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	@docker build -f docker/build/backend.dev.Dockerfile -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 	@echo "$(GREEN)✅ Docker image built: $(DOCKER_IMAGE):$(DOCKER_TAG)$(NC)"
 
 docker-run: ## Run Docker container

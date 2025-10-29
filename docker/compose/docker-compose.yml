@@ -15,7 +15,7 @@ services:
       - "${DB_PORT:-5432}:5432"
     volumes:
       - ${POSTGRES_VOLUME:-postgres_data}:/var/lib/postgresql/data
-      - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../init/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - exam_bank_network
     restart: unless-stopped
@@ -47,7 +47,7 @@ services:
   backend:
     build:
       context: ../..
-      dockerfile: ${BACKEND_DOCKERFILE:-docker/backend.Dockerfile}
+      dockerfile: ${BACKEND_DOCKERFILE:-docker/build/backend.dev.Dockerfile}
     container_name: ${BACKEND_CONTAINER_NAME:-exam_bank_backend}
     environment:
       - DB_HOST=postgres
@@ -92,8 +92,8 @@ services:
 
   frontend:
     build:
-      context: ../../apps/frontend
-      dockerfile: ${FRONTEND_DOCKERFILE:-Dockerfile}
+      context: ../..
+      dockerfile: ${FRONTEND_DOCKERFILE:-docker/build/frontend.dev.Dockerfile}
     container_name: ${FRONTEND_CONTAINER_NAME:-exam_bank_frontend}
     environment:
       # Next.js Public Environment Variables
