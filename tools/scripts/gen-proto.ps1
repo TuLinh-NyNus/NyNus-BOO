@@ -64,21 +64,38 @@ Write-Host "`n📦 Generating v1 proto files..." -ForegroundColor Yellow
 
 $v1ProtoFiles = Get-ChildItem -Path (Join-Path $PROTO_DIR "v1") -Filter "*.proto"
 
+# Build list of v1 filenames for mapping
+$v1FileNames = @($v1ProtoFiles | ForEach-Object { $_.Name })
+
 foreach ($protoFile in $v1ProtoFiles) {
     Write-Host "  Processing: $($protoFile.Name)" -ForegroundColor White
 
     try {
+        # Start with base options
+        $goOpts = @("paths=source_relative", "Mcommon/common.proto=$goCommonPkg")
+        $goGrpcOpts = @("paths=source_relative", "Mcommon/common.proto=$goCommonPkg")
+        $gwOpts = @("paths=source_relative", "Mcommon/common.proto=$goCommonPkg")
+        
+        # Add mappings for all v1 files
+        foreach ($v1File in $v1FileNames) {
+            $goOpts += "Mv1/$v1File=$goV1Pkg"
+            $goGrpcOpts += "Mv1/$v1File=$goV1Pkg"
+            $gwOpts += "Mv1/$v1File=$goV1Pkg"
+        }
+        
+        # Build command with all options
+        $goOptArgs = $goOpts | ForEach-Object { "--go_opt=$_" }
+        $goGrpcOptArgs = $goGrpcOpts | ForEach-Object { "--go-grpc_opt=$_" }
+        $gwOptArgs = $gwOpts | ForEach-Object { "--grpc-gateway_opt=$_" }
+        
         & protoc `
             -I "$PROTO_DIR" `
             --go_out="$BACKEND_OUT" `
-            --go_opt=paths=source_relative `
             --go-grpc_out="$BACKEND_OUT" `
-            --go-grpc_opt=paths=source_relative `
             --grpc-gateway_out="$BACKEND_OUT" `
-            --grpc-gateway_opt=paths=source_relative `
-            --go_opt="Mcommon/common.proto=$goCommonPkg" `
-            --go-grpc_opt="Mcommon/common.proto=$goCommonPkg" `
-            --grpc-gateway_opt="Mcommon/common.proto=$goCommonPkg" `
+            $goOptArgs `
+            $goGrpcOptArgs `
+            $gwOptArgs `
             "$($protoFile.FullName)"
 
         if ($LASTEXITCODE -eq 0) {

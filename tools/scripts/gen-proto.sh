@@ -31,17 +31,39 @@ done
 
 # Generate Go code for v1 proto files
 echo "📦 Generating v1 proto files..."
+
+# Get all v1 proto files for mapping
+V1_PROTO_FILES=()
 for proto_file in "$PROTO_DIR/v1"/*.proto; do
     if [ -f "$proto_file" ]; then
-        echo "  Processing: $(basename "$proto_file")"
+        V1_PROTO_FILES+=("$(basename "$proto_file")")
+    fi
+done
+
+# Generate each v1 proto file with proper mappings
+for proto_file in "$PROTO_DIR/v1"/*.proto; do
+    if [ -f "$proto_file" ]; then
+        filename=$(basename "$proto_file")
+        echo "  Processing: $filename"
+        
+        # Build dynamic -M flags for all v1 imports
+        M_FLAGS="--go_opt=Mcommon/common.proto=$GO_COMMON_PKG"
+        M_GRPC_FLAGS="--go-grpc_opt=Mcommon/common.proto=$GO_COMMON_PKG"
+        M_GW_FLAGS="--grpc-gateway_opt=Mcommon/common.proto=$GO_COMMON_PKG"
+        
+        # Add mapping for all other v1 files
+        for v1_file in "${V1_PROTO_FILES[@]}"; do
+            M_FLAGS="$M_FLAGS --go_opt=Mv1/$v1_file=$GO_V1_PKG"
+            M_GRPC_FLAGS="$M_GRPC_FLAGS --go-grpc_opt=Mv1/$v1_file=$GO_V1_PKG"
+            M_GW_FLAGS="$M_GW_FLAGS --grpc-gateway_opt=Mv1/$v1_file=$GO_V1_PKG"
+        done
+        
+        # Run protoc with all mappings
         protoc \
           -I "$PROTO_DIR" \
-          --go_out="$ROOT_DIR" --go_opt=paths=source_relative \
-          --go-grpc_out="$ROOT_DIR" --go-grpc_opt=paths=source_relative \
-          --grpc-gateway_out="$ROOT_DIR" --grpc-gateway_opt=paths=source_relative \
-          --go_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
-          --go-grpc_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
-          --grpc-gateway_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
+          --go_out="$ROOT_DIR" --go_opt=paths=source_relative $M_FLAGS \
+          --go-grpc_out="$ROOT_DIR" --go-grpc_opt=paths=source_relative $M_GRPC_FLAGS \
+          --grpc-gateway_out="$ROOT_DIR" --grpc-gateway_opt=paths=source_relative $M_GW_FLAGS \
           "$proto_file"
     fi
 done
