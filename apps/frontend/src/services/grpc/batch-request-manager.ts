@@ -76,6 +76,7 @@ interface BatchMetrics {
   avgLatency: number;
   memoryUsed: number;
   latencySavings: number; // Percentage
+  successRate: number; // Percentage of successful batches
 }
 
 /**
@@ -96,7 +97,8 @@ export class BatchRequestManager<TRequest, TResponse> {
     avgBatchSize: 0,
     avgLatency: 0,
     memoryUsed: 0,
-    latencySavings: 0
+    latencySavings: 0,
+    successRate: 0
   };
   private executingBatchCount = 0;
   private flushTimeoutId?: NodeJS.Timeout;
@@ -382,6 +384,11 @@ export class BatchRequestManager<TRequest, TResponse> {
 
     // Calculate memory usage
     this.metrics.memoryUsed = this.getMemoryUsage();
+
+    // Calculate success rate
+    this.metrics.successRate = Math.round(
+      (this.metrics.successfulBatches / this.metrics.totalBatches) * 100
+    );
   }
 
   /**

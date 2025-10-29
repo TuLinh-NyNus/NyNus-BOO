@@ -2,9 +2,20 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts';
-// Use protobuf enums and helper functions
-import { userRoleToString } from '@/generated/v1/common_pb';
+// Import Protobuf types
 import { UserRole } from '@/generated/v1/common_pb';
+
+// Helper function for userRoleToString (fallback if generated file missing)
+const userRoleToString = (role: UserRole | string | undefined): string => {
+  if (typeof role === 'string') return role;
+  // Proto enum values
+  const roleMap: Record<number, string> = {
+    0: 'ADMIN',
+    1: 'TEACHER', 
+    2: 'STUDENT',
+  };
+  return roleMap[role as number] || 'UNKNOWN';
+};
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
