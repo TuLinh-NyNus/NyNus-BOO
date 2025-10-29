@@ -12,7 +12,24 @@ echo "🔧 Generating Go protobuf code..."
 mkdir -p "$BACKEND_OUT/v1"
 mkdir -p "$BACKEND_OUT/common"
 
-# Generate Go code for all proto files
+# Define Go import paths for module mapping
+GO_COMMON_PKG="exam-bank-system/apps/backend/pkg/proto/common"
+GO_V1_PKG="exam-bank-system/apps/backend/pkg/proto/v1"
+
+# Generate Go code for common proto files first (dependencies)
+echo "📦 Generating common proto files..."
+for proto_file in "$PROTO_DIR/common"/*.proto; do
+    if [ -f "$proto_file" ]; then
+        echo "  Processing: $(basename "$proto_file")"
+        protoc \
+          -I "$PROTO_DIR" \
+          --go_out="$ROOT_DIR" --go_opt=paths=source_relative \
+          --go_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
+          "$proto_file"
+    fi
+done
+
+# Generate Go code for v1 proto files
 echo "📦 Generating v1 proto files..."
 for proto_file in "$PROTO_DIR/v1"/*.proto; do
     if [ -f "$proto_file" ]; then
@@ -22,18 +39,9 @@ for proto_file in "$PROTO_DIR/v1"/*.proto; do
           --go_out="$ROOT_DIR" --go_opt=paths=source_relative \
           --go-grpc_out="$ROOT_DIR" --go-grpc_opt=paths=source_relative \
           --grpc-gateway_out="$ROOT_DIR" --grpc-gateway_opt=paths=source_relative \
-          "$proto_file"
-    fi
-done
-
-echo "📦 Generating common proto files..."
-for proto_file in "$PROTO_DIR/common"/*.proto; do
-    if [ -f "$proto_file" ]; then
-        echo "  Processing: $(basename "$proto_file")"
-        protoc \
-          -I "$PROTO_DIR" \
-          --go_out="$ROOT_DIR" --go_opt=paths=source_relative \
-          --go-grpc_out="$ROOT_DIR" --go-grpc_opt=paths=source_relative \
+          --go_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
+          --go-grpc_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
+          --grpc-gateway_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
           "$proto_file"
     fi
 done
