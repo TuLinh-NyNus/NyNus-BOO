@@ -40,6 +40,22 @@ jobs:
         with:
           go-version: '1.23'
 
+      - name: Install protoc (if Go)
+        if: matrix.language == 'go'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+
+      - name: Generate proto files (if Go)
+        if: matrix.language == 'go'
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
       - name: Setup Node (if JavaScript/TypeScript)
         if: matrix.language == 'javascript' || matrix.language == 'typescript'
         uses: actions/setup-node@v4
@@ -66,6 +82,25 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+
+      - name: Generate proto files
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
+      - name: Download dependencies
+        working-directory: ./apps/backend
+        run: go mod download
 
       - name: Install Gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
@@ -195,6 +230,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+
+      - name: Generate proto files
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
 
       - name: Build Backend Image
         run: |
