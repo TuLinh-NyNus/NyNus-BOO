@@ -1,13 +1,13 @@
-import 'package:grpc/grpc.dart';
-import 'package:mobile/core/network/grpc_client.dart';
-import 'package:mobile/core/storage/secure_storage.dart';
-// Note: Import will be available after proto generation
+// Note: Uncomment when proto generation is complete
+// import 'package:grpc/grpc.dart';
+// import 'package:mobile/core/network/grpc_client.dart';
+// import 'package:mobile/core/storage/secure_storage.dart';
 // import 'package:mobile/generated/proto/v1/blog.pbgrpc.dart';
 
 abstract class TheoryRemoteDataSource {
   Future<dynamic> getPost({String? id, String? slug});
   Future<dynamic> listPosts(Map<String, dynamic> request);
-  Future<dynamic> getNavigationTree({Subject? subject, int? grade});
+  Future<dynamic> getNavigationTree({dynamic subject, int? grade});
 }
 
 class TheoryRemoteDataSourceImpl implements TheoryRemoteDataSource {
@@ -29,7 +29,7 @@ class TheoryRemoteDataSourceImpl implements TheoryRemoteDataSource {
   }
   
   @override
-  Future<dynamic> getNavigationTree({subject, grade}) async {
+  Future<dynamic> getNavigationTree({dynamic subject, int? grade}) async {
     throw UnimplementedError('Proto files not generated yet');
   }
 }

@@ -4,6 +4,7 @@ import 'package:mobile/features/theory/domain/entities/theory_content.dart';
 import 'package:mobile/features/theory/domain/repositories/theory_repository.dart';
 import 'package:mobile/features/theory/data/datasources/theory_remote_datasource.dart';
 import 'package:mobile/features/theory/data/datasources/theory_local_datasource.dart';
+import 'package:mobile/features/theory/data/models/theory_post_model.dart';
 
 class TheoryRepositoryImpl implements TheoryRepository {
   final TheoryRemoteDataSource remoteDataSource;
@@ -28,7 +29,7 @@ class TheoryRepositoryImpl implements TheoryRepository {
         }
       }
       
-      final response = await remoteDataSource.getPost(id: id, slug: slug);
+      await remoteDataSource.getPost(id: id, slug: slug);
       return const Left(ServerFailure('Proto files not generated'));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -47,7 +48,7 @@ class TheoryRepositoryImpl implements TheoryRepository {
     String? sortBy,
   }) async {
     try {
-      final response = await remoteDataSource.listPosts({
+      await remoteDataSource.listPosts({
         'page': page,
         'limit': limit,
         'type': type?.name,
@@ -89,7 +90,7 @@ class TheoryRepositoryImpl implements TheoryRepository {
     int? grade,
   }) async {
     try {
-      final response = await remoteDataSource.getNavigationTree(
+      await remoteDataSource.getNavigationTree(
         subject: subject,
         grade: grade,
       );
@@ -164,7 +165,8 @@ class TheoryRepositoryImpl implements TheoryRepository {
   @override
   Future<Either<Failure, void>> cachePosts(List<TheoryPost> posts) async {
     try {
-      final models = posts.cast<TheoryPostModel>();
+      // Filter and cast only TheoryPostModel items
+      final models = posts.whereType<TheoryPostModel>().toList();
       await localDataSource.cachePosts(models);
       return const Right(null);
     } catch (e) {

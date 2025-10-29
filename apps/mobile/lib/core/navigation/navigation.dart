@@ -7,5 +7,5 @@ export 'route_guards.dart';
 export 'routes.dart';
 
 // Models
-export 'models/route_params.dart';
+export 'package:mobile/core/navigation/models/route_params.dart';
 

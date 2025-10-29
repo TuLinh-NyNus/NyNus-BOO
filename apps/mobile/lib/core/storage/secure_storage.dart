@@ -57,6 +57,13 @@ class SecureStorage {
     return await _storage.read(key: StorageConstants.sessionIdKey);
   }
   
+  // Check if has valid session
+  static Future<bool> hasValidSession() async {
+    final accessToken = await getAccessToken();
+    final userId = await getUserId();
+    return accessToken != null && userId != null;
+  }
+  
   // Clear all
   static Future<void> clearAll() async {
     await _storage.deleteAll();

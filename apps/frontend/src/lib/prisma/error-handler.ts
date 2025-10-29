@@ -277,11 +277,11 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
     };
   }
 
-  // Handle PrismaClientRustPanicError
-  if (error instanceof Prisma.PrismaClientRustPanicError) {
+  // Handle PrismaClientRustPanicError - check by name instead of instanceof
+  if (err && err.name === 'PrismaClientRustPanicError') {
     return {
       type: 'UNKNOWN',
-      message: error.message,
+      message: err.message || 'Rust panic error',
       userMessage: 'Đã xảy ra lỗi nghiêm trọng',
       isRetryable: false,
       httpStatus: 500,

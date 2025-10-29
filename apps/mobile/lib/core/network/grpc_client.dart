@@ -8,45 +8,77 @@ import 'package:mobile/core/network/interceptors/retry_interceptor.dart';
 import 'package:mobile/core/utils/logger.dart';
 
 class GrpcClientConfig {
-  static ClientChannel? _channel;
+  // Backend configuration
+  static const String defaultHost = 'localhost';
+  static const int defaultPort = 50051;
   
+  // Production configuration
+  static const String productionHost = 'api.exambank.vn';
+  static const int productionPort = 443;
+
+  static late ClientChannel _channel;
+  static bool _isInitialized = false;
+
+  /// Initialize gRPC client with backend configuration
+  static void initialize({
+    String host = defaultHost,
+    int port = defaultPort,
+    bool useTLS = false,
+  }) {
+    if (_isInitialized) {
+      return;
+    }
+
+    _channel = ClientChannel(
+      host,
+      port: port,
+      options: ChannelOptions(
+        credentials: useTLS
+            ? const ChannelCredentials.secure()
+            : const ChannelCredentials.insecure(),
+        idleTimeout: const Duration(minutes: 5),
+        connectionTimeout: const Duration(seconds: 30),
+      ),
+    );
+
+    _isInitialized = true;
+    AppLogger.info('gRPC Client initialized: $host:$port (TLS: $useTLS)');
+  }
+
+  /// Initialize for production
+  static void initializeProduction() {
+    initialize(
+      host: productionHost,
+      port: productionPort,
+      useTLS: true,
+    );
+  }
+
+  /// Get the gRPC channel
   static ClientChannel get channel {
-    _channel ??= _createChannel();
-    return _channel!;
+    if (!_isInitialized) {
+      initialize();
+    }
+    return _channel;
   }
-  
-  static ClientChannel _createChannel() {
-    final options = ChannelOptions(
-      credentials: ApiConstants.isProduction || ApiConstants.flavor == 'prod'
-          ? const ChannelCredentials.secure()
-          : const ChannelCredentials.insecure(),
-      connectionTimeout: ApiConstants.connectionTimeout,
-      idleTimeout: const Duration(minutes: 5),
-    );
-    
-    AppLogger.info('Creating gRPC channel to ${ApiConstants.grpcEndpoint}');
-    
-    return ClientChannel(
-      ApiConstants.currentHost,
-      port: ApiConstants.grpcPort,
-      options: options,
-    );
-  }
-  
-  static Future<void> initialize() async {
+
+  /// Check if channel is ready
+  static Future<bool> isChannelReady() async {
     try {
-      // Pre-initialize channel
-      final ch = channel;
-      
-      // Test connection
-      await ch.getConnection();
-      AppLogger.info('✓ gRPC channel connected to ${ApiConstants.grpcEndpoint}');
-      
-      // Print config in debug mode
-      ApiConstants.printConfig();
+      await _channel.getConnection();
+      return true;
     } catch (e) {
-      AppLogger.error('Failed to connect to gRPC server', e);
-      rethrow;
+      AppLogger.error('Channel not ready: $e');
+      return false;
+    }
+  }
+
+  /// Shutdown the channel
+  static Future<void> shutdown() async {
+    if (_isInitialized) {
+      await _channel.shutdown();
+      _isInitialized = false;
+      AppLogger.info('gRPC Client shutdown');
     }
   }
   
@@ -69,14 +101,6 @@ class GrpcClientConfig {
     );
     
     return options;
-  }
-  
-  static Future<void> shutdown() async {
-    if (_channel != null) {
-      await _channel!.shutdown();
-      _channel = null;
-      AppLogger.info('gRPC channel shut down');
-    }
   }
   
   static void handleError(GrpcError error) {

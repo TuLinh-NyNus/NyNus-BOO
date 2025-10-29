@@ -73,6 +73,7 @@ export interface SecurityEvent {
  * Type cho security event types
  */
 export type SecurityEventType = 
+  | 'login_success'
   | 'failed_login'
   | 'suspicious_activity'
   | 'unauthorized_access'
@@ -82,7 +83,8 @@ export type SecurityEventType =
   | 'privilege_escalation'
   | 'account_lockout'
   | 'password_reset'
-  | 'session_hijack';
+  | 'session_hijack'
+  | 'token_validation_failed';
 
 /**
  * Security Severity

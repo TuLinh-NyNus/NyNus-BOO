@@ -1,5 +1,5 @@
-import 'package:grpc/grpc.dart';
-import 'package:mobile/core/network/base_service_client.dart';
+// import 'package:grpc/grpc.dart';
+// import 'package:mobile/core/network/base_service_client.dart';
 // Note: Import will be available after proto generation
 // import 'package:mobile/generated/proto/v1/user.pbgrpc.dart';
 

@@ -55,7 +55,7 @@ class TheoryContentBloc extends Bloc<TheoryContentEvent, TheoryContentState> {
         emit(TheoryContentLoaded(
           post: post,
           isBookmarked: isBookmarked,
-          previousPost: null, // Will be populated from siblings
+          previousPost: null,
           nextPost: null,
         ));
       },
@@ -68,7 +68,7 @@ class TheoryContentBloc extends Bloc<TheoryContentEvent, TheoryContentState> {
   ) async {
     if (state is TheoryContentLoaded) {
       final currentState = state as TheoryContentLoaded;
-      
+
       // Optimistic update
       emit(currentState.copyWith(
         isBookmarked: !currentState.isBookmarked,
@@ -92,36 +92,20 @@ class TheoryContentBloc extends Bloc<TheoryContentEvent, TheoryContentState> {
   ) async {
     if (state is TheoryContentLoaded) {
       final currentState = state as TheoryContentLoaded;
-      
+
       final result = await repository.downloadPost(event.postId);
-      
+
       result.fold(
         (failure) {
           AppLogger.error('Download failed', failure.message);
         },
         (_) {
           AppLogger.info('Theory post downloaded');
-          // Update post as downloaded
-          final updatedPost = TheoryPostModel(
-            id: currentState.post.id,
-            slug: currentState.post.slug,
-            title: currentState.post.title,
-            description: currentState.post.description,
-            type: currentState.post.type,
-            metadata: currentState.post.metadata,
-            markdownContent: currentState.post.markdownContent,
-            tags: currentState.post.tags,
-            heroImageUrl: currentState.post.heroImageUrl,
-            mathEnabled: currentState.post.mathEnabled,
-            tikzAssets: currentState.post.tikzAssets,
-            authorId: currentState.post.authorId,
-            authorName: currentState.post.authorName,
-            createdAt: currentState.post.createdAt,
-            updatedAt: currentState.post.updatedAt,
-            viewCount: currentState.post.viewCount,
+          // Update post as downloaded using copyWith
+          final updatedPost = currentState.post.copyWith(
             isDownloaded: true,
-          );
-          
+          ) as TheoryPost;
+
           emit(currentState.copyWith(post: updatedPost));
         },
       );
@@ -136,7 +120,7 @@ class TheoryContentBloc extends Bloc<TheoryContentEvent, TheoryContentState> {
       final targetPost = event.isNext
           ? (state as TheoryContentLoaded).nextPost
           : (state as TheoryContentLoaded).previousPost;
-          
+
       if (targetPost != null) {
         add(TheoryContentLoadRequested(id: targetPost.id));
       }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile/core/di/injection.dart';
 import 'package:mobile/core/theme/app_theme.dart';
 import 'package:mobile/core/utils/logger.dart';
@@ -37,7 +38,7 @@ void main() async {
   
   // Initialize Dependency Injection
   try {
-    await configureDependencies();
+    configureDependencies();
     AppLogger.info('✓ Dependency Injection configured');
   } catch (e) {
     AppLogger.error('Failed to configure DI', e);

@@ -100,6 +100,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Determine deploy method
+        id: deploy-method
+        run: |
+          DEPLOY_METHOD="${{ secrets.DEPLOY_METHOD }}"
+          echo "method=${DEPLOY_METHOD}" >> $GITHUB_OUTPUT
+          echo "is_docker_compose=$([[ "$DEPLOY_METHOD" == "docker-compose" ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+          echo "is_kubernetes=$([[ "$DEPLOY_METHOD" == "kubernetes" ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -108,7 +116,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy via Docker Compose (if self-hosted)
-        if: ${{ secrets.DEPLOY_METHOD == 'docker-compose' }}
+        if: steps.deploy-method.outputs.is_docker_compose == 'true'
         run: |
           scp -o StrictHostKeyChecking=no \
               -i ${{ secrets.DEPLOY_SSH_KEY }} \
@@ -130,7 +138,7 @@ jobs:
           EOF
 
       - name: Deploy to Kubernetes (if using K8s)
-        if: ${{ secrets.DEPLOY_METHOD == 'kubernetes' }}
+        if: steps.deploy-method.outputs.is_kubernetes == 'true'
         run: |
           echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
           export KUBECONFIG=kubeconfig

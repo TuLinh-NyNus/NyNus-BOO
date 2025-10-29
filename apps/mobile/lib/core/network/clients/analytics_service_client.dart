@@ -1,5 +1,6 @@
-import 'package:grpc/grpc.dart';
-import 'package:mobile/core/network/base_service_client.dart';
+// Unused imports commented out until proto generation
+// import 'package:grpc/grpc.dart';
+// import 'package:mobile/core/network/base_service_client.dart';
 // Note: Import will be available after proto generation
 // import 'package:mobile/generated/proto/v1/analytics.pbgrpc.dart';
 

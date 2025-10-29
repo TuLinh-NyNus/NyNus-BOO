@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 class ApiConstants {
   // Base URLs
@@ -46,13 +47,13 @@ class ApiConstants {
   
   // HTTP endpoint (for file uploads, etc)
   static String get httpEndpoint {
-    final protocol = (isProduction || flavor == 'prod') ? 'https' : 'http';
+    const protocol = 'https';
     return '$protocol://$currentHost:$httpPort';
   }
   
   // WebSocket endpoint
   static String get wsEndpoint {
-    final protocol = (isProduction || flavor == 'prod') ? 'wss' : 'ws';
+    const protocol = 'wss';
     return '$protocol://$currentHost:$httpPort/ws';
   }
   
@@ -79,16 +80,19 @@ class ApiConstants {
   static const int maxFileSize = 10 * 1024 * 1024; // 10MB
   static const int maxImageSize = 5 * 1024 * 1024; // 5MB
   
-  // Development helpers
+  // Development helpers - only for debugging
   static void printConfig() {
-    print('=== API Configuration ===');
-    print('Environment: ${isProduction ? "Production" : "Development"}');
-    print('Flavor: $flavor');
-    print('Host: $currentHost');
-    print('gRPC Endpoint: $grpcEndpoint');
-    print('HTTP Endpoint: $httpEndpoint');
-    print('Platform: ${Platform.operatingSystem}');
-    print('========================');
+    // Use debugPrint for production-safe logging
+    if (kDebugMode) {
+      debugPrint('=== API Configuration ===');
+      debugPrint('Environment: ${isProduction ? "Production" : "Development"}');
+      debugPrint('Flavor: $flavor');
+      debugPrint('Host: $currentHost');
+      debugPrint('gRPC Endpoint: $grpcEndpoint');
+      debugPrint('HTTP Endpoint: $httpEndpoint');
+      debugPrint('Platform: ${Platform.operatingSystem}');
+      debugPrint('========================');
+    }
   }
 }
 

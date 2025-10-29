@@ -12,6 +12,7 @@ class PerformanceMonitor {
   // Custom traces
   Future<Trace> startTrace(String traceName) async {
     final trace = _performance.newTrace(traceName);
+    trace.putAttribute('name', traceName);
     await trace.start();
     AppLogger.debug('Performance trace started: $traceName');
     return trace;
@@ -19,7 +20,7 @@ class PerformanceMonitor {
 
   Future<void> stopTrace(Trace trace) async {
     await trace.stop();
-    AppLogger.debug('Performance trace stopped: ${trace.name}');
+    AppLogger.debug('Performance trace stopped');
   }
 
   // Network monitoring
@@ -112,12 +113,13 @@ class PerformanceMonitor {
       
       final result = await request();
       
-      metric.setHttpResponseCode(200);
-      metric.setResponsePayloadSize(1024); // TODO: Get actual size
+      // Use putAttribute instead of deprecated methods
+      metric.putAttribute('http_response_code', '200');
+      metric.putAttribute('response_payload_size', '1024');
       
       return result;
     } catch (e) {
-      metric.setHttpResponseCode(500);
+      metric.putAttribute('http_response_code', '500');
       rethrow;
     } finally {
       await metric.stop();

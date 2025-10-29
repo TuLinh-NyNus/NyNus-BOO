@@ -1,10 +1,17 @@
 enum Environment { development, staging, production }
 
 class EnvironmentConfig {
-  static const Environment current = Environment.values.firstWhere(
-    (e) => e.name == String.fromEnvironment('ENVIRONMENT', defaultValue: 'development'),
-    orElse: () => Environment.development,
-  );
+  static Environment get current {
+    const envName = String.fromEnvironment('ENVIRONMENT', defaultValue: 'development');
+    switch (envName) {
+      case 'staging':
+        return Environment.staging;
+      case 'production':
+        return Environment.production;
+      default:
+        return Environment.development;
+    }
+  }
 
   static bool get isDevelopment => current == Environment.development;
   static bool get isStaging => current == Environment.staging;

@@ -128,9 +128,13 @@ class TheoryLocalDataSourceImpl implements TheoryLocalDataSource {
   Future<void> deleteDownloadedPost(String postId) async {
     final downloads = await getDownloadedPosts();
     downloads.removeWhere((p) => p.id == postId);
+    final models = downloads.whereType<TheoryPostModel>().toList();
     await HiveStorage.userBox.put(
       _downloadsKey,
-      jsonEncode(downloads.map((p) => p.toJson()).toList()),
+      jsonEncode(models.map((p) {
+        final json = p.toJson();
+        return json;
+      }).toList()),
     );
   }
 

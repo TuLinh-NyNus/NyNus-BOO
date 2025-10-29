@@ -22,7 +22,9 @@ class CrashReporter {
       // Add custom keys
       if (customKeys != null) {
         for (final entry in customKeys.entries) {
-          await _crashlytics.setCustomKey(entry.key, entry.value);
+          // Cast to Object to satisfy type requirements
+          final value = entry.value as Object;
+          await _crashlytics.setCustomKey(entry.key, value);
         }
       }
 
@@ -78,15 +80,19 @@ class CrashReporter {
   }
 
   // Test crash (debug only)
-  void forceCrash() {
+  Future<void> forceCrash() async {
     if (kDebugMode) {
-      _crashlytics.crash();
+      await _crashlytics.recordError(
+        Exception('Debug crash test'),
+        StackTrace.current,
+        fatal: true,
+      );
     }
   }
 
   // Check if crash reporting is enabled
-  Future<bool> isCrashlyticsCollectionEnabled() async {
-    return await _crashlytics.isCrashlyticsCollectionEnabled();
+  bool isCrashlyticsCollectionEnabled() {
+    return _crashlytics.isCrashlyticsCollectionEnabled;
   }
 
   // Enable/disable crash reporting

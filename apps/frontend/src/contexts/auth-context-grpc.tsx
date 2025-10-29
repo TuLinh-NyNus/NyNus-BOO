@@ -30,6 +30,14 @@ import { logger } from '@/lib/logger';
 import { AuthStateCache } from '@/lib/utils/auth-state-cache';
 // ✅ PHASE 2: Import proactive token manager
 import { startProactiveTokenRefresh, stopProactiveTokenRefresh } from '@/lib/services/proactive-token-manager';
+// ✅ PHASE 5: Import token analytics
+import { getTokenAnalytics } from '@/lib/analytics/token-analytics';
+// ✅ PHASE 4: Import security components
+import { getThreatDetectionEngine } from '@/lib/security/threat-detection-engine';
+import { getAutoResponseSystem } from '@/lib/security/auto-response-system';
+import type { SecurityEvent } from '@/types/admin/security';
+// ✅ PHASE 2: Import multi-tab coordinator
+import { getMultiTabTokenCoordinator } from '@/lib/services/multi-tab-token-coordinator';
 
 /**
  * Unified Auth Context Types - SIMPLIFIED
@@ -374,6 +382,51 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
 
       logger.info('[AuthContext] Session verified successfully, preparing redirect');
 
+      // ✅ PHASE 4: Security tracking - Analyze login event for threats
+      try {
+        const threatEngine = getThreatDetectionEngine();
+        const autoResponse = getAutoResponseSystem();
+        
+        const securityEvent: SecurityEvent = {
+          id: crypto.randomUUID(),
+          type: 'login_success',
+          severity: 'low',
+          title: 'Successful Login',
+          description: `User ${email} logged in successfully`,
+          timestamp: new Date(),
+          userId: session.user?.email || email,
+          ipAddress: '', // Will be populated by backend
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+          resolved: false,
+          metadata: {
+            email,
+            role: session.role,
+            loginMethod: 'credentials',
+          },
+        };
+        
+        const { detected, threats } = threatEngine.analyzeEvent(securityEvent);
+
+        if (detected && threats.length > 0) {
+          logger.warn('[AuthContext] Security threats detected during login', {
+            threatCount: threats.length,
+            threats: threats.map(t => t.ruleName),
+          });
+          
+          // Execute auto-responses for critical threats
+          for (const threat of threats) {
+            if (threat.severity === 'critical' || threat.severity === 'high') {
+              await autoResponse.handleThreat(threat);
+            }
+          }
+        }
+      } catch (securityError) {
+        // Don't block login on security analysis errors
+        logger.error('[AuthContext] Security analysis failed', {
+          error: securityError instanceof Error ? securityError.message : String(securityError),
+        });
+      }
+
       // Step 4: ✅ Redirect based on user role with FULL PAGE RELOAD
       // Use window.location.href instead of router.push() to force full page reload
       // This ensures middleware receives fresh request with all cookies including HttpOnly session token
@@ -546,20 +599,61 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
    * This is kept for backward compatibility but simplified
    */
   const refreshToken = useCallback(async () => {
+    const startTime = performance.now();
+    
     try {
       logger.debug('[AuthContext] Token refresh requested - delegating to NextAuth session');
+      
       // In simplified approach, NextAuth handles token refresh automatically
       // We just need to fetch updated user data
       await fetchCurrentUser();
+      
+      // ✅ PHASE 5: Record token refresh metrics
+      try {
+        const tokenAnalytics = getTokenAnalytics();
+        await tokenAnalytics.recordMetric({
+          eventType: 'refresh',
+          duration: performance.now() - startTime,
+          success: true,
+          metadata: {
+            method: 'nextauth',
+            userId: user?.id,
+          },
+        });
+      } catch (analyticsError) {
+        // Don't block on analytics errors
+        logger.debug('[AuthContext] Analytics recording failed', {
+          error: analyticsError instanceof Error ? analyticsError.message : String(analyticsError),
+        });
+      }
     } catch (error) {
       logger.error('[AuthContext] Token refresh failed', {
         error: error instanceof Error ? error.message : String(error),
       });
+      
+      // ✅ PHASE 5: Record failed refresh
+      try {
+        const tokenAnalytics = getTokenAnalytics();
+        await tokenAnalytics.recordMetric({
+          eventType: 'refresh',
+          duration: performance.now() - startTime,
+          success: false,
+          errorType: error instanceof Error ? error.name : 'unknown',
+          metadata: {
+            errorMessage: error instanceof Error ? error.message : String(error),
+          },
+        });
+      } catch (analyticsError) {
+        logger.debug('[AuthContext] Analytics recording failed', {
+          error: analyticsError instanceof Error ? analyticsError.message : String(analyticsError),
+        });
+      }
+      
       // If refresh fails, logout user
       await logout();
       throw error;
     }
-  }, [logout, fetchCurrentUser]);
+  }, [logout, fetchCurrentUser, user]);
 
   /**
    * Forgot password (placeholder - needs backend implementation)
@@ -651,6 +745,49 @@ function InternalAuthProvider({ children }: { children: React.ReactNode }) {
       stopProactiveTokenRefresh();
     };
   }, [user, isLoading]);
+
+  // ✅ PHASE 2: Multi-Tab Token Coordinator Integration
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const coordinator = getMultiTabTokenCoordinator();
+    
+    // Listen for token updates from other tabs
+    const handleTokenUpdate = (message: {
+      type: string;
+      token?: string;
+      refreshToken?: string;
+      version?: number;
+      tabId: string;
+      timestamp: number;
+    }) => {
+      logger.debug('[AuthContext] Multi-tab token update received', {
+        type: message.type,
+        version: message.version || 'unknown',
+        fromTab: message.tabId,
+      });
+
+      if (message.type === 'token_update' && message.token) {
+        // Update local token state from other tab
+        // NextAuth will handle this automatically via session sync
+        logger.info('[AuthContext] Token synchronized from another tab');
+      } else if (message.type === 'refresh_complete') {
+        // Another tab completed refresh, fetch updated user data
+        logger.info('[AuthContext] Token refresh completed in another tab, updating user');
+        fetchCurrentUser().catch(err => {
+          logger.error('[AuthContext] Failed to sync user after multi-tab refresh', { error: err });
+        });
+      }
+    };
+
+    const unsubscribe = coordinator.onMessage(handleTokenUpdate);
+
+    // Cleanup listener on unmount
+    return () => {
+      unsubscribe();
+      logger.debug('[AuthContext] Multi-tab coordinator listener cleaned up');
+    };
+  }, [fetchCurrentUser]);
 
   // Memoize unified context value to prevent unnecessary re-renders
   const contextValue = useMemo((): AuthContextType => ({

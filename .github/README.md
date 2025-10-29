@@ -29,6 +29,11 @@ git push origin test/cicd-setup
 
 ## 📚 Documentation Index
 
+### Quick Reference
+| Document | Purpose |
+|----------|---------|
+| [STATUS.md](./STATUS.md) | Current CI/CD status & quick reference |
+
 ### Setup Guides
 
 | Guide | Duration | Complexity | Purpose |

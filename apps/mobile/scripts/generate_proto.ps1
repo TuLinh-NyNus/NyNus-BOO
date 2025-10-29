@@ -1,23 +1,32 @@
 # Protocol Buffer Generation Script for Dart (PowerShell)
 
 # Paths
-$PROTO_DIR = "..\..\packages\proto"
-$OUT_DIR = "lib\generated\proto"
+$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+$MOBILE_DIR = Split-Path -Parent $SCRIPT_DIR
+$ROOT_DIR = Split-Path -Parent (Split-Path -Parent $MOBILE_DIR)
+$PROTO_DIR = Join-Path $ROOT_DIR "packages\proto"
+$OUT_DIR = Join-Path $MOBILE_DIR "lib\generated\proto"
+$PROTOC_PATH = Join-Path $ROOT_DIR "tools\protoc\bin\protoc.exe"
 
 Write-Host "======================================" -ForegroundColor Blue
 Write-Host "Protocol Buffer Generation for Dart" -ForegroundColor Yellow
 Write-Host "======================================" -ForegroundColor Blue
 Write-Host ""
 
-# Check if protoc is installed
+# Add protoc-gen-dart to PATH
+$env:PATH = "$env:USERPROFILE\AppData\Local\Pub\Cache\bin;$env:PATH"
+
+# Check if protoc exists
+if (-not (Test-Path $PROTOC_PATH)) {
+    Write-Host "Error: protoc not found at: $PROTOC_PATH" -ForegroundColor Red
+    exit 1
+}
+
 try {
-    $protocVersion = protoc --version 2>&1
+    $protocVersion = & $PROTOC_PATH --version 2>&1
     Write-Host "Protoc version: $protocVersion" -ForegroundColor Yellow
 } catch {
-    Write-Host "Error: protoc is not installed" -ForegroundColor Red
-    Write-Host "Please install protoc first:" -ForegroundColor Yellow
-    Write-Host "  Download from https://github.com/protocolbuffers/protobuf/releases"
-    Write-Host "  Extract and add to PATH"
+    Write-Host "Error: Failed to execute protoc" -ForegroundColor Red
     exit 1
 }
 
@@ -49,42 +58,85 @@ if (-not (Test-Path $PROTO_DIR)) {
     exit 1
 }
 
-# Get all proto files
-$protoFiles = Get-ChildItem -Path "$PROTO_DIR\v1" -Filter "*.proto" -ErrorAction SilentlyContinue
+# Get all proto files from both common and v1
+$commonProtos = Get-ChildItem -Path "$PROTO_DIR\common" -Filter "*.proto" -ErrorAction SilentlyContinue
+$v1Protos = Get-ChildItem -Path "$PROTO_DIR\v1" -Filter "*.proto" -ErrorAction SilentlyContinue
 
-if ($protoFiles.Count -eq 0) {
-    Write-Host "Error: No proto files found in $PROTO_DIR\v1" -ForegroundColor Red
+$totalProtos = $commonProtos.Count + $v1Protos.Count
+
+if ($totalProtos -eq 0) {
+    Write-Host "Error: No proto files found" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "Found $($protoFiles.Count) proto files" -ForegroundColor Green
+Write-Host "Found $totalProtos proto files ($($commonProtos.Count) common, $($v1Protos.Count) v1)" -ForegroundColor Green
 Write-Host ""
 
 # Generate for each proto file
 $successCount = 0
 $failCount = 0
 
-foreach ($protoFile in $protoFiles) {
+# Generate common protos first
+Write-Host "Generating common protos..." -ForegroundColor Cyan
+foreach ($protoFile in $commonProtos) {
     $filename = $protoFile.Name
+    $relativePath = "common\$filename"
     Write-Host "Generating code for $filename..." -ForegroundColor Green
     
     try {
-        $result = protoc `
+        # Change to proto directory to resolve relative paths
+        Push-Location $PROTO_DIR
+        
+        $result = & $PROTOC_PATH `
             --dart_out=grpc:$OUT_DIR `
-            --proto_path=$PROTO_DIR `
-            --proto_path="$PROTO_DIR\.." `
-            "v1\$filename" 2>&1
+            --proto_path=. `
+            $relativePath 2>&1
+        
+        Pop-Location
         
         if ($LASTEXITCODE -eq 0) {
             $successCount++
-            Write-Host "  ✓ Success" -ForegroundColor Green
+            Write-Host "  Success" -ForegroundColor Green
         } else {
             $failCount++
-            Write-Host "  ✗ Failed: $result" -ForegroundColor Red
+            Write-Host "  Failed: $result" -ForegroundColor Red
         }
     } catch {
+        Pop-Location
         $failCount++
-        Write-Host "  ✗ Failed: $_" -ForegroundColor Red
+        Write-Host "  Failed: $_" -ForegroundColor Red
+    }
+}
+
+Write-Host ""
+Write-Host "Generating v1 protos..." -ForegroundColor Cyan
+foreach ($protoFile in $v1Protos) {
+    $filename = $protoFile.Name
+    $relativePath = "v1\$filename"
+    Write-Host "Generating code for $filename..." -ForegroundColor Green
+    
+    try {
+        # Change to proto directory to resolve relative paths
+        Push-Location $PROTO_DIR
+        
+        $result = & $PROTOC_PATH `
+            --dart_out=grpc:$OUT_DIR `
+            --proto_path=. `
+            $relativePath 2>&1
+        
+        Pop-Location
+        
+        if ($LASTEXITCODE -eq 0) {
+            $successCount++
+            Write-Host "  Success" -ForegroundColor Green
+        } else {
+            $failCount++
+            Write-Host "  Failed: $result" -ForegroundColor Red
+        }
+    } catch {
+        Pop-Location
+        $failCount++
+        Write-Host "  Failed: $_" -ForegroundColor Red
     }
 }
 
@@ -92,7 +144,11 @@ Write-Host ""
 Write-Host "======================================" -ForegroundColor Blue
 Write-Host "Generation Summary:" -ForegroundColor Green
 Write-Host "  Success: $successCount" -ForegroundColor Green
-Write-Host "  Failed:  $failCount" -ForegroundColor $(if ($failCount -gt 0) { "Red" } else { "Green" })
+if ($failCount -gt 0) {
+    Write-Host "  Failed:  $failCount" -ForegroundColor Red
+} else {
+    Write-Host "  Failed:  $failCount" -ForegroundColor Green
+}
 Write-Host "======================================" -ForegroundColor Blue
 
 if ($failCount -gt 0) {
@@ -110,23 +166,26 @@ Write-Host ""
 Write-Host "Formatting generated code..." -ForegroundColor Yellow
 try {
     dart format $OUT_DIR | Out-Null
-    Write-Host "✓ Code formatted" -ForegroundColor Green
+    Write-Host "Code formatted" -ForegroundColor Green
 } catch {
     Write-Host "Warning: Could not format code" -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "✓ All done!" -ForegroundColor Green
+Write-Host "All done!" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Blue
 
 # List generated files
 Write-Host "Generated files:" -ForegroundColor Yellow
-$files = Get-ChildItem -Path "$OUT_DIR\v1" -Filter "*.dart" -ErrorAction SilentlyContinue | Select-Object -First 20
-foreach ($file in $files) {
-    Write-Host "  $($file.Name)"
-}
+$v1Dir = Join-Path $OUT_DIR "v1"
+if (Test-Path $v1Dir) {
+    $files = Get-ChildItem -Path $v1Dir -Filter "*.dart" -ErrorAction SilentlyContinue | Select-Object -First 20
+    foreach ($file in $files) {
+        Write-Host "  $($file.Name)"
+    }
 
-if ($fileCount -gt 20) {
-    Write-Host "  ... and $($fileCount - 20) more files"
+    if ($fileCount -gt 20) {
+        $moreFiles = $fileCount - 20
+        Write-Host "  ... and $moreFiles more files"
+    }
 }
-
