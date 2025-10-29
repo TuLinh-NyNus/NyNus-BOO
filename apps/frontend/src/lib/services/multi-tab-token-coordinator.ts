@@ -296,8 +296,7 @@ export class MultiTabTokenCoordinator {
 
       // Broadcast that we're starting refresh
       this.broadcastMessage({
-        type: 'refresh_start',
-        timestamp: now
+        type: 'refresh_start'
       });
 
       logger.debug(`[${this.serviceName}] Acquired refresh lock, starting refresh`);

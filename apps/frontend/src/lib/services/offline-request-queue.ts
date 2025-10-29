@@ -220,8 +220,10 @@ export class OfflineRequestQueue {
 
       // Sort by priority (high > normal > low) then by nextRetryAt
       const sorted = results.sort((a, b) => {
-        const priorityOrder = { high: 0, normal: 1, low: 2 };
-        const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        const priorityOrder: Record<string, number> = { high: 0, normal: 1, low: 2 };
+        const aPriority = (a.priority as string) || 'normal';
+        const bPriority = (b.priority as string) || 'normal';
+        const priorityDiff = (priorityOrder[aPriority] || 1) - (priorityOrder[bPriority] || 1);
         if (priorityDiff !== 0) return priorityDiff;
         return a.nextRetryAt - b.nextRetryAt;
       });
@@ -313,7 +315,7 @@ export class OfflineRequestQueue {
       logger.debug(`[${this.serviceName}] Request removed`, { requestId });
     } catch (err) {
       logger.error(`[${this.serviceName}] Failed to remove request`, {
-        error: err instanceof Error ? error.message : String(err)
+        error: err instanceof Error ? err.message : String(err)
       });
     }
   }

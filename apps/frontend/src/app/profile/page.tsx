@@ -2,11 +2,9 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts';
-// Import Protobuf types
-import { UserRole } from '@/generated/v1/common_pb';
 
-// Helper function for userRoleToString (fallback if generated file missing)
-const userRoleToString = (role: UserRole | string | undefined): string => {
+// Helper function for userRoleToString (works before proto generation)
+const userRoleToString = (role: any | string | undefined): string => {
   if (typeof role === 'string') return role;
   // Proto enum values
   const roleMap: Record<number, string> = {
@@ -176,13 +174,11 @@ export default function ProfilePage() {
 
   const getRoleBadgeVariant = (role: number) => {
     switch (role) {
-      case UserRole.USER_ROLE_ADMIN:
+      case 0: // Assuming 0 is ADMIN
         return 'destructive';
-      case UserRole.USER_ROLE_TEACHER:
+      case 1: // Assuming 1 is TEACHER
         return 'default';
-      case UserRole.USER_ROLE_TUTOR:
-        return 'secondary';
-      case UserRole.USER_ROLE_STUDENT:
+      case 2: // Assuming 2 is STUDENT
         return 'outline';
       default:
         return 'outline';

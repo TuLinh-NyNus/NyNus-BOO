@@ -23,7 +23,7 @@ import { AuthService } from '@/services/grpc/auth.service';
 import { logger } from '@/lib/logger';
 import { JWT_CONFIG } from '@/lib/config/auth-config';
 import { AuthErrorHandler, AuthErrorType } from '@/lib/utils/auth-error-handler';
-import { AuthMonitor } from '@/lib/utils/auth-monitor';
+import { authMonitor } from '@/lib/utils/auth-monitor';
 
 /**
  * Backend tokens interface
@@ -169,9 +169,9 @@ export class TokenManager {
 
     // ✅ FIX: Record token refresh attempt
     const startTime = Date.now();
-    const userId = token.sub; // NextAuth user ID
+    const userId = token.sub || 'unknown'; // NextAuth user ID
     
-    AuthMonitor.recordTokenRefreshAttempt(userId, {
+    authMonitor.recordTokenRefreshAttempt(userId, {
       timeUntilExpiry: Math.floor(timeUntilExpiry / 1000),
       refreshThreshold: JWT_CONFIG.REFRESH_THRESHOLD_MS / 1000,
     });
@@ -192,7 +192,7 @@ export class TokenManager {
 
         // ✅ FIX: Record successful token refresh
         const duration = Date.now() - startTime;
-        AuthMonitor.recordTokenRefreshSuccess(duration, userId, {
+        authMonitor.recordTokenRefreshSuccess(duration, userId, {
           newTokenExpiry: token.backendTokenExpiry,
         });
 
@@ -203,7 +203,7 @@ export class TokenManager {
       } else {
         // ✅ FIX: Không force logout, chỉ log warning và continue với existing session
         const duration = Date.now() - startTime;
-        AuthMonitor.recordTokenRefreshFailure(
+        authMonitor.recordTokenRefreshFailure(
           AuthErrorType.UNKNOWN_ERROR,
           'No new token received from backend',
           duration,
@@ -227,7 +227,7 @@ export class TokenManager {
       });
       
       // ✅ FIX: Record token refresh failure với detailed error info
-      AuthMonitor.recordTokenRefreshFailure(
+      authMonitor.recordTokenRefreshFailure(
         errorClassification.type,
         errorClassification.message,
         duration,
@@ -240,7 +240,7 @@ export class TokenManager {
       
       if (errorClassification.shouldForceLogout) {
         // Refresh token thực sự expired hoặc account issues - cần logout
-        AuthMonitor.recordForcedLogout(userId, errorClassification.message, {
+        authMonitor.recordForcedLogout(userId, errorClassification.message, {
           operation: 'token_refresh_failed',
           errorType: errorClassification.type,
         });

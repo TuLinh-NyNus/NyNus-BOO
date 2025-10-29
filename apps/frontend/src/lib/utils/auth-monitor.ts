@@ -504,11 +504,7 @@ class AuthMonitor {
    * Record successful token refresh
    */
   recordTokenRefreshSuccess(duration: number, userId: string, context?: Record<string, unknown>): void {
-    this.recordLatency({
-      value: duration,
-      operation: 'token_refresh_success',
-      context: `user:${userId}`
-    });
+    this.recordTokenValidation(duration, true, `token_refresh_success:${userId}`);
     logger.debug('[AuthMonitor] Token refresh success recorded', {
       duration,
       userId,
@@ -525,11 +521,7 @@ class AuthMonitor {
     duration: number,
     context?: Record<string, unknown>
   ): void {
-    this.recordError('token_refresh_failure', errorMessage, {
-      errorType,
-      duration,
-      ...context
-    });
+    this.recordError('token_refresh_failure', `${errorType}:${errorMessage}`, JSON.stringify(context || {}));
     logger.debug('[AuthMonitor] Token refresh failure recorded', {
       errorType,
       errorMessage,
