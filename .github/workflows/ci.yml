@@ -29,6 +29,13 @@ jobs:
         run: |
           chmod +x tools/scripts/gen-proto.sh
           ./tools/scripts/gen-proto.sh
+      
+      - name: Upload generated proto files for frontend
+        uses: actions/upload-artifact@v4
+        with:
+          name: proto-generated-frontend
+          path: apps/frontend/src/generated/
+          retention-days: 1
 
   backend-test:
     name: Backend Tests
@@ -113,6 +120,13 @@ jobs:
     needs: proto-generation
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Download generated proto files
+        uses: actions/download-artifact@v4
+        with:
+          name: proto-generated-frontend
+          path: apps/frontend/src/generated/
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
