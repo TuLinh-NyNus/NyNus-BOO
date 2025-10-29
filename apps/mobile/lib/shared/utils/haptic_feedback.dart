@@ -160,3 +160,4 @@ mixin HapticFeedbackMixin {
   void onLongPress() => triggerHaptic(HapticFeedbackType.medium);
   void onDelete() => triggerHaptic(HapticFeedbackType.heavy);
 }
+

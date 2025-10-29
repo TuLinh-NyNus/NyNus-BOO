@@ -163,3 +163,4 @@ class AchievementBadge extends StatelessWidget {
     );
   }
 }
+

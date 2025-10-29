@@ -235,3 +235,4 @@ class OfflineMessage extends StatelessWidget {
     );
   }
 }
+
