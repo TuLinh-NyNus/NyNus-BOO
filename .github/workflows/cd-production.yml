@@ -71,7 +71,7 @@ jobs:
     name: Blue-Green Deployment
     runs-on: ubuntu-latest
     needs: pre-deployment
-    if: ${{ github.event.inputs.deployment_strategy == 'blue-green' }}
+    if: github.event.inputs.deployment_strategy == 'blue-green'
     environment: production
     steps:
       - name: Checkout code
@@ -206,7 +206,7 @@ jobs:
     name: Rolling Update Deployment
     runs-on: ubuntu-latest
     needs: pre-deployment
-    if: ${{ github.event.inputs.deployment_strategy == 'rolling' }}
+    if: github.event.inputs.deployment_strategy == 'rolling'
     environment: production
     steps:
       - name: Checkout code
@@ -240,7 +240,7 @@ jobs:
     name: Canary Deployment
     runs-on: ubuntu-latest
     needs: pre-deployment
-    if: ${{ github.event.inputs.deployment_strategy == 'canary' }}
+    if: github.event.inputs.deployment_strategy == 'canary'
     environment: production-canary
     steps:
       - name: Checkout code

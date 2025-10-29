@@ -10,7 +10,7 @@ DOCKER_IMAGE := exam-bank-backend
 DOCKER_TAG := latest
 
 # Go variables
-GO_VERSION := 1.21
+GO_VERSION := 1.23
 GOOS := $(shell go env GOOS)
 GOARCH := $(shell go env GOARCH)
 
