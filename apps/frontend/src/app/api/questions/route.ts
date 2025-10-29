@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.questionWhereInput = {};
+    const where: any = {}; // Use any for flexibility with Prisma types
 
     if (type) where.type = type as 'MC' | 'TF' | 'SA' | 'ES' | 'MA';
     if (difficulty) where.difficulty = difficulty as 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';

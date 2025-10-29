@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile/features/questions/domain/entities/question.dart';
 import 'package:mobile/shared/widgets/latex_text.dart';
+import 'package:mobile/shared/widgets/animated_widgets.dart';
 
 class QuestionCard extends StatelessWidget {
   final Question question;

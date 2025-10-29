@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/questions/presentation/bloc/question_bloc.dart';
 import 'package:mobile/features/questions/presentation/widgets/question_list.dart';
+import 'package:mobile/shared/widgets/shimmer_loading.dart';
+import 'package:mobile/shared/widgets/empty_state.dart';
 
 class QuestionsPage extends StatefulWidget {
   final Map<String, dynamic>? initialFilters;
@@ -33,36 +35,28 @@ class _QuestionsPageState extends State<QuestionsPage> {
             child: BlocBuilder<QuestionBloc, QuestionState>(
               builder: (context, state) {
                 if (state is QuestionLoading) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
+                  return ListView.builder(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: 5, // Show 5 shimmer cards
+                    itemBuilder: (context, index) => const QuestionCardShimmer(),
                   );
                 }
                 
                 if (state is QuestionsLoaded) {
                   if (state.questions.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.quiz_outlined,
-                            size: 64,
-                            color: Colors.grey[400],
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Không tìm thấy câu hỏi',
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Thử thay đổi bộ lọc hoặc tìm kiếm',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
-                          ),
-                        ],
-                      ),
+                    return QuestionsEmptyState(
+                      hasFilters: false, // TODO: Check if filters are applied
+                      onRefresh: () {
+                        context.read<QuestionBloc>().add(
+                          const QuestionsLoadRequested(),
+                        );
+                      },
+                      onClearFilters: () {
+                        // TODO: Clear filters
+                        context.read<QuestionBloc>().add(
+                          const QuestionsLoadRequested(),
+                        );
+                      },
                     );
                   }
                   
@@ -93,36 +87,14 @@ class _QuestionsPageState extends State<QuestionsPage> {
                 }
                 
                 if (state is QuestionError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Đã xảy ra lỗi',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          state.message,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: () {
-                            context.read<QuestionBloc>().add(
-                              const QuestionsLoadRequested(),
-                            );
-                          },
-                          child: const Text('Thử lại'),
-                        ),
-                      ],
-                    ),
+                  return ErrorState(
+                    title: 'Đã xảy ra lỗi',
+                    description: state.message,
+                    onRetry: () {
+                      context.read<QuestionBloc>().add(
+                        const QuestionsLoadRequested(),
+                      );
+                    },
                   );
                 }
                 

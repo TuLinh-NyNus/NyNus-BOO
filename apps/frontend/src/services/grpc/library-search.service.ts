@@ -34,7 +34,7 @@ export async function getSearchSuggestions(
 
   const response = await client.getSearchSuggestions(request, {});
   
-  return response.getSuggestionsList().map(suggestion => ({
+  return response.getSuggestionsList().map((suggestion: any) => ({
     text: suggestion.getText(),
     type: suggestion.getType() as 'title' | 'subject' | 'tag' | 'trending',
     count: suggestion.getCount(),

@@ -75,7 +75,7 @@ export async function getAnalytics(): Promise<AnalyticsData> {
       totalBooks: summary.getTotalBooks(),
       totalVideos: summary.getTotalVideos(),
     },
-    topDownloaded: response.getTopDownloadedList().map(item => ({
+    topDownloaded: response.getTopDownloadedList().map((item: any) => ({
       itemId: item.getItemId(),
       title: item.getTitle(),
       type: item.getType(),
@@ -84,7 +84,7 @@ export async function getAnalytics(): Promise<AnalyticsData> {
       reviewCount: item.getReviewCount(),
       rank: item.getRank(),
     })),
-    topRated: response.getTopRatedList().map(item => ({
+    topRated: response.getTopRatedList().map((item: any) => ({
       itemId: item.getItemId(),
       title: item.getTitle(),
       type: item.getType(),
@@ -93,7 +93,7 @@ export async function getAnalytics(): Promise<AnalyticsData> {
       reviewCount: item.getReviewCount(),
       rank: item.getRank(),
     })),
-    recentlyAdded: response.getRecentlyAddedList().map(item => ({
+    recentlyAdded: response.getRecentlyAddedList().map((item: any) => ({
       itemId: item.getItemId(),
       title: item.getTitle(),
       type: item.getType(),
@@ -102,7 +102,7 @@ export async function getAnalytics(): Promise<AnalyticsData> {
       reviewCount: item.getReviewCount(),
       rank: item.getRank(),
     })),
-    distribution: response.getDistributionList().map(dist => ({
+    distribution: response.getDistributionList().map((dist: any) => ({
       type: dist.getType(),
       count: dist.getCount(),
       percentage: dist.getPercentage(),
@@ -119,7 +119,7 @@ export async function getTopDownloaded(limit: number = 10): Promise<TopItemData[
 
   const response = await client.getTopDownloaded(request, {});
   
-  return response.getItemsList().map(item => ({
+  return response.getItemsList().map((item: any) => ({
     itemId: item.getItemId(),
     title: item.getTitle(),
     type: item.getType(),
@@ -139,7 +139,7 @@ export async function getTopRated(limit: number = 10): Promise<TopItemData[]> {
 
   const response = await client.getTopRated(request, {});
   
-  return response.getItemsList().map(item => ({
+  return response.getItemsList().map((item: any) => ({
     itemId: item.getItemId(),
     title: item.getTitle(),
     type: item.getType(),

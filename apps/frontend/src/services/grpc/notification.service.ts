@@ -72,7 +72,7 @@ function mapNotificationFromPb(pbNotification: PbNotification): BackendNotificat
   
   // Convert dataMap array to Record<string, string>
   const dataMap: Record<string, string> = {};
-  notificationObj.dataMap.forEach(([key, value]) => {
+  notificationObj.dataMap.forEach(([key, value]: [any, any]) => {
     dataMap[key] = value;
   });
   

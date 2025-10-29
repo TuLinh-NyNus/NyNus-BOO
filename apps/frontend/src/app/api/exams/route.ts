@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.examsWhereInput = {};
+    const where: any = {}; // Use any for flexibility with Prisma types
 
     if (status) where.status = status as 'ACTIVE' | 'PENDING' | 'INACTIVE' | 'ARCHIVED';
     if (difficulty) where.difficulty = difficulty as 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
 
     // Create exam with questions in a transaction using error handler
     const exam = await executePrismaOperation(() =>
-      prisma.$transaction(async (tx) => {
+      prisma.$transaction(async (tx: any) => {
         // Create exam
         const newExam = await tx.exams.create({
           data: {

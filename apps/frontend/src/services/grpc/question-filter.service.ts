@@ -220,7 +220,7 @@ export class QuestionFilterService {
       return {
         questions: response.getQuestionsList().map((q: QuestionSearchResult) => ({
           question: mapQuestionDetailFromPb(q.getQuestion()!),
-          highlights: q.getHighlightsList().map(h => h.toObject()),
+          highlights: q.getHighlightsList().map((h: any) => h.toObject()),
           relevance_score: q.getRelevanceScore(),
         })),
         total_count: response.getTotalCount(),
@@ -280,7 +280,7 @@ export class QuestionFilterService {
         page: response.getPage(),
         limit: response.getLimit(),
         total_pages: response.getTotalPages(),
-        question_code_summary: response.getQuestionCodeSummaryList().map(s => s.toObject()),
+        question_code_summary: response.getQuestionCodeSummaryList().map((s: any) => s.toObject()),
       };
     } catch (error) {
       const errorMessage = handleGrpcError(error as RpcError);

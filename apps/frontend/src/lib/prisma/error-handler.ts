@@ -154,26 +154,29 @@ const prismaCircuitBreaker = new CircuitBreaker({
  * Classify Prisma error
  */
 export function classifyPrismaError(error: unknown): PrismaErrorDetails {
-  // Handle PrismaClientKnownRequestError
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    const errorType = (PRISMA_ERROR_CODES[error.code as keyof typeof PRISMA_ERROR_CODES] || 'UNKNOWN') as PrismaErrorType;
+  // Check if error has Prisma-specific properties
+  const err = error as any;
+  
+  // Handle PrismaClientKnownRequestError (check by property instead of instanceof)
+  if (err && typeof err === 'object' && 'code' in err && err.code && typeof err.code === 'string') {
+    const errorType = (PRISMA_ERROR_CODES[err.code as keyof typeof PRISMA_ERROR_CODES] || 'UNKNOWN') as PrismaErrorType;
     
     return {
       type: errorType,
-      code: error.code,
-      message: error.message,
+      code: err.code,
+      message: err.message || 'Unknown error',
       userMessage: USER_ERROR_MESSAGES[errorType],
-      meta: error.meta as Record<string, unknown>,
+      meta: err.meta as Record<string, unknown>,
       isRetryable: RETRYABLE_ERRORS.has(errorType),
       httpStatus: ERROR_HTTP_STATUS[errorType],
     };
   }
 
-  // Handle PrismaClientValidationError
-  if (error instanceof Prisma.PrismaClientValidationError) {
+  // Handle PrismaClientValidationError (check by error name)
+  if (err && err.name === 'PrismaClientValidationError') {
     return {
       type: 'VALIDATION',
-      message: error.message,
+      message: err.message || 'Validation error',
       userMessage: 'Dữ liệu không hợp lệ',
       isRetryable: false,
       httpStatus: 400,
@@ -181,10 +184,10 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
   }
 
   // Handle PrismaClientUnknownRequestError
-  if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+  if (err && err.name === 'PrismaClientUnknownRequestError') {
     return {
       type: 'UNKNOWN',
-      message: error.message,
+      message: err.message || 'Unknown request error',
       userMessage: 'Đã xảy ra lỗi không xác định',
       isRetryable: false,
       httpStatus: 500,
@@ -192,11 +195,11 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
   }
 
   // Handle PrismaClientInitializationError
-  if (error instanceof Prisma.PrismaClientInitializationError) {
+  if (err && err.name === 'PrismaClientInitializationError') {
     return {
       type: 'CONNECTION',
-      code: error.errorCode,
-      message: error.message,
+      code: err.errorCode,
+      message: err.message || 'Connection error',
       userMessage: 'Không thể kết nối đến cơ sở dữ liệu',
       isRetryable: true,
       httpStatus: 503,

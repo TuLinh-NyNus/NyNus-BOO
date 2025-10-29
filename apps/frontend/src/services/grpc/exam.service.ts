@@ -573,7 +573,7 @@ export const ExamService = {
         throw new Error('No statistics found');
       }
 
-      const statsObj = stats.toObject();
+      const statsObj = (stats as any).toObject();
       return {
         examId: examId,
         totalAttempts: statsObj.totalAttempts,
