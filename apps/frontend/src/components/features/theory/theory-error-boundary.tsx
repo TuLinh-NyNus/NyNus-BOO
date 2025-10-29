@@ -23,7 +23,7 @@ import {
   HelpCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "@/lib/logger";
 
 // ===== TYPES =====
 
@@ -503,3 +503,4 @@ export function FullTheoryErrorBoundary(props: TheoryErrorBoundaryProps) {
     />
   );
 }
+

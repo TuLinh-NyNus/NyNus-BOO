@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { authToast, toastSuccess, toastInfo } from '@/components/ui/feedback/enhanced-toast';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== TYPES =====
 
@@ -501,3 +501,4 @@ export const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({
 };
 
 export default TwoFactorAuth;
+

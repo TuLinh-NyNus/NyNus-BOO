@@ -20,7 +20,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react';
 import { AdminService } from '@/services/grpc/admin.service';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== MODULE-LEVEL SINGLETON CACHE =====
 // These variables persist across component remounts and React Strict Mode double-renders
@@ -548,4 +548,5 @@ export function useAdminStats(): AdminStatsContextValue {
 // ===== EXPORTS =====
 
 export default AdminStatsProvider;
+
 

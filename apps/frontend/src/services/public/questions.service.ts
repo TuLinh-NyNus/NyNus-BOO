@@ -29,7 +29,7 @@ import {
 } from '@/lib/grpc/errors';
 import { QuestionService as GrpcQuestionService } from '@/services/grpc/question.service';
 import { devLogger } from '@/lib/utils/dev-logger';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 // TODO: Re-enable mappers when implementing proper gRPC filtering
 // import { mapFiltersToListRequest, mapToSearchRequest } from '@/services/api/mappers/question-filter.mapper';
 // import { mapQuestionDetailToPublic, mapSearchResultToPublic } from '@/services/api/mappers/question.mapper';
@@ -635,3 +635,4 @@ export class PublicQuestionService {
     );
   }
 }
+

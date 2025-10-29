@@ -25,7 +25,7 @@
  */
 
 import { Prisma } from '@prisma/client';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // Server-side only retry logic (no window/browser APIs)
 const retryWithBackoff = async (
@@ -413,4 +413,5 @@ export function getPrismaCircuitBreakerState() {
 export function resetPrismaCircuitBreaker() {
   prismaCircuitBreaker.reset();
 }
+
 

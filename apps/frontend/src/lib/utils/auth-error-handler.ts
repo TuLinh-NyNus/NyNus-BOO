@@ -13,7 +13,7 @@
  * @version 1.0.0
  */
 
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Context information for error handling
@@ -341,4 +341,5 @@ export const AuthErrorUtils = {
 };
 
 export default AuthErrorHandler;
+
 

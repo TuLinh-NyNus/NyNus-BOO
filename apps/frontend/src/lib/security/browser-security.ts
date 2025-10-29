@@ -6,7 +6,7 @@
  * @version 2.0.0 - Refactored with Clean Architecture
  */
 
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== CONSTANTS =====
 
@@ -467,3 +467,4 @@ export const defaultExamSecurityConfig: BrowserSecurityConfig = {
   blockKeyboardShortcuts: true,
   maxViolations: 5,
 };
+

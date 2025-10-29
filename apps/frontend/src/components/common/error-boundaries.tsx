@@ -2,7 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import { ErrorBoundary } from './error-boundary';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Page-level Error Boundary
@@ -101,3 +101,4 @@ export function AsyncErrorBoundary({ children }: { children: ReactNode }) {
     </ErrorBoundary>
   );
 }
+

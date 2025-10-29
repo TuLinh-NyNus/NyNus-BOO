@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { AlertCircle, Tag, MessageSquareWarning, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { QuestionFilterService } from '@/services/grpc/question-filter.service';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 interface IssuesSpotlightProps {
   className?: string;
@@ -168,3 +168,4 @@ export function IssuesSpotlight({ className }: IssuesSpotlightProps) {
 }
 
 export default IssuesSpotlight;
+

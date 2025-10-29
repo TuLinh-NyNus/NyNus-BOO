@@ -5,7 +5,7 @@
  * Provides clear error messages for missing or invalid configurations
  */
 
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== TYPES =====
 
@@ -367,3 +367,4 @@ if (typeof window === 'undefined') {
     }
   }
 }
+

@@ -11,7 +11,7 @@
 
 import { RpcError } from 'grpc-web';
 import { toast } from 'sonner';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
 
 /**
@@ -343,5 +343,6 @@ export function getGrpcErrorMessage(error: RpcError): string {
 /**
  * Export types for external use
  */
+
 
 

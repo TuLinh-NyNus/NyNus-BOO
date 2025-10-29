@@ -13,7 +13,7 @@
  * @version 1.0.0
  */
 
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { AuthErrorType } from '@/lib/utils/auth-error-handler';
 
 /**
@@ -449,4 +449,5 @@ export function startAuthMonitoring(intervalMs: number = 5 * 60 * 1000): void {
 }
 
 export default AuthMonitor;
+
 

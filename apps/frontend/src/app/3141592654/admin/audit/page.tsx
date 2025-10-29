@@ -40,7 +40,7 @@ import {
   type AuditLog,
   type AuditStats
 } from "@/lib/mockdata";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "@/lib/logger";
 import { AdminService } from "@/services/grpc/admin.service";
 
 /**
@@ -138,13 +138,13 @@ export default function AuditTrailPage() {
         }))
       });
     } catch (error) {
-      logger.error("[AdminAuditPage] Failed to fetch audit logs data", {
+      const err = error instanceof Error ? error : new Error(String(error));
+      logger.error("[AdminAuditPage] Failed to fetch audit logs data", err, {
         operation: "fetchAuditLogs",
         searchTerm: filters.searchTerm,
         filterAction: filters.filterAction,
         filterResource: filters.filterResource,
         filterSuccess: filters.filterSuccess,
-        error: error instanceof Error ? error.message : String(error),
       });
 
       // Fallback to empty data
@@ -476,3 +476,4 @@ export default function AuditTrailPage() {
     </div>
   );
 }
+

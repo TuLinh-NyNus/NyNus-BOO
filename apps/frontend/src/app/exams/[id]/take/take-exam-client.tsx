@@ -24,7 +24,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EXAM_DYNAMIC_ROUTES } from '@/lib/exam-paths';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { ExamService } from '@/services/grpc/exam.service';
 
 

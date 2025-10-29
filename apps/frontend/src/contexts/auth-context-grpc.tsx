@@ -26,7 +26,7 @@ import {
   convertProtobufRegisterResponse
 } from '@/lib/utils/protobuf-converters';
 import { devLogger } from '@/lib/utils/dev-logger';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { AuthStateCache } from '@/lib/utils/auth-state-cache';
 // ✅ PHASE 2: Import proactive token manager
 import { startProactiveTokenRefresh, stopProactiveTokenRefresh } from '@/lib/services/proactive-token-manager';

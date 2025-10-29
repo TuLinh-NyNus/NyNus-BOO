@@ -20,7 +20,7 @@
 import type { JWT } from 'next-auth/jwt';
 import type { User, Account } from 'next-auth';
 import { AuthService } from '@/services/grpc/auth.service';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { JWT_CONFIG } from '@/lib/config/auth-config';
 import { AuthErrorHandler, AuthErrorType } from '@/lib/utils/auth-error-handler';
 import { AuthMonitor } from '@/lib/utils/auth-monitor';
@@ -312,4 +312,5 @@ export class TokenManager {
     }
   }
 }
+
 

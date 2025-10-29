@@ -20,7 +20,7 @@
  * @version 2.0.1 - Restored localStorage for gRPC Compatibility
  */
 
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== CONSTANTS =====
 
@@ -440,4 +440,5 @@ export const authHelpers = AuthHelpers;
  * Export default for backward compatibility
  */
 export default AuthHelpers;
+
 

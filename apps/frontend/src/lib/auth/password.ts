@@ -7,7 +7,7 @@
  */
 
 import bcrypt from 'bcryptjs';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== CONSTANTS =====
 
@@ -258,4 +258,5 @@ export function sanitizePasswordForLogging(password: string): string {
   if (!password) return '';
   return '*'.repeat(password.length);
 }
+
 

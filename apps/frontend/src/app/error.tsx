@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Global Error Page
@@ -19,12 +19,10 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log error với structured logging
-    logger.error('[GlobalError] Unhandled error caught', {
+    logger.error('[GlobalError] Unhandled error caught', error, {
       operation: 'globalError',
       errorName: error.name,
-      errorMessage: error.message,
       digest: error.digest,
-      stack: error.stack,
     });
   }, [error]);
 
@@ -40,3 +38,4 @@ export default function Error({
     </div>
   );
 }
+

@@ -18,7 +18,7 @@
 
 import { getSession } from 'next-auth/react';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { toast } from 'sonner';
 
 /**
@@ -485,3 +485,4 @@ export function getProactiveTokenManager(): ProactiveTokenManager {
  * Export types
  */
 export type { TokenRefreshConfig, RefreshStats };
+

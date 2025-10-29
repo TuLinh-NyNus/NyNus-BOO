@@ -13,7 +13,7 @@ import { AlertTriangle, RefreshCw, LogIn, Home, Wifi, WifiOff } from 'lucide-rea
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== TYPES =====
 
@@ -401,3 +401,4 @@ export class AuthErrorBoundary extends Component<AuthErrorBoundaryProps, AuthErr
 }
 
 export default AuthErrorBoundary;
+

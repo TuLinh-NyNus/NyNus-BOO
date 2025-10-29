@@ -13,7 +13,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "@/lib/logger";
 
 // UI Components
 import {
@@ -452,3 +452,4 @@ export function ExamInterface({
     </div>
   );
 }
+

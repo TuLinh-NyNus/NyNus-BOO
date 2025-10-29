@@ -4,7 +4,7 @@
  * Centralized feature flags to control feature visibility
  */
 
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Environment-based configuration

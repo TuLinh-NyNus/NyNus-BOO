@@ -28,7 +28,7 @@ import type { NextAuthConfig } from "next-auth";
 import { AuthService } from "@/services/grpc/auth.service";
 import { TokenManager } from "@/lib/services/token-manager";
 import { convertProtobufRoleToString } from "@/lib/utils/role-converter";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "@/lib/logger";
 import {
   OAUTH_CONFIG,
   SECURITY_CONFIG,
@@ -418,4 +418,5 @@ export const authConfig: NextAuthConfig = {
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+
 

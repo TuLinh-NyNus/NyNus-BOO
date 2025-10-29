@@ -25,7 +25,7 @@ import {
   AdminNotification,
   type NotificationType,
 } from '@/types/admin/header';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { useAuth } from '@/contexts/auth-context-grpc';
 // Phase 4 - Task 4.3.1: Import WebSocket hook
 import { useWebSocket } from '@/providers';
@@ -620,3 +620,4 @@ export function useNotificationToast() {
 }
 
 export default NotificationService;
+
