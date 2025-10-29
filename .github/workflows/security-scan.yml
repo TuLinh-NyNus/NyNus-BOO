@@ -177,7 +177,7 @@ jobs:
         with:
           args: --file=apps/frontend/package.json --severity-threshold=high
         continue-on-error: true
-        if: secrets.SNYK_TOKEN != ''
+        if: ${{ secrets.SNYK_TOKEN != '' }}
 
       - name: Run Snyk on Backend
         uses: snyk/actions/golang@master
@@ -186,7 +186,7 @@ jobs:
         with:
           args: --file=apps/backend/go.mod --severity-threshold=high
         continue-on-error: true
-        if: secrets.SNYK_TOKEN != ''
+        if: ${{ secrets.SNYK_TOKEN != '' }}
 
   # Container Image Scanning with Trivy
   trivy-backend:
