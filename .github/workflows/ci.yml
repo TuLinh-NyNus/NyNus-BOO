@@ -74,6 +74,7 @@ jobs:
           POSTGRES_DB: exam_bank_test
           POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST_AUTH_METHOD: trust
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -199,6 +200,12 @@ jobs:
         working-directory: ./apps/frontend
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        working-directory: ./apps/frontend
+        env:
+          DATABASE_URL: "postgresql://test_user:test_password@localhost:5432/exam_bank_test"
+        run: pnpm prisma:generate
+
       - name: Type check
         working-directory: ./apps/frontend
         run: pnpm type-check
@@ -233,6 +240,7 @@ jobs:
           POSTGRES_DB: exam_bank_test
           POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test_password
+          POSTGRES_HOST_AUTH_METHOD: trust
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
