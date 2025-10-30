@@ -40,6 +40,28 @@ jobs:
         with:
           go-version: '1.23'
 
+      - name: Install protoc (if Go)
+        if: matrix.language == 'go'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate proto files (if Go)
+        if: matrix.language == 'go'
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
+      - name: Format generated proto files (if Go)
+        if: matrix.language == 'go'
+        working-directory: ./apps/backend
+        run: go fmt ./pkg/proto/...
+
       - name: Setup Node (if JavaScript/TypeScript)
         if: matrix.language == 'javascript' || matrix.language == 'typescript'
         uses: actions/setup-node@v4
@@ -66,6 +88,29 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.23'
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate proto files
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
+      - name: Format generated proto files
+        working-directory: ./apps/backend
+        run: go fmt ./pkg/proto/...
+
+      - name: Download dependencies
+        working-directory: ./apps/backend
+        run: go mod download
 
       - name: Install Gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
@@ -98,16 +143,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8
 
       - name: Install dependencies
         working-directory: apps/frontend
@@ -177,7 +222,7 @@ jobs:
         with:
           args: --file=apps/frontend/package.json --severity-threshold=high
         continue-on-error: true
-        if: secrets.SNYK_TOKEN != ''
+        if: ${{ secrets.SNYK_TOKEN != '' }}
 
       - name: Run Snyk on Backend
         uses: snyk/actions/golang@master
@@ -186,7 +231,7 @@ jobs:
         with:
           args: --file=apps/backend/go.mod --severity-threshold=high
         continue-on-error: true
-        if: secrets.SNYK_TOKEN != ''
+        if: ${{ secrets.SNYK_TOKEN != '' }}
 
   # Container Image Scanning with Trivy
   trivy-backend:
@@ -195,6 +240,30 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate proto files
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
+      - name: Format generated proto files
+        working-directory: ./apps/backend
+        run: go fmt ./pkg/proto/...
 
       - name: Build Backend Image
         run: |

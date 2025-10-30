@@ -1,7 +1,7 @@
 package middleware
 
 // Security Interceptor Constants
-// Định nghĩa các hằng số cho security interceptor (exam security)
+// Äá»‹nh nghÄ©a cÃ¡c háº±ng sá»‘ cho security interceptor (exam security)
 
 const (
 	// Exam-related gRPC methods

@@ -1,4 +1,4 @@
-﻿package middleware
+package middleware
 
 import (
 	"context"
@@ -149,4 +149,3 @@ func extractUserAgent(md metadata.MD) string {
 	}
 	return ""
 }
-

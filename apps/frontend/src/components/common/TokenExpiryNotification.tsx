@@ -16,7 +16,7 @@ import { AlertTriangle, RefreshCw, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { useAuth } from '@/contexts/auth-context-grpc';
 
 /**
@@ -301,5 +301,6 @@ export function TokenExpiryNotification() {
  */
 export type { NotificationSeverity };
 export default TokenExpiryNotification;
+
 
 

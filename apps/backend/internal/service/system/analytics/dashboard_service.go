@@ -1,4 +1,4 @@
-﻿package analytics
+package analytics
 
 import (
 	"context"
@@ -399,4 +399,3 @@ func (s *DashboardService) getTopPerformingExams(ctx context.Context) ([]*ExamPe
 
 	return exams, nil
 }
-

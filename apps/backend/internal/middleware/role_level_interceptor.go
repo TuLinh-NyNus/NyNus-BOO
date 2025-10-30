@@ -1,4 +1,4 @@
-﻿package middleware
+package middleware
 
 import (
 	"context"
@@ -644,4 +644,3 @@ func IsResourceRestricted(resourceType string, resourceMetadata map[string]inter
 
 	return false
 }
-

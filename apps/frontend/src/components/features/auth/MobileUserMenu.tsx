@@ -33,7 +33,7 @@ import { useAuth } from '@/contexts/auth-context-grpc';
 import { UserDisplay } from '@/components/features/auth/UserDisplay';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useTheme } from 'next-themes';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== TYPES =====
 
@@ -464,3 +464,4 @@ export function MobileUserMenu({ isOpen, onClose, className }: MobileUserMenuPro
 }
 
 export default MobileUserMenu;
+

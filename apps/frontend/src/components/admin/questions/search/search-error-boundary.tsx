@@ -12,7 +12,7 @@ import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Search } from 'lucide-react';
 import { Button, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== TYPES =====
 
@@ -377,3 +377,4 @@ export function CompactSearchErrorWrapper({
     </SearchErrorBoundary>
   );
 }
+

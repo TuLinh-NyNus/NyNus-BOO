@@ -22,7 +22,7 @@ import {
 import { useAuth } from "@/contexts/auth-context-grpc";
 import { loginSchema, type LoginFormData } from "@/lib/validation/auth-schemas";
 import { cn } from "@/lib/utils";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "@/lib/logger";
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -282,3 +282,4 @@ export function LoginForm({
     </div>
   );
 }
+

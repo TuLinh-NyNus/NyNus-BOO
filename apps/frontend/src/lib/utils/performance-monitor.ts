@@ -7,7 +7,7 @@
  */
 
 import React from 'react';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== TYPES =====
 
@@ -391,3 +391,4 @@ export class FPSMonitor {
 
 /** Global FPS monitor instance */
 export const globalFPSMonitor = new FPSMonitor();
+

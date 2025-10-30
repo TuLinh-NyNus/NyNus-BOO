@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -303,4 +303,3 @@ func nullableString(pgText pgtype.Text) interface{} {
 	}
 	return nil
 }
-

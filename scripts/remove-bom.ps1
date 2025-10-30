@@ -28,3 +28,5 @@ Get-ChildItem -Path $Path -Recurse -Filter "*.go" -ErrorAction SilentlyContinue 
 }
 
 Write-Host "✅ Removed BOM from $Count files" -ForegroundColor Green
+
+

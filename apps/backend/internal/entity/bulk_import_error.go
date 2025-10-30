@@ -107,8 +107,8 @@ func GetBulkImportRecoveryActions(errors []BulkImportError) []BulkImportRecovery
 	if errorTypes[BulkImportErrorTypeParseError] > 0 {
 		actions = append(actions, BulkImportRecoveryAction{
 			Type:        "parse_error",
-			Description: "Có lỗi phân tích cú pháp LaTeX",
-			Action:      "Kiểm tra và sửa cú pháp LaTeX cho các dòng bị lỗi",
+			Description: "CÃ³ lá»—i phÃ¢n tÃ­ch cÃº phÃ¡p LaTeX",
+			Action:      "Kiá»ƒm tra vÃ  sá»­a cÃº phÃ¡p LaTeX cho cÃ¡c dÃ²ng bá»‹ lá»—i",
 			Priority:    1,
 			Automated:   false,
 		})
@@ -117,8 +117,8 @@ func GetBulkImportRecoveryActions(errors []BulkImportError) []BulkImportRecovery
 	if errorTypes[BulkImportErrorTypeValidationError] > 0 {
 		actions = append(actions, BulkImportRecoveryAction{
 			Type:        "validation_error",
-			Description: "Có lỗi validation dữ liệu",
-			Action:      "Kiểm tra và bổ sung các trường bắt buộc",
+			Description: "CÃ³ lá»—i validation dá»¯ liá»‡u",
+			Action:      "Kiá»ƒm tra vÃ  bá»• sung cÃ¡c trÆ°á»ng báº¯t buá»™c",
 			Priority:    1,
 			Automated:   false,
 		})
@@ -127,8 +127,8 @@ func GetBulkImportRecoveryActions(errors []BulkImportError) []BulkImportRecovery
 	if errorTypes[BulkImportErrorTypeDuplicateError] > 0 {
 		actions = append(actions, BulkImportRecoveryAction{
 			Type:        "duplicate_error",
-			Description: "Có câu hỏi trùng lặp",
-			Action:      "Bật chế độ upsert hoặc xóa các dòng trùng lặp",
+			Description: "CÃ³ cÃ¢u há»i trÃ¹ng láº·p",
+			Action:      "Báº­t cháº¿ Ä‘á»™ upsert hoáº·c xÃ³a cÃ¡c dÃ²ng trÃ¹ng láº·p",
 			Priority:    2,
 			Automated:   true,
 		})
@@ -137,8 +137,8 @@ func GetBulkImportRecoveryActions(errors []BulkImportError) []BulkImportRecovery
 	if errorTypes[BulkImportErrorTypeDatabaseError] > 0 {
 		actions = append(actions, BulkImportRecoveryAction{
 			Type:        "database_error",
-			Description: "Có lỗi cơ sở dữ liệu",
-			Action:      "Kiểm tra kết nối database và thử lại",
+			Description: "CÃ³ lá»—i cÆ¡ sá»Ÿ dá»¯ liá»‡u",
+			Action:      "Kiá»ƒm tra káº¿t ná»‘i database vÃ  thá»­ láº¡i",
 			Priority:    1,
 			Automated:   true,
 		})
@@ -147,8 +147,8 @@ func GetBulkImportRecoveryActions(errors []BulkImportError) []BulkImportRecovery
 	if errorTypes[BulkImportErrorTypeFormatError] > 0 {
 		actions = append(actions, BulkImportRecoveryAction{
 			Type:        "format_error",
-			Description: "Có lỗi định dạng file",
-			Action:      "Kiểm tra định dạng CSV/LaTeX và encoding",
+			Description: "CÃ³ lá»—i Ä‘á»‹nh dáº¡ng file",
+			Action:      "Kiá»ƒm tra Ä‘á»‹nh dáº¡ng CSV/LaTeX vÃ  encoding",
 			Priority:    1,
 			Automated:   false,
 		})
@@ -242,7 +242,7 @@ var BulkImportValidationRules = []BulkImportValidationRule{
 		MaxLength:  5000,
 		ErrorType:  BulkImportErrorTypeValidationError,
 		Severity:   BulkImportErrorSeverityError,
-		Suggestion: "Nội dung câu hỏi phải có từ 10-5000 ký tự",
+		Suggestion: "Ná»™i dung cÃ¢u há»i pháº£i cÃ³ tá»« 10-5000 kÃ½ tá»±",
 	},
 	{
 		Field:      "type",
@@ -251,7 +251,7 @@ var BulkImportValidationRules = []BulkImportValidationRule{
 		Pattern:    "^(MC|TF|SA|ES|MA)$",
 		ErrorType:  BulkImportErrorTypeValidationError,
 		Severity:   BulkImportErrorSeverityError,
-		Suggestion: "Loại câu hỏi phải là: MC, TF, SA, ES, hoặc MA",
+		Suggestion: "Loáº¡i cÃ¢u há»i pháº£i lÃ : MC, TF, SA, ES, hoáº·c MA",
 	},
 	{
 		Field:      "answers",
@@ -260,7 +260,7 @@ var BulkImportValidationRules = []BulkImportValidationRule{
 		MinLength:  1,
 		ErrorType:  BulkImportErrorTypeValidationError,
 		Severity:   BulkImportErrorSeverityError,
-		Suggestion: "Câu hỏi phải có ít nhất một đáp án",
+		Suggestion: "CÃ¢u há»i pháº£i cÃ³ Ã­t nháº¥t má»™t Ä‘Ã¡p Ã¡n",
 	},
 	{
 		Field:      "question_code",
@@ -269,6 +269,6 @@ var BulkImportValidationRules = []BulkImportValidationRule{
 		Pattern:    "^[0-9A-Z]{5}(-[0-9])?$",
 		ErrorType:  BulkImportErrorTypeFormatError,
 		Severity:   BulkImportErrorSeverityWarning,
-		Suggestion: "Mã câu hỏi phải theo định dạng ID5 (XXXXX) hoặc ID6 (XXXXX-X)",
+		Suggestion: "MÃ£ cÃ¢u há»i pháº£i theo Ä‘á»‹nh dáº¡ng ID5 (XXXXX) hoáº·c ID6 (XXXXX-X)",
 	},
 }

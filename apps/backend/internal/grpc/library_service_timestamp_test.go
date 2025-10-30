@@ -5,15 +5,15 @@ import (
 	"testing"
 	"time"
 
-	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 	"exam-bank-system/apps/backend/internal/entity"
+	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
 // Helpers for sql.Null*
-func ns(s string) sql.NullString   { return sql.NullString{String: s, Valid: true} }
-func ni32(i int32) sql.NullInt32   { return sql.NullInt32{Int32: i, Valid: true} }
-func ni64(i int64) sql.NullInt64   { return sql.NullInt64{Int64: i, Valid: true} }
-func nt(t time.Time) sql.NullTime  { return sql.NullTime{Time: t, Valid: true} }
+func ns(s string) sql.NullString  { return sql.NullString{String: s, Valid: true} }
+func ni32(i int32) sql.NullInt32  { return sql.NullInt32{Int32: i, Valid: true} }
+func ni64(i int64) sql.NullInt64  { return sql.NullInt64{Int64: i, Valid: true} }
+func nt(t time.Time) sql.NullTime { return sql.NullTime{Time: t, Valid: true} }
 
 // Book: Verify Timestamp round-trip and key field mappings
 func TestToProtoLibraryItemFromBook_TimestampRoundTrip(t *testing.T) {

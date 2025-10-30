@@ -158,16 +158,16 @@ func (a *App) Run() error {
 	if err := config.ValidateProductionConfig(a.config.Production); err != nil {
 		log.Printf("[WARNING] Production config validation warning: %v", err)
 	}
-	
+
 	// Start WebSocket server if enabled (Phase 3 - Integration)
 	if a.config.Redis.Enabled && a.config.Redis.PubSubEnabled {
 		a.container.StartWebSocketServer()
-		log.Printf("[OK] WebSocket server started on port %s", 
+		log.Printf("[OK] WebSocket server started on port %s",
 			getEnvOrDefault("WEBSOCKET_PORT", "8081"))
 	} else {
 		log.Println("[INFO] WebSocket/Pub/Sub disabled")
 	}
-	
+
 	// Start Metrics Scheduler (records metrics every 5 minutes)
 	a.container.StartMetricsScheduler()
 	log.Println("[OK] Metrics scheduler started (recording interval: 5 minutes, retention: 30 days)")

@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"testing"
@@ -198,4 +198,3 @@ func BenchmarkExamRepository_EnumOperations(b *testing.B) {
 		}
 	})
 }
-

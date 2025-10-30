@@ -1,4 +1,4 @@
-﻿package cache
+package cache
 
 import (
 	"context"
@@ -208,4 +208,3 @@ func (h *ExamCacheHelper) GetCacheStats() CacheStats {
 func (h *ExamCacheHelper) GetCacheHealth(ctx context.Context) map[string]interface{} {
 	return h.cache.Health(ctx)
 }
-

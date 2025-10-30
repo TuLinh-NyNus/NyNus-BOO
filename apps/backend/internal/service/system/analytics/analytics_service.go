@@ -1,4 +1,4 @@
-﻿package analytics
+package analytics
 
 import (
 	"context"
@@ -242,4 +242,3 @@ type QuestionDifficultyAnalysis struct {
 	SuggestedAdjustment  string    `json:"suggested_adjustment"`
 	AnalyzedAt           time.Time `json:"analyzed_at"`
 }
-

@@ -33,7 +33,7 @@ import {
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { authToast, toastSuccess } from '@/components/ui/feedback/enhanced-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { vi } from 'date-fns/locale';
 
 // ===== TYPES =====
@@ -509,3 +509,4 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({
 };
 
 export default SecurityDashboard;
+

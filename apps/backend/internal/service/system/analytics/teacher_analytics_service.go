@@ -1,4 +1,4 @@
-﻿package analytics
+package analytics
 
 import (
 	"context"
@@ -44,28 +44,28 @@ func NewTeacherAnalyticsService(
 
 // TeacherDashboardData contains teacher dashboard metrics
 type TeacherDashboardData struct {
-	TotalExams       int32
-	TotalStudents    int32
-	AverageScore     float64
-	PassRate         float64
-	ActiveStudents   int32
-	CompletionRate   float64
-	Trends           []*PerformanceTrend
-	TopExams         []*ExamPerformance
+	TotalExams     int32
+	TotalStudents  int32
+	AverageScore   float64
+	PassRate       float64
+	ActiveStudents int32
+	CompletionRate float64
+	Trends         []*PerformanceTrend
+	TopExams       []*ExamPerformance
 }
 
 // StudentData contains student information for teacher view
 type StudentData struct {
-	UserID            string
-	Email             string
-	FirstName         string
-	LastName          string
-	TotalCourses      int32
-	TotalExamResults  int32
-	AverageScore      float64
-	CompletionRate    float64
-	Status            string
-	LastActivity      *timestamppb.Timestamp
+	UserID           string
+	Email            string
+	FirstName        string
+	LastName         string
+	TotalCourses     int32
+	TotalExamResults int32
+	AverageScore     float64
+	CompletionRate   float64
+	Status           string
+	LastActivity     *timestamppb.Timestamp
 }
 
 // ExamData contains exam information for teacher view
@@ -462,5 +462,3 @@ func (s *TeacherAnalyticsService) getTopExams(ctx context.Context, teacherID str
 
 	return exams, rows.Err()
 }
-
-

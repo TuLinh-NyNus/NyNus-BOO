@@ -18,7 +18,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "@/lib/logger";
 
 import { useAuth } from "@/contexts/auth-context-grpc";
 import { registerSchema, type RegisterFormData, checkPasswordStrength } from "@/lib/validation/auth-schemas";
@@ -374,3 +374,4 @@ export function RegisterForm({
     </div>
   );
 }
+

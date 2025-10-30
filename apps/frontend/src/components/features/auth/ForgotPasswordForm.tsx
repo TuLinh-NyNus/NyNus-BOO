@@ -20,7 +20,7 @@ import {
 import { useAuth } from "@/contexts/auth-context-grpc";
 import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/lib/validation/auth-schemas";
 import { cn } from "@/lib/utils";
-import { logger } from "@/lib/utils/logger";
+import { logger } from "@/lib/logger";
 
 interface ForgotPasswordFormProps {
   onSuccess?: () => void;
@@ -219,3 +219,4 @@ export function ForgotPasswordForm({
     </div>
   );
 }
+

@@ -13,7 +13,7 @@
  * @version 1.0.0
  */
 
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Authentication state cache entry
@@ -291,4 +291,5 @@ export function useAuthStateCache() {
 }
 
 export default AuthStateCache;
+
 

@@ -129,7 +129,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		// Reason: Multiple dashboard components (7+ hooks/components) fetch stats simultaneously
 		// during page load with React Strict Mode double-render. Backend caching (10s TTL) reduces actual database load.
 		// Very high limit allows concurrent requests from different components without blocking.
-		// ✅ FIX: Increased to 200/500 to handle React Strict Mode + multiple concurrent components + browser tabs
+		// âœ… FIX: Increased to 200/500 to handle React Strict Mode + multiple concurrent components + browser tabs
 		"/v1.AdminService/GetSystemStats": {
 			RequestsPerSecond: 200, // 200 requests per second - supports React Strict Mode + 10+ concurrent components + multiple tabs
 			Burst:             500, // Allow burst of 500 for initial dashboard load with multiple components + double-render + multiple tabs
@@ -137,7 +137,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		},
 		// Admin metrics history - higher limit for sparkline data with caching
 		// Used by dashboard components to fetch time series data for charts
-		// ✅ FIX: Increased rate limit + added frontend caching to prevent rate limit exceeded
+		// âœ… FIX: Increased rate limit + added frontend caching to prevent rate limit exceeded
 		"/v1.AdminService/GetMetricsHistory": {
 			RequestsPerSecond: 50,  // 50 requests per second - higher limit with frontend caching (10s interval + 30s cache)
 			Burst:             100, // Allow burst of 100 for initial dashboard load with React Strict Mode + multiple tabs
@@ -205,7 +205,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		},
 
 		// Notification operations - higher limits for read operations
-		// ✅ FIX: Increased to handle React Strict Mode double-render + multiple notification components
+		// âœ… FIX: Increased to handle React Strict Mode double-render + multiple notification components
 		"/v1.NotificationService/GetNotifications": {
 			RequestsPerSecond: 50,  // 50 requests per second - supports React Strict Mode
 			Burst:             100, // Allow burst of 100 for initial page load with double-render
@@ -228,7 +228,7 @@ func initializeRateLimits() map[string]RateLimitConfig {
 		},
 
 		// Library/Book operations - higher limit for browsing
-		// ✅ FIX: Increased to handle React Strict Mode double-render
+		// âœ… FIX: Increased to handle React Strict Mode double-render
 		"/v1.BookService/ListBooks": {
 			RequestsPerSecond: 50,  // 50 requests per second - supports React Strict Mode
 			Burst:             100, // Allow burst of 100 for initial dashboard load with double-render

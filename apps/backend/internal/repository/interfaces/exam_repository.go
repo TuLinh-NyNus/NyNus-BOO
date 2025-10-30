@@ -1,4 +1,4 @@
-﻿package interfaces
+package interfaces
 
 import (
 	"context"
@@ -195,4 +195,3 @@ type PerformanceTrend struct {
 	AverageScore float64
 	PassRate     float64
 }
-

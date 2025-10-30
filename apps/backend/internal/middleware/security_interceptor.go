@@ -1,4 +1,4 @@
-﻿package middleware
+package middleware
 
 import (
 	"context"
@@ -372,4 +372,3 @@ func (h *SecurityEventHandler) HandleSecurityEvent(ctx context.Context, sessionI
 
 	return nil
 }
-

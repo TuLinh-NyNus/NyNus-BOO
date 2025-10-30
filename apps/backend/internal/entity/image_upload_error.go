@@ -178,8 +178,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypeNetwork:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "network",
-			Message:      "Lỗi kết nối mạng",
-			Action:       "Kiểm tra kết nối internet và thử lại",
+			Message:      "Lá»—i káº¿t ná»‘i máº¡ng",
+			Action:       "Kiá»ƒm tra káº¿t ná»‘i internet vÃ  thá»­ láº¡i",
 			Priority:     1,
 			Automated:    true,
 			UserFriendly: true,
@@ -188,8 +188,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypeQuota:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "quota",
-			Message:      "Vượt quá giới hạn quota",
-			Action:       "Chờ quota reset hoặc liên hệ admin để tăng quota",
+			Message:      "VÆ°á»£t quÃ¡ giá»›i háº¡n quota",
+			Action:       "Chá» quota reset hoáº·c liÃªn há»‡ admin Ä‘á»ƒ tÄƒng quota",
 			Priority:     2,
 			Automated:    false,
 			UserFriendly: true,
@@ -198,8 +198,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypePermission:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "permission",
-			Message:      "Không có quyền truy cập",
-			Action:       "Kiểm tra quyền truy cập Google Drive hoặc liên hệ admin",
+			Message:      "KhÃ´ng cÃ³ quyá»n truy cáº­p",
+			Action:       "Kiá»ƒm tra quyá»n truy cáº­p Google Drive hoáº·c liÃªn há»‡ admin",
 			Priority:     1,
 			Automated:    false,
 			UserFriendly: true,
@@ -208,8 +208,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypeFileSystem:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "filesystem",
-			Message:      "Lỗi hệ thống file",
-			Action:       "Kiểm tra dung lượng đĩa và quyền ghi file",
+			Message:      "Lá»—i há»‡ thá»‘ng file",
+			Action:       "Kiá»ƒm tra dung lÆ°á»£ng Ä‘Ä©a vÃ  quyá»n ghi file",
 			Priority:     1,
 			Automated:    false,
 			UserFriendly: true,
@@ -218,8 +218,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypeConversion:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "conversion",
-			Message:      "Lỗi chuyển đổi hình ảnh",
-			Action:       "Kiểm tra định dạng LaTeX TikZ hoặc thử với hình ảnh khác",
+			Message:      "Lá»—i chuyá»ƒn Ä‘á»•i hÃ¬nh áº£nh",
+			Action:       "Kiá»ƒm tra Ä‘á»‹nh dáº¡ng LaTeX TikZ hoáº·c thá»­ vá»›i hÃ¬nh áº£nh khÃ¡c",
 			Priority:     1,
 			Automated:    false,
 			UserFriendly: true,
@@ -228,8 +228,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypeValidation:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "validation",
-			Message:      "Dữ liệu không hợp lệ",
-			Action:       "Kiểm tra lại thông tin hình ảnh và định dạng file",
+			Message:      "Dá»¯ liá»‡u khÃ´ng há»£p lá»‡",
+			Action:       "Kiá»ƒm tra láº¡i thÃ´ng tin hÃ¬nh áº£nh vÃ  Ä‘á»‹nh dáº¡ng file",
 			Priority:     1,
 			Automated:    false,
 			UserFriendly: true,
@@ -238,8 +238,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypeTimeout:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "timeout",
-			Message:      "Quá thời gian chờ",
-			Action:       "Thử lại với file nhỏ hơn hoặc kiểm tra kết nối mạng",
+			Message:      "QuÃ¡ thá»i gian chá»",
+			Action:       "Thá»­ láº¡i vá»›i file nhá» hÆ¡n hoáº·c kiá»ƒm tra káº¿t ná»‘i máº¡ng",
 			Priority:     1,
 			Automated:    true,
 			UserFriendly: true,
@@ -248,8 +248,8 @@ func GetImageUploadSuggestions(errorType ImageUploadErrorType, context map[strin
 	case ImageUploadErrorTypeUnknown:
 		suggestions = append(suggestions, ImageUploadSuggestion{
 			Type:         "unknown",
-			Message:      "Lỗi không xác định",
-			Action:       "Thử lại hoặc liên hệ support nếu vấn đề tiếp tục",
+			Message:      "Lá»—i khÃ´ng xÃ¡c Ä‘á»‹nh",
+			Action:       "Thá»­ láº¡i hoáº·c liÃªn há»‡ support náº¿u váº¥n Ä‘á» tiáº¿p tá»¥c",
 			Priority:     3,
 			Automated:    true,
 			UserFriendly: true,

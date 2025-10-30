@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"strings"
@@ -128,4 +128,3 @@ func ConvertProtoToRole(role common.UserRole) string {
 		return RoleGuest // Default to guest for safety
 	}
 }
-

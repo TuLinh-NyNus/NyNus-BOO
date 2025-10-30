@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -465,4 +465,3 @@ func (r *UserRepository) GetUsersByPaging(db database.QueryExecer, offset int, l
 
 	return
 }
-

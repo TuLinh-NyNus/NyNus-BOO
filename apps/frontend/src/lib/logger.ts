@@ -140,10 +140,21 @@ class Logger {
 
   /**
    * Error level logging
-   * Use for error messages and exceptions
+   * Use for error messages
    */
-  error(message: string, error?: Error, context?: Record<string, unknown>): void {
-    this.log('error', message, context, error);
+  error(message: string, errorOrContext?: Error | Record<string, unknown>, context?: Record<string, unknown>): void {
+    let error: Error | undefined;
+    let finalContext: Record<string, unknown> | undefined;
+
+    // Handle overloaded parameters
+    if (errorOrContext instanceof Error) {
+      error = errorOrContext;
+      finalContext = context;
+    } else if (typeof errorOrContext === 'object') {
+      finalContext = errorOrContext;
+    }
+
+    this.log('error', message, finalContext, error);
   }
 
   /**

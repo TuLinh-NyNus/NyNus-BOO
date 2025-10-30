@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -30,15 +30,15 @@ type ResourceAccess struct {
 
 // ResourceAccessStats represents aggregated statistics for resource access
 type ResourceAccessStats struct {
-	TotalAccess          int
-	UniqueUsers          int
-	MostAccessedType     string
-	MostCommonAction     string
-	AverageRiskScore     float64
-	HighRiskAttempts     int
-	AccessByType         map[string]int
-	AccessByAction       map[string]int
-	TopResources         []TopResourceAccess
+	TotalAccess      int
+	UniqueUsers      int
+	MostAccessedType string
+	MostCommonAction string
+	AverageRiskScore float64
+	HighRiskAttempts int
+	AccessByType     map[string]int
+	AccessByAction   map[string]int
+	TopResources     []TopResourceAccess
 }
 
 // TopResourceAccess represents top accessed resources
@@ -815,4 +815,3 @@ func (r *resourceAccessRepository) GetAccessStats(ctx context.Context, since tim
 
 	return stats, nil
 }
-

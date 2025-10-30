@@ -1,4 +1,4 @@
-﻿package interfaces
+package interfaces
 
 import (
 	"context"
@@ -34,4 +34,3 @@ type QuestionImageRepository interface {
 	CountByStatus(ctx context.Context) (map[string]int, error)
 	CountByQuestionID(ctx context.Context, questionID string) (int, error)
 }
-

@@ -30,13 +30,13 @@ type ChannelType string
 const (
 	// ChannelTypeUser represents a user-specific channel
 	ChannelTypeUser ChannelType = "user"
-	
+
 	// ChannelTypeSystem represents a system-wide channel
 	ChannelTypeSystem ChannelType = "system"
-	
+
 	// ChannelTypeRole represents a role-based channel
 	ChannelTypeRole ChannelType = "role"
-	
+
 	// ChannelTypeUnknown represents an unknown channel type
 	ChannelTypeUnknown ChannelType = "unknown"
 )
@@ -73,13 +73,13 @@ func (h *ChannelHelper) GetUserNotificationChannel(userID string) string {
 	if userID == "" {
 		return ""
 	}
-	
+
 	channel := fmt.Sprintf(ChannelUserNotification, userID)
-	
+
 	if h.prefix != "" {
 		return fmt.Sprintf("%s:%s", h.prefix, channel)
 	}
-	
+
 	return channel
 }
 
@@ -89,16 +89,16 @@ func (h *ChannelHelper) GetRoleNotificationChannel(role string) string {
 	if role == "" {
 		return ""
 	}
-	
+
 	// Normalize role name (uppercase)
 	role = strings.ToUpper(role)
-	
+
 	channel := fmt.Sprintf(ChannelRoleBroadcast, role)
-	
+
 	if h.prefix != "" {
 		return fmt.Sprintf("%s:%s", h.prefix, channel)
 	}
-	
+
 	return channel
 }
 
@@ -107,7 +107,7 @@ func (h *ChannelHelper) GetSystemBroadcastChannel() string {
 	if h.prefix != "" {
 		return fmt.Sprintf("%s:%s", h.prefix, ChannelSystemBroadcast)
 	}
-	
+
 	return ChannelSystemBroadcast
 }
 
@@ -116,7 +116,7 @@ func (h *ChannelHelper) GetAllNotificationsPattern() string {
 	if h.prefix != "" {
 		return fmt.Sprintf("%s:%s", h.prefix, ChannelAllNotifications)
 	}
-	
+
 	return ChannelAllNotifications
 }
 
@@ -126,7 +126,7 @@ func (h *ChannelHelper) ParseChannelPattern(channel string) (ChannelType, string
 	if channel == "" {
 		return ChannelTypeUnknown, "", fmt.Errorf("channel name cannot be empty")
 	}
-	
+
 	// Remove prefix if exists
 	if h.prefix != "" {
 		expectedPrefix := h.prefix + ":"
@@ -135,31 +135,31 @@ func (h *ChannelHelper) ParseChannelPattern(channel string) (ChannelType, string
 		}
 		channel = strings.TrimPrefix(channel, expectedPrefix)
 	}
-	
+
 	// Parse channel format: notifications:{type}:{id}
 	parts := strings.Split(channel, ":")
-	
+
 	if len(parts) < 2 {
 		return ChannelTypeUnknown, "", fmt.Errorf("invalid channel format: %s", channel)
 	}
-	
+
 	if parts[0] != "notifications" {
 		return ChannelTypeUnknown, "", fmt.Errorf("channel must start with 'notifications': %s", channel)
 	}
-	
+
 	// System broadcast (no ID)
 	if len(parts) == 2 && parts[1] == "system" {
 		return ChannelTypeSystem, "", nil
 	}
-	
+
 	// User or Role channel (with ID)
 	if len(parts) < 3 {
 		return ChannelTypeUnknown, "", fmt.Errorf("invalid channel format for typed channel: %s", channel)
 	}
-	
+
 	channelType := ChannelType(parts[1])
 	id := parts[2]
-	
+
 	switch channelType {
 	case ChannelTypeUser, ChannelTypeRole:
 		return channelType, id, nil
@@ -178,20 +178,20 @@ func (h *ChannelHelper) IsValidChannelName(channel string) bool {
 // This includes their personal channel and role-based channels
 func (h *ChannelHelper) GetChannelsByUser(userID string, role string) []string {
 	channels := []string{}
-	
+
 	// Add user-specific channel
 	if userChannel := h.GetUserNotificationChannel(userID); userChannel != "" {
 		channels = append(channels, userChannel)
 	}
-	
+
 	// Add role-based channel
 	if roleChannel := h.GetRoleNotificationChannel(role); roleChannel != "" {
 		channels = append(channels, roleChannel)
 	}
-	
+
 	// Add system broadcast channel
 	channels = append(channels, h.GetSystemBroadcastChannel())
-	
+
 	return channels
 }
 
@@ -200,31 +200,31 @@ func ValidateNotificationMessage(msg *NotificationMessage) error {
 	if msg == nil {
 		return fmt.Errorf("message cannot be nil")
 	}
-	
+
 	if msg.ID == "" {
 		return fmt.Errorf("message ID cannot be empty")
 	}
-	
+
 	if msg.UserID == "" {
 		return fmt.Errorf("message user ID cannot be empty")
 	}
-	
+
 	if msg.Type == "" {
 		return fmt.Errorf("message type cannot be empty")
 	}
-	
+
 	if msg.Title == "" {
 		return fmt.Errorf("message title cannot be empty")
 	}
-	
+
 	if msg.Message == "" {
 		return fmt.Errorf("message content cannot be empty")
 	}
-	
+
 	if msg.Timestamp.IsZero() {
 		return fmt.Errorf("message timestamp cannot be zero")
 	}
-	
+
 	return nil
 }
 
@@ -265,4 +265,3 @@ func GetSystemBroadcastChannel() string {
 func ParseChannelPattern(channel string) (ChannelType, string, error) {
 	return DefaultChannelHelper.ParseChannelPattern(channel)
 }
-

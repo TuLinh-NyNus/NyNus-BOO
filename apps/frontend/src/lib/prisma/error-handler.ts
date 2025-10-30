@@ -25,8 +25,83 @@
  */
 
 import { Prisma } from '@prisma/client';
-import { retryWithBackoff, CircuitBreaker, type ErrorRecoveryOptions } from '@/lib/utils/error-recovery';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
+
+// Server-side only retry logic (no window/browser APIs)
+const retryWithBackoff = async (
+  fn: () => Promise<any>,
+  options: { maxRetries?: number; baseDelay?: number } = {}
+) => {
+  const { maxRetries = 3, baseDelay = 100 } = options;
+  let lastError: any;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (i < maxRetries - 1) {
+        const delay = baseDelay * Math.pow(2, i);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+  throw lastError;
+};
+
+// Server-side circuit breaker (no window/browser APIs)
+class CircuitBreaker {
+  private failureCount = 0;
+  private lastFailureTime = 0;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+  
+  async execute(fn: () => Promise<any>) {
+    if (this.state === 'OPEN') {
+      if (Date.now() - this.lastFailureTime > 60000) {
+        this.state = 'HALF_OPEN';
+      } else {
+        throw new Error('Circuit breaker is OPEN');
+      }
+    }
+
+    try {
+      const result = await fn();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  getState() {
+    return this.state;
+  }
+
+  reset() {
+    this.failureCount = 0;
+    this.lastFailureTime = 0;
+    this.state = 'CLOSED';
+  }
+
+  private onSuccess() {
+    this.failureCount = 0;
+    this.state = 'CLOSED';
+  }
+
+  private onFailure() {
+    this.failureCount++;
+    this.lastFailureTime = Date.now();
+    if (this.failureCount >= 5) {
+      this.state = 'OPEN';
+    }
+  }
+}
+
+interface ErrorRecoveryOptions {
+  maxRetries?: number;
+  baseDelay?: number;
+}
 
 // ===== TYPES =====
 
@@ -142,11 +217,7 @@ const RETRYABLE_ERRORS: Set<PrismaErrorType> = new Set([
 /**
  * Global circuit breaker for Prisma operations
  */
-const prismaCircuitBreaker = new CircuitBreaker({
-  failureThreshold: 5,
-  recoveryTimeout: 60000, // 1 minute
-  monitoringPeriod: 300000, // 5 minutes
-});
+const prismaCircuitBreaker = new CircuitBreaker();
 
 // ===== ERROR CLASSIFICATION =====
 
@@ -154,26 +225,29 @@ const prismaCircuitBreaker = new CircuitBreaker({
  * Classify Prisma error
  */
 export function classifyPrismaError(error: unknown): PrismaErrorDetails {
-  // Handle PrismaClientKnownRequestError
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    const errorType = (PRISMA_ERROR_CODES[error.code as keyof typeof PRISMA_ERROR_CODES] || 'UNKNOWN') as PrismaErrorType;
+  // Check if error has Prisma-specific properties
+  const err = error as any;
+  
+  // Handle PrismaClientKnownRequestError (check by property instead of instanceof)
+  if (err && typeof err === 'object' && 'code' in err && err.code && typeof err.code === 'string') {
+    const errorType = (PRISMA_ERROR_CODES[err.code as keyof typeof PRISMA_ERROR_CODES] || 'UNKNOWN') as PrismaErrorType;
     
     return {
       type: errorType,
-      code: error.code,
-      message: error.message,
+      code: err.code,
+      message: err.message || 'Unknown error',
       userMessage: USER_ERROR_MESSAGES[errorType],
-      meta: error.meta as Record<string, unknown>,
+      meta: err.meta as Record<string, unknown>,
       isRetryable: RETRYABLE_ERRORS.has(errorType),
       httpStatus: ERROR_HTTP_STATUS[errorType],
     };
   }
 
-  // Handle PrismaClientValidationError
-  if (error instanceof Prisma.PrismaClientValidationError) {
+  // Handle PrismaClientValidationError (check by error name)
+  if (err && err.name === 'PrismaClientValidationError') {
     return {
       type: 'VALIDATION',
-      message: error.message,
+      message: err.message || 'Validation error',
       userMessage: 'Dữ liệu không hợp lệ',
       isRetryable: false,
       httpStatus: 400,
@@ -181,10 +255,10 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
   }
 
   // Handle PrismaClientUnknownRequestError
-  if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+  if (err && err.name === 'PrismaClientUnknownRequestError') {
     return {
       type: 'UNKNOWN',
-      message: error.message,
+      message: err.message || 'Unknown request error',
       userMessage: 'Đã xảy ra lỗi không xác định',
       isRetryable: false,
       httpStatus: 500,
@@ -192,11 +266,11 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
   }
 
   // Handle PrismaClientInitializationError
-  if (error instanceof Prisma.PrismaClientInitializationError) {
+  if (err && err.name === 'PrismaClientInitializationError') {
     return {
       type: 'CONNECTION',
-      code: error.errorCode,
-      message: error.message,
+      code: err.errorCode,
+      message: err.message || 'Connection error',
       userMessage: 'Không thể kết nối đến cơ sở dữ liệu',
       isRetryable: true,
       httpStatus: 503,
@@ -295,9 +369,7 @@ export async function executePrismaWithRetry<T>(
 ): Promise<T> {
   return await retryWithBackoff(operation, {
     maxRetries: 3,
-    initialDelay: 1000,
-    backoffFactor: 2,
-    ...options,
+    baseDelay: 1000,
   });
 }
 
@@ -341,4 +413,5 @@ export function getPrismaCircuitBreakerState() {
 export function resetPrismaCircuitBreaker() {
   prismaCircuitBreaker.reset();
 }
+
 

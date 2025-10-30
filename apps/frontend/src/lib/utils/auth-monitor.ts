@@ -1,452 +1,593 @@
 /**
- * Authentication Monitoring and Metrics
- * ====================================
- * Centralized monitoring cho authentication operations
+ * Authentication Performance Monitor
+ * ==================================
  * 
- * Business Logic:
- * - Track authentication events và metrics
- * - Monitor token refresh success/failure rates
- * - Detect authentication issues và patterns
- * - Provide debugging information
+ * Theo dõi hiệu suất của authentication system
+ * Bao gồm: token validation, caching, batching, connection pooling
+ * 
+ * Metrics Collection:
+ * - Token validation latency (P50, P95, P99)
+ * - Cache hit/miss rates
+ * - Batch formation time
+ * - Connection pool utilization
+ * - Error rates và types
+ * 
+ * Performance Targets:
+ * - Token validation < 50ms (P95)
+ * - Cache lookup < 5ms
+ * - Batch overhead < 10%
+ * - Pool utilization 40-80%
  * 
  * @author NyNus Development Team
- * @version 1.0.0
+ * @version 1.0.0 - Phase 3 Performance Monitoring
  */
 
-import { logger } from '@/lib/utils/logger';
-import { AuthErrorType } from '@/lib/utils/auth-error-handler';
-
-/**
- * Authentication event types
- */
-export enum AuthEventType {
-  // Login events
-  LOGIN_ATTEMPT = 'LOGIN_ATTEMPT',
-  LOGIN_SUCCESS = 'LOGIN_SUCCESS',
-  LOGIN_FAILURE = 'LOGIN_FAILURE',
-  
-  // Token events
-  TOKEN_REFRESH_ATTEMPT = 'TOKEN_REFRESH_ATTEMPT',
-  TOKEN_REFRESH_SUCCESS = 'TOKEN_REFRESH_SUCCESS',
-  TOKEN_REFRESH_FAILURE = 'TOKEN_REFRESH_FAILURE',
-  TOKEN_EXPIRED = 'TOKEN_EXPIRED',
-  
-  // Session events
-  SESSION_CREATED = 'SESSION_CREATED',
-  SESSION_EXTENDED = 'SESSION_EXTENDED',
-  SESSION_DESTROYED = 'SESSION_DESTROYED',
-  FORCED_LOGOUT = 'FORCED_LOGOUT',
-  
-  // Error events
-  AUTH_ERROR = 'AUTH_ERROR',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  SERVER_ERROR = 'SERVER_ERROR',
-}
+import { logger } from '@/lib/logger';
+import { getAllPoolStats, PoolStats } from '@/services/grpc/client-factory';
 
 /**
- * Authentication event data
+ * Latency metric data point
  */
-export interface AuthEvent {
-  type: AuthEventType;
+interface LatencyMetric {
+  value: number; // milliseconds
   timestamp: number;
-  userId?: string;
-  sessionId?: string;
-  operation?: string;
-  success: boolean;
-  duration?: number;
-  errorType?: AuthErrorType;
-  errorMessage?: string;
-  metadata?: Record<string, unknown>;
+  operation: string;
+  context?: string;
 }
 
 /**
- * Authentication metrics
+ * Cache metric
  */
-export interface AuthMetrics {
-  // Login metrics
-  totalLoginAttempts: number;
-  successfulLogins: number;
-  failedLogins: number;
-  loginSuccessRate: number;
-  
-  // Token refresh metrics
-  totalRefreshAttempts: number;
-  successfulRefreshes: number;
-  failedRefreshes: number;
-  refreshSuccessRate: number;
-  
-  // Session metrics
-  activeSessions: number;
-  averageSessionDuration: number;
-  forcedLogouts: number;
-  
-  // Error metrics
-  errorsByType: Record<AuthErrorType, number>;
-  networkErrors: number;
-  serverErrors: number;
-  
-  // Performance metrics
-  averageLoginDuration: number;
-  averageRefreshDuration: number;
+interface CacheMetric {
+  hits: number;
+  misses: number;
+  size: number;
+  ttl: number;
+  evictions: number;
 }
 
 /**
- * Authentication Monitor Class
+ * Performance metrics aggregate
  */
-export class AuthMonitor {
-  private static events: AuthEvent[] = [];
-  private static maxEvents = 1000; // Keep last 1000 events
-  
+interface PerformanceMetrics {
+  tokenValidation: {
+    latencies: LatencyMetric[];
+    p50: number;
+    p95: number;
+    p99: number;
+    totalCalls: number;
+    errorRate: number;
+  };
+  caching: {
+    hitRate: number; // Percentage
+    missRate: number; // Percentage
+    avgLookupTime: number;
+    totalOperations: number;
+    currentCacheSize: number;
+  };
+  batching: {
+    avgBatchSize: number;
+    latencySavings: number; // Percentage
+    totalBatches: number;
+    successRate: number;
+    avgFormationTime: number;
+  };
+  connectionPool: {
+    reuseRate: number; // Percentage
+    avgConnectionAge: number;
+    poolUtilization: Record<string, PoolStats>;
+  };
+  errors: {
+    total: number;
+    byType: Record<string, number>;
+    recentErrors: Array<{ message: string; timestamp: number; context?: string }>;
+  };
+  timestamp: number;
+  uptime: number; // milliseconds
+}
+
+/**
+ * AuthMonitor - Centralized performance monitoring
+ */
+class AuthMonitor {
+  private latencies: LatencyMetric[] = [];
+  private cacheMetrics: CacheMetric = {
+    hits: 0,
+    misses: 0,
+    size: 0,
+    ttl: 0,
+    evictions: 0
+  };
+  private batchingMetrics = {
+    totalBatches: 0,
+    successfulBatches: 0,
+    formationTimes: [] as number[]
+  };
+  private errorMetrics = new Map<string, number>();
+  private recentErrors: Array<{ message: string; timestamp: number; context?: string }> = [];
+  private startTime = Date.now();
+  private readonly maxLatencyHistorySize = 1000;
+  private readonly maxRecentErrorsSize = 100;
+
   /**
-   * Record authentication event
-   * 
-   * @param event - Authentication event data
+   * Record token validation latency
    */
-  static recordEvent(event: Omit<AuthEvent, 'timestamp'>): void {
-    const fullEvent: AuthEvent = {
-      ...event,
+  recordTokenValidation(
+    latency: number,
+    success: boolean = true,
+    context?: string
+  ): void {
+    const metric: LatencyMetric = {
+      value: latency,
       timestamp: Date.now(),
+      operation: 'token_validation',
+      context
     };
-    
-    // Add to events array
-    this.events.push(fullEvent);
-    
-    // Keep only last maxEvents
-    if (this.events.length > this.maxEvents) {
-      this.events = this.events.slice(-this.maxEvents);
+
+    this.latencies.push(metric);
+
+    // Keep history size manageable
+    if (this.latencies.length > this.maxLatencyHistorySize) {
+      this.latencies.shift();
+    }
+
+    if (!success) {
+      this.recordError('token_validation_failed', context);
+    }
+
+    logger.debug('[AuthMonitor] Token validation recorded', {
+      latency: `${latency}ms`,
+      success,
+      totalValidations: this.getTokenValidationCount()
+    });
+  }
+
+  /**
+   * Record cache operation
+   */
+  recordCacheOperation(
+    operation: 'hit' | 'miss' | 'eviction',
+    lookupTime?: number
+  ): void {
+    if (operation === 'hit') {
+      this.cacheMetrics.hits++;
+    } else if (operation === 'miss') {
+      this.cacheMetrics.misses++;
+    } else if (operation === 'eviction') {
+      this.cacheMetrics.evictions++;
+    }
+
+    if (lookupTime && lookupTime > 10) {
+      logger.warn('[AuthMonitor] Slow cache lookup', {
+        time: `${lookupTime}ms`,
+        operation
+      });
+    }
+  }
+
+  /**
+   * Update cache metrics
+   */
+  updateCacheMetrics(size: number, ttl: number): void {
+    this.cacheMetrics.size = size;
+    this.cacheMetrics.ttl = ttl;
+  }
+
+  /**
+   * Record batch metrics
+   */
+  recordBatchMetrics(
+    batchSize: number,
+    formationTime: number,
+    success: boolean = true
+  ): void {
+    this.batchingMetrics.totalBatches++;
+    if (success) {
+      this.batchingMetrics.successfulBatches++;
+    }
+    this.batchingMetrics.formationTimes.push(formationTime);
+
+    // Keep history manageable
+    if (this.batchingMetrics.formationTimes.length > 1000) {
+      this.batchingMetrics.formationTimes.shift();
+    }
+
+    logger.debug('[AuthMonitor] Batch metrics recorded', {
+      size: batchSize,
+      formationTime: `${formationTime}ms`,
+      success
+    });
+  }
+
+  /**
+   * Record error
+   */
+  recordError(
+    errorType: string,
+    context?: string,
+    message?: string
+  ): void {
+    // Increment error count by type
+    const current = this.errorMetrics.get(errorType) || 0;
+    this.errorMetrics.set(errorType, current + 1);
+
+    // Add to recent errors list
+    this.recentErrors.push({
+      message: message || errorType,
+      timestamp: Date.now(),
+      context
+    });
+
+    // Keep size manageable
+    if (this.recentErrors.length > this.maxRecentErrorsSize) {
+      this.recentErrors.shift();
+    }
+
+    logger.error('[AuthMonitor] Error recorded', {
+      type: errorType,
+      context,
+      totalErrors: this.errorMetrics.get(errorType)
+    });
+  }
+
+  /**
+   * Get comprehensive metrics
+   */
+  getMetrics(): PerformanceMetrics {
+    const totalLatencies = this.latencies.length;
+    const successfulLatencies = this.latencies.length;
+    const sortedLatencies = [...this.latencies]
+      .sort((a, b) => a.value - b.value);
+
+    const p50 = totalLatencies > 0 ? sortedLatencies[Math.floor(totalLatencies * 0.5)].value : 0;
+    const p95 = totalLatencies > 0 ? sortedLatencies[Math.floor(totalLatencies * 0.95)].value : 0;
+    const p99 = totalLatencies > 0 ? sortedLatencies[Math.floor(totalLatencies * 0.99)].value : 0;
+
+    const totalCacheOps = this.cacheMetrics.hits + this.cacheMetrics.misses;
+    const hitRate = totalCacheOps > 0
+      ? Math.round((this.cacheMetrics.hits / totalCacheOps) * 100)
+      : 0;
+
+    const avgFormationTime = this.batchingMetrics.formationTimes.length > 0
+      ? Math.round(
+          this.batchingMetrics.formationTimes.reduce((a, b) => a + b, 0) /
+          this.batchingMetrics.formationTimes.length
+        )
+      : 0;
+
+    // Calculate average latency savings from batching
+    // Assuming batching saves ~90% of overhead per additional item
+    const avgBatchSize = this.batchingMetrics.totalBatches > 0
+      ? Math.ceil(totalLatencies / this.batchingMetrics.totalBatches)
+      : 0;
+    const latencySavings = avgBatchSize >= 2
+      ? Math.round(((avgBatchSize - 1) / avgBatchSize) * 100)
+      : 0;
+
+    const totalErrors = Array.from(this.errorMetrics.values()).reduce((a, b) => a + b, 0);
+    const errorRate = successfulLatencies > 0
+      ? Math.round((totalErrors / (successfulLatencies + totalErrors)) * 100)
+      : 0;
+
+    // Get pool stats
+    const poolStats = getAllPoolStats();
+
+    // Calculate average pool utilization
+    let totalReuseRate = 0;
+    let poolCount = 0;
+    for (const stats of Object.values(poolStats)) {
+      totalReuseRate += stats.reuseRate;
+      poolCount++;
+    }
+    const avgPoolReuseRate = poolCount > 0
+      ? Math.round(totalReuseRate / poolCount)
+      : 0;
+
+    // Calculate average connection age
+    let totalAge = 0;
+    for (const stats of Object.values(poolStats)) {
+      totalAge += stats.avgConnectionAge;
+    }
+    const avgConnectionAge = poolCount > 0
+      ? Math.round(totalAge / poolCount)
+      : 0;
+
+    return {
+      tokenValidation: {
+        latencies: sortedLatencies.slice(-100), // Last 100 only
+        p50,
+        p95,
+        p99,
+        totalCalls: successfulLatencies,
+        errorRate
+      },
+      caching: {
+        hitRate,
+        missRate: 100 - hitRate,
+        avgLookupTime: 0, // Calculated from cache backend
+        totalOperations: totalCacheOps,
+        currentCacheSize: this.cacheMetrics.size
+      },
+      batching: {
+        avgBatchSize,
+        latencySavings,
+        totalBatches: this.batchingMetrics.totalBatches,
+        successRate: this.batchingMetrics.totalBatches > 0
+          ? Math.round((this.batchingMetrics.successfulBatches / this.batchingMetrics.totalBatches) * 100)
+          : 0,
+        avgFormationTime
+      },
+      connectionPool: {
+        reuseRate: avgPoolReuseRate,
+        avgConnectionAge,
+        poolUtilization: poolStats
+      },
+      errors: {
+        total: totalErrors,
+        byType: Object.fromEntries(this.errorMetrics),
+        recentErrors: this.recentErrors
+      },
+      timestamp: Date.now(),
+      uptime: Date.now() - this.startTime
+    };
+  }
+
+  /**
+   * Get token validation metrics
+   */
+  getTokenValidationMetrics() {
+    const metrics = this.getMetrics();
+    return metrics.tokenValidation;
+  }
+
+  /**
+   * Get cache metrics
+   */
+  getCacheMetrics() {
+    const metrics = this.getMetrics();
+    return metrics.caching;
+  }
+
+  /**
+   * Get batching metrics
+   */
+  getBatchingMetrics() {
+    const metrics = this.getMetrics();
+    return metrics.batching;
+  }
+
+  /**
+   * Get connection pool metrics
+   */
+  getConnectionPoolMetrics() {
+    const metrics = this.getMetrics();
+    return metrics.connectionPool;
+  }
+
+  /**
+   * Get error metrics
+   */
+  getErrorMetrics() {
+    const metrics = this.getMetrics();
+    return metrics.errors;
+  }
+
+  /**
+   * Check if performance meets targets
+   */
+  isPerformanceHealthy(): boolean {
+    const metrics = this.getMetrics();
+
+    // Check token validation (target: P95 < 50ms)
+    if (metrics.tokenValidation.p95 > 50) {
+      logger.warn('[AuthMonitor] Token validation P95 exceeds target', {
+        current: metrics.tokenValidation.p95,
+        target: 50
+      });
+      return false;
+    }
+
+    // Check cache hit rate (target: >= 70%)
+    if (metrics.caching.hitRate < 70 && metrics.caching.totalOperations > 100) {
+      logger.warn('[AuthMonitor] Cache hit rate below target', {
+        current: metrics.caching.hitRate,
+        target: 70
+      });
+      return false;
+    }
+
+    // Check connection pool reuse rate (target: >= 80%)
+    if (metrics.connectionPool.reuseRate < 80 && metrics.connectionPool.reuseRate > 0) {
+      logger.warn('[AuthMonitor] Connection pool reuse rate below target', {
+        current: metrics.connectionPool.reuseRate,
+        target: 80
+      });
+      return false;
+    }
+
+    // Check error rate (target: < 5%)
+    if (metrics.errors.total > 0 && metrics.tokenValidation.errorRate > 5) {
+      logger.warn('[AuthMonitor] Error rate exceeds target', {
+        current: metrics.tokenValidation.errorRate,
+        target: 5
+      });
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Get health report
+   */
+  getHealthReport(): {
+    healthy: boolean;
+    issues: string[];
+    recommendations: string[];
+  } {
+    const metrics = this.getMetrics();
+    const issues: string[] = [];
+    const recommendations: string[] = [];
+
+    // Check token validation
+    if (metrics.tokenValidation.p95 > 50) {
+      issues.push(`Token validation P95 is ${metrics.tokenValidation.p95}ms (target: 50ms)`);
+      recommendations.push('Consider reducing token validation complexity or increasing cache TTL');
+    }
+
+    // Check cache
+    if (metrics.caching.hitRate < 70 && metrics.caching.totalOperations > 100) {
+      issues.push(`Cache hit rate is ${metrics.caching.hitRate}% (target: 70%)`);
+      recommendations.push('Increase cache TTL or pre-warm cache on startup');
+    }
+
+    // Check batching
+    if (metrics.batching.totalBatches > 0 && metrics.batching.successRate < 90) {
+      issues.push(`Batch success rate is ${metrics.batching.successRate}% (target: 90%)`);
+      recommendations.push('Investigate batch failure causes and implement retry logic');
+    }
+
+    // Check connection pool
+    if (metrics.connectionPool.reuseRate < 60 && metrics.connectionPool.reuseRate > 0) {
+      issues.push(`Connection pool reuse rate is ${metrics.connectionPool.reuseRate}% (target: 80%)`);
+      recommendations.push('Increase max pool size or reduce idle timeout');
+    }
+
+    // Check errors
+    if (metrics.errors.total > 100) {
+      issues.push(`High error count: ${metrics.errors.total}`);
+      recommendations.push('Review recent errors and implement error handling improvements');
     }
     
-    // Log event
-    const logLevel = event.success ? 'info' : 'warn';
-    logger[logLevel]('[AuthMonitor] Authentication event recorded', {
-      type: event.type,
-      success: event.success,
-      operation: event.operation,
-      duration: event.duration,
-      errorType: event.errorType,
-      userId: event.userId,
-      metadata: event.metadata,
-    });
+    return {
+      healthy: issues.length === 0,
+      issues,
+      recommendations
+    };
   }
 
   /**
-   * Record login attempt
+   * Reset all metrics
    */
-  static recordLoginAttempt(userId?: string, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.LOGIN_ATTEMPT,
-      userId,
-      operation: 'login',
-      success: true, // Attempt itself is successful
-      metadata,
-    });
-  }
-
-  /**
-   * Record login success
-   */
-  static recordLoginSuccess(userId: string, duration: number, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.LOGIN_SUCCESS,
-      userId,
-      operation: 'login',
-      success: true,
-      duration,
-      metadata,
-    });
-  }
-
-  /**
-   * Record login failure
-   */
-  static recordLoginFailure(errorType: AuthErrorType, errorMessage: string, duration: number, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.LOGIN_FAILURE,
-      operation: 'login',
-      success: false,
-      duration,
-      errorType,
-      errorMessage,
-      metadata,
-    });
+  reset(): void {
+    this.latencies = [];
+    this.cacheMetrics = {
+      hits: 0,
+      misses: 0,
+      size: 0,
+      ttl: 0,
+      evictions: 0
+    };
+    this.batchingMetrics = {
+      totalBatches: 0,
+      successfulBatches: 0,
+      formationTimes: []
+    };
+    this.errorMetrics.clear();
+    this.recentErrors = [];
+    this.startTime = Date.now();
+    logger.info('[AuthMonitor] All metrics reset');
   }
 
   /**
    * Record token refresh attempt
    */
-  static recordTokenRefreshAttempt(userId?: string, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.TOKEN_REFRESH_ATTEMPT,
+  recordTokenRefreshAttempt(userId: string, context?: Record<string, unknown>): void {
+    logger.debug('[AuthMonitor] Token refresh attempt recorded', {
       userId,
-      operation: 'token_refresh',
-      success: true, // Attempt itself is successful
-      metadata,
+      context,
+      timestamp: Date.now()
     });
   }
 
   /**
-   * Record token refresh success
+   * Record successful token refresh
    */
-  static recordTokenRefreshSuccess(duration: number, userId?: string, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.TOKEN_REFRESH_SUCCESS,
-      userId,
-      operation: 'token_refresh',
-      success: true,
+  recordTokenRefreshSuccess(duration: number, userId: string, context?: Record<string, unknown>): void {
+    this.recordTokenValidation(duration, true, `token_refresh_success:${userId}`);
+    logger.debug('[AuthMonitor] Token refresh success recorded', {
       duration,
-      metadata,
+      userId,
+      context
     });
   }
 
   /**
    * Record token refresh failure
    */
-  static recordTokenRefreshFailure(errorType: AuthErrorType, errorMessage: string, duration: number, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.TOKEN_REFRESH_FAILURE,
-      operation: 'token_refresh',
-      success: false,
-      duration,
+  recordTokenRefreshFailure(
+    errorType: string,
+    errorMessage: string,
+    duration: number,
+    context?: Record<string, unknown>
+  ): void {
+    this.recordError('token_refresh_failure', `${errorType}:${errorMessage}`, JSON.stringify(context || {}));
+    logger.debug('[AuthMonitor] Token refresh failure recorded', {
       errorType,
       errorMessage,
-      metadata,
-    });
-  }
-
-  /**
-   * Record session creation
-   */
-  static recordSessionCreated(userId: string, sessionId?: string, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.SESSION_CREATED,
-      userId,
-      sessionId,
-      operation: 'session_create',
-      success: true,
-      metadata,
+      duration,
+      context
     });
   }
 
   /**
    * Record forced logout
    */
-  static recordForcedLogout(userId?: string, reason?: string, metadata?: Record<string, unknown>): void {
-    this.recordEvent({
-      type: AuthEventType.FORCED_LOGOUT,
+  recordForcedLogout(userId: string, reason: string, context?: Record<string, unknown>): void {
+    logger.warn('[AuthMonitor] Forced logout recorded', {
       userId,
-      operation: 'forced_logout',
-      success: false,
-      errorMessage: reason,
-      metadata,
+      reason,
+      context,
+      timestamp: Date.now()
     });
   }
 
   /**
-   * Get authentication metrics
+   * Private helper to get token validation count
    */
-  static getMetrics(): AuthMetrics {
-    const now = Date.now();
-    const last24Hours = now - (24 * 60 * 60 * 1000);
-    const recentEvents = this.events.filter(event => event.timestamp >= last24Hours);
-    
-    // Login metrics
-    const loginAttempts = recentEvents.filter(e => e.type === AuthEventType.LOGIN_ATTEMPT);
-    const loginSuccesses = recentEvents.filter(e => e.type === AuthEventType.LOGIN_SUCCESS);
-    const loginFailures = recentEvents.filter(e => e.type === AuthEventType.LOGIN_FAILURE);
-    
-    // Token refresh metrics
-    const refreshAttempts = recentEvents.filter(e => e.type === AuthEventType.TOKEN_REFRESH_ATTEMPT);
-    const refreshSuccesses = recentEvents.filter(e => e.type === AuthEventType.TOKEN_REFRESH_SUCCESS);
-    const refreshFailures = recentEvents.filter(e => e.type === AuthEventType.TOKEN_REFRESH_FAILURE);
-    
-    // Session metrics
-    const sessionCreated = recentEvents.filter(e => e.type === AuthEventType.SESSION_CREATED);
-    const forcedLogouts = recentEvents.filter(e => e.type === AuthEventType.FORCED_LOGOUT);
-    
-    // Error metrics
-    const errorsByType: Record<AuthErrorType, number> = {} as Record<AuthErrorType, number>;
-    Object.values(AuthErrorType).forEach(type => {
-      errorsByType[type] = recentEvents.filter(e => e.errorType === type).length;
-    });
-    
-    const networkErrors = recentEvents.filter(e => e.errorType === AuthErrorType.NETWORK_ERROR || e.errorType === AuthErrorType.TIMEOUT_ERROR).length;
-    const serverErrors = recentEvents.filter(e => e.errorType === AuthErrorType.SERVER_ERROR || e.errorType === AuthErrorType.SERVICE_UNAVAILABLE).length;
-    
-    // Performance metrics
-    const loginDurations = loginSuccesses.filter(e => e.duration).map(e => e.duration!);
-    const refreshDurations = refreshSuccesses.filter(e => e.duration).map(e => e.duration!);
-    
-    return {
-      // Login metrics
-      totalLoginAttempts: loginAttempts.length,
-      successfulLogins: loginSuccesses.length,
-      failedLogins: loginFailures.length,
-      loginSuccessRate: loginAttempts.length > 0 ? (loginSuccesses.length / loginAttempts.length) * 100 : 0,
-      
-      // Token refresh metrics
-      totalRefreshAttempts: refreshAttempts.length,
-      successfulRefreshes: refreshSuccesses.length,
-      failedRefreshes: refreshFailures.length,
-      refreshSuccessRate: refreshAttempts.length > 0 ? (refreshSuccesses.length / refreshAttempts.length) * 100 : 0,
-      
-      // Session metrics
-      activeSessions: sessionCreated.length,
-      averageSessionDuration: 0, // Would need session end events to calculate
-      forcedLogouts: forcedLogouts.length,
-      
-      // Error metrics
-      errorsByType,
-      networkErrors,
-      serverErrors,
-      
-      // Performance metrics
-      averageLoginDuration: loginDurations.length > 0 ? loginDurations.reduce((a, b) => a + b, 0) / loginDurations.length : 0,
-      averageRefreshDuration: refreshDurations.length > 0 ? refreshDurations.reduce((a, b) => a + b, 0) / refreshDurations.length : 0,
-    };
-  }
-
-  /**
-   * Get recent events for debugging
-   */
-  static getRecentEvents(limit: number = 50): AuthEvent[] {
-    return this.events.slice(-limit).reverse(); // Most recent first
-  }
-
-  /**
-   * Get events by type
-   */
-  static getEventsByType(type: AuthEventType, limit: number = 50): AuthEvent[] {
-    return this.events
-      .filter(event => event.type === type)
-      .slice(-limit)
-      .reverse();
-  }
-
-  /**
-   * Get events by user
-   */
-  static getEventsByUser(userId: string, limit: number = 50): AuthEvent[] {
-    return this.events
-      .filter(event => event.userId === userId)
-      .slice(-limit)
-      .reverse();
-  }
-
-  /**
-   * Clear old events (for memory management)
-   */
-  static clearOldEvents(olderThanMs: number = 7 * 24 * 60 * 60 * 1000): void {
-    const cutoff = Date.now() - olderThanMs;
-    const originalLength = this.events.length;
-    this.events = this.events.filter(event => event.timestamp >= cutoff);
-    
-    const removedCount = originalLength - this.events.length;
-    if (removedCount > 0) {
-      logger.info('[AuthMonitor] Cleared old authentication events', {
-        removedCount,
-        remainingCount: this.events.length,
-        cutoffDate: new Date(cutoff).toISOString(),
-      });
-    }
-  }
-
-  /**
-   * Generate authentication health report
-   */
-  static generateHealthReport(): {
-    status: 'healthy' | 'warning' | 'critical';
-    issues: string[];
-    metrics: AuthMetrics;
-  } {
-    const metrics = this.getMetrics();
-    const issues: string[] = [];
-    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
-    
-    // Check login success rate
-    if (metrics.loginSuccessRate < 80 && metrics.totalLoginAttempts > 10) {
-      issues.push(`Login success rate thấp: ${metrics.loginSuccessRate.toFixed(1)}%`);
-      status = 'warning';
-    }
-    
-    // Check token refresh success rate
-    if (metrics.refreshSuccessRate < 90 && metrics.totalRefreshAttempts > 10) {
-      issues.push(`Token refresh success rate thấp: ${metrics.refreshSuccessRate.toFixed(1)}%`);
-      if (metrics.refreshSuccessRate < 70) {
-        status = 'critical';
-      } else if (status === 'healthy') {
-        status = 'warning';
-      }
-    }
-    
-    // Check network errors
-    if (metrics.networkErrors > metrics.totalRefreshAttempts * 0.3) {
-      issues.push(`Nhiều network errors: ${metrics.networkErrors}`);
-      if (status !== 'critical') {
-        status = 'warning';
-      }
-    }
-    
-    // Check server errors
-    if (metrics.serverErrors > metrics.totalRefreshAttempts * 0.2) {
-      issues.push(`Nhiều server errors: ${metrics.serverErrors}`);
-      if (status !== 'critical') {
-        status = 'warning';
-      }
-    }
-    
-    // Check forced logouts
-    if (metrics.forcedLogouts > metrics.successfulLogins * 0.1) {
-      issues.push(`Nhiều forced logouts: ${metrics.forcedLogouts}`);
-      status = 'critical';
-    }
-    
-    return {
-      status,
-      issues,
-      metrics,
-    };
-  }
-
-  /**
-   * Log health report
-   */
-  static logHealthReport(): void {
-    const report = this.generateHealthReport();
-    
-    const logLevel = report.status === 'critical' ? 'error' : 
-                    report.status === 'warning' ? 'warn' : 'info';
-    
-    logger[logLevel]('[AuthMonitor] Authentication health report', {
-      status: report.status,
-      issues: report.issues,
-      loginSuccessRate: report.metrics.loginSuccessRate,
-      refreshSuccessRate: report.metrics.refreshSuccessRate,
-      networkErrors: report.metrics.networkErrors,
-      serverErrors: report.metrics.serverErrors,
-      forcedLogouts: report.metrics.forcedLogouts,
-    });
+  private getTokenValidationCount(): number {
+    return this.latencies.filter(m => m.operation === 'token_validation').length;
   }
 }
 
 /**
- * Utility function to start periodic health monitoring
+ * Export singleton instance
  */
-export function startAuthMonitoring(intervalMs: number = 5 * 60 * 1000): void {
-  // Log health report every 5 minutes
+export const authMonitor = new AuthMonitor();
+
+/**
+ * Export class for testing
+ */
+export { AuthMonitor };
+
+/**
+ * Export types
+ */
+export type { PerformanceMetrics, LatencyMetric, CacheMetric };
+
+/**
+ * Start authentication monitoring
+ * @param reportIntervalMs - Interval for health reports (default: 5 minutes)
+ */
+export function startAuthMonitoring(reportIntervalMs: number = 5 * 60 * 1000): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  // Send health report every interval
   setInterval(() => {
-    AuthMonitor.logHealthReport();
-  }, intervalMs);
-  
-  // Clear old events every hour
-  setInterval(() => {
-    AuthMonitor.clearOldEvents();
-  }, 60 * 60 * 1000);
-  
-  logger.info('[AuthMonitor] Authentication monitoring started', {
-    healthReportInterval: intervalMs,
-    cleanupInterval: 60 * 60 * 1000,
-  });
+    const report = authMonitor.getHealthReport();
+    if (!report.healthy) {
+      logger.warn('[AuthMonitor] Health check failed', {
+        issues: report.issues,
+        recommendations: report.recommendations
+      });
+    } else {
+      logger.debug('[AuthMonitor] Health check passed');
+    }
+  }, reportIntervalMs);
+
+  logger.info('[AuthMonitor] Started authentication monitoring');
 }
 
-export default AuthMonitor;
 

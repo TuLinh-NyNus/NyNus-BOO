@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { BackendHealthAlert } from '@/components/features/auth/BackendHealthIndicator';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 export default function LoginPage() {
   const _router = useRouter();

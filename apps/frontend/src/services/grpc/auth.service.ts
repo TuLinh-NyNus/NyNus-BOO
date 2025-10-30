@@ -26,7 +26,7 @@ import {
 import { UserRole, UserStatus } from '@/generated/common/common_pb';
 import { RpcError } from 'grpc-web';
 import { AuthHelpers } from '@/lib/utils/auth-helpers';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 // ✅ FIX: Import GRPC_WEB_HOST from config to avoid circular dependency
 import { GRPC_WEB_HOST } from './config';
 import { getAuthMetadata, makeInterceptedGrpcCall } from './client';

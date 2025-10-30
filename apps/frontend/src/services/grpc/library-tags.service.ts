@@ -97,7 +97,7 @@ export async function listTags(params: ListTagsParams = {}): Promise<{
   const response = await client.listTags(request, {});
   
   return {
-    tags: response.getTagsList().map(tag => tag.toObject()),
+    tags: response.getTagsList().map((tag: any) => tag.toObject()),
     total: response.getTotal(),
   };
 }
@@ -143,7 +143,7 @@ export async function getPopularTags(limit: number = 20): Promise<Tag.AsObject[]
 
   const response = await client.getPopularTags(request, {});
   
-  return response.getTagsList().map(tag => tag.toObject());
+  return response.getTagsList().map((tag: any) => tag.toObject());
 }
 
 /**

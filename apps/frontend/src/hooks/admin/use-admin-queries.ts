@@ -18,7 +18,7 @@
 
 import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { AdminService } from '@/services/grpc/admin.service';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 // ===== QUERY KEYS =====
 
@@ -325,4 +325,5 @@ const adminQueries = {
 };
 
 export default adminQueries;
+
 

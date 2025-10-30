@@ -1,4 +1,4 @@
-﻿package exam
+package exam
 
 import (
 	"exam-bank-system/apps/backend/internal/entity"
@@ -50,4 +50,3 @@ func NewService(repo RepositoryInterface, attemptRepo AttemptRepositoryInterface
 		authService: authService,
 	}
 }
-

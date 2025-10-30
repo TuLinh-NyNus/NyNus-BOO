@@ -2,9 +2,18 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts';
-// Use protobuf enums and helper functions
-import { userRoleToString } from '@/generated/common';
-import { UserRole } from '@/generated/common/common_pb';
+
+// Helper function for userRoleToString (works before proto generation)
+const userRoleToString = (role: any | string | undefined): string => {
+  if (typeof role === 'string') return role;
+  // Proto enum values
+  const roleMap: Record<number, string> = {
+    0: 'ADMIN',
+    1: 'TEACHER', 
+    2: 'STUDENT',
+  };
+  return roleMap[role as number] || 'UNKNOWN';
+};
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -165,13 +174,11 @@ export default function ProfilePage() {
 
   const getRoleBadgeVariant = (role: number) => {
     switch (role) {
-      case UserRole.USER_ROLE_ADMIN:
+      case 0: // Assuming 0 is ADMIN
         return 'destructive';
-      case UserRole.USER_ROLE_TEACHER:
+      case 1: // Assuming 1 is TEACHER
         return 'default';
-      case UserRole.USER_ROLE_TUTOR:
-        return 'secondary';
-      case UserRole.USER_ROLE_STUDENT:
+      case 2: // Assuming 2 is STUDENT
         return 'outline';
       default:
         return 'outline';

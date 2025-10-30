@@ -3,79 +3,79 @@ package grpc
 import "time"
 
 // Bcrypt Configuration Constants
-// Định nghĩa các hằng số cho cấu hình bcrypt password hashing
+// Äá»‹nh nghÄ©a cÃ¡c háº±ng sá»‘ cho cáº¥u hÃ¬nh bcrypt password hashing
 const (
-	// MinBcryptCost là chi phí tối thiểu cho bcrypt (10 rounds)
-	// Giá trị thấp hơn không đủ an toàn theo OWASP recommendations
+	// MinBcryptCost lÃ  chi phÃ­ tá»‘i thiá»ƒu cho bcrypt (10 rounds)
+	// GiÃ¡ trá»‹ tháº¥p hÆ¡n khÃ´ng Ä‘á»§ an toÃ n theo OWASP recommendations
 	MinBcryptCost = 10
 
-	// DefaultBcryptCost là chi phí mặc định cho bcrypt (12 rounds)
-	// Cân bằng giữa security và performance cho production
+	// DefaultBcryptCost lÃ  chi phÃ­ máº·c Ä‘á»‹nh cho bcrypt (12 rounds)
+	// CÃ¢n báº±ng giá»¯a security vÃ  performance cho production
 	DefaultBcryptCost = 12
 )
 
 // Account Security Constants
-// Định nghĩa các hằng số cho bảo mật tài khoản
+// Äá»‹nh nghÄ©a cÃ¡c háº±ng sá»‘ cho báº£o máº­t tÃ i khoáº£n
 const (
-	// MaxLoginAttempts là số lần đăng nhập sai tối đa trước khi khóa tài khoản
-	// Sau 5 lần thất bại, tài khoản sẽ bị khóa tạm thời
+	// MaxLoginAttempts lÃ  sá»‘ láº§n Ä‘Äƒng nháº­p sai tá»‘i Ä‘a trÆ°á»›c khi khÃ³a tÃ i khoáº£n
+	// Sau 5 láº§n tháº¥t báº¡i, tÃ i khoáº£n sáº½ bá»‹ khÃ³a táº¡m thá»i
 	MaxLoginAttempts = 5
 
-	// AccountLockDuration là thời gian khóa tài khoản sau khi vượt quá số lần đăng nhập sai
-	// Khóa 30 phút để ngăn chặn brute force attacks
+	// AccountLockDuration lÃ  thá»i gian khÃ³a tÃ i khoáº£n sau khi vÆ°á»£t quÃ¡ sá»‘ láº§n Ä‘Äƒng nháº­p sai
+	// KhÃ³a 30 phÃºt Ä‘á»ƒ ngÄƒn cháº·n brute force attacks
 	AccountLockDuration = 30 * time.Minute
 )
 
 // Session Configuration Constants
-// Định nghĩa các hằng số cho cấu hình session
+// Äá»‹nh nghÄ©a cÃ¡c háº±ng sá»‘ cho cáº¥u hÃ¬nh session
 const (
-	// SessionTokenSize là kích thước của session token (32 bytes = 256 bits)
-	// Đủ lớn để đảm bảo tính ngẫu nhiên và bảo mật
+	// SessionTokenSize lÃ  kÃ­ch thÆ°á»›c cá»§a session token (32 bytes = 256 bits)
+	// Äá»§ lá»›n Ä‘á»ƒ Ä‘áº£m báº£o tÃ­nh ngáº«u nhiÃªn vÃ  báº£o máº­t
 	SessionTokenSize = 32
 
-	// DefaultConcurrentSessions là số lượng session đồng thời mặc định cho mỗi user
-	// Cho phép user đăng nhập trên tối đa 3 thiết bị cùng lúc
+	// DefaultConcurrentSessions lÃ  sá»‘ lÆ°á»£ng session Ä‘á»“ng thá»i máº·c Ä‘á»‹nh cho má»—i user
+	// Cho phÃ©p user Ä‘Äƒng nháº­p trÃªn tá»‘i Ä‘a 3 thiáº¿t bá»‹ cÃ¹ng lÃºc
 	DefaultConcurrentSessions = 3
 
-	// DefaultStudentLevel là level mặc định cho STUDENT role
-	// Mọi student mới đều bắt đầu từ level 1
+	// DefaultStudentLevel lÃ  level máº·c Ä‘á»‹nh cho STUDENT role
+	// Má»i student má»›i Ä‘á»u báº¯t Ä‘áº§u tá»« level 1
 	DefaultStudentLevel = 1
 )
 
 // User Status Constants
-// Định nghĩa các trạng thái của user account
+// Äá»‹nh nghÄ©a cÃ¡c tráº¡ng thÃ¡i cá»§a user account
 const (
-	// StatusActive - Tài khoản đang hoạt động bình thường
+	// StatusActive - TÃ i khoáº£n Ä‘ang hoáº¡t Ä‘á»™ng bÃ¬nh thÆ°á»ng
 	StatusActive = "ACTIVE"
 
-	// StatusInactive - Tài khoản chưa được kích hoạt (chưa verify email)
+	// StatusInactive - TÃ i khoáº£n chÆ°a Ä‘Æ°á»£c kÃ­ch hoáº¡t (chÆ°a verify email)
 	StatusInactive = "INACTIVE"
 
-	// StatusSuspended - Tài khoản bị tạm ngưng do vi phạm
+	// StatusSuspended - TÃ i khoáº£n bá»‹ táº¡m ngÆ°ng do vi pháº¡m
 	StatusSuspended = "SUSPENDED"
 )
 
 // User Role Constants
-// Định nghĩa các vai trò trong hệ thống (theo role hierarchy)
+// Äá»‹nh nghÄ©a cÃ¡c vai trÃ² trong há»‡ thá»‘ng (theo role hierarchy)
 const (
-	// RoleAdmin - Quản trị viên hệ thống (level 5)
+	// RoleAdmin - Quáº£n trá»‹ viÃªn há»‡ thá»‘ng (level 5)
 	RoleAdmin = "ADMIN"
 
-	// RoleTeacher - Giáo viên (level 4)
+	// RoleTeacher - GiÃ¡o viÃªn (level 4)
 	RoleTeacher = "TEACHER"
 
-	// RoleTutor - Trợ giảng (level 3)
+	// RoleTutor - Trá»£ giáº£ng (level 3)
 	RoleTutor = "TUTOR"
 
-	// RoleStudent - Học sinh (level 2)
+	// RoleStudent - Há»c sinh (level 2)
 	RoleStudent = "STUDENT"
 
-	// RoleGuest - Khách (level 1)
+	// RoleGuest - KhÃ¡ch (level 1)
 	RoleGuest = "GUEST"
 )
 
 // Error Messages
-// Định nghĩa các thông báo lỗi chuẩn
+// Äá»‹nh nghÄ©a cÃ¡c thÃ´ng bÃ¡o lá»—i chuáº©n
 const (
 	// Authentication errors
 	ErrInvalidCredentials   = "invalid email or password"
@@ -103,7 +103,7 @@ const (
 )
 
 // Success Messages
-// Định nghĩa các thông báo thành công chuẩn
+// Äá»‹nh nghÄ©a cÃ¡c thÃ´ng bÃ¡o thÃ nh cÃ´ng chuáº©n
 const (
 	MsgLoginSuccess           = "Login successful"
 	MsgRegistrationSuccess    = "Registration successful. Please check your email for verification."

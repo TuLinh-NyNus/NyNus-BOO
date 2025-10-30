@@ -4,7 +4,7 @@
  */
 
 import { hasMemoryAPI, isNumber, PerformanceMemory } from './type-guards';
-import { logger } from './utils/logger';
+import { logger } from './logger';
 
 interface PerformanceMetrics {
   // Core Web Vitals

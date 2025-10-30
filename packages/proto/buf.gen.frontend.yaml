@@ -1,13 +1,13 @@
-version: v1
+version: v2
 plugins:
   # Generate JavaScript files with CommonJS + binary support
-  - plugin: buf.build/protocolbuffers/js
+  - remote: buf.build/protocolbuffers/js
     out: ../../apps/frontend/src/generated
     opt:
       - import_style=commonjs
       - binary
   # Generate gRPC-Web TypeScript client stubs
-  - plugin: buf.build/grpc/web
+  - remote: buf.build/grpc/web
     out: ../../apps/frontend/src/generated
     opt:
       - import_style=typescript

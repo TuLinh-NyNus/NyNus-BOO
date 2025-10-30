@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -442,4 +442,3 @@ func (s *MapCodeServiceServer) GetMapCodeConfig(ctx context.Context, req *pb.Get
 		Config: protoConfig,
 	}, nil
 }
-

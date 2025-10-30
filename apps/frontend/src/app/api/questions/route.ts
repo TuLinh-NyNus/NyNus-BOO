@@ -6,6 +6,7 @@
  */
 
 import { NextRequest } from 'next/server';
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { executePrismaOperation } from '@/lib/prisma/error-handler';
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.questionWhereInput = {};
+    const where: any = {}; // Use any for flexibility with Prisma types
 
     if (type) where.type = type as 'MC' | 'TF' | 'SA' | 'ES' | 'MA';
     if (difficulty) where.difficulty = difficulty as 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
     const question = await executePrismaOperation(() =>
       prisma.question.create({
         data: {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           content,
           raw_content: rawContent,
           type,

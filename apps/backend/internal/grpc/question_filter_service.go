@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -93,4 +93,3 @@ func (s *QuestionFilterServiceServer) GetQuestionsByQuestionCode(ctx context.Con
 
 	return response, nil
 }
-

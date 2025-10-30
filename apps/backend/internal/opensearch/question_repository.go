@@ -1,4 +1,4 @@
-﻿package opensearch
+package opensearch
 
 import (
 	"context"
@@ -334,8 +334,8 @@ func (r *QuestionRepository) questionToDocument(question *entity.Question) map[s
 				// Add other suggestion inputs based on content analysis
 			},
 			"contexts": map[string]interface{}{
-				"subject": []string{"toÃ¡n", "lÃ½", "hÃ³a", "sinh", "vÄƒn"},   // Extract from question code
-				"grade":   []string{"6", "7", "8", "9", "10", "11", "12"}, // Extract from question code
+				"subject": []string{"toÃ¡n", "lÃ½", "hÃ³a", "sinh", "vÄƒn"}, // Extract from question code
+				"grade":   []string{"6", "7", "8", "9", "10", "11", "12"},   // Extract from question code
 			},
 		}
 	}
@@ -556,4 +556,3 @@ func (r *QuestionRepository) extractMatches(highlights map[string][]string) []st
 
 	return matches
 }
-

@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -986,4 +986,3 @@ func (r *QuestionRepository) scanQuestionsWithFavorite(rows *sql.Rows) ([]*entit
 
 	return questions, nil
 }
-

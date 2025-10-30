@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -50,14 +50,14 @@ func (s *AnalyticsServiceServer) GetTeacherDashboard(ctx context.Context, req *v
 
 	// Convert to proto response
 	protoData := &v1.TeacherDashboardData{
-		TotalExams:       data.TotalExams,
-		TotalStudents:    data.TotalStudents,
-		AverageScore:     data.AverageScore,
-		PassRate:         data.PassRate,
-		ActiveStudents:   data.ActiveStudents,
-		CompletionRate:   data.CompletionRate,
-		Trends:           convertTrendsToProto(data.Trends),
-		TopExams:         convertExamPerformanceToProto(data.TopExams),
+		TotalExams:     data.TotalExams,
+		TotalStudents:  data.TotalStudents,
+		AverageScore:   data.AverageScore,
+		PassRate:       data.PassRate,
+		ActiveStudents: data.ActiveStudents,
+		CompletionRate: data.CompletionRate,
+		Trends:         convertTrendsToProto(data.Trends),
+		TopExams:       convertExamPerformanceToProto(data.TopExams),
 	}
 
 	return &v1.GetTeacherDashboardResponse{
@@ -231,5 +231,3 @@ func convertExamPerformanceToProto(exams []*analytics.ExamPerformance) []*v1.Exa
 	}
 	return protoExams
 }
-
-

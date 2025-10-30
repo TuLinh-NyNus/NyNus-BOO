@@ -1,4 +1,4 @@
-﻿package middleware
+package middleware
 
 import (
 	"context"
@@ -312,4 +312,3 @@ func AddRateLimitHeaders(ctx context.Context, remaining int, resetTime time.Time
 	md := createRateLimitMetadata("", remaining, resetTime)
 	grpc.SetHeader(ctx, md)
 }
-

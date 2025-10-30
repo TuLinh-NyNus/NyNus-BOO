@@ -92,10 +92,10 @@ func (info *MapCodeStorageInfo) CanCreateNewVersion() bool {
 // GetWarningMessage returns appropriate warning message
 func (info *MapCodeStorageInfo) GetWarningMessage() string {
 	if info.IsAtLimit {
-		return "Đã đạt giới hạn tối đa 20 versions. Vui lòng xóa versions cũ trước khi tạo mới."
+		return "ÄÃ£ Ä‘áº¡t giá»›i háº¡n tá»‘i Ä‘a 20 versions. Vui lÃ²ng xÃ³a versions cÅ© trÆ°á»›c khi táº¡o má»›i."
 	}
 	if info.IsNearLimit {
-		return "Sắp đạt giới hạn versions. Còn lại " + string(rune(info.AvailableSlots)) + " slots."
+		return "Sáº¯p Ä‘áº¡t giá»›i háº¡n versions. CÃ²n láº¡i " + string(rune(info.AvailableSlots)) + " slots."
 	}
 	return ""
 }

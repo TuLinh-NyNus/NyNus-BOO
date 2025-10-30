@@ -12,7 +12,7 @@ const (
 	QuestionTypeTF QuestionType = "TF" // True/False
 	QuestionTypeSA QuestionType = "SA" // Short Answer
 	QuestionTypeES QuestionType = "ES" // Essay
-	QuestionTypeMA QuestionType = "MA" // Matching - Ghép đôi
+	QuestionTypeMA QuestionType = "MA" // Matching - GhÃ©p Ä‘Ã´i
 )
 
 // QuestionStatus represents the status of a question
@@ -32,7 +32,7 @@ const (
 	QuestionDifficultyEasy   QuestionDifficulty = "EASY"
 	QuestionDifficultyMedium QuestionDifficulty = "MEDIUM"
 	QuestionDifficultyHard   QuestionDifficulty = "HARD"
-	QuestionDifficultyExpert QuestionDifficulty = "EXPERT" // Chuyên gia/Rất khó
+	QuestionDifficultyExpert QuestionDifficulty = "EXPERT" // ChuyÃªn gia/Ráº¥t khÃ³
 )
 
 // Question represents a question in the advanced question bank system
@@ -49,18 +49,18 @@ type Question struct {
 	Tag           pgtype.TextArray `json:"tag"`
 
 	// Metadata & Classification (optional, for filtering purposes only)
-	Grade   pgtype.Text `json:"grade"`   // Lớp (0,1,2) - Optional classification
-	Subject pgtype.Text `json:"subject"` // Môn học (P,L,H) - Optional classification
-	Chapter pgtype.Text `json:"chapter"` // Chương (1-9) - Optional classification
-	Level   pgtype.Text `json:"level"`   // Mức độ (N,H,V,C,T,M) - Optional classification
+	Grade   pgtype.Text `json:"grade"`   // Lá»›p (0,1,2) - Optional classification
+	Subject pgtype.Text `json:"subject"` // MÃ´n há»c (P,L,H) - Optional classification
+	Chapter pgtype.Text `json:"chapter"` // ChÆ°Æ¡ng (1-9) - Optional classification
+	Level   pgtype.Text `json:"level"`   // Má»©c Ä‘á»™ (N,H,V,C,T,M) - Optional classification
 
 	// Usage tracking
 	UsageCount     pgtype.Int4        `json:"usage_count"`
 	Creator        pgtype.Text        `json:"creator"`
 	Status         pgtype.Text        `json:"status"` // QuestionStatus enum
 	Feedback       pgtype.Int4        `json:"feedback"`
-	Difficulty     pgtype.Text        `json:"difficulty"` // QuestionDifficulty enum
-	IsFavorite     pgtype.Bool        `json:"is_favorite"`     // Favorite marking
+	Difficulty     pgtype.Text        `json:"difficulty"`  // QuestionDifficulty enum
+	IsFavorite     pgtype.Bool        `json:"is_favorite"` // Favorite marking
 	CreatedAt      pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 	QuestionCodeID pgtype.Text        `json:"question_code_id"` // Foreign key to QuestionCode

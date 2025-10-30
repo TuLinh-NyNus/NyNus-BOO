@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	
+
 	"exam-bank-system/apps/backend/internal/cache"
 	"exam-bank-system/apps/backend/internal/config"
 	"exam-bank-system/apps/backend/internal/grpc"
@@ -17,10 +17,8 @@ import (
 	"exam-bank-system/apps/backend/internal/opensearch"
 	"exam-bank-system/apps/backend/internal/redis"
 	"exam-bank-system/apps/backend/internal/repository"
-	"exam-bank-system/apps/backend/internal/server"
-	"exam-bank-system/apps/backend/internal/util"
-	"exam-bank-system/apps/backend/internal/websocket"
 	"exam-bank-system/apps/backend/internal/repository/interfaces"
+	"exam-bank-system/apps/backend/internal/server"
 	"exam-bank-system/apps/backend/internal/service/auth"
 	book_mgmt "exam-bank-system/apps/backend/internal/service/content/book"
 	contact_mgmt "exam-bank-system/apps/backend/internal/service/content/contact"
@@ -42,6 +40,8 @@ import (
 	"exam-bank-system/apps/backend/internal/service/user/oauth"
 	"exam-bank-system/apps/backend/internal/service/user/session"
 	"exam-bank-system/apps/backend/internal/services/email"
+	"exam-bank-system/apps/backend/internal/util"
+	"exam-bank-system/apps/backend/internal/websocket"
 	"github.com/sirupsen/logrus"
 )
 
@@ -54,7 +54,7 @@ type Container struct {
 	// Redis
 	RedisClient  *redis.Client
 	CacheService cache.CacheService
-	
+
 	// WebSocket & Real-time (Phase 3 - Task 3.3.1)
 	RedisPubSub      *redis.PubSubClient
 	WebSocketManager *websocket.ConnectionManager
@@ -162,7 +162,7 @@ type Container struct {
 func NewContainer(db *sql.DB, jwtSecret string, cfg *config.Config) *Container {
 	// Wrap *sql.DB with sqlx for advanced features (version control, bulk operations)
 	dbx := sqlx.NewDb(db, "postgres")
-	
+
 	container := &Container{
 		DB:        db,
 		DBX:       dbx,
@@ -177,7 +177,7 @@ func NewContainer(db *sql.DB, jwtSecret string, cfg *config.Config) *Container {
 	container.initServices()
 	container.initMiddleware()
 	container.initGRPCServices()
-	
+
 	// Initialize WebSocket components (Phase 3 - Task 3.3.2)
 	container.initWebSocketComponents(&cfg.Redis)
 
@@ -269,10 +269,10 @@ func (c *Container) initRepositories() {
 	c.ItemRatingRepo = repository.NewItemRatingRepository(c.DB)
 	c.UserBookmarkRepo = repository.NewUserBookmarkRepository(c.DB)
 	c.LibraryItemRepo = repository.NewLibraryItemRepository(c.DB)
-	
+
 	// Initialize QuestionVersionRepository for version control
 	c.QuestionVersionRepo = repository.NewQuestionVersionRepository(c.DBX)
-	
+
 	// Initialize MetricsRepository for metrics history
 	metricsLogger := logrus.New()
 	metricsLogger.SetFormatter(util.StandardLogrusFormatter())
@@ -296,7 +296,7 @@ func (c *Container) initServices() {
 		},
 	})
 
-	// Initialize Unified JWT Service vá»›i logger
+	// Initialize Unified JWT Service vÃ¡Â»â€ºi logger
 	var err error
 	c.UnifiedJWTService, err = auth.NewUnifiedJWTService(accessSecret, c.RefreshTokenRepo, jwtLogger)
 	if err != nil {
@@ -370,7 +370,7 @@ func (c *Container) initServices() {
 
 	// Initialize QuestionFilterService with database connection and OpenSearch client
 	c.QuestionFilterService = question.NewQuestionFilterService(c.DB, c.OpenSearchClient)
-	
+
 	// Initialize QuestionVersionService for version control
 	c.QuestionVersionService = question.NewVersionService(
 		c.QuestionVersionRepo,
@@ -460,7 +460,7 @@ func (c *Container) initServices() {
 	c.ExamSessionSecurity = security.NewExamSessionSecurity(c.DB, logger)
 	c.AntiCheatService = security.NewAntiCheatService(c.DB, c.ExamSessionSecurity, logger)
 	c.ExamRateLimitService = security.NewExamRateLimitService(c.DB, logger)
-	
+
 	// Metrics Scheduler - Records metrics every 5 minutes
 	metricsLogger := logrus.New()
 	metricsLogger.SetFormatter(util.StandardLogrusFormatter())
@@ -713,13 +713,13 @@ func (c *Container) initWebSocketComponents(cfg *config.RedisConfig) {
 		log.Println("[INFO] WebSocket/Pub/Sub disabled, skipping initialization")
 		return
 	}
-	
+
 	// Check if Redis client is available
 	if c.RedisClient == nil || !c.RedisClient.IsEnabled() {
 		log.Println("[WARN] Redis client not available, WebSocket/Pub/Sub disabled")
 		return
 	}
-	
+
 	// Create Redis Pub/Sub client
 	redisPubSub, err := redis.NewPubSubClient(c.RedisClient.GetClient())
 	if err != nil {
@@ -727,16 +727,16 @@ func (c *Container) initWebSocketComponents(cfg *config.RedisConfig) {
 		return
 	}
 	c.RedisPubSub = redisPubSub
-	
+
 	// Create WebSocket connection manager
 	c.WebSocketManager = websocket.NewConnectionManager()
-	
+
 	// Create JWT authenticator for WebSocket
 	jwtAuth := websocket.NewJWTAuthenticator(c.JWTSecret)
-	
+
 	// Create WebSocket handler
 	c.WebSocketHandler = websocket.NewHandler(c.WebSocketManager, jwtAuth)
-	
+
 	// Configure allowed origins
 	allowedOrigins := []string{
 		"http://localhost:3000",
@@ -744,11 +744,11 @@ func (c *Container) initWebSocketComponents(cfg *config.RedisConfig) {
 		getEnvOrDefault("FRONTEND_URL", "http://localhost:3000"),
 	}
 	c.WebSocketHandler.SetAllowedOrigins(allowedOrigins)
-	
+
 	// Create Redis-WebSocket bridge
 	channelHelper := redis.NewChannelHelper(cfg.PubSubChannelPrefix)
 	c.RedisBridge = websocket.NewRedisBridge(c.RedisPubSub, c.WebSocketManager, channelHelper)
-	
+
 	// Create WebSocket server
 	wsConfig := &server.WebSocketServerConfig{
 		Port:            getEnvOrDefault("WEBSOCKET_PORT", "8081"),
@@ -763,20 +763,20 @@ func (c *Container) initWebSocketComponents(cfg *config.RedisConfig) {
 		c.RedisPubSub,
 		wsConfig,
 	)
-	
+
 	// Wire up Redis publisher to NotificationService
 	if c.NotificationSvc != nil {
 		c.NotificationSvc.SetRedisPublisher(c.RedisPubSub)
 		log.Println("[OK] Redis publisher connected to NotificationService")
 	}
-	
+
 	// Start bridge (connect Redis Pub/Sub to WebSocket)
 	if err := c.RedisBridge.Start(cfg.WorkerPoolSize); err != nil {
 		log.Printf("[WARN] Failed to start Redis-WebSocket bridge: %v", err)
 	} else {
 		log.Println("[OK] Redis-WebSocket bridge started successfully")
 	}
-	
+
 	log.Println("[OK] WebSocket components initialized successfully")
 }
 
@@ -787,7 +787,7 @@ func (c *Container) StartWebSocketServer() {
 		log.Println("[INFO] WebSocket server not initialized, skipping")
 		return
 	}
-	
+
 	go func() {
 		log.Println("[INFO] Starting WebSocket server")
 		if err := c.WebSocketServer.Start(); err != nil {
@@ -802,13 +802,13 @@ func (c *Container) StartMetricsScheduler() {
 		log.Println("[WARN] [MetricsScheduler] Metrics scheduler not initialized, skipping")
 		return
 	}
-	
+
 	config := metrics.DefaultConfig()
 	if err := c.MetricsScheduler.Start(config); err != nil {
 		log.Printf("[ERROR] [MetricsScheduler] Failed to start metrics scheduler: %v", err)
 		return
 	}
-	
+
 	log.Printf("[OK] [MetricsScheduler] Metrics scheduler started successfully (recording_interval=%v, cleanup_interval=%v, retention_days=%v)",
 		config.RecordingInterval, config.CleanupInterval, config.RetentionDays)
 }
@@ -817,7 +817,7 @@ func (c *Container) StartMetricsScheduler() {
 // Implements Phase 3 - Task 3.3.3: Graceful shutdown in reverse order
 func (c *Container) Cleanup() {
 	log.Println("[INFO] Starting cleanup...")
-	
+
 	// Stop MetricsScheduler first
 	if c.MetricsScheduler != nil {
 		log.Println("[INFO] Stopping metrics scheduler...")
@@ -825,28 +825,28 @@ func (c *Container) Cleanup() {
 			log.Printf("[ERROR] Error stopping metrics scheduler: %v", err)
 		}
 	}
-	
+
 	// Stop WebSocket server
 	if c.WebSocketServer != nil {
 		if err := c.WebSocketServer.Shutdown(); err != nil {
 			log.Printf("[ERROR] Failed to shutdown WebSocket server: %v", err)
 		}
 	}
-	
+
 	// Stop Redis bridge
 	if c.RedisBridge != nil {
 		if err := c.RedisBridge.Stop(); err != nil {
 			log.Printf("[ERROR] Failed to stop Redis bridge: %v", err)
 		}
 	}
-	
+
 	// Stop Redis Pub/Sub
 	if c.RedisPubSub != nil {
 		if err := c.RedisPubSub.Stop(); err != nil {
 			log.Printf("[ERROR] Failed to stop Redis Pub/Sub: %v", err)
 		}
 	}
-	
+
 	// Stop rate limiter cleanup
 	if c.RateLimitInterceptor != nil {
 		c.RateLimitInterceptor.Stop()
@@ -865,7 +865,7 @@ func (c *Container) Cleanup() {
 	if c.DB != nil {
 		c.DB.Close()
 	}
-	
+
 	log.Println("[OK] Cleanup complete")
 }
 

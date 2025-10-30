@@ -14,13 +14,13 @@ func TestCalculateMCScore(t *testing.T) {
 	service := NewScoringService()
 
 	tests := []struct {
-		name           string
-		userAnswer     map[string]interface{}
-		correctAnswer  map[string]interface{}
-		maxPoints      float64
-		expectedScore  float64
+		name            string
+		userAnswer      map[string]interface{}
+		correctAnswer   map[string]interface{}
+		maxPoints       float64
+		expectedScore   float64
 		expectedCorrect bool
-		expectError    bool
+		expectError     bool
 	}{
 		{
 			name: "Correct answer",
@@ -88,115 +88,115 @@ func TestCalculateTFScore(t *testing.T) {
 	service := NewScoringService()
 
 	tests := []struct {
-		name              string
-		userSelectedIDs   []string
-		correctAnswerIDs  []string
-		allAnswerIDs      []string
-		maxPoints         float64
-		expectedScore     float64
-		expectedCorrect   bool
+		name                 string
+		userSelectedIDs      []string
+		correctAnswerIDs     []string
+		allAnswerIDs         []string
+		maxPoints            float64
+		expectedScore        float64
+		expectedCorrect      bool
 		expectedCorrectCount int
-		expectError       bool
-		errorContains     string
+		expectError          bool
+		errorContains        string
 	}{
 		{
-			name:            "All 4 correct - 100%",
-			userSelectedIDs: []string{"1", "2"},
-			correctAnswerIDs: []string{"1", "2"},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   10.0,
-			expectedCorrect: true,
+			name:                 "All 4 correct - 100%",
+			userSelectedIDs:      []string{"1", "2"},
+			correctAnswerIDs:     []string{"1", "2"},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        10.0,
+			expectedCorrect:      true,
 			expectedCorrectCount: 4,
-			expectError:     false,
+			expectError:          false,
 		},
 		{
-			name:            "3 correct - 50%",
-			userSelectedIDs: []string{"1", "2", "3"},
-			correctAnswerIDs: []string{"1", "2"},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   5.0,
-			expectedCorrect: false,
+			name:                 "3 correct - 50%",
+			userSelectedIDs:      []string{"1", "2", "3"},
+			correctAnswerIDs:     []string{"1", "2"},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        5.0,
+			expectedCorrect:      false,
 			expectedCorrectCount: 3,
-			expectError:     false,
+			expectError:          false,
 		},
 		{
-			name:            "2 correct - 25%",
-			userSelectedIDs: []string{"1", "3"},
-			correctAnswerIDs: []string{"1", "2"},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   2.5,
-			expectedCorrect: false,
+			name:                 "2 correct - 25%",
+			userSelectedIDs:      []string{"1", "3"},
+			correctAnswerIDs:     []string{"1", "2"},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        2.5,
+			expectedCorrect:      false,
 			expectedCorrectCount: 2,
-			expectError:     false,
+			expectError:          false,
 		},
 		{
-			name:            "1 correct - 10%",
-			userSelectedIDs: []string{"2", "3", "4"},
-			correctAnswerIDs: []string{"1", "2"},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   1.0,
-			expectedCorrect: false,
+			name:                 "1 correct - 10%",
+			userSelectedIDs:      []string{"2", "3", "4"},
+			correctAnswerIDs:     []string{"1", "2"},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        1.0,
+			expectedCorrect:      false,
 			expectedCorrectCount: 1,
-			expectError:     false,
+			expectError:          false,
 		},
 		{
-			name:            "0 correct - 0%",
-			userSelectedIDs: []string{"3", "4"},
-			correctAnswerIDs: []string{"1", "2"},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   0.0,
-			expectedCorrect: false,
+			name:                 "0 correct - 0%",
+			userSelectedIDs:      []string{"3", "4"},
+			correctAnswerIDs:     []string{"1", "2"},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        0.0,
+			expectedCorrect:      false,
 			expectedCorrectCount: 0,
-			expectError:     false,
+			expectError:          false,
 		},
 		{
-			name:            "Select none when none correct - 100%",
-			userSelectedIDs: []string{},
-			correctAnswerIDs: []string{},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   10.0,
-			expectedCorrect: true,
+			name:                 "Select none when none correct - 100%",
+			userSelectedIDs:      []string{},
+			correctAnswerIDs:     []string{},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        10.0,
+			expectedCorrect:      true,
 			expectedCorrectCount: 4,
-			expectError:     false,
+			expectError:          false,
 		},
 		{
-			name:            "Select all when all correct - 100%",
-			userSelectedIDs: []string{"1", "2", "3", "4"},
-			correctAnswerIDs: []string{"1", "2", "3", "4"},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   10.0,
-			expectedCorrect: true,
+			name:                 "Select all when all correct - 100%",
+			userSelectedIDs:      []string{"1", "2", "3", "4"},
+			correctAnswerIDs:     []string{"1", "2", "3", "4"},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        10.0,
+			expectedCorrect:      true,
 			expectedCorrectCount: 4,
-			expectError:     false,
+			expectError:          false,
 		},
 		{
-			name:            "Error: Not 4 statements",
-			userSelectedIDs: []string{"1"},
+			name:             "Error: Not 4 statements",
+			userSelectedIDs:  []string{"1"},
 			correctAnswerIDs: []string{"1"},
-			allAnswerIDs:    []string{"1", "2", "3"},
-			maxPoints:       10.0,
-			expectedScore:   0.0,
-			expectedCorrect: false,
-			expectError:     true,
-			errorContains:   "must have exactly 4 statements",
+			allAnswerIDs:     []string{"1", "2", "3"},
+			maxPoints:        10.0,
+			expectedScore:    0.0,
+			expectedCorrect:  false,
+			expectError:      true,
+			errorContains:    "must have exactly 4 statements",
 		},
 		{
-			name:            "Edge case: User selects duplicate IDs",
-			userSelectedIDs: []string{"1", "1", "2"},
-			correctAnswerIDs: []string{"1", "2"},
-			allAnswerIDs:    []string{"1", "2", "3", "4"},
-			maxPoints:       10.0,
-			expectedScore:   10.0,
-			expectedCorrect: true,
+			name:                 "Edge case: User selects duplicate IDs",
+			userSelectedIDs:      []string{"1", "1", "2"},
+			correctAnswerIDs:     []string{"1", "2"},
+			allAnswerIDs:         []string{"1", "2", "3", "4"},
+			maxPoints:            10.0,
+			expectedScore:        10.0,
+			expectedCorrect:      true,
 			expectedCorrectCount: 4,
-			expectError:     false,
+			expectError:          false,
 		},
 	}
 
@@ -268,21 +268,21 @@ func TestCalculateTFScore_DetailedScenarios(t *testing.T) {
 			description: "User selects one extra wrong answer",
 			selected:    []string{"A", "B", "C"},
 			correct:     []string{"A", "B"},
-			expected:    0.5, // 50% (3 correct: A✓, B✓, D✓(not selected))
+			expected:    0.5, // 50% (3 correct: Aâœ“, Bâœ“, Dâœ“(not selected))
 		},
 		{
 			name:        "Scenario 3: One missing selection",
 			description: "User misses one correct answer",
 			selected:    []string{"A"},
 			correct:     []string{"A", "B"},
-			expected:    0.5, // 50% (3 correct: A✓, C✓(not selected), D✓(not selected))
+			expected:    0.5, // 50% (3 correct: Aâœ“, Câœ“(not selected), Dâœ“(not selected))
 		},
 		{
 			name:        "Scenario 4: Half right, half wrong",
 			description: "User gets 2 correct, 2 wrong",
 			selected:    []string{"A", "C"},
 			correct:     []string{"A", "B"},
-			expected:    0.25, // 25% (2 correct: A✓, D✓(not selected))
+			expected:    0.25, // 25% (2 correct: Aâœ“, Dâœ“(not selected))
 		},
 		{
 			name:        "Scenario 5: Complete opposite",

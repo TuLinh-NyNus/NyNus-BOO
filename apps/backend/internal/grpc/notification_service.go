@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -353,34 +353,33 @@ func (s *NotificationServiceServer) CreateNotification(ctx context.Context, req 
 
 // toProtoNotification converts repository notification to proto notification
 func (s *NotificationServiceServer) toProtoNotification(n *repository.Notification) *v1.Notification {
-proto := &v1.Notification{
-	Id:        n.ID,
-	UserId:    n.UserID,
-	Type:      n.Type,
-	Title:     n.Title,
-	Message:   n.Message,
-	IsRead:    n.IsRead,
-	CreatedAt: timestamppb.New(n.CreatedAt),
-}
-
-// Convert JSON data to map
-if len(n.Data) > 0 {
-	var data map[string]string
-	if err := json.Unmarshal(n.Data, &data); err == nil {
-		proto.Data = data
+	proto := &v1.Notification{
+		Id:        n.ID,
+		UserId:    n.UserID,
+		Type:      n.Type,
+		Title:     n.Title,
+		Message:   n.Message,
+		IsRead:    n.IsRead,
+		CreatedAt: timestamppb.New(n.CreatedAt),
 	}
-}
 
-// Add read_at if available
-if n.ReadAt != nil {
-	proto.ReadAt = timestamppb.New(*n.ReadAt)
-}
+	// Convert JSON data to map
+	if len(n.Data) > 0 {
+		var data map[string]string
+		if err := json.Unmarshal(n.Data, &data); err == nil {
+			proto.Data = data
+		}
+	}
 
-// Add expires_at if available
-if n.ExpiresAt != nil {
-	proto.ExpiresAt = timestamppb.New(*n.ExpiresAt)
-}
+	// Add read_at if available
+	if n.ReadAt != nil {
+		proto.ReadAt = timestamppb.New(*n.ReadAt)
+	}
 
-return proto
-}
+	// Add expires_at if available
+	if n.ExpiresAt != nil {
+		proto.ExpiresAt = timestamppb.New(*n.ExpiresAt)
+	}
 
+	return proto
+}

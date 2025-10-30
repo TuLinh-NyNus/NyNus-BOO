@@ -40,4 +40,3 @@ func StandardLogrusFormatter() *logrus.TextFormatter {
 
 // StandardLogFormat is the time format used across the application
 const StandardLogFormat = "2006/01/02 15:04:05"
-

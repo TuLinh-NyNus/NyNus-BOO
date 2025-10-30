@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -551,8 +551,8 @@ func (r *RefreshTokenRepository) RevokeAllUserTokens(ctx context.Context, userID
 
 	rowsAffected, _ := result.RowsAffected()
 	r.logger.WithFields(logrus.Fields{
-		"operation":     "RevokeAllUserTokens",
-		"user_id":       userID,
+		"operation":      "RevokeAllUserTokens",
+		"user_id":        userID,
 		"tokens_revoked": rowsAffected,
 	}).Warn("User tokens revoked successfully")
 
@@ -787,4 +787,3 @@ func nullString(s string) sql.NullString {
 	}
 	return sql.NullString{String: s, Valid: true}
 }
-

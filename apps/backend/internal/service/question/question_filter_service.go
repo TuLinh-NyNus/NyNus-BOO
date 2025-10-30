@@ -1,4 +1,4 @@
-﻿package question
+package question
 
 import (
 	"context"
@@ -585,16 +585,16 @@ func (qfm *QuestionFilterService) convertQuestionToProto(question *entity.Questi
 	if question.Subcount.Status == 1 { // pgtype.Present
 		protoQuestion.Subcount = util.PgTextToString(question.Subcount)
 	}
-	
+
 	// ALWAYS set QuestionCodeId since it's NOT NULL in database
 	questionCodeId := util.PgTextToString(question.QuestionCodeID)
 	protoQuestion.QuestionCodeId = questionCodeId
-	
+
 	// DEBUG: Log if question code ID is empty
 	if questionCodeId == "" {
 		qfm.logger.WithFields(logrus.Fields{
 			"question_id": util.PgTextToString(question.ID),
-			"status": question.QuestionCodeID.Status,
+			"status":      question.QuestionCodeID.Status,
 		}).Warn("Question has empty question_code_id")
 	}
 
@@ -620,4 +620,3 @@ func (qfm *QuestionFilterService) GetQuestionsByQuestionCode(ctx context.Context
 		TotalPages: 0,
 	}, nil
 }
-

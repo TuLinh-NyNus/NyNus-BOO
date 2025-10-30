@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -497,4 +497,3 @@ func (r *BulkImportErrorRepository) CleanupOldImportData(ctx context.Context, ol
 
 	return nil
 }
-

@@ -1141,16 +1141,16 @@ func (w *userRepositoryWrapper) GetAll(ctx context.Context) ([]*User, error) {
 }
 
 // GetUsersWithFilters retrieves users with database-level filtering and pagination
-// ✅ FIX: Giải quyết N+1 query problem bằng cách filter trong database thay vì memory
+// âœ… FIX: Giáº£i quyáº¿t N+1 query problem báº±ng cÃ¡ch filter trong database thay vÃ¬ memory
 //
 // Performance improvement:
-// - Trước: Load ALL users vào memory → filter trong Go → 2-5 giây với 10k users
-// - Sau: Filter trong database với WHERE clause → 100-300ms
+// - TrÆ°á»›c: Load ALL users vÃ o memory â†’ filter trong Go â†’ 2-5 giÃ¢y vá»›i 10k users
+// - Sau: Filter trong database vá»›i WHERE clause â†’ 100-300ms
 //
 // Technical details:
-// - Sử dụng dynamic SQL query building với parameterized queries
-// - Tận dụng database indexes (idx_users_role_status, idx_users_email_lower, etc.)
-// - Pagination được thực hiện ở database level với LIMIT/OFFSET
+// - Sá»­ dá»¥ng dynamic SQL query building vá»›i parameterized queries
+// - Táº­n dá»¥ng database indexes (idx_users_role_status, idx_users_email_lower, etc.)
+// - Pagination Ä‘Æ°á»£c thá»±c hiá»‡n á»Ÿ database level vá»›i LIMIT/OFFSET
 func (w *userRepositoryWrapper) GetUsersWithFilters(
 	ctx context.Context,
 	filters UserFilters,
@@ -1165,7 +1165,7 @@ func (w *userRepositoryWrapper) GetUsersWithFilters(
 		"limit":     limit,
 	}).Debug("Fetching users with filters")
 
-	// Build WHERE clause dynamically với parameterized queries
+	// Build WHERE clause dynamically vá»›i parameterized queries
 	whereClauses := []string{"1=1"} // Base condition
 	args := []interface{}{}
 	argIndex := 1
@@ -1185,7 +1185,7 @@ func (w *userRepositoryWrapper) GetUsersWithFilters(
 	}
 
 	// Filter by search (email, first_name, last_name, username)
-	// Sử dụng LOWER() để case-insensitive search
+	// Sá»­ dá»¥ng LOWER() Ä‘á»ƒ case-insensitive search
 	// Indexes: idx_users_email_lower, idx_users_first_name_lower, idx_users_last_name_lower
 	if filters.Search != "" {
 		searchPattern := "%" + strings.ToLower(filters.Search) + "%"
@@ -1199,7 +1199,7 @@ func (w *userRepositoryWrapper) GetUsersWithFilters(
 
 	whereClause := strings.Join(whereClauses, " AND ")
 
-	// Count query - Tính tổng số records thỏa mãn filter
+	// Count query - TÃ­nh tá»•ng sá»‘ records thá»a mÃ£n filter
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM users WHERE %s", whereClause)
 	var total int
 	err := w.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
@@ -1211,7 +1211,7 @@ func (w *userRepositoryWrapper) GetUsersWithFilters(
 	}
 
 	// Data query with pagination
-	// ORDER BY created_at DESC để hiển thị users mới nhất trước
+	// ORDER BY created_at DESC Ä‘á»ƒ hiá»ƒn thá»‹ users má»›i nháº¥t trÆ°á»›c
 	dataQuery := fmt.Sprintf(`
 		SELECT
 			id, email, first_name, last_name, password_hash, role, level,
@@ -1235,7 +1235,7 @@ func (w *userRepositoryWrapper) GetUsersWithFilters(
 	}
 	defer rows.Close()
 
-	// Scan results - Sử dụng lại logic scan từ GetAll()
+	// Scan results - Sá»­ dá»¥ng láº¡i logic scan tá»« GetAll()
 	var users []*User
 	for rows.Next() {
 		var user User

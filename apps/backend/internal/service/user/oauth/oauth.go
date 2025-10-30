@@ -1,4 +1,4 @@
-﻿package oauth
+package oauth
 
 import (
 	"context"
@@ -30,9 +30,9 @@ type OAuthService struct {
 	oauthAccountRepo repository.OAuthAccountRepository
 	sessionRepo      repository.SessionRepository
 	googleClient     *GoogleClient
-	jwtService       auth.IJWTService   // REFACTORED: Use IJWTService interface
-	sessionService   SessionService     // Session management vá»›i 24h sliding window
-	logger           *logrus.Logger     // Structured logging
+	jwtService       auth.IJWTService // REFACTORED: Use IJWTService interface
+	sessionService   SessionService   // Session management vá»›i 24h sliding window
+	logger           *logrus.Logger   // Structured logging
 }
 
 // SessionService interface for session management
@@ -250,8 +250,8 @@ func (s *OAuthService) GoogleLogin(ctx context.Context, idToken string, ipAddres
 		deviceFingerprint := fmt.Sprintf("google-oauth-%s", ipAddress)
 
 		s.logger.WithFields(logrus.Fields{
-			"operation":         "GoogleLogin",
-			"user_id":           user.ID,
+			"operation":          "GoogleLogin",
+			"user_id":            user.ID,
 			"device_fingerprint": deviceFingerprint,
 		}).Debug("Creating session with SessionService")
 
@@ -588,4 +588,3 @@ func (s *OAuthService) RefreshToken(ctx context.Context, refreshToken string) (*
 		RefreshToken: newRefreshToken,
 	}, nil
 }
-

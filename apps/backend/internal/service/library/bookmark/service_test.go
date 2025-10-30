@@ -59,14 +59,14 @@ func TestNewService(t *testing.T) {
 
 func TestService_Set(t *testing.T) {
 	tests := []struct {
-		name         string
-		itemID       string
-		userID       string
-		bookmarked   bool
-		mockAddErr   error
+		name          string
+		itemID        string
+		userID        string
+		bookmarked    bool
+		mockAddErr    error
 		mockRemoveErr error
-		expectErr    bool
-		expectState  bool
+		expectErr     bool
+		expectState   bool
 	}{
 		{
 			name:        "set bookmark true - success",
@@ -168,13 +168,13 @@ func TestService_Set(t *testing.T) {
 
 func TestService_IsBookmarked(t *testing.T) {
 	tests := []struct {
-		name          string
-		itemID        string
-		userID        string
-		mockResult    bool
-		mockErr       error
-		expectErr     bool
-		expectResult  bool
+		name         string
+		itemID       string
+		userID       string
+		mockResult   bool
+		mockErr      error
+		expectErr    bool
+		expectResult bool
 	}{
 		{
 			name:         "is bookmarked - true",
@@ -195,16 +195,16 @@ func TestService_IsBookmarked(t *testing.T) {
 			expectResult: false,
 		},
 		{
-			name:       "empty item ID",
-			itemID:     "",
-			userID:     "user-xyz",
-			expectErr:  true,
+			name:      "empty item ID",
+			itemID:    "",
+			userID:    "user-xyz",
+			expectErr: true,
 		},
 		{
-			name:       "empty user ID",
-			itemID:     "item-abc",
-			userID:     "",
-			expectErr:  true,
+			name:      "empty user ID",
+			itemID:    "item-abc",
+			userID:    "",
+			expectErr: true,
 		},
 		{
 			name:       "repository error",
@@ -317,4 +317,3 @@ func TestService_Count(t *testing.T) {
 		})
 	}
 }
-

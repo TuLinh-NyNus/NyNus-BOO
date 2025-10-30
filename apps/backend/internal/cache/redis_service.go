@@ -1,4 +1,4 @@
-﻿package cache
+package cache
 
 import (
 	"context"
@@ -211,4 +211,3 @@ func (r *RedisService) Close() error {
 	}
 	return nil
 }
-

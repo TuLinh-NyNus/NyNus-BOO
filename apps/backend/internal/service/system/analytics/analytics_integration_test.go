@@ -1,4 +1,4 @@
-﻿package analytics
+package analytics
 
 import (
 	"context"
@@ -307,4 +307,3 @@ func containsSubstring(s, substr string) bool {
 	}
 	return false
 }
-

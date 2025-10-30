@@ -28,13 +28,13 @@ func TestValidateFilename(t *testing.T) {
 		{"path traversal", "../../../etc/passwd", true},
 		{"null byte", "file\x00.pdf", true},
 		// Slash and backslash are handled by filepath.Base (path separators)
-		{"dangerous chars slash", "file/test.pdf", false}, // Base takes "test.pdf"
+		{"dangerous chars slash", "file/test.pdf", false},      // Base takes "test.pdf"
 		{"dangerous chars backslash", "file\\test.pdf", false}, // Base takes "test.pdf"
 		{"dangerous chars pipe", "file|test.pdf", true},
 		{"dangerous chars question", "file?.pdf", true},
 		{"dangerous chars asterisk", "file*.pdf", true},
 		{"too long filename", strings.Repeat("a", 256) + ".pdf", true},
-		{"unicode filename", "tài-liệu.pdf", false},
+		{"unicode filename", "tÃ i-liá»‡u.pdf", false},
 	}
 
 	for _, tt := range tests {
@@ -308,4 +308,3 @@ func TestFormatFileSize(t *testing.T) {
 		})
 	}
 }
-

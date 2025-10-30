@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/repository"
+	"github.com/sirupsen/logrus"
 )
 
 // AutoTagGenerator generates tags automatically based on item metadata
@@ -29,7 +29,7 @@ func (g *AutoTagGenerator) GenerateForExam(ctx context.Context, exam *entity.Lib
 	tags := make(map[string]bool) // Use map to avoid duplicates
 
 	// Type tag
-	tags["Đề thi"] = true
+	tags["Äá» thi"] = true
 
 	// Upload status tags
 	if exam.UploadStatus != "" {
@@ -82,13 +82,13 @@ func (g *AutoTagGenerator) createTagIDs(ctx context.Context, tags map[string]boo
 func (g *AutoTagGenerator) generateUploadStatusTag(status string) string {
 	switch status {
 	case "pending":
-		return "Chờ duyệt"
+		return "Chá» duyá»‡t"
 	case "approved":
-		return "Đã duyệt"
+		return "ÄÃ£ duyá»‡t"
 	case "rejected":
-		return "Từ chối"
+		return "Tá»« chá»‘i"
 	case "completed":
-		return "Đã hoàn thành"
+		return "ÄÃ£ hoÃ n thÃ nh"
 	default:
 		return ""
 	}
@@ -103,18 +103,18 @@ func (g *AutoTagGenerator) addExamTags(tags map[string]bool, exam *entity.Librar
 
 	// Grade tag
 	if exam.Grade != "" {
-		tags[fmt.Sprintf("Lớp %s", exam.Grade)] = true
+		tags[fmt.Sprintf("Lá»›p %s", exam.Grade)] = true
 	}
 
 	// Difficulty tag
 	if exam.Difficulty.Valid && exam.Difficulty.String != "" {
 		switch strings.ToLower(exam.Difficulty.String) {
 		case "easy":
-			tags["Dễ"] = true
+			tags["Dá»…"] = true
 		case "medium":
-			tags["Trung bình"] = true
+			tags["Trung bÃ¬nh"] = true
 		case "hard":
-			tags["Khó"] = true
+			tags["KhÃ³"] = true
 		}
 	}
 
@@ -122,13 +122,13 @@ func (g *AutoTagGenerator) addExamTags(tags map[string]bool, exam *entity.Librar
 	if exam.ExamType != "" {
 		switch strings.ToLower(exam.ExamType) {
 		case "midterm":
-			tags["Giữa kỳ"] = true
+			tags["Giá»¯a ká»³"] = true
 		case "final":
-			tags["Cuối kỳ"] = true
+			tags["Cuá»‘i ká»³"] = true
 		case "practice":
-			tags["Ôn tập"] = true
+			tags["Ã”n táº­p"] = true
 		case "mock":
-			tags["Thử nghiệm"] = true
+			tags["Thá»­ nghiá»‡m"] = true
 		}
 	}
 
@@ -139,18 +139,18 @@ func (g *AutoTagGenerator) addExamTags(tags map[string]bool, exam *entity.Librar
 
 	// Academic year tag
 	if exam.AcademicYear != "" {
-		tags[fmt.Sprintf("Năm %s", exam.AcademicYear)] = true
+		tags[fmt.Sprintf("NÄƒm %s", exam.AcademicYear)] = true
 	}
 
 	// Duration-based tags
 	if exam.ExamDuration.Valid && exam.ExamDuration.Int32 > 0 {
 		duration := exam.ExamDuration.Int32
 		if duration <= 45 {
-			tags["Ngắn (≤45 phút)"] = true
+			tags["Ngáº¯n (â‰¤45 phÃºt)"] = true
 		} else if duration <= 90 {
-			tags["Trung bình (45-90 phút)"] = true
+			tags["Trung bÃ¬nh (45-90 phÃºt)"] = true
 		} else {
-			tags["Dài (>90 phút)"] = true
+			tags["DÃ i (>90 phÃºt)"] = true
 		}
 	}
 
@@ -158,11 +158,11 @@ func (g *AutoTagGenerator) addExamTags(tags map[string]bool, exam *entity.Librar
 	if exam.QuestionCount.Valid && exam.QuestionCount.Int32 > 0 {
 		count := exam.QuestionCount.Int32
 		if count <= 20 {
-			tags["Ít câu (≤20)"] = true
+			tags["Ãt cÃ¢u (â‰¤20)"] = true
 		} else if count <= 50 {
-			tags["Trung bình (20-50 câu)"] = true
+			tags["Trung bÃ¬nh (20-50 cÃ¢u)"] = true
 		} else {
-			tags["Nhiều câu (>50)"] = true
+			tags["Nhiá»u cÃ¢u (>50)"] = true
 		}
 	}
 }
@@ -179,18 +179,18 @@ func (g *AutoTagGenerator) addVideoTags(tags map[string]bool, video *entity.Libr
 
 	// Grade tag
 	if video.Grade != "" {
-		tags[fmt.Sprintf("Lớp %s", video.Grade)] = true
+		tags[fmt.Sprintf("Lá»›p %s", video.Grade)] = true
 	}
 
 	// Duration-based tags
 	if video.Duration.Valid && video.Duration.Int32 > 0 {
 		duration := video.Duration.Int32
 		if duration <= 600 { // 10 minutes
-			tags["Video ngắn (≤10 phút)"] = true
+			tags["Video ngáº¯n (â‰¤10 phÃºt)"] = true
 		} else if duration <= 1800 { // 30 minutes
-			tags["Video trung bình (10-30 phút)"] = true
+			tags["Video trung bÃ¬nh (10-30 phÃºt)"] = true
 		} else {
-			tags["Video dài (>30 phút)"] = true
+			tags["Video dÃ i (>30 phÃºt)"] = true
 		}
 	}
 
@@ -219,7 +219,7 @@ func (g *AutoTagGenerator) addVideoTags(tags map[string]bool, video *entity.Libr
 
 	// Instructor tag
 	if video.InstructorName.Valid && video.InstructorName.String != "" {
-		tags[fmt.Sprintf("Giảng viên: %s", video.InstructorName.String)] = true
+		tags[fmt.Sprintf("Giáº£ng viÃªn: %s", video.InstructorName.String)] = true
 	}
 }
 
@@ -292,4 +292,3 @@ func abs(n int) int {
 	}
 	return n
 }
-

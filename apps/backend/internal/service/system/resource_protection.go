@@ -1,4 +1,4 @@
-﻿package service
+package service
 
 import (
 	"context"
@@ -419,4 +419,3 @@ func (s *ResourceProtectionService) ResetUserRiskScore(ctx context.Context, user
 
 	return nil
 }
-

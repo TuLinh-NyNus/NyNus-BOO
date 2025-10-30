@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"os"
@@ -21,7 +21,7 @@ func main() {
 		// Create UTF-8 encoder for Windows console
 		encoder := unicode.UTF8.NewEncoder()
 		writer := transform.NewWriter(os.Stdout, encoder)
-		
+
 		// Use the UTF-8 encoded writer for standard output
 		// Note: We keep os.Stdout for logger to use directly
 		// as logrus handles encoding internally
@@ -99,7 +99,7 @@ func main() {
 	if err := application.Run(); err != nil {
 		logger.WithError(err).Fatal("[ERROR] Failed to run application")
 	}
-	
+
 	// ✅ CRITICAL FIX: application.Run() is BLOCKING and should never return
 	// If we reach this point, it means the server stopped unexpectedly
 	logger.Error("[FATAL] Server stopped unexpectedly - this should never happen!")

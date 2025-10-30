@@ -11,12 +11,12 @@ type ContextKey string
 
 const (
 	// Context keys
-	UserIDKey     ContextKey = "user_id"
-	UserRoleKey   ContextKey = "user_role"
-	UserEmailKey  ContextKey = "user_email"
-	IPAddressKey  ContextKey = "ip_address"
-	UserAgentKey  ContextKey = "user_agent"
-	RequestIDKey  ContextKey = "request_id"
+	UserIDKey    ContextKey = "user_id"
+	UserRoleKey  ContextKey = "user_role"
+	UserEmailKey ContextKey = "user_email"
+	IPAddressKey ContextKey = "ip_address"
+	UserAgentKey ContextKey = "user_agent"
+	RequestIDKey ContextKey = "request_id"
 )
 
 // GetUserIDFromContext extracts user ID from context
@@ -177,4 +177,3 @@ func EnrichContext(ctx context.Context) context.Context {
 	ctx = WithRequestID(ctx, GetRequestIDFromContext(ctx))
 	return ctx
 }
-

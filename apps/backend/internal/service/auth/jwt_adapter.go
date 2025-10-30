@@ -5,9 +5,9 @@ import "context"
 // JWTAdapter adapts IJWTService to OAuth's JWTService interface
 //
 // Business Logic:
-// - Adapter pattern để bridge IJWTService với OAuth's JWTService interface
-// - OAuth interface không pass email và level, nên sử dụng defaults
-// - Actual email và level should come from user data in OAuthService
+// - Adapter pattern Ä‘á»ƒ bridge IJWTService vá»›i OAuth's JWTService interface
+// - OAuth interface khÃ´ng pass email vÃ  level, nÃªn sá»­ dá»¥ng defaults
+// - Actual email vÃ  level should come from user data in OAuthService
 type JWTAdapter struct {
 	jwtService IJWTService
 }

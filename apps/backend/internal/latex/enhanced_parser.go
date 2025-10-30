@@ -1,4 +1,4 @@
-﻿package latex
+package latex
 
 import (
 	"fmt"
@@ -385,4 +385,3 @@ func hasBalancedBrackets(content string) bool {
 
 	return braceCount == 0 && bracketCount == 0 && parenCount == 0
 }
-

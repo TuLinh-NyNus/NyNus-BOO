@@ -13,7 +13,7 @@ import { Button, Progress } from '@/components/ui';
 import { Alert, AlertDescription } from "@/components/ui/feedback/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/overlay/dialog";
 import { cn } from '@/lib/utils';
-import logger from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 export interface ConfirmationOptions {
   title: string;
@@ -327,3 +327,4 @@ export function useUserFeedback(): FeedbackContextType {
   
   return context;
 }
+

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	
+
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/repository"
 	"exam-bank-system/apps/backend/internal/repository/interfaces"
@@ -41,13 +41,13 @@ func (s *VersionService) GetVersionHistory(
 	if err != nil {
 		return nil, 0, fmt.Errorf("question not found: %w", err)
 	}
-	
+
 	// Get version history
 	items, total, err := s.versionRepo.GetVersionHistory(ctx, questionID, limit, offset)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get version history: %w", err)
 	}
-	
+
 	// Add summary of changes for each version
 	for _, item := range items {
 		if item.VersionNumber > 1 {
@@ -62,7 +62,7 @@ func (s *VersionService) GetVersionHistory(
 			}
 		}
 	}
-	
+
 	return items, total, nil
 }
 
@@ -76,7 +76,7 @@ func (s *VersionService) GetVersion(
 	if err != nil {
 		return nil, fmt.Errorf("failed to get version: %w", err)
 	}
-	
+
 	return version, nil
 }
 
@@ -91,18 +91,18 @@ func (s *VersionService) CompareVersions(
 	if err != nil {
 		return nil, fmt.Errorf("version %d not found: %w", version1, err)
 	}
-	
+
 	_, err = s.versionRepo.GetVersion(ctx, questionID, version2)
 	if err != nil {
 		return nil, fmt.Errorf("version %d not found: %w", version2, err)
 	}
-	
+
 	// Compare versions
 	diffs, err := s.versionRepo.CompareVersions(ctx, questionID, version1, version2)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compare versions: %w", err)
 	}
-	
+
 	return diffs, nil
 }
 
@@ -122,31 +122,31 @@ func (s *VersionService) RevertToVersion(
 	if len(revertReason) < 10 {
 		return fmt.Errorf("revert reason must be at least 10 characters")
 	}
-	
+
 	// Get the version to revert to
 	targetVersion, err := s.versionRepo.GetVersion(ctx, questionID, versionNumber)
 	if err != nil {
 		return fmt.Errorf("target version not found: %w", err)
 	}
-	
+
 	// Get current question using string ID
 	currentQuestion, err := s.questionRepo.GetByID(ctx, questionID.String())
 	if err != nil {
 		return fmt.Errorf("current question not found: %w", err)
 	}
-	
+
 	// Create a version of current state before revert (for audit)
 	latestVersion, err := s.versionRepo.GetLatestVersionNumber(ctx, questionID)
 	if err != nil {
 		return fmt.Errorf("failed to get latest version: %w", err)
 	}
-	
+
 	// Prepare snapshot of current question
 	snapshotJSON, err := json.Marshal(currentQuestion)
 	if err != nil {
 		return fmt.Errorf("failed to create snapshot: %w", err)
 	}
-	
+
 	// Create version record for current state (before revert)
 	// NOTE: This stores minimal data - full implementation should store all fields
 	content := targetVersion.Content
@@ -159,15 +159,15 @@ func (s *VersionService) RevertToVersion(
 		ChangedAt:     time.Now(),
 		FullSnapshot:  snapshotJSON,
 	}
-	
+
 	reasonStr := revertReason
 	preRevertVersion.ChangeReason = &reasonStr
-	
+
 	err = s.versionRepo.CreateVersion(ctx, preRevertVersion)
 	if err != nil {
 		return fmt.Errorf("failed to save pre-revert version: %w", err)
 	}
-	
+
 	// TODO: Implement actual revert logic
 	// This requires:
 	// 1. Unmarshal targetVersion.FullSnapshot to Question entity
@@ -181,31 +181,30 @@ func (s *VersionService) RevertToVersion(
 // generateChangeSummary creates a human-readable summary of changes
 func (s *VersionService) generateChangeSummary(prev, current *entity.QuestionVersion) string {
 	var changes []string
-	
+
 	if prev.Content != current.Content {
 		changes = append(changes, "Content updated")
 	}
-	
+
 	if prev.Difficulty != nil && current.Difficulty != nil && *prev.Difficulty != *current.Difficulty {
-		changes = append(changes, fmt.Sprintf("Difficulty changed: %s → %s", *prev.Difficulty, *current.Difficulty))
+		changes = append(changes, fmt.Sprintf("Difficulty changed: %s â†’ %s", *prev.Difficulty, *current.Difficulty))
 	}
-	
+
 	if prev.Status != nil && current.Status != nil && *prev.Status != *current.Status {
-		changes = append(changes, fmt.Sprintf("Status changed: %s → %s", *prev.Status, *current.Status))
+		changes = append(changes, fmt.Sprintf("Status changed: %s â†’ %s", *prev.Status, *current.Status))
 	}
-	
+
 	if len(prev.Tag) != len(current.Tag) {
 		changes = append(changes, "Tags updated")
 	}
-	
+
 	if len(changes) == 0 {
 		return "Minor updates"
 	}
-	
+
 	if len(changes) == 1 {
 		return changes[0]
 	}
-	
+
 	return fmt.Sprintf("%d changes", len(changes))
 }
-

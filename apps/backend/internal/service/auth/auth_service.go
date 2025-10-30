@@ -1,4 +1,4 @@
-﻿package auth
+package auth
 
 import (
 	"context"
@@ -361,4 +361,3 @@ func (s *AuthService) GetUserRole(db database.QueryExecer, userID string) (strin
 func (s *AuthService) generateToken(user *entity.User) (string, error) {
 	return s.jwtService.GenerateToken(user)
 }
-

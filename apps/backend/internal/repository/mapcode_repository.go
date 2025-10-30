@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -258,4 +258,3 @@ func (r *MapCodeRepository) GetStorageInfo(ctx context.Context) (*entity.MapCode
 
 	return entity.NewMapCodeStorageInfo(count), nil
 }
-

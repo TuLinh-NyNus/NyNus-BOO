@@ -48,6 +48,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate proto files
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
+      - name: Format generated proto files
+        working-directory: ${{ env.WORKING_DIR }}
+        run: go fmt ./pkg/proto/...
+
       - name: Download dependencies
         working-directory: ${{ env.WORKING_DIR }}
         run: go mod download
@@ -138,6 +157,25 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate proto files
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
+      - name: Format generated proto files
+        working-directory: ${{ env.WORKING_DIR }}
+        run: go fmt ./pkg/proto/...
 
       - name: Download dependencies
         working-directory: ${{ env.WORKING_DIR }}
@@ -311,11 +349,37 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache-dependency-path: ${{ env.WORKING_DIR }}/go.sum
 
+      - name: Install protoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@latest
+          go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate proto files
+        run: |
+          chmod +x tools/scripts/gen-proto.sh
+          make proto
+
+      - name: Format generated proto files
+        working-directory: ${{ env.WORKING_DIR }}
+        run: go fmt ./pkg/proto/...
+
+      - name: Download dependencies
+        working-directory: ${{ env.WORKING_DIR }}
+        run: go mod download
+
+      - name: Install Gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
       - name: Run Gosec Security Scanner
-        uses: securecodewarrior/github-action-gosec@master
-        with:
-          args: '-no-fail -fmt sarif -out gosec.sarif ./...'
-          working-directory: ${{ env.WORKING_DIR }}
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          gosec -no-fail -fmt sarif -out gosec.sarif ./...
+        continue-on-error: true
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3

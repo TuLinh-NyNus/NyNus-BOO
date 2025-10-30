@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -841,4 +841,3 @@ func (r *QuestionFilterRepository) generateHighlights(question entity.Question, 
 
 	return highlights
 }
-

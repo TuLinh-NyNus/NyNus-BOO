@@ -1,4 +1,4 @@
-﻿package bulk_import
+package bulk_import
 
 import (
 	"context"
@@ -699,4 +699,3 @@ func (m *BulkImportMgmt) CleanupOldImportData(ctx context.Context, olderThanDays
 	cutoffTime := time.Now().AddDate(0, 0, -olderThanDays)
 	return m.bulkImportRepo.CleanupOldImportData(ctx, cutoffTime)
 }
-

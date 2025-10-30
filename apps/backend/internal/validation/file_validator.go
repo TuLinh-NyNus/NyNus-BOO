@@ -26,7 +26,7 @@ const (
 
 // Whitelist of allowed file extensions
 var (
-	AllowedPDFExtensions = []string{".pdf"}
+	AllowedPDFExtensions   = []string{".pdf"}
 	AllowedImageExtensions = []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"}
 	AllowedVideoExtensions = []string{".mp4", ".avi", ".mov", ".mkv", ".webm"}
 )
@@ -332,4 +332,3 @@ func FormatFileSize(bytes int64) string {
 
 	return fmt.Sprintf("%.2f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
 }
-

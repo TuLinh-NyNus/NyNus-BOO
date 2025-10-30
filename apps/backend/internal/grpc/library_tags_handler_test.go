@@ -5,20 +5,20 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/repository"
+	"github.com/sirupsen/logrus"
 )
 
 // Mock TagRepository
 type mockTagRepo struct {
-	createTagFunc     func(ctx context.Context, tag *entity.Tag) (*entity.Tag, error)
-	getTagFunc        func(ctx context.Context, tagID string) (*entity.Tag, error)
-	listTagsFunc      func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error)
-	updateTagFunc     func(ctx context.Context, tag *entity.Tag) error
-	deleteTagFunc     func(ctx context.Context, tagID string) error
-	getPopularFunc    func(ctx context.Context, limit int) ([]*entity.Tag, error)
-	incrementUseFunc  func(ctx context.Context, tagID string) error
+	createTagFunc    func(ctx context.Context, tag *entity.Tag) (*entity.Tag, error)
+	getTagFunc       func(ctx context.Context, tagID string) (*entity.Tag, error)
+	listTagsFunc     func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error)
+	updateTagFunc    func(ctx context.Context, tag *entity.Tag) error
+	deleteTagFunc    func(ctx context.Context, tagID string) error
+	getPopularFunc   func(ctx context.Context, limit int) ([]*entity.Tag, error)
+	incrementUseFunc func(ctx context.Context, tagID string) error
 }
 
 func (m *mockTagRepo) CreateTag(ctx context.Context, tag *entity.Tag) (*entity.Tag, error) {
@@ -83,8 +83,8 @@ func TestCreateTag(t *testing.T) {
 		{
 			name: "successful create",
 			req: &CreateTagRequest{
-				Name:        "Toán học",
-				Description: "Môn toán",
+				Name:        "ToÃ¡n há»c",
+				Description: "MÃ´n toÃ¡n",
 				Color:       "#3b82f6",
 				IsTrending:  false,
 			},
@@ -194,11 +194,11 @@ func TestListTags(t *testing.T) {
 	logger.SetLevel(logrus.ErrorLevel)
 
 	tests := []struct {
-		name         string
-		req          *ListTagsRequest
-		mockList     func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error)
-		expectError  bool
-		expectCount  int
+		name        string
+		req         *ListTagsRequest
+		mockList    func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error)
+		expectError bool
+		expectCount int
 	}{
 		{
 			name: "successful list",
@@ -218,12 +218,12 @@ func TestListTags(t *testing.T) {
 		{
 			name: "with search filter",
 			req: &ListTagsRequest{
-				Search: "toán",
+				Search: "toÃ¡n",
 				Limit:  5,
 			},
 			mockList: func(ctx context.Context, filters repository.TagListFilters) ([]*entity.Tag, error) {
 				return []*entity.Tag{
-					{ID: "tag1", Name: "Toán học"},
+					{ID: "tag1", Name: "ToÃ¡n há»c"},
 				}, nil
 			},
 			expectError: false,
@@ -443,4 +443,3 @@ func TestToggleTrending(t *testing.T) {
 		})
 	}
 }
-

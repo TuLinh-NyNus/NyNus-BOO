@@ -9,7 +9,6 @@
 "use client";
 
 import React, { useState, useCallback, useRef } from "react";
-import * as monaco from 'monaco-editor';
 import {
   Card,
   CardContent,
@@ -53,7 +52,7 @@ import {
 import { LaTeXContent, useLatexValidation } from "@/components/common/latex";
 
 // Import Monaco LaTeX Editor
-import { MonacoLatexEditor, MonacoLatexEditorRef } from "@/components/common/editors/monaco-latex-editor";
+import { MonacoLatexEditor } from "@/components/common/editors/monaco-latex-editor";
 
 // ===== TYPES =====
 
@@ -147,10 +146,10 @@ export function LaTeXEditor({
   
   const [isPreviewVisible, setIsPreviewVisible] = useState(showPreview);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState<monaco.Position | null>(null);
+  const [cursorPosition, setCursorPosition] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState("editor");
 
-  const monacoEditorRef = useRef<MonacoLatexEditorRef>(null);
+  const monacoEditorRef = useRef<any>(null);
   
   // ===== MONACO EDITOR SETUP =====
   
@@ -166,7 +165,7 @@ export function LaTeXEditor({
     onChange(newValue);
   }, [onChange]);
   
-  const handleCursorPositionChange = useCallback((position: monaco.Position) => {
+  const handleCursorPositionChange = useCallback((position: any) => {
     setCursorPosition(position);
   }, []);
   
@@ -196,7 +195,7 @@ export function LaTeXEditor({
   /**
    * Handle Monaco editor mount
    */
-  const handleEditorMount = useCallback((_editor: monaco.editor.IStandaloneCodeEditor) => {
+  const handleEditorMount = useCallback((_editor: any) => {
     // Editor is ready, can perform additional setup if needed
   }, []);
   

@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -259,4 +259,3 @@ func (h *LoginHandler) UpdateLastLogin(ctx context.Context, userID, ipAddress st
 	}
 	return nil
 }
-

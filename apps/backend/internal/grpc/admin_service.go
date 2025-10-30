@@ -186,8 +186,8 @@ func (s *AdminServiceServer) UpdateUserRole(ctx context.Context, req *v1.UpdateU
 
 	// Send notification to user
 	if s.notificationSvc != nil {
-		title := "Vai trÃ² tÃ i khoáº£n Ä‘Ã£ thay Ä‘á»•i"
-		message := fmt.Sprintf("Vai trÃ² cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t tá»« %s thÃ nh %s", oldRole, req.NewRole)
+		title := "Vai trÃƒÂ² tÃƒÂ i khoÃ¡ÂºÂ£n Ã„â€˜ÃƒÂ£ thay Ã„â€˜Ã¡Â»â€¢i"
+		message := fmt.Sprintf("Vai trÃƒÂ² cÃ¡Â»Â§a bÃ¡ÂºÂ¡n Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c cÃ¡ÂºÂ­p nhÃ¡ÂºÂ­t tÃ¡Â»Â« %s thÃƒÂ nh %s", oldRole, req.NewRole)
 		s.notificationSvc.CreateSecurityAlert(ctx, user.ID, title, message, "", "")
 	}
 
@@ -244,8 +244,8 @@ func (s *AdminServiceServer) UpdateUserLevel(ctx context.Context, req *v1.Update
 
 	// Send notification
 	if s.notificationSvc != nil && oldLevel != int(req.NewLevel) {
-		title := "Cáº¥p Ä‘á»™ tÃ i khoáº£n Ä‘Ã£ thay Ä‘á»•i"
-		message := fmt.Sprintf("Cáº¥p Ä‘á»™ cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t tá»« %d thÃ nh %d", oldLevel, req.NewLevel)
+		title := "CÃ¡ÂºÂ¥p Ã„â€˜Ã¡Â»â„¢ tÃƒÂ i khoÃ¡ÂºÂ£n Ã„â€˜ÃƒÂ£ thay Ã„â€˜Ã¡Â»â€¢i"
+		message := fmt.Sprintf("CÃ¡ÂºÂ¥p Ã„â€˜Ã¡Â»â„¢ cÃ¡Â»Â§a bÃ¡ÂºÂ¡n Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c cÃ¡ÂºÂ­p nhÃ¡ÂºÂ­t tÃ¡Â»Â« %d thÃƒÂ nh %d", oldLevel, req.NewLevel)
 		s.notificationSvc.CreateNotification(ctx, user.ID, notification.TypeAccountActivity,
 			title, message, nil, nil)
 	}
@@ -318,14 +318,14 @@ func (s *AdminServiceServer) UpdateUserStatus(ctx context.Context, req *v1.Updat
 		var title, message string
 		switch req.NewStatus {
 		case common.UserStatus_USER_STATUS_SUSPENDED:
-			title = "TÃ i khoáº£n Ä‘Ã£ bá»‹ táº¡m ngÆ°ng"
-			message = fmt.Sprintf("TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ táº¡m ngÆ°ng. LÃ½ do: %s", suspendReason)
+			title = "TÃƒÂ i khoÃ¡ÂºÂ£n Ã„â€˜ÃƒÂ£ bÃ¡Â»â€¹ tÃ¡ÂºÂ¡m ngÃ†Â°ng"
+			message = fmt.Sprintf("TÃƒÂ i khoÃ¡ÂºÂ£n cÃ¡Â»Â§a bÃ¡ÂºÂ¡n Ã„â€˜ÃƒÂ£ bÃ¡Â»â€¹ tÃ¡ÂºÂ¡m ngÃ†Â°ng. LÃƒÂ½ do: %s", suspendReason)
 		case common.UserStatus_USER_STATUS_INACTIVE:
-			title = "TÃ i khoáº£n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a"
-			message = "TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ bá»‹ vÃ´ hiá»‡u hÃ³a bá»Ÿi quáº£n trá»‹ viÃªn"
+			title = "TÃƒÂ i khoÃ¡ÂºÂ£n Ã„â€˜ÃƒÂ£ bÃ¡Â»â€¹ vÃƒÂ´ hiÃ¡Â»â€¡u hÃƒÂ³a"
+			message = "TÃƒÂ i khoÃ¡ÂºÂ£n cÃ¡Â»Â§a bÃ¡ÂºÂ¡n Ã„â€˜ÃƒÂ£ bÃ¡Â»â€¹ vÃƒÂ´ hiÃ¡Â»â€¡u hÃƒÂ³a bÃ¡Â»Å¸i quÃ¡ÂºÂ£n trÃ¡Â»â€¹ viÃƒÂªn"
 		case common.UserStatus_USER_STATUS_ACTIVE:
-			title = "TÃ i khoáº£n Ä‘Ã£ Ä‘Æ°á»£c kÃ­ch hoáº¡t"
-			message = "TÃ i khoáº£n cá»§a báº¡n Ä‘Ã£ Ä‘Æ°á»£c kÃ­ch hoáº¡t trá»Ÿ láº¡i"
+			title = "TÃƒÂ i khoÃ¡ÂºÂ£n Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c kÃƒÂ­ch hoÃ¡ÂºÂ¡t"
+			message = "TÃƒÂ i khoÃ¡ÂºÂ£n cÃ¡Â»Â§a bÃ¡ÂºÂ¡n Ã„â€˜ÃƒÂ£ Ã„â€˜Ã†Â°Ã¡Â»Â£c kÃƒÂ­ch hoÃ¡ÂºÂ¡t trÃ¡Â»Å¸ lÃ¡ÂºÂ¡i"
 		}
 
 		if title != "" {
@@ -717,18 +717,18 @@ func (s *AdminServiceServer) createAuditLog(
 }
 
 // getUsersWithFilters retrieves users with filtering and pagination
-// ✅ FIX: Sử dụng repository.GetUsersWithFilters() để fix N+1 query problem
+// âœ… FIX: Sá»­ dá»¥ng repository.GetUsersWithFilters() Ä‘á»ƒ fix N+1 query problem
 //
 // Performance improvement:
-// - Trước: Load ALL users → filter trong memory → 2-5 giây
-// - Sau: Filter trong database với WHERE clause → 100-300ms
+// - TrÆ°á»›c: Load ALL users â†’ filter trong memory â†’ 2-5 giÃ¢y
+// - Sau: Filter trong database vá»›i WHERE clause â†’ 100-300ms
 func (s *AdminServiceServer) getUsersWithFilters(
 	ctx context.Context,
 	filters repository.UserFilters,
 	offset, limit int,
 ) ([]*repository.User, int, error) {
-	// Sử dụng repository method mới với database-level filtering
-	// Thay vì load tất cả users vào memory rồi filter
+	// Sá»­ dá»¥ng repository method má»›i vá»›i database-level filtering
+	// Thay vÃ¬ load táº¥t cáº£ users vÃ o memory rá»“i filter
 	return s.userRepo.GetUsersWithFilters(ctx, filters, offset, limit)
 }
 

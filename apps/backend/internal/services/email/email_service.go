@@ -38,7 +38,7 @@ func NewEmailService() *EmailService {
 
 // SendVerificationEmail sends email verification link
 func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToken string) error {
-	subject := "Xác thực email của bạn - NyNus"
+	subject := "XÃ¡c thá»±c email cá»§a báº¡n - NyNus"
 
 	// Create verification URL
 	baseURL := getEnvDefault("FRONTEND_URL", "http://localhost:3000")
@@ -62,23 +62,23 @@ func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToke
 <body>
     <div class="container">
         <div class="header">
-            <h1>Xác thực Email</h1>
+            <h1>XÃ¡c thá»±c Email</h1>
         </div>
         <div class="content">
-            <h2>Xin chào {{.UserName}}!</h2>
-            <p>Cảm ơn bạn đã đăng ký tài khoản tại NyNus. Vui lòng xác thực email của bạn bằng cách nhấn vào nút bên dưới:</p>
+            <h2>Xin chÃ o {{.UserName}}!</h2>
+            <p>Cáº£m Æ¡n báº¡n Ä‘Ã£ Ä‘Äƒng kÃ½ tÃ i khoáº£n táº¡i NyNus. Vui lÃ²ng xÃ¡c thá»±c email cá»§a báº¡n báº±ng cÃ¡ch nháº¥n vÃ o nÃºt bÃªn dÆ°á»›i:</p>
             
             <div style="text-align: center;">
-                <a href="{{.VerificationURL}}" class="button">Xác thực Email</a>
+                <a href="{{.VerificationURL}}" class="button">XÃ¡c thá»±c Email</a>
             </div>
             
-            <p>Hoặc copy và paste link sau vào trình duyệt:</p>
+            <p>Hoáº·c copy vÃ  paste link sau vÃ o trÃ¬nh duyá»‡t:</p>
             <p style="word-break: break-all; color: #667eea;">{{.VerificationURL}}</p>
             
-            <p><strong>Lưu ý:</strong> Link này sẽ hết hạn sau 24 giờ.</p>
+            <p><strong>LÆ°u Ã½:</strong> Link nÃ y sáº½ háº¿t háº¡n sau 24 giá».</p>
             
             <div class="footer">
-                <p>Nếu bạn không đăng ký tài khoản này, vui lòng bỏ qua email này.</p>
+                <p>Náº¿u báº¡n khÃ´ng Ä‘Äƒng kÃ½ tÃ i khoáº£n nÃ y, vui lÃ²ng bá» qua email nÃ y.</p>
                 <p>&copy; 2025 NyNus. All rights reserved.</p>
             </div>
         </div>
@@ -109,7 +109,7 @@ func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToke
 
 	// In development mode, just log the email
 	if s.isDev {
-		log.Printf("📧 [DEV MODE] Email Verification:\n")
+		log.Printf("ðŸ“§ [DEV MODE] Email Verification:\n")
 		log.Printf("  To: %s\n", toEmail)
 		log.Printf("  Subject: %s\n", subject)
 		log.Printf("  Verification URL: %s\n", verificationURL)
@@ -123,7 +123,7 @@ func (s *EmailService) SendVerificationEmail(toEmail, userName, verificationToke
 
 // SendPasswordResetEmail sends password reset link
 func (s *EmailService) SendPasswordResetEmail(toEmail, userName, resetToken string) error {
-	subject := "Đặt lại mật khẩu - NyNus"
+	subject := "Äáº·t láº¡i máº­t kháº©u - NyNus"
 
 	baseURL := getEnvDefault("FRONTEND_URL", "http://localhost:3000")
 	resetURL := fmt.Sprintf("%s/reset-password?token=%s", baseURL, resetToken)
@@ -145,23 +145,23 @@ func (s *EmailService) SendPasswordResetEmail(toEmail, userName, resetToken stri
 <body>
     <div class="container">
         <div class="header">
-            <h1>Đặt lại mật khẩu</h1>
+            <h1>Äáº·t láº¡i máº­t kháº©u</h1>
         </div>
         <div class="content">
-            <h2>Xin chào {{.UserName}}!</h2>
-            <p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn. Nhấn vào nút bên dưới để đặt lại mật khẩu:</p>
+            <h2>Xin chÃ o {{.UserName}}!</h2>
+            <p>ChÃºng tÃ´i nháº­n Ä‘Æ°á»£c yÃªu cáº§u Ä‘áº·t láº¡i máº­t kháº©u cho tÃ i khoáº£n cá»§a báº¡n. Nháº¥n vÃ o nÃºt bÃªn dÆ°á»›i Ä‘á»ƒ Ä‘áº·t láº¡i máº­t kháº©u:</p>
             
             <div style="text-align: center;">
-                <a href="{{.ResetURL}}" class="button">Đặt lại mật khẩu</a>
+                <a href="{{.ResetURL}}" class="button">Äáº·t láº¡i máº­t kháº©u</a>
             </div>
             
-            <p>Hoặc copy và paste link sau vào trình duyệt:</p>
+            <p>Hoáº·c copy vÃ  paste link sau vÃ o trÃ¬nh duyá»‡t:</p>
             <p style="word-break: break-all; color: #f5576c;">{{.ResetURL}}</p>
             
-            <p><strong>Lưu ý:</strong> Link này sẽ hết hạn sau 1 giờ.</p>
+            <p><strong>LÆ°u Ã½:</strong> Link nÃ y sáº½ háº¿t háº¡n sau 1 giá».</p>
             
             <div class="footer">
-                <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
+                <p>Náº¿u báº¡n khÃ´ng yÃªu cáº§u Ä‘áº·t láº¡i máº­t kháº©u, vui lÃ²ng bá» qua email nÃ y.</p>
                 <p>&copy; 2025 NyNus. All rights reserved.</p>
             </div>
         </div>
@@ -189,7 +189,7 @@ func (s *EmailService) SendPasswordResetEmail(toEmail, userName, resetToken stri
 	}
 
 	if s.isDev {
-		log.Printf("📧 [DEV MODE] Password Reset Email:\n")
+		log.Printf("ðŸ“§ [DEV MODE] Password Reset Email:\n")
 		log.Printf("  To: %s\n", toEmail)
 		log.Printf("  Subject: %s\n", subject)
 		log.Printf("  Reset URL: %s\n", resetURL)
@@ -234,7 +234,7 @@ func (s *EmailService) sendEmail(to, subject, htmlBody string) error {
 		return fmt.Errorf("failed to send email: %v", err)
 	}
 
-	log.Printf("✅ Email sent successfully to %s", to)
+	log.Printf("âœ… Email sent successfully to %s", to)
 	return nil
 }
 

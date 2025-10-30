@@ -1,4 +1,4 @@
-﻿package interfaces
+package interfaces
 
 import (
 	"context"
@@ -71,4 +71,3 @@ type ServiceDependencies struct {
 	UserService     UserServiceInterface
 	QuestionService QuestionServiceInterface
 }
-

@@ -219,7 +219,7 @@ func (ms *MetricsScheduler) recordCurrentMetrics() error {
 	// TODO: Add GetAllActiveSessions() method to SessionRepository or query directly
 	activeSessionsCount := int32(0)
 	totalSessionsCount := int32(0)
-	
+
 	// Query active sessions count directly from DB
 	var activeCount int
 	err = ms.db.QueryRowContext(ctx, `
@@ -229,7 +229,7 @@ func (ms *MetricsScheduler) recordCurrentMetrics() error {
 	if err == nil {
 		activeSessionsCount = int32(activeCount)
 	}
-	
+
 	// Query total sessions count
 	var totalCount int
 	err = ms.db.QueryRowContext(ctx, `
@@ -268,10 +268,10 @@ func (ms *MetricsScheduler) recordCurrentMetrics() error {
 
 	duration := time.Since(startTime)
 	ms.logger.WithFields(logrus.Fields{
-		"total_users":   totalUsers,
-		"active_users":  activeUsers,
-		"new_today":     newUsersToday,
-		"duration":      duration,
+		"total_users":  totalUsers,
+		"active_users": activeUsers,
+		"new_today":    newUsersToday,
+		"duration":     duration,
 	}).Info("[MetricsScheduler] Metrics recorded successfully")
 
 	return nil
@@ -303,4 +303,3 @@ func (ms *MetricsScheduler) GetStatus() map[string]interface{} {
 
 	return status
 }
-

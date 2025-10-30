@@ -1,4 +1,4 @@
-﻿package user_mgmt
+package user_mgmt
 
 import (
 	"context"
@@ -26,4 +26,3 @@ func NewUserMgmt(db database.QueryExecer) *UserMgmt {
 		UserService: userDomain.NewUserService(),
 	}
 }
-

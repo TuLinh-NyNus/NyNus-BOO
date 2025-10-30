@@ -77,9 +77,9 @@ var QuestionValidationRules = []ValidationRule{
 		MinLength: 10,
 		MaxLength: 5000,
 		Suggestions: []string{
-			"Nội dung câu hỏi phải có ít nhất 10 ký tự",
-			"Kiểm tra lại định dạng LaTeX",
-			"Đảm bảo có đầy đủ thông tin câu hỏi",
+			"Ná»™i dung cÃ¢u há»i pháº£i cÃ³ Ã­t nháº¥t 10 kÃ½ tá»±",
+			"Kiá»ƒm tra láº¡i Ä‘á»‹nh dáº¡ng LaTeX",
+			"Äáº£m báº£o cÃ³ Ä‘áº§y Ä‘á»§ thÃ´ng tin cÃ¢u há»i",
 		},
 		ErrorType: ParseErrorTypeMissingField,
 		Severity:  ParseErrorSeverityError,
@@ -90,8 +90,8 @@ var QuestionValidationRules = []ValidationRule{
 		Type:     "enum",
 		Pattern:  "^(MC|TF|SA|ES|MA)$",
 		Suggestions: []string{
-			"Loại câu hỏi phải là một trong: MC (Multiple Choice), TF (True/False), SA (Short Answer), ES (Essay), MA (Matching)",
-			"Kiểm tra lại cú pháp LaTeX để xác định loại câu hỏi",
+			"Loáº¡i cÃ¢u há»i pháº£i lÃ  má»™t trong: MC (Multiple Choice), TF (True/False), SA (Short Answer), ES (Essay), MA (Matching)",
+			"Kiá»ƒm tra láº¡i cÃº phÃ¡p LaTeX Ä‘á»ƒ xÃ¡c Ä‘á»‹nh loáº¡i cÃ¢u há»i",
 		},
 		ErrorType: ParseErrorTypeValidation,
 		Severity:  ParseErrorSeverityError,
@@ -102,9 +102,9 @@ var QuestionValidationRules = []ValidationRule{
 		Type:      "array",
 		MinLength: 1,
 		Suggestions: []string{
-			"Câu hỏi phải có ít nhất một đáp án",
-			"Kiểm tra lại cú pháp LaTeX cho phần đáp án",
-			"Đảm bảo có ít nhất một đáp án đúng",
+			"CÃ¢u há»i pháº£i cÃ³ Ã­t nháº¥t má»™t Ä‘Ã¡p Ã¡n",
+			"Kiá»ƒm tra láº¡i cÃº phÃ¡p LaTeX cho pháº§n Ä‘Ã¡p Ã¡n",
+			"Äáº£m báº£o cÃ³ Ã­t nháº¥t má»™t Ä‘Ã¡p Ã¡n Ä‘Ãºng",
 		},
 		ErrorType: ParseErrorTypeMissingField,
 		Severity:  ParseErrorSeverityError,
@@ -116,8 +116,8 @@ var QuestionValidationRules = []ValidationRule{
 		MinLength: 5,
 		MaxLength: 2000,
 		Suggestions: []string{
-			"Lời giải giúp học sinh hiểu rõ hơn về câu hỏi",
-			"Nên có lời giải chi tiết cho câu hỏi",
+			"Lá»i giáº£i giÃºp há»c sinh hiá»ƒu rÃµ hÆ¡n vá» cÃ¢u há»i",
+			"NÃªn cÃ³ lá»i giáº£i chi tiáº¿t cho cÃ¢u há»i",
 		},
 		ErrorType: ParseErrorTypeMissingField,
 		Severity:  ParseErrorSeverityWarning,
@@ -128,8 +128,8 @@ var QuestionValidationRules = []ValidationRule{
 		Type:     "enum",
 		Pattern:  "^(EASY|MEDIUM|HARD|EXPERT)$",
 		Suggestions: []string{
-			"Độ khó phải là một trong: EASY, MEDIUM, HARD, EXPERT",
-			"Nếu không có, hệ thống sẽ tự động đặt là MEDIUM",
+			"Äá»™ khÃ³ pháº£i lÃ  má»™t trong: EASY, MEDIUM, HARD, EXPERT",
+			"Náº¿u khÃ´ng cÃ³, há»‡ thá»‘ng sáº½ tá»± Ä‘á»™ng Ä‘áº·t lÃ  MEDIUM",
 		},
 		ErrorType: ParseErrorTypeValidation,
 		Severity:  ParseErrorSeverityWarning,
@@ -140,9 +140,9 @@ var QuestionValidationRules = []ValidationRule{
 		Type:     "text",
 		Pattern:  "^[0-9A-Z]{5}(-[0-9])?$",
 		Suggestions: []string{
-			"Mã câu hỏi phải theo định dạng ID5 (XXXXX) hoặc ID6 (XXXXX-X)",
-			"Ví dụ: 0P1N1 hoặc 2H5V3-2",
-			"Nếu không có, hệ thống sẽ tự động tạo",
+			"MÃ£ cÃ¢u há»i pháº£i theo Ä‘á»‹nh dáº¡ng ID5 (XXXXX) hoáº·c ID6 (XXXXX-X)",
+			"VÃ­ dá»¥: 0P1N1 hoáº·c 2H5V3-2",
+			"Náº¿u khÃ´ng cÃ³, há»‡ thá»‘ng sáº½ tá»± Ä‘á»™ng táº¡o",
 		},
 		ErrorType: ParseErrorTypeValidation,
 		Severity:  ParseErrorSeverityInfo,
@@ -195,8 +195,8 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 	case ParseErrorTypeMissingField:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "missing_field",
-			Message:      "Trường bắt buộc bị thiếu",
-			Action:       "Thêm thông tin cho trường: " + field,
+			Message:      "TrÆ°á»ng báº¯t buá»™c bá»‹ thiáº¿u",
+			Action:       "ThÃªm thÃ´ng tin cho trÆ°á»ng: " + field,
 			Priority:     1,
 			Automated:    false,
 			UserFriendly: true,
@@ -205,8 +205,8 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 	case ParseErrorTypeValidation:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "validation",
-			Message:      "Dữ liệu không hợp lệ",
-			Action:       "Kiểm tra lại định dạng cho trường: " + field,
+			Message:      "Dá»¯ liá»‡u khÃ´ng há»£p lá»‡",
+			Action:       "Kiá»ƒm tra láº¡i Ä‘á»‹nh dáº¡ng cho trÆ°á»ng: " + field,
 			Priority:     2,
 			Automated:    false,
 			UserFriendly: true,
@@ -215,8 +215,8 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 	case ParseErrorTypeInvalidFormat:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "format",
-			Message:      "Định dạng không đúng",
-			Action:       "Sửa định dạng LaTeX cho trường: " + field,
+			Message:      "Äá»‹nh dáº¡ng khÃ´ng Ä‘Ãºng",
+			Action:       "Sá»­a Ä‘á»‹nh dáº¡ng LaTeX cho trÆ°á»ng: " + field,
 			Priority:     1,
 			Automated:    false,
 			UserFriendly: true,
@@ -225,8 +225,8 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 	case ParseErrorTypeUnsupported:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "unsupported",
-			Message:      "Tính năng chưa được hỗ trợ",
-			Action:       "Sử dụng định dạng được hỗ trợ hoặc chờ cập nhật",
+			Message:      "TÃ­nh nÄƒng chÆ°a Ä‘Æ°á»£c há»— trá»£",
+			Action:       "Sá»­ dá»¥ng Ä‘á»‹nh dáº¡ng Ä‘Æ°á»£c há»— trá»£ hoáº·c chá» cáº­p nháº­t",
 			Priority:     3,
 			Automated:    false,
 			UserFriendly: true,
@@ -235,8 +235,8 @@ func GetErrorSuggestions(errorType ParseErrorType, field string, context map[str
 	case ParseErrorTypeStructural:
 		suggestions = append(suggestions, ErrorSuggestion{
 			Type:         "structural",
-			Message:      "Cấu trúc LaTeX không đúng",
-			Action:       "Kiểm tra lại cú pháp LaTeX",
+			Message:      "Cáº¥u trÃºc LaTeX khÃ´ng Ä‘Ãºng",
+			Action:       "Kiá»ƒm tra láº¡i cÃº phÃ¡p LaTeX",
 			Priority:     1,
 			Automated:    false,
 			UserFriendly: true,

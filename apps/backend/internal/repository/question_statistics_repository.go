@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -798,4 +798,3 @@ func (r *QuestionStatisticsRepository) GetQuestionCodeStatistics(ctx context.Con
 
 	return statistics, nil
 }
-

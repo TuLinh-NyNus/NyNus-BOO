@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/features/questions/domain/entities/question.dart';
 import 'package:mobile/features/questions/presentation/widgets/question_card.dart';
+import 'package:mobile/shared/widgets/animated_widgets.dart';
 
 class QuestionList extends StatefulWidget {
   final List<Question> questions;
@@ -71,16 +72,20 @@ class _QuestionListState extends State<QuestionList> {
         final question = widget.questions[index];
         final isBookmarked = widget.bookmarkedIds.contains(question.id);
         
-        return QuestionCard(
-          question: question,
-          isBookmarked: isBookmarked,
-          onTap: () {
-            // Navigate to detail
-            // context.push('/questions/${question.id}');
-          },
-          onBookmarkToggle: () {
-            widget.onBookmarkToggle(question.id);
-          },
+        return SlideInAnimation(
+          index: index,
+          delay: const Duration(milliseconds: 50),
+          child: QuestionCard(
+            question: question,
+            isBookmarked: isBookmarked,
+            onTap: () {
+              // Navigate to detail
+              // context.push('/questions/${question.id}');
+            },
+            onBookmarkToggle: () {
+              widget.onBookmarkToggle(question.id);
+            },
+          ),
         );
       },
     );

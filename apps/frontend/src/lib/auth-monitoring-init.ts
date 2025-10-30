@@ -8,7 +8,7 @@
  */
 
 import { startAuthMonitoring } from '@/lib/utils/auth-monitor';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Initialize authentication monitoring
@@ -39,4 +39,5 @@ if (typeof window !== 'undefined') {
     initializeAuthMonitoring();
   }, 1000);
 }
+
 

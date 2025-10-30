@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -244,4 +244,3 @@ func (s *NewsletterServiceServer) entityToProto(e *entity.NewsletterSubscription
 
 	return proto
 }
-

@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -144,4 +144,3 @@ func (r *AnswerRepository) DeleteByQuestionID(ctx context.Context, db database.Q
 
 	return nil
 }
-

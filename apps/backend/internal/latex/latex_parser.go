@@ -1,4 +1,4 @@
-﻿package latex
+package latex
 
 import (
 	"fmt"
@@ -225,4 +225,3 @@ func (p *LaTeXQuestionParser) determineQuestionStatus(questionType string, answe
 		return string(entity.QuestionStatusPending)
 	}
 }
-

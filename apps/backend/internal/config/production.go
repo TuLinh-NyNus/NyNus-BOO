@@ -107,31 +107,31 @@ func ValidateProductionConfig(cfg *ProductionConfig) error {
 		// In production, ensure security settings are properly configured
 		if cfg.TLSEnabled {
 			if cfg.TLSCertFile == "" || cfg.TLSKeyFile == "" {
-				log.Println("⚠️  WARNING: TLS enabled but cert/key files not specified")
+				log.Println("âš ï¸  WARNING: TLS enabled but cert/key files not specified")
 			}
 
 			// Check if cert files exist
 			if _, err := os.Stat(cfg.TLSCertFile); os.IsNotExist(err) {
-				log.Printf("⚠️  WARNING: TLS cert file not found: %s", cfg.TLSCertFile)
+				log.Printf("âš ï¸  WARNING: TLS cert file not found: %s", cfg.TLSCertFile)
 			}
 
 			if _, err := os.Stat(cfg.TLSKeyFile); os.IsNotExist(err) {
-				log.Printf("⚠️  WARNING: TLS key file not found: %s", cfg.TLSKeyFile)
+				log.Printf("âš ï¸  WARNING: TLS key file not found: %s", cfg.TLSKeyFile)
 			}
 		}
 
 		// Warn if HTTP Gateway is enabled in production
 		if cfg.HTTPGatewayEnabled {
-			log.Println("⚠️  WARNING: HTTP Gateway is enabled in production - consider disabling for security")
+			log.Println("âš ï¸  WARNING: HTTP Gateway is enabled in production - consider disabling for security")
 		}
 
 		// Validate rate limiting settings
 		if cfg.EnableRateLimit {
 			if cfg.RateLimitRPS <= 0 {
-				log.Println("⚠️  WARNING: Rate limit RPS should be positive")
+				log.Println("âš ï¸  WARNING: Rate limit RPS should be positive")
 			}
 			if cfg.RateLimitBurst <= 0 {
-				log.Println("⚠️  WARNING: Rate limit burst should be positive")
+				log.Println("âš ï¸  WARNING: Rate limit burst should be positive")
 			}
 		}
 	}
@@ -169,8 +169,8 @@ func GetOptimizedGRPCOptions(cfg *ProductionConfig) map[string]interface{} {
 // LogProductionSettings logs the current production settings with enhanced details
 func LogProductionSettings(cfg *ProductionConfig) {
 	if IsProduction() {
-		log.Println("🚀 Production Configuration - Optimized Settings:")
-		log.Printf("   🔒 Security:")
+		log.Println("ðŸš€ Production Configuration - Optimized Settings:")
+		log.Printf("   ðŸ”’ Security:")
 		log.Printf("      HTTP Gateway: %v (Disabled for security)", cfg.HTTPGatewayEnabled)
 		log.Printf("      TLS Enabled: %v", cfg.TLSEnabled)
 		if cfg.TLSEnabled {
@@ -178,25 +178,25 @@ func LogProductionSettings(cfg *ProductionConfig) {
 			log.Printf("      TLS Key: %s", cfg.TLSKeyFile)
 		}
 
-		log.Printf("   ⚡ Performance:")
+		log.Printf("   âš¡ Performance:")
 		log.Printf("      Max Concurrent Streams: %d", cfg.MaxConcurrentStreams)
 		log.Printf("      Max Message Size: %d MB", cfg.MaxReceiveMessageSize/(1024*1024))
 		log.Printf("      Connection Timeout: %d seconds", cfg.ConnectionTimeout)
 
-		log.Printf("   📊 Logging:")
+		log.Printf("   ðŸ“Š Logging:")
 		log.Printf("      Log Level: %s", cfg.LogLevel)
 		log.Printf("      Log Format: %s (Structured for aggregation)", cfg.LogFormat)
 		log.Printf("      Access Log: %v", cfg.EnableAccessLog)
 		log.Printf("      Error Log: %v", cfg.EnableErrorLog)
 
-		log.Printf("   🛡️  Rate Limiting:")
+		log.Printf("   ðŸ›¡ï¸  Rate Limiting:")
 		log.Printf("      Enabled: %v", cfg.EnableRateLimit)
 		if cfg.EnableRateLimit {
 			log.Printf("      RPS Limit: %d requests/second", cfg.RateLimitRPS)
 			log.Printf("      Burst Capacity: %d requests", cfg.RateLimitBurst)
 		}
 
-		log.Printf("   🔍 Monitoring:")
+		log.Printf("   ðŸ” Monitoring:")
 		log.Printf("      Health Check: %v (Path: %s)", cfg.EnableHealthCheck, cfg.HealthCheckPath)
 		log.Printf("      Metrics: %v (Port: %s)", cfg.EnableMetrics, cfg.MetricsPort)
 		log.Printf("      Tracing: %v", cfg.EnableTracing)

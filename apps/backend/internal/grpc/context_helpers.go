@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -102,4 +102,3 @@ func generateDeviceFingerprint(userAgent string) string {
 	// to avoid validation errors
 	return util.GenerateDeviceFingerprint(userAgent, "", "")
 }
-

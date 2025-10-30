@@ -1,4 +1,4 @@
-﻿package parse_error
+package parse_error
 
 import (
 	"context"
@@ -326,4 +326,3 @@ func (m *ParseErrorMgmt) ScheduleAutoRetry(ctx context.Context) error {
 
 	return nil
 }
-

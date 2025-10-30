@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -205,4 +205,3 @@ func (h *RegistrationHandler) VerifyEmail(ctx context.Context, token string) err
 	log.Printf("Email verified successfully for user %s", user.Email)
 	return nil
 }
-

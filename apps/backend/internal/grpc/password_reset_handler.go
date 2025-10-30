@@ -1,4 +1,4 @@
-﻿package grpc
+package grpc
 
 import (
 	"context"
@@ -192,4 +192,3 @@ func (h *PasswordResetHandler) ChangePassword(ctx context.Context, userID, oldPa
 	log.Printf("Password changed successfully for user %s", user.Email)
 	return nil
 }
-

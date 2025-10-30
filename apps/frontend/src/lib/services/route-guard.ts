@@ -17,7 +17,7 @@ import type { JWT } from 'next-auth/jwt';
 import type { RoutePermission } from '@/lib/config/route-permissions';
 import { getRoutePermission } from '@/lib/config/route-permissions';
 import type { RoleString } from '@/lib/utils/role-converter';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { AuthStateCache } from '@/lib/utils/auth-state-cache';
 
 /**
@@ -329,4 +329,5 @@ export class RouteGuard {
     return this.routeCache.size;
   }
 }
+
 

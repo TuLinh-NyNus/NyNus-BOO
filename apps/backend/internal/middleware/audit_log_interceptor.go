@@ -1,4 +1,4 @@
-﻿package middleware
+package middleware
 
 import (
 	"context"
@@ -338,4 +338,3 @@ func sanitizeResponseData(data map[string]interface{}, method string) {
 		// Token already removed
 	}
 }
-

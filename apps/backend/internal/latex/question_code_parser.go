@@ -1,4 +1,4 @@
-﻿package latex
+package latex
 
 import (
 	"regexp"
@@ -264,4 +264,3 @@ func (qcp *QuestionCodeParser) getLevelLabel(level string) string {
 		return "Má»©c " + level
 	}
 }
-

@@ -22,6 +22,7 @@
  */
 
 import { NextRequest } from 'next/server';
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
 import { executePrismaOperation } from '@/lib/prisma/error-handler';
 import {
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest) {
     const user = await executePrismaOperation(() =>
       prisma.users.create({
         data: {
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           email,
           password_hash: passwordHash,
           first_name: firstName,

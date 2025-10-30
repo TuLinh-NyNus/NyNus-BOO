@@ -1,4 +1,4 @@
-﻿package mapcode_mgmt
+package mapcode_mgmt
 
 import (
 	"context"
@@ -336,7 +336,7 @@ func (m *MapCodeMgmt) isDashBasedFormat(content string) bool {
 		`^----\[[^\]]+\]`,
 		`^-------\[[^\]]+\]`,
 	}
-	
+
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -362,10 +362,10 @@ func (m *MapCodeMgmt) parseDashBasedFormat(content string) (*entity.MapCodeConfi
 	}
 
 	lines := strings.Split(content, "\n")
-	
+
 	for _, line := range lines {
 		trimmedLine := strings.TrimSpace(line)
-		
+
 		// Skip empty lines and comments
 		if trimmedLine == "" || strings.HasPrefix(trimmedLine, "%") {
 			continue
@@ -385,7 +385,7 @@ func (m *MapCodeMgmt) parseDashBasedFormat(content string) (*entity.MapCodeConfi
 
 		// Parse hierarchy levels based on dash count
 		dashCount := m.countLeadingDashes(line)
-		
+
 		switch dashCount {
 		case 1: // -[X] Lớp (Grade)
 			m.parseDashLine(line, 1, config.Grades)
@@ -421,15 +421,15 @@ func (m *MapCodeMgmt) parseDashLine(line string, expectedDashes int, targetMap m
 	// Remove leading dashes
 	content := strings.TrimLeft(line, "-")
 	content = strings.TrimSpace(content)
-	
+
 	// Parse pattern: [X] Description
 	pattern := regexp.MustCompile(`^\[([^\]]+)\]\s*(.+)$`)
 	matches := pattern.FindStringSubmatch(content)
-	
+
 	if len(matches) == 3 {
 		key := strings.TrimSpace(matches[1])
 		value := strings.TrimSpace(matches[2])
-		
+
 		// Store in map if not already exists (keep first occurrence)
 		if _, exists := targetMap[key]; !exists {
 			targetMap[key] = value
@@ -693,4 +693,3 @@ func (m *MapCodeMgmt) WarmupCache(ctx context.Context) error {
 	_, err = m.getOrLoadConfig(ctx, activeVersion)
 	return err
 }
-

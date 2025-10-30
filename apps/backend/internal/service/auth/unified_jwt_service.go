@@ -1,4 +1,4 @@
-﻿package auth
+package auth
 
 import (
 	"context"
@@ -116,10 +116,10 @@ func NewUnifiedJWTService(
 
 	// Log service initialization
 	logger.WithFields(logrus.Fields{
-		"component":           "UnifiedJWTService",
-		"access_expiry":       AccessTokenExpiry.String(),
-		"refresh_expiry":      RefreshTokenExpiry.String(),
-		"issuer":              TokenIssuer,
+		"component":            "UnifiedJWTService",
+		"access_expiry":        AccessTokenExpiry.String(),
+		"refresh_expiry":       RefreshTokenExpiry.String(),
+		"issuer":               TokenIssuer,
 		"refresh_repo_enabled": refreshTokenRepo != nil,
 	}).Info("JWT service initialized successfully")
 
@@ -237,11 +237,11 @@ func (s *UnifiedJWTService) GenerateAccessToken(userID, email, role string, leve
 
 	// Log success
 	s.logger.WithFields(logrus.Fields{
-		"operation": "GenerateAccessToken",
-		"user_id":   userID,
-		"email":     email,
-		"role":      role,
-		"level":     level,
+		"operation":  "GenerateAccessToken",
+		"user_id":    userID,
+		"email":      email,
+		"role":       role,
+		"level":      level,
 		"expires_at": now.Add(s.accessExpiry).Format(time.RFC3339),
 	}).Debug("Access token generated successfully")
 
@@ -295,8 +295,8 @@ func (s *UnifiedJWTService) GenerateRefreshToken(userID string) (string, error) 
 	}
 
 	s.logger.WithFields(logrus.Fields{
-		"operation": "GenerateRefreshToken",
-		"user_id":   userID,
+		"operation":  "GenerateRefreshToken",
+		"user_id":    userID,
 		"expires_at": now.Add(s.refreshExpiry).Format(time.RFC3339),
 	}).Debug("Refresh token generated successfully")
 
@@ -1039,7 +1039,7 @@ func (s *UnifiedJWTService) CleanupExpiredTokens(ctx context.Context) (int, erro
 	}
 
 	s.logger.WithFields(logrus.Fields{
-		"operation":     "CleanupExpiredTokens",
+		"operation":      "CleanupExpiredTokens",
 		"tokens_cleaned": count,
 	}).Info("Expired tokens cleaned up successfully")
 
@@ -1082,4 +1082,3 @@ func (s *UnifiedJWTService) generateSecureRefreshToken() (string, error) {
 
 	return token, nil
 }
-

@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -436,4 +436,3 @@ func (r *QuestionImageRepository) CountByQuestionID(ctx context.Context, questio
 
 	return count, nil
 }
-

@@ -115,20 +115,20 @@ func (u *CloudinaryUploader) UploadImage(ctx context.Context, localPath string, 
 	// Choose upload method based on configuration
 	var result *UploadResult
 	var err error
-	
+
 	if u.useRealSDK && u.cld != nil {
 		result, err = u.uploadWithRealSDK(ctx, localPath, publicID)
 	} else {
 		result, err = u.simulateCloudinaryUpload(ctx, localPath, publicID)
 	}
-	
+
 	if err != nil {
 		// Classify error for retry logic
 		if u.isRetryableError(err) {
 			u.logger.WithError(err).Warn("Retryable Cloudinary upload error")
 			return nil, fmt.Errorf("retryable upload error: %w", err)
 		}
-		
+
 		u.logger.WithError(err).Error("Non-retryable Cloudinary upload error")
 		return nil, fmt.Errorf("upload failed: %w", err)
 	}
@@ -176,11 +176,11 @@ func (u *CloudinaryUploader) uploadWithRealSDK(ctx context.Context, localPath st
 	}
 
 	u.logger.WithFields(logrus.Fields{
-		"public_id":   result.FileID,
-		"secure_url":  result.WebViewLink,
-		"file_size":   uploadResult.Bytes,
-		"format":      uploadResult.Format,
-		"version":     uploadResult.Version,
+		"public_id":  result.FileID,
+		"secure_url": result.WebViewLink,
+		"file_size":  uploadResult.Bytes,
+		"format":     uploadResult.Format,
+		"version":    uploadResult.Version,
 	}).Info("Successfully uploaded to Cloudinary using real SDK")
 
 	return result, nil
@@ -251,12 +251,12 @@ func generateThumbnailURL(secureURL string) string {
 	if secureURL == "" {
 		return ""
 	}
-	
+
 	// Replace upload/ with upload/c_fill,h_200,w_200/ to add thumbnail transformation
 	if strings.Contains(secureURL, "/image/upload/") {
 		return strings.Replace(secureURL, "/image/upload/", "/image/upload/c_fill,h_200,w_200/", 1)
 	}
-	
+
 	// Fallback: add query parameters
 	return fmt.Sprintf("%s?w=200&h=200&c=fill", secureURL)
 }
@@ -264,19 +264,19 @@ func generateThumbnailURL(secureURL string) string {
 // DeleteImage deletes an image from Cloudinary
 func (u *CloudinaryUploader) DeleteImage(ctx context.Context, publicID string) error {
 	u.logger.WithField("public_id", publicID).Info("Deleting image from Cloudinary")
-	
+
 	if u.useRealSDK && u.cld != nil {
 		// Use real Cloudinary SDK to delete
 		destroyParams := uploader.DestroyParams{
 			PublicID:     publicID,
 			ResourceType: "image",
 		}
-		
+
 		destroyResult, err := u.cld.Upload.Destroy(ctx, destroyParams)
 		if err != nil {
 			return fmt.Errorf("failed to delete image from Cloudinary: %w", err)
 		}
-		
+
 		u.logger.WithFields(logrus.Fields{
 			"public_id": publicID,
 			"result":    destroyResult.Result,
@@ -286,6 +286,6 @@ func (u *CloudinaryUploader) DeleteImage(ctx context.Context, publicID string) e
 		time.Sleep(200 * time.Millisecond)
 		u.logger.WithField("public_id", publicID).Info("Image deleted successfully from Cloudinary (simulated)")
 	}
-	
+
 	return nil
 }

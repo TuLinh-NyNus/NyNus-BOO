@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 
 /**
  * Hook để handle client-side only rendering
@@ -74,3 +74,4 @@ export function logHydrationWarning(componentName: string, reason: string) {
     });
   }
 }
+

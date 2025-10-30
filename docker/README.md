@@ -1,173 +1,256 @@
-# 🐳 Docker Configuration Files
+# 🐳 Docker - NyNus Exam Bank System
 
-This directory contains all Docker-related configuration files for the Exam Bank System.
-
-## 📁 File Structure
-
-```
-docker/
-├── README.md                    # This file
-├── DOCKER_SETUP.md             # Docker setup guide
-├── backend.prod.Dockerfile      # Backend Go service (Production)
-├── frontend.prod.Dockerfile     # Frontend Next.js (Production)
-├── compose/                     # Docker Compose files
-│   ├── docker-compose.yml      # Development environment
-│   └── docker-compose.prod.yml # Production environment
-├── scripts/                     # Docker setup scripts
-│   └── setup-docker.ps1        # Advanced setup script
-└── database/                    # Database initialization
-    └── init.sql                 # PostgreSQL initialization
-```
-
-## 🔧 Dockerfile Descriptions
-
-### **backend.prod.Dockerfile** (Production)
-- **Base Image**: golang:1.23-alpine (builder) + alpine:latest (runtime)
-- **Build Type**: Multi-stage build for optimized size
-- **Ports**: 8080 (HTTP Gateway only)
-- **Features**:
-  - Go module caching
-  - Migration files included
-  - Minimal runtime image (~50MB)
-  - Non-root user for security
-  - Production environment variables
-
-### **frontend.prod.Dockerfile** (Production)
-- **Base Image**: node:20-alpine (multi-stage)
-- **Build Type**: Optimized production build
-- **Mode**: Production with standalone output
-- **Port**: 3000
-- **Features**:
-  - Minimal runtime image
-  - Static file optimization
-  - Non-root user security
-  - Standalone Next.js server
-
-
-
-## 🚀 Usage
-
-### Development Mode
-```bash
-# Quick start (recommended)
-.\docker-dev.ps1
-
-# Or use compose directly
-docker-compose -f docker/compose/docker-compose.yml up -d
-
-# Build specific service
-docker-compose -f docker/compose/docker-compose.yml build frontend
-```
-
-### Production Mode
-```bash
-# Quick start (recommended)
-.\docker-prod.ps1
-
-# Or use compose directly
-docker-compose -f docker/compose/docker-compose.prod.yml up -d
-
-# Build production frontend
-docker-compose -f docker/compose/docker-compose.prod.yml build frontend
-```
-
-### Individual Service Builds
-```bash
-# Backend only
-docker build -f docker/backend.Dockerfile -t exam-bank-backend .
-
-# Frontend development
-docker build -f docker/frontend.Dockerfile -t exam-bank-frontend-dev .
-
-# Frontend production
-docker build -f docker/frontend.prod.Dockerfile -t exam-bank-frontend-prod .
-```
-
-## 📊 Build Performance
-
-### **Actual Build Times (Tested 2025-01-19)**
-
-| Service | Mode | Build Time | Image Size |
-|---------|------|------------|------------|
-| Backend | Production | ~45s | ~50MB |
-| Frontend | Development | ~5m 38s | ~1.2GB |
-| Frontend | Production | ~8-10m | ~200MB |
-
-### **Build Optimization Notes**
-- Frontend dev build includes all devDependencies (~800MB node_modules)
-- Production build uses multi-stage to reduce final size
-- Backend uses CGO_ENABLED=0 for static binary
-- Alpine base images for minimal attack surface
-
-## 🔍 Troubleshooting
-
-### **Common Issues & Solutions**
-
-#### 1. **Frontend npm install fails**
-```bash
-# Solution: Use --legacy-peer-deps flag (already in Dockerfile)
-RUN npm install --legacy-peer-deps
-```
-
-#### 2. **Backend migration files not found**
-```bash
-# Ensure migration path is correct in Dockerfile
-COPY --from=builder /app/internal/database/migrations ./internal/database/migrations
-```
-
-#### 3. **Docker build context too large**
-```bash
-# Use .dockerignore to exclude unnecessary files
-# Check current context size:
-docker build --no-cache --progress=plain -f docker/frontend.Dockerfile .
-```
-
-#### 4. **Production build fails**
-```bash
-# Check Next.js configuration for standalone output
-# In next.config.js:
-module.exports = {
-  output: 'standalone'
-}
-```
-
-## 🔄 Migration from apps/ Dockerfiles
-
-### **Changes Made**
-1. **Moved** `apps/backend/Dockerfile` → `docker/backend.Dockerfile`
-2. **Moved** `apps/frontend/Dockerfile` → `docker/frontend.Dockerfile`  
-3. **Created** `docker/frontend.prod.Dockerfile` for production
-4. **Updated** `docker-compose.yml` to use new paths
-5. **Created** `docker-compose.prod.yml` for production deployment
-
-### **Import Path Updates**
-- All Dockerfile paths updated in docker-compose files
-- Build context remains at root level (.)
-- No changes needed in source code imports
-
-## 🎯 Best Practices
-
-1. **Use multi-stage builds** for production images
-2. **Leverage Docker layer caching** by copying package files first
-3. **Use .dockerignore** to reduce build context
-4. **Run as non-root user** in production
-5. **Include health checks** in docker-compose
-6. **Use environment variables** for configuration
-7. **Pin base image versions** for reproducibility
-
-## 📝 Environment Variables
-
-See `docker-compose.yml` and `docker-compose.prod.yml` for complete environment variable lists.
-
-### **Required for Production**
-- `DB_PASSWORD`: PostgreSQL password
-- `JWT_SECRET`: JWT signing secret
-- `NEXTAUTH_SECRET`: NextAuth.js secret
-- `NEXT_PUBLIC_API_URL`: Backend API URL
-- `NEXT_PUBLIC_GRPC_URL`: gRPC endpoint URL
+> **Hướng dẫn đơn giản để khởi động toàn bộ hệ thống bằng Docker**
 
 ---
 
-**Last Updated**: 2025-01-19  
+## ⚡ Khởi Động Nhanh (3 Bước)
+
+### 1️⃣ Cài Đặt Docker Desktop
+
+Download và cài đặt:
+- **Windows/Mac**: [Docker Desktop](https://www.docker.com/products/docker-desktop)
+- **Linux**: [Docker Engine](https://docs.docker.com/engine/install/)
+
+Kiểm tra cài đặt:
+```bash
+docker --version
+docker-compose --version
+```
+
+### 2️⃣ Khởi Động Services
+
+```bash
+# Từ thư mục gốc của project
+cd docker/compose
+docker-compose up -d
+```
+
+### 3️⃣ Truy Cập Ứng Dụng
+
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **Backend gRPC**: http://localhost:50051
+- **Database**: localhost:5432
+
+✅ **Hoàn thành!** Hệ thống đã sẵn sàng.
+
+---
+
+## 📋 Services
+
+| Service | Port | Mô Tả |
+|---------|------|-------|
+| **Frontend** | 3000 | Next.js 14 Web App |
+| **Backend** | 8080, 50051 | Go gRPC API Server |
+| **PostgreSQL** | 5432 | Database |
+| **Redis** | 6379 | Cache (dev only) |
+| **OpenSearch** | 9200 | Search Engine (dev only) |
+
+---
+
+## 🛠️ Quản Lý Services
+
+### Các Lệnh Cơ Bản
+
+```bash
+# Khởi động
+docker-compose up -d
+
+# Dừng
+docker-compose down
+
+# Xem logs
+docker-compose logs -f
+
+# Xem trạng thái
+docker-compose ps
+
+# Rebuild service
+docker-compose up -d --build [service-name]
+
+# Dừng và xóa data
+docker-compose down -v
+```
+
+### Logs Theo Service
+
+```bash
+# Frontend logs
+docker-compose logs -f frontend
+
+# Backend logs
+docker-compose logs -f backend
+
+# Database logs
+docker-compose logs -f postgres
+```
+
+### Rebuild Services
+
+```bash
+# Rebuild tất cả
+docker-compose up -d --build
+
+# Rebuild chỉ frontend
+docker-compose up -d --build frontend
+
+# Rebuild chỉ backend
+docker-compose up -d --build backend
+```
+
+---
+
+## 🔥 Hot-Reload (Development)
+
+**Frontend** tự động reload khi bạn sửa code:
+
+1. Sửa file React/TypeScript trong `apps/frontend/`
+2. Save file
+3. Browser tự động refresh trong 1-2 giây ✨
+
+**Backend** cần rebuild để apply changes:
+```bash
+docker-compose up -d --build backend
+```
+
+---
+
+## 🗂️ Cấu Trúc Thư Mục
+
+```
+docker/
+├── README.md              # ← Bạn đang ở đây
+├── compose/               # Docker Compose configs
+│   ├── docker-compose.yml
+│   ├── docker-compose.dev.yml
+│   ├── docker-compose.prod.yml
+│   └── QUICK_START.md
+├── build/                 # Dockerfiles
+│   ├── backend.dev.Dockerfile
+│   ├── backend.prod.Dockerfile
+│   ├── frontend.dev.Dockerfile
+│   └── README.md
+├── scripts/               # PowerShell scripts
+│   ├── docker-dev.ps1
+│   ├── docker-prod.ps1
+│   └── README.md
+├── init/                  # Database initialization
+│   └── init.sql
+├── opensearch/            # OpenSearch config
+└── docs/                  # Advanced documentation
+    ├── FAQ.md
+    └── CI_CD_OPTIMIZATION.md
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Services không khởi động?
+
+```bash
+# Xem logs để tìm lỗi
+docker-compose logs
+
+# Kiểm tra Docker Desktop đã chạy chưa
+docker info
+```
+
+### Port đã được sử dụng?
+
+```bash
+# Kiểm tra port
+netstat -ano | findstr :3000
+netstat -ano | findstr :8080
+
+# Sửa port trong .env file hoặc docker-compose.yml
+```
+
+### Database connection failed?
+
+```bash
+# Kiểm tra database đã healthy
+docker-compose ps postgres
+
+# Xem logs database
+docker-compose logs postgres
+
+# Restart database
+docker-compose restart postgres
+```
+
+### Frontend compile lỗi?
+
+```bash
+# Rebuild frontend với clean cache
+docker-compose down
+docker-compose up -d --build frontend
+```
+
+### Muốn reset toàn bộ?
+
+```bash
+# Xóa tất cả containers, volumes, và rebuild
+docker-compose down -v
+docker-compose up -d --build
+```
+
+---
+
+## 📚 Tài Liệu Chi Tiết
+
+### Cho Developers
+- **[Quick Start](./compose/QUICK_START.md)** - 3 bước khởi động nhanh
+- **[Compose Guide](./compose/README.md)** - Docker Compose chi tiết
+- **[Dockerfile Guide](./build/README.md)** - Dockerfiles chi tiết
+- **[Scripts Guide](./scripts/README.md)** - PowerShell scripts
+
+### Cho DevOps
+- **[FAQ](./docs/FAQ.md)** - Câu hỏi thường gặp
+- **[CI/CD Optimization](./docs/CI_CD_OPTIMIZATION.md)** - Tối ưu build times
+- **[Production Deploy](./compose/docker-compose.prod.yml)** - Production setup
+
+---
+
+## 🔒 Production Deployment
+
+Để deploy production:
+
+```bash
+# 1. Set environment variables
+export DB_PASSWORD="your-secure-password"
+export JWT_SECRET="your-jwt-secret"
+export NEXTAUTH_SECRET="your-nextauth-secret"
+
+# 2. Start production services
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# 3. Monitor
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml logs -f
+```
+
+⚠️ **Lưu ý**: Đừng commit secrets vào git!
+
+---
+
+## 💡 Tips
+
+- **Lần đầu khởi động**: Frontend build có thể mất 3-5 phút
+- **Hot-reload**: Chỉ hoạt động cho frontend trong dev mode
+- **Cleanup**: Chạy `docker system prune` định kỳ để dọn dẹp
+- **Performance**: Docker Desktop nên có ít nhất 4GB RAM (khuyến nghị 8GB)
+
+---
+
+## 📞 Cần Giúp Đỡ?
+
+1. **Lỗi phổ biến**: Xem [FAQ](./docs/FAQ.md)
+2. **Chi tiết kỹ thuật**: Xem [Compose Guide](./compose/README.md)
+3. **Vấn đề build**: Xem [Dockerfile Guide](./build/README.md)
+
+---
+
+**Last Updated**: 2025-01-29  
 **Docker Version**: 24.0+  
 **Docker Compose Version**: 2.0+

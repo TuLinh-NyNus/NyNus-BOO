@@ -162,7 +162,7 @@ func (s *SearchService) Suggest(ctx context.Context, text string, size int) ([]S
 					"field": "suggest",
 					"size":  size,
 					"contexts": map[string]interface{}{
-						"subject": []string{"toán", "lý", "hóa", "sinh", "văn"},
+						"subject": []string{"toÃ¡n", "lÃ½", "hÃ³a", "sinh", "vÄƒn"},
 					},
 				},
 			},

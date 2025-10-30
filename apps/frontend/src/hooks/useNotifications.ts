@@ -11,7 +11,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/contexts/auth-context-grpc';
 import { NotificationService, BackendNotification } from '@/services/grpc/notification.service';
-import { logger } from '@/lib/utils/logger';
+import { logger } from '@/lib/logger';
 import { notificationCoordinator } from '@/lib/services/notification-coordinator';
 
 // ===== TYPES =====
@@ -363,3 +363,4 @@ export function useNotifications(): NotificationState & NotificationActions {
 
 // ===== EXPORT TYPES =====
 // Types are already exported above in the interface declarations
+

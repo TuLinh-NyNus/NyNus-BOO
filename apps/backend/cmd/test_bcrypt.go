@@ -17,8 +17,8 @@ func main() {
 	// Test bcrypt compare
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
-		log.Fatalf("❌ Password does NOT match: %v", err)
+		log.Fatalf("âŒ Password does NOT match: %v", err)
 	}
 
-	fmt.Println("✅ Password matches!")
+	fmt.Println("âœ… Password matches!")
 }

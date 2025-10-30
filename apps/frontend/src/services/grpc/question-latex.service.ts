@@ -384,7 +384,7 @@ export const QuestionLatexService = {
         created_count: response.getCreatedCount(),
         updated_count: response.getUpdatedCount(),
         skipped_count: response.getSkippedCount(),
-        errors: response.getErrorsList().map((err) => ({
+        errors: response.getErrorsList().map((err: any) => ({
           row_number: err.getRowNumber(),
           field_name: err.getFieldName(),
           error_message: err.getErrorMessage(),

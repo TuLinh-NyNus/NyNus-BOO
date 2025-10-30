@@ -2110,4 +2110,3 @@ func (r *ExamRepository) Search(ctx context.Context, searchCriteria *interfaces.
 	// TODO: Implement proper search functionality
 	return nil, 0, fmt.Errorf("Search not implemented yet")
 }
-

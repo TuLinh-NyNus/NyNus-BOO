@@ -1,4 +1,4 @@
-﻿package contact
+package contact
 
 import (
 	"fmt"
@@ -214,4 +214,3 @@ type ContactFormRequest struct {
 	IPAddress string  `json:"ip_address,omitempty"`
 	UserAgent string  `json:"user_agent,omitempty"`
 }
-

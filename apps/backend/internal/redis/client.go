@@ -1,4 +1,4 @@
-﻿package redis
+package redis
 
 import (
 	"context"
@@ -196,4 +196,3 @@ func (c *Client) Health(ctx context.Context) map[string]interface{} {
 
 	return health
 }
-

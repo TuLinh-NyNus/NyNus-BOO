@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"exam-bank-system/apps/backend/internal/repository"
 	"exam-bank-system/apps/backend/internal/middleware"
+	"exam-bank-system/apps/backend/internal/repository"
 	"exam-bank-system/apps/backend/pkg/proto/common"
 	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -46,7 +46,9 @@ type mockResourceAccessRepo struct {
 	accesses []*repository.ResourceAccess
 }
 
-func (m *mockResourceAccessRepo) Create(ctx context.Context, access *repository.ResourceAccess) error { return nil }
+func (m *mockResourceAccessRepo) Create(ctx context.Context, access *repository.ResourceAccess) error {
+	return nil
+}
 func (m *mockResourceAccessRepo) GetByID(ctx context.Context, id string) (*repository.ResourceAccess, error) {
 	if len(m.accesses) > 0 {
 		return m.accesses[0], nil
@@ -104,7 +106,9 @@ func (m *mockUserRepo) GetByID(ctx context.Context, id string) (*repository.User
 		UpdatedAt:     time.Now(),
 	}, nil
 }
-func (m *mockUserRepo) GetByEmail(ctx context.Context, email string) (*repository.User, error)  { return nil, nil }
+func (m *mockUserRepo) GetByEmail(ctx context.Context, email string) (*repository.User, error) {
+	return nil, nil
+}
 func (m *mockUserRepo) GetByGoogleID(ctx context.Context, googleID string) (*repository.User, error) {
 	return nil, nil
 }
@@ -115,7 +119,7 @@ func (m *mockUserRepo) GetAll(ctx context.Context) ([]*repository.User, error) {
 func (m *mockUserRepo) GetUsersWithFilters(ctx context.Context, filters repository.UserFilters, offset, limit int) ([]*repository.User, int, error) {
 	return nil, 0, nil
 }
-func (m *mockUserRepo) Update(ctx context.Context, user *repository.User) error { return nil }
+func (m *mockUserRepo) Update(ctx context.Context, user *repository.User) error           { return nil }
 func (m *mockUserRepo) UpdateGoogleID(ctx context.Context, userID, googleID string) error { return nil }
 func (m *mockUserRepo) UpdateAvatar(ctx context.Context, userID, avatar string) error     { return nil }
 func (m *mockUserRepo) UpdateLastLogin(ctx context.Context, userID, ipAddress string) error {
@@ -133,21 +137,29 @@ func (m *mockUserRepo) CreateEmailVerificationToken(ctx context.Context, token *
 func (m *mockUserRepo) GetEmailVerificationToken(ctx context.Context, token string) (*repository.EmailVerificationToken, error) {
 	return nil, nil
 }
-func (m *mockUserRepo) MarkEmailVerificationTokenUsed(ctx context.Context, token string) error { return nil }
-func (m *mockUserRepo) DeleteExpiredEmailVerificationTokens(ctx context.Context) error         { return nil }
+func (m *mockUserRepo) MarkEmailVerificationTokenUsed(ctx context.Context, token string) error {
+	return nil
+}
+func (m *mockUserRepo) DeleteExpiredEmailVerificationTokens(ctx context.Context) error { return nil }
 func (m *mockUserRepo) CreatePasswordResetToken(ctx context.Context, token *repository.PasswordResetToken) error {
 	return nil
 }
 func (m *mockUserRepo) GetPasswordResetToken(ctx context.Context, token string) (*repository.PasswordResetToken, error) {
 	return nil, nil
 }
-func (m *mockUserRepo) MarkPasswordResetTokenUsed(ctx context.Context, token string) error { return nil }
-func (m *mockUserRepo) DeleteExpiredPasswordResetTokens(ctx context.Context) error         { return nil }
+func (m *mockUserRepo) MarkPasswordResetTokenUsed(ctx context.Context, token string) error {
+	return nil
+}
+func (m *mockUserRepo) DeleteExpiredPasswordResetTokens(ctx context.Context) error { return nil }
 
 type mockSessionRepo struct{}
 
-func (m *mockSessionRepo) CreateSession(ctx context.Context, session *repository.Session) error { return nil }
-func (m *mockSessionRepo) GetByID(ctx context.Context, id string) (*repository.Session, error)  { return nil, nil }
+func (m *mockSessionRepo) CreateSession(ctx context.Context, session *repository.Session) error {
+	return nil
+}
+func (m *mockSessionRepo) GetByID(ctx context.Context, id string) (*repository.Session, error) {
+	return nil, nil
+}
 func (m *mockSessionRepo) GetByToken(ctx context.Context, token string) (*repository.Session, error) {
 	return nil, nil
 }
@@ -157,10 +169,12 @@ func (m *mockSessionRepo) GetUserSessions(ctx context.Context, userID string) ([
 func (m *mockSessionRepo) GetActiveSessions(ctx context.Context, userID string) ([]*repository.Session, error) {
 	return nil, nil
 }
-func (m *mockSessionRepo) GetExpiredSessions(ctx context.Context) ([]*repository.Session, error) { return nil, nil }
-func (m *mockSessionRepo) UpdateLastActivity(ctx context.Context, sessionID string) error         { return nil }
-func (m *mockSessionRepo) TerminateSession(ctx context.Context, sessionID string) error           { return nil }
-func (m *mockSessionRepo) DeleteSession(ctx context.Context, sessionID string) error              { return nil }
+func (m *mockSessionRepo) GetExpiredSessions(ctx context.Context) ([]*repository.Session, error) {
+	return nil, nil
+}
+func (m *mockSessionRepo) UpdateLastActivity(ctx context.Context, sessionID string) error { return nil }
+func (m *mockSessionRepo) TerminateSession(ctx context.Context, sessionID string) error   { return nil }
+func (m *mockSessionRepo) DeleteSession(ctx context.Context, sessionID string) error      { return nil }
 func (m *mockSessionRepo) GetAllActiveSessions(ctx context.Context, limit, offset int) ([]*repository.Session, error) {
 	return nil, nil
 }
@@ -185,7 +199,9 @@ func (m *mockNotificationRepo) GetNotificationStats(ctx context.Context) (*repos
 }
 
 // Implement all methods to satisfy repository.NotificationRepository
-func (m *mockNotificationRepo) Create(ctx context.Context, n *repository.Notification) error { return nil }
+func (m *mockNotificationRepo) Create(ctx context.Context, n *repository.Notification) error {
+	return nil
+}
 func (m *mockNotificationRepo) GetByID(ctx context.Context, id string) (*repository.Notification, error) {
 	return &repository.Notification{}, nil
 }
@@ -195,12 +211,17 @@ func (m *mockNotificationRepo) GetByUserID(ctx context.Context, userID string, l
 func (m *mockNotificationRepo) GetUnreadByUserID(ctx context.Context, userID string) ([]*repository.Notification, error) {
 	return nil, nil
 }
-func (m *mockNotificationRepo) MarkAsRead(ctx context.Context, id string) error { return nil }
+func (m *mockNotificationRepo) MarkAsRead(ctx context.Context, id string) error        { return nil }
 func (m *mockNotificationRepo) MarkAllAsRead(ctx context.Context, userID string) error { return nil }
-func (m *mockNotificationRepo) GetUnreadCount(ctx context.Context, userID string) (int, error) { return 0, nil }
+func (m *mockNotificationRepo) GetUnreadCount(ctx context.Context, userID string) (int, error) {
+	return 0, nil
+}
 func (m *mockNotificationRepo) Delete(ctx context.Context, id string) error { return nil }
-func (m *mockNotificationRepo) DeleteExpired(ctx context.Context) error { return nil }
-func (m *mockNotificationRepo) DeleteAllByUserID(ctx context.Context, userID string) error { return nil }
+func (m *mockNotificationRepo) DeleteExpired(ctx context.Context) error     { return nil }
+func (m *mockNotificationRepo) DeleteAllByUserID(ctx context.Context, userID string) error {
+	return nil
+}
+
 // --- Tests ---
 
 func newAdminServerForTest(auditLogs []*repository.AuditLog, accesses []*repository.ResourceAccess) *AdminServiceServer {
@@ -253,15 +274,15 @@ func TestGetAuditLogs_TimestampRoundTrip(t *testing.T) {
 func TestGetResourceAccess_TimestampRoundTrip(t *testing.T) {
 	now := time.Now().UTC().Truncate(time.Second)
 	access := &repository.ResourceAccess{
-		ID:           "01ARZ3NDEKTSV4RRFFQ69G5FAA",
-		UserID:       "01ARZ3NDEKTSV4RRFFQ69G5FAB",
-		ResourceType: "PDF",
-		ResourceID:   "RSC-1",
-		Action:       "DOWNLOAD",
-		IPAddress:    "127.0.0.1",
+		ID:            "01ARZ3NDEKTSV4RRFFQ69G5FAA",
+		UserID:        "01ARZ3NDEKTSV4RRFFQ69G5FAB",
+		ResourceType:  "PDF",
+		ResourceID:    "RSC-1",
+		Action:        "DOWNLOAD",
+		IPAddress:     "127.0.0.1",
 		IsValidAccess: true,
-		RiskScore:    5,
-		CreatedAt:    now,
+		RiskScore:     5,
+		CreatedAt:     now,
 	}
 	srv := newAdminServerForTest(nil, []*repository.ResourceAccess{access})
 
@@ -359,7 +380,9 @@ func (m *mockNotificationRepoData) GetNotificationStats(ctx context.Context) (*r
 }
 
 // Satisfy remaining methods of repository.NotificationRepository
-func (m *mockNotificationRepoData) Create(ctx context.Context, n *repository.Notification) error { return nil }
+func (m *mockNotificationRepoData) Create(ctx context.Context, n *repository.Notification) error {
+	return nil
+}
 func (m *mockNotificationRepoData) GetByID(ctx context.Context, id string) (*repository.Notification, error) {
 	return &repository.Notification{}, nil
 }
@@ -369,12 +392,18 @@ func (m *mockNotificationRepoData) GetByUserID(ctx context.Context, userID strin
 func (m *mockNotificationRepoData) GetUnreadByUserID(ctx context.Context, userID string) ([]*repository.Notification, error) {
 	return nil, nil
 }
-func (m *mockNotificationRepoData) MarkAsRead(ctx context.Context, id string) error               { return nil }
-func (m *mockNotificationRepoData) MarkAllAsRead(ctx context.Context, userID string) error       { return nil }
-func (m *mockNotificationRepoData) GetUnreadCount(ctx context.Context, userID string) (int, error) { return m.unread, nil }
-func (m *mockNotificationRepoData) Delete(ctx context.Context, id string) error                  { return nil }
-func (m *mockNotificationRepoData) DeleteExpired(ctx context.Context) error                      { return nil }
-func (m *mockNotificationRepoData) DeleteAllByUserID(ctx context.Context, userID string) error   { return nil }
+func (m *mockNotificationRepoData) MarkAsRead(ctx context.Context, id string) error { return nil }
+func (m *mockNotificationRepoData) MarkAllAsRead(ctx context.Context, userID string) error {
+	return nil
+}
+func (m *mockNotificationRepoData) GetUnreadCount(ctx context.Context, userID string) (int, error) {
+	return m.unread, nil
+}
+func (m *mockNotificationRepoData) Delete(ctx context.Context, id string) error { return nil }
+func (m *mockNotificationRepoData) DeleteExpired(ctx context.Context) error     { return nil }
+func (m *mockNotificationRepoData) DeleteAllByUserID(ctx context.Context, userID string) error {
+	return nil
+}
 
 // ---- New tests for additional flows ----
 

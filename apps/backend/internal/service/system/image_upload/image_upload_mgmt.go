@@ -1,4 +1,4 @@
-﻿package image_upload
+package image_upload
 
 import (
 	"context"
@@ -510,4 +510,3 @@ func (m *ImageUploadMgmt) CleanupLocalCache(ctx context.Context, cacheDir string
 
 	return nil
 }
-

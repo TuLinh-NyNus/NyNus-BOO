@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -160,4 +160,3 @@ func (r *QuestionTagRepository) CreateMultiple(ctx context.Context, db database.
 
 	return nil
 }
-

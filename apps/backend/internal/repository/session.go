@@ -1,4 +1,4 @@
-﻿package repository
+package repository
 
 import (
 	"context"
@@ -223,11 +223,11 @@ func (r *sessionRepository) CreateSession(ctx context.Context, session *Session)
 	session.CreatedAt = time.Now()
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":   "CreateSession",
-		"session_id":  session.ID,
-		"user_id":     session.UserID,
-		"ip_address":  session.IPAddress,
-		"expires_at":  session.ExpiresAt,
+		"operation":  "CreateSession",
+		"session_id": session.ID,
+		"user_id":    session.UserID,
+		"ip_address": session.IPAddress,
+		"expires_at": session.ExpiresAt,
 	}).Info("Creating new session")
 
 	query := `
@@ -452,9 +452,9 @@ func (r *sessionRepository) GetUserSessions(ctx context.Context, userID string) 
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":      "GetUserSessions",
-		"user_id":        userID,
-		"session_count":  len(sessions),
+		"operation":     "GetUserSessions",
+		"user_id":       userID,
+		"session_count": len(sessions),
 	}).Debug("User sessions fetched successfully")
 
 	return sessions, nil
@@ -521,9 +521,9 @@ func (r *sessionRepository) GetActiveSessions(ctx context.Context, userID string
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":      "GetActiveSessions",
-		"user_id":        userID,
-		"session_count":  len(sessions),
+		"operation":     "GetActiveSessions",
+		"user_id":       userID,
+		"session_count": len(sessions),
 	}).Debug("Active sessions fetched successfully")
 
 	return sessions, nil
@@ -577,8 +577,8 @@ func (r *sessionRepository) GetExpiredSessions(ctx context.Context) ([]*Session,
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":      "GetExpiredSessions",
-		"session_count":  len(sessions),
+		"operation":     "GetExpiredSessions",
+		"session_count": len(sessions),
 	}).Info("Expired sessions fetched successfully")
 
 	return sessions, nil
@@ -890,4 +890,3 @@ func (r *sessionRepository) SearchSessions(ctx context.Context, query string, li
 
 	return sessions, nil
 }
-

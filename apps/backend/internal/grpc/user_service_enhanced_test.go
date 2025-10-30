@@ -92,7 +92,7 @@ func (m *MockEmailService) SendVerificationEmail(email, userName, token string) 
 	return args.Error(0)
 }
 
-// Test setup helper vá»›i IJWTService interface
+// Test setup helper vÃ¡Â»â€ºi IJWTService interface
 func createTestEnhancedUserService(t *testing.T) (*EnhancedUserServiceServer, *MockOAuthService, *MockSessionService, *MockUserRepository, *MockEmailService) {
 	mockOAuth := &MockOAuthService{}
 	mockSession := &MockSessionService{}
@@ -103,7 +103,7 @@ func createTestEnhancedUserService(t *testing.T) (*EnhancedUserServiceServer, *M
 	testLogger := logrus.New()
 	testLogger.SetLevel(logrus.ErrorLevel) // Suppress logs during tests
 
-	// Create UnifiedJWTService vá»›i logger
+	// Create UnifiedJWTService vÃ¡Â»â€ºi logger
 	jwtService, err := auth.NewUnifiedJWTService("test-secret", nil, testLogger)
 	require.NoError(t, err, "Failed to create UnifiedJWTService for testing")
 

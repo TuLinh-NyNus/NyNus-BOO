@@ -210,19 +210,19 @@ func (r *auditLogRepository) Create(ctx context.Context, log *AuditLog) error {
 // isSecurityEvent checks if an action is a security-related event
 func isSecurityEvent(action string) bool {
 	securityActions := map[string]bool{
-		"LOGIN":                   true,
-		"LOGOUT":                  true,
-		"LOGIN_FAILED":            true,
-		"PASSWORD_RESET":          true,
-		"PASSWORD_CHANGE":         true,
-		"PERMISSION_DENIED":       true,
-		"ACCOUNT_LOCKED":          true,
-		"SUSPICIOUS_ACTIVITY":     true,
-		"SESSION_HIJACK_ATTEMPT":  true,
-		"TERMINATE_SESSION":       true,
-		"TERMINATE_ALL_SESSIONS":  true,
-		"UPDATE_USER_ROLE":        true,
-		"UPDATE_USER_STATUS":      true,
+		"LOGIN":                  true,
+		"LOGOUT":                 true,
+		"LOGIN_FAILED":           true,
+		"PASSWORD_RESET":         true,
+		"PASSWORD_CHANGE":        true,
+		"PERMISSION_DENIED":      true,
+		"ACCOUNT_LOCKED":         true,
+		"SUSPICIOUS_ACTIVITY":    true,
+		"SESSION_HIJACK_ATTEMPT": true,
+		"TERMINATE_SESSION":      true,
+		"TERMINATE_ALL_SESSIONS": true,
+		"UPDATE_USER_ROLE":       true,
+		"UPDATE_USER_STATUS":     true,
 	}
 	return securityActions[action]
 }
@@ -347,9 +347,9 @@ func (r *auditLogRepository) GetByUserID(ctx context.Context, userID string, lim
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":  "GetByUserID",
-		"user_id":    userID,
-		"log_count":  len(logs),
+		"operation": "GetByUserID",
+		"user_id":   userID,
+		"log_count": len(logs),
 	}).Debug("Audit logs fetched successfully")
 
 	return logs, nil
@@ -408,9 +408,9 @@ func (r *auditLogRepository) GetByResource(ctx context.Context, resource, resour
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":  "GetByResource",
-		"resource":   resource,
-		"log_count":  len(logs),
+		"operation": "GetByResource",
+		"resource":  resource,
+		"log_count": len(logs),
 	}).Debug("Audit logs fetched successfully")
 
 	return logs, nil
@@ -469,8 +469,8 @@ func (r *auditLogRepository) GetByDateRange(ctx context.Context, startDate, endD
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":  "GetByDateRange",
-		"log_count":  len(logs),
+		"operation": "GetByDateRange",
+		"log_count": len(logs),
 	}).Debug("Audit logs fetched successfully")
 
 	return logs, nil
@@ -519,8 +519,8 @@ func (r *auditLogRepository) GetFailedActions(ctx context.Context, limit, offset
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":  "GetFailedActions",
-		"log_count":  len(logs),
+		"operation": "GetFailedActions",
+		"log_count": len(logs),
 	}).Warn("Failed action audit logs fetched successfully")
 
 	return logs, nil
@@ -571,8 +571,8 @@ func (r *auditLogRepository) GetSecurityEvents(ctx context.Context, limit, offse
 	}
 
 	r.logger.WithFields(logrus.Fields{
-		"operation":  "GetSecurityEvents",
-		"log_count":  len(logs),
+		"operation": "GetSecurityEvents",
+		"log_count": len(logs),
 	}).Warn("Security event audit logs fetched successfully")
 
 	return logs, nil

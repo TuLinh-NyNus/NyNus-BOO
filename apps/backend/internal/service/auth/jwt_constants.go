@@ -3,42 +3,42 @@ package auth
 import "time"
 
 // JWT Token Configuration Constants
-// Định nghĩa các hằng số cho cấu hình JWT tokens
+// Äá»‹nh nghÄ©a cÃ¡c háº±ng sá»‘ cho cáº¥u hÃ¬nh JWT tokens
 
 const (
-	// AccessTokenExpiry là thời gian hết hạn của access token (60 phút)
-	// Access token có thời gian ngắn để giảm thiểu rủi ro nếu bị đánh cắp
-	// ✅ INCREASED: From 15 minutes to 60 minutes to reduce token expiry errors
+	// AccessTokenExpiry lÃ  thá»i gian háº¿t háº¡n cá»§a access token (60 phÃºt)
+	// Access token cÃ³ thá»i gian ngáº¯n Ä‘á»ƒ giáº£m thiá»ƒu rá»§i ro náº¿u bá»‹ Ä‘Ã¡nh cáº¯p
+	// âœ… INCREASED: From 15 minutes to 60 minutes to reduce token expiry errors
 	AccessTokenExpiry = 60 * time.Minute
 
-	// RefreshTokenExpiry là thời gian hết hạn của refresh token (7 ngày)
-	// Refresh token có thời gian dài hơn để user không phải đăng nhập lại thường xuyên
+	// RefreshTokenExpiry lÃ  thá»i gian háº¿t háº¡n cá»§a refresh token (7 ngÃ y)
+	// Refresh token cÃ³ thá»i gian dÃ i hÆ¡n Ä‘á»ƒ user khÃ´ng pháº£i Ä‘Äƒng nháº­p láº¡i thÆ°á»ng xuyÃªn
 	RefreshTokenExpiry = 7 * 24 * time.Hour
 
-	// TokenIssuer là tên issuer cho JWT tokens
-	// Được sử dụng để xác định nguồn gốc của token
+	// TokenIssuer lÃ  tÃªn issuer cho JWT tokens
+	// ÄÆ°á»£c sá»­ dá»¥ng Ä‘á»ƒ xÃ¡c Ä‘á»‹nh nguá»“n gá»‘c cá»§a token
 	TokenIssuer = "exam-bank-system"
 
-	// SecureRandomTokenSize là kích thước của secure random token (32 bytes = 256 bits)
-	// Đủ lớn để đảm bảo tính ngẫu nhiên và bảo mật
+	// SecureRandomTokenSize lÃ  kÃ­ch thÆ°á»›c cá»§a secure random token (32 bytes = 256 bits)
+	// Äá»§ lá»›n Ä‘á»ƒ Ä‘áº£m báº£o tÃ­nh ngáº«u nhiÃªn vÃ  báº£o máº­t
 	SecureRandomTokenSize = 32
 )
 
 // User Status Constants
-// Định nghĩa các trạng thái của user account (duplicate from grpc/constants.go for service layer)
+// Äá»‹nh nghÄ©a cÃ¡c tráº¡ng thÃ¡i cá»§a user account (duplicate from grpc/constants.go for service layer)
 const (
-	// UserStatusActive - Tài khoản đang hoạt động bình thường
+	// UserStatusActive - TÃ i khoáº£n Ä‘ang hoáº¡t Ä‘á»™ng bÃ¬nh thÆ°á»ng
 	UserStatusActive = "ACTIVE"
 
-	// UserStatusInactive - Tài khoản chưa được kích hoạt
+	// UserStatusInactive - TÃ i khoáº£n chÆ°a Ä‘Æ°á»£c kÃ­ch hoáº¡t
 	UserStatusInactive = "INACTIVE"
 
-	// UserStatusSuspended - Tài khoản bị tạm ngưng
+	// UserStatusSuspended - TÃ i khoáº£n bá»‹ táº¡m ngÆ°ng
 	UserStatusSuspended = "SUSPENDED"
 )
 
 // JWT Error Messages
-// Định nghĩa các thông báo lỗi chuẩn cho JWT operations
+// Äá»‹nh nghÄ©a cÃ¡c thÃ´ng bÃ¡o lá»—i chuáº©n cho JWT operations
 const (
 	ErrAccessTokenGenerationFailed  = "failed to generate access token: %w"
 	ErrRefreshTokenGenerationFailed = "failed to generate refresh token: %w"
@@ -57,12 +57,12 @@ const (
 )
 
 // JWT Success Messages
-// Định nghĩa các thông báo thành công chuẩn
+// Äá»‹nh nghÄ©a cÃ¡c thÃ´ng bÃ¡o thÃ nh cÃ´ng chuáº©n
 const (
-	MsgRefreshTokenStored      = "[JWT] ✅ Refresh token stored in database with family %s for user %s\n"
-	MsgRefreshTokenRotated     = "[JWT] ✅ Token rotated successfully for user %s (family: %s)\n"
-	MsgTokenReuseDetected      = "[SECURITY] 🚨 Token reuse detected for user %s - revoking entire token family %s\n"
-	MsgUserInactive            = "[JWT] ⚠️  User %s is inactive - rejecting token refresh\n"
-	MsgTokenValidationFailed   = "[JWT] ❌ Refresh token validation failed: %v\n"
-	MsgRefreshTokenRepoWarning = "[JWT] ⚠️  Warning: Refresh token repository not available - token not stored in database\n"
+	MsgRefreshTokenStored      = "[JWT] âœ… Refresh token stored in database with family %s for user %s\n"
+	MsgRefreshTokenRotated     = "[JWT] âœ… Token rotated successfully for user %s (family: %s)\n"
+	MsgTokenReuseDetected      = "[SECURITY] ðŸš¨ Token reuse detected for user %s - revoking entire token family %s\n"
+	MsgUserInactive            = "[JWT] âš ï¸  User %s is inactive - rejecting token refresh\n"
+	MsgTokenValidationFailed   = "[JWT] âŒ Refresh token validation failed: %v\n"
+	MsgRefreshTokenRepoWarning = "[JWT] âš ï¸  Warning: Refresh token repository not available - token not stored in database\n"
 )
