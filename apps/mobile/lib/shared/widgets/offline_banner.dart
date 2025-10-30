@@ -16,7 +16,7 @@ class OfflineBanner extends StatefulWidget {
 class _OfflineBannerState extends State<OfflineBanner>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
+  late Animation<double> _slideAnimation;
   bool _isOffline = false;
   bool _wasOffline = false;
 
@@ -28,15 +28,13 @@ class _OfflineBannerState extends State<OfflineBanner>
       vsync: this,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, -1.0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _slideAnimation = Tween<double>(
+      begin: -1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
 
     _checkConnectivity();
     _listenToConnectivityChanges();
@@ -149,7 +147,7 @@ class ConnectivityService {
   ConnectivityService._internal();
 
   bool _isOnline = true;
-  final List<void Function(bool)> _listeners = [];
+  final List<Function(bool)> _listeners = [];
 
   bool get isOnline => _isOnline;
 
@@ -158,11 +156,11 @@ class ConnectivityService {
     Connectivity().onConnectivityChanged.listen(_updateConnectionStatus);
   }
 
-  void addListener(void Function(bool) listener) {
+  void addListener(Function(bool) listener) {
     _listeners.add(listener);
   }
 
-  void removeListener(void Function(bool) listener) {
+  void removeListener(Function(bool) listener) {
     _listeners.remove(listener);
   }
 
@@ -173,6 +171,7 @@ class ConnectivityService {
 
   void _updateConnectionStatus(ConnectivityResult result) {
     final isOnline = result != ConnectivityResult.none;
+    
     if (isOnline != _isOnline) {
       _isOnline = isOnline;
       for (final listener in _listeners) {
@@ -236,5 +235,4 @@ class OfflineMessage extends StatelessWidget {
     );
   }
 }
-
 

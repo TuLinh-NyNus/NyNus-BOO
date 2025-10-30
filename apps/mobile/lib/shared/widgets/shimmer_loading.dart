@@ -339,6 +339,3 @@ class ListItemShimmer extends StatelessWidget {
   }
 }
 
-
-
-

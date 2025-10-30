@@ -342,6 +342,3 @@ class NetworkErrorState extends StatelessWidget {
   }
 }
 
-
-
-

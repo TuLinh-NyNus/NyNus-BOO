@@ -216,6 +216,3 @@ class ProfileHeader extends StatelessWidget {
   }
 }
 
-
-
-

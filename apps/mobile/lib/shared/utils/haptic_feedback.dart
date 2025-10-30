@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class HapticFeedbackUtil {
@@ -73,6 +72,48 @@ class HapticFeedbackUtil {
   }
 }
 
+// Extension on common widgets for easy haptic feedback
+extension HapticFeedbackExtension on Widget {
+  Widget withHapticFeedback({
+    VoidCallback? onTap,
+    HapticFeedbackType type = HapticFeedbackType.light,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        _triggerHaptic(type);
+        onTap?.call();
+      },
+      child: this,
+    );
+  }
+
+  void _triggerHaptic(HapticFeedbackType type) {
+    switch (type) {
+      case HapticFeedbackType.light:
+        HapticFeedbackUtil.lightImpact();
+        break;
+      case HapticFeedbackType.medium:
+        HapticFeedbackUtil.mediumImpact();
+        break;
+      case HapticFeedbackType.heavy:
+        HapticFeedbackUtil.heavyImpact();
+        break;
+      case HapticFeedbackType.selection:
+        HapticFeedbackUtil.selectionClick();
+        break;
+      case HapticFeedbackType.success:
+        HapticFeedbackUtil.success();
+        break;
+      case HapticFeedbackType.error:
+        HapticFeedbackUtil.error();
+        break;
+      case HapticFeedbackType.warning:
+        HapticFeedbackUtil.warning();
+        break;
+    }
+  }
+}
+
 enum HapticFeedbackType {
   light,
   medium,
@@ -119,5 +160,4 @@ mixin HapticFeedbackMixin {
   void onLongPress() => triggerHaptic(HapticFeedbackType.medium);
   void onDelete() => triggerHaptic(HapticFeedbackType.heavy);
 }
-
 

@@ -1,10 +1,8 @@
 import 'package:grpc/grpc.dart';
 import 'package:mobile/core/network/grpc_client.dart';
-import 'package:mobile/core/utils/logger.dart';
 import 'package:mobile/features/auth/data/models/user_model.dart';
-import 'package:mobile/features/auth/domain/entities/user.dart';
-import 'package:mobile/generated/proto/v1/user.pbgrpc.dart' as pb;
-import 'package:mobile/generated/proto/common/common.pb.dart' as common;
+// TODO: Uncomment after proto generation
+// import 'package:mobile/generated/proto/v1/user.pbgrpc.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> login({
@@ -23,6 +21,10 @@ abstract class AuthRemoteDataSource {
     required String lastName,
   });
   
+  Future<void> logout({
+    required String token,
+  });
+  
   Future<Map<String, dynamic>> refreshToken({
     required String refreshToken,
   });
@@ -33,11 +35,11 @@ abstract class AuthRemoteDataSource {
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  late final pb.UserServiceClient _client;
+  // TODO: Uncomment after proto generation
+  // late final UserServiceClient _client;
   
   AuthRemoteDataSourceImpl() {
-    _client = pb.UserServiceClient(GrpcClientConfig.channel);
-    AppLogger.info('AuthRemoteDataSource initialized with gRPC client');
+    // _client = UserServiceClient(GrpcClientConfig.channel);
   }
   
   @override
@@ -45,24 +47,36 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String email,
     required String password,
   }) async {
-    try {
-      AppLogger.info('Attempting login for email: $email');
-      
-      final request = pb.LoginRequest()
-        ..email = email
-        ..password = password;
-      
-      final response = await _client.login(request);
-      
-      AppLogger.info('Login successful for user: ${response.user.id}');
-      
-      return _userFromProto(response.user);
-    } on GrpcError catch (e) {
-      AppLogger.error('Login failed: ${e.message}');
-      rethrow;
-    } catch (e) {
-      AppLogger.error('Unexpected error during login: $e');
-      throw GrpcError.unknown('Failed to login: $e');
+    // TODO: Replace with real gRPC call after proto generation
+    // Simulate network delay
+    await Future.delayed(const Duration(milliseconds: 500));
+    
+    // Mock successful login
+    if (email == 'admin10@nynus.edu.vn' && password == 'Abd8stbcs!') {
+      return UserModel(
+        id: 'user_001',
+        email: email,
+        firstName: 'Admin',
+        lastName: 'User',
+        role: 'admin',
+        status: 'active',
+        emailVerified: true,
+        createdAt: DateTime.now(),
+      );
+    } else if (email == 'student33@nynus.edu.vn' && password == 'Abd8stbcs!') {
+      return UserModel(
+        id: 'user_002',
+        email: email,
+        firstName: 'Student',
+        lastName: 'User',
+        role: 'student',
+        status: 'active',
+        level: 10,
+        emailVerified: true,
+        createdAt: DateTime.now(),
+      );
+    } else {
+      throw GrpcError.unauthenticated('Invalid email or password');
     }
   }
   
@@ -70,24 +84,23 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> googleLogin({
     required String idToken,
   }) async {
-    try {
-      AppLogger.info('Attempting Google login');
-      
-      final request = pb.GoogleLoginRequest()
-        ..idToken = idToken;
-      
-      final response = await _client.googleLogin(request);
-      
-      AppLogger.info('Google login successful for user: ${response.user.id}');
-      
-      return _userFromProto(response.user);
-    } on GrpcError catch (e) {
-      AppLogger.error('Google login failed: ${e.message}');
-      rethrow;
-    } catch (e) {
-      AppLogger.error('Unexpected error during Google login: $e');
-      throw GrpcError.unknown('Failed to login with Google: $e');
-    }
+    // TODO: Replace with real gRPC call after proto generation
+    await Future.delayed(const Duration(milliseconds: 800));
+    
+    // Mock Google login success
+    return UserModel(
+      id: 'user_google_001',
+      email: 'user@gmail.com',
+      firstName: 'Google',
+      lastName: 'User',
+      role: UserRole.student,
+      status: UserStatus.active,
+      level: 10,
+      emailVerified: true,
+      googleId: 'google_123456789',
+      avatar: 'https://lh3.googleusercontent.com/a/default-user',
+      createdAt: DateTime.now(),
+    );
   }
   
   @override
@@ -97,132 +110,64 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String firstName,
     required String lastName,
   }) async {
-    try {
-      AppLogger.info('Attempting registration for email: $email');
-      
-      final request = pb.RegisterRequest()
-        ..email = email
-        ..password = password
-        ..firstName = firstName
-        ..lastName = lastName;
-      
-      final response = await _client.register(request);
-      
-      AppLogger.info('Registration successful for user: ${response.user.id}');
-      
-      return _userFromProto(response.user);
-    } on GrpcError catch (e) {
-      AppLogger.error('Registration failed: ${e.message}');
-      rethrow;
-    } catch (e) {
-      AppLogger.error('Unexpected error during registration: $e');
-      throw GrpcError.unknown('Failed to register: $e');
-    }
+    // TODO: Replace with real gRPC call after proto generation
+    await Future.delayed(const Duration(milliseconds: 1000));
+    
+    // Mock registration success
+    return UserModel(
+      id: 'user_new_${DateTime.now().millisecondsSinceEpoch}',
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      role: UserRole.student,
+      status: UserStatus.active,
+      level: 1, // New student starts at level 1
+      emailVerified: false, // Needs verification
+      createdAt: DateTime.now(),
+    );
+  }
+  
+  @override
+  Future<void> logout({required String token}) async {
+    // TODO: Replace with real gRPC call after proto generation
+    await Future.delayed(const Duration(milliseconds: 200));
+    // Mock logout - just delay to simulate server call
   }
   
   @override
   Future<Map<String, dynamic>> refreshToken({
     required String refreshToken,
   }) async {
-    try {
-      AppLogger.info('Attempting token refresh');
-      
-      final request = pb.RefreshTokenRequest()
-        ..refreshToken = refreshToken;
-      
-      final response = await _client.refreshToken(request);
-      
-      AppLogger.info('Token refresh successful');
-      
-      return {
-        'access_token': response.accessToken,
-        'refresh_token': response.refreshToken,
-        'expires_in': response.expiresIn,
-      };
-    } on GrpcError catch (e) {
-      AppLogger.error('Token refresh failed: ${e.message}');
-      rethrow;
-    } catch (e) {
-      AppLogger.error('Unexpected error during token refresh: $e');
-      throw GrpcError.unknown('Failed to refresh token: $e');
-    }
+    // TODO: Replace with real gRPC call after proto generation
+    await Future.delayed(const Duration(milliseconds: 300));
+    
+    // Mock token refresh
+    return {
+      'access_token': 'new_access_token_${DateTime.now().millisecondsSinceEpoch}',
+      'refresh_token': 'new_refresh_token_${DateTime.now().millisecondsSinceEpoch}',
+      'expires_in': 3600, // 1 hour
+    };
   }
   
   @override
   Future<UserModel> getCurrentUser({
     required String token,
   }) async {
-    try {
-      AppLogger.info('Fetching current user');
-      
-      final request = pb.GetUserRequest()
-        ..id = ''; // Empty ID means get current user from token
-      
-      final response = await _client.getUser(
-        request,
-        options: CallOptions(metadata: {'authorization': 'Bearer $token'}),
-      );
-      
-      AppLogger.info('Current user fetched: ${response.user.id}');
-      
-      return _userFromProto(response.user);
-    } on GrpcError catch (e) {
-      AppLogger.error('Get current user failed: ${e.message}');
-      rethrow;
-    } catch (e) {
-      AppLogger.error('Unexpected error during get current user: $e');
-      throw GrpcError.unknown('Failed to get current user: $e');
-    }
-  }
-  
-  /// Convert proto User to UserModel
-  UserModel _userFromProto(pb.User protoUser) {
+    // TODO: Replace with real gRPC call after proto generation
+    await Future.delayed(const Duration(milliseconds: 400));
+    
+    // Mock current user (admin)
     return UserModel(
-      id: protoUser.id,
-      email: protoUser.email,
-      firstName: protoUser.firstName,
-      lastName: protoUser.lastName,
-      username: protoUser.hasUsername() ? protoUser.username : null,
-      role: _userRoleFromProto(protoUser.role),
-      status: _userStatusFromProto(protoUser.status),
-      level: protoUser.hasLevel() ? protoUser.level : null,
-      avatar: protoUser.hasAvatar() ? protoUser.avatar : null,
-      emailVerified: protoUser.emailVerified,
-      googleId: protoUser.hasGoogleId() ? protoUser.googleId : null,
-      createdAt: DateTime.now(), // TODO: Parse from proto timestamp
-      lastLogin: null, // TODO: Parse from proto timestamp if available
+      id: 'user_001',
+      email: 'admin10@nynus.edu.vn',
+      firstName: 'Admin',
+      lastName: 'User',
+      role: UserRole.admin,
+      status: UserStatus.active,
+      emailVerified: true,
+      createdAt: DateTime.now().subtract(const Duration(days: 30)),
+      lastLogin: DateTime.now().subtract(const Duration(minutes: 5)),
     );
   }
-  
-  /// Convert proto UserRole to enum
-  UserRole _userRoleFromProto(common.UserRole role) {
-    switch (role) {
-      case common.UserRole.USER_ROLE_ADMIN:
-        return UserRole.admin;
-      case common.UserRole.USER_ROLE_TEACHER:
-        return UserRole.teacher;
-      case common.UserRole.USER_ROLE_TUTOR:
-        return UserRole.tutor;
-      case common.UserRole.USER_ROLE_STUDENT:
-        return UserRole.student;
-      case common.UserRole.USER_ROLE_GUEST:
-        return UserRole.guest;
-      default:
-        return UserRole.student;
-    }
-  }
-  
-  /// Convert proto UserStatus to enum
-  UserStatus _userStatusFromProto(common.UserStatus status) {
-    switch (status) {
-      case common.UserStatus.USER_STATUS_ACTIVE:
-        return UserStatus.active;
-      case common.UserStatus.USER_STATUS_INACTIVE:
-        return UserStatus.inactive;
-      case common.UserStatus.USER_STATUS_SUSPENDED:
-        return UserStatus.suspended;
-      default:
-        return UserStatus.inactive;
-    }
-  }
 }
+
