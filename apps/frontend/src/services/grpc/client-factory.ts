@@ -311,8 +311,9 @@ class ConnectionPool<T> {
 
 /**
  * Global connection pools map
+ * Using unknown instead of any to maintain type safety while supporting multiple service types
  */
-const globalPools = new Map<string, ConnectionPool<any>>();
+const globalPools = new Map<string, ConnectionPool<unknown>>();
 
 /**
  * Default gRPC client options
@@ -331,7 +332,7 @@ function getOrCreatePool<T>(serviceName: string): ConnectionPool<T> {
   if (!globalPools.has(serviceName)) {
     globalPools.set(serviceName, new ConnectionPool<T>(serviceName));
   }
-  return globalPools.get(serviceName)!;
+  return globalPools.get(serviceName)! as ConnectionPool<T>;
 }
 
 /**
@@ -434,7 +435,7 @@ export function getAllPoolStats(): Record<string, PoolStats> {
 /**
  * Mark connection as unhealthy (call when error occurs)
  */
-export function markConnectionUnhealthy(serviceName: string, client: any): void {
+export function markConnectionUnhealthy(serviceName: string, client: Record<string, unknown>): void {
   const pool = globalPools.get(serviceName);
   if (pool) {
     pool.markUnhealthy(client);
@@ -444,7 +445,7 @@ export function markConnectionUnhealthy(serviceName: string, client: any): void 
 /**
  * Remove connection from pool
  */
-export function removeConnection(serviceName: string, client: any): void {
+export function removeConnection(serviceName: string, client: Record<string, unknown>): void {
   const pool = globalPools.get(serviceName);
   if (pool) {
     pool.remove(client);

@@ -24,16 +24,15 @@
  * @version 1.0.0
  */
 
-import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 
 // Server-side only retry logic (no window/browser APIs)
-const retryWithBackoff = async (
-  fn: () => Promise<any>,
+const retryWithBackoff = async <T,>(
+  fn: () => Promise<T>,
   options: { maxRetries?: number; baseDelay?: number } = {}
-) => {
+): Promise<T> => {
   const { maxRetries = 3, baseDelay = 100 } = options;
-  let lastError: any;
+  let lastError: unknown;
 
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -55,7 +54,7 @@ class CircuitBreaker {
   private lastFailureTime = 0;
   private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
   
-  async execute(fn: () => Promise<any>) {
+  async execute<T,>(fn: () => Promise<T>): Promise<T> {
     if (this.state === 'OPEN') {
       if (Date.now() - this.lastFailureTime > 60000) {
         this.state = 'HALF_OPEN';
@@ -226,16 +225,17 @@ const prismaCircuitBreaker = new CircuitBreaker();
  */
 export function classifyPrismaError(error: unknown): PrismaErrorDetails {
   // Check if error has Prisma-specific properties
-  const err = error as any;
+  const err = error as Record<string, unknown>;
   
   // Handle PrismaClientKnownRequestError (check by property instead of instanceof)
   if (err && typeof err === 'object' && 'code' in err && err.code && typeof err.code === 'string') {
     const errorType = (PRISMA_ERROR_CODES[err.code as keyof typeof PRISMA_ERROR_CODES] || 'UNKNOWN') as PrismaErrorType;
+    const message = typeof err.message === 'string' ? err.message : 'Unknown error';
     
     return {
       type: errorType,
       code: err.code,
-      message: err.message || 'Unknown error',
+      message: message,
       userMessage: USER_ERROR_MESSAGES[errorType],
       meta: err.meta as Record<string, unknown>,
       isRetryable: RETRYABLE_ERRORS.has(errorType),
@@ -245,9 +245,10 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
 
   // Handle PrismaClientValidationError (check by error name)
   if (err && err.name === 'PrismaClientValidationError') {
+    const message = typeof err.message === 'string' ? err.message : 'Validation error';
     return {
       type: 'VALIDATION',
-      message: err.message || 'Validation error',
+      message: message,
       userMessage: 'Dữ liệu không hợp lệ',
       isRetryable: false,
       httpStatus: 400,
@@ -256,9 +257,10 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
 
   // Handle PrismaClientUnknownRequestError
   if (err && err.name === 'PrismaClientUnknownRequestError') {
+    const message = typeof err.message === 'string' ? err.message : 'Unknown request error';
     return {
       type: 'UNKNOWN',
-      message: err.message || 'Unknown request error',
+      message: message,
       userMessage: 'Đã xảy ra lỗi không xác định',
       isRetryable: false,
       httpStatus: 500,
@@ -267,10 +269,11 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
 
   // Handle PrismaClientInitializationError
   if (err && err.name === 'PrismaClientInitializationError') {
+    const message = typeof err.message === 'string' ? err.message : 'Connection error';
     return {
       type: 'CONNECTION',
-      code: err.errorCode,
-      message: err.message || 'Connection error',
+      code: typeof err.errorCode === 'string' ? err.errorCode : undefined,
+      message: message,
       userMessage: 'Không thể kết nối đến cơ sở dữ liệu',
       isRetryable: true,
       httpStatus: 503,
@@ -279,9 +282,10 @@ export function classifyPrismaError(error: unknown): PrismaErrorDetails {
 
   // Handle PrismaClientRustPanicError - check by name instead of instanceof
   if (err && err.name === 'PrismaClientRustPanicError') {
+    const message = typeof err.message === 'string' ? err.message : 'Rust panic error';
     return {
       type: 'UNKNOWN',
-      message: err.message || 'Rust panic error',
+      message: message,
       userMessage: 'Đã xảy ra lỗi nghiêm trọng',
       isRetryable: false,
       httpStatus: 500,
@@ -364,8 +368,7 @@ export function handlePrismaError(
  * Execute Prisma operation with retry logic
  */
 export async function executePrismaWithRetry<T>(
-  operation: () => Promise<T>,
-  options: ErrorRecoveryOptions = {}
+  operation: () => Promise<T>
 ): Promise<T> {
   return await retryWithBackoff(operation, {
     maxRetries: 3,
@@ -391,10 +394,10 @@ export async function executePrismaWithCircuitBreaker<T>(
  */
 export async function executePrismaOperation<T>(
   operation: () => Promise<T>,
-  options: ErrorRecoveryOptions = {}
+  _options: ErrorRecoveryOptions = {}
 ): Promise<T> {
   return executePrismaWithCircuitBreaker(() =>
-    executePrismaWithRetry(operation, options)
+    executePrismaWithRetry(operation)
   );
 }
 

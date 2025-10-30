@@ -52,7 +52,7 @@ import {
 import { LaTeXContent, useLatexValidation } from "@/components/common/latex";
 
 // Import Monaco LaTeX Editor
-import { MonacoLatexEditor } from "@/components/common/editors/monaco-latex-editor";
+import { MonacoLatexEditor, MonacoLatexEditorRef } from "@/components/common/editors/monaco-latex-editor";
 
 // ===== TYPES =====
 
@@ -146,10 +146,10 @@ export function LaTeXEditor({
   
   const [isPreviewVisible, setIsPreviewVisible] = useState(showPreview);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [cursorPosition, setCursorPosition] = useState<any | null>(null);
+  const [cursorPosition, setCursorPosition] = useState<{ line: number; column: number } | null>(null);
   const [activeTab, setActiveTab] = useState("editor");
 
-  const monacoEditorRef = useRef<any>(null);
+  const monacoEditorRef = useRef<MonacoLatexEditorRef | null>(null);
   
   // ===== MONACO EDITOR SETUP =====
   
@@ -165,7 +165,7 @@ export function LaTeXEditor({
     onChange(newValue);
   }, [onChange]);
   
-  const handleCursorPositionChange = useCallback((position: any) => {
+  const handleCursorPositionChange = useCallback((position: { line: number; column: number }) => {
     setCursorPosition(position);
   }, []);
   
@@ -195,7 +195,7 @@ export function LaTeXEditor({
   /**
    * Handle Monaco editor mount
    */
-  const handleEditorMount = useCallback((_editor: any) => {
+  const handleEditorMount = useCallback((_editor: Record<string, unknown>) => {
     // Editor is ready, can perform additional setup if needed
   }, []);
   
@@ -588,7 +588,7 @@ export function LaTeXEditor({
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                 <span>Độ dài: {value.length} ký tự</span>
-                <span>Vị trí con trỏ: {cursorPosition ? `${cursorPosition.lineNumber}:${cursorPosition.column}` : '1:1'}</span>
+                <span>Vị trí con trỏ: {cursorPosition ? `${cursorPosition.line}:${cursorPosition.column}` : '1:1'}</span>
                 {validation.isValid ? (
                   <span className="text-green-600">✓ LaTeX hợp lệ</span>
                 ) : (

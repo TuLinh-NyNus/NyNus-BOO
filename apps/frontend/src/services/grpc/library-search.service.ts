@@ -6,6 +6,7 @@
 import { LibraryServiceClient } from '@/generated/v1/LibraryServiceClientPb';
 import {
   SearchSuggestionsRequest,
+  SearchSuggestion,
 } from '@/generated/v1/library_pb';
 
 const client = new LibraryServiceClient(
@@ -34,7 +35,7 @@ export async function getSearchSuggestions(
 
   const response = await client.getSearchSuggestions(request, {});
   
-  return response.getSuggestionsList().map((suggestion: any) => ({
+  return response.getSuggestionsList().map((suggestion: SearchSuggestion) => ({
     text: suggestion.getText(),
     type: suggestion.getType() as 'title' | 'subject' | 'tag' | 'trending',
     count: suggestion.getCount(),

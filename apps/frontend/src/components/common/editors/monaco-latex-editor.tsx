@@ -15,6 +15,16 @@ import { Textarea } from '@/components/ui/form/textarea';
 
 // ===== TYPES =====
 
+interface CursorPosition {
+  line: number;
+  column: number;
+}
+
+interface Selection {
+  start: CursorPosition;
+  end: CursorPosition;
+}
+
 export interface MonacoLatexEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -23,9 +33,9 @@ export interface MonacoLatexEditorProps {
   height?: string | number;
   language?: string;
   theme?: string;
-  onMount?: (editor: any) => void;
-  onCursorPositionChange?: (position: any) => void;
-  onSelectionChange?: (selection: any) => void;
+  onMount?: (editor: Record<string, unknown>) => void;
+  onCursorPositionChange?: (position: CursorPosition) => void;
+  onSelectionChange?: (selection: Selection) => void;
   onContentChange?: (content: string) => void;
   showMinimap?: boolean;
   showLineNumbers?: boolean;
@@ -33,15 +43,14 @@ export interface MonacoLatexEditorProps {
   fontSize?: number;
   enableAutoCompletion?: boolean;
   className?: string;
-  options?: any;
 }
 
 export type MonacoLatexEditorRef = {
   insertText: (text: string) => void;
-  getCursorPosition: () => any;
-  getSelection: () => any;
+  getCursorPosition: () => CursorPosition | null;
+  getSelection: () => Selection | null;
   focus: () => void;
-  getEditor: () => any;
+  getEditor: () => Record<string, unknown> | null;
 };
 
 // ===== STUB COMPONENT =====
@@ -54,7 +63,6 @@ const MonacoLatexEditorComponent = React.forwardRef<MonacoLatexEditorRef, Monaco
   disabled = false,
   height = 300,
   className = "",
-  options = {}
 }, ref) => {
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -77,7 +85,7 @@ const MonacoLatexEditorComponent = React.forwardRef<MonacoLatexEditorRef, Monaco
     getSelection,
     focus: () => textareaRef.current?.focus(),
     getEditor: () => null
-  }), [insertText]);
+  }), [insertText, getCursorPosition, getSelection]);
 
   const editorHeight = typeof height === 'number' ? `${height}px` : height;
 

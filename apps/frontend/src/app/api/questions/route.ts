@@ -8,7 +8,6 @@
 import { NextRequest } from 'next/server';
 import { randomUUID } from 'node:crypto';
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 import { executePrismaOperation } from '@/lib/prisma/error-handler';
 import {
   successResponseWithPagination,
@@ -49,7 +48,19 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: any = {}; // Use any for flexibility with Prisma types
+    interface QuestionWhereClause {
+      type?: 'MC' | 'TF' | 'SA' | 'ES' | 'MA';
+      difficulty?: 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
+      status?: 'ACTIVE' | 'PENDING' | 'INACTIVE' | 'ARCHIVED';
+      grade?: string;
+      subject?: string;
+      chapter?: string;
+      OR?: Array<{
+        content?: { contains: string; mode: 'insensitive' };
+      }>;
+    }
+    
+    const where: QuestionWhereClause = {};
 
     if (type) where.type = type as 'MC' | 'TF' | 'SA' | 'ES' | 'MA';
     if (difficulty) where.difficulty = difficulty as 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
@@ -62,7 +73,6 @@ export async function GET(request: NextRequest) {
     if (search) {
       where.OR = [
         { content: { contains: search, mode: 'insensitive' } },
-        { raw_content: { contains: search, mode: 'insensitive' } },
       ];
     }
 

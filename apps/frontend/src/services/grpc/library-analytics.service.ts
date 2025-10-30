@@ -7,6 +7,8 @@ import { LibraryServiceClient } from '@/generated/v1/LibraryServiceClientPb';
 import {
   GetAnalyticsRequest,
   GetTopItemsRequest,
+  TopItem as ProtoTopItem,
+  ContentDistribution as ProtoContentDistribution,
 } from '@/generated/v1/library_pb';
 
 const client = new LibraryServiceClient(
@@ -75,37 +77,37 @@ export async function getAnalytics(): Promise<AnalyticsData> {
       totalBooks: summary.getTotalBooks(),
       totalVideos: summary.getTotalVideos(),
     },
-    topDownloaded: response.getTopDownloadedList().map((item: any) => ({
-      itemId: item.getItemId(),
-      title: item.getTitle(),
-      type: item.getType(),
-      downloadCount: item.getDownloadCount(),
-      rating: item.getRating(),
-      reviewCount: item.getReviewCount(),
-      rank: item.getRank(),
+    topDownloaded: response.getTopDownloadedList().map((item: ProtoTopItem) => ({
+      itemId: item.getItemId() ?? '',
+      title: item.getTitle() ?? '',
+      type: item.getType() ?? '',
+      downloadCount: item.getDownloadCount() ?? 0,
+      rating: item.getRating() ?? 0,
+      reviewCount: item.getReviewCount() ?? 0,
+      rank: item.getRank() ?? 0,
     })),
-    topRated: response.getTopRatedList().map((item: any) => ({
-      itemId: item.getItemId(),
-      title: item.getTitle(),
-      type: item.getType(),
-      downloadCount: item.getDownloadCount(),
-      rating: item.getRating(),
-      reviewCount: item.getReviewCount(),
-      rank: item.getRank(),
+    topRated: response.getTopRatedList().map((item: ProtoTopItem) => ({
+      itemId: item.getItemId() ?? '',
+      title: item.getTitle() ?? '',
+      type: item.getType() ?? '',
+      downloadCount: item.getDownloadCount() ?? 0,
+      rating: item.getRating() ?? 0,
+      reviewCount: item.getReviewCount() ?? 0,
+      rank: item.getRank() ?? 0,
     })),
-    recentlyAdded: response.getRecentlyAddedList().map((item: any) => ({
-      itemId: item.getItemId(),
-      title: item.getTitle(),
-      type: item.getType(),
-      downloadCount: item.getDownloadCount(),
-      rating: item.getRating(),
-      reviewCount: item.getReviewCount(),
-      rank: item.getRank(),
+    recentlyAdded: response.getRecentlyAddedList().map((item: ProtoTopItem) => ({
+      itemId: item.getItemId() ?? '',
+      title: item.getTitle() ?? '',
+      type: item.getType() ?? '',
+      downloadCount: item.getDownloadCount() ?? 0,
+      rating: item.getRating() ?? 0,
+      reviewCount: item.getReviewCount() ?? 0,
+      rank: item.getRank() ?? 0,
     })),
-    distribution: response.getDistributionList().map((dist: any) => ({
-      type: dist.getType(),
-      count: dist.getCount(),
-      percentage: dist.getPercentage(),
+    distribution: response.getDistributionList().map((dist: ProtoContentDistribution) => ({
+      type: dist.getType() ?? '',
+      count: dist.getCount() ?? 0,
+      percentage: dist.getPercentage() ?? 0,
     })),
   };
 }
@@ -119,14 +121,14 @@ export async function getTopDownloaded(limit: number = 10): Promise<TopItemData[
 
   const response = await client.getTopDownloaded(request, {});
   
-  return response.getItemsList().map((item: any) => ({
-    itemId: item.getItemId(),
-    title: item.getTitle(),
-    type: item.getType(),
-    downloadCount: item.getDownloadCount(),
-    rating: item.getRating(),
-    reviewCount: item.getReviewCount(),
-    rank: item.getRank(),
+  return response.getItemsList().map((item: ProtoTopItem) => ({
+    itemId: item.getItemId() ?? '',
+    title: item.getTitle() ?? '',
+    type: item.getType() ?? '',
+    downloadCount: item.getDownloadCount() ?? 0,
+    rating: item.getRating() ?? 0,
+    reviewCount: item.getReviewCount() ?? 0,
+    rank: item.getRank() ?? 0,
   }));
 }
 
@@ -139,14 +141,14 @@ export async function getTopRated(limit: number = 10): Promise<TopItemData[]> {
 
   const response = await client.getTopRated(request, {});
   
-  return response.getItemsList().map((item: any) => ({
-    itemId: item.getItemId(),
-    title: item.getTitle(),
-    type: item.getType(),
-    downloadCount: item.getDownloadCount(),
-    rating: item.getRating(),
-    reviewCount: item.getReviewCount(),
-    rank: item.getRank(),
+  return response.getItemsList().map((item: ProtoTopItem) => ({
+    itemId: item.getItemId() ?? '',
+    title: item.getTitle() ?? '',
+    type: item.getType() ?? '',
+    downloadCount: item.getDownloadCount() ?? 0,
+    rating: item.getRating() ?? 0,
+    reviewCount: item.getReviewCount() ?? 0,
+    rank: item.getRank() ?? 0,
   }));
 }
 

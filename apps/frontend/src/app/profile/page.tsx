@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts';
 
 // Helper function for userRoleToString (works before proto generation)
-const userRoleToString = (role: any | string | undefined): string => {
+const userRoleToString = (role: string | number | undefined): string => {
   if (typeof role === 'string') return role;
   // Proto enum values
   const roleMap: Record<number, string> = {

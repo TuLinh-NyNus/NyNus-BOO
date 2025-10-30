@@ -609,7 +609,7 @@ export function logFilterRequest(filters: QuestionFilters, request: ListQuestion
       console.log('Pagination:', {
         page: pagination.getPage(),
         limit: pagination.getLimit(),
-        sort: pagination.getSortList().map((s: any) => ({
+        sort: pagination.getSortList().map((s) => ({
           field: s.getField(),
           order: s.getOrder(),
         })),
