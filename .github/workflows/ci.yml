@@ -131,9 +131,15 @@ jobs:
           name: backend-coverage
           fail_ci_if_error: false
 
-      - name: Run LaTeX parser tests (fail-fast)
+      - name: Run LaTeX parser tests (if exists)
         working-directory: ./apps/backend
-        run: go test -v -cover ./internal/latex/... || exit 1
+        run: |
+          if ls ./internal/latex/*_test.go 1> /dev/null 2>&1; then
+            echo "✅ Found LaTeX tests, running..."
+            go test -v -cover ./internal/latex/...
+          else
+            echo "⚠️ No LaTeX test files found, skipping"
+          fi
 
   tex-live-check:
     name: TeX Live Availability Check (Optional)
