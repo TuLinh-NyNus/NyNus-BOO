@@ -44,8 +44,7 @@ You are an AI coding assistant for the exam-bank-system project (Go backend + Ne
 
 ## Rule Files Reference
 - `coding.mdc` - Clean code standards, naming, best practices
-- `architecture.mdc` - Folder structure, layer organization, patterns
+- `architecture.mdc` - Folder structure, layers, organization
 - `nynus-development-protocol.mdc` - RIPER-5 methodology, workflow
 - `rule-project.mdc` - Development process, quality guidelines
-- `tracking.mdc` - Optional task tracking (prefer TODO tool)
 - `testing-workflow.mdc` - Manual testing with MCP Chrome DevTools (when requested)

@@ -31,164 +31,54 @@ exam-bank-system/
 ## 🔴 Critical Rules
 
 ### Language Policy
-```typescript
-// ✅ Vietnamese for business logic & UI
-const UI_MESSAGES = {
-  loginSuccess: 'Đăng nhập thành công',
-  invalidEmail: 'Email không hợp lệ'
-};
-
-// ✅ English for technical implementation
-function calculateQuestionScore(answers: Answer[]): number {
-  // Filter correct answers and sum points
-  return answers.filter(a => a.isCorrect).reduce((sum, a) => sum + a.points, 0);
-}
-```
-
-### Single Responsibility
-```typescript
-// ❌ BAD - Multiple responsibilities
-function processUserData(userData: any) {
-  if (!userData.email) throw new Error('Email required');
-  const user = { id: generateId(), email: userData.email.toLowerCase() };
-  database.save(user);
-  emailService.sendWelcome(user.email);
-  return user;
-}
-
-// ✅ GOOD - Separate functions
-function createUser(userData: UserInput): User {
-  validateUserData(userData);
-  const user = transformUserData(userData);
-  return userRepository.save(user);
-}
-```
+- ✅ Vietnamese for business logic & UI
+- ✅ English for technical implementation & comments
 
 ### Function Limits
 - **Size**: < 20 lines
 - **Parameters**: < 4 (use object parameter)
 - **Nesting**: < 3 levels (use early returns)
-
-```typescript
-// ✅ GOOD - Object parameter
-interface CreateQuestionParams {
-  content: string;
-  type: QuestionType;
-  difficulty: Difficulty;
-  category: string;
-}
-
-function createQuestion(params: CreateQuestionParams): Question {
-  // Implementation
-}
-```
-
-### File Organization
 - **Files**: < 300 lines
 - **Classes**: < 200 lines
-- **Functions**: < 20 lines
 
-### Error Handling
-```typescript
-// ❌ BAD - Return null
-function findUser(email: string): User | null {
-  return database.findUser(email) || null;
-}
-
-// ✅ GOOD - Throw exceptions
-function findUser(email: string): User {
-  const user = database.findUser(email);
-  if (!user) {
-    throw new UserNotFoundError(`User with email ${email} not found`);
-  }
-  return user;
-}
-```
+### Principles
+- Single Responsibility: 1 function = 1 purpose
+- Early returns instead of deep nesting
+- Throw exceptions, don't return null
+- Use object parameters for multiple params
 
 ---
 
 ## 🟡 High Priority Rules
 
 ### Naming Conventions
-```typescript
-// ❌ BAD - Vague names
-const d = new Date();
-const u = users.filter(x => x.active);
-
-// ✅ GOOD - Clear names
-const currentDate = new Date();
-const activeUsers = users.filter(user => user.isActive);
-```
+- Meaningful names (not: d, u, x)
+- Clear purpose in name
+- Use camelCase (variables), PascalCase (types/classes), SCREAMING_SNAKE_CASE (constants)
 
 ### Avoid Deep Nesting
-```typescript
-// ❌ BAD - Deep nesting
-function processAnswer(answer: Answer): Result {
-  if (answer) {
-    if (answer.content) {
-      if (answer.questionId) {
-        // ... nested logic
-      }
-    }
-  }
-}
-
-// ✅ GOOD - Early returns
-function processAnswer(answer: Answer): Result {
-  if (!answer?.content || !answer.questionId) {
-    throw new InvalidAnswerError('Answer missing required information');
-  }
-  // Main logic here
-}
-```
+- Use early returns for guard clauses
+- Max 3 levels of nesting
+- Throw errors early, don't nest validation
 
 ### Constants & Magic Numbers
-```typescript
-// ❌ BAD - Magic numbers
-function validatePassword(password: string): boolean {
-  return password.length >= 8 && password.length <= 128;
-}
-
-// ✅ GOOD - Named constants
-const PASSWORD_MIN_LENGTH = 8;
-const PASSWORD_MAX_LENGTH = 128;
-
-function validatePassword(password: string): boolean {
-  return password.length >= PASSWORD_MIN_LENGTH && 
-         password.length <= PASSWORD_MAX_LENGTH;
-}
-```
+- Define named constants for values
+- Document why, not just what
 
 ---
 
 ## 🟢 Medium Priority Rules
 
 ### Testing (Only When Requested)
-```typescript
-// AAA Pattern: Arrange, Act, Assert
-describe('UserService', () => {
-  it('should create user with valid data', async () => {
-    // Arrange
-    const userData = { email: 'test@example.com', name: 'John' };
-    
-    // Act
-    const result = await userService.createUser(userData);
-    
-    // Assert
-    expect(result).toEqual(expect.objectContaining(userData));
-  });
-});
-```
-
-**Testing Policy**: Only create automated tests if explicitly requested by user
+- Only create automated tests if explicitly requested
+- When needed: Go testing (backend), Jest (frontend), Flutter test (mobile)
 
 ### Performance
 - Use pagination for large datasets
-- Cleanup event listeners/subscriptions
 - Optimize algorithm complexity (avoid O(n²))
 
 ### Security
-- Sanitize all user inputs
+- Sanitize user inputs
 - Use Zod schemas (TS) or validator packages (Go/Dart)
 - Implement role-based access control (RBAC)
 
@@ -246,58 +136,6 @@ import './styles.css';
 - [ ] Security vulnerabilities checked
 - [ ] Performance optimized
 - [ ] Tests only if requested
-
----
-
-## 🔴 Constants & Magic Numbers (Multi-language)
-
-### TypeScript/JavaScript
-```typescript
-// ❌ BAD - Magic numbers
-function validatePassword(password: string): boolean {
-  return password.length >= 8 && password.length <= 128;
-}
-
-// ✅ GOOD - Named constants
-const VALIDATION_LIMITS = {
-  PASSWORD_MIN_LENGTH: 8,
-  PASSWORD_MAX_LENGTH: 128,
-  USERNAME_MIN_LENGTH: 3,
-  EMAIL_MAX_LENGTH: 255
-} as const;
-```
-
-### Go
-```go
-// ❌ BAD - Magic numbers
-func ValidatePassword(password string) bool {
-    return len(password) >= 8 && len(password) <= 128
-}
-
-// ✅ GOOD - Named constants
-const (
-    PasswordMinLength = 8
-    PasswordMaxLength = 128
-    UsernameMinLength = 3
-    EmailMaxLength    = 255
-)
-```
-
-### Dart (Flutter)
-```dart
-// ❌ BAD - Magic numbers
-bool validatePassword(String password) {
-  return password.length >= 8 && password.length <= 128;
-}
-
-// ✅ GOOD - Named constants
-class ValidationLimits {
-  static const int passwordMinLength = 8;
-  static const int passwordMaxLength = 128;
-  static const int usernameMinLength = 3;
-  static const int emailMaxLength = 255;
-}
-```
 
 ---
 
