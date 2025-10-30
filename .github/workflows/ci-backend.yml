@@ -217,22 +217,35 @@ jobs:
           
           echo "✅ Code formatting verified"
 
-      - name: Setup test database
+      - name: Wait for PostgreSQL to be ready
         working-directory: ${{ env.WORKING_DIR }}
         env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: exam_bank_test
-          DB_USER: test_user
-          DB_PASSWORD: test_password
-          REDIS_URL: redis://localhost:6379
-          REDIS_PASSWORD: test_redis_password
+          PGPASSWORD: test_password
         run: |
-          # Wait for services to be ready
+          echo "⏳ Waiting for PostgreSQL to be ready..."
+          max_attempts=30
+          attempt=0
+          
           until pg_isready -h localhost -p 5432 -U test_user; do
-            echo "Waiting for postgres..."
+            attempt=$((attempt + 1))
+            if [ $attempt -ge $max_attempts ]; then
+              echo "❌ PostgreSQL failed to start after $max_attempts attempts"
+              docker ps
+              exit 1
+            fi
+            echo "Attempt $attempt/$max_attempts: Waiting for postgres..."
             sleep 2
           done
+          
+          echo "✅ PostgreSQL is ready!"
+          
+          # Test actual connection with credentials
+          psql -h localhost -U test_user -d exam_bank_test -c "SELECT version();" || {
+            echo "❌ Database connection test failed"
+            exit 1
+          }
+          
+          echo "✅ Database connection verified"
 
       - name: Run unit tests
         working-directory: ${{ env.WORKING_DIR }}
