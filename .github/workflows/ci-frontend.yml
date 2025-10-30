@@ -605,7 +605,16 @@ jobs:
 
       - name: Run npm audit
         working-directory: ${{ env.WORKING_DIR }}
-        run: pnpm audit --audit-level=high || true
+        run: |
+          echo "[INFO] Running npm audit for security vulnerabilities..."
+          
+          # Run audit with high severity threshold and fail on vulnerabilities
+          if pnpm audit --audit-level=high; then
+            echo "[OK] No high-severity vulnerabilities found"
+          else
+            echo "[ERROR] Security vulnerabilities detected!"
+            exit 1
+          fi
 
       - name: Run Snyk vulnerability scan
         uses: snyk/actions/node@master

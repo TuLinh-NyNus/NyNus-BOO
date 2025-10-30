@@ -476,8 +476,12 @@ jobs:
       - name: Run Gosec Security Scanner
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          gosec -no-fail -fmt sarif -out gosec.sarif ./...
-        continue-on-error: true
+          echo "[INFO] Running Gosec security scanner..."
+          
+          # Run gosec with strict mode (fail on issues)
+          gosec -fmt sarif -out gosec.sarif ./...
+          
+          echo "[OK] Gosec scan completed - no critical vulnerabilities found"
 
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
@@ -485,11 +489,19 @@ jobs:
           sarif_file: ${{ env.WORKING_DIR }}/gosec.sarif
         if: always()
 
-      - name: Run govulncheck
+      - name: Run govulncheck for dependency vulnerabilities
         working-directory: ${{ env.WORKING_DIR }}
         run: |
+          echo "[INFO] Running govulncheck for dependency vulnerabilities..."
+          
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+          
+          if govulncheck ./...; then
+            echo "[OK] No known vulnerabilities in dependencies"
+          else
+            echo "[ERROR] Vulnerabilities found in dependencies!"
+            exit 1
+          fi
 
   # Notify on failure
   notify-failure:
