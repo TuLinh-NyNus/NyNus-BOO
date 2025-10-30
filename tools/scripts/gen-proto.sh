@@ -23,7 +23,7 @@ for proto_file in "$PROTO_DIR/common"/*.proto; do
         echo "  Processing: $(basename "$proto_file")"
         protoc \
           -I "$PROTO_DIR" \
-          --go_out="$ROOT_DIR" --go_opt=paths=source_relative \
+          --go_out="$BACKEND_OUT" --go_opt=paths=source_relative \
           --go_opt="Mcommon/common.proto=$GO_COMMON_PKG" \
           "$proto_file"
     fi
@@ -61,9 +61,9 @@ for proto_file in "$PROTO_DIR/v1"/*.proto; do
         # Run protoc with all mappings
         protoc \
           -I "$PROTO_DIR" \
-          --go_out="$ROOT_DIR" --go_opt=paths=source_relative $M_FLAGS \
-          --go-grpc_out="$ROOT_DIR" --go-grpc_opt=paths=source_relative $M_GRPC_FLAGS \
-          --grpc-gateway_out="$ROOT_DIR" --grpc-gateway_opt=paths=source_relative $M_GW_FLAGS \
+          --go_out="$BACKEND_OUT" --go_opt=paths=source_relative $M_FLAGS \
+          --go-grpc_out="$BACKEND_OUT" --go-grpc_opt=paths=source_relative $M_GRPC_FLAGS \
+          --grpc-gateway_out="$BACKEND_OUT" --grpc-gateway_opt=paths=source_relative $M_GW_FLAGS \
           "$proto_file"
     fi
 done
