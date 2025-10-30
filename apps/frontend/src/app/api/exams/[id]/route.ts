@@ -64,7 +64,7 @@ export async function GET(
 
     // Calculate total points
     const totalPoints = exam.exam_questions.reduce(
-      (sum: number, eq) => sum + (eq.points ?? 0),
+      (sum: number, eq: { points: number | null }) => sum + (eq.points ?? 0),
       0
     );
 
