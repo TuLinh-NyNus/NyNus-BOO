@@ -27,6 +27,7 @@ jobs:
   analyze:
     name: Code Analysis & Linting
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # ✅ PREVENT HANGING
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -48,7 +49,16 @@ jobs:
       - name: Run flutter format check
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          flutter format --set-exit-if-changed lib/ test/ integration_test/ || echo "Format check completed"
+          echo "🎨 Checking Flutter code formatting..."
+          
+          # Check format and fail if issues found
+          if flutter format --set-exit-if-changed lib/ test/ integration_test/; then
+            echo "✅ Code formatting is correct"
+          else
+            echo "❌ Code formatting issues found"
+            echo "Run: flutter format lib/ test/ integration_test/"
+            exit 1
+          fi
 
       - name: Check for unused files
         working-directory: ${{ env.WORKING_DIR }}
@@ -60,6 +70,7 @@ jobs:
   unit-tests:
     name: Unit & Widget Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # ✅ PREVENT HANGING
     needs: analyze
     steps:
       - name: Checkout code
@@ -78,10 +89,23 @@ jobs:
       - name: Run unit and widget tests
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          flutter test \
-            --coverage \
-            --no-sound-null-safety \
-            test/ || true
+          echo "🧪 Running unit and widget tests..."
+          
+          # Check if test directory exists
+          if [ ! -d "test/" ]; then
+            echo "⚠️ test/ directory not found"
+            echo "Skipping unit tests"
+          else
+            # Run tests and fail if they fail
+            if ! flutter test \
+              --coverage \
+              --no-sound-null-safety \
+              test/; then
+              echo "❌ Unit tests failed"
+              exit 1
+            fi
+            echo "✅ Unit tests passed"
+          fi
 
       - name: Generate coverage report
         working-directory: ${{ env.WORKING_DIR }}
@@ -108,6 +132,7 @@ jobs:
   integration-tests-android:
     name: Integration Tests (Android)
     runs-on: ubuntu-latest
+    timeout-minutes: 45  # ✅ PREVENT HANGING (emulator tests need more time)
     needs: analyze
     strategy:
       matrix:
@@ -141,12 +166,27 @@ jobs:
           script: |
             cd $WORKING_DIR
             flutter pub get
-            flutter test integration_test/app_test.dart -d emulator-5554 || true
+            
+            echo "🧪 Running Android integration tests..."
+            
+            # Check if integration tests exist
+            if [ ! -f "integration_test/app_test.dart" ]; then
+              echo "⚠️ integration_test/app_test.dart not found"
+              echo "Skipping integration tests"
+            else
+              # Run tests and fail if they fail
+              if ! flutter test integration_test/app_test.dart -d emulator-5554; then
+                echo "❌ Android integration tests failed"
+                exit 1
+              fi
+              echo "✅ Android integration tests passed"
+            fi
 
   # Integration Tests on iOS Simulator
   integration-tests-ios:
     name: Integration Tests (iOS)
     runs-on: macos-latest
+    timeout-minutes: 45  # ✅ PREVENT HANGING (emulator tests need more time)
     needs: analyze
     steps:
       - name: Checkout code
@@ -170,13 +210,29 @@ jobs:
       - name: Run integration tests
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          sleep 10
-          flutter test integration_test/app_test.dart -d ios || true
+          echo "🧪 Running iOS integration tests..."
+          
+          # Check if integration tests exist
+          if [ ! -f "integration_test/app_test.dart" ]; then
+            echo "⚠️ integration_test/app_test.dart not found"
+            echo "Skipping integration tests"
+          else
+            # Wait for simulator to be ready
+            sleep 5
+            
+            # Run tests and fail if they fail
+            if ! flutter test integration_test/app_test.dart -d ios; then
+              echo "❌ iOS integration tests failed"
+              exit 1
+            fi
+            echo "✅ iOS integration tests passed"
+          fi
 
   # Android Build
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # ✅ PREVENT HANGING
     needs: [unit-tests, integration-tests-android]
     steps:
       - name: Checkout code
@@ -217,6 +273,7 @@ jobs:
   build-ios:
     name: Build iOS App
     runs-on: macos-latest
+    timeout-minutes: 20  # ✅ PREVENT HANGING
     needs: [unit-tests, integration-tests-ios]
     steps:
       - name: Checkout code
@@ -254,6 +311,7 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # ✅ PREVENT HANGING
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -296,6 +354,28 @@ jobs:
           else
             echo "✅ Mobile CI passed"
           fi
+
+  # Notify on failure
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: [ci-status]
+    if: failure()
+    steps:
+      - name: Notify Slack on CI failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_CICD }}
+          text: |
+            🚨 Mobile CI Pipeline Failed
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            
+            View details: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        continue-on-error: true
 
 
 
