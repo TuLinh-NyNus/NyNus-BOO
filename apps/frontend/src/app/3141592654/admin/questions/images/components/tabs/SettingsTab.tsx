@@ -140,7 +140,7 @@ class SettingsService {
     console.log('Settings saved:', settings);
   }
 
-  static async testCloudinaryConnection(settings: CloudinarySettings): Promise<boolean> {
+  static async testCloudinaryConnection(_settings: CloudinarySettings): Promise<boolean> {
     // Simulate connection test
     await new Promise(resolve => setTimeout(resolve, 2000));
     return Math.random() > 0.2; // 80% success rate
@@ -167,7 +167,7 @@ function CloudinarySection({
     try {
       const success = await SettingsService.testCloudinaryConnection(settings);
       setConnectionStatus(success ? 'success' : 'error');
-    } catch (error) {
+    } catch (_error) {
       setConnectionStatus('error');
     } finally {
       setIsTestingConnection(false);

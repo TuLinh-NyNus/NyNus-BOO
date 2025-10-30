@@ -9,7 +9,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/display/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/display/card';
 import { Button } from '@/components/ui/form/button';
 import { Badge } from '@/components/ui/display/badge';
 import { Progress } from '@/components/ui/display/progress';
@@ -19,14 +19,12 @@ import {
   TrendingUp,
   TrendingDown,
   Download,
-  Calendar,
   HardDrive,
   Zap,
   Users,
   FileImage,
   Clock,
   CheckCircle,
-  XCircle,
   AlertTriangle,
   Loader2,
   RefreshCw,
@@ -134,47 +132,6 @@ class AnalyticsService {
 }
 
 // ===== CHART COMPONENTS =====
-
-function SimpleBarChart({ 
-  data, 
-  title, 
-  height = 200 
-}: { 
-  data: { label: string; value: number; color?: string }[];
-  title: string;
-  height?: number;
-}) {
-  const maxValue = Math.max(...data.map(d => d.value));
-  
-  return (
-    <div className="space-y-4">
-      <h4 className="font-medium text-gray-900">{title}</h4>
-      <div className="space-y-3" style={{ height }}>
-        {data.map((item, index) => (
-          <div key={index} className="flex items-center gap-3">
-            <div className="w-20 text-sm text-gray-600 text-right">
-              {item.label}
-            </div>
-            <div className="flex-1 flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-2">
-                <div
-                  className={cn(
-                    'h-2 rounded-full transition-all',
-                    item.color || 'bg-blue-500'
-                  )}
-                  style={{ width: `${(item.value / maxValue) * 100}%` }}
-                />
-              </div>
-              <div className="w-12 text-sm font-medium text-gray-900 text-right">
-                {item.value}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function TrendChart({ 
   data, 
@@ -292,8 +249,6 @@ function MetricCard({
 // ===== MAIN ANALYTICS TAB COMPONENT =====
 
 export default function AnalyticsTab({
-  statistics,
-  isLoading: statsLoading = false,
   className,
 }: AnalyticsTabProps) {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);

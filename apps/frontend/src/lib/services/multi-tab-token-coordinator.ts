@@ -270,7 +270,7 @@ export class MultiTabTokenCoordinator {
       // Check if lock is already held
       const existingLock = localStorage.getItem(lockKey);
       if (existingLock) {
-        const [tabId, timestamp] = existingLock.split('-');
+        const [_tabId, timestamp] = existingLock.split('-');
         const lockAge = now - parseInt(timestamp, 10);
         // Release old lock if older than 30 seconds
         if (lockAge > 30000) {
@@ -373,7 +373,7 @@ export class MultiTabTokenCoordinator {
       if (!lockValue) return false;
       const [tabId] = lockValue.split('-');
       return tabId === this.tabId && this.refreshInProgress;
-    } catch (err) {
+    } catch (_err) {
       return false;
     }
   }

@@ -9,7 +9,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/display/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/display/card';
 import { Button } from '@/components/ui/form/button';
 import { Input } from '@/components/ui/form/input';
 import { Badge } from '@/components/ui/display/badge';
@@ -33,7 +33,7 @@ import {
 
 // Import existing image components
 import { ImageGallery } from '@/components/admin/questions/images/image-gallery';
-import { QuestionImage, ImageType, ImageStatus } from '@/lib/mockdata/shared/core-types';
+import { ImageType, ImageStatus } from '@/lib/mockdata/shared/core-types';
 import type { GalleryFilters } from '@/components/admin/questions/images/types';
 
 // ===== TYPES =====

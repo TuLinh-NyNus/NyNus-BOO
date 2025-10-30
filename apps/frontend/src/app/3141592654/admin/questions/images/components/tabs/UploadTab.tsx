@@ -47,10 +47,9 @@ interface UploadTabProps {
 interface BatchUploadItem {
   id: string;
   file: File;
-  progress: number;
   status: 'pending' | 'uploading' | 'completed' | 'failed' | 'paused';
+  progress: number;
   error?: string;
-  result?: QuestionImage;
   startTime?: Date;
   endTime?: Date;
 }
@@ -63,41 +62,6 @@ interface UploadStatistics {
   uploadedSize: number;
   averageSpeed: number; // MB/s
   estimatedTimeRemaining: number; // seconds
-}
-
-// ===== MOCK UPLOAD SERVICE =====
-
-class BatchUploadService {
-  static async uploadFile(file: File, questionCode?: string): Promise<QuestionImage> {
-    // Simulate upload with progress
-    const totalTime = 2000 + Math.random() * 3000; // 2-5 seconds
-    const steps = 20;
-    const stepTime = totalTime / steps;
-    
-    for (let i = 0; i <= steps; i++) {
-      await new Promise(resolve => setTimeout(resolve, stepTime));
-      // Progress would be updated via callback in real implementation
-    }
-    
-    // Simulate occasional failures
-    if (Math.random() < 0.1) {
-      throw new Error('Upload failed: Network timeout');
-    }
-    
-    // Return mock result
-    const timestamp = Date.now();
-    return {
-      id: `img-${timestamp}`,
-      questionId: 'q-123',
-      imageType: file.name.toLowerCase().includes('solution') ? 'SOLUTION' : 'QUESTION',
-      imagePath: `/uploads/${file.name}`,
-      driveUrl: `https://res.cloudinary.com/nynus-exam-bank/image/upload/v${timestamp}/${file.name}`,
-      driveFileId: `exam-bank/questions/${questionCode}/${file.name}`,
-      status: 'UPLOADED',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as QuestionImage;
-  }
 }
 
 // ===== UPLOAD QUEUE COMPONENT =====
@@ -287,11 +251,6 @@ function UploadStatistics({ stats }: { stats: UploadStatistics }) {
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  const formatSize = (bytes: number) => {
-    const mb = bytes / (1024 * 1024);
-    return `${mb.toFixed(1)} MB`;
-  };
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       <div className="text-center">
@@ -323,16 +282,6 @@ export default function UploadTab({
   className,
 }: UploadTabProps) {
   const [uploadQueue, setUploadQueue] = useState<BatchUploadItem[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadStats, setUploadStats] = useState<UploadStatistics>({
-    totalFiles: 0,
-    completedFiles: 0,
-    failedFiles: 0,
-    totalSize: 0,
-    uploadedSize: 0,
-    averageSpeed: 0,
-    estimatedTimeRemaining: 0,
-  });
 
   // Handle file selection from ImageUploadComponent
   const handleUploadComplete = useCallback((images: QuestionImage[]) => {
@@ -416,7 +365,15 @@ export default function UploadTab({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <UploadStatistics stats={uploadStats} />
+            <UploadStatistics stats={{
+              totalFiles: uploadQueue.length,
+              completedFiles: uploadQueue.filter(item => item.status === 'completed').length,
+              failedFiles: uploadQueue.filter(item => item.status === 'failed').length,
+              totalSize: uploadQueue.reduce((sum, item) => sum + item.file.size, 0),
+              uploadedSize: uploadQueue.reduce((sum, item) => sum + item.file.size, 0), // This will be updated as files complete
+              averageSpeed: 0, // Placeholder, will be calculated
+              estimatedTimeRemaining: 0, // Placeholder, will be calculated
+            }} />
           </CardContent>
         </Card>
       )}

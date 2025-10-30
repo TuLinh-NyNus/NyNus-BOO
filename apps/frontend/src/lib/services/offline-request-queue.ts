@@ -61,7 +61,7 @@ interface QueueStats {
 const DB_NAME = 'nynus-offline-queue';
 const DB_VERSION = 1;
 const STORE_NAME = 'queued_requests';
-const MAX_STORAGE_BYTES = 50 * 1024 * 1024; // 50MB limit
+const _MAX_STORAGE_BYTES = 50 * 1024 * 1024; // 50MB limit
 
 /**
  * OfflineRequestQueue - Manages request persistence for offline scenarios
@@ -419,7 +419,7 @@ export class OfflineRequestQueue {
    * Check if error is quota exceeded
    */
   private isQuotaExceeded(err: unknown): boolean {
-    const error = err as any;
+    const error = err as Record<string, unknown>;
     return (
       error?.name === 'QuotaExceededError' ||
       error?.code === 22 ||
