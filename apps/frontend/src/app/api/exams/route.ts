@@ -201,7 +201,7 @@ export async function POST(request: NextRequest) {
 
     // Create exam with questions in a transaction using error handler
     const exam = await executePrismaOperation(() =>
-      prisma.$transaction(async (tx) => {
+      prisma.$transaction(async (tx: any) => {
         // Create exam
         const newExam = await tx.exams.create({
           data: {

@@ -162,6 +162,32 @@ jobs:
           go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@latest
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
 
+      - name: Install Buf CLI
+        run: |
+          # Install buf CLI for proto management
+          BUF_VERSION="1.47.2"
+          BUF_ARCH="$(uname -s)-$(uname -m)"
+          BUF_URL="https://github.com/bufbuild/buf/releases/download/v${BUF_VERSION}/buf-${BUF_ARCH}"
+          
+          echo "Installing Buf CLI v${BUF_VERSION} (${BUF_ARCH})..."
+          
+          # Download with timeout and retry
+          if ! timeout 30 sudo curl -sSL --retry 3 --retry-delay 2 "${BUF_URL}" -o /usr/local/bin/buf; then
+            echo "Failed to download Buf CLI from: ${BUF_URL}"
+            exit 1
+          fi
+          
+          # Make executable
+          sudo chmod +x /usr/local/bin/buf
+          
+          # Verify installation
+          if ! buf --version; then
+            echo "Buf CLI installation failed"
+            exit 1
+          fi
+          
+          echo "Buf CLI installed: $(buf --version)"
+
       - name: Generate proto files
         run: |
           chmod +x tools/scripts/gen-proto.sh
@@ -216,6 +242,7 @@ jobs:
           DB_NAME: exam_bank_test
           DB_USER: test_user
           DB_PASSWORD: test_password
+          DATABASE_URL: postgres://test_user:test_password@localhost:5432/exam_bank_test?sslmode=disable
           REDIS_URL: redis://localhost:6379
           REDIS_PASSWORD: test_redis_password
           JWT_SECRET: test-jwt-secret-key-for-testing
