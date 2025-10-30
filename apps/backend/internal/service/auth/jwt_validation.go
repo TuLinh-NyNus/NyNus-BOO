@@ -106,9 +106,9 @@ var (
 // Business Rules:
 // - User ID khÃ´ng Ä‘Æ°á»£c empty
 // - User ID pháº£i cÃ³ má»™t trong cÃ¡c formats:
-//   * ULID (26 chars): 01HQXYZ1234567890ABCDEFGH
-//   * UUID (36 chars): 0082957e-7fd7-485b-a64a-b302251e380b
-//   * TEXT ID (pattern-NNN): student-001, admin-001, teacher-001, tutor-001
+//   - ULID (26 chars): 01HQXYZ1234567890ABCDEFGH
+//   - UUID (36 chars): 0082957e-7fd7-485b-a64a-b302251e380b
+//   - TEXT ID (pattern-NNN): student-001, admin-001, teacher-001, tutor-001
 //
 // Parameters:
 //   - userID: User ID cáº§n validate
