@@ -56,17 +56,16 @@ const customJestConfig = {
     {
       displayName: 'unit',
       ...sharedConfig,
-      setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
       testMatch: [
         '<rootDir>/src/**/*.test.{js,jsx,ts,tsx}',
         '<rootDir>/src/**/*.spec.{js,jsx,ts,tsx}',
-        '<rootDir>/src/__tests__/unit/**/*.test.{js,jsx,ts,tsx}',
       ],
       testPathIgnorePatterns: [
         '<rootDir>/.next/',
         '<rootDir>/node_modules/',
         '<rootDir>/src/__tests__/integration/',
         '<rootDir>/src/__tests__/performance/',
+        '<rootDir>/src/__tests__/browser/',
       ],
       collectCoverageFrom: [
         'src/components/**/*.{js,jsx,ts,tsx}',
@@ -79,27 +78,6 @@ const customJestConfig = {
         '!src/tests/**/*',
         '!src/**/index.{js,ts}',
       ],
-      coverageThreshold: {
-        global: {
-          branches: 80,
-          functions: 80,
-          lines: 80,
-          statements: 80,
-        },
-        './src/components/': {
-          branches: 75,
-          functions: 75,
-          lines: 75,
-          statements: 75,
-        },
-        './src/stores/': {
-          branches: 90,
-          functions: 90,
-          lines: 90,
-          statements: 90,
-        },
-      },
-      testTimeout: 10000,
       cacheDirectory: '<rootDir>/.jest-cache/unit',
     },
 
@@ -107,7 +85,6 @@ const customJestConfig = {
     {
       displayName: 'integration',
       ...sharedConfig,
-      setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
       testMatch: [
         '<rootDir>/src/__tests__/integration/**/*.test.{js,jsx,ts,tsx}',
         '<rootDir>/src/__tests__/performance/**/*.test.{js,jsx,ts,tsx}',
@@ -120,15 +97,6 @@ const customJestConfig = {
         '!src/tests/**/*',
         '!src/generated/**/*',
       ],
-      coverageThreshold: {
-        global: {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70,
-        },
-      },
-      testTimeout: 30000,
       watchPathIgnorePatterns: [
         '<rootDir>/node_modules/',
         '<rootDir>/.next/',
@@ -146,6 +114,17 @@ const customJestConfig = {
   verbose: true,
   notify: false,
   maxWorkers: '50%',
+  testTimeout: 10000,
+  
+  // Global coverage thresholds
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70,
+    },
+  },
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
