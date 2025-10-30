@@ -56,16 +56,17 @@ const customJestConfig = {
     {
       displayName: 'unit',
       ...sharedConfig,
-      setupFilesAfterEnv: ['<rootDir>/../../tests/frontend/setup/jest.setup.ts'],
+      setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
       testMatch: [
-        '<rootDir>/../../tests/frontend/unit/**/*.test.{js,jsx,ts,tsx}',
-        '<rootDir>/../../tests/frontend/unit/**/*.spec.{js,jsx,ts,tsx}',
+        '<rootDir>/src/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/**/*.spec.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/unit/**/*.test.{js,jsx,ts,tsx}',
       ],
       testPathIgnorePatterns: [
         '<rootDir>/.next/',
         '<rootDir>/node_modules/',
-        '<rootDir>/../../tests/frontend/e2e/',
-        '<rootDir>/../../tests/frontend/integration/',
+        '<rootDir>/src/__tests__/integration/',
+        '<rootDir>/src/__tests__/performance/',
       ],
       collectCoverageFrom: [
         'src/components/**/*.{js,jsx,ts,tsx}',
@@ -99,8 +100,6 @@ const customJestConfig = {
         },
       },
       testTimeout: 10000,
-      globalSetup: '<rootDir>/../../tests/frontend/setup/global-setup.ts',
-      globalTeardown: '<rootDir>/../../tests/frontend/setup/global-teardown.ts',
       cacheDirectory: '<rootDir>/.jest-cache/unit',
     },
 
@@ -108,10 +107,10 @@ const customJestConfig = {
     {
       displayName: 'integration',
       ...sharedConfig,
-      setupFilesAfterEnv: ['<rootDir>/../../tests/frontend/setup/jest.integration.setup.ts'],
+      setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
       testMatch: [
-        '<rootDir>/../../tests/frontend/integration/**/*.test.{js,jsx,ts,tsx}',
-        '<rootDir>/../../tests/frontend/e2e/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/integration/**/*.test.{js,jsx,ts,tsx}',
+        '<rootDir>/src/__tests__/performance/**/*.test.{js,jsx,ts,tsx}',
       ],
       collectCoverageFrom: [
         'src/services/**/*.{js,ts,tsx}',
@@ -130,8 +129,6 @@ const customJestConfig = {
         },
       },
       testTimeout: 30000,
-      globalSetup: '<rootDir>/../../tests/frontend/setup/global.setup.ts',
-      globalTeardown: '<rootDir>/../../tests/frontend/setup/global.teardown.ts',
       watchPathIgnorePatterns: [
         '<rootDir>/node_modules/',
         '<rootDir>/.next/',
