@@ -38,6 +38,13 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
+      - name: Clean previous artifacts
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "[INFO] Cleaning Flutter artifacts..."
+          flutter clean
+          echo "[OK] Flutter clean completed"
+
       - name: Get dependencies
         working-directory: ${{ env.WORKING_DIR }}
         run: flutter pub get
@@ -81,6 +88,13 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      - name: Clean previous artifacts
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "[INFO] Cleaning Flutter artifacts..."
+          flutter clean
+          echo "[OK] Flutter clean completed"
 
       - name: Get dependencies
         working-directory: ${{ env.WORKING_DIR }}
@@ -198,6 +212,13 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
+      - name: Clean previous artifacts
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "[INFO] Cleaning Flutter artifacts..."
+          flutter clean
+          echo "[OK] Flutter clean completed"
+
       - name: Get dependencies
         working-directory: ${{ env.WORKING_DIR }}
         run: flutter pub get
@@ -250,6 +271,13 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
 
+      - name: Clean previous artifacts
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "[INFO] Cleaning Flutter artifacts..."
+          flutter clean
+          echo "[OK] Flutter clean completed"
+
       - name: Get dependencies
         working-directory: ${{ env.WORKING_DIR }}
         run: flutter pub get
@@ -284,6 +312,13 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      - name: Clean previous artifacts
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "[INFO] Cleaning Flutter artifacts..."
+          flutter clean
+          echo "[OK] Flutter clean completed"
 
       - name: Get dependencies
         working-directory: ${{ env.WORKING_DIR }}
@@ -321,6 +356,13 @@ jobs:
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+
+      - name: Clean previous artifacts
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          echo "[INFO] Cleaning Flutter artifacts..."
+          flutter clean
+          echo "[OK] Flutter clean completed"
 
       - name: Get dependencies
         working-directory: ${{ env.WORKING_DIR }}
