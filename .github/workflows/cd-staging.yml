@@ -136,7 +136,7 @@ jobs:
           echo "is_kubernetes=$([[ "$DEPLOY_METHOD" == "kubernetes" ]] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
 
       - name: Configure AWS credentials
-        if: secrets.AWS_ACCESS_KEY_ID != ''
+        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -145,7 +145,7 @@ jobs:
         continue-on-error: true
 
       - name: Deploy via Docker Compose (if self-hosted)
-        if: steps.deploy-method.outputs.is_docker_compose == 'true' && secrets.STAGING_HOST != ''
+        if: ${{ steps.deploy-method.outputs.is_docker_compose == 'true' && secrets.STAGING_HOST != '' }}
         run: |
           scp -o StrictHostKeyChecking=no \
               -i ${{ secrets.DEPLOY_SSH_KEY }} \
@@ -168,7 +168,7 @@ jobs:
         continue-on-error: true
 
       - name: Deploy to Kubernetes (if using K8s)
-        if: steps.deploy-method.outputs.is_kubernetes == 'true' && secrets.KUBE_CONFIG_STAGING != ''
+        if: ${{ steps.deploy-method.outputs.is_kubernetes == 'true' && secrets.KUBE_CONFIG_STAGING != '' }}
         run: |
           echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
           export KUBECONFIG=kubeconfig
@@ -188,7 +188,7 @@ jobs:
         continue-on-error: true
 
       - name: Verify deployment
-        if: secrets.STAGING_API_URL != ''
+        if: ${{ secrets.STAGING_API_URL != '' }}
         run: |
           # Wait for services to be healthy
           for i in {1..30}; do
@@ -219,7 +219,7 @@ jobs:
     name: Smoke Tests
     runs-on: ubuntu-latest
     needs: deploy-staging
-    if: secrets.STAGING_URL != ''
+    if: ${{ secrets.STAGING_URL != '' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -255,7 +255,7 @@ jobs:
     name: Send Notification
     runs-on: ubuntu-latest
     needs: [deploy-staging, smoke-tests]
-    if: always() && secrets.SLACK_WEBHOOK_STAGING != ''
+    if: ${{ always() && secrets.SLACK_WEBHOOK_STAGING != '' }}
     steps:
       - name: Send Slack notification
         uses: 8398a7/action-slack@v3
