@@ -26,6 +26,7 @@ import (
 	newsletter_mgmt "exam-bank-system/apps/backend/internal/service/content/newsletter"
 	"exam-bank-system/apps/backend/internal/service/exam"
 	"exam-bank-system/apps/backend/internal/service/exam/scoring"
+	"exam-bank-system/apps/backend/internal/service/focus"
 	bookmarksvc "exam-bank-system/apps/backend/internal/service/library/bookmark"
 	ratingsvc "exam-bank-system/apps/backend/internal/service/library/rating"
 	videosvc "exam-bank-system/apps/backend/internal/service/library/video"
@@ -40,7 +41,6 @@ import (
 	"exam-bank-system/apps/backend/internal/service/user/oauth"
 	"exam-bank-system/apps/backend/internal/service/user/session"
 	"exam-bank-system/apps/backend/internal/services/email"
-	"exam-bank-system/apps/backend/internal/service/focus"
 	"exam-bank-system/apps/backend/internal/util"
 	"exam-bank-system/apps/backend/internal/websocket"
 	"github.com/sirupsen/logrus"
@@ -97,14 +97,14 @@ type Container struct {
 	MetricsRepo            interfaces.MetricsRepository // NEW: Metrics history repository
 
 	// Focus Room Repositories
-	FocusRoomRepo        interfaces.FocusRoomRepository
-	FocusSessionRepo     interfaces.FocusSessionRepository
-	UserStreakRepo       interfaces.UserStreakRepository
-	StudyAnalyticsRepo   interfaces.StudyAnalyticsRepository
-	LeaderboardRepo      interfaces.LeaderboardRepository
-	FocusTaskRepo        interfaces.FocusTaskRepository
-	ChatMessageRepo      interfaces.ChatMessageRepository
-	AchievementRepo      interfaces.AchievementRepository
+	FocusRoomRepo      interfaces.FocusRoomRepository
+	FocusSessionRepo   interfaces.FocusSessionRepository
+	UserStreakRepo     interfaces.UserStreakRepository
+	StudyAnalyticsRepo interfaces.StudyAnalyticsRepository
+	LeaderboardRepo    interfaces.LeaderboardRepository
+	FocusTaskRepo      interfaces.FocusTaskRepository
+	ChatMessageRepo    interfaces.ChatMessageRepository
+	AchievementRepo    interfaces.AchievementRepository
 
 	// Services
 	AuthMgmt               *auth.AuthMgmt
@@ -141,14 +141,14 @@ type Container struct {
 	ExamRateLimitService *security.ExamRateLimitService
 
 	// Focus Room Services
-	FocusRoomService        *focus.RoomService
-	FocusSessionService     *focus.SessionService
-	StreakService           *focus.StreakService
-	AnalyticsFocusService   *focus.AnalyticsService
-	LeaderboardService      *focus.LeaderboardService
-	FocusTaskService        *focus.TaskService
-	AchievementService      *focus.AchievementService
-	ChatService             *focus.ChatService
+	FocusRoomService      *focus.RoomService
+	FocusSessionService   *focus.SessionService
+	StreakService         *focus.StreakService
+	AnalyticsFocusService *focus.AnalyticsService
+	LeaderboardService    *focus.LeaderboardService
+	FocusTaskService      *focus.TaskService
+	AchievementService    *focus.AchievementService
+	ChatService           *focus.ChatService
 
 	// Middleware
 	AuthInterceptor               *middleware.AuthInterceptor

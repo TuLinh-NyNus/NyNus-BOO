@@ -296,5 +296,3 @@ func (r *FocusSessionRepository) GetSessionsByDateRange(ctx context.Context, use
 
 	return sessions, nil
 }
-
-

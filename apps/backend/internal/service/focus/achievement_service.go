@@ -86,5 +86,3 @@ func (s *AchievementService) UnlockAchievement(ctx context.Context, userID strin
 func (s *AchievementService) GetAchievementDefinitions() []entity.AchievementDefinition {
 	return entity.GetAchievementDefinitions()
 }
-
-

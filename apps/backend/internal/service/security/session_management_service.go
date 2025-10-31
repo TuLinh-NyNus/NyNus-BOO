@@ -25,7 +25,7 @@ type SessionManagementService struct {
 // NewSessionManagementService creates a new session management service
 func NewSessionManagementService(
 	sessionRepo *repository.UserSessionRepository,
-	jwtService  *auth.UnifiedJWTService,
+	jwtService *auth.UnifiedJWTService,
 	logger *logrus.Logger,
 ) *SessionManagementService {
 	return &SessionManagementService{
@@ -183,13 +183,13 @@ func (s *SessionManagementService) RenewSession(ctx context.Context, req *RenewS
 	// For simplicity, return message that token is still valid
 	// Full rotation would require user repository and device verification
 	// This can be enhanced in Phase 6.3 when user repository is integrated
-	
+
 	s.logger.WithFields(logrus.Fields{
 		"user_id": userID,
 	}).Info("Session validated - full rotation deferred to Phase 6.3")
 
 	return &RenewSessionResponse{
-		AccessToken:  "", // Would generate new token with full rotation
+		AccessToken:  "",               // Would generate new token with full rotation
 		RefreshToken: req.RefreshToken, // Keep same for now
 		ExpiresAt:    time.Now().Add(15 * time.Minute).Unix(),
 		SessionID:    "", // Would create session with full implementation
@@ -256,4 +256,3 @@ func hashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])
 }
-

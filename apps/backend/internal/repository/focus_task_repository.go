@@ -304,5 +304,3 @@ func (r *FocusTaskRepository) IncrementPomodoro(ctx context.Context, id uuid.UUI
 
 	return nil
 }
-
-

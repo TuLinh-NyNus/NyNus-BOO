@@ -273,5 +273,3 @@ func (r *StudyAnalyticsRepository) queryStats(ctx context.Context, query string,
 
 	return statsList, nil
 }
-
-

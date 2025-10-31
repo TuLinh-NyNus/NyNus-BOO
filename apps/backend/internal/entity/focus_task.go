@@ -17,19 +17,19 @@ const (
 
 // FocusTask represents a task/todo item for students
 type FocusTask struct {
-	ID                 uuid.UUID     `json:"id" db:"id"`
-	UserID             string        `json:"user_id" db:"user_id"`
-	Title              string        `json:"title" db:"title"`
-	Description        *string       `json:"description,omitempty" db:"description"`
-	SubjectTag         *string       `json:"subject_tag,omitempty" db:"subject_tag"`
-	Priority           TaskPriority  `json:"priority" db:"priority"`
-	IsCompleted        bool          `json:"is_completed" db:"is_completed"`
-	DueDate            *time.Time    `json:"due_date,omitempty" db:"due_date"`
-	EstimatedPomodoros *int          `json:"estimated_pomodoros,omitempty" db:"estimated_pomodoros"`
-	ActualPomodoros    int           `json:"actual_pomodoros" db:"actual_pomodoros"`
-	CompletedAt        *time.Time    `json:"completed_at,omitempty" db:"completed_at"`
-	CreatedAt          time.Time     `json:"created_at" db:"created_at"`
-	UpdatedAt          time.Time     `json:"updated_at" db:"updated_at"`
+	ID                 uuid.UUID    `json:"id" db:"id"`
+	UserID             string       `json:"user_id" db:"user_id"`
+	Title              string       `json:"title" db:"title"`
+	Description        *string      `json:"description,omitempty" db:"description"`
+	SubjectTag         *string      `json:"subject_tag,omitempty" db:"subject_tag"`
+	Priority           TaskPriority `json:"priority" db:"priority"`
+	IsCompleted        bool         `json:"is_completed" db:"is_completed"`
+	DueDate            *time.Time   `json:"due_date,omitempty" db:"due_date"`
+	EstimatedPomodoros *int         `json:"estimated_pomodoros,omitempty" db:"estimated_pomodoros"`
+	ActualPomodoros    int          `json:"actual_pomodoros" db:"actual_pomodoros"`
+	CompletedAt        *time.Time   `json:"completed_at,omitempty" db:"completed_at"`
+	CreatedAt          time.Time    `json:"created_at" db:"created_at"`
+	UpdatedAt          time.Time    `json:"updated_at" db:"updated_at"`
 }
 
 // TableName returns the table name for FocusTask
@@ -85,5 +85,3 @@ func (t *FocusTask) IncrementPomodoro() {
 	t.ActualPomodoros++
 	t.UpdatedAt = time.Now()
 }
-
-

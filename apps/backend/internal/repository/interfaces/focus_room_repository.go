@@ -16,7 +16,7 @@ type FocusRoomRepository interface {
 	List(ctx context.Context, filter RoomFilter) ([]*entity.FocusRoom, int, error)
 	Update(ctx context.Context, room *entity.FocusRoom) error
 	Delete(ctx context.Context, id uuid.UUID) error
-	
+
 	// Participants
 	AddParticipant(ctx context.Context, roomID uuid.UUID, userID string) error
 	RemoveParticipant(ctx context.Context, roomID uuid.UUID, userID string) error
@@ -119,5 +119,3 @@ type AchievementRepository interface {
 	HasAchievement(ctx context.Context, userID string, achievementType entity.AchievementType) (bool, error)
 	CheckAndUnlock(ctx context.Context, userID string, stats interface{}) ([]*entity.Achievement, error)
 }
-
-

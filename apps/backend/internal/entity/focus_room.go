@@ -89,5 +89,3 @@ type RoomParticipant struct {
 func (RoomParticipant) TableName() string {
 	return "room_participants"
 }
-
-

@@ -171,5 +171,3 @@ func (s *RoomService) DeleteRoom(ctx context.Context, roomID uuid.UUID, ownerUse
 
 	return nil
 }
-
-

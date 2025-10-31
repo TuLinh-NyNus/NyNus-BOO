@@ -192,5 +192,3 @@ func getSortedKeys(m map[string]string) []string {
 	sort.Strings(keys)
 	return keys
 }
-
-

@@ -148,10 +148,10 @@ func (r *AchievementRepository) CheckAndUnlock(ctx context.Context, userID strin
 			threshold int64 // seconds
 			achType   entity.AchievementType
 		}{
-			{36000, entity.AchievementType10Hours},   // 10 hours
-			{180000, entity.AchievementType50Hours},  // 50 hours
-			{360000, entity.AchievementType100Hours}, // 100 hours
-			{1800000, entity.AchievementType500Hours}, // 500 hours
+			{36000, entity.AchievementType10Hours},     // 10 hours
+			{180000, entity.AchievementType50Hours},    // 50 hours
+			{360000, entity.AchievementType100Hours},   // 100 hours
+			{1800000, entity.AchievementType500Hours},  // 500 hours
 			{3600000, entity.AchievementType1000Hours}, // 1000 hours
 		}
 
@@ -217,5 +217,3 @@ func getAchievementDetails(achType entity.AchievementType) (name, description st
 
 	return string(achType), "Achievement", nil
 }
-
-

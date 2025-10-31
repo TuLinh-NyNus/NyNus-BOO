@@ -435,4 +435,3 @@ func (s *SecurityService) GetTokenMetrics(ctx context.Context, req *GetTokenMetr
 		Aggregation: aggregation,
 	}, nil
 }
-

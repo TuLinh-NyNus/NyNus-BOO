@@ -144,5 +144,3 @@ func (s *TaskService) GetTask(ctx context.Context, taskID uuid.UUID, userID stri
 
 	return task, nil
 }
-
-

@@ -66,4 +66,3 @@ func (s *FocusSession) Duration() time.Duration {
 func (s *FocusSession) GetDuration() int {
 	return int(s.Duration().Seconds())
 }
-

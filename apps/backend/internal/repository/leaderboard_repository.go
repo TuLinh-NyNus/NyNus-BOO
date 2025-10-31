@@ -242,5 +242,3 @@ func (r *LeaderboardRepository) queryLeaderboard(ctx context.Context, query stri
 
 	return entries, nil
 }
-
-

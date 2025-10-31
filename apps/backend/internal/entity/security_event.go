@@ -266,6 +266,3 @@ func (a *AuditLog) FieldMap() ([]string, []interface{}) {
 			&a.CreatedAt,
 		}
 }
-
-
-

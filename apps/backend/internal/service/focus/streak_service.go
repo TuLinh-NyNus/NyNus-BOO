@@ -109,5 +109,3 @@ func (s *StreakService) CheckStreaksDaily(ctx context.Context) error {
 	// In production, this would fetch all users and check their streaks
 	return nil
 }
-
-

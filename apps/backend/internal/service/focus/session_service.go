@@ -12,9 +12,9 @@ import (
 
 // SessionService handles business logic for focus sessions
 type SessionService struct {
-	sessionRepo   interfaces.FocusSessionRepository
-	streakRepo    interfaces.UserStreakRepository
-	analyticsRepo interfaces.StudyAnalyticsRepository
+	sessionRepo     interfaces.FocusSessionRepository
+	streakRepo      interfaces.UserStreakRepository
+	analyticsRepo   interfaces.StudyAnalyticsRepository
 	achievementRepo interfaces.AchievementRepository
 }
 
@@ -26,20 +26,20 @@ func NewSessionService(
 	achievementRepo interfaces.AchievementRepository,
 ) *SessionService {
 	return &SessionService{
-		sessionRepo:   sessionRepo,
-		streakRepo:    streakRepo,
-		analyticsRepo: analyticsRepo,
+		sessionRepo:     sessionRepo,
+		streakRepo:      streakRepo,
+		analyticsRepo:   analyticsRepo,
 		achievementRepo: achievementRepo,
 	}
 }
 
 // SessionStats represents session completion stats
 type SessionStats struct {
-	Session           *entity.FocusSession
-	NewStreak         int
-	NewAchievements   []*entity.Achievement
-	TodayFocusTime    int
-	WeeklyFocusTime   int
+	Session         *entity.FocusSession
+	NewStreak       int
+	NewAchievements []*entity.Achievement
+	TodayFocusTime  int
+	WeeklyFocusTime int
 }
 
 // StartSession starts a new focus session
@@ -114,7 +114,7 @@ func (s *SessionService) EndSession(ctx context.Context, sessionID uuid.UUID, us
 			// Log error but don't fail
 			fmt.Printf("failed to update streak: %v\n", err)
 		}
-		
+
 		streak, err := s.streakRepo.Get(ctx, userID)
 		if err == nil {
 			newStreak = streak.CurrentStreak
@@ -182,5 +182,3 @@ func (s *SessionService) GetUserSessions(ctx context.Context, userID string, lim
 
 	return sessions, nil
 }
-
-

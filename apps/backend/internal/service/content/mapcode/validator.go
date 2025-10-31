@@ -35,31 +35,31 @@ func (v *ValidationResult) Error() string {
 	if v.IsValid() {
 		return ""
 	}
-	
+
 	var messages []string
 	for _, err := range v.Errors {
 		messages = append(messages, fmt.Sprintf("%s: %s", err.Field, err.Message))
 	}
-	
+
 	return strings.Join(messages, "; ")
 }
 
 // ValidateMapCodeContent validates MapCode file content
 func ValidateMapCodeContent(content string) *ValidationResult {
 	result := &ValidationResult{}
-	
+
 	// Check minimum length
 	if len(content) < 100 {
 		result.AddError("content", "Content too short (minimum 100 bytes)")
 		return result // Early return for critically short content
 	}
-	
+
 	// Check maximum length (5MB)
 	if len(content) > 5*1024*1024 {
 		result.AddError("content", "Content too large (maximum 5MB)")
 		return result
 	}
-	
+
 	// Check for level definitions (required section)
 	if !strings.Contains(content, "[N] Nhận biết") {
 		result.AddError("levels", "Missing required level definition: [N] Nhận biết")
@@ -70,12 +70,12 @@ func ValidateMapCodeContent(content string) *ValidationResult {
 	if !strings.Contains(content, "[V] Vận dụng") {
 		result.AddError("levels", "Missing required level definition: [V] Vận dụng")
 	}
-	
+
 	// Check for dash-based hierarchy patterns
 	gradePattern := regexp.MustCompile(`-\[.\]`)
 	subjectPattern := regexp.MustCompile(`----\[.\]`)
 	chapterPattern := regexp.MustCompile(`-------\[.\]`)
-	
+
 	if !gradePattern.MatchString(content) {
 		result.AddError("structure", "Missing grade hierarchy pattern: -[X]")
 	}
@@ -85,24 +85,24 @@ func ValidateMapCodeContent(content string) *ValidationResult {
 	if !chapterPattern.MatchString(content) {
 		result.AddError("structure", "Missing chapter hierarchy pattern: -------[X]")
 	}
-	
+
 	// Check encoding (should contain Vietnamese characters)
 	if !containsVietnamese(content) {
 		result.AddError("encoding", "Content does not contain Vietnamese characters (encoding may be incorrect)")
 	}
-	
+
 	// Check for required sections markers
 	requiredMarkers := []string{
 		"# Level", // Level definitions section
-		"# Grade", // Grade section  
+		"# Grade", // Grade section
 	}
-	
+
 	for _, marker := range requiredMarkers {
 		if !strings.Contains(content, marker) {
 			result.AddError("sections", fmt.Sprintf("Missing required section marker: %s", marker))
 		}
 	}
-	
+
 	return result
 }
 
@@ -123,14 +123,14 @@ func containsVietnamese(content string) bool {
 		"ư", "ừ", "ứ", "ử", "ữ", "ự",
 		"ỳ", "ý", "ỷ", "ỹ", "ỵ",
 	}
-	
+
 	contentLower := strings.ToLower(content)
 	for _, char := range vietnameseChars {
 		if strings.Contains(contentLower, char) {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
@@ -139,14 +139,12 @@ func ValidateVersion(version string) error {
 	if version == "" {
 		return fmt.Errorf("version cannot be empty")
 	}
-	
+
 	// Version should follow format: v2025-01-19 or similar
 	versionPattern := regexp.MustCompile(`^v?\d{4}-\d{2}-\d{2}$`)
 	if !versionPattern.MatchString(version) {
 		return fmt.Errorf("version must follow format vYYYY-MM-DD (e.g., v2025-01-19)")
 	}
-	
+
 	return nil
 }
-
-

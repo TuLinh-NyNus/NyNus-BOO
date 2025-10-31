@@ -21,23 +21,23 @@ type MapCodeVersion struct {
 
 // MapCodeTranslation represents a cached translation result
 type MapCodeTranslation struct {
-	ID           pgtype.Text        `json:"id"`            // UUID primary key
-	VersionID    pgtype.Text        `json:"version_id"`    // Reference to MapCodeVersion
-	QuestionCode pgtype.Text        `json:"question_code"` // Question code (e.g., "0P1N1")
-	Translation  pgtype.Text        `json:"translation"`   // Human-readable translation
-	Grade        pgtype.Text        `json:"grade"`         // Parsed grade
-	Subject      pgtype.Text        `json:"subject"`       // Parsed subject
-	Chapter      pgtype.Text        `json:"chapter"`       // Parsed chapter
-	Level        pgtype.Text        `json:"level"`         // Parsed level
-	Lesson       pgtype.Text        `json:"lesson"`        // Parsed lesson
-	Form         pgtype.Text        `json:"form"`          // Parsed form (nullable)
-	
+	ID           pgtype.Text `json:"id"`            // UUID primary key
+	VersionID    pgtype.Text `json:"version_id"`    // Reference to MapCodeVersion
+	QuestionCode pgtype.Text `json:"question_code"` // Question code (e.g., "0P1N1")
+	Translation  pgtype.Text `json:"translation"`   // Human-readable translation
+	Grade        pgtype.Text `json:"grade"`         // Parsed grade
+	Subject      pgtype.Text `json:"subject"`       // Parsed subject
+	Chapter      pgtype.Text `json:"chapter"`       // Parsed chapter
+	Level        pgtype.Text `json:"level"`         // Parsed level
+	Lesson       pgtype.Text `json:"lesson"`        // Parsed lesson
+	Form         pgtype.Text `json:"form"`          // Parsed form (nullable)
+
 	// Hierarchical context (NEW)
-	HierarchyPath  pgtype.Text `json:"hierarchy_path"`  // Full hierarchical path for breadcrumbs
-	ParentContext  pgtype.JSONB `json:"parent_context"` // Parent context for disambiguation
-	
-	CreatedAt    pgtype.Timestamptz `json:"created_at"`    // Creation timestamp
-	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`    // Last update timestamp
+	HierarchyPath pgtype.Text  `json:"hierarchy_path"` // Full hierarchical path for breadcrumbs
+	ParentContext pgtype.JSONB `json:"parent_context"` // Parent context for disambiguation
+
+	CreatedAt pgtype.Timestamptz `json:"created_at"` // Creation timestamp
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"` // Last update timestamp
 }
 
 // MapCodeParentContext represents parent context for disambiguation

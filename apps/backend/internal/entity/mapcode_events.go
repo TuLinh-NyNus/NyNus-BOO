@@ -31,5 +31,3 @@ func NewMapCodeVersionEvent(event MapCodeEvent, versionID, userID, details strin
 		Details:   details,
 	}
 }
-
-

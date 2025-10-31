@@ -113,5 +113,3 @@ func (r *ChatMessageRepository) DeleteOldMessages(ctx context.Context, beforeDat
 
 	return nil
 }
-
-

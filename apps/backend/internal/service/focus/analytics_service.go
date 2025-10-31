@@ -100,11 +100,11 @@ func (s *AnalyticsService) GetMonthlyStats(ctx context.Context, userID string, y
 
 	// Aggregate monthly stats
 	monthlyStats := &entity.MonthlyAnalytics{
-		Month:            month,
-		Year:             year,
-		TotalDaysActive:  len(dailyStats),
-		TopSubjects:      make([]entity.SubjectTime, 0),
-		WeeklyBreakdown:  make([]entity.WeeklyAnalytics, 0),
+		Month:           month,
+		Year:            year,
+		TotalDaysActive: len(dailyStats),
+		TopSubjects:     make([]entity.SubjectTime, 0),
+		WeeklyBreakdown: make([]entity.WeeklyAnalytics, 0),
 	}
 
 	totalFocusTime := 0
@@ -206,5 +206,3 @@ func (s *AnalyticsService) GetProductivityInsights(ctx context.Context, userID s
 
 	return insights, nil
 }
-
-

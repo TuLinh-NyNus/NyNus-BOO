@@ -141,5 +141,3 @@ func calculatePeriodRange(period entity.LeaderboardPeriod) (time.Time, time.Time
 		return start, now
 	}
 }
-
-

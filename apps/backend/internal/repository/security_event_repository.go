@@ -639,6 +639,3 @@ func MapToJSONB(data map[string]interface{}) (pgtype.JSONB, error) {
 	}
 	return pgtype.JSONB{Bytes: jsonBytes, Status: pgtype.Present}, nil
 }
-
-
-

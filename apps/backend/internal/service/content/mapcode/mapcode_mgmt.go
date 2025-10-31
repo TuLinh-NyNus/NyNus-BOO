@@ -33,11 +33,11 @@ type MapCodeMgmt struct {
 	translationRepo  *repository.MapCodeTranslationRepository
 	basePath         string                           // Base path for MapCode files
 	translationCache map[string]*entity.MapCodeConfig // In-memory cache
-	
+
 	// Metrics tracking
 	metrics     MapCodeMetrics
 	metricsLock sync.RWMutex
-	
+
 	// Event broadcasting
 	eventListeners []chan *entity.MapCodeVersionEvent
 	eventsLock     sync.RWMutex
@@ -112,13 +112,13 @@ func (m *MapCodeMgmt) CreateVersionFromContent(ctx context.Context, version, nam
 	if err := ValidateVersion(version); err != nil {
 		return nil, fmt.Errorf("invalid version format: %w", err)
 	}
-	
+
 	// Validate content
 	validationResult := ValidateMapCodeContent(content)
 	if !validationResult.IsValid() {
 		return nil, fmt.Errorf("validation failed: %s", validationResult.Error())
 	}
-	
+
 	// Check storage limits
 	storageInfo, err := m.mapCodeRepo.GetStorageInfo(ctx)
 	if err != nil {
@@ -137,7 +137,7 @@ func (m *MapCodeMgmt) CreateVersionFromContent(ctx context.Context, version, nam
 
 	// Create MapCode file path
 	filePath := filepath.Join(versionPath, fmt.Sprintf("MapCode-%s.md", strings.TrimPrefix(version, "v")))
-	
+
 	// Write content to file
 	if err := ioutil.WriteFile(filePath, []byte(content), 0644); err != nil {
 		// Cleanup folder if file write fails
@@ -200,10 +200,10 @@ func (m *MapCodeMgmt) SetActiveVersion(ctx context.Context, versionID string) er
 
 	// Invalidate all caches when switching versions
 	m.ClearCache()
-	
+
 	// Record version switch in metrics
 	m.recordVersionSwitch(versionID)
-	
+
 	// Publish version activated event
 	event := entity.NewMapCodeVersionEvent(
 		entity.MapCodeEventVersionActivated,
@@ -212,7 +212,7 @@ func (m *MapCodeMgmt) SetActiveVersion(ctx context.Context, versionID string) er
 		fmt.Sprintf("Activated version: %s", version.Version.String),
 	)
 	m.publishEvent(event)
-	
+
 	// Pre-cache common codes in background
 	go func() {
 		if err := m.PreCacheCommonCodes(context.Background()); err != nil {
@@ -297,7 +297,7 @@ func (m *MapCodeMgmt) GetMapCodeConfig(ctx context.Context, versionID string) (*
 // TranslateQuestionCode translates a question code using active version with caching
 func (m *MapCodeMgmt) TranslateQuestionCode(ctx context.Context, questionCode string) (string, error) {
 	startTime := time.Now()
-	
+
 	// Get active version
 	activeVersion, err := m.GetActiveVersion(ctx)
 	if err != nil {
@@ -717,13 +717,13 @@ func (m *MapCodeMgmt) cacheTranslation(ctx context.Context, versionID, questionC
 
 	// Set individual translation parts
 	m.setTranslationParts(cacheEntry, questionCode, config)
-	
+
 	// NEW: Add hierarchical context
 	hierarchyPath := m.buildHierarchyPath(questionCode, config)
 	if hierarchyPath != "" {
 		cacheEntry.HierarchyPath.Set(hierarchyPath)
 	}
-	
+
 	// NEW: Add parent context for disambiguation
 	parentContext := m.buildParentContext(questionCode)
 	if parentContext != nil {
@@ -856,43 +856,43 @@ func (m *MapCodeMgmt) WarmupCache(ctx context.Context) error {
 // buildHierarchyPath constructs full hierarchical path for breadcrumb navigation
 func (m *MapCodeMgmt) buildHierarchyPath(questionCode string, config *entity.MapCodeConfig) string {
 	var parts []string
-	
+
 	if len(questionCode) < 5 {
 		return ""
 	}
-	
+
 	// Position 1: Grade
 	if grade, ok := config.Grades[string(questionCode[0])]; ok {
 		parts = append(parts, grade)
 	}
-	
+
 	// Position 2: Subject
 	if subject, ok := config.Subjects[string(questionCode[1])]; ok {
 		parts = append(parts, subject)
 	}
-	
+
 	// Position 3: Chapter
 	if chapter, ok := config.Chapters[string(questionCode[2])]; ok {
 		parts = append(parts, chapter)
 	}
-	
+
 	// Position 4: Level
 	if level, ok := config.Levels[string(questionCode[3])]; ok {
 		parts = append(parts, level)
 	}
-	
+
 	// Position 5: Lesson
 	if lesson, ok := config.Lessons[string(questionCode[4])]; ok {
 		parts = append(parts, lesson)
 	}
-	
+
 	// Position 6: Form (optional, for ID6 format)
 	if len(questionCode) == 7 && questionCode[5] == '-' {
 		if form, ok := config.Forms[string(questionCode[6])]; ok {
 			parts = append(parts, form)
 		}
 	}
-	
+
 	return strings.Join(parts, " > ")
 }
 
@@ -901,7 +901,7 @@ func (m *MapCodeMgmt) buildParentContext(questionCode string) *entity.MapCodePar
 	if len(questionCode) < 3 {
 		return nil
 	}
-	
+
 	return &entity.MapCodeParentContext{
 		Grade:   string(questionCode[0]),
 		Subject: string(questionCode[1]),
@@ -913,7 +913,7 @@ func (m *MapCodeMgmt) buildParentContext(questionCode string) *entity.MapCodePar
 func (m *MapCodeMgmt) GetMetrics() MapCodeMetrics {
 	m.metricsLock.RLock()
 	defer m.metricsLock.RUnlock()
-	
+
 	metrics := m.metrics
 	return metrics
 }
@@ -938,7 +938,7 @@ func (m *MapCodeMgmt) recordCacheMiss() {
 func (m *MapCodeMgmt) recordTranslationTime(duration time.Duration) {
 	m.metricsLock.Lock()
 	defer m.metricsLock.Unlock()
-	
+
 	total := m.metrics.TotalTranslations
 	if total <= 1 {
 		m.metrics.AvgTranslationTime = duration
@@ -968,7 +968,7 @@ func (m *MapCodeMgmt) recordVersionSwitch(versionID string) {
 func (m *MapCodeMgmt) publishEvent(event *entity.MapCodeVersionEvent) {
 	m.eventsLock.RLock()
 	defer m.eventsLock.RUnlock()
-	
+
 	// Send to all listeners (non-blocking)
 	for _, listener := range m.eventListeners {
 		select {
@@ -986,11 +986,11 @@ func (m *MapCodeMgmt) publishEvent(event *entity.MapCodeVersionEvent) {
 func (m *MapCodeMgmt) Subscribe() chan *entity.MapCodeVersionEvent {
 	m.eventsLock.Lock()
 	defer m.eventsLock.Unlock()
-	
+
 	// Create buffered channel to avoid blocking
 	listener := make(chan *entity.MapCodeVersionEvent, 100)
 	m.eventListeners = append(m.eventListeners, listener)
-	
+
 	return listener
 }
 
@@ -998,7 +998,7 @@ func (m *MapCodeMgmt) Subscribe() chan *entity.MapCodeVersionEvent {
 func (m *MapCodeMgmt) Unsubscribe(listener chan *entity.MapCodeVersionEvent) {
 	m.eventsLock.Lock()
 	defer m.eventsLock.Unlock()
-	
+
 	// Find and remove the listener
 	for i, l := range m.eventListeners {
 		if l == listener {
@@ -1016,39 +1016,39 @@ func (m *MapCodeMgmt) Unsubscribe(listener chan *entity.MapCodeVersionEvent) {
 func (m *MapCodeMgmt) StartEventListener(ctx context.Context) {
 	// Subscribe to own events
 	eventChan := m.Subscribe()
-	
+
 	go func() {
 		defer m.Unsubscribe(eventChan)
-		
+
 		for {
 			select {
 			case <-ctx.Done():
 				// Context cancelled, stop listening
 				return
-				
+
 			case event, ok := <-eventChan:
 				if !ok {
 					// Channel closed
 					return
 				}
-				
+
 				// Handle event based on type
 				switch event.Event {
 				case entity.MapCodeEventVersionActivated:
 					// Invalidate all caches when version is activated
 					fmt.Printf("Event received: Version activated (%s), invalidating caches\n", event.VersionID)
 					m.ClearCache()
-					
+
 				case entity.MapCodeEventCacheInvalidated:
 					// Explicit cache invalidation request
 					fmt.Printf("Event received: Cache invalidation requested for version %s\n", event.VersionID)
 					m.ClearCache()
-					
+
 				case entity.MapCodeEventVersionDeleted:
 					// Clear cache for deleted version
 					fmt.Printf("Event received: Version deleted (%s), clearing cache\n", event.VersionID)
 					delete(m.translationCache, event.VersionID)
-					
+
 				default:
 					// Log other events
 					fmt.Printf("Event received: %s for version %s\n", event.Event, event.VersionID)

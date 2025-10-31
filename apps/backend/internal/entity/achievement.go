@@ -9,57 +9,57 @@ type AchievementType string
 
 const (
 	// Streak achievements
-	AchievementTypeFirstSession  AchievementType = "first_session"  // Hoàn thành session đầu tiên
-	AchievementType3DayStreak    AchievementType = "streak_3"       // 3 ngày liên tục
-	AchievementType7DayStreak    AchievementType = "streak_7"       // 7 ngày liên tục
-	AchievementType30DayStreak   AchievementType = "streak_30"      // 30 ngày liên tục
-	AchievementType100DayStreak  AchievementType = "streak_100"     // 100 ngày liên tục
-	AchievementType365DayStreak  AchievementType = "streak_365"     // 365 ngày liên tục
+	AchievementTypeFirstSession AchievementType = "first_session" // Hoàn thành session đầu tiên
+	AchievementType3DayStreak   AchievementType = "streak_3"      // 3 ngày liên tục
+	AchievementType7DayStreak   AchievementType = "streak_7"      // 7 ngày liên tục
+	AchievementType30DayStreak  AchievementType = "streak_30"     // 30 ngày liên tục
+	AchievementType100DayStreak AchievementType = "streak_100"    // 100 ngày liên tục
+	AchievementType365DayStreak AchievementType = "streak_365"    // 365 ngày liên tục
 
 	// Time achievements
-	AchievementType10Hours   AchievementType = "time_10h"    // Tổng 10 giờ
-	AchievementType50Hours   AchievementType = "time_50h"    // Tổng 50 giờ
-	AchievementType100Hours  AchievementType = "time_100h"   // Tổng 100 giờ
-	AchievementType500Hours  AchievementType = "time_500h"   // Tổng 500 giờ
-	AchievementType1000Hours AchievementType = "time_1000h"  // Tổng 1000 giờ
+	AchievementType10Hours   AchievementType = "time_10h"   // Tổng 10 giờ
+	AchievementType50Hours   AchievementType = "time_50h"   // Tổng 50 giờ
+	AchievementType100Hours  AchievementType = "time_100h"  // Tổng 100 giờ
+	AchievementType500Hours  AchievementType = "time_500h"  // Tổng 500 giờ
+	AchievementType1000Hours AchievementType = "time_1000h" // Tổng 1000 giờ
 
 	// Session achievements
-	AchievementType10Sessions   AchievementType = "sessions_10"    // 10 sessions
-	AchievementType100Sessions  AchievementType = "sessions_100"   // 100 sessions
-	AchievementType1000Sessions AchievementType = "sessions_1000"  // 1000 sessions
-	AchievementTypeMarathon     AchievementType = "marathon"       // 1 session > 2 giờ
-	AchievementTypeEarlyBird    AchievementType = "early_bird"     // Focus trước 6am
-	AchievementTypeNightOwl     AchievementType = "night_owl"      // Focus sau 10pm
+	AchievementType10Sessions   AchievementType = "sessions_10"   // 10 sessions
+	AchievementType100Sessions  AchievementType = "sessions_100"  // 100 sessions
+	AchievementType1000Sessions AchievementType = "sessions_1000" // 1000 sessions
+	AchievementTypeMarathon     AchievementType = "marathon"      // 1 session > 2 giờ
+	AchievementTypeEarlyBird    AchievementType = "early_bird"    // Focus trước 6am
+	AchievementTypeNightOwl     AchievementType = "night_owl"     // Focus sau 10pm
 
 	// Task achievements
-	AchievementTypeTaskMaster    AchievementType = "task_master"     // 10 tasks hoàn thành
-	AchievementTypeProductiveDay AchievementType = "productive_day"  // 5 tasks trong 1 ngày
-	AchievementTypeSubjectExpert AchievementType = "subject_expert"  // 20 tasks cùng 1 môn
+	AchievementTypeTaskMaster    AchievementType = "task_master"    // 10 tasks hoàn thành
+	AchievementTypeProductiveDay AchievementType = "productive_day" // 5 tasks trong 1 ngày
+	AchievementTypeSubjectExpert AchievementType = "subject_expert" // 20 tasks cùng 1 môn
 
 	// Social achievements
-	AchievementTypeSocialLearner AchievementType = "social_learner"  // Tham gia 5 rooms
-	AchievementTypeRoomCreator   AchievementType = "room_creator"    // Tạo room đầu tiên
-	AchievementTypeTop10         AchievementType = "top_10"          // Vào top 10 leaderboard
-	
+	AchievementTypeSocialLearner AchievementType = "social_learner" // Tham gia 5 rooms
+	AchievementTypeRoomCreator   AchievementType = "room_creator"   // Tạo room đầu tiên
+	AchievementTypeTop10         AchievementType = "top_10"         // Vào top 10 leaderboard
+
 	// Legacy aliases for backward compatibility
-	AchievementFirstSession = AchievementTypeFirstSession
-	AchievementStreak3      = AchievementType3DayStreak
-	AchievementStreak7      = AchievementType7DayStreak
-	AchievementStreak30     = AchievementType30DayStreak
-	AchievementStreak100    = AchievementType100DayStreak
-	AchievementStreak365    = AchievementType365DayStreak
-	AchievementTime10H      = AchievementType10Hours
-	AchievementTime50H      = AchievementType50Hours
-	AchievementTime100H     = AchievementType100Hours
-	AchievementTime500H     = AchievementType500Hours
-	AchievementTime1000H    = AchievementType1000Hours
-	AchievementSessions10   = AchievementType10Sessions
-	AchievementSessions100  = AchievementType100Sessions
-	AchievementSessions1000 = AchievementType1000Sessions
-	AchievementMarathon     = AchievementTypeMarathon
-	AchievementEarlyBird    = AchievementTypeEarlyBird
-	AchievementNightOwl     = AchievementTypeNightOwl
-	AchievementTaskMaster   = AchievementTypeTaskMaster
+	AchievementFirstSession  = AchievementTypeFirstSession
+	AchievementStreak3       = AchievementType3DayStreak
+	AchievementStreak7       = AchievementType7DayStreak
+	AchievementStreak30      = AchievementType30DayStreak
+	AchievementStreak100     = AchievementType100DayStreak
+	AchievementStreak365     = AchievementType365DayStreak
+	AchievementTime10H       = AchievementType10Hours
+	AchievementTime50H       = AchievementType50Hours
+	AchievementTime100H      = AchievementType100Hours
+	AchievementTime500H      = AchievementType500Hours
+	AchievementTime1000H     = AchievementType1000Hours
+	AchievementSessions10    = AchievementType10Sessions
+	AchievementSessions100   = AchievementType100Sessions
+	AchievementSessions1000  = AchievementType1000Sessions
+	AchievementMarathon      = AchievementTypeMarathon
+	AchievementEarlyBird     = AchievementTypeEarlyBird
+	AchievementNightOwl      = AchievementTypeNightOwl
+	AchievementTaskMaster    = AchievementTypeTaskMaster
 	AchievementProductiveDay = AchievementTypeProductiveDay
 	AchievementSubjectExpert = AchievementTypeSubjectExpert
 	AchievementSocialLearner = AchievementTypeSocialLearner
@@ -169,4 +169,3 @@ func GetAchievementDefinitions() []AchievementDefinition {
 		},
 	}
 }
-

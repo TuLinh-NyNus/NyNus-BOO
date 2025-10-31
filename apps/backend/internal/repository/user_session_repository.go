@@ -235,6 +235,3 @@ func (r *UserSessionRepository) CountActiveSessionsByUserID(ctx context.Context,
 
 	return count, nil
 }
-
-
-

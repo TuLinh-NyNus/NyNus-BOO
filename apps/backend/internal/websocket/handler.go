@@ -17,6 +17,7 @@ import (
 type Handler struct {
 	manager       *ConnectionManager
 	authenticator TokenAuthenticator
+	focusHandler  *FocusRoomHandler
 	logger        *log.Logger
 
 	// Configuration
@@ -50,6 +51,7 @@ func NewHandler(manager *ConnectionManager, authenticator TokenAuthenticator) *H
 	return &Handler{
 		manager:         manager,
 		authenticator:   authenticator,
+		focusHandler:    nil, // Set via SetFocusHandler
 		logger:          log.New(log.Writer(), "[WebSocket Handler] ", log.LstdFlags),
 		maxMessageSize:  10 * 1024, // 10KB (task 2.2.4)
 		rateLimitPerMin: 60,        // 60 messages per minute
@@ -59,6 +61,11 @@ func NewHandler(manager *ConnectionManager, authenticator TokenAuthenticator) *H
 			"https://exambank.com",
 		},
 	}
+}
+
+// SetFocusHandler sets the Focus Room handler
+func (h *Handler) SetFocusHandler(focusHandler *FocusRoomHandler) {
+	h.focusHandler = focusHandler
 }
 
 // HandleWebSocket handles WebSocket upgrade and connection.
@@ -156,7 +163,7 @@ func (h *Handler) handleMessages(ctx context.Context, client *Client) error {
 
 // routeMessage routes messages to appropriate handlers.
 // Implements task 2.2.2: Support message types
-func (h *Handler) routeMessage(_ context.Context, client *Client, msg *WebSocketMessage) error {
+func (h *Handler) routeMessage(ctx context.Context, client *Client, msg *WebSocketMessage) error {
 	switch msg.Type {
 	case "ping":
 		// Heartbeat (task 2.2.2)
@@ -177,6 +184,45 @@ func (h *Handler) routeMessage(_ context.Context, client *Client, msg *WebSocket
 	case "ack":
 		// Acknowledge message receipt (task 2.2.2)
 		return h.handleAck(client, msg.Payload)
+
+	// Focus Room specific events
+	case "join_room":
+		if h.focusHandler == nil {
+			return fmt.Errorf("focus handler not initialized")
+		}
+		roomID, ok := msg.Payload["room_id"].(string)
+		if !ok {
+			return fmt.Errorf("room_id is required")
+		}
+		return h.focusHandler.HandleJoinRoom(ctx, client, roomID)
+
+	case "leave_room":
+		if h.focusHandler == nil {
+			return fmt.Errorf("focus handler not initialized")
+		}
+		roomID, ok := msg.Payload["room_id"].(string)
+		if !ok {
+			return fmt.Errorf("room_id is required")
+		}
+		return h.focusHandler.HandleLeaveRoom(ctx, client, roomID)
+
+	case "send_message":
+		if h.focusHandler == nil {
+			return fmt.Errorf("focus handler not initialized")
+		}
+		return h.focusHandler.HandleSendMessage(ctx, client, msg.Payload)
+
+	case "focus_start":
+		if h.focusHandler == nil {
+			return fmt.Errorf("focus handler not initialized")
+		}
+		return h.focusHandler.HandleFocusStart(ctx, client, msg.Payload)
+
+	case "focus_end":
+		if h.focusHandler == nil {
+			return fmt.Errorf("focus handler not initialized")
+		}
+		return h.focusHandler.HandleFocusEnd(ctx, client, msg.Payload)
 
 	default:
 		// Unknown message type (task 2.2.3: Invalid message format)

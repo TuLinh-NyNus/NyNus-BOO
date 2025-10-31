@@ -25,12 +25,12 @@ type LeaderboardEntry struct {
 	Rank                  *int              `json:"rank,omitempty" db:"rank"`
 	Score                 float64           `json:"score" db:"score"`
 	UpdatedAt             time.Time         `json:"updated_at" db:"updated_at"`
-	
+
 	// Additional fields for display (not in DB, loaded separately)
-	Username string `json:"username,omitempty" db:"-"`
-	Avatar   string `json:"avatar,omitempty" db:"-"`
-	CurrentStreak int `json:"current_streak,omitempty" db:"-"`
-	SessionsCompleted int `json:"sessions_completed,omitempty" db:"-"`
+	Username          string `json:"username,omitempty" db:"-"`
+	Avatar            string `json:"avatar,omitempty" db:"-"`
+	CurrentStreak     int    `json:"current_streak,omitempty" db:"-"`
+	SessionsCompleted int    `json:"sessions_completed,omitempty" db:"-"`
 }
 
 // TableName returns the table name for LeaderboardEntry
@@ -41,10 +41,10 @@ func (LeaderboardEntry) TableName() string {
 // CalculateScore tính score dựa trên nhiều yếu tố
 // Formula: focus_time * 1.0 + sessions * 300 + streak * 1000 + tasks * 500
 func CalculateScore(focusTimeSeconds int64, sessionsCompleted, currentStreak, tasksCompleted int) float64 {
-	score := float64(focusTimeSeconds) * 1.0         // 1 point per second
-	score += float64(sessionsCompleted) * 300.0      // 300 bonus per session
-	score += float64(currentStreak) * 1000.0         // 1000 bonus per streak day
-	score += float64(tasksCompleted) * 500.0         // 500 bonus per task
+	score := float64(focusTimeSeconds) * 1.0    // 1 point per second
+	score += float64(sessionsCompleted) * 300.0 // 300 bonus per session
+	score += float64(currentStreak) * 1000.0    // 1000 bonus per streak day
+	score += float64(tasksCompleted) * 500.0    // 500 bonus per task
 	return score
 }
 
@@ -61,5 +61,3 @@ func GetRankBadge(rank int) string {
 		return ""
 	}
 }
-
-

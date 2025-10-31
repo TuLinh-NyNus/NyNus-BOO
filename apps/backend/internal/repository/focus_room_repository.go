@@ -381,5 +381,3 @@ func (r *FocusRoomRepository) UpdateParticipantStatus(ctx context.Context, roomI
 
 	return nil
 }
-
-

@@ -45,13 +45,13 @@ func (r *UserStreakRepository) Get(ctx context.Context, userID string) (*entity.
 	if err == sql.ErrNoRows {
 		// Return empty streak for new user
 		return &entity.UserStreak{
-			UserID:                  userID,
-			CurrentStreak:           0,
-			LongestStreak:           0,
-			LastStudyDate:           nil,
-			TotalStudyDays:          0,
-			TotalFocusTimeSeconds:   0,
-			UpdatedAt:               time.Now(),
+			UserID:                userID,
+			CurrentStreak:         0,
+			LongestStreak:         0,
+			LastStudyDate:         nil,
+			TotalStudyDays:        0,
+			TotalFocusTimeSeconds: 0,
+			UpdatedAt:             time.Now(),
 		}, nil
 	}
 	if err != nil {
@@ -181,4 +181,3 @@ func (r *UserStreakRepository) GetTopStreaks(ctx context.Context, limit int) ([]
 
 	return streaks, nil
 }
-

@@ -19,12 +19,12 @@ import (
 // FocusRoomServiceServer implements the FocusRoomService gRPC server
 type FocusRoomServiceServer struct {
 	v1.UnimplementedFocusRoomServiceServer
-	roomService    *focus.RoomService
-	sessionService *focus.SessionService
-	analyticsService *focus.AnalyticsService
-	streakService  *focus.StreakService
+	roomService        *focus.RoomService
+	sessionService     *focus.SessionService
+	analyticsService   *focus.AnalyticsService
+	streakService      *focus.StreakService
 	leaderboardService *focus.LeaderboardService
-	taskService    *focus.TaskService
+	taskService        *focus.TaskService
 }
 
 // NewFocusRoomServiceServer creates a new FocusRoomServiceServer
@@ -37,12 +37,12 @@ func NewFocusRoomServiceServer(
 	taskService *focus.TaskService,
 ) *FocusRoomServiceServer {
 	return &FocusRoomServiceServer{
-		roomService:    roomService,
-		sessionService: sessionService,
-		analyticsService: analyticsService,
-		streakService:  streakService,
+		roomService:        roomService,
+		sessionService:     sessionService,
+		analyticsService:   analyticsService,
+		streakService:      streakService,
 		leaderboardService: leaderboardService,
-		taskService:    taskService,
+		taskService:        taskService,
 	}
 }
 
@@ -498,4 +498,3 @@ func (s *FocusRoomServiceServer) CompleteTask(ctx context.Context, req *v1.Compl
 func (s *FocusRoomServiceServer) PauseSession(ctx context.Context, req *v1.PauseSessionRequest) (*v1.FocusSession, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PauseSession not implemented")
 }
-

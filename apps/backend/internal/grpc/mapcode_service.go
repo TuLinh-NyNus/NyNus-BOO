@@ -48,7 +48,7 @@ func (s *MapCodeServiceServer) CreateVersion(ctx context.Context, req *pb.Create
 	// Create version (with or without content)
 	var version *entity.MapCodeVersion
 	var err error
-	
+
 	if req.Content != "" {
 		// Create version from uploaded content
 		version, err = s.mapCodeMgmt.CreateVersionFromContent(ctx, req.Version, req.Name, req.Description, req.Content, req.CreatedBy)
@@ -56,7 +56,7 @@ func (s *MapCodeServiceServer) CreateVersion(ctx context.Context, req *pb.Create
 		// Create empty version (traditional way)
 		version, err = s.mapCodeMgmt.CreateVersion(ctx, req.Version, req.Name, req.Description, req.CreatedBy)
 	}
-	
+
 	if err != nil {
 		return &pb.CreateVersionResponse{
 			Status: &common.Response{
@@ -458,35 +458,35 @@ func (s *MapCodeServiceServer) GetMapCodeConfig(ctx context.Context, req *pb.Get
 func (s *MapCodeServiceServer) GetMetrics(ctx context.Context, req *pb.GetMetricsRequest) (*pb.GetMetricsResponse, error) {
 	// Get metrics from service
 	metrics := s.mapCodeMgmt.GetMetrics()
-	
+
 	// Calculate cache hit rate
 	var cacheHitRate float64
 	totalRequests := metrics.CacheHits + metrics.CacheMisses
 	if totalRequests > 0 {
 		cacheHitRate = float64(metrics.CacheHits) / float64(totalRequests)
 	}
-	
+
 	// Convert avg translation time to milliseconds
 	avgTimeMs := metrics.AvgTranslationTime.Milliseconds()
-	
+
 	// Convert last version switch to timestamp
 	var lastSwitch *timestamppb.Timestamp
 	if !metrics.LastVersionSwitch.IsZero() {
 		lastSwitch = timestamppb.New(metrics.LastVersionSwitch)
 	}
-	
+
 	// Build proto metrics
 	protoMetrics := &pb.MapCodeMetrics{
-		TotalTranslations:     metrics.TotalTranslations,
-		CacheHits:             metrics.CacheHits,
-		CacheMisses:           metrics.CacheMisses,
-		CacheHitRate:          cacheHitRate,
-		AvgTranslationTimeMs:  avgTimeMs,
-		ActiveVersionId:       metrics.ActiveVersionID,
-		LastVersionSwitch:     lastSwitch,
-		TranslationErrors:     metrics.TranslationErrors,
+		TotalTranslations:    metrics.TotalTranslations,
+		CacheHits:            metrics.CacheHits,
+		CacheMisses:          metrics.CacheMisses,
+		CacheHitRate:         cacheHitRate,
+		AvgTranslationTimeMs: avgTimeMs,
+		ActiveVersionId:      metrics.ActiveVersionID,
+		LastVersionSwitch:    lastSwitch,
+		TranslationErrors:    metrics.TranslationErrors,
 	}
-	
+
 	return &pb.GetMetricsResponse{
 		Status: &common.Response{
 			Success: true,

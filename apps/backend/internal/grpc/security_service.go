@@ -4,11 +4,11 @@ import (
 	"context"
 	"database/sql"
 
-	pb "exam-bank-system/apps/backend/pkg/proto/v1"
-	pbcommon "exam-bank-system/apps/backend/pkg/proto/common"
-	"exam-bank-system/apps/backend/internal/service/security"
-	"exam-bank-system/apps/backend/internal/service/auth"
 	"exam-bank-system/apps/backend/internal/repository"
+	"exam-bank-system/apps/backend/internal/service/auth"
+	"exam-bank-system/apps/backend/internal/service/security"
+	pbcommon "exam-bank-system/apps/backend/pkg/proto/common"
+	pb "exam-bank-system/apps/backend/pkg/proto/v1"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
@@ -31,7 +31,7 @@ func NewSecurityServiceServer(
 	logger *logrus.Logger,
 ) *SecurityServiceServer {
 	sessionRepo := repository.NewUserSessionRepository(db, logger)
-	
+
 	return &SecurityServiceServer{
 		securityService: security.NewSecurityService(db, logger),
 		sessionService:  security.NewSessionManagementService(sessionRepo, jwtService, logger),
@@ -434,4 +434,3 @@ func extractUserAgentFromContext(ctx context.Context) string {
 	}
 	return "unknown"
 }
-

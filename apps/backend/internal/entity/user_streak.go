@@ -6,13 +6,13 @@ import (
 
 // UserStreak represents a user's study streak (GitHub-style)
 type UserStreak struct {
-	UserID               string     `json:"user_id" db:"user_id"`
-	CurrentStreak        int        `json:"current_streak" db:"current_streak"`
-	LongestStreak        int        `json:"longest_streak" db:"longest_streak"`
-	LastStudyDate        *time.Time `json:"last_study_date,omitempty" db:"last_study_date"`
-	TotalStudyDays       int        `json:"total_study_days" db:"total_study_days"`
-	TotalFocusTimeSeconds int64     `json:"total_focus_time_seconds" db:"total_focus_time_seconds"`
-	UpdatedAt            time.Time  `json:"updated_at" db:"updated_at"`
+	UserID                string     `json:"user_id" db:"user_id"`
+	CurrentStreak         int        `json:"current_streak" db:"current_streak"`
+	LongestStreak         int        `json:"longest_streak" db:"longest_streak"`
+	LastStudyDate         *time.Time `json:"last_study_date,omitempty" db:"last_study_date"`
+	TotalStudyDays        int        `json:"total_study_days" db:"total_study_days"`
+	TotalFocusTimeSeconds int64      `json:"total_focus_time_seconds" db:"total_focus_time_seconds"`
+	UpdatedAt             time.Time  `json:"updated_at" db:"updated_at"`
 }
 
 // TableName returns the table name for UserStreak
@@ -74,11 +74,9 @@ func (s *UserStreak) UpdateStreak(sessionDate time.Time) {
 		}
 		s.TotalStudyDays++
 	}
-	
+
 	// Update last study date
 	dateOnly := sessionDate.Truncate(24 * time.Hour)
 	s.LastStudyDate = &dateOnly
 	s.UpdatedAt = time.Now()
 }
-
-

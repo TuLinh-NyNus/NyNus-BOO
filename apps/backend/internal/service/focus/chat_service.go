@@ -99,5 +99,3 @@ func (s *ChatService) ValidateRateLimit(userID string) error {
 	// Rate limit: 10 messages per minute per user
 	return nil
 }
-
-
