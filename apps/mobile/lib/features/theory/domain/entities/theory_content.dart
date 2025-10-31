@@ -78,6 +78,50 @@ class TheoryPost extends Equatable {
        
   bool get hasTikZ => tikzAssets.isNotEmpty;
 
+  TheoryPost copyWith({
+    String? id,
+    String? slug,
+    String? title,
+    String? description,
+    PostType? type,
+    TheoryMetadata? metadata,
+    String? markdownContent,
+    List<String>? tags,
+    String? heroImageUrl,
+    bool? mathEnabled,
+    List<TikzAsset>? tikzAssets,
+    String? authorId,
+    String? authorName,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    int? viewCount,
+    bool? isBookmarked,
+    bool? isDownloaded,
+    String? localPath,
+  }) {
+    return TheoryPost(
+      id: id ?? this.id,
+      slug: slug ?? this.slug,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      type: type ?? this.type,
+      metadata: metadata ?? this.metadata,
+      markdownContent: markdownContent ?? this.markdownContent,
+      tags: tags ?? this.tags,
+      heroImageUrl: heroImageUrl ?? this.heroImageUrl,
+      mathEnabled: mathEnabled ?? this.mathEnabled,
+      tikzAssets: tikzAssets ?? this.tikzAssets,
+      authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      viewCount: viewCount ?? this.viewCount,
+      isBookmarked: isBookmarked ?? this.isBookmarked,
+      isDownloaded: isDownloaded ?? this.isDownloaded,
+      localPath: localPath ?? this.localPath,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,

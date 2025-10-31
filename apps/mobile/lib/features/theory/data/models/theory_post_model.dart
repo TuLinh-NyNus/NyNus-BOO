@@ -170,9 +170,11 @@ class TheoryMetadataModel extends TheoryMetadata {
     super.chapter,
     super.section,
     super.topic,
-    super.category,
-    super.difficulty,
-    super.estimatedReadTime,
+    required super.category,
+    super.order = 0,
+    super.parentId,
+    super.prerequisites = const [],
+    super.customData,
   });
 
   factory TheoryMetadataModel.fromJson(Map<String, dynamic> json) {
@@ -182,9 +184,11 @@ class TheoryMetadataModel extends TheoryMetadata {
       chapter: json['chapter'] as String?,
       section: json['section'] as String?,
       topic: json['topic'] as String?,
-      category: json['category'] as String?,
-      difficulty: json['difficulty'] as String?,
-      estimatedReadTime: json['estimatedReadTime'] as int?,
+      category: json['category'] as String,
+      order: json['order'] as int? ?? 0,
+      parentId: json['parentId'] as String?,
+      prerequisites: (json['prerequisites'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const [],
+      customData: json['customData'] as Map<String, dynamic>?,
     );
   }
 
@@ -196,8 +200,10 @@ class TheoryMetadataModel extends TheoryMetadata {
       'section': section,
       'topic': topic,
       'category': category,
-      'difficulty': difficulty,
-      'estimatedReadTime': estimatedReadTime,
+      'order': order,
+      'parentId': parentId,
+      'prerequisites': prerequisites,
+      'customData': customData,
     };
   }
 
