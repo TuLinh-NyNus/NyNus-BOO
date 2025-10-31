@@ -8,7 +8,7 @@ package v1
 
 import (
 	common "exam-bank-system/apps/backend/pkg/proto/common"
-	_ "exam-bank-system/apps/backend/pkg/proto/google/api"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
