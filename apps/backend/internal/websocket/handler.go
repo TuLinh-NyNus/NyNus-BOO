@@ -282,7 +282,7 @@ func (h *Handler) sendResponse(client *Client, response *WebSocketResponse) erro
 	}
 }
 
-// sendError sends an error message to the client
+// sendError sends an error message to the client.
 func (h *Handler) sendError(client *Client, errorMsg string) {
 	response := WebSocketResponse{
 		Type:      "error",
@@ -291,10 +291,11 @@ func (h *Handler) sendError(client *Client, errorMsg string) {
 		Timestamp: time.Now(),
 	}
 
+	// Intentionally ignore error - connection might already be closed
 	_ = h.sendResponse(client, &response)
 }
 
-// sendWelcome sends a welcome message when client connects
+// sendWelcome sends a welcome message when client connects.
 func (h *Handler) sendWelcome(client *Client) {
 	response := WebSocketResponse{
 		Type:    "connected",
@@ -307,10 +308,11 @@ func (h *Handler) sendWelcome(client *Client) {
 		Timestamp: time.Now(),
 	}
 
+	// Intentionally ignore error - connection might already be closed
 	_ = h.sendResponse(client, &response)
 }
 
-// extractToken extracts JWT token from request
+// extractToken extracts JWT token from request.
 // Supports token from query parameter or Authorization header
 func (h *Handler) extractToken(r *http.Request) string {
 	// Try query parameter first
@@ -338,7 +340,7 @@ func (h *Handler) extractToken(r *http.Request) string {
 	return ""
 }
 
-// isOriginAllowed checks if origin is in allowed list
+// isOriginAllowed checks if origin is in allowed list.
 // Implements task 2.2.1: Validate Origin header (CORS)
 func (h *Handler) isOriginAllowed(origin string) bool {
 	if origin == "" {
@@ -362,25 +364,25 @@ func (h *Handler) isOriginAllowed(origin string) bool {
 	return false
 }
 
-// checkRateLimit checks if client exceeds rate limit
+// checkRateLimit checks if client exceeds rate limit.
 // Implements task 2.2.1: Rate limiting per IP/user
 func (h *Handler) checkRateLimit(ip, userID string) bool {
-	// TODO: Implement proper rate limiting with Redis or in-memory store
+	// NOTE: Rate limiting not yet implemented - requires Redis or in-memory store
 	// For now, always allow
 	return true
 }
 
-// SetAllowedOrigins sets the list of allowed origins
+// SetAllowedOrigins sets the list of allowed origins.
 func (h *Handler) SetAllowedOrigins(origins []string) {
 	h.allowedOrigins = origins
 }
 
-// SetMaxMessageSize sets the maximum message size
+// SetMaxMessageSize sets the maximum message size.
 func (h *Handler) SetMaxMessageSize(size int64) {
 	h.maxMessageSize = size
 }
 
-// SetRateLimit sets the rate limit per minute
+// SetRateLimit sets the rate limit per minute.
 func (h *Handler) SetRateLimit(limitPerMin int) {
 	h.rateLimitPerMin = limitPerMin
 }

@@ -12,6 +12,7 @@ import (
 // Phase 5 - Task 5.1.2: Test client registration
 func TestConnectionManager_RegisterClient(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 
 	// Start manager
@@ -33,6 +34,7 @@ func TestConnectionManager_RegisterClient(t *testing.T) {
 
 	t.Run("register multiple clients", func(t *testing.T) {
 		manager2 := NewConnectionManager()
+		//nolint:errcheck // Test cleanup
 		defer func() { _ = manager2.Stop() }()
 		go manager2.Run()
 
@@ -47,6 +49,7 @@ func TestConnectionManager_RegisterClient(t *testing.T) {
 
 	t.Run("register same user twice should replace old connection", func(t *testing.T) {
 		manager3 := NewConnectionManager()
+		//nolint:errcheck // Test cleanup
 		defer func() { _ = manager3.Stop() }()
 		go manager3.Run()
 
@@ -68,6 +71,7 @@ func TestConnectionManager_RegisterClient(t *testing.T) {
 // TestConnectionManager_UnregisterClient tests client unregistration.
 func TestConnectionManager_UnregisterClient(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
@@ -94,6 +98,7 @@ func TestConnectionManager_UnregisterClient(t *testing.T) {
 // TestConnectionManager_GetConnection tests retrieving connections.
 func TestConnectionManager_GetConnection(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
@@ -121,6 +126,7 @@ func TestConnectionManager_GetConnection(t *testing.T) {
 // Phase 5 - Task 5.1.2: Test broadcasting
 func TestConnectionManager_BroadcastToUser(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
@@ -157,6 +163,7 @@ func TestConnectionManager_BroadcastToUser(t *testing.T) {
 // TestConnectionManager_BroadcastToAll tests broadcasting to all users.
 func TestConnectionManager_BroadcastToAll(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
@@ -183,6 +190,7 @@ func TestConnectionManager_BroadcastToAll(t *testing.T) {
 // TestConnectionManager_BroadcastToRole tests role-based broadcasting.
 func TestConnectionManager_BroadcastToRole(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
@@ -215,6 +223,7 @@ func TestConnectionManager_BroadcastToRole(t *testing.T) {
 // Phase 5 - Task 5.1.2: Test concurrent access
 func TestConnectionManager_ConcurrentAccess(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
@@ -272,6 +281,7 @@ func TestConnectionManager_ConcurrentAccess(t *testing.T) {
 // TestConnectionManager_Metrics tests metrics tracking.
 func TestConnectionManager_Metrics(t *testing.T) {
 	manager := NewConnectionManager()
+	//nolint:errcheck // Test cleanup
 	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 

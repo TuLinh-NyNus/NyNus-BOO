@@ -11,7 +11,7 @@ import (
 	"nhooyr.io/websocket"
 )
 
-// Client represents a WebSocket client connection
+// Client represents a WebSocket client connection.
 type Client struct {
 	ID       string
 	UserID   string
@@ -22,7 +22,7 @@ type Client struct {
 	lastPing time.Time
 }
 
-// ConnectionManager manages all WebSocket connections
+// ConnectionManager manages all WebSocket connections.
 // Implements task 2.1.1: Create ConnectionManager struct
 type ConnectionManager struct {
 	// connections maps userID to client connection
@@ -57,19 +57,19 @@ type ConnectionManager struct {
 	metrics *ConnectionMetrics
 }
 
-// UserMessage represents a message targeted to a specific user
+// UserMessage represents a message targeted to a specific user.
 type UserMessage struct {
 	UserID  string
 	Message []byte
 }
 
-// RoleMessage represents a message targeted to a specific role
+// RoleMessage represents a message targeted to a specific role.
 type RoleMessage struct {
 	Role    string
 	Message []byte
 }
 
-// ConnectionMetrics tracks connection statistics
+// ConnectionMetrics tracks connection statistics.
 type ConnectionMetrics struct {
 	mu                sync.RWMutex
 	TotalConnections  int64
@@ -79,7 +79,7 @@ type ConnectionMetrics struct {
 	Errors            int64
 }
 
-// NewConnectionManager creates a new connection manager
+// NewConnectionManager creates a new connection manager.
 func NewConnectionManager() *ConnectionManager {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -97,7 +97,7 @@ func NewConnectionManager() *ConnectionManager {
 	}
 }
 
-// RegisterClient registers a new client connection
+// RegisterClient registers a new client connection.
 // Implements task 2.1.2: Connection lifecycle - RegisterClient
 func (m *ConnectionManager) RegisterClient(userID, role string, conn *websocket.Conn) *Client {
 	client := &Client{
@@ -114,7 +114,7 @@ func (m *ConnectionManager) RegisterClient(userID, role string, conn *websocket.
 	return client
 }
 
-// UnregisterClient unregisters a client connection
+// UnregisterClient unregisters a client connection.
 // Implements task 2.1.2: Connection lifecycle - UnregisterClient
 func (m *ConnectionManager) UnregisterClient(client *Client) {
 	if client != nil {
@@ -122,7 +122,7 @@ func (m *ConnectionManager) UnregisterClient(client *Client) {
 	}
 }
 
-// GetConnection retrieves a connection by user ID
+// GetConnection retrieves a connection by user ID.
 // Implements task 2.1.2: Connection lifecycle - GetConnection
 func (m *ConnectionManager) GetConnection(userID string) (*Client, bool) {
 	m.mu.RLock()
@@ -132,7 +132,7 @@ func (m *ConnectionManager) GetConnection(userID string) (*Client, bool) {
 	return client, exists
 }
 
-// GetConnectionCount returns the number of active connections
+// GetConnectionCount returns the number of active connections.
 // Implements task 2.1.2: Connection lifecycle - GetConnectionCount
 func (m *ConnectionManager) GetConnectionCount() int {
 	m.mu.RLock()
@@ -141,7 +141,7 @@ func (m *ConnectionManager) GetConnectionCount() int {
 	return len(m.connections)
 }
 
-// BroadcastToUser sends a message to a specific user
+// BroadcastToUser sends a message to a specific user.
 // Implements task 2.1.3: Message broadcasting - BroadcastToUser
 func (m *ConnectionManager) BroadcastToUser(userID string, message []byte) error {
 	if userID == "" {
@@ -160,7 +160,7 @@ func (m *ConnectionManager) BroadcastToUser(userID string, message []byte) error
 	}
 }
 
-// BroadcastToAll sends a message to all connected clients
+// BroadcastToAll sends a message to all connected clients.
 // Implements task 2.1.3: Message broadcasting - BroadcastToAll
 func (m *ConnectionManager) BroadcastToAll(message []byte) error {
 	if len(message) == 0 {
@@ -175,7 +175,7 @@ func (m *ConnectionManager) BroadcastToAll(message []byte) error {
 	}
 }
 
-// BroadcastToRole sends a message to all clients with a specific role
+// BroadcastToRole sends a message to all clients with a specific role.
 // Implements task 2.1.3: Message broadcasting - BroadcastToRole
 func (m *ConnectionManager) BroadcastToRole(role string, message []byte) error {
 	if role == "" {
@@ -194,7 +194,7 @@ func (m *ConnectionManager) BroadcastToRole(role string, message []byte) error {
 	}
 }
 
-// Run starts the connection manager
+// Run starts the connection manager.
 // Implements task 2.1.4: Handle concurrent access with channels
 func (m *ConnectionManager) Run() {
 	m.logger.Printf("[INFO] Connection manager started")
@@ -226,7 +226,7 @@ func (m *ConnectionManager) Run() {
 	}
 }
 
-// handleRegister handles client registration
+// handleRegister handles client registration.
 func (m *ConnectionManager) handleRegister(client *Client) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -236,6 +236,7 @@ func (m *ConnectionManager) handleRegister(client *Client) {
 		m.logger.Printf("[WARN] Closing existing connection for user %s", client.UserID)
 		close(existing.SendCh)
 		if existing.Conn != nil {
+			//nolint:errcheck // Closing old connection - ignore error
 			_ = existing.Conn.Close(websocket.StatusNormalClosure, "New connection established")
 		}
 	}
@@ -431,6 +432,7 @@ func (m *ConnectionManager) checkDeadConnections() {
 			m.logger.Printf("[WARN] Dead connection detected for user %s, disconnecting", client.UserID)
 			m.UnregisterClient(client)
 			if client.Conn != nil {
+				//nolint:errcheck // Closing dead connection - ignore error
 				_ = client.Conn.Close(websocket.StatusGoingAway, "Connection timeout")
 			}
 		}
@@ -456,6 +458,7 @@ func (m *ConnectionManager) Stop() error {
 	for _, client := range clients {
 		close(client.SendCh)
 		if client.Conn != nil {
+			//nolint:errcheck // Graceful shutdown - ignore close error
 			_ = client.Conn.Close(websocket.StatusNormalClosure, "Server shutting down")
 		}
 	}
