@@ -135,6 +135,7 @@ func (a *App) initGRPCServer() error {
 	v1.RegisterExamServiceServer(a.grpcServer, a.container.GetExamGRPCService())
 	v1.RegisterProfileServiceServer(a.grpcServer, a.container.GetProfileGRPCService())
 	v1.RegisterAdminServiceServer(a.grpcServer, a.container.GetAdminGRPCService())
+	v1.RegisterSecurityServiceServer(a.grpcServer, a.container.GetSecurityGRPCService()) // NEW: Security & Token Management
 	v1.RegisterContactServiceServer(a.grpcServer, a.container.GetContactGRPCService())
 	v1.RegisterNewsletterServiceServer(a.grpcServer, a.container.GetNewsletterGRPCService())
 	v1.RegisterBookServiceServer(a.grpcServer, a.container.GetBookGRPCService())
@@ -142,6 +143,7 @@ func (a *App) initGRPCServer() error {
 	v1.RegisterNotificationServiceServer(a.grpcServer, a.container.GetNotificationGRPCService())
 	v1.RegisterMapCodeServiceServer(a.grpcServer, a.container.GetMapCodeGRPCService())
 	v1.RegisterAnalyticsServiceServer(a.grpcServer, a.container.GetAnalyticsGRPCService())
+	v1.RegisterFocusRoomServiceServer(a.grpcServer, a.container.GetFocusRoomGRPCService()) // NEW: Focus Room service
 
 	// Enable reflection for grpcurl
 	reflection.Register(a.grpcServer)

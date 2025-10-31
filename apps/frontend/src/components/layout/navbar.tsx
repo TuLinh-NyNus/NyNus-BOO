@@ -48,6 +48,11 @@ const navItems = [
     isHighlight: false
   },
   {
+    title: "🎯 FOCUS",
+    href: "/focus-room",
+    isHighlight: true // Highlight để nổi bật feature mới
+  },
+  {
     title: "THẢO LUẬN",
     href: "/discussions",
     isHighlight: false

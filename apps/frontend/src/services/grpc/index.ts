@@ -10,4 +10,5 @@ export * from './library.service';
 export * as LibraryTagsService from './library-tags.service';
 export * as LibraryAnalyticsService from './library-analytics.service';
 export * as LibrarySearchService from './library-search.service';
+export * as FocusRoomService from './focus-room.service';
 

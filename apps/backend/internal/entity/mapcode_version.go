@@ -31,8 +31,20 @@ type MapCodeTranslation struct {
 	Level        pgtype.Text        `json:"level"`         // Parsed level
 	Lesson       pgtype.Text        `json:"lesson"`        // Parsed lesson
 	Form         pgtype.Text        `json:"form"`          // Parsed form (nullable)
+	
+	// Hierarchical context (NEW)
+	HierarchyPath  pgtype.Text `json:"hierarchy_path"`  // Full hierarchical path for breadcrumbs
+	ParentContext  pgtype.JSONB `json:"parent_context"` // Parent context for disambiguation
+	
 	CreatedAt    pgtype.Timestamptz `json:"created_at"`    // Creation timestamp
 	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`    // Last update timestamp
+}
+
+// MapCodeParentContext represents parent context for disambiguation
+type MapCodeParentContext struct {
+	Grade   string `json:"grade"`
+	Subject string `json:"subject"`
+	Chapter string `json:"chapter"`
 }
 
 // MapCodeConfig represents the parsed configuration from a MapCode file

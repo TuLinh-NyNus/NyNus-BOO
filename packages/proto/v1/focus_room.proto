@@ -1,0 +1,485 @@
+syntax = "proto3";
+
+package v1;
+
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
+
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+// Room type enum
+enum RoomType {
+  ROOM_TYPE_UNSPECIFIED = 0;
+  ROOM_TYPE_PUBLIC = 1;     // Công khai, ai cũng có thể join
+  ROOM_TYPE_PRIVATE = 2;    // Riêng tư, cần mời
+  ROOM_TYPE_CLASS = 3;      // Lớp học, theo class_id
+}
+
+// Session type enum
+enum SessionType {
+  SESSION_TYPE_UNSPECIFIED = 0;
+  SESSION_TYPE_FOCUS = 1;        // Pomodoro focus (25 min)
+  SESSION_TYPE_SHORT_BREAK = 2;  // Short break (5 min)
+  SESSION_TYPE_LONG_BREAK = 3;   // Long break (15 min)
+}
+
+// Task priority enum
+enum TaskPriority {
+  TASK_PRIORITY_UNSPECIFIED = 0;
+  TASK_PRIORITY_LOW = 1;      // Thấp
+  TASK_PRIORITY_MEDIUM = 2;   // Trung bình
+  TASK_PRIORITY_HIGH = 3;     // Cao
+}
+
+// Leaderboard period enum
+enum LeaderboardPeriod {
+  LEADERBOARD_PERIOD_UNSPECIFIED = 0;
+  LEADERBOARD_PERIOD_DAILY = 1;
+  LEADERBOARD_PERIOD_WEEKLY = 2;
+  LEADERBOARD_PERIOD_MONTHLY = 3;
+  LEADERBOARD_PERIOD_ALL_TIME = 4;
+}
+
+// Achievement type enum
+enum AchievementType {
+  ACHIEVEMENT_TYPE_UNSPECIFIED = 0;
+  ACHIEVEMENT_TYPE_FIRST_SESSION = 1;      // Hoàn thành session đầu tiên
+  ACHIEVEMENT_TYPE_STREAK_3 = 2;           // 3 ngày liên tục
+  ACHIEVEMENT_TYPE_STREAK_7 = 3;           // 7 ngày liên tục
+  ACHIEVEMENT_TYPE_STREAK_30 = 4;          // 30 ngày liên tục
+  ACHIEVEMENT_TYPE_STREAK_100 = 5;         // 100 ngày liên tục
+  ACHIEVEMENT_TYPE_TIME_10H = 6;           // Tổng 10 giờ
+  ACHIEVEMENT_TYPE_TIME_50H = 7;           // Tổng 50 giờ
+  ACHIEVEMENT_TYPE_TIME_100H = 8;          // Tổng 100 giờ
+  ACHIEVEMENT_TYPE_SESSIONS_10 = 9;        // 10 sessions
+  ACHIEVEMENT_TYPE_SESSIONS_100 = 10;      // 100 sessions
+  ACHIEVEMENT_TYPE_TASKS_10 = 11;          // 10 tasks hoàn thành
+  ACHIEVEMENT_TYPE_SOCIAL_LEARNER = 12;    // Tham gia 5 rooms
+  ACHIEVEMENT_TYPE_ROOM_CREATOR = 13;      // Tạo room đầu tiên
+  ACHIEVEMENT_TYPE_TOP_10 = 14;            // Vào top 10 leaderboard
+}
+
+// ==========================================
+// MESSAGES - Focus Room
+// ==========================================
+
+message Room {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string owner_user_id = 4;
+  RoomType room_type = 5;
+  int32 max_participants = 6;
+  bool is_active = 7;
+  RoomSettings settings = 8;
+  int32 current_participants = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message RoomSettings {
+  int32 focus_duration = 1;        // seconds (default: 1500 = 25 min)
+  int32 short_break_duration = 2;  // seconds (default: 300 = 5 min)
+  int32 long_break_duration = 3;   // seconds (default: 900 = 15 min)
+  bool auto_start_break = 4;       // Tự động chuyển sang break
+  bool sound_enabled = 5;          // Cho phép âm thanh
+}
+
+message RoomParticipant {
+  string user_id = 1;
+  string username = 2;
+  string avatar = 3;
+  bool is_focusing = 4;
+  string current_task = 5;
+  google.protobuf.Timestamp joined_at = 6;
+}
+
+// ==========================================
+// MESSAGES - Focus Session
+// ==========================================
+
+message FocusSession {
+  string id = 1;
+  string user_id = 2;
+  string room_id = 3;
+  int32 duration_seconds = 4;
+  SessionType session_type = 5;
+  string subject_tag = 6;
+  string task_description = 7;
+  bool completed = 8;
+  google.protobuf.Timestamp started_at = 9;
+  google.protobuf.Timestamp ended_at = 10;
+  google.protobuf.Timestamp created_at = 11;
+}
+
+message SessionStats {
+  int32 duration_seconds = 1;
+  int32 total_sessions_today = 2;
+  int32 total_focus_time_today = 3;
+  bool streak_continued = 4;
+  int32 current_streak = 5;
+  repeated Achievement new_achievements = 6;
+}
+
+// ==========================================
+// MESSAGES - Analytics
+// ==========================================
+
+message StreakInfo {
+  int32 current_streak = 1;
+  int32 longest_streak = 2;
+  string last_study_date = 3;  // ISO date string
+  int32 total_study_days = 4;
+  int64 total_focus_time_seconds = 5;
+  bool is_active_today = 6;
+}
+
+message DailyStats {
+  string date = 1;  // ISO date string
+  int32 total_focus_time_seconds = 2;
+  int32 total_break_time_seconds = 3;
+  int32 sessions_completed = 4;
+  int32 tasks_completed = 5;
+  int32 most_productive_hour = 6;  // 0-23
+  map<string, int32> subjects_studied = 7;  // subject -> seconds
+}
+
+message WeeklyStats {
+  string week_start = 1;  // ISO date string
+  string week_end = 2;
+  int32 total_focus_time_seconds = 3;
+  repeated DailyStats daily_breakdown = 4;
+  int32 average_daily_time = 5;
+  string most_productive_day = 6;
+  int32 streak = 7;
+  double improvement = 8;  // % so với tuần trước
+}
+
+message MonthlyStats {
+  int32 month = 1;  // 1-12
+  int32 year = 2;
+  int32 total_focus_time_seconds = 3;
+  int32 total_days_active = 4;
+  int32 average_daily_time = 5;
+  int32 longest_streak = 6;
+  repeated SubjectTime top_subjects = 7;
+  repeated WeeklyStats weekly_breakdown = 8;
+}
+
+message SubjectTime {
+  string subject = 1;
+  int32 time_seconds = 2;
+  double percentage = 3;
+}
+
+message ContributionDay {
+  string date = 1;  // ISO date string
+  int32 focus_time_seconds = 2;
+  int32 level = 3;  // 0-4 intensity
+  int32 sessions_count = 4;
+}
+
+// ==========================================
+// MESSAGES - Leaderboard
+// ==========================================
+
+message LeaderboardEntry {
+  int32 rank = 1;
+  string user_id = 2;
+  string username = 3;
+  string avatar = 4;
+  int64 total_focus_time_seconds = 5;
+  int32 sessions_completed = 6;
+  int32 current_streak = 7;
+  double score = 8;
+}
+
+message UserRank {
+  int32 rank = 1;
+  int64 total_focus_time_seconds = 2;
+  double score = 3;
+  int32 total_users = 4;
+}
+
+// ==========================================
+// MESSAGES - Tasks
+// ==========================================
+
+message Task {
+  string id = 1;
+  string user_id = 2;
+  string title = 3;
+  string description = 4;
+  string subject_tag = 5;
+  TaskPriority priority = 6;
+  bool is_completed = 7;
+  string due_date = 8;  // ISO date string
+  int32 estimated_pomodoros = 9;
+  int32 actual_pomodoros = 10;
+  google.protobuf.Timestamp completed_at = 11;
+  google.protobuf.Timestamp created_at = 12;
+  google.protobuf.Timestamp updated_at = 13;
+}
+
+// ==========================================
+// MESSAGES - Achievements
+// ==========================================
+
+message Achievement {
+  string id = 1;
+  string user_id = 2;
+  AchievementType achievement_type = 3;
+  string achievement_name = 4;
+  string description = 5;
+  string icon_url = 6;
+  google.protobuf.Timestamp earned_at = 7;
+}
+
+// ==========================================
+// REQUEST/RESPONSE MESSAGES - Room Management
+// ==========================================
+
+message CreateRoomRequest {
+  string name = 1;
+  string description = 2;
+  RoomType room_type = 3;
+  int32 max_participants = 4;
+  RoomSettings settings = 5;
+}
+
+message GetRoomRequest {
+  string room_id = 1;
+}
+
+message ListRoomsRequest {
+  RoomType room_type = 1;  // Filter by type
+  bool active_only = 2;
+  int32 page_size = 3;
+  int32 page = 4;
+}
+
+message ListRoomsResponse {
+  repeated Room rooms = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+message JoinRoomRequest {
+  string room_id = 1;
+}
+
+message JoinRoomResponse {
+  Room room = 1;
+  repeated RoomParticipant participants = 2;
+}
+
+message LeaveRoomRequest {
+  string room_id = 1;
+}
+
+message UpdateRoomSettingsRequest {
+  string room_id = 1;
+  RoomSettings settings = 2;
+}
+
+// ==========================================
+// REQUEST/RESPONSE MESSAGES - Session Management
+// ==========================================
+
+message StartSessionRequest {
+  SessionType session_type = 1;
+  string room_id = 2;
+  string task_description = 3;
+  string subject_tag = 4;
+}
+
+message EndSessionRequest {
+  string session_id = 1;
+}
+
+message PauseSessionRequest {
+  string session_id = 1;
+}
+
+message GetActiveSessionRequest {
+  // Empty - uses authenticated user
+}
+
+// ==========================================
+// REQUEST/RESPONSE MESSAGES - Analytics
+// ==========================================
+
+message GetUserStatsRequest {
+  string user_id = 1;  // If empty, uses authenticated user
+}
+
+message UserStats {
+  StreakInfo streak = 1;
+  DailyStats today_stats = 2;
+  WeeklyStats week_stats = 3;
+  MonthlyStats month_stats = 4;
+}
+
+message GetDailyStatsRequest {
+  string date = 1;  // ISO date string, if empty uses today
+}
+
+message DailyStatsResponse {
+  DailyStats stats = 1;
+}
+
+message GetWeeklyStatsRequest {
+  string week_start = 1;  // ISO date string, if empty uses current week
+}
+
+message WeeklyStatsResponse {
+  WeeklyStats stats = 1;
+}
+
+message GetMonthlyStatsRequest {
+  int32 year = 1;
+  int32 month = 2;  // 1-12
+}
+
+message MonthlyStatsResponse {
+  MonthlyStats stats = 1;
+}
+
+message GetStreakRequest {
+  // Empty - uses authenticated user
+}
+
+message GetContributionGraphRequest {
+  int32 days = 1;  // Number of days to fetch (default: 365)
+}
+
+message GetContributionGraphResponse {
+  repeated ContributionDay contributions = 1;
+}
+
+// ==========================================
+// REQUEST/RESPONSE MESSAGES - Leaderboard
+// ==========================================
+
+message GetLeaderboardRequest {
+  LeaderboardPeriod period = 1;
+  int32 limit = 2;  // Top N users (default: 100)
+}
+
+message LeaderboardResponse {
+  repeated LeaderboardEntry entries = 1;
+  LeaderboardPeriod period = 2;
+  string period_start = 3;
+  string period_end = 4;
+}
+
+message GetUserRankRequest {
+  LeaderboardPeriod period = 1;
+}
+
+message UserRankResponse {
+  UserRank rank = 1;
+}
+
+// ==========================================
+// REQUEST/RESPONSE MESSAGES - Tasks
+// ==========================================
+
+message CreateTaskRequest {
+  string title = 1;
+  string description = 2;
+  string subject_tag = 3;
+  TaskPriority priority = 4;
+  string due_date = 5;  // ISO date string
+  int32 estimated_pomodoros = 6;
+}
+
+message UpdateTaskRequest {
+  string task_id = 1;
+  string title = 2;
+  string description = 3;
+  string subject_tag = 4;
+  TaskPriority priority = 5;
+  string due_date = 6;
+  int32 estimated_pomodoros = 7;
+}
+
+message DeleteTaskRequest {
+  string task_id = 1;
+}
+
+message ListTasksRequest {
+  bool completed_only = 1;
+  bool active_only = 2;
+  string subject_tag = 3;
+  int32 page_size = 4;
+  int32 page = 5;
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+  int32 total = 2;
+}
+
+message CompleteTaskRequest {
+  string task_id = 1;
+}
+
+message GetAchievementsRequest {
+  // Empty - uses authenticated user
+}
+
+message GetAchievementsResponse {
+  repeated Achievement achievements = 1;
+  int32 total_earned = 2;
+  int32 total_available = 3;
+}
+
+// ==========================================
+// SERVICE DEFINITION
+// ==========================================
+
+service FocusRoomService {
+  // ===== Room Management =====
+  rpc CreateRoom(CreateRoomRequest) returns (Room);
+  rpc GetRoom(GetRoomRequest) returns (Room);
+  rpc ListRooms(ListRoomsRequest) returns (ListRoomsResponse);
+  rpc JoinRoom(JoinRoomRequest) returns (JoinRoomResponse);
+  rpc LeaveRoom(LeaveRoomRequest) returns (google.protobuf.Empty);
+  rpc UpdateRoomSettings(UpdateRoomSettingsRequest) returns (Room);
+  
+  // ===== Session Management =====
+  rpc StartFocusSession(StartSessionRequest) returns (FocusSession);
+  rpc EndFocusSession(EndSessionRequest) returns (SessionStats);
+  rpc PauseSession(PauseSessionRequest) returns (FocusSession);
+  rpc GetActiveSession(GetActiveSessionRequest) returns (FocusSession);
+  
+  // ===== Analytics =====
+  rpc GetUserStats(GetUserStatsRequest) returns (UserStats);
+  rpc GetDailyStats(GetDailyStatsRequest) returns (DailyStatsResponse);
+  rpc GetWeeklyStats(GetWeeklyStatsRequest) returns (WeeklyStatsResponse);
+  rpc GetMonthlyStats(GetMonthlyStatsRequest) returns (MonthlyStatsResponse);
+  rpc GetStreak(GetStreakRequest) returns (StreakInfo);
+  rpc GetContributionGraph(GetContributionGraphRequest) returns (GetContributionGraphResponse);
+  
+  // ===== Leaderboard =====
+  rpc GetLeaderboard(GetLeaderboardRequest) returns (LeaderboardResponse);
+  rpc GetUserRank(GetUserRankRequest) returns (UserRankResponse);
+  
+  // ===== Tasks =====
+  rpc CreateTask(CreateTaskRequest) returns (Task);
+  rpc UpdateTask(UpdateTaskRequest) returns (Task);
+  rpc DeleteTask(DeleteTaskRequest) returns (google.protobuf.Empty);
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+  rpc CompleteTask(CompleteTaskRequest) returns (Task);
+  
+  // ===== Achievements =====
+  rpc GetAchievements(GetAchievementsRequest) returns (GetAchievementsResponse);
+}
+

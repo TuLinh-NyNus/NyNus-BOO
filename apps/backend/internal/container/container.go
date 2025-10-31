@@ -40,6 +40,7 @@ import (
 	"exam-bank-system/apps/backend/internal/service/user/oauth"
 	"exam-bank-system/apps/backend/internal/service/user/session"
 	"exam-bank-system/apps/backend/internal/services/email"
+	"exam-bank-system/apps/backend/internal/service/focus"
 	"exam-bank-system/apps/backend/internal/util"
 	"exam-bank-system/apps/backend/internal/websocket"
 	"github.com/sirupsen/logrus"
@@ -95,6 +96,16 @@ type Container struct {
 	LibraryItemRepo        repository.LibraryItemRepository
 	MetricsRepo            interfaces.MetricsRepository // NEW: Metrics history repository
 
+	// Focus Room Repositories
+	FocusRoomRepo        interfaces.FocusRoomRepository
+	FocusSessionRepo     interfaces.FocusSessionRepository
+	UserStreakRepo       interfaces.UserStreakRepository
+	StudyAnalyticsRepo   interfaces.StudyAnalyticsRepository
+	LeaderboardRepo      interfaces.LeaderboardRepository
+	FocusTaskRepo        interfaces.FocusTaskRepository
+	ChatMessageRepo      interfaces.ChatMessageRepository
+	AchievementRepo      interfaces.AchievementRepository
+
 	// Services
 	AuthMgmt               *auth.AuthMgmt
 	QuestionService        *question.QuestionService
@@ -129,6 +140,16 @@ type Container struct {
 	AntiCheatService     *security.AntiCheatService
 	ExamRateLimitService *security.ExamRateLimitService
 
+	// Focus Room Services
+	FocusRoomService        *focus.RoomService
+	FocusSessionService     *focus.SessionService
+	StreakService           *focus.StreakService
+	AnalyticsFocusService   *focus.AnalyticsService
+	LeaderboardService      *focus.LeaderboardService
+	FocusTaskService        *focus.TaskService
+	AchievementService      *focus.AchievementService
+	ChatService             *focus.ChatService
+
 	// Middleware
 	AuthInterceptor               *middleware.AuthInterceptor
 	SessionInterceptor            *middleware.SessionInterceptor
@@ -145,6 +166,7 @@ type Container struct {
 	ExamGRPCService           *grpc.ExamServiceServer
 	ProfileGRPCService        *grpc.ProfileServiceServer
 	AdminGRPCService          *grpc.AdminServiceServer
+	SecurityGRPCService       *grpc.SecurityServiceServer // NEW: Security & Token Management
 	ContactGRPCService        *grpc.ContactServiceServer
 	NewsletterGRPCService     *grpc.NewsletterServiceServer
 	NotificationGRPCService   *grpc.NotificationServiceServer
@@ -152,6 +174,7 @@ type Container struct {
 	BookGRPCService           *grpc.BookServiceServer
 	LibraryGRPCService        *grpc.LibraryServiceServer
 	AnalyticsGRPCService      *grpc.AnalyticsServiceServer // NEW: Analytics gRPC service
+	FocusRoomGRPCService      *grpc.FocusRoomServiceServer // NEW: Focus Room gRPC service
 
 	// Configuration
 	Config    *config.Config
@@ -277,6 +300,18 @@ func (c *Container) initRepositories() {
 	metricsLogger := logrus.New()
 	metricsLogger.SetFormatter(util.StandardLogrusFormatter())
 	c.MetricsRepo = repository.NewMetricsRepository(c.DB, metricsLogger)
+
+	// Initialize Focus Room Repositories
+	c.FocusRoomRepo = repository.NewFocusRoomRepository(c.DB)
+	c.FocusSessionRepo = repository.NewFocusSessionRepository(c.DB)
+	c.UserStreakRepo = repository.NewUserStreakRepository(c.DB)
+	c.StudyAnalyticsRepo = repository.NewStudyAnalyticsRepository(c.DB)
+	c.LeaderboardRepo = repository.NewLeaderboardRepository(c.DB)
+	c.FocusTaskRepo = repository.NewFocusTaskRepository(c.DB)
+	c.ChatMessageRepo = repository.NewChatMessageRepository(c.DB)
+	c.AchievementRepo = repository.NewAchievementRepository(c.DB)
+
+	log.Println("[OK] Focus Room repositories initialized successfully")
 }
 
 // initServices initializes all service dependencies
@@ -461,6 +496,18 @@ func (c *Container) initServices() {
 	c.AntiCheatService = security.NewAntiCheatService(c.DB, c.ExamSessionSecurity, logger)
 	c.ExamRateLimitService = security.NewExamRateLimitService(c.DB, logger)
 
+	// Focus Room Services
+	c.FocusRoomService = focus.NewRoomService(c.FocusRoomRepo)
+	c.FocusSessionService = focus.NewSessionService(c.FocusSessionRepo, c.UserStreakRepo, c.StudyAnalyticsRepo, c.AchievementRepo)
+	c.StreakService = focus.NewStreakService(c.UserStreakRepo)
+	c.AnalyticsFocusService = focus.NewAnalyticsService(c.StudyAnalyticsRepo, c.FocusSessionRepo)
+	c.LeaderboardService = focus.NewLeaderboardService(c.LeaderboardRepo)
+	c.FocusTaskService = focus.NewTaskService(c.FocusTaskRepo)
+	c.AchievementService = focus.NewAchievementService(c.AchievementRepo, c.UserStreakRepo)
+	c.ChatService = focus.NewChatService(c.ChatMessageRepo, c.FocusRoomRepo)
+
+	log.Println("[OK] Focus Room services initialized successfully")
+
 	// Metrics Scheduler - Records metrics every 5 minutes
 	metricsLogger := logrus.New()
 	metricsLogger.SetFormatter(util.StandardLogrusFormatter())
@@ -522,6 +569,15 @@ func (c *Container) initGRPCServices() {
 		c.SessionRepo,
 		c.NotificationRepo,
 	)
+	// NEW: Security & Token Management Service (Phase 6.2)
+	securityLogger := logrus.New()
+	securityLogger.SetLevel(logrus.InfoLevel)
+	securityLogger.SetFormatter(util.StandardLogrusFormatter())
+	c.SecurityGRPCService = grpc.NewSecurityServiceServer(
+		c.DB,
+		c.UnifiedJWTService,
+		securityLogger,
+	)
 	c.ContactGRPCService = grpc.NewContactServiceServer(c.ContactMgmt)
 	c.NewsletterGRPCService = grpc.NewNewsletterServiceServer(c.NewsletterMgmt)
 	c.BookGRPCService = grpc.NewBookServiceServer(c.BookMgmt)
@@ -539,6 +595,18 @@ func (c *Container) initGRPCServices() {
 	)
 	c.MapCodeGRPCService = grpc.NewMapCodeServiceServer(c.MapCodeMgmt)
 	c.AnalyticsGRPCService = grpc.NewAnalyticsServiceServer(c.TeacherAnalyticsService)
+
+	// Focus Room gRPC Service
+	c.FocusRoomGRPCService = grpc.NewFocusRoomServiceServer(
+		c.FocusRoomService,
+		c.FocusSessionService,
+		c.AnalyticsFocusService,
+		c.StreakService,
+		c.LeaderboardService,
+		c.FocusTaskService,
+	)
+
+	log.Println("[OK] Focus Room gRPC service initialized successfully")
 }
 
 // GetUserRepository returns the user repository
@@ -650,6 +718,11 @@ func (c *Container) GetAdminGRPCService() *grpc.AdminServiceServer {
 	return c.AdminGRPCService
 }
 
+// GetSecurityGRPCService returns the security gRPC service
+func (c *Container) GetSecurityGRPCService() *grpc.SecurityServiceServer {
+	return c.SecurityGRPCService
+}
+
 // GetNotificationGRPCService returns the notification gRPC service
 func (c *Container) GetNotificationGRPCService() *grpc.NotificationServiceServer {
 	return c.NotificationGRPCService
@@ -703,6 +776,11 @@ func (c *Container) GetExamRateLimitService() *security.ExamRateLimitService {
 // GetAnalyticsGRPCService returns the analytics gRPC service
 func (c *Container) GetAnalyticsGRPCService() *grpc.AnalyticsServiceServer {
 	return c.AnalyticsGRPCService
+}
+
+// GetFocusRoomGRPCService returns the focus room gRPC service
+func (c *Container) GetFocusRoomGRPCService() *grpc.FocusRoomServiceServer {
+	return c.FocusRoomGRPCService
 }
 
 // initWebSocketComponents initializes WebSocket and Redis Pub/Sub components

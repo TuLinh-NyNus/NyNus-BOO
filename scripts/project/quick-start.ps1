@@ -84,15 +84,25 @@ function Start-Database {
     Write-ColorOutput "`n[DB] Starting PostgreSQL with Docker..." "Blue"
     
     # Check if database is already running
-    $dbRunning = Test-NetConnection -ComputerName localhost -Port 5432 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+    $dbRunning = Test-NetConnection -ComputerName localhost -Port 5433 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
     
     if ($dbRunning.TcpTestSucceeded) {
-        Write-ColorOutput "[WARN] Database already running on port 5432" "Yellow"
+        Write-ColorOutput "[WARN] Database already running on port 5433" "Yellow"
         return
     }
     
-    # Start database using simple docker-compose
-    docker-compose -f docker-compose.simple.yml up -d
+    # Start database using Docker Compose
+    $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    $dockerComposeFile = Join-Path $projectRoot "docker\compose\docker-compose.yml"
+    
+    if (-not (Test-Path $dockerComposeFile)) {
+        Write-ColorOutput "[ERROR] Docker Compose file not found: $dockerComposeFile" "Red"
+        exit 1
+    }
+    
+    Push-Location $projectRoot
+    docker-compose -f docker/compose/docker-compose.yml up -d postgres
+    Pop-Location
     
     if ($LASTEXITCODE -eq 0) {
         Write-ColorOutput "[OK] PostgreSQL started in Docker" "Green"
@@ -104,7 +114,7 @@ function Start-Database {
         
         while ($attempt -lt $maxAttempts) {
             $attempt++
-            $dbTest = Test-NetConnection -ComputerName localhost -Port 5432 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
+            $dbTest = Test-NetConnection -ComputerName localhost -Port 5433 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
             if ($dbTest.TcpTestSucceeded) {
                 Write-ColorOutput "[OK] Database is ready!" "Green"
                 break
@@ -226,83 +236,10 @@ function Clean-Services {
     Stop-Services
     
     # Remove database volume
-    docker-compose -f docker-compose.simple.yml down -v
+    $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+    Push-Location $projectRoot
+    docker-compose -f docker/compose/docker-compose.yml down -v
+    Pop-Location
     
     Write-ColorOutput "[OK] Cleanup completed" "Green"
 }
-
-function Show-Status {
-    Write-ColorOutput "`n[STATUS] Service Status:" "Cyan"
-    Write-ColorOutput "===================" "Cyan"
-    
-    # Check Database
-    $dbTest = Test-NetConnection -ComputerName localhost -Port 5432 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-    if ($dbTest.TcpTestSucceeded) {
-        Write-ColorOutput "  [OK] PostgreSQL: Running (port 5432)" "Green"
-    } else {
-        Write-ColorOutput "  [FAIL] PostgreSQL: Not running" "Red"
-    }
-    
-    # Check Backend
-    $backendTest = Test-NetConnection -ComputerName localhost -Port 50051 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-    if ($backendTest.TcpTestSucceeded) {
-        Write-ColorOutput "  [OK] Backend: Running (gRPC: 50051, HTTP: 8080)" "Green"
-    } else {
-        Write-ColorOutput "  [FAIL] Backend: Not running" "Red"
-    }
-    
-    # Check Frontend
-    $frontendTest = Test-NetConnection -ComputerName localhost -Port 3000 -WarningAction SilentlyContinue -ErrorAction SilentlyContinue
-    if ($frontendTest.TcpTestSucceeded) {
-        Write-ColorOutput "  [OK] Frontend: Running (port 3000)" "Green"
-    } else {
-        Write-ColorOutput "  [FAIL] Frontend: Not running" "Red"
-    }
-    
-    Write-ColorOutput "`nAccess URLs:" "Cyan"
-    Write-ColorOutput "============" "Cyan"
-    Write-ColorOutput "  Frontend Application: http://localhost:3000" "White"
-    Write-ColorOutput "  Backend gRPC Server: http://localhost:50051" "White"
-    Write-ColorOutput "  Backend HTTP Gateway: http://localhost:8080" "White"
-    Write-ColorOutput "  PostgreSQL Database: localhost:5432" "White"
-}
-
-# Main execution
-if ($Help) {
-    Show-Help
-    exit 0
-}
-
-Show-Banner
-
-if ($Stop) {
-    Stop-Services
-    exit 0
-}
-
-if ($Clean) {
-    Clean-Services
-    exit 0
-}
-
-if ($Status) {
-    Show-Status
-    exit 0
-}
-
-# Default: Start all services
-Check-Requirements
-Start-Database
-Start-Sleep -Seconds 3
-Start-Backend
-Start-Sleep -Seconds 5
-Start-Frontend
-Start-Sleep -Seconds 3
-Show-Status
-
-Write-ColorOutput "`n[SUCCESS] All services started!" "Green"
-Write-ColorOutput "Use '.\quick-start.ps1 -Status' to check status" "Cyan"
-Write-ColorOutput "Use '.\quick-start.ps1 -Stop' to stop all services" "Cyan"
-
-# According to user rules - port 3000 is reserved for frontend and already running
-Write-ColorOutput "`nNote: Port 3000 is reserved for frontend interface (as per your rule)" "Yellow"

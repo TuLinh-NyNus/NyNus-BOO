@@ -19,7 +19,10 @@ scripts/
 ├── development/           # Scripts đang sử dụng cho development
 │   ├── gen-proto-web.ps1        # Script chính để generate gRPC-Web code
 │   ├── gen-admin-proto.ps1      # Script chuyên biệt cho admin proto
-│   └── run-grpcwebproxy.ps1     # Chạy gRPC-Web proxy
+│   ├── run-grpcwebproxy.ps1     # Chạy gRPC-Web proxy
+│   ├── run-ci-checks.ps1        # Run CI/CD checks locally
+│   ├── check-github-ci.ps1      # Check GitHub Actions status
+│   └── validate-proto-generation.ps1  # Validate proto generation
 ├── setup/                 # Scripts setup môi trường
 │   ├── install-protoc.ps1       # Cài đặt protoc compiler
 │   └── setup-grpc-web.ps1       # Setup gRPC-Web dependencies
@@ -279,15 +282,30 @@ npm install -g pnpm
 
 ## 🗂️ Scripts deprecated
 
-Các scripts trong thư mục `deprecated/` không còn được sử dụng:
+Các scripts sau đã bị xóa trong bản cleanup gần đây:
 
-- `gen-proto-web-clean.ps1` - Trùng lặp với gen-proto-web.ps1
-- `generate-proto-frontend.ps1` - Trùng lặp với gen-proto-web.ps1  
-- `gen-proto-simple.ps1` - Không đầy đủ tính năng
-- `generate-proto-ts.ps1` - Cũ, không còn maintain
-- `generate-proto-ts.sh` - Bash version cũ
+### **Cleanup #1 (2025-01-19 - Proto Generation):**
+- ❌ `development/gen-proto-simple.ps1` - DELETED (trùng lặp với gen-proto-web.ps1)
+- ❌ `development/gen-proto-grpc-tools.ps1` - DELETED (trùng lặp, không maintain)
+- ❌ `development/gen-proto-web.js` - DELETED (Node.js duplicate)
+- ❌ `development/gen-all-proto.ps1` - DELETED (quá phức tạp, start.bat không sử dụng)
 
-**⚠️ Lưu ý**: Các scripts deprecated được giữ lại để tham khảo, không nên sử dụng trong development.
+### **Cleanup #2 (2025-01-19 - Utility & Validation Scripts):**
+- ❌ `check-cicd-errors.ps1` - DELETED (info-only, không chức năng thực)
+- ❌ `development/check-ci-simple.ps1` - DELETED (trùng lặp với check-github-ci.ps1)
+- ❌ `development/open-ci-logs.ps1` - DELETED (chỉ mở browser)
+- ❌ `pull-prisma-schema.ps1` - DELETED (deprecated, Prisma phasing out)
+- ❌ `CICD-ERROR-DETECTION-GUIDE.md` - DELETED (doc thừa)
+- ❌ `validate-env-basic.ps1` - DELETED (trùng lặp với validate-env-config.ps1)
+- ❌ `validate-env-simple.ps1` - DELETED (trùng lặp với validate-env-config.ps1)
+- ❌ `fix-emoji-logs.ps1` - DELETED (dùng một lần, vấn đề đã fix ở nguồn)
+- ❌ `remove-bom.ps1` - DELETED (dùng một lần, chỉ sử dụng khi cần)
+- ❌ `test-metrics-history.ps1` - DELETED (test cũ, tính năng có thể không còn cần)
+
+**✅ Scripts còn lại được giữ:**
+- `validate-env-config.ps1` - Validation chính (đầy đủ nhất)
+- `validate-oauth-config.ps1` - OAuth validation (nếu cần)
+- `check-oauth-config.ps1` - OAuth check (nếu cần)
 
 ## 🔄 Workflow thông thường
 

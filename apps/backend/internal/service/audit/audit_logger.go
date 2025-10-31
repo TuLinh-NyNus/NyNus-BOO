@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -221,33 +222,30 @@ func (a *AuditLogger) LogAction(ctx context.Context, log *AuditLog) error {
 		"ip_address":  log.IPAddress,
 	}).Info("Audit log")
 
-	// TODO: Store in database
-	// For now, we'll just log. When audit_logs table is ready, use this query:
-	/*
-		query := `
-			INSERT INTO audit_logs (id, user_id, user_role, action, entity, entity_id, description, metadata, ip_address, user_agent, created_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-		`
+	// Store in database (migration 000040 created audit_logs table)
+	query := `
+		INSERT INTO audit_logs (id, user_id, user_role, action, entity, entity_id, description, metadata, ip_address, user_agent, created_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+	`
 
-		_, err = a.db.ExecContext(ctx, query,
-			log.ID,
-			log.UserID,
-			log.UserRole,
-			log.Action,
-			log.Entity,
-			log.EntityID,
-			log.Description,
-			metadataJSON,
-			log.IPAddress,
-			log.UserAgent,
-			log.CreatedAt,
-		)
+	_, err = a.db.ExecContext(ctx, query,
+		log.ID,
+		log.UserID,
+		log.UserRole,
+		log.Action,
+		log.Entity,
+		log.EntityID,
+		log.Description,
+		metadataJSON,
+		log.IPAddress,
+		log.UserAgent,
+		log.CreatedAt,
+	)
 
-		if err != nil {
-			a.logger.WithError(err).Error("Failed to insert audit log")
-			return err
-		}
-	*/
+	if err != nil {
+		a.logger.WithError(err).Error("Failed to insert audit log to database")
+		// Don't return error - audit logging failure shouldn't break the main operation
+	}
 
 	a.logger.WithField("metadata", string(metadataJSON)).Debug("Audit log stored")
 
@@ -256,7 +254,6 @@ func (a *AuditLogger) LogAction(ctx context.Context, log *AuditLog) error {
 
 // QueryAuditLogs retrieves audit logs with filters
 func (a *AuditLogger) QueryAuditLogs(ctx context.Context, filters AuditLogFilters) ([]*AuditLog, error) {
-	// TODO: Implement when audit_logs table is ready
 	a.logger.WithFields(logrus.Fields{
 		"user_id":   filters.UserID,
 		"action":    filters.Action,
@@ -266,8 +263,113 @@ func (a *AuditLogger) QueryAuditLogs(ctx context.Context, filters AuditLogFilter
 		"to":        filters.To,
 	}).Debug("Querying audit logs")
 
-	// Placeholder: return empty array
-	return []*AuditLog{}, nil
+	// Build WHERE clause
+	whereClauses := []string{}
+	args := []interface{}{}
+	argIndex := 1
+
+	if filters.UserID != "" {
+		whereClauses = append(whereClauses, "user_id = $"+fmt.Sprint(argIndex))
+		args = append(args, filters.UserID)
+		argIndex++
+	}
+
+	if filters.Action != "" {
+		whereClauses = append(whereClauses, "action = $"+fmt.Sprint(argIndex))
+		args = append(args, filters.Action)
+		argIndex++
+	}
+
+	if filters.Entity != "" {
+		whereClauses = append(whereClauses, "entity = $"+fmt.Sprint(argIndex))
+		args = append(args, filters.Entity)
+		argIndex++
+	}
+
+	if filters.EntityID != "" {
+		whereClauses = append(whereClauses, "entity_id = $"+fmt.Sprint(argIndex))
+		args = append(args, filters.EntityID)
+		argIndex++
+	}
+
+	if !filters.From.IsZero() {
+		whereClauses = append(whereClauses, "created_at >= $"+fmt.Sprint(argIndex))
+		args = append(args, filters.From)
+		argIndex++
+	}
+
+	if !filters.To.IsZero() {
+		whereClauses = append(whereClauses, "created_at <= $"+fmt.Sprint(argIndex))
+		args = append(args, filters.To)
+		argIndex++
+	}
+
+	whereClause := ""
+	if len(whereClauses) > 0 {
+		whereClause = "WHERE " + fmt.Sprint(whereClauses[0])
+		for i := 1; i < len(whereClauses); i++ {
+			whereClause += " AND " + whereClauses[i]
+		}
+	}
+
+	// Set defaults
+	if filters.Limit <= 0 {
+		filters.Limit = 100
+	}
+	if filters.Limit > 1000 {
+		filters.Limit = 1000
+	}
+
+	// Query
+	query := `
+		SELECT id, user_id, user_role, action, entity, entity_id, description, metadata, ip_address, user_agent, created_at
+		FROM audit_logs
+		` + whereClause + `
+		ORDER BY created_at DESC
+		LIMIT $` + fmt.Sprint(argIndex) + ` OFFSET $` + fmt.Sprint(argIndex+1)
+
+	args = append(args, filters.Limit, filters.Offset)
+
+	rows, err := a.db.QueryContext(ctx, query, args...)
+	if err != nil {
+		a.logger.WithError(err).Error("Failed to query audit logs")
+		return nil, err
+	}
+	defer rows.Close()
+
+	var logs []*AuditLog
+	for rows.Next() {
+		log := &AuditLog{}
+		var metadataJSON []byte
+
+		err := rows.Scan(
+			&log.ID,
+			&log.UserID,
+			&log.UserRole,
+			&log.Action,
+			&log.Entity,
+			&log.EntityID,
+			&log.Description,
+			&metadataJSON,
+			&log.IPAddress,
+			&log.UserAgent,
+			&log.CreatedAt,
+		)
+
+		if err != nil {
+			a.logger.WithError(err).Error("Failed to scan audit log")
+			continue
+		}
+
+		// Unmarshal metadata
+		if len(metadataJSON) > 0 {
+			json.Unmarshal(metadataJSON, &log.Metadata)
+		}
+
+		logs = append(logs, log)
+	}
+
+	return logs, nil
 }
 
 // AuditLogFilters represents filters for audit log queries

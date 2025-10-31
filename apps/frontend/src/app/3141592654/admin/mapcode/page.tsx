@@ -25,7 +25,8 @@ import {
 import {
   VersionSelector,
   TranslationDisplay,
-  VersionManagement
+  VersionManagement,
+  MapCodeUpload
 } from "@/components/admin/mapcode";
 
 /**
@@ -59,6 +60,14 @@ export default function MapCodeManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Upload Section - Full Width */}
+      <MapCodeUpload 
+        onUploadSuccess={(versionId) => {
+          // Reload page or refresh version list
+          window.location.reload();
+        }}
+      />
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

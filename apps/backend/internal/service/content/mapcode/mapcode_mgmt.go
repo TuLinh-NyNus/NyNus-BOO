@@ -2,6 +2,7 @@ package mapcode_mgmt
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -95,6 +96,9 @@ func (m *MapCodeMgmt) SetActiveVersion(ctx context.Context, versionID string) er
 		// The database is the source of truth
 		fmt.Printf("Warning: failed to update symlink: %v\n", err)
 	}
+
+	// Invalidate all caches when switching versions
+	m.ClearCache()
 
 	return nil
 }
@@ -572,7 +576,23 @@ func (m *MapCodeMgmt) cacheTranslation(ctx context.Context, versionID, questionC
 	cacheEntry.QuestionCode.Set(questionCode)
 	cacheEntry.Translation.Set(translation)
 
+	// Set individual translation parts
 	m.setTranslationParts(cacheEntry, questionCode, config)
+	
+	// NEW: Add hierarchical context
+	hierarchyPath := m.buildHierarchyPath(questionCode, config)
+	if hierarchyPath != "" {
+		cacheEntry.HierarchyPath.Set(hierarchyPath)
+	}
+	
+	// NEW: Add parent context for disambiguation
+	parentContext := m.buildParentContext(questionCode)
+	if parentContext != nil {
+		contextJSON, err := json.Marshal(parentContext)
+		if err == nil {
+			cacheEntry.ParentContext.Set(contextJSON)
+		}
+	}
 
 	// Ignore errors in background caching
 	m.translationRepo.CreateTranslation(ctx, cacheEntry)
@@ -692,4 +712,60 @@ func (m *MapCodeMgmt) WarmupCache(ctx context.Context) error {
 
 	_, err = m.getOrLoadConfig(ctx, activeVersion)
 	return err
+}
+
+// buildHierarchyPath constructs full hierarchical path for breadcrumb navigation
+func (m *MapCodeMgmt) buildHierarchyPath(questionCode string, config *entity.MapCodeConfig) string {
+	var parts []string
+	
+	if len(questionCode) < 5 {
+		return ""
+	}
+	
+	// Position 1: Grade
+	if grade, ok := config.Grades[string(questionCode[0])]; ok {
+		parts = append(parts, grade)
+	}
+	
+	// Position 2: Subject
+	if subject, ok := config.Subjects[string(questionCode[1])]; ok {
+		parts = append(parts, subject)
+	}
+	
+	// Position 3: Chapter
+	if chapter, ok := config.Chapters[string(questionCode[2])]; ok {
+		parts = append(parts, chapter)
+	}
+	
+	// Position 4: Level
+	if level, ok := config.Levels[string(questionCode[3])]; ok {
+		parts = append(parts, level)
+	}
+	
+	// Position 5: Lesson
+	if lesson, ok := config.Lessons[string(questionCode[4])]; ok {
+		parts = append(parts, lesson)
+	}
+	
+	// Position 6: Form (optional, for ID6 format)
+	if len(questionCode) == 7 && questionCode[5] == '-' {
+		if form, ok := config.Forms[string(questionCode[6])]; ok {
+			parts = append(parts, form)
+		}
+	}
+	
+	return strings.Join(parts, " > ")
+}
+
+// buildParentContext constructs parent context for disambiguation
+func (m *MapCodeMgmt) buildParentContext(questionCode string) *entity.MapCodeParentContext {
+	if len(questionCode) < 3 {
+		return nil
+	}
+	
+	return &entity.MapCodeParentContext{
+		Grade:   string(questionCode[0]),
+		Subject: string(questionCode[1]),
+		Chapter: string(questionCode[2]),
+	}
 }

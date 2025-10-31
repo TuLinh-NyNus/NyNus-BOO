@@ -1,0 +1,200 @@
+syntax = "proto3";
+
+package v1;
+import "common/common.proto";
+
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
+
+// ==================== SECURITY SERVICE ====================
+
+// Security threat information
+message Threat {
+  string id = 1;
+  string user_id = 2;
+  string threat_type = 3;  // BRUTE_FORCE, RAPID_REQUESTS, UNUSUAL_LOCATION, TOKEN_ANOMALY, etc.
+  int32 risk_score = 4;    // 0-100
+  int64 timestamp = 5;
+  string status = 6;        // DETECTED, INVESTIGATING, MITIGATED, RESOLVED
+  string description = 7;
+  string metadata_json = 8; // JSON-encoded additional data
+  string ip_address = 9;
+  string user_agent = 10;
+  string device_fingerprint = 11;
+  string location = 12;
+}
+
+// Request to report a security threat
+message ReportThreatRequest {
+  string user_id = 1;
+  string threat_type = 2;
+  int32 risk_score = 3;
+  string description = 4;
+  string metadata_json = 5;  // JSON encoded metadata
+  string ip_address = 6;
+  string user_agent = 7;
+  string device_fingerprint = 8;
+  string location = 9;
+}
+
+message ReportThreatResponse {
+  common.Response response = 1;
+  string threat_id = 2;
+  string message = 3;
+}
+
+// Request to execute security response action
+message ExecuteResponseRequest {
+  string user_id = 1;
+  string action_type = 2;  // ALERT, BLOCK, MFA_REQUIRED, LOGOUT, RATE_LIMIT
+  int32 duration_seconds = 3;  // For BLOCK, RATE_LIMIT (0 = permanent)
+  string reason = 4;
+  string threat_id = 5;  // Associated threat ID
+}
+
+message ExecuteResponseResponse {
+  common.Response response = 1;
+  string message = 2;
+  int32 status_code = 3;
+  bool executed = 4;
+}
+
+// Request to get threats
+message GetThreatsRequest {
+  string user_id = 1;  // Empty = all users (admin only)
+  int32 limit = 2;
+  int32 offset = 3;
+  string filter_type = 4;  // all, active, resolved
+  string threat_type = 5;  // Filter by specific threat type
+  int64 from_timestamp = 6;
+  int64 to_timestamp = 7;
+}
+
+message GetThreatsResponse {
+  common.Response response = 1;
+  repeated Threat threats = 2;
+  int32 total = 3;
+}
+
+// ==================== SESSION MANAGEMENT ====================
+
+// Request to validate token
+message ValidateTokenRequest {
+  string token = 1;
+  string user_id = 2;  // Optional - for additional validation
+}
+
+message ValidateTokenResponse {
+  common.Response response = 1;
+  bool valid = 2;
+  string user_id = 3;
+  string role = 4;
+  int64 expires_at = 5;  // Unix timestamp
+  string session_id = 6;
+}
+
+// Request to invalidate session
+message InvalidateSessionRequest {
+  string user_id = 1;
+  string session_id = 2;  // Optional - if empty, invalidate all sessions
+  string reason = 3;
+}
+
+message InvalidateSessionResponse {
+  common.Response response = 1;
+  bool success = 2;
+  string message = 3;
+  int32 sessions_invalidated = 4;
+}
+
+// Request to renew session
+message RenewSessionRequest {
+  string refresh_token = 1;
+  string device_fingerprint = 2;  // For security tracking
+}
+
+message RenewSessionResponse {
+  common.Response response = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+  int64 expires_at = 4;  // Unix timestamp
+  string session_id = 5;
+}
+
+// ==================== TOKEN METRICS ====================
+
+// Token metric data point
+message TokenMetric {
+  string id = 1;
+  string user_id = 2;
+  string metric_type = 3;  // REFRESH, VALIDATION, ERROR
+  int64 timestamp = 4;
+  int32 duration_ms = 5;  // Operation duration in milliseconds
+  bool success = 6;
+  string error_type = 7;  // If success = false
+  string metadata_json = 8;  // Additional data
+}
+
+// Request to record token metric
+message RecordTokenMetricRequest {
+  string user_id = 1;
+  string metric_type = 2;
+  int32 duration_ms = 3;
+  bool success = 4;
+  string error_type = 5;
+  string metadata_json = 6;
+}
+
+message RecordTokenMetricResponse {
+  common.Response response = 1;
+  string metric_id = 2;
+}
+
+// Request to get token metrics
+message GetTokenMetricsRequest {
+  string user_id = 1;  // Empty = all users (admin only)
+  string metric_type = 2;  // Empty = all types
+  int64 from_timestamp = 3;
+  int64 to_timestamp = 4;
+  int32 limit = 5;
+  int32 offset = 6;
+}
+
+message GetTokenMetricsResponse {
+  common.Response response = 1;
+  repeated TokenMetric metrics = 2;
+  int32 total = 3;
+  TokenMetricsAggregation aggregation = 4;
+}
+
+// Aggregated metrics
+message TokenMetricsAggregation {
+  int32 total_count = 1;
+  int32 success_count = 2;
+  int32 error_count = 3;
+  double success_rate = 4;  // Percentage 0-100
+  double avg_duration_ms = 5;
+  double p50_duration_ms = 6;
+  double p95_duration_ms = 7;
+  double p99_duration_ms = 8;
+}
+
+// ==================== SECURITY SERVICE DEFINITION ====================
+
+service SecurityService {
+  // Threat Management
+  rpc ReportThreat(ReportThreatRequest) returns (ReportThreatResponse);
+  rpc ExecuteResponse(ExecuteResponseRequest) returns (ExecuteResponseResponse);
+  rpc GetThreats(GetThreatsRequest) returns (GetThreatsResponse);
+  
+  // Session Management
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc InvalidateSession(InvalidateSessionRequest) returns (InvalidateSessionResponse);
+  rpc RenewSession(RenewSessionRequest) returns (RenewSessionResponse);
+  
+  // Token Metrics
+  rpc RecordTokenMetric(RecordTokenMetricRequest) returns (RecordTokenMetricResponse);
+  rpc GetTokenMetrics(GetTokenMetricsRequest) returns (GetTokenMetricsResponse);
+}
+
+
+

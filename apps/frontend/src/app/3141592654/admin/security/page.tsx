@@ -30,7 +30,23 @@ import {
   Clock,
   MapPin,
   AlertCircle,
+  TrendingUp,
+  Zap,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 // Import types from mockdata
 import {
@@ -38,6 +54,10 @@ import {
   type SecurityEvent
 } from "@/lib/mockdata";
 import { AdminService } from "@/services/grpc/admin.service";
+import { getThreatDetectionEngine } from "@/lib/security/threat-detection-engine";
+import { AutoResponseSystem } from "@/lib/security/auto-response-system";
+import type { ThreatEvent, ThreatAnalysis } from "@/lib/security/threat-detection-engine";
+import type { SecurityResponse } from "@/lib/security/auto-response-system";
 
 /**
  * Security Monitoring Dashboard Page
@@ -51,6 +71,11 @@ export default function SecurityMonitoringPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  
+  // New state for integrated security systems
+  const [activeThreats, setActiveThreats] = useState<ThreatEvent[]>([]);
+  const [recentResponses, setRecentResponses] = useState<SecurityResponse[]>([]);
+  const [threatTimeline, setThreatTimeline] = useState<Array<{hour: string, threats: number}>>([]);
 
   /**
    * Fetch security metrics từ real database via gRPC
@@ -113,6 +138,33 @@ export default function SecurityMonitoringPage() {
         suspiciousActivities: totalEvents
       });
       setRecentEvents(mappedEvents);
+      
+      // Integrate with ThreatDetectionEngine
+      const threatEngine = getThreatDetectionEngine();
+      const threats = threatEngine.getDetectedThreats();
+      setActiveThreats(threats.filter((t: ThreatEvent) => Date.now() - t.timestamp < 24 * 60 * 60 * 1000)); // Last 24h
+      
+      // Get threat timeline (hourly for last 24h)
+      const now = new Date();
+      const hourlyThreats = Array.from({ length: 24 }, (_, i) => {
+        const hourStart = new Date(now.getTime() - (23 - i) * 60 * 60 * 1000);
+        hourStart.setMinutes(0, 0, 0);
+        const hourEnd = new Date(hourStart.getTime() + 60 * 60 * 1000);
+        const count = threats.filter((t: ThreatEvent) => 
+          t.timestamp >= hourStart.getTime() && t.timestamp < hourEnd.getTime()
+        ).length;
+        return {
+          hour: `${i}h`,
+          threats: count,
+        };
+      });
+      setThreatTimeline(hourlyThreats);
+      
+      // Get recent responses
+      const responseSystem = AutoResponseSystem.getInstance();
+      const responses = responseSystem.getResponses();
+      setRecentResponses(responses.slice(0, 10)); // Last 10 responses
+      
       setLastRefresh(new Date());
     } catch (error) {
       console.error("Failed to fetch security metrics:", error);
@@ -361,40 +413,98 @@ export default function SecurityMonitoringPage() {
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
+          {/* Threat Timeline Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Threat Timeline (24h)
+              </CardTitle>
+              <CardDescription>Timeline của threats phát hiện được trong 24 giờ qua</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart data={threatTimeline}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="threats" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Active Threats & Response Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Active Threats Panel */}
             <Card>
               <CardHeader>
-                <CardTitle>Phân tích theo loại sự kiện</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                  Active Threats
+                </CardTitle>
+                <CardDescription>Mối đe dọa đang hoạt động (24h qua)</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {Object.entries(metrics?.eventsByType || {}).map(([type, count]) => (
-                    <div key={type} className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{type}</span>
-                      <span className="text-sm text-muted-foreground">{count}</span>
+                <div className="space-y-3">
+                  {activeThreats.length > 0 ? (
+                    activeThreats.slice(0, 5).map((threat) => (
+                      <div key={threat.id} className="border-l-4 border-destructive pl-3 py-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{threat.threatType}</span>
+                          <Badge variant="destructive">{threat.severity}</Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{threat.description}</p>
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          <span>{new Date(threat.timestamp).toLocaleString('vi-VN')}</span>
+                          <span className="ml-auto">Risk: {threat.riskScore}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Shield className="h-12 w-12 mx-auto mb-2 text-green-500" />
+                      <p>Không phát hiện threat nào trong 24h qua</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
 
+            {/* Response Actions Panel */}
             <Card>
               <CardHeader>
-                <CardTitle>Mối đe dọa hàng đầu</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-blue-500" />
+                  Response Actions
+                </CardTitle>
+                <CardDescription>Các phản ứng tự động gần đây</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {metrics?.topThreats.map((threat, index) => (
-                    <div key={index} className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium">{threat.type}</div>
-                        <div className="text-xs text-muted-foreground">
-                          Lần cuối: {formatTimestamp(threat.lastOccurrence)}
+                <div className="space-y-3">
+                  {recentResponses.length > 0 ? (
+                    recentResponses.map((response) => (
+                      <div key={response.id} className="border-l-4 border-blue-500 pl-3 py-2">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{response.action}</span>
+                          <Badge variant={response.status === 'completed' ? 'default' : 'secondary'}>
+                            {response.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{response.reason}</p>
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                          <span>Triggered by: {response.triggeredBy}</span>
                         </div>
                       </div>
-                      <Badge variant="destructive">{threat.count}</Badge>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Activity className="h-12 w-12 mx-auto mb-2" />
+                      <p>Chưa có response action nào</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
