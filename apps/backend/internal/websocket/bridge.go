@@ -230,11 +230,11 @@ func (b *RedisBridge) logDeadLetter(channel string, message []byte, err error) {
 		"timestamp": time.Now().Format(time.RFC3339),
 	}
 
-	// TODO: Store in persistent dead letter queue (Redis list or database)
+	// NOTE: Dead letter queue not yet implemented - requires Redis list or database
 	b.logger.Printf("[ERROR] Dead letter: %+v", deadLetter)
 }
 
-// isDuplicate checks if a message was recently processed
+// isDuplicate checks if a message was recently processed.
 // Implements task 3.1.4: Message deduplication
 func (b *RedisBridge) isDuplicate(messageID string) bool {
 	b.recentMessagesMu.RLock()
@@ -244,7 +244,7 @@ func (b *RedisBridge) isDuplicate(messageID string) bool {
 	return exists
 }
 
-// markAsProcessed marks a message as processed
+// markAsProcessed marks a message as processed.
 func (b *RedisBridge) markAsProcessed(messageID string) {
 	b.recentMessagesMu.Lock()
 	defer b.recentMessagesMu.Unlock()
@@ -259,7 +259,7 @@ func (b *RedisBridge) markAsProcessed(messageID string) {
 	}
 }
 
-// cleanupOldMessages removes old entries from recent messages cache
+// cleanupOldMessages removes old entries from recent messages cache.
 func (b *RedisBridge) cleanupOldMessages() {
 	// This is called while holding the write lock
 	now := time.Now()
@@ -272,7 +272,7 @@ func (b *RedisBridge) cleanupOldMessages() {
 	}
 }
 
-// cleanupRecentMessages periodically cleans up the recent messages cache
+// cleanupRecentMessages periodically cleans up the recent messages cache.
 func (b *RedisBridge) cleanupRecentMessages() {
 	ticker := time.NewTicker(1 * time.Minute)
 	defer ticker.Stop()
@@ -289,7 +289,7 @@ func (b *RedisBridge) cleanupRecentMessages() {
 	}
 }
 
-// Stop stops the bridge
+// Stop stops the bridge.
 func (b *RedisBridge) Stop() error {
 	b.logger.Printf("[INFO] Stopping Redis-WebSocket bridge")
 
@@ -307,7 +307,7 @@ func (b *RedisBridge) Stop() error {
 	return nil
 }
 
-// GetStats returns bridge statistics
+// GetStats returns bridge statistics.
 func (b *RedisBridge) GetStats() map[string]interface{} {
 	b.recentMessagesMu.RLock()
 	recentCount := len(b.recentMessages)

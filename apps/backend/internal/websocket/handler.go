@@ -13,7 +13,7 @@ import (
 	"nhooyr.io/websocket/wsjson"
 )
 
-// Handler handles WebSocket upgrade and message routing
+// Handler handles WebSocket upgrade and message routing.
 type Handler struct {
 	manager       *ConnectionManager
 	authenticator TokenAuthenticator
@@ -25,18 +25,18 @@ type Handler struct {
 	allowedOrigins  []string
 }
 
-// TokenAuthenticator defines the interface for validating JWT tokens
+// TokenAuthenticator defines the interface for validating JWT tokens.
 type TokenAuthenticator interface {
 	ValidateToken(token string) (userID string, role string, err error)
 }
 
-// WebSocketMessage represents incoming WebSocket messages
+// WebSocketMessage represents incoming WebSocket messages.
 type WebSocketMessage struct {
 	Type    string                 `json:"type"`
 	Payload map[string]interface{} `json:"payload,omitempty"`
 }
 
-// WebSocketResponse represents outgoing WebSocket messages
+// WebSocketResponse represents outgoing WebSocket messages.
 type WebSocketResponse struct {
 	Type      string      `json:"type"`
 	Success   bool        `json:"success"`
@@ -45,7 +45,7 @@ type WebSocketResponse struct {
 	Timestamp time.Time   `json:"timestamp"`
 }
 
-// NewHandler creates a new WebSocket handler
+// NewHandler creates a new WebSocket handler.
 func NewHandler(manager *ConnectionManager, authenticator TokenAuthenticator) *Handler {
 	return &Handler{
 		manager:         manager,
@@ -61,7 +61,7 @@ func NewHandler(manager *ConnectionManager, authenticator TokenAuthenticator) *H
 	}
 }
 
-// HandleWebSocket handles WebSocket upgrade and connection
+// HandleWebSocket handles WebSocket upgrade and connection.
 // Implements task 2.2.1: Implement upgrade handler
 func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) error {
 	// Validate Origin header (CORS)
@@ -113,13 +113,14 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) error 
 	// Handle messages
 	defer func() {
 		h.manager.UnregisterClient(client)
-		conn.Close(websocket.StatusNormalClosure, "Connection closed")
+		//nolint:errcheck // Closing connection during cleanup
+		_ = conn.Close(websocket.StatusNormalClosure, "Connection closed")
 	}()
 
 	return h.handleMessages(r.Context(), client)
 }
 
-// handleMessages handles incoming messages from client
+// handleMessages handles incoming messages from client.
 // Implements task 2.2.2: Message handling and routing
 func (h *Handler) handleMessages(ctx context.Context, client *Client) error {
 	for {
@@ -313,7 +314,7 @@ func (h *Handler) sendWelcome(client *Client) {
 }
 
 // extractToken extracts JWT token from request.
-// Supports token from query parameter or Authorization header
+// Supports token from query parameter or Authorization header.
 func (h *Handler) extractToken(r *http.Request) string {
 	// Try query parameter first
 	token := r.URL.Query().Get("token")
@@ -341,7 +342,7 @@ func (h *Handler) extractToken(r *http.Request) string {
 }
 
 // isOriginAllowed checks if origin is in allowed list.
-// Implements task 2.2.1: Validate Origin header (CORS)
+// Implements task 2.2.1: Validate Origin header (CORS).
 func (h *Handler) isOriginAllowed(origin string) bool {
 	if origin == "" {
 		return true // Allow empty origin (same-origin)
@@ -365,7 +366,7 @@ func (h *Handler) isOriginAllowed(origin string) bool {
 }
 
 // checkRateLimit checks if client exceeds rate limit.
-// Implements task 2.2.1: Rate limiting per IP/user
+// Implements task 2.2.1: Rate limiting per IP/user.
 func (h *Handler) checkRateLimit(ip, userID string) bool {
 	// NOTE: Rate limiting not yet implemented - requires Redis or in-memory store
 	// For now, always allow
