@@ -30,6 +30,7 @@ const (
 	MapCodeService_GetStorageInfo_FullMethodName         = "/v1.MapCodeService/GetStorageInfo"
 	MapCodeService_GetMapCodeConfig_FullMethodName       = "/v1.MapCodeService/GetMapCodeConfig"
 	MapCodeService_GetMetrics_FullMethodName             = "/v1.MapCodeService/GetMetrics"
+	MapCodeService_ExportVersion_FullMethodName          = "/v1.MapCodeService/ExportVersion"
 )
 
 // MapCodeServiceClient is the client API for MapCodeService service.
@@ -54,6 +55,8 @@ type MapCodeServiceClient interface {
 	GetMapCodeConfig(ctx context.Context, in *GetMapCodeConfigRequest, opts ...grpc.CallOption) (*GetMapCodeConfigResponse, error)
 	// Metrics Access
 	GetMetrics(ctx context.Context, in *GetMetricsRequest, opts ...grpc.CallOption) (*GetMetricsResponse, error)
+	// Export Functionality
+	ExportVersion(ctx context.Context, in *ExportVersionRequest, opts ...grpc.CallOption) (*ExportVersionResponse, error)
 }
 
 type mapCodeServiceClient struct {
@@ -174,6 +177,16 @@ func (c *mapCodeServiceClient) GetMetrics(ctx context.Context, in *GetMetricsReq
 	return out, nil
 }
 
+func (c *mapCodeServiceClient) ExportVersion(ctx context.Context, in *ExportVersionRequest, opts ...grpc.CallOption) (*ExportVersionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ExportVersionResponse)
+	err := c.cc.Invoke(ctx, MapCodeService_ExportVersion_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MapCodeServiceServer is the server API for MapCodeService service.
 // All implementations must embed UnimplementedMapCodeServiceServer
 // for forward compatibility.
@@ -196,6 +209,8 @@ type MapCodeServiceServer interface {
 	GetMapCodeConfig(context.Context, *GetMapCodeConfigRequest) (*GetMapCodeConfigResponse, error)
 	// Metrics Access
 	GetMetrics(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error)
+	// Export Functionality
+	ExportVersion(context.Context, *ExportVersionRequest) (*ExportVersionResponse, error)
 	mustEmbedUnimplementedMapCodeServiceServer()
 }
 
@@ -238,6 +253,9 @@ func (UnimplementedMapCodeServiceServer) GetMapCodeConfig(context.Context, *GetM
 }
 func (UnimplementedMapCodeServiceServer) GetMetrics(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetrics not implemented")
+}
+func (UnimplementedMapCodeServiceServer) ExportVersion(context.Context, *ExportVersionRequest) (*ExportVersionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ExportVersion not implemented")
 }
 func (UnimplementedMapCodeServiceServer) mustEmbedUnimplementedMapCodeServiceServer() {}
 func (UnimplementedMapCodeServiceServer) testEmbeddedByValue()                        {}
@@ -458,6 +476,24 @@ func _MapCodeService_GetMetrics_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MapCodeService_ExportVersion_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ExportVersionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MapCodeServiceServer).ExportVersion(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MapCodeService_ExportVersion_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MapCodeServiceServer).ExportVersion(ctx, req.(*ExportVersionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MapCodeService_ServiceDesc is the grpc.ServiceDesc for MapCodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -508,6 +544,10 @@ var MapCodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMetrics",
 			Handler:    _MapCodeService_GetMetrics_Handler,
+		},
+		{
+			MethodName: "ExportVersion",
+			Handler:    _MapCodeService_ExportVersion_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

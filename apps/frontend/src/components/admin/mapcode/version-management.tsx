@@ -412,41 +412,75 @@ export function VersionManagement({ className }: VersionManagementProps) {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {!version.isActive && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                      <div className="flex items-center justify-end gap-2">
+                        {/* Export Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
                             <Button
                               variant="outline"
                               size="sm"
-                              disabled={deleting === version.id}
+                              disabled={exporting === version.id}
                             >
-                              {deleting === version.id ? (
+                              {exporting === version.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
                               ) : (
-                                <Trash2 className="h-4 w-4" />
+                                <>
+                                  <Download className="h-4 w-4 mr-1" />
+                                  Export
+                                </>
                               )}
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Xác nhận xóa version</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Bạn có chắc chắn muốn xóa version &quot;{version.version}&quot;?
-                                Hành động này không thể hoàn tác.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Hủy</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteVersion(version.id)}
-                                className="bg-red-600 hover:bg-red-700"
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleExportVersion(version.id, 'markdown')}>
+                              📝 Markdown (.md)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExportVersion(version.id, 'json')}>
+                              📦 JSON (.json)
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExportVersion(version.id, 'csv')}>
+                              📊 CSV (.csv)
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Delete Button */}
+                        {!version.isActive && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={deleting === version.id}
                               >
-                                Xóa
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                                {deleting === version.id ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Xác nhận xóa version</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Bạn có chắc chắn muốn xóa version &quot;{version.version}&quot;?
+                                  Hành động này không thể hoàn tác.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Hủy</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => handleDeleteVersion(version.id)}
+                                  className="bg-red-600 hover:bg-red-700"
+                                >
+                                  Xóa
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

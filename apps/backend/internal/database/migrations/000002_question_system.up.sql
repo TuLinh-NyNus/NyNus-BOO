@@ -141,7 +141,7 @@ CREATE TABLE question_tag (
 -- Indexes for question_tag
 CREATE INDEX idx_question_tag_question_id ON question_tag(question_id);
 CREATE INDEX idx_question_tag_tag_name ON question_tag(tag_name);
--- Note: LOWER() function index removed - PostgreSQL requires IMMUTABLE mark. Use LOWER(tag_name) in WHERE clause instead for case-insensitive search
+CREATE INDEX idx_question_tag_tag_name_lower ON question_tag(LOWER(tag_name)); -- Case-insensitive search
 
 -- ========================================
 -- PART 6: QUESTION_FEEDBACK TABLE

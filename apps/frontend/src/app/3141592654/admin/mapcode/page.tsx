@@ -27,14 +27,32 @@ import {
   TranslationDisplay,
   VersionManagement,
   MapCodeUpload,
-  MetricsDashboard
+  MetricsDashboard,
+  VersionDiff
 } from "@/components/admin/mapcode";
+import { MapCodeVersionData } from "@/lib/grpc/mapcode-client";
 
 /**
  * MapCode Management Page Component
  */
 export default function MapCodeManagementPage() {
   const router = useRouter();
+  const [versions, setVersions] = React.useState<MapCodeVersionData[]>([]);
+
+  // Load versions for VersionDiff component
+  React.useEffect(() => {
+    const loadVersions = async () => {
+      try {
+        const result = await import("@/lib/grpc/mapcode-client").then(m => 
+          m.MapCodeClient.getVersions(1, 50)
+        );
+        setVersions(result.versions);
+      } catch (error) {
+        console.error("Failed to load versions:", error);
+      }
+    };
+    loadVersions();
+  }, []);
 
   return (
     <div className="mapcode-management-page space-y-6">
@@ -64,6 +82,9 @@ export default function MapCodeManagementPage() {
 
       {/* Metrics Dashboard - Full Width */}
       <MetricsDashboard />
+
+      {/* Version Comparison Tool - Full Width */}
+      <VersionDiff versions={versions} />
 
       {/* Upload Section - Full Width */}
       <MapCodeUpload 
