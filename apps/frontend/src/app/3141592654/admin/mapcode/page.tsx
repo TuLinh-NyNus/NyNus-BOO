@@ -88,7 +88,7 @@ export default function MapCodeManagementPage() {
 
       {/* Upload Section - Full Width */}
       <MapCodeUpload 
-        onUploadSuccess={(versionId) => {
+        onUploadSuccess={(_versionId) => {
           // Reload page or refresh version list
           window.location.reload();
         }}

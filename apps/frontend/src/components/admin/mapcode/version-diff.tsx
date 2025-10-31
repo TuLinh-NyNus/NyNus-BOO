@@ -50,13 +50,7 @@ export function VersionDiff({ versions, className }: VersionDiffProps) {
     try {
       setComparing(true);
 
-      // Fetch both configs
-      const [configA, configB] = await Promise.all([
-        MapCodeClient.getStorageInfo(), // Stub - sẽ fetch actual config
-        MapCodeClient.getStorageInfo(), // Stub - sẽ fetch actual config
-      ]);
-
-      // TODO: Replace with actual config fetch
+      // TODO: Fetch both configs when API is available
       // For now, generate mock diff
       const mockDiff: DiffResult = {
         added: [
