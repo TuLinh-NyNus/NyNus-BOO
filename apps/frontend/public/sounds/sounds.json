@@ -1,0 +1,271 @@
+{
+  "version": "1.0.0",
+  "sounds": [
+    {
+      "id": "rain",
+      "name": "Tiếng Mưa",
+      "nameEn": "Rainfall",
+      "emoji": "🌧️",
+      "category": "nature",
+      "audioUrl": "/sounds/ambient/rain.mp3",
+      "duration": 180,
+      "defaultVolume": 0.7,
+      "loop": true,
+      "description": "Âm thanh mưa rơi nhẹ nhàng",
+      "tags": ["rain", "water", "relaxing", "nature"]
+    },
+    {
+      "id": "thunder",
+      "name": "Sấm Chớp",
+      "nameEn": "Thunderstorm",
+      "emoji": "⚡",
+      "category": "nature",
+      "audioUrl": "/sounds/ambient/thunder.mp3",
+      "duration": 180,
+      "defaultVolume": 0.5,
+      "loop": true,
+      "description": "Âm thanh sấm sét và mưa bão",
+      "tags": ["thunder", "storm", "intense", "nature"]
+    },
+    {
+      "id": "fire",
+      "name": "Lửa Bập Bùng",
+      "nameEn": "Crackling Fire",
+      "emoji": "🔥",
+      "category": "nature",
+      "audioUrl": "/sounds/ambient/fire.mp3",
+      "duration": 180,
+      "defaultVolume": 0.6,
+      "loop": true,
+      "description": "Âm thanh lửa cháy bập bùng",
+      "tags": ["fire", "crackling", "cozy", "warm"]
+    },
+    {
+      "id": "ocean",
+      "name": "Sóng Biển",
+      "nameEn": "Ocean Waves",
+      "emoji": "🌊",
+      "category": "nature",
+      "audioUrl": "/sounds/ambient/ocean.mp3",
+      "duration": 180,
+      "defaultVolume": 0.7,
+      "loop": true,
+      "description": "Âm thanh sóng biển vỗ bờ",
+      "tags": ["ocean", "waves", "beach", "relaxing"]
+    },
+    {
+      "id": "birds",
+      "name": "Chim Hót",
+      "nameEn": "Forest Birds",
+      "emoji": "🐦",
+      "category": "nature",
+      "audioUrl": "/sounds/ambient/birds.mp3",
+      "duration": 180,
+      "defaultVolume": 0.6,
+      "loop": true,
+      "description": "Âm thanh chim hót trong rừng",
+      "tags": ["birds", "forest", "morning", "nature"]
+    },
+    {
+      "id": "forest",
+      "name": "Rừng Xanh",
+      "nameEn": "Forest Ambience",
+      "emoji": "🌲",
+      "category": "nature",
+      "audioUrl": "/sounds/ambient/forest.mp3",
+      "duration": 180,
+      "defaultVolume": 0.6,
+      "loop": true,
+      "description": "Âm thanh rừng cây yên bình",
+      "tags": ["forest", "trees", "nature", "peaceful"]
+    },
+    {
+      "id": "water",
+      "name": "Nước Chảy",
+      "nameEn": "Flowing Water",
+      "emoji": "💧",
+      "category": "nature",
+      "audioUrl": "/sounds/ambient/water.mp3",
+      "duration": 180,
+      "defaultVolume": 0.7,
+      "loop": true,
+      "description": "Âm thanh suối nước chảy róc rách",
+      "tags": ["water", "stream", "flowing", "nature"]
+    },
+    {
+      "id": "white-noise",
+      "name": "White Noise",
+      "nameEn": "White Noise",
+      "emoji": "📻",
+      "category": "noise",
+      "audioUrl": "/sounds/ambient/white-noise.mp3",
+      "duration": 300,
+      "defaultVolume": 0.5,
+      "loop": true,
+      "description": "White noise giúp tập trung",
+      "tags": ["white-noise", "focus", "concentration"]
+    },
+    {
+      "id": "pink-noise",
+      "name": "Pink Noise",
+      "nameEn": "Pink Noise",
+      "emoji": "🎵",
+      "category": "noise",
+      "audioUrl": "/sounds/ambient/pink-noise.mp3",
+      "duration": 300,
+      "defaultVolume": 0.5,
+      "loop": true,
+      "description": "Pink noise êm ái hơn white noise",
+      "tags": ["pink-noise", "focus", "sleep"]
+    },
+    {
+      "id": "brown-noise",
+      "name": "Brown Noise",
+      "nameEn": "Brown Noise",
+      "emoji": "🎶",
+      "category": "noise",
+      "audioUrl": "/sounds/ambient/brown-noise.mp3",
+      "duration": 300,
+      "defaultVolume": 0.5,
+      "loop": true,
+      "description": "Brown noise trầm và ấm áp",
+      "tags": ["brown-noise", "deep", "focus"]
+    },
+    {
+      "id": "cafe",
+      "name": "Quán Cà Phê",
+      "nameEn": "Café Ambience",
+      "emoji": "☕",
+      "category": "ambient",
+      "audioUrl": "/sounds/ambient/cafe.mp3",
+      "duration": 180,
+      "defaultVolume": 0.6,
+      "loop": true,
+      "description": "Âm thanh quán cà phê nhộn nhịp",
+      "tags": ["cafe", "coffee", "people", "urban"]
+    },
+    {
+      "id": "library",
+      "name": "Thư Viện",
+      "nameEn": "Library Ambience",
+      "emoji": "📚",
+      "category": "ambient",
+      "audioUrl": "/sounds/ambient/library.mp3",
+      "duration": 180,
+      "defaultVolume": 0.4,
+      "loop": true,
+      "description": "Âm thanh thư viện yên tĩnh",
+      "tags": ["library", "quiet", "study", "reading"]
+    },
+    {
+      "id": "night",
+      "name": "Đêm Yên Tĩnh",
+      "nameEn": "Night Ambience",
+      "emoji": "🌙",
+      "category": "ambient",
+      "audioUrl": "/sounds/ambient/night.mp3",
+      "duration": 180,
+      "defaultVolume": 0.5,
+      "loop": true,
+      "description": "Âm thanh đêm êm đềm",
+      "tags": ["night", "calm", "peaceful", "sleep"]
+    },
+    {
+      "id": "keyboard",
+      "name": "Tiếng Gõ Phím",
+      "nameEn": "Keyboard Typing",
+      "emoji": "⌨️",
+      "category": "study",
+      "audioUrl": "/sounds/ambient/keyboard.mp3",
+      "duration": 120,
+      "defaultVolume": 0.5,
+      "loop": true,
+      "description": "Âm thanh gõ phím cơ",
+      "tags": ["keyboard", "typing", "work", "productivity"]
+    },
+    {
+      "id": "writing",
+      "name": "Viết Giấy",
+      "nameEn": "Writing on Paper",
+      "emoji": "✍️",
+      "category": "study",
+      "audioUrl": "/sounds/ambient/writing.mp3",
+      "duration": 120,
+      "defaultVolume": 0.5,
+      "loop": true,
+      "description": "Âm thanh viết bút trên giấy",
+      "tags": ["writing", "paper", "study", "pen"]
+    }
+  ],
+  "presets": [
+    {
+      "id": "rain-mix",
+      "name": "Rain Mix",
+      "nameVi": "Mưa + Sấm",
+      "description": "Mưa nhẹ với tiếng sấm xa xa",
+      "sounds": [
+        { "id": "rain", "volume": 0.7 },
+        { "id": "thunder", "volume": 0.3 }
+      ]
+    },
+    {
+      "id": "coffee-shop",
+      "name": "Coffee Shop",
+      "nameVi": "Quán Cà Phê",
+      "description": "Không khí quán cà phê",
+      "sounds": [
+        { "id": "cafe", "volume": 0.6 },
+        { "id": "keyboard", "volume": 0.3 }
+      ]
+    },
+    {
+      "id": "forest-peace",
+      "name": "Forest Peace",
+      "nameVi": "Rừng Yên Bình",
+      "description": "Rừng cây với tiếng chim hót",
+      "sounds": [
+        { "id": "forest", "volume": 0.6 },
+        { "id": "birds", "volume": 0.5 },
+        { "id": "water", "volume": 0.4 }
+      ]
+    },
+    {
+      "id": "ocean-breeze",
+      "name": "Ocean Breeze",
+      "nameVi": "Biển Êm Đềm",
+      "description": "Sóng biển nhẹ nhàng",
+      "sounds": [
+        { "id": "ocean", "volume": 0.8 }
+      ]
+    },
+    {
+      "id": "study-mode",
+      "name": "Study Mode",
+      "nameVi": "Chế Độ Học",
+      "description": "Thư viện + White noise",
+      "sounds": [
+        { "id": "library", "volume": 0.5 },
+        { "id": "white-noise", "volume": 0.3 }
+      ]
+    },
+    {
+      "id": "cozy-fire",
+      "name": "Cozy Fire",
+      "nameVi": "Lò Sưởi Ấm Áp",
+      "description": "Lửa bập bùng ấm cúng",
+      "sounds": [
+        { "id": "fire", "volume": 0.7 }
+      ]
+    }
+  ],
+  "notification": {
+    "id": "timer-end",
+    "name": "Timer Complete",
+    "nameVi": "Hết Giờ",
+    "audioUrl": "/sounds/timer-end.mp3",
+    "volume": 0.8,
+    "loop": false,
+    "description": "Âm thanh thông báo hết giờ"
+  }
+}
+

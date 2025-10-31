@@ -9,10 +9,23 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/repository"
 )
+
+// MapCodeMetrics holds performance metrics for MapCode operations
+type MapCodeMetrics struct {
+	TotalTranslations  int64         `json:"total_translations"`
+	CacheHits          int64         `json:"cache_hits"`
+	CacheMisses        int64         `json:"cache_misses"`
+	AvgTranslationTime time.Duration `json:"avg_translation_time"`
+	ActiveVersionID    string        `json:"active_version_id"`
+	LastVersionSwitch  time.Time     `json:"last_version_switch"`
+	TranslationErrors  int64         `json:"translation_errors"`
+}
 
 // MapCodeMgmt handles MapCode version management and translation
 type MapCodeMgmt struct {
@@ -20,6 +33,14 @@ type MapCodeMgmt struct {
 	translationRepo  *repository.MapCodeTranslationRepository
 	basePath         string                           // Base path for MapCode files
 	translationCache map[string]*entity.MapCodeConfig // In-memory cache
+	
+	// Metrics tracking
+	metrics     MapCodeMetrics
+	metricsLock sync.RWMutex
+	
+	// Event broadcasting
+	eventListeners []chan *entity.MapCodeVersionEvent
+	eventsLock     sync.RWMutex
 }
 
 // NewMapCodeMgmt creates a new MapCodeMgmt instance
@@ -29,6 +50,10 @@ func NewMapCodeMgmt(mapCodeRepo *repository.MapCodeRepository, translationRepo *
 		translationRepo:  translationRepo,
 		basePath:         "docs/resources/latex/mapcode",
 		translationCache: make(map[string]*entity.MapCodeConfig),
+		metrics:          MapCodeMetrics{},
+		metricsLock:      sync.RWMutex{},
+		eventListeners:   make([]chan *entity.MapCodeVersionEvent, 0),
+		eventsLock:       sync.RWMutex{},
 	}
 }
 
@@ -69,6 +94,82 @@ func (m *MapCodeMgmt) CreateVersion(ctx context.Context, version, name, descript
 		return nil, fmt.Errorf("failed to save version: %w", err)
 	}
 
+	// Publish version created event
+	event := entity.NewMapCodeVersionEvent(
+		entity.MapCodeEventVersionCreated,
+		mapCodeVersion.ID.String,
+		createdBy,
+		fmt.Sprintf("Created version: %s", version),
+	)
+	m.publishEvent(event)
+
+	return mapCodeVersion, nil
+}
+
+// CreateVersionFromContent creates a new MapCode version from uploaded content
+func (m *MapCodeMgmt) CreateVersionFromContent(ctx context.Context, version, name, description, content, createdBy string) (*entity.MapCodeVersion, error) {
+	// Validate version format
+	if err := ValidateVersion(version); err != nil {
+		return nil, fmt.Errorf("invalid version format: %w", err)
+	}
+	
+	// Validate content
+	validationResult := ValidateMapCodeContent(content)
+	if !validationResult.IsValid() {
+		return nil, fmt.Errorf("validation failed: %s", validationResult.Error())
+	}
+	
+	// Check storage limits
+	storageInfo, err := m.mapCodeRepo.GetStorageInfo(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check storage: %w", err)
+	}
+
+	if !storageInfo.CanCreateNewVersion() {
+		return nil, fmt.Errorf("storage limit exceeded: %s", storageInfo.GetWarningMessage())
+	}
+
+	// Create version folder
+	versionPath := filepath.Join(m.basePath, version)
+	if err := os.MkdirAll(versionPath, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create version folder: %w", err)
+	}
+
+	// Create MapCode file path
+	filePath := filepath.Join(versionPath, fmt.Sprintf("MapCode-%s.md", strings.TrimPrefix(version, "v")))
+	
+	// Write content to file
+	if err := ioutil.WriteFile(filePath, []byte(content), 0644); err != nil {
+		// Cleanup folder if file write fails
+		os.RemoveAll(versionPath)
+		return nil, fmt.Errorf("failed to write MapCode file: %w", err)
+	}
+
+	// Create version entity
+	mapCodeVersion := &entity.MapCodeVersion{}
+	mapCodeVersion.Version.Set(version)
+	mapCodeVersion.Name.Set(name)
+	mapCodeVersion.Description.Set(description)
+	mapCodeVersion.FilePath.Set(filePath)
+	mapCodeVersion.IsActive.Set(false) // New versions are inactive by default
+	mapCodeVersion.CreatedBy.Set(createdBy)
+
+	// Save to database
+	if err := m.mapCodeRepo.CreateVersion(ctx, mapCodeVersion); err != nil {
+		// Cleanup folder and file if database save fails
+		os.RemoveAll(versionPath)
+		return nil, fmt.Errorf("failed to save version: %w", err)
+	}
+
+	// Publish version created event
+	event := entity.NewMapCodeVersionEvent(
+		entity.MapCodeEventVersionCreated,
+		mapCodeVersion.ID.String,
+		createdBy,
+		fmt.Sprintf("Created version from upload: %s", version),
+	)
+	m.publishEvent(event)
+
 	return mapCodeVersion, nil
 }
 
@@ -99,6 +200,25 @@ func (m *MapCodeMgmt) SetActiveVersion(ctx context.Context, versionID string) er
 
 	// Invalidate all caches when switching versions
 	m.ClearCache()
+	
+	// Record version switch in metrics
+	m.recordVersionSwitch(versionID)
+	
+	// Publish version activated event
+	event := entity.NewMapCodeVersionEvent(
+		entity.MapCodeEventVersionActivated,
+		versionID,
+		"system", // TODO: Get from context
+		fmt.Sprintf("Activated version: %s", version.Version.String),
+	)
+	m.publishEvent(event)
+	
+	// Pre-cache common codes in background
+	go func() {
+		if err := m.PreCacheCommonCodes(context.Background()); err != nil {
+			fmt.Printf("Warning: failed to pre-cache common codes: %v\n", err)
+		}
+	}()
 
 	return nil
 }
@@ -131,6 +251,15 @@ func (m *MapCodeMgmt) DeleteVersion(ctx context.Context, versionID string) error
 		// Log warning but don't fail the operation
 		fmt.Printf("Warning: failed to delete version folder: %v\n", err)
 	}
+
+	// Publish version deleted event
+	event := entity.NewMapCodeVersionEvent(
+		entity.MapCodeEventVersionDeleted,
+		versionID,
+		"system", // TODO: Get from context
+		fmt.Sprintf("Deleted version: %s", version.Version.String),
+	)
+	m.publishEvent(event)
 
 	return nil
 }
@@ -167,32 +296,42 @@ func (m *MapCodeMgmt) GetMapCodeConfig(ctx context.Context, versionID string) (*
 
 // TranslateQuestionCode translates a question code using active version with caching
 func (m *MapCodeMgmt) TranslateQuestionCode(ctx context.Context, questionCode string) (string, error) {
+	startTime := time.Now()
+	
 	// Get active version
 	activeVersion, err := m.GetActiveVersion(ctx)
 	if err != nil {
+		m.recordError()
 		return "", fmt.Errorf("no active version found: %w", err)
 	}
 
 	// Try to get from cache first
 	if cachedTranslation, err := m.translationRepo.GetTranslation(ctx, activeVersion.ID.String, questionCode); err == nil {
+		m.recordCacheHit()
+		m.recordTranslationTime(time.Since(startTime))
 		return cachedTranslation.Translation.String, nil
 	}
+
+	m.recordCacheMiss()
 
 	// Load MapCode configuration
 	config, err := m.getOrLoadConfig(ctx, activeVersion)
 	if err != nil {
+		m.recordError()
 		return "", fmt.Errorf("failed to load MapCode config: %w", err)
 	}
 
 	// Parse and translate question code
 	translation, err := m.translateCode(questionCode, config)
 	if err != nil {
+		m.recordError()
 		return "", err
 	}
 
 	// Cache the translation
 	go m.cacheTranslation(context.Background(), activeVersion.ID.String, questionCode, translation, config)
 
+	m.recordTranslationTime(time.Since(startTime))
 	return translation, nil
 }
 
@@ -768,4 +907,153 @@ func (m *MapCodeMgmt) buildParentContext(questionCode string) *entity.MapCodePar
 		Subject: string(questionCode[1]),
 		Chapter: string(questionCode[2]),
 	}
+}
+
+// GetMetrics returns current performance metrics
+func (m *MapCodeMgmt) GetMetrics() MapCodeMetrics {
+	m.metricsLock.RLock()
+	defer m.metricsLock.RUnlock()
+	
+	metrics := m.metrics
+	return metrics
+}
+
+// recordCacheHit records a cache hit
+func (m *MapCodeMgmt) recordCacheHit() {
+	m.metricsLock.Lock()
+	defer m.metricsLock.Unlock()
+	m.metrics.CacheHits++
+	m.metrics.TotalTranslations++
+}
+
+// recordCacheMiss records a cache miss
+func (m *MapCodeMgmt) recordCacheMiss() {
+	m.metricsLock.Lock()
+	defer m.metricsLock.Unlock()
+	m.metrics.CacheMisses++
+	m.metrics.TotalTranslations++
+}
+
+// recordTranslationTime updates average translation time
+func (m *MapCodeMgmt) recordTranslationTime(duration time.Duration) {
+	m.metricsLock.Lock()
+	defer m.metricsLock.Unlock()
+	
+	total := m.metrics.TotalTranslations
+	if total <= 1 {
+		m.metrics.AvgTranslationTime = duration
+	} else {
+		avgNanos := int64(m.metrics.AvgTranslationTime)
+		newAvg := (avgNanos*(total-1) + int64(duration)) / total
+		m.metrics.AvgTranslationTime = time.Duration(newAvg)
+	}
+}
+
+// recordError records a translation error
+func (m *MapCodeMgmt) recordError() {
+	m.metricsLock.Lock()
+	defer m.metricsLock.Unlock()
+	m.metrics.TranslationErrors++
+}
+
+// recordVersionSwitch records a version switch event
+func (m *MapCodeMgmt) recordVersionSwitch(versionID string) {
+	m.metricsLock.Lock()
+	defer m.metricsLock.Unlock()
+	m.metrics.ActiveVersionID = versionID
+	m.metrics.LastVersionSwitch = time.Now()
+}
+
+// publishEvent broadcasts an event to all registered listeners
+func (m *MapCodeMgmt) publishEvent(event *entity.MapCodeVersionEvent) {
+	m.eventsLock.RLock()
+	defer m.eventsLock.RUnlock()
+	
+	// Send to all listeners (non-blocking)
+	for _, listener := range m.eventListeners {
+		select {
+		case listener <- event:
+			// Event sent successfully
+		default:
+			// Listener channel full, skip to avoid blocking
+			fmt.Printf("Warning: Event listener channel full, skipping event: %v\n", event.Event)
+		}
+	}
+}
+
+// Subscribe registers a new event listener
+// Returns a channel that will receive MapCode events
+func (m *MapCodeMgmt) Subscribe() chan *entity.MapCodeVersionEvent {
+	m.eventsLock.Lock()
+	defer m.eventsLock.Unlock()
+	
+	// Create buffered channel to avoid blocking
+	listener := make(chan *entity.MapCodeVersionEvent, 100)
+	m.eventListeners = append(m.eventListeners, listener)
+	
+	return listener
+}
+
+// Unsubscribe removes an event listener
+func (m *MapCodeMgmt) Unsubscribe(listener chan *entity.MapCodeVersionEvent) {
+	m.eventsLock.Lock()
+	defer m.eventsLock.Unlock()
+	
+	// Find and remove the listener
+	for i, l := range m.eventListeners {
+		if l == listener {
+			// Close the channel
+			close(l)
+			// Remove from slice
+			m.eventListeners = append(m.eventListeners[:i], m.eventListeners[i+1:]...)
+			break
+		}
+	}
+}
+
+// StartEventListener starts listening for MapCode events and handles cache invalidation
+// This should be called when the service starts to enable cross-instance cache invalidation
+func (m *MapCodeMgmt) StartEventListener(ctx context.Context) {
+	// Subscribe to own events
+	eventChan := m.Subscribe()
+	
+	go func() {
+		defer m.Unsubscribe(eventChan)
+		
+		for {
+			select {
+			case <-ctx.Done():
+				// Context cancelled, stop listening
+				return
+				
+			case event, ok := <-eventChan:
+				if !ok {
+					// Channel closed
+					return
+				}
+				
+				// Handle event based on type
+				switch event.Event {
+				case entity.MapCodeEventVersionActivated:
+					// Invalidate all caches when version is activated
+					fmt.Printf("Event received: Version activated (%s), invalidating caches\n", event.VersionID)
+					m.ClearCache()
+					
+				case entity.MapCodeEventCacheInvalidated:
+					// Explicit cache invalidation request
+					fmt.Printf("Event received: Cache invalidation requested for version %s\n", event.VersionID)
+					m.ClearCache()
+					
+				case entity.MapCodeEventVersionDeleted:
+					// Clear cache for deleted version
+					fmt.Printf("Event received: Version deleted (%s), clearing cache\n", event.VersionID)
+					delete(m.translationCache, event.VersionID)
+					
+				default:
+					// Log other events
+					fmt.Printf("Event received: %s for version %s\n", event.Event, event.VersionID)
+				}
+			}
+		}
+	}()
 }

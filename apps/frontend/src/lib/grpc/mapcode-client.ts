@@ -109,6 +109,17 @@ export interface StorageInfoData {
   warningMessage: string;
 }
 
+export interface MetricsData {
+  totalTranslations: number;
+  cacheHits: number;
+  cacheMisses: number;
+  cacheHitRate: number;
+  avgTranslationTimeMs: number;
+  activeVersionId: string;
+  lastVersionSwitch?: Date;
+  translationErrors: number;
+}
+
 // TODO: Helper function to convert proto to data - implement when protobuf files are generated
 // function convertVersionToData(version: MapCodeVersion): MapCodeVersionData {
 //   return {
@@ -133,10 +144,17 @@ export class MapCodeClient {
     version: string,
     name: string,
     description: string,
-    createdBy: string
+    createdBy: string,
+    content?: string
   ): Promise<MapCodeVersionData> {
     // Stub implementation
     console.warn('MapCodeClient.createVersion: Stub implementation - protobuf files not generated');
+    
+    // Log content size if provided
+    if (content) {
+      console.log(`Creating version with content (${content.length} bytes)`);
+    }
+    
     return Promise.resolve({
       id: `version-${Date.now()}`,
       version,
@@ -277,5 +295,53 @@ export class MapCodeClient {
       isAtLimit: false,
       warningMessage: '',
     });
+  }
+
+  /**
+   * Get performance metrics
+   */
+  static async getMetrics(): Promise<MetricsData> {
+    // TODO: Replace with real gRPC call when protobuf files are generated
+    // For now, make HTTP call to gRPC-Gateway endpoint
+    try {
+      const response = await fetch(`${_GRPC_ENDPOINT}/api/v1/mapcode/metrics`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Convert response to MetricsData
+      return {
+        totalTranslations: data.metrics?.totalTranslations || data.metrics?.total_translations || 0,
+        cacheHits: data.metrics?.cacheHits || data.metrics?.cache_hits || 0,
+        cacheMisses: data.metrics?.cacheMisses || data.metrics?.cache_misses || 0,
+        cacheHitRate: data.metrics?.cacheHitRate || data.metrics?.cache_hit_rate || 0,
+        avgTranslationTimeMs: data.metrics?.avgTranslationTimeMs || data.metrics?.avg_translation_time_ms || 0,
+        activeVersionId: data.metrics?.activeVersionId || data.metrics?.active_version_id || '',
+        lastVersionSwitch: data.metrics?.lastVersionSwitch || data.metrics?.last_version_switch 
+          ? new Date(data.metrics.lastVersionSwitch || data.metrics.last_version_switch)
+          : undefined,
+        translationErrors: data.metrics?.translationErrors || data.metrics?.translation_errors || 0,
+      };
+    } catch (error) {
+      console.error('Failed to fetch metrics:', error);
+      // Return empty metrics on error
+      return {
+        totalTranslations: 0,
+        cacheHits: 0,
+        cacheMisses: 0,
+        cacheHitRate: 0,
+        avgTranslationTimeMs: 0,
+        activeVersionId: '',
+        translationErrors: 0,
+      };
+    }
   }
 }

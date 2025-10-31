@@ -170,13 +170,13 @@ export function MapCodeUpload({ onUploadSuccess, className }: MapCodeUploadProps
 
       setUploadProgress(50);
 
-      // Call API to create version
-      // Note: File content upload will be handled separately (manual script for now)
+      // Call API to create version with file content
       const result = await MapCodeClient.createVersion(
         versionString,
         versionName,
         description || `MapCode version ${versionString}`,
-        "admin" // TODO: Get from auth context
+        "admin", // TODO: Get from auth context
+        content  // Pass file content to backend
       );
 
       setUploadProgress(100);

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -173,6 +174,10 @@ func (a *App) Run() error {
 	// Start Metrics Scheduler (records metrics every 5 minutes)
 	a.container.StartMetricsScheduler()
 	log.Println("[OK] Metrics scheduler started (recording interval: 5 minutes, retention: 30 days)")
+
+	// Start MapCode event listener for cache invalidation
+	a.container.MapCodeMgmt.StartEventListener(context.Background())
+	log.Println("[OK] MapCode event listener started for cross-instance cache invalidation")
 
 	// Conditionally start HTTP server based on production settings
 	if a.config.Production.HTTPGatewayEnabled {

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package v1;
 
+option go_package = "exam-bank-system/apps/backend/pkg/proto/v1";
+
 import "common/common.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
@@ -72,6 +74,20 @@ service MapCodeService {
       get: "/api/v1/mapcode/config"
     };
   }
+
+  // Metrics Access
+  rpc GetMetrics(GetMetricsRequest) returns (GetMetricsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/metrics"
+    };
+  }
+
+  // Export Functionality
+  rpc ExportVersion(ExportVersionRequest) returns (ExportVersionResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/mapcode/versions/{version_id}/export"
+    };
+  }
 }
 
 // Messages
@@ -138,6 +154,7 @@ message CreateVersionRequest {
   string name = 2;              // Display name
   string description = 3;       // Version description
   string created_by = 4;        // User creating the version
+  string content = 5;           // MapCode file content (optional - for upload)
 }
 
 message CreateVersionResponse {
@@ -237,6 +254,33 @@ message MapCodeConfig {
   map<string, string> forms = 7;
 }
 
+// Metrics Management
+message GetMetricsRequest {}
 
+message GetMetricsResponse {
+  common.Response status = 1;
+  MapCodeMetrics metrics = 2;
+}
 
+message MapCodeMetrics {
+  int64 total_translations = 1;
+  int64 cache_hits = 2;
+  int64 cache_misses = 3;
+  double cache_hit_rate = 4;
+  int64 avg_translation_time_ms = 5;
+  string active_version_id = 6;
+  google.protobuf.Timestamp last_version_switch = 7;
+  int64 translation_errors = 8;
+}
 
+// Export Management
+message ExportVersionRequest {
+  string version_id = 1;
+  string format = 2;  // "markdown", "json", "csv"
+}
+
+message ExportVersionResponse {
+  common.Response status = 1;
+  string content = 2;
+  string filename = 3;
+}

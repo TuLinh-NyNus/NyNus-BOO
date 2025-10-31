@@ -26,7 +26,8 @@ import {
   VersionSelector,
   TranslationDisplay,
   VersionManagement,
-  MapCodeUpload
+  MapCodeUpload,
+  MetricsDashboard
 } from "@/components/admin/mapcode";
 
 /**
@@ -60,6 +61,9 @@ export default function MapCodeManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Metrics Dashboard - Full Width */}
+      <MetricsDashboard />
 
       {/* Upload Section - Full Width */}
       <MapCodeUpload 

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/ui/use-toast";
 import { PomodoroTimer } from "@/components/features/focus/timer/PomodoroTimer";
 import { RoomHeader } from "@/components/features/focus/room/RoomHeader";
 import { ParticipantList, type Participant } from "@/components/features/focus/room/ParticipantList";
+import { SoundMixer } from "@/components/features/focus/sound";
 import { formatDuration } from "@/lib/focus/time.utils";
 
 /**
@@ -196,18 +197,8 @@ export default function FocusRoomDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Sounds Panel */}
-          <Card>
-            <CardHeader>
-              <CardTitle>🎵 Ambient Sounds</CardTitle>
-              <CardDescription>Âm thanh tập trung</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-center text-muted-foreground py-4">
-                Sound mixer chưa được implement (Phase 2)
-              </p>
-            </CardContent>
-          </Card>
+          {/* Sound Mixer - Phase 2.1 Sprint ✅ */}
+          <SoundMixer />
 
           {/* Tasks Panel */}
           <Card>

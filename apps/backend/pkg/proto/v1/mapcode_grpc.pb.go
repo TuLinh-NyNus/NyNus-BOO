@@ -29,6 +29,7 @@ const (
 	MapCodeService_GetHierarchyNavigation_FullMethodName = "/v1.MapCodeService/GetHierarchyNavigation"
 	MapCodeService_GetStorageInfo_FullMethodName         = "/v1.MapCodeService/GetStorageInfo"
 	MapCodeService_GetMapCodeConfig_FullMethodName       = "/v1.MapCodeService/GetMapCodeConfig"
+	MapCodeService_GetMetrics_FullMethodName             = "/v1.MapCodeService/GetMetrics"
 )
 
 // MapCodeServiceClient is the client API for MapCodeService service.
@@ -51,6 +52,8 @@ type MapCodeServiceClient interface {
 	GetStorageInfo(ctx context.Context, in *GetStorageInfoRequest, opts ...grpc.CallOption) (*GetStorageInfoResponse, error)
 	// Configuration Access
 	GetMapCodeConfig(ctx context.Context, in *GetMapCodeConfigRequest, opts ...grpc.CallOption) (*GetMapCodeConfigResponse, error)
+	// Metrics Access
+	GetMetrics(ctx context.Context, in *GetMetricsRequest, opts ...grpc.CallOption) (*GetMetricsResponse, error)
 }
 
 type mapCodeServiceClient struct {
@@ -161,6 +164,16 @@ func (c *mapCodeServiceClient) GetMapCodeConfig(ctx context.Context, in *GetMapC
 	return out, nil
 }
 
+func (c *mapCodeServiceClient) GetMetrics(ctx context.Context, in *GetMetricsRequest, opts ...grpc.CallOption) (*GetMetricsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMetricsResponse)
+	err := c.cc.Invoke(ctx, MapCodeService_GetMetrics_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MapCodeServiceServer is the server API for MapCodeService service.
 // All implementations must embed UnimplementedMapCodeServiceServer
 // for forward compatibility.
@@ -181,6 +194,8 @@ type MapCodeServiceServer interface {
 	GetStorageInfo(context.Context, *GetStorageInfoRequest) (*GetStorageInfoResponse, error)
 	// Configuration Access
 	GetMapCodeConfig(context.Context, *GetMapCodeConfigRequest) (*GetMapCodeConfigResponse, error)
+	// Metrics Access
+	GetMetrics(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error)
 	mustEmbedUnimplementedMapCodeServiceServer()
 }
 
@@ -220,6 +235,9 @@ func (UnimplementedMapCodeServiceServer) GetStorageInfo(context.Context, *GetSto
 }
 func (UnimplementedMapCodeServiceServer) GetMapCodeConfig(context.Context, *GetMapCodeConfigRequest) (*GetMapCodeConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMapCodeConfig not implemented")
+}
+func (UnimplementedMapCodeServiceServer) GetMetrics(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetrics not implemented")
 }
 func (UnimplementedMapCodeServiceServer) mustEmbedUnimplementedMapCodeServiceServer() {}
 func (UnimplementedMapCodeServiceServer) testEmbeddedByValue()                        {}
@@ -422,6 +440,24 @@ func _MapCodeService_GetMapCodeConfig_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MapCodeService_GetMetrics_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMetricsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MapCodeServiceServer).GetMetrics(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MapCodeService_GetMetrics_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MapCodeServiceServer).GetMetrics(ctx, req.(*GetMetricsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MapCodeService_ServiceDesc is the grpc.ServiceDesc for MapCodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -468,6 +504,10 @@ var MapCodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMapCodeConfig",
 			Handler:    _MapCodeService_GetMapCodeConfig_Handler,
+		},
+		{
+			MethodName: "GetMetrics",
+			Handler:    _MapCodeService_GetMetrics_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
