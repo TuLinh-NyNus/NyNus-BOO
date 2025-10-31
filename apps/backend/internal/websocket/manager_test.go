@@ -8,11 +8,11 @@ import (
 	"nhooyr.io/websocket"
 )
 
-// TestConnectionManager_RegisterClient tests client registration
+// TestConnectionManager_RegisterClient tests client registration.
 // Phase 5 - Task 5.1.2: Test client registration
 func TestConnectionManager_RegisterClient(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 
 	// Start manager
 	go manager.Run()
@@ -33,7 +33,7 @@ func TestConnectionManager_RegisterClient(t *testing.T) {
 
 	t.Run("register multiple clients", func(t *testing.T) {
 		manager2 := NewConnectionManager()
-		defer manager2.Stop()
+		defer func() { _ = manager2.Stop() }()
 		go manager2.Run()
 
 		for i := 1; i <= 5; i++ {
@@ -47,7 +47,7 @@ func TestConnectionManager_RegisterClient(t *testing.T) {
 
 	t.Run("register same user twice should replace old connection", func(t *testing.T) {
 		manager3 := NewConnectionManager()
-		defer manager3.Stop()
+		defer func() { _ = manager3.Stop() }()
 		go manager3.Run()
 
 		conn1 := createMockWebSocketConn(t)
@@ -65,10 +65,10 @@ func TestConnectionManager_RegisterClient(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_UnregisterClient tests client unregistration
+// TestConnectionManager_UnregisterClient tests client unregistration.
 func TestConnectionManager_UnregisterClient(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
 	t.Run("unregister existing client", func(t *testing.T) {
@@ -91,10 +91,10 @@ func TestConnectionManager_UnregisterClient(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_GetConnection tests retrieving connections
+// TestConnectionManager_GetConnection tests retrieving connections.
 func TestConnectionManager_GetConnection(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
 	conn := createMockWebSocketConn(t)
@@ -117,11 +117,11 @@ func TestConnectionManager_GetConnection(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_BroadcastToUser tests broadcasting to specific user
+// TestConnectionManager_BroadcastToUser tests broadcasting to specific user.
 // Phase 5 - Task 5.1.2: Test broadcasting
 func TestConnectionManager_BroadcastToUser(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
 	conn := createMockWebSocketConn(t)
@@ -154,10 +154,10 @@ func TestConnectionManager_BroadcastToUser(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_BroadcastToAll tests broadcasting to all users
+// TestConnectionManager_BroadcastToAll tests broadcasting to all users.
 func TestConnectionManager_BroadcastToAll(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
 	// Register multiple users
@@ -180,10 +180,10 @@ func TestConnectionManager_BroadcastToAll(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_BroadcastToRole tests role-based broadcasting
+// TestConnectionManager_BroadcastToRole tests role-based broadcasting.
 func TestConnectionManager_BroadcastToRole(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
 	// Register users with different roles
@@ -211,11 +211,11 @@ func TestConnectionManager_BroadcastToRole(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_ConcurrentAccess tests concurrent operations
+// TestConnectionManager_ConcurrentAccess tests concurrent operations.
 // Phase 5 - Task 5.1.2: Test concurrent access
 func TestConnectionManager_ConcurrentAccess(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
 	t.Run("concurrent register and unregister", func(t *testing.T) {
@@ -254,7 +254,7 @@ func TestConnectionManager_ConcurrentAccess(t *testing.T) {
 		// Concurrent broadcasts
 		done := make(chan bool)
 		for i := 0; i < 20; i++ {
-			go func(id int) {
+			go func(_ int) {
 				message := []byte("concurrent message")
 				err := manager.BroadcastToAll(message)
 				assert.NoError(t, err)
@@ -269,10 +269,10 @@ func TestConnectionManager_ConcurrentAccess(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_Metrics tests metrics tracking
+// TestConnectionManager_Metrics tests metrics tracking.
 func TestConnectionManager_Metrics(t *testing.T) {
 	manager := NewConnectionManager()
-	defer manager.Stop()
+	defer func() { _ = manager.Stop() }()
 	go manager.Run()
 
 	t.Run("metrics track connections", func(t *testing.T) {
@@ -292,7 +292,7 @@ func TestConnectionManager_Metrics(t *testing.T) {
 	})
 }
 
-// TestConnectionManager_Cleanup tests cleanup operations
+// TestConnectionManager_Cleanup tests cleanup operations.
 // Phase 5 - Task 5.1.2: Test cleanup
 func TestConnectionManager_Cleanup(t *testing.T) {
 	t.Run("stop closes all connections", func(t *testing.T) {
@@ -317,7 +317,7 @@ func TestConnectionManager_Cleanup(t *testing.T) {
 	})
 }
 
-// createMockWebSocketConn creates a mock WebSocket connection for testing
+// createMockWebSocketConn creates a mock WebSocket connection for testing.
 func createMockWebSocketConn(t *testing.T) *websocket.Conn {
 	// For unit tests, we can't create real WebSocket connections
 	// This is a placeholder - in real tests, use websocket.Dial or mock

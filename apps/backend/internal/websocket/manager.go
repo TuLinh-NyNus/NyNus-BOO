@@ -236,7 +236,7 @@ func (m *ConnectionManager) handleRegister(client *Client) {
 		m.logger.Printf("[WARN] Closing existing connection for user %s", client.UserID)
 		close(existing.SendCh)
 		if existing.Conn != nil {
-			existing.Conn.Close(websocket.StatusNormalClosure, "New connection established")
+			_ = existing.Conn.Close(websocket.StatusNormalClosure, "New connection established")
 		}
 	}
 
@@ -255,7 +255,7 @@ func (m *ConnectionManager) handleRegister(client *Client) {
 	go m.clientWriter(client)
 }
 
-// handleUnregister handles client unregistration
+// handleUnregister handles client unregistration.
 func (m *ConnectionManager) handleUnregister(client *Client) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -274,7 +274,7 @@ func (m *ConnectionManager) handleUnregister(client *Client) {
 	}
 }
 
-// handleBroadcast sends message to all connected clients
+// handleBroadcast sends message to all connected clients.
 func (m *ConnectionManager) handleBroadcast(message []byte) {
 	m.mu.RLock()
 	clients := make([]*Client, 0, len(m.connections))
@@ -295,7 +295,7 @@ func (m *ConnectionManager) handleBroadcast(message []byte) {
 	m.logger.Printf("[DEBUG] Broadcast message sent to %d clients", len(clients))
 }
 
-// handleUserBroadcast sends message to a specific user
+// handleUserBroadcast sends message to a specific user.
 func (m *ConnectionManager) handleUserBroadcast(userMsg *UserMessage) {
 	m.mu.RLock()
 	client, exists := m.connections[userMsg.UserID]
@@ -314,7 +314,7 @@ func (m *ConnectionManager) handleUserBroadcast(userMsg *UserMessage) {
 	}
 }
 
-// handleRoleBroadcast sends message to all users with a specific role
+// handleRoleBroadcast sends message to all users with a specific role.
 func (m *ConnectionManager) handleRoleBroadcast(roleMsg *RoleMessage) {
 	m.mu.RLock()
 	clients := make([]*Client, 0)
@@ -337,7 +337,7 @@ func (m *ConnectionManager) handleRoleBroadcast(roleMsg *RoleMessage) {
 	m.logger.Printf("[DEBUG] Role broadcast sent to %d clients (role=%s)", len(clients), roleMsg.Role)
 }
 
-// clientWriter handles sending messages to a client
+// clientWriter handles sending messages to a client.
 func (m *ConnectionManager) clientWriter(client *Client) {
 	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
@@ -394,7 +394,7 @@ func (m *ConnectionManager) clientWriter(client *Client) {
 	}
 }
 
-// heartbeatChecker checks for dead connections
+// heartbeatChecker checks for dead connections.
 // Implements task 2.1.5: Auto-disconnect dead connections
 func (m *ConnectionManager) heartbeatChecker() {
 	ticker := time.NewTicker(60 * time.Second)
@@ -410,7 +410,7 @@ func (m *ConnectionManager) heartbeatChecker() {
 	}
 }
 
-// checkDeadConnections disconnects clients that haven't responded to ping
+// checkDeadConnections disconnects clients that haven't responded to ping.
 func (m *ConnectionManager) checkDeadConnections() {
 	m.mu.RLock()
 	clients := make([]*Client, 0, len(m.connections))
@@ -431,13 +431,13 @@ func (m *ConnectionManager) checkDeadConnections() {
 			m.logger.Printf("[WARN] Dead connection detected for user %s, disconnecting", client.UserID)
 			m.UnregisterClient(client)
 			if client.Conn != nil {
-				client.Conn.Close(websocket.StatusGoingAway, "Connection timeout")
+				_ = client.Conn.Close(websocket.StatusGoingAway, "Connection timeout")
 			}
 		}
 	}
 }
 
-// Stop gracefully stops the connection manager
+// Stop gracefully stops the connection manager.
 // Implements task 2.1.4: Graceful shutdown handling
 func (m *ConnectionManager) Stop() error {
 	m.logger.Printf("[INFO] Stopping connection manager")
@@ -456,7 +456,7 @@ func (m *ConnectionManager) Stop() error {
 	for _, client := range clients {
 		close(client.SendCh)
 		if client.Conn != nil {
-			client.Conn.Close(websocket.StatusNormalClosure, "Server shutting down")
+			_ = client.Conn.Close(websocket.StatusNormalClosure, "Server shutting down")
 		}
 	}
 
@@ -469,7 +469,7 @@ func (m *ConnectionManager) Stop() error {
 	return nil
 }
 
-// GetMetrics returns current connection metrics
+// GetMetrics returns current connection metrics.
 // Implements task 2.1.4: Connection metrics tracking
 func (m *ConnectionManager) GetMetrics() ConnectionMetrics {
 	m.metrics.mu.RLock()
@@ -484,7 +484,7 @@ func (m *ConnectionManager) GetMetrics() ConnectionMetrics {
 	}
 }
 
-// GetAllConnections returns all active connections (for monitoring)
+// GetAllConnections returns all active connections (for monitoring).
 func (m *ConnectionManager) GetAllConnections() []string {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -497,7 +497,7 @@ func (m *ConnectionManager) GetAllConnections() []string {
 	return userIDs
 }
 
-// SendJSON sends a JSON-encoded message to a user
+// SendJSON sends a JSON-encoded message to a user.
 func (m *ConnectionManager) SendJSON(userID string, v interface{}) error {
 	message, err := json.Marshal(v)
 	if err != nil {
@@ -507,7 +507,7 @@ func (m *ConnectionManager) SendJSON(userID string, v interface{}) error {
 	return m.BroadcastToUser(userID, message)
 }
 
-// BroadcastJSON sends a JSON-encoded message to all users
+// BroadcastJSON sends a JSON-encoded message to all users.
 func (m *ConnectionManager) BroadcastJSON(v interface{}) error {
 	message, err := json.Marshal(v)
 	if err != nil {
