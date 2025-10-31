@@ -120,7 +120,7 @@ jobs:
           DB_PASSWORD: test_password
           DB_NAME: exam_bank_test
           DB_SSLMODE: disable
-          JWT_SECRET: test-secret-for-ci
+          JWT_SECRET: test-jwt-secret-key-for-ci-minimum-32-characters
         run: go test -v -coverprofile=coverage.out -covermode=atomic ./internal/...
 
       - name: Upload backend coverage to Codecov
@@ -287,7 +287,7 @@ jobs:
           DB_PASSWORD: test_password
           DB_NAME: exam_bank_test
           DB_SSLMODE: disable
-          JWT_SECRET: test-secret-for-e2e
+          JWT_SECRET: test-jwt-secret-key-for-e2e-minimum-32-characters
           GRPC_PORT: 50051
           HTTP_PORT: 8080
         run: |

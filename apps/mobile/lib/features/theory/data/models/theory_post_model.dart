@@ -232,33 +232,39 @@ class TheoryMetadataModel extends TheoryMetadata {
 
 class TikzAssetModel extends TikzAsset {
   const TikzAssetModel({
-    required super.id,
-    required super.tikzCode,
-    required super.renderedImageUrl,
-    super.altText,
-    super.width,
-    super.height,
+    required super.assetId,
+    required super.url,
+    required super.hash,
+    required super.width,
+    required super.height,
+    required super.format,
+    super.caption,
+    required super.originalCode,
   });
 
   factory TikzAssetModel.fromJson(Map<String, dynamic> json) {
     return TikzAssetModel(
-      id: json['id'] as String,
-      tikzCode: json['tikzCode'] as String,
-      renderedImageUrl: json['renderedImageUrl'] as String,
-      altText: json['altText'] as String?,
-      width: json['width'] as double?,
-      height: json['height'] as double?,
+      assetId: json['assetId'] as String,
+      url: json['url'] as String,
+      hash: json['hash'] as String,
+      width: json['width'] as int,
+      height: json['height'] as int,
+      format: json['format'] as String,
+      caption: json['caption'] as String?,
+      originalCode: json['originalCode'] as String,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'tikzCode': tikzCode,
-      'renderedImageUrl': renderedImageUrl,
-      'altText': altText,
+      'assetId': assetId,
+      'url': url,
+      'hash': hash,
       'width': width,
       'height': height,
+      'format': format,
+      'caption': caption,
+      'originalCode': originalCode,
     };
   }
 }
