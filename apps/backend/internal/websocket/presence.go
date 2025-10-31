@@ -9,14 +9,14 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-// PresenceTracker tracks online users per room using Redis
+// PresenceTracker tracks online users per room using Redis.
 type PresenceTracker struct {
 	client *redis.Client
 	logger *log.Logger
 	ttl    time.Duration
 }
 
-// NewPresenceTracker creates a new presence tracker
+// NewPresenceTracker creates a new presence tracker.
 func NewPresenceTracker(client *redis.Client) *PresenceTracker {
 	return &PresenceTracker{
 		client: client,
@@ -25,7 +25,7 @@ func NewPresenceTracker(client *redis.Client) *PresenceTracker {
 	}
 }
 
-// JoinRoom adds a user to room's online users set
+// JoinRoom adds a user to room's online users set.
 func (p *PresenceTracker) JoinRoom(ctx context.Context, roomID, userID string) error {
 	key := fmt.Sprintf("room:%s:online", roomID)
 
@@ -50,7 +50,7 @@ func (p *PresenceTracker) JoinRoom(ctx context.Context, roomID, userID string) e
 	return nil
 }
 
-// LeaveRoom removes a user from room's online users set
+// LeaveRoom removes a user from room's online users set.
 func (p *PresenceTracker) LeaveRoom(ctx context.Context, roomID, userID string) error {
 	key := fmt.Sprintf("room:%s:online", roomID)
 
@@ -70,7 +70,7 @@ func (p *PresenceTracker) LeaveRoom(ctx context.Context, roomID, userID string) 
 	return nil
 }
 
-// GetOnlineUsers returns list of online users in a room
+// GetOnlineUsers returns list of online users in a room.
 func (p *PresenceTracker) GetOnlineUsers(ctx context.Context, roomID string) ([]string, error) {
 	key := fmt.Sprintf("room:%s:online", roomID)
 
@@ -86,7 +86,7 @@ func (p *PresenceTracker) GetOnlineUsers(ctx context.Context, roomID string) ([]
 	return users, nil
 }
 
-// GetOnlineCount returns count of online users in a room
+// GetOnlineCount returns count of online users in a room.
 func (p *PresenceTracker) GetOnlineCount(ctx context.Context, roomID string) (int, error) {
 	key := fmt.Sprintf("room:%s:online", roomID)
 
