@@ -101,7 +101,7 @@ func (p *PresenceTracker) GetOnlineCount(ctx context.Context, roomID string) (in
 	return int(count), nil
 }
 
-// IsUserOnline checks if a user is online in a room
+// IsUserOnline checks if a user is online in a room.
 func (p *PresenceTracker) IsUserOnline(ctx context.Context, roomID, userID string) (bool, error) {
 	key := fmt.Sprintf("room:%s:online", roomID)
 
@@ -113,7 +113,7 @@ func (p *PresenceTracker) IsUserOnline(ctx context.Context, roomID, userID strin
 	return isMember, nil
 }
 
-// UpdateStatus updates user's status in a room (online, focusing, away)
+// UpdateStatus updates user's status in a room (online, focusing, away).
 func (p *PresenceTracker) UpdateStatus(ctx context.Context, roomID, userID, status string) error {
 	statusKey := fmt.Sprintf("room:%s:user:%s:status", roomID, userID)
 
@@ -126,7 +126,7 @@ func (p *PresenceTracker) UpdateStatus(ctx context.Context, roomID, userID, stat
 	return nil
 }
 
-// GetUserStatus returns user's current status in a room
+// GetUserStatus returns user's current status in a room.
 func (p *PresenceTracker) GetUserStatus(ctx context.Context, roomID, userID string) (string, error) {
 	statusKey := fmt.Sprintf("room:%s:user:%s:status", roomID, userID)
 
@@ -141,7 +141,7 @@ func (p *PresenceTracker) GetUserStatus(ctx context.Context, roomID, userID stri
 	return status, nil
 }
 
-// RefreshPresence refreshes TTL for user's presence (heartbeat)
+// RefreshPresence refreshes TTL for user's presence (heartbeat).
 func (p *PresenceTracker) RefreshPresence(ctx context.Context, roomID, userID string) error {
 	// Refresh room set TTL
 	roomKey := fmt.Sprintf("room:%s:online", roomID)
@@ -158,7 +158,7 @@ func (p *PresenceTracker) RefreshPresence(ctx context.Context, roomID, userID st
 	return nil
 }
 
-// CleanupRoom removes all presence data for a room
+// CleanupRoom removes all presence data for a room.
 func (p *PresenceTracker) CleanupRoom(ctx context.Context, roomID string) error {
 	// Get all online users first
 	users, err := p.GetOnlineUsers(ctx, roomID)
@@ -185,7 +185,7 @@ func (p *PresenceTracker) CleanupRoom(ctx context.Context, roomID string) error 
 	return nil
 }
 
-// GetAllRoomPresence returns presence data for all rooms (admin/monitoring)
+// GetAllRoomPresence returns presence data for all rooms (admin/monitoring).
 func (p *PresenceTracker) GetAllRoomPresence(ctx context.Context) (map[string][]string, error) {
 	// Scan for all room:*:online keys
 	var cursor uint64
@@ -221,7 +221,7 @@ func (p *PresenceTracker) GetAllRoomPresence(ctx context.Context) (map[string][]
 	return presence, nil
 }
 
-// SetTTL sets the TTL duration for presence tracking
+// SetTTL sets the TTL duration for presence tracking.
 func (p *PresenceTracker) SetTTL(ttl time.Duration) {
 	p.ttl = ttl
 	p.logger.Printf("[INFO] Presence TTL set to %v", ttl)
