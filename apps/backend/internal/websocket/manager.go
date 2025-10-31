@@ -23,7 +23,7 @@ type Client struct {
 }
 
 // ConnectionManager manages all WebSocket connections.
-// Implements task 2.1.1: Create ConnectionManager struct
+// Implements task 2.1.1: Create ConnectionManager struct.
 type ConnectionManager struct {
 	// connections maps userID to client connection
 	connections map[string]*Client
@@ -98,7 +98,7 @@ func NewConnectionManager() *ConnectionManager {
 }
 
 // RegisterClient registers a new client connection.
-// Implements task 2.1.2: Connection lifecycle - RegisterClient
+// Implements task 2.1.2: Connection lifecycle - RegisterClient.
 func (m *ConnectionManager) RegisterClient(userID, role string, conn *websocket.Conn) *Client {
 	client := &Client{
 		ID:       fmt.Sprintf("%s-%d", userID, time.Now().UnixNano()),
@@ -115,7 +115,7 @@ func (m *ConnectionManager) RegisterClient(userID, role string, conn *websocket.
 }
 
 // UnregisterClient unregisters a client connection.
-// Implements task 2.1.2: Connection lifecycle - UnregisterClient
+// Implements task 2.1.2: Connection lifecycle - UnregisterClient.
 func (m *ConnectionManager) UnregisterClient(client *Client) {
 	if client != nil {
 		m.unregister <- client
@@ -123,7 +123,7 @@ func (m *ConnectionManager) UnregisterClient(client *Client) {
 }
 
 // GetConnection retrieves a connection by user ID.
-// Implements task 2.1.2: Connection lifecycle - GetConnection
+// Implements task 2.1.2: Connection lifecycle - GetConnection.
 func (m *ConnectionManager) GetConnection(userID string) (*Client, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -133,7 +133,7 @@ func (m *ConnectionManager) GetConnection(userID string) (*Client, bool) {
 }
 
 // GetConnectionCount returns the number of active connections.
-// Implements task 2.1.2: Connection lifecycle - GetConnectionCount
+// Implements task 2.1.2: Connection lifecycle - GetConnectionCount.
 func (m *ConnectionManager) GetConnectionCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -142,7 +142,7 @@ func (m *ConnectionManager) GetConnectionCount() int {
 }
 
 // BroadcastToUser sends a message to a specific user.
-// Implements task 2.1.3: Message broadcasting - BroadcastToUser
+// Implements task 2.1.3: Message broadcasting - BroadcastToUser.
 func (m *ConnectionManager) BroadcastToUser(userID string, message []byte) error {
 	if userID == "" {
 		return fmt.Errorf("userID cannot be empty")
@@ -161,7 +161,7 @@ func (m *ConnectionManager) BroadcastToUser(userID string, message []byte) error
 }
 
 // BroadcastToAll sends a message to all connected clients.
-// Implements task 2.1.3: Message broadcasting - BroadcastToAll
+// Implements task 2.1.3: Message broadcasting - BroadcastToAll.
 func (m *ConnectionManager) BroadcastToAll(message []byte) error {
 	if len(message) == 0 {
 		return fmt.Errorf("message cannot be empty")
@@ -176,7 +176,7 @@ func (m *ConnectionManager) BroadcastToAll(message []byte) error {
 }
 
 // BroadcastToRole sends a message to all clients with a specific role.
-// Implements task 2.1.3: Message broadcasting - BroadcastToRole
+// Implements task 2.1.3: Message broadcasting - BroadcastToRole.
 func (m *ConnectionManager) BroadcastToRole(role string, message []byte) error {
 	if role == "" {
 		return fmt.Errorf("role cannot be empty")
@@ -195,7 +195,7 @@ func (m *ConnectionManager) BroadcastToRole(role string, message []byte) error {
 }
 
 // Run starts the connection manager.
-// Implements task 2.1.4: Handle concurrent access with channels
+// Implements task 2.1.4: Handle concurrent access with channels.
 func (m *ConnectionManager) Run() {
 	m.logger.Printf("[INFO] Connection manager started")
 
@@ -396,7 +396,7 @@ func (m *ConnectionManager) clientWriter(client *Client) {
 }
 
 // heartbeatChecker checks for dead connections.
-// Implements task 2.1.5: Auto-disconnect dead connections
+// Implements task 2.1.5: Auto-disconnect dead connections.
 func (m *ConnectionManager) heartbeatChecker() {
 	ticker := time.NewTicker(60 * time.Second)
 	defer ticker.Stop()
@@ -440,7 +440,7 @@ func (m *ConnectionManager) checkDeadConnections() {
 }
 
 // Stop gracefully stops the connection manager.
-// Implements task 2.1.4: Graceful shutdown handling
+// Implements task 2.1.4: Graceful shutdown handling.
 func (m *ConnectionManager) Stop() error {
 	m.logger.Printf("[INFO] Stopping connection manager")
 
@@ -473,7 +473,7 @@ func (m *ConnectionManager) Stop() error {
 }
 
 // GetMetrics returns current connection metrics.
-// Implements task 2.1.4: Connection metrics tracking
+// Implements task 2.1.4: Connection metrics tracking.
 func (m *ConnectionManager) GetMetrics() ConnectionMetrics {
 	m.metrics.mu.RLock()
 	defer m.metrics.mu.RUnlock()

@@ -9,7 +9,7 @@ import (
 )
 
 // TestConnectionManager_RegisterClient tests client registration.
-// Phase 5 - Task 5.1.2: Test client registration
+// Phase 5 - Task 5.1.2: Test client registration.
 func TestConnectionManager_RegisterClient(t *testing.T) {
 	manager := NewConnectionManager()
 	//nolint:errcheck // Test cleanup
@@ -123,7 +123,7 @@ func TestConnectionManager_GetConnection(t *testing.T) {
 }
 
 // TestConnectionManager_BroadcastToUser tests broadcasting to specific user.
-// Phase 5 - Task 5.1.2: Test broadcasting
+// Phase 5 - Task 5.1.2: Test broadcasting.
 func TestConnectionManager_BroadcastToUser(t *testing.T) {
 	manager := NewConnectionManager()
 	//nolint:errcheck // Test cleanup
@@ -220,7 +220,7 @@ func TestConnectionManager_BroadcastToRole(t *testing.T) {
 }
 
 // TestConnectionManager_ConcurrentAccess tests concurrent operations.
-// Phase 5 - Task 5.1.2: Test concurrent access
+// Phase 5 - Task 5.1.2: Test concurrent access.
 func TestConnectionManager_ConcurrentAccess(t *testing.T) {
 	manager := NewConnectionManager()
 	//nolint:errcheck // Test cleanup
@@ -303,7 +303,7 @@ func TestConnectionManager_Metrics(t *testing.T) {
 }
 
 // TestConnectionManager_Cleanup tests cleanup operations.
-// Phase 5 - Task 5.1.2: Test cleanup
+// Phase 5 - Task 5.1.2: Test cleanup.
 func TestConnectionManager_Cleanup(t *testing.T) {
 	t.Run("stop closes all connections", func(t *testing.T) {
 		manager := NewConnectionManager()

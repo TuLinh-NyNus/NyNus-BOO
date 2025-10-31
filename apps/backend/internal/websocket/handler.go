@@ -153,9 +153,9 @@ func (h *Handler) handleMessages(ctx context.Context, client *Client) error {
 	}
 }
 
-// routeMessage routes messages to appropriate handlers
+// routeMessage routes messages to appropriate handlers.
 // Implements task 2.2.2: Support message types
-func (h *Handler) routeMessage(ctx context.Context, client *Client, msg *WebSocketMessage) error {
+func (h *Handler) routeMessage(_ context.Context, client *Client, msg *WebSocketMessage) error {
 	switch msg.Type {
 	case "ping":
 		// Heartbeat (task 2.2.2)
@@ -183,7 +183,7 @@ func (h *Handler) routeMessage(ctx context.Context, client *Client, msg *WebSock
 	}
 }
 
-// handlePing handles ping messages
+// handlePing handles ping messages.
 func (h *Handler) handlePing(client *Client) error {
 	response := WebSocketResponse{
 		Type:      "pong",
@@ -194,7 +194,7 @@ func (h *Handler) handlePing(client *Client) error {
 	return h.sendResponse(client, &response)
 }
 
-// handleSubscribe handles subscription requests
+// handleSubscribe handles subscription requests.
 func (h *Handler) handleSubscribe(client *Client, payload map[string]interface{}) error {
 	topics, ok := payload["topics"].([]interface{})
 	if !ok {
@@ -221,7 +221,7 @@ func (h *Handler) handleSubscribe(client *Client, payload map[string]interface{}
 	return h.sendResponse(client, &response)
 }
 
-// handleUnsubscribe handles unsubscription requests
+// handleUnsubscribe handles unsubscription requests.
 func (h *Handler) handleUnsubscribe(client *Client, payload map[string]interface{}) error {
 	topics, ok := payload["topics"].([]interface{})
 	if !ok {
@@ -238,7 +238,7 @@ func (h *Handler) handleUnsubscribe(client *Client, payload map[string]interface
 	return h.sendResponse(client, &response)
 }
 
-// handleMarkRead handles mark-as-read requests
+// handleMarkRead handles mark-as-read requests.
 func (h *Handler) handleMarkRead(client *Client, payload map[string]interface{}) error {
 	notificationID, ok := payload["notification_id"].(string)
 	if !ok {
@@ -256,7 +256,7 @@ func (h *Handler) handleMarkRead(client *Client, payload map[string]interface{})
 	return h.sendResponse(client, &response)
 }
 
-// handleAck handles message acknowledgment
+// handleAck handles message acknowledgment.
 func (h *Handler) handleAck(client *Client, payload map[string]interface{}) error {
 	messageID, ok := payload["message_id"].(string)
 	if !ok {
@@ -267,7 +267,7 @@ func (h *Handler) handleAck(client *Client, payload map[string]interface{}) erro
 	return nil
 }
 
-// sendResponse sends a response to the client
+// sendResponse sends a response to the client.
 func (h *Handler) sendResponse(client *Client, response *WebSocketResponse) error {
 	message, err := json.Marshal(response)
 	if err != nil {
@@ -291,7 +291,7 @@ func (h *Handler) sendError(client *Client, errorMsg string) {
 		Timestamp: time.Now(),
 	}
 
-	// Intentionally ignore error - connection might already be closed
+	//nolint:errcheck // Intentionally ignore error - connection might already be closed
 	_ = h.sendResponse(client, &response)
 }
 
@@ -308,7 +308,7 @@ func (h *Handler) sendWelcome(client *Client) {
 		Timestamp: time.Now(),
 	}
 
-	// Intentionally ignore error - connection might already be closed
+	//nolint:errcheck // Intentionally ignore error - connection might already be closed
 	_ = h.sendResponse(client, &response)
 }
 
