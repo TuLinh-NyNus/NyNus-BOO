@@ -394,64 +394,104 @@ func convertStreakToProto(streak *entity.UserStreak) *v1.StreakInfo {
 	return proto
 }
 
-// UpdateRoomSettings updates room settings (stub for now)
+// UpdateRoomSettings updates room settings
 func (s *FocusRoomServiceServer) UpdateRoomSettings(ctx context.Context, req *v1.UpdateRoomSettingsRequest) (*v1.Room, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateRoomSettings not implemented")
+	// Get user from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Validate request
+	if req.GetRoomId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "room ID is required")
+	}
+
+	roomID, err := uuid.Parse(req.GetRoomId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid room ID: %v", err)
+	}
+
+	// Get existing room to check ownership
+	room, err := s.roomService.GetRoom(ctx, roomID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "room not found: %v", err)
+	}
+
+	// Check if user is owner
+	if room.OwnerUserID != userID {
+		return nil, status.Errorf(codes.PermissionDenied, "only room owner can update settings")
+	}
+
+	// Note: UpdateRoom service method not yet implemented
+	// TODO: Implement room.Update() in RoomService
+	return nil, status.Errorf(codes.Unimplemented, "UpdateRoomSettings requires UpdateRoom service method - coming in Phase 2")
 }
 
-// GetUserStats retrieves user statistics (stub for now)
+// GetUserStats retrieves user statistics (stub - service method not ready)
 func (s *FocusRoomServiceServer) GetUserStats(ctx context.Context, req *v1.GetUserStatsRequest) (*v1.UserStats, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserStats not implemented")
+	// TODO: Implement GetUserStats in AnalyticsService
+	return nil, status.Errorf(codes.Unimplemented, "GetUserStats not fully implemented - coming in Phase 3")
 }
 
-// GetDailyStats retrieves daily statistics (stub for now)
+// GetDailyStats retrieves daily statistics (stub - entity mismatch)
 func (s *FocusRoomServiceServer) GetDailyStats(ctx context.Context, req *v1.GetDailyStatsRequest) (*v1.DailyStatsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetDailyStats not implemented")
+	// TODO: Fix entity type mismatch between service and proto
+	return nil, status.Errorf(codes.Unimplemented, "GetDailyStats entity conversion not ready - coming in Phase 3")
 }
 
-// GetWeeklyStats retrieves weekly statistics (stub for now)
+// GetWeeklyStats retrieves weekly statistics (stub - entity mismatch)
 func (s *FocusRoomServiceServer) GetWeeklyStats(ctx context.Context, req *v1.GetWeeklyStatsRequest) (*v1.WeeklyStatsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetWeeklyStats not implemented")
+	// TODO: Fix entity type mismatch between service and proto
+	return nil, status.Errorf(codes.Unimplemented, "GetWeeklyStats entity conversion not ready - coming in Phase 3")
 }
 
-// GetMonthlyStats retrieves monthly statistics (stub for now)
+// GetMonthlyStats retrieves monthly statistics (stub - entity mismatch)
 func (s *FocusRoomServiceServer) GetMonthlyStats(ctx context.Context, req *v1.GetMonthlyStatsRequest) (*v1.MonthlyStatsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMonthlyStats not implemented")
+	// TODO: Fix entity type mismatch between service and proto
+	return nil, status.Errorf(codes.Unimplemented, "GetMonthlyStats entity conversion not ready - coming in Phase 3")
 }
 
-// GetLeaderboard retrieves the leaderboard (stub for now)
+// GetLeaderboard retrieves the leaderboard (stub - service signature mismatch)
 func (s *FocusRoomServiceServer) GetLeaderboard(ctx context.Context, req *v1.GetLeaderboardRequest) (*v1.LeaderboardResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLeaderboard not implemented")
+	// TODO: Fix service method signature mismatch
+	return nil, status.Errorf(codes.Unimplemented, "GetLeaderboard service integration not ready - coming in Phase 3")
 }
 
-// GetUserRank retrieves user's rank (stub for now)
+// GetUserRank retrieves user's rank (stub - service signature mismatch)
 func (s *FocusRoomServiceServer) GetUserRank(ctx context.Context, req *v1.GetUserRankRequest) (*v1.UserRankResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUserRank not implemented")
+	// TODO: Fix service method signature mismatch
+	return nil, status.Errorf(codes.Unimplemented, "GetUserRank service integration not ready - coming in Phase 3")
 }
 
-// CreateTask creates a new task (stub for now)
+// CreateTask creates a new task (stub - entity structure mismatch)
 func (s *FocusRoomServiceServer) CreateTask(ctx context.Context, req *v1.CreateTaskRequest) (*v1.Task, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateTask not implemented")
+	// TODO: Fix entity.FocusTask structure mismatch with proto
+	return nil, status.Errorf(codes.Unimplemented, "CreateTask entity integration not ready - coming in Phase 3")
 }
 
-// UpdateTask updates a task (stub for now)
+// UpdateTask updates a task (stub - entity structure mismatch)
 func (s *FocusRoomServiceServer) UpdateTask(ctx context.Context, req *v1.UpdateTaskRequest) (*v1.Task, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateTask not implemented")
+	// TODO: Fix entity.FocusTask structure mismatch with proto
+	return nil, status.Errorf(codes.Unimplemented, "UpdateTask entity integration not ready - coming in Phase 3")
 }
 
-// DeleteTask deletes a task (stub for now)
+// DeleteTask deletes a task (stub - service signature mismatch)
 func (s *FocusRoomServiceServer) DeleteTask(ctx context.Context, req *v1.DeleteTaskRequest) (*emptypb.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteTask not implemented")
+	// TODO: Fix service method signature
+	return nil, status.Errorf(codes.Unimplemented, "DeleteTask service integration not ready - coming in Phase 3")
 }
 
-// ListTasks lists tasks (stub for now)
+// ListTasks lists tasks (stub - entity structure mismatch)
 func (s *FocusRoomServiceServer) ListTasks(ctx context.Context, req *v1.ListTasksRequest) (*v1.ListTasksResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListTasks not implemented")
+	// TODO: Fix entity.FocusTask structure mismatch with proto
+	return nil, status.Errorf(codes.Unimplemented, "ListTasks entity integration not ready - coming in Phase 3")
 }
 
-// CompleteTask completes a task (stub for now)
+// CompleteTask completes a task (stub - service signature mismatch)
 func (s *FocusRoomServiceServer) CompleteTask(ctx context.Context, req *v1.CompleteTaskRequest) (*v1.Task, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CompleteTask not implemented")
+	// TODO: Fix service method signature
+	return nil, status.Errorf(codes.Unimplemented, "CompleteTask service integration not ready - coming in Phase 3")
 }
 
 // PauseSession pauses a session (stub for now)

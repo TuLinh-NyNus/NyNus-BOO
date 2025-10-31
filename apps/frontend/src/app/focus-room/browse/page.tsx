@@ -3,15 +3,16 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FocusRoomService, type FocusRoom } from "@/services/grpc/focus-room.service";
+import { RoomList } from "@/components/features/focus/room/RoomList";
 
 /**
  * Browse Focus Rooms Page
  * Duyệt và tìm kiếm phòng học
+ * Refactored: Sử dụng RoomList và RoomCard components
  */
 export default function BrowseRoomsPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,73 +94,14 @@ export default function BrowseRoomsPage() {
         </div>
       </div>
 
-      {/* Room List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-xl text-muted-foreground">
-              ⏳ Đang tải danh sách phòng...
-            </p>
-          </div>
-        ) : error ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-xl text-red-500 mb-4">
-              ❌ {error}
-            </p>
-            <Button onClick={() => window.location.reload()}>
-              🔄 Thử lại
-            </Button>
-          </div>
-        ) : filteredRooms.length === 0 ? (
-          <div className="col-span-full text-center py-12">
-            <p className="text-xl text-muted-foreground mb-4">
-              😔 Không tìm thấy phòng nào
-            </p>
-            <Link href="/focus-room/create">
-              <Button>Tạo phòng đầu tiên</Button>
-            </Link>
-          </div>
-        ) : (
-          filteredRooms.map((room) => (
-            <Card key={room.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between mb-2">
-                  <CardTitle className="text-xl">{room.name}</CardTitle>
-                  <Badge variant={room.roomType === "public" ? "default" : "secondary"}>
-                    {room.roomType === "public" ? "🌐 Công khai" : "🔒 Riêng tư"}
-                  </Badge>
-                </div>
-                <CardDescription>{room.description}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Sức chứa:</span>
-                    <span className="font-medium">
-                      Tối đa {room.maxParticipants} người
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Trạng thái:</span>
-                    <Badge variant={room.isActive ? "default" : "secondary"}>
-                      {room.isActive ? "🟢 Hoạt động" : "🔴 Đã đóng"}
-                    </Badge>
-                  </div>
-
-                  <div className="pt-2">
-                    <Link href={`/focus-room/${room.id}`}>
-                      <Button className="w-full" variant="default" disabled={!room.isActive}>
-                        🚪 Vào Phòng
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+      {/* Room List - Refactored to use RoomList component */}
+      <RoomList
+        rooms={filteredRooms}
+        loading={loading}
+        error={error}
+        layout="grid"
+        showCreateLink={true}
+      />
 
       {/* Info Card */}
       {filteredRooms.length > 0 && (

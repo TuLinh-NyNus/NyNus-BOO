@@ -7,10 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ArrowLeft, TrendingUp, Flame, Clock, Target } from "lucide-react";
 import { FocusRoomService } from "@/services/grpc/focus-room.service";
 import { useToast } from "@/hooks/ui/use-toast";
+import { StatsCard } from "@/components/features/focus/analytics/StatsCard";
 
 /**
  * Analytics Page
  * Hiển thị thống kê học tập của user
+ * Refactored: Sử dụng StatsCard component
  */
 export default function AnalyticsPage() {
   const { toast } = useToast();
@@ -81,67 +83,47 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {/* Stats Grid */}
+      {/* Stats Grid - Refactored to use StatsCard component */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {/* Streak Card */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Flame className="w-4 h-4 text-orange-500" />
-              Streak Hiện Tại
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{streakData?.currentStreak || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">ngày liên tiếp</p>
-          </CardContent>
-        </Card>
-
-        {/* Longest Streak */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-blue-500" />
-              Streak Dài Nhất
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{streakData?.longestStreak || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">ngày kỷ lục</p>
-          </CardContent>
-        </Card>
-
-        {/* Total Study Days */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Target className="w-4 h-4 text-green-500" />
-              Tổng Ngày Học
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{streakData?.totalStudyDays || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">ngày tích cóp</p>
-          </CardContent>
-        </Card>
-
-        {/* Last Study */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4 text-purple-500" />
-              Học Gần Nhất
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm font-semibold">
-              {streakData?.lastStudyDate
-                ? new Date(streakData.lastStudyDate).toLocaleDateString("vi-VN")
-                : "Chưa có"}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">thời gian gần nhất</p>
-          </CardContent>
-        </Card>
+        <StatsCard
+          title="Streak Hiện Tại"
+          icon={Flame}
+          iconColor="text-orange-500"
+          value={streakData?.currentStreak || 0}
+          unit="ngày liên tiếp"
+          loading={loading}
+        />
+        
+        <StatsCard
+          title="Streak Dài Nhất"
+          icon={TrendingUp}
+          iconColor="text-blue-500"
+          value={streakData?.longestStreak || 0}
+          unit="ngày kỷ lục"
+          loading={loading}
+        />
+        
+        <StatsCard
+          title="Tổng Ngày Học"
+          icon={Target}
+          iconColor="text-green-500"
+          value={streakData?.totalStudyDays || 0}
+          unit="ngày tích cóp"
+          loading={loading}
+        />
+        
+        <StatsCard
+          title="Học Gần Nhất"
+          icon={Clock}
+          iconColor="text-purple-500"
+          value={
+            streakData?.lastStudyDate
+              ? new Date(streakData.lastStudyDate).toLocaleDateString("vi-VN")
+              : "Chưa có"
+          }
+          unit="thời gian gần nhất"
+          loading={loading}
+        />
       </div>
 
       {/* Contribution Graph Section */}
