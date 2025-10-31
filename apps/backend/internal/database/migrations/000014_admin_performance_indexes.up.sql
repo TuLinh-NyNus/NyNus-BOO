@@ -98,22 +98,7 @@ CREATE INDEX IF NOT EXISTS idx_resource_access_type_id_created
 ON resource_access(resource_type, resource_id, created_at DESC);
 
 -- ========================================
--- PART 4: SESSIONS PERFORMANCE INDEXES
--- ========================================
-
--- Index cho active sessions queries
--- Tối ưu cho query: WHERE expires_at > NOW()
-CREATE INDEX IF NOT EXISTS idx_sessions_active 
-ON sessions(expires_at DESC) 
-WHERE expires_at > NOW();
-
--- Composite index cho user sessions
--- Tối ưu cho query: WHERE user_id = ? ORDER BY created_at DESC
-CREATE INDEX IF NOT EXISTS idx_sessions_user_created 
-ON sessions(user_id, created_at DESC);
-
--- ========================================
--- PART 5: NOTIFICATIONS PERFORMANCE INDEXES
+-- PART 4: NOTIFICATIONS PERFORMANCE INDEXES
 -- ========================================
 
 -- Composite index cho unread notifications

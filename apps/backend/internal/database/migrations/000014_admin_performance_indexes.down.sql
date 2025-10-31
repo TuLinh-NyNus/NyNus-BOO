@@ -15,11 +15,6 @@ DROP INDEX IF EXISTS idx_notifications_user_unread_created;
 -- ========================================
 -- PART 5: SESSIONS INDEXES
 -- ========================================
-
-DROP INDEX IF EXISTS idx_sessions_user_created;
-DROP INDEX IF EXISTS idx_sessions_active;
-
--- ========================================
 -- PART 4: RESOURCE ACCESS INDEXES
 -- ========================================
 
