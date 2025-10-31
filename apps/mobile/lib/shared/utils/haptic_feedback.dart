@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 class HapticFeedbackUtil {
   // Light impact - for UI interactions like button taps
