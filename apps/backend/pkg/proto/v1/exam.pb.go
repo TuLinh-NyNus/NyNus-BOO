@@ -27,10 +27,10 @@ type ExamStatus int32
 
 const (
 	ExamStatus_EXAM_STATUS_UNSPECIFIED ExamStatus = 0
-	ExamStatus_EXAM_STATUS_ACTIVE      ExamStatus = 1 // ÄÃ£ xuáº¥t báº£n, students cÃ³ thá»ƒ lÃ m
-	ExamStatus_EXAM_STATUS_PENDING     ExamStatus = 2 // Äang soáº¡n tháº£o, chá» review
-	ExamStatus_EXAM_STATUS_INACTIVE    ExamStatus = 3 // Táº¡m ngÆ°ng
-	ExamStatus_EXAM_STATUS_ARCHIVED    ExamStatus = 4 // ÄÃ£ lÆ°u trá»¯
+	ExamStatus_EXAM_STATUS_ACTIVE      ExamStatus = 1 // Đã xuất bản, students có thể làm
+	ExamStatus_EXAM_STATUS_PENDING     ExamStatus = 2 // Đang soạn thảo, chờ review
+	ExamStatus_EXAM_STATUS_INACTIVE    ExamStatus = 3 // Tạm ngưng
+	ExamStatus_EXAM_STATUS_ARCHIVED    ExamStatus = 4 // Đã lưu trữ
 )
 
 // Enum value maps for ExamStatus.
@@ -83,8 +83,8 @@ type ExamType int32
 
 const (
 	ExamType_EXAM_TYPE_UNSPECIFIED ExamType = 0
-	ExamType_EXAM_TYPE_GENERATED   ExamType = 1 // Äá» thi táº¡o tá»« ngÃ¢n hÃ ng cÃ¢u há»i
-	ExamType_EXAM_TYPE_OFFICIAL    ExamType = 2 // Äá» thi tháº­t tá»« trÆ°á»ng/sá»Ÿ
+	ExamType_EXAM_TYPE_GENERATED   ExamType = 1 // Đề thi tạo từ ngân hàng câu hỏi
+	ExamType_EXAM_TYPE_OFFICIAL    ExamType = 2 // Đề thi thật từ trường/sở
 )
 
 // Enum value maps for ExamType.
@@ -133,10 +133,10 @@ type Difficulty int32
 
 const (
 	Difficulty_DIFFICULTY_UNSPECIFIED Difficulty = 0
-	Difficulty_DIFFICULTY_EASY        Difficulty = 1 // Dá»…
-	Difficulty_DIFFICULTY_MEDIUM      Difficulty = 2 // Trung bÃ¬nh
-	Difficulty_DIFFICULTY_HARD        Difficulty = 3 // KhÃ³
-	Difficulty_DIFFICULTY_EXPERT      Difficulty = 4 // Ráº¥t khÃ³
+	Difficulty_DIFFICULTY_EASY        Difficulty = 1 // Dễ
+	Difficulty_DIFFICULTY_MEDIUM      Difficulty = 2 // Trung bình
+	Difficulty_DIFFICULTY_HARD        Difficulty = 3 // Khó
+	Difficulty_DIFFICULTY_EXPERT      Difficulty = 4 // Rất khó
 )
 
 // Enum value maps for Difficulty.
@@ -189,10 +189,10 @@ type AttemptStatus int32
 
 const (
 	AttemptStatus_ATTEMPT_STATUS_UNSPECIFIED AttemptStatus = 0
-	AttemptStatus_ATTEMPT_STATUS_IN_PROGRESS AttemptStatus = 1 // Äang lÃ m bÃ i
-	AttemptStatus_ATTEMPT_STATUS_SUBMITTED   AttemptStatus = 2 // ÄÃ£ ná»™p bÃ i
-	AttemptStatus_ATTEMPT_STATUS_GRADED      AttemptStatus = 3 // ÄÃ£ cháº¥m Ä‘iá»ƒm
-	AttemptStatus_ATTEMPT_STATUS_CANCELLED   AttemptStatus = 4 // ÄÃ£ há»§y
+	AttemptStatus_ATTEMPT_STATUS_IN_PROGRESS AttemptStatus = 1 // Đang làm bài
+	AttemptStatus_ATTEMPT_STATUS_SUBMITTED   AttemptStatus = 2 // Đã nộp bài
+	AttemptStatus_ATTEMPT_STATUS_GRADED      AttemptStatus = 3 // Đã chấm điểm
+	AttemptStatus_ATTEMPT_STATUS_CANCELLED   AttemptStatus = 4 // Đã hủy
 )
 
 // Enum value maps for AttemptStatus.
