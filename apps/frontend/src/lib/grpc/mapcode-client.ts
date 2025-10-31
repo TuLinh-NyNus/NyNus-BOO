@@ -344,4 +344,44 @@ export class MapCodeClient {
       };
     }
   }
+
+  /**
+   * Export a MapCode version in the specified format
+   */
+  static async exportVersion(versionId: string, format: 'markdown' | 'json' | 'csv' = 'markdown'): Promise<{
+    content: string;
+    filename: string;
+  }> {
+    // TODO: Replace with real gRPC call when protobuf files are generated
+    // For now, make HTTP call to gRPC-Gateway endpoint
+    try {
+      const response = await fetch(
+        `${_GRPC_ENDPOINT}/api/v1/mapcode/versions/${versionId}/export?format=${format}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Export failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (!data.status?.success) {
+        throw new Error(data.status?.message || 'Export failed');
+      }
+
+      return {
+        content: data.content || '',
+        filename: data.filename || `MapCode-export-${Date.now()}.${format}`,
+      };
+    } catch (error) {
+      console.error('Failed to export version:', error);
+      throw error;
+    }
+  }
 }

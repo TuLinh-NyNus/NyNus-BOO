@@ -495,3 +495,58 @@ func (s *MapCodeServiceServer) GetMetrics(ctx context.Context, req *pb.GetMetric
 		Metrics: protoMetrics,
 	}, nil
 }
+
+// ExportVersion exports a MapCode version in the specified format
+func (s *MapCodeServiceServer) ExportVersion(ctx context.Context, req *pb.ExportVersionRequest) (*pb.ExportVersionResponse, error) {
+	// Validate request
+	if req.VersionId == "" {
+		return &pb.ExportVersionResponse{
+			Status: &common.Response{
+				Success: false,
+				Message: "Version ID is required",
+			},
+		}, nil
+	}
+
+	// Default format to markdown if not specified
+	format := req.Format
+	if format == "" {
+		format = "markdown"
+	}
+
+	// Validate format
+	validFormats := map[string]bool{
+		"markdown": true,
+		"md":       true,
+		"json":     true,
+		"csv":      true,
+	}
+	if !validFormats[format] {
+		return &pb.ExportVersionResponse{
+			Status: &common.Response{
+				Success: false,
+				Message: fmt.Sprintf("Invalid format: %s (supported: markdown, json, csv)", format),
+			},
+		}, nil
+	}
+
+	// Export version
+	content, filename, err := s.mapCodeMgmt.ExportVersion(ctx, req.VersionId, format)
+	if err != nil {
+		return &pb.ExportVersionResponse{
+			Status: &common.Response{
+				Success: false,
+				Message: fmt.Sprintf("Export failed: %v", err),
+			},
+		}, nil
+	}
+
+	return &pb.ExportVersionResponse{
+		Status: &common.Response{
+			Success: true,
+			Message: fmt.Sprintf("Version exported successfully as %s", format),
+		},
+		Content:  content,
+		Filename: filename,
+	}, nil
+}

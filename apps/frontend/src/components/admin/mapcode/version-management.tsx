@@ -25,6 +25,12 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   Table,
   TableBody,
   TableCell,
@@ -50,6 +56,7 @@ import {
   Trash2,
   Calendar,
   User,
+  Download,
   // FileText,
   // Settings
 } from 'lucide-react';
@@ -66,6 +73,7 @@ export function VersionManagement({ className }: VersionManagementProps) {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<string | null>(null);
   
   // Create version form state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -158,6 +166,39 @@ export function VersionManagement({ className }: VersionManagementProps) {
       toast.error(`Không thể xóa version: ${errorMessage}`);
     } finally {
       setDeleting(null);
+    }
+  };
+
+  const handleExportVersion = async (versionId: string, format: 'markdown' | 'json' | 'csv') => {
+    try {
+      setExporting(versionId);
+      
+      // Call API to export
+      const { content, filename } = await MapCodeClient.exportVersion(versionId, format);
+      
+      // Create blob and trigger download
+      const blob = new Blob([content], { 
+        type: format === 'json' ? 'application/json' : 
+              format === 'csv' ? 'text/csv' : 
+              'text/markdown'
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Export thành công: ${filename}`);
+      
+    } catch (error) {
+      console.error('Error exporting version:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Có lỗi xảy ra';
+      toast.error(`Không thể export: ${errorMessage}`);
+    } finally {
+      setExporting(null);
     }
   };
 

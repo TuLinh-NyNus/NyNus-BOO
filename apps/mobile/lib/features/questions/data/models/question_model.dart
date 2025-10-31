@@ -1,5 +1,7 @@
 import 'package:mobile/features/questions/domain/entities/question.dart';
 
+// Force Dart analyzer cache clear
+// Enums DifficultyLevel and QuestionStatus are defined in question.dart and should be accessible
 class QuestionModel extends Question {
   const QuestionModel({
     required super.id,
