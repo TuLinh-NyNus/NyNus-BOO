@@ -15,6 +15,7 @@ mkdir -p "$BACKEND_OUT/common"
 # Define Go import paths for module mapping
 GO_COMMON_PKG="exam-bank-system/apps/backend/pkg/proto/common"
 GO_V1_PKG="exam-bank-system/apps/backend/pkg/proto/v1"
+GO_GOOGLE_API_PKG="exam-bank-system/apps/backend/pkg/proto/google/api"
 
 # Generate Go code for common proto files first (dependencies)
 echo "📦 Generating common proto files..."
@@ -47,9 +48,9 @@ for proto_file in "$PROTO_DIR/v1"/*.proto; do
         echo "  Processing: $filename"
         
         # Build dynamic -M flags for all v1 imports
-        M_FLAGS="--go_opt=Mcommon/common.proto=$GO_COMMON_PKG"
-        M_GRPC_FLAGS="--go-grpc_opt=Mcommon/common.proto=$GO_COMMON_PKG"
-        M_GW_FLAGS="--grpc-gateway_opt=Mcommon/common.proto=$GO_COMMON_PKG"
+        M_FLAGS="--go_opt=Mcommon/common.proto=$GO_COMMON_PKG --go_opt=Mgoogle/api/annotations.proto=$GO_GOOGLE_API_PKG --go_opt=Mgoogle/api/http.proto=$GO_GOOGLE_API_PKG"
+        M_GRPC_FLAGS="--go-grpc_opt=Mcommon/common.proto=$GO_COMMON_PKG --go-grpc_opt=Mgoogle/api/annotations.proto=$GO_GOOGLE_API_PKG --go-grpc_opt=Mgoogle/api/http.proto=$GO_GOOGLE_API_PKG"
+        M_GW_FLAGS="--grpc-gateway_opt=Mcommon/common.proto=$GO_COMMON_PKG --grpc-gateway_opt=Mgoogle/api/annotations.proto=$GO_GOOGLE_API_PKG --grpc-gateway_opt=Mgoogle/api/http.proto=$GO_GOOGLE_API_PKG"
         
         # Add mapping for all other v1 files
         for v1_file in "${V1_PROTO_FILES[@]}"; do
