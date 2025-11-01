@@ -9,15 +9,15 @@ import (
 	v1 "exam-bank-system/apps/backend/pkg/proto/v1"
 )
 
-// QuestionFilterValidator provides validation for question filter requests
+// QuestionFilterValidator provides validation for question filter requests.
 type QuestionFilterValidator struct{}
 
-// NewQuestionFilterValidator creates a new question filter validator
+// NewQuestionFilterValidator creates a new question filter validator.
 func NewQuestionFilterValidator() *QuestionFilterValidator {
 	return &QuestionFilterValidator{}
 }
 
-// ValidateListQuestionsByFilterRequest validates ListQuestionsByFilterRequest
+// ValidateListQuestionsByFilterRequest validates ListQuestionsByFilterRequest.
 func (v *QuestionFilterValidator) ValidateListQuestionsByFilterRequest(req *v1.ListQuestionsByFilterRequest) error {
 	if req == nil {
 		return fmt.Errorf("request cannot be nil")
@@ -61,7 +61,7 @@ func (v *QuestionFilterValidator) ValidateListQuestionsByFilterRequest(req *v1.L
 	return nil
 }
 
-// ValidateSearchQuestionsRequest validates SearchQuestionsRequest
+// ValidateSearchQuestionsRequest validates SearchQuestionsRequest.
 func (v *QuestionFilterValidator) ValidateSearchQuestionsRequest(req *v1.SearchQuestionsRequest) error {
 	if req == nil {
 		return fmt.Errorf("request cannot be nil")
@@ -101,7 +101,7 @@ func (v *QuestionFilterValidator) ValidateSearchQuestionsRequest(req *v1.SearchQ
 	return v.ValidateListQuestionsByFilterRequest(tempReq)
 }
 
-// ValidateGetQuestionsByQuestionCodeRequest validates GetQuestionsByQuestionCodeRequest
+// ValidateGetQuestionsByQuestionCodeRequest validates GetQuestionsByQuestionCodeRequest.
 func (v *QuestionFilterValidator) ValidateGetQuestionsByQuestionCodeRequest(req *v1.GetQuestionsByQuestionCodeRequest) error {
 	if req == nil {
 		return fmt.Errorf("request cannot be nil")
@@ -133,7 +133,7 @@ func (v *QuestionFilterValidator) ValidateGetQuestionsByQuestionCodeRequest(req 
 	return nil
 }
 
-// validateQuestionCodeFilter validates QuestionCode filter parameters
+// validateQuestionCodeFilter validates QuestionCode filter parameters.
 func (v *QuestionFilterValidator) validateQuestionCodeFilter(filter *v1.QuestionCodeFilter) error {
 	// Validate grades (0,1,2 for 10th, 11th, 12th)
 	validGrades := map[string]bool{"0": true, "1": true, "2": true}
@@ -186,7 +186,7 @@ func (v *QuestionFilterValidator) validateQuestionCodeFilter(filter *v1.Question
 	return nil
 }
 
-// validateMetadataFilter validates metadata filter parameters
+// validateMetadataFilter validates metadata filter parameters.
 func (v *QuestionFilterValidator) validateMetadataFilter(filter *v1.MetadataFilter) error {
 	// Validate types (enums)
 	validTypes := map[common.QuestionType]bool{
@@ -258,7 +258,7 @@ func (v *QuestionFilterValidator) validateMetadataFilter(filter *v1.MetadataFilt
 	return nil
 }
 
-// validateDateFilter validates date filter parameters
+// validateDateFilter validates date filter parameters.
 func (v *QuestionFilterValidator) validateDateFilter(filter *v1.DateRangeFilter) error {
 	// Validate date ranges
 	if filter.CreatedAfter != nil && filter.CreatedBefore != nil {
@@ -276,7 +276,7 @@ func (v *QuestionFilterValidator) validateDateFilter(filter *v1.DateRangeFilter)
 	return nil
 }
 
-// validateContentFilter validates content filter parameters
+// validateContentFilter validates content filter parameters.
 func (v *QuestionFilterValidator) validateContentFilter(filter *v1.ContentFilter) error {
 	// Validate search strings
 	if len(filter.ContentSearch) > 1000 {
@@ -290,7 +290,7 @@ func (v *QuestionFilterValidator) validateContentFilter(filter *v1.ContentFilter
 	return nil
 }
 
-// validatePagination validates pagination parameters
+// validatePagination validates pagination parameters.
 func (v *QuestionFilterValidator) validatePagination(pagination *v1.FilterPagination) error {
 	// Validate page
 	if pagination.Page < 1 {
