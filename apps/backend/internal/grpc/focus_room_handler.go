@@ -515,9 +515,9 @@ func convertMonthlyStatsToProto(stats *entity.MonthlyAnalytics) *v1.MonthlyStats
 
 	for i, subject := range stats.TopSubjects {
 		proto.TopSubjects[i] = &v1.SubjectTime{
-			Subject:    subject.Subject,
+			Subject:     subject.Subject,
 			TimeSeconds: int32(subject.TimeSeconds),
-			Percentage: subject.Percentage,
+			Percentage:  subject.Percentage,
 		}
 	}
 
@@ -652,7 +652,7 @@ func (s *FocusRoomServiceServer) GetMonthlyStats(ctx context.Context, req *v1.Ge
 	// Get year/month
 	year := int(req.GetYear())
 	month := int(req.GetMonth())
-	
+
 	if year == 0 {
 		year = time.Now().Year()
 	}
@@ -708,16 +708,125 @@ func (s *FocusRoomServiceServer) GetContributionGraph(ctx context.Context, req *
 	}, nil
 }
 
-// GetLeaderboard retrieves the leaderboard (stub - service signature mismatch)
+// GetLeaderboard retrieves the leaderboard
 func (s *FocusRoomServiceServer) GetLeaderboard(ctx context.Context, req *v1.GetLeaderboardRequest) (*v1.LeaderboardResponse, error) {
-	// TODO: Fix service method signature mismatch
-	return nil, status.Errorf(codes.Unimplemented, "GetLeaderboard service integration not ready - coming in Phase 3")
+	// Get period from request
+	period := convertProtoToLeaderboardPeriod(req.GetPeriod())
+	limit := int(req.GetLimit())
+	if limit <= 0 {
+		limit = 100 // Default top 100
+	}
+
+	// Get leaderboard entries
+	entries, err := s.leaderboardService.GetLeaderboard(ctx, "global", period, limit)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get leaderboard: %v", err)
+	}
+
+	// Convert to proto
+	protoEntries := make([]*v1.LeaderboardEntry, len(entries))
+	for i, entry := range entries {
+		protoEntries[i] = convertLeaderboardEntryToProto(entry)
+	}
+
+	// Calculate period range for response
+	periodStart, periodEnd := calculatePeriodRangeForProto(period)
+
+	return &v1.LeaderboardResponse{
+		Entries:     protoEntries,
+		Period:      req.GetPeriod(),
+		PeriodStart: periodStart,
+		PeriodEnd:   periodEnd,
+	}, nil
 }
 
-// GetUserRank retrieves user's rank (stub - service signature mismatch)
+// GetUserRank retrieves user's rank
 func (s *FocusRoomServiceServer) GetUserRank(ctx context.Context, req *v1.GetUserRankRequest) (*v1.UserRankResponse, error) {
-	// TODO: Fix service method signature mismatch
-	return nil, status.Errorf(codes.Unimplemented, "GetUserRank service integration not ready - coming in Phase 3")
+	// Get user from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Get period
+	period := convertProtoToLeaderboardPeriod(req.GetPeriod())
+
+	// Get user rank
+	rank, err := s.leaderboardService.GetUserRank(ctx, userID, period)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get user rank: %v", err)
+	}
+
+	return &v1.UserRankResponse{
+		Rank: &v1.UserRank{
+			Rank: int32(rank),
+		},
+	}, nil
+}
+
+// Helper functions for Leaderboard conversion
+func convertProtoToLeaderboardPeriod(protoPeriod v1.LeaderboardPeriod) entity.LeaderboardPeriod {
+	switch protoPeriod {
+	case v1.LeaderboardPeriod_LEADERBOARD_PERIOD_DAILY:
+		return entity.LeaderboardPeriodDaily
+	case v1.LeaderboardPeriod_LEADERBOARD_PERIOD_WEEKLY:
+		return entity.LeaderboardPeriodWeekly
+	case v1.LeaderboardPeriod_LEADERBOARD_PERIOD_MONTHLY:
+		return entity.LeaderboardPeriodMonthly
+	case v1.LeaderboardPeriod_LEADERBOARD_PERIOD_ALL_TIME:
+		return entity.LeaderboardPeriodAllTime
+	default:
+		return entity.LeaderboardPeriodWeekly
+	}
+}
+
+func convertLeaderboardEntryToProto(entry *entity.LeaderboardEntry) *v1.LeaderboardEntry {
+	proto := &v1.LeaderboardEntry{
+		UserId:                entry.UserID,
+		Username:              entry.Username,
+		Avatar:                entry.Avatar,
+		TotalFocusTimeSeconds: entry.TotalFocusTimeSeconds,
+		SessionsCompleted:     int32(entry.SessionsCompleted),
+		CurrentStreak:         int32(entry.CurrentStreak),
+		Score:                 entry.Score,
+	}
+
+	if entry.Rank != nil {
+		proto.Rank = int32(*entry.Rank)
+	}
+
+	return proto
+}
+
+func calculatePeriodRangeForProto(period entity.LeaderboardPeriod) (string, string) {
+	now := time.Now()
+	var start, end time.Time
+
+	switch period {
+	case entity.LeaderboardPeriodDaily:
+		start = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		end = start.AddDate(0, 0, 1)
+	case entity.LeaderboardPeriodWeekly:
+		// Start of week (Monday)
+		weekday := int(now.Weekday())
+		if weekday == 0 {
+			weekday = 7
+		}
+		start = now.AddDate(0, 0, -weekday+1)
+		start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
+		end = start.AddDate(0, 0, 7)
+	case entity.LeaderboardPeriodMonthly:
+		start = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+		end = start.AddDate(0, 1, 0)
+	case entity.LeaderboardPeriodAllTime:
+		start = time.Date(2020, 1, 1, 0, 0, 0, 0, now.Location())
+		end = now.AddDate(10, 0, 0) // Far future
+	default:
+		start = now
+		end = now
+	}
+
+	return start.Format("2006-01-02"), end.Format("2006-01-02")
 }
 
 // CreateTask creates a new task
