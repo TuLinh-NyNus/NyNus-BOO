@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// FocusRoomHandler handles Focus Room specific WebSocket events
+// FocusRoomHandler handles Focus Room specific WebSocket events.
 type FocusRoomHandler struct {
 	chatService *focus.ChatService
 	roomRepo    interfaces.FocusRoomRepository
@@ -21,12 +21,12 @@ type FocusRoomHandler struct {
 	logger      *log.Logger
 }
 
-// PubSubPublisher defines interface for Redis Pub/Sub
+// PubSubPublisher defines interface for Redis Pub/Sub.
 type PubSubPublisher interface {
 	Publish(ctx context.Context, channel string, message interface{}) error
 }
 
-// NewFocusRoomHandler creates a new Focus Room handler
+// NewFocusRoomHandler creates a new Focus Room handler.
 func NewFocusRoomHandler(
 	chatService *focus.ChatService,
 	roomRepo interfaces.FocusRoomRepository,
@@ -42,14 +42,14 @@ func NewFocusRoomHandler(
 	}
 }
 
-// FocusRoomMessage represents messages for Focus Rooms
+// FocusRoomMessage represents messages for Focus Rooms.
 type FocusRoomMessage struct {
 	Type    string                 `json:"type"`
 	RoomID  string                 `json:"room_id,omitempty"`
 	Payload map[string]interface{} `json:"payload,omitempty"`
 }
 
-// HandleJoinRoom handles user joining a room
+// HandleJoinRoom handles user joining a room.
 func (h *FocusRoomHandler) HandleJoinRoom(ctx context.Context, client *Client, roomID string) error {
 	// Parse room UUID
 	roomUUID, err := uuid.Parse(roomID)
@@ -98,7 +98,7 @@ func (h *FocusRoomHandler) HandleJoinRoom(ctx context.Context, client *Client, r
 	return nil
 }
 
-// HandleLeaveRoom handles user leaving a room
+// HandleLeaveRoom handles user leaving a room.
 func (h *FocusRoomHandler) HandleLeaveRoom(ctx context.Context, client *Client, roomID string) error {
 	// Remove user from presence tracker
 	if err := h.presence.LeaveRoom(ctx, roomID, client.UserID); err != nil {
@@ -136,7 +136,11 @@ func (h *FocusRoomHandler) HandleLeaveRoom(ctx context.Context, client *Client, 
 }
 
 // HandleSendMessage handles sending a chat message.
-func (h *FocusRoomHandler) HandleSendMessage(ctx context.Context, client *Client, payload map[string]interface{}) error {
+func (h *FocusRoomHandler) HandleSendMessage(
+	ctx context.Context,
+	client *Client,
+	payload map[string]interface{},
+) error {
 	// Extract room ID and message
 	roomIDStr, ok := payload["room_id"].(string)
 	if !ok {
@@ -188,7 +192,7 @@ func (h *FocusRoomHandler) HandleFocusStart(ctx context.Context, client *Client,
 		return fmt.Errorf("room_id is required")
 	}
 
-	task, _ := payload["task"].(string) // Optional.
+	task, _ := payload["task"].(string) //nolint:errcheck // Optional task field.
 
 	// Update presence status
 	if err := h.presence.UpdateStatus(ctx, roomIDStr, client.UserID, "focusing"); err != nil {
@@ -223,7 +227,7 @@ func (h *FocusRoomHandler) HandleFocusEnd(ctx context.Context, client *Client, p
 		return fmt.Errorf("room_id is required")
 	}
 
-	duration, _ := payload["duration"].(float64) // Optional.
+	duration, _ := payload["duration"].(float64) //nolint:errcheck // Optional duration field.
 
 	// Update presence status back to online
 	if err := h.presence.UpdateStatus(ctx, roomIDStr, client.UserID, "online"); err != nil {
