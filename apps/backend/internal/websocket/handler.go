@@ -63,7 +63,7 @@ func NewHandler(manager *ConnectionManager, authenticator TokenAuthenticator) *H
 	}
 }
 
-// SetFocusHandler sets the Focus Room handler
+// SetFocusHandler sets the Focus Room handler.
 func (h *Handler) SetFocusHandler(focusHandler *FocusRoomHandler) {
 	h.focusHandler = focusHandler
 }
@@ -128,7 +128,7 @@ func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) error 
 }
 
 // handleMessages handles incoming messages from client.
-// Implements task 2.2.2: Message handling and routing
+// Implements task 2.2.2: Message handling and routing.
 func (h *Handler) handleMessages(ctx context.Context, client *Client) error {
 	for {
 		var msg WebSocketMessage
@@ -162,7 +162,7 @@ func (h *Handler) handleMessages(ctx context.Context, client *Client) error {
 }
 
 // routeMessage routes messages to appropriate handlers.
-// Implements task 2.2.2: Support message types
+// Implements task 2.2.2: Support message types.
 func (h *Handler) routeMessage(ctx context.Context, client *Client, msg *WebSocketMessage) error {
 	switch msg.Type {
 	case "ping":

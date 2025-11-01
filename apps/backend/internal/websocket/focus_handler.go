@@ -262,7 +262,7 @@ func getCurrentTimestamp() int64 {
 	return time.Now().UnixMilli()
 }
 
-// SerializeMessage serializes a message to JSON bytes
+// SerializeMessage serializes a message to JSON bytes.
 func SerializeMessage(message interface{}) ([]byte, error) {
 	return json.Marshal(message)
 }
