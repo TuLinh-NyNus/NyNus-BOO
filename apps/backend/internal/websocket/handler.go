@@ -69,7 +69,7 @@ func (h *Handler) SetFocusHandler(focusHandler *FocusRoomHandler) {
 }
 
 // HandleWebSocket handles WebSocket upgrade and connection.
-// Implements task 2.2.1: Implement upgrade handler
+// Implements task 2.2.1: Implement upgrade handler.
 func (h *Handler) HandleWebSocket(w http.ResponseWriter, r *http.Request) error {
 	// Validate Origin header (CORS)
 	if !h.isOriginAllowed(r.Header.Get("Origin")) {

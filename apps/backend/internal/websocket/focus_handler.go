@@ -135,7 +135,7 @@ func (h *FocusRoomHandler) HandleLeaveRoom(ctx context.Context, client *Client, 
 	return nil
 }
 
-// HandleSendMessage handles sending a chat message
+// HandleSendMessage handles sending a chat message.
 func (h *FocusRoomHandler) HandleSendMessage(ctx context.Context, client *Client, payload map[string]interface{}) error {
 	// Extract room ID and message
 	roomIDStr, ok := payload["room_id"].(string)
@@ -181,14 +181,14 @@ func (h *FocusRoomHandler) HandleSendMessage(ctx context.Context, client *Client
 	return nil
 }
 
-// HandleFocusStart handles user starting focus session
+// HandleFocusStart handles user starting focus session.
 func (h *FocusRoomHandler) HandleFocusStart(ctx context.Context, client *Client, payload map[string]interface{}) error {
 	roomIDStr, ok := payload["room_id"].(string)
 	if !ok {
 		return fmt.Errorf("room_id is required")
 	}
 
-	task, _ := payload["task"].(string) // Optional
+	task, _ := payload["task"].(string) // Optional.
 
 	// Update presence status
 	if err := h.presence.UpdateStatus(ctx, roomIDStr, client.UserID, "focusing"); err != nil {
@@ -216,14 +216,14 @@ func (h *FocusRoomHandler) HandleFocusStart(ctx context.Context, client *Client,
 	return nil
 }
 
-// HandleFocusEnd handles user ending focus session
+// HandleFocusEnd handles user ending focus session.
 func (h *FocusRoomHandler) HandleFocusEnd(ctx context.Context, client *Client, payload map[string]interface{}) error {
 	roomIDStr, ok := payload["room_id"].(string)
 	if !ok {
 		return fmt.Errorf("room_id is required")
 	}
 
-	duration, _ := payload["duration"].(float64) // Optional
+	duration, _ := payload["duration"].(float64) // Optional.
 
 	// Update presence status back to online
 	if err := h.presence.UpdateStatus(ctx, roomIDStr, client.UserID, "online"); err != nil {
@@ -251,13 +251,13 @@ func (h *FocusRoomHandler) HandleFocusEnd(ctx context.Context, client *Client, p
 	return nil
 }
 
-// BroadcastToRoom broadcasts a message to all users in a room
+// BroadcastToRoom broadcasts a message to all users in a room.
 func (h *FocusRoomHandler) BroadcastToRoom(ctx context.Context, roomID string, message interface{}) error {
 	channel := fmt.Sprintf("room:%s:events", roomID)
 	return h.pubsub.Publish(ctx, channel, message)
 }
 
-// getCurrentTimestamp returns current Unix timestamp in milliseconds
+// getCurrentTimestamp returns current Unix timestamp in milliseconds.
 func getCurrentTimestamp() int64 {
 	return time.Now().UnixMilli()
 }
