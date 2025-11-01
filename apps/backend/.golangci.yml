@@ -58,10 +58,6 @@ linters-settings:
   unused:
     check-exported: false
   
-  # Variable declaration
-  varcheck:
-    exported-fields: false
-  
   # Whitespace
   whitespace:
     multi-if: false
