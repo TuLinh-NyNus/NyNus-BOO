@@ -27,6 +27,7 @@ export interface Participant {
   avatar?: string; // Emoji or image URL
   isFocusing?: boolean;
   task?: string; // Current task description
+  status?: 'online' | 'focusing' | 'away' | 'offline'; // Presence status
 }
 
 export interface ParticipantListProps {
@@ -61,34 +62,63 @@ export function ParticipantList({
   /**
    * Render participant item
    */
-  const renderParticipantItem = (participant: Participant) => (
-    <div 
-      key={participant.id} 
-      className="flex items-center justify-between p-3 bg-muted rounded-lg"
-    >
-      <div className="flex items-center gap-3">
-        {/* Avatar */}
-        <span className="text-2xl">
-          {participant.avatar || "👤"}
-        </span>
-        
-        {/* Name & Task */}
-        <div>
-          <p className="font-medium">{participant.name}</p>
-          {participant.task && (
-            <p className="text-sm text-muted-foreground">{participant.task}</p>
-          )}
+  const renderParticipantItem = (participant: Participant) => {
+    // Determine status indicator
+    const status = participant.status || (participant.isFocusing ? 'focusing' : 'online');
+    const statusConfig = {
+      online: { color: 'bg-green-500', label: 'Online', emoji: '🟢' },
+      focusing: { color: 'bg-red-500', label: 'Focusing', emoji: '🎯' },
+      away: { color: 'bg-yellow-500', label: 'Away', emoji: '🟡' },
+      offline: { color: 'bg-gray-400', label: 'Offline', emoji: '⚪' },
+    };
+    const config = statusConfig[status] || statusConfig.online;
+
+    return (
+      <div 
+        key={participant.id} 
+        className="flex items-center justify-between p-3 bg-muted rounded-lg"
+      >
+        <div className="flex items-center gap-3">
+          {/* Avatar với Status Indicator */}
+          <div className="relative">
+            <span className="text-2xl">
+              {participant.avatar || "👤"}
+            </span>
+            {/* Online Status Dot */}
+            {status !== 'offline' && (
+              <span
+                className={cn(
+                  "absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background",
+                  config.color
+                )}
+                title={config.label}
+              />
+            )}
+          </div>
+          
+          {/* Name & Task */}
+          <div>
+            <div className="flex items-center gap-2">
+              <p className="font-medium">{participant.name}</p>
+              {status === 'focusing' && (
+                <span className="text-xs text-muted-foreground">🎯</span>
+              )}
+            </div>
+            {participant.task && (
+              <p className="text-sm text-muted-foreground">{participant.task}</p>
+            )}
+          </div>
         </div>
+        
+        {/* Status Badge */}
+        {(status === 'focusing' || participant.isFocusing) && (
+          <Badge variant="default" className="bg-green-600">
+            🎯 Focusing
+          </Badge>
+        )}
       </div>
-      
-      {/* Focusing Status */}
-      {participant.isFocusing && (
-        <Badge variant="default" className="bg-green-600">
-          🎯 Focusing
-        </Badge>
-      )}
-    </div>
-  );
+    );
+  };
   
   /**
    * Render content

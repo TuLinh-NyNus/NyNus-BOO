@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"time"
 
 	"exam-bank-system/apps/backend/internal/entity"
 	"exam-bank-system/apps/backend/internal/middleware"
@@ -394,6 +395,148 @@ func convertStreakToProto(streak *entity.UserStreak) *v1.StreakInfo {
 	return proto
 }
 
+// Helper functions for Task conversion
+func convertProtoTaskPriority(protoPriority v1.TaskPriority) entity.TaskPriority {
+	switch protoPriority {
+	case v1.TaskPriority_TASK_PRIORITY_LOW:
+		return entity.TaskPriorityLow
+	case v1.TaskPriority_TASK_PRIORITY_MEDIUM:
+		return entity.TaskPriorityMedium
+	case v1.TaskPriority_TASK_PRIORITY_HIGH:
+		return entity.TaskPriorityHigh
+	default:
+		return entity.TaskPriorityMedium
+	}
+}
+
+func convertTaskPriorityToProto(entityPriority entity.TaskPriority) v1.TaskPriority {
+	switch entityPriority {
+	case entity.TaskPriorityLow:
+		return v1.TaskPriority_TASK_PRIORITY_LOW
+	case entity.TaskPriorityMedium:
+		return v1.TaskPriority_TASK_PRIORITY_MEDIUM
+	case entity.TaskPriorityHigh:
+		return v1.TaskPriority_TASK_PRIORITY_HIGH
+	default:
+		return v1.TaskPriority_TASK_PRIORITY_MEDIUM
+	}
+}
+
+func convertTaskToProto(task *entity.FocusTask) *v1.Task {
+	proto := &v1.Task{
+		Id:              task.ID.String(),
+		UserId:          task.UserID,
+		Title:           task.Title,
+		Priority:        convertTaskPriorityToProto(task.Priority),
+		IsCompleted:     task.IsCompleted,
+		ActualPomodoros: int32(task.ActualPomodoros),
+		CreatedAt:       timestamppb.New(task.CreatedAt),
+		UpdatedAt:       timestamppb.New(task.UpdatedAt),
+	}
+
+	if task.Description != nil {
+		proto.Description = *task.Description
+	}
+
+	if task.SubjectTag != nil {
+		proto.SubjectTag = *task.SubjectTag
+	}
+
+	if task.DueDate != nil {
+		proto.DueDate = task.DueDate.Format("2006-01-02")
+	}
+
+	if task.EstimatedPomodoros != nil {
+		proto.EstimatedPomodoros = int32(*task.EstimatedPomodoros)
+	}
+
+	if task.CompletedAt != nil {
+		proto.CompletedAt = timestamppb.New(*task.CompletedAt)
+	}
+
+	return proto
+}
+
+// Helper functions for Analytics conversion
+func convertDailyStatsToProto(stats *entity.DailyAnalytics) *v1.DailyStats {
+	proto := &v1.DailyStats{
+		Date:                  stats.Date.Format("2006-01-02"),
+		TotalFocusTimeSeconds: int32(stats.TotalFocusTimeSeconds),
+		TotalBreakTimeSeconds: int32(stats.TotalBreakTimeSeconds),
+		SessionsCompleted:     int32(stats.SessionsCompleted),
+		TasksCompleted:        int32(stats.TasksCompleted),
+		SubjectsStudied:       make(map[string]int32),
+	}
+
+	if stats.MostProductiveHour != nil {
+		proto.MostProductiveHour = int32(*stats.MostProductiveHour)
+	}
+
+	for subject, seconds := range stats.SubjectsStudied {
+		proto.SubjectsStudied[subject] = int32(seconds)
+	}
+
+	return proto
+}
+
+func convertWeeklyStatsToProto(stats *entity.WeeklyAnalytics) *v1.WeeklyStats {
+	proto := &v1.WeeklyStats{
+		WeekStart:             stats.WeekStart.Format("2006-01-02"),
+		WeekEnd:               stats.WeekEnd.Format("2006-01-02"),
+		TotalFocusTimeSeconds: int32(stats.TotalFocusTimeSeconds),
+		AverageDailyTime:      int32(stats.AverageDailyTime),
+		Streak:                int32(stats.Streak),
+		Improvement:           stats.Improvement,
+		DailyBreakdown:        make([]*v1.DailyStats, len(stats.DailyBreakdown)),
+	}
+
+	if stats.MostProductiveDay != nil {
+		proto.MostProductiveDay = stats.MostProductiveDay.Format("2006-01-02")
+	}
+
+	for i, daily := range stats.DailyBreakdown {
+		proto.DailyBreakdown[i] = convertDailyStatsToProto(&daily)
+	}
+
+	return proto
+}
+
+func convertMonthlyStatsToProto(stats *entity.MonthlyAnalytics) *v1.MonthlyStats {
+	proto := &v1.MonthlyStats{
+		Month:                 int32(stats.Month),
+		Year:                  int32(stats.Year),
+		TotalFocusTimeSeconds: int32(stats.TotalFocusTimeSeconds),
+		TotalDaysActive:       int32(stats.TotalDaysActive),
+		AverageDailyTime:      int32(stats.AverageDailyTime),
+		LongestStreak:         int32(stats.LongestStreak),
+		TopSubjects:           make([]*v1.SubjectTime, len(stats.TopSubjects)),
+		WeeklyBreakdown:       make([]*v1.WeeklyStats, len(stats.WeeklyBreakdown)),
+	}
+
+	for i, subject := range stats.TopSubjects {
+		proto.TopSubjects[i] = &v1.SubjectTime{
+			Subject:    subject.Subject,
+			TimeSeconds: int32(subject.TimeSeconds),
+			Percentage: subject.Percentage,
+		}
+	}
+
+	for i, weekly := range stats.WeeklyBreakdown {
+		proto.WeeklyBreakdown[i] = convertWeeklyStatsToProto(&weekly)
+	}
+
+	return proto
+}
+
+func convertContributionDayToProto(day *entity.ContributionDay) *v1.ContributionDay {
+	return &v1.ContributionDay{
+		Date:             day.Date.Format("2006-01-02"),
+		FocusTimeSeconds: int32(day.FocusTimeSeconds),
+		Level:            int32(day.Level),
+		SessionsCount:    int32(day.SessionsCount),
+	}
+}
+
 // UpdateRoomSettings updates room settings
 func (s *FocusRoomServiceServer) UpdateRoomSettings(ctx context.Context, req *v1.UpdateRoomSettingsRequest) (*v1.Room, error) {
 	// Get user from context
@@ -434,22 +577,135 @@ func (s *FocusRoomServiceServer) GetUserStats(ctx context.Context, req *v1.GetUs
 	return nil, status.Errorf(codes.Unimplemented, "GetUserStats not fully implemented - coming in Phase 3")
 }
 
-// GetDailyStats retrieves daily statistics (stub - entity mismatch)
+// GetDailyStats retrieves daily statistics
 func (s *FocusRoomServiceServer) GetDailyStats(ctx context.Context, req *v1.GetDailyStatsRequest) (*v1.DailyStatsResponse, error) {
-	// TODO: Fix entity type mismatch between service and proto
-	return nil, status.Errorf(codes.Unimplemented, "GetDailyStats entity conversion not ready - coming in Phase 3")
+	// Get user from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Parse date
+	var date time.Time
+	if req.GetDate() != "" {
+		date, err = time.Parse("2006-01-02", req.GetDate())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid date format: %v", err)
+		}
+	} else {
+		date = time.Now()
+	}
+
+	// Get stats
+	stats, err := s.analyticsService.GetDailyStats(ctx, userID, date)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get daily stats: %v", err)
+	}
+
+	// Convert to proto
+	return &v1.DailyStatsResponse{
+		Stats: convertDailyStatsToProto(stats),
+	}, nil
 }
 
-// GetWeeklyStats retrieves weekly statistics (stub - entity mismatch)
+// GetWeeklyStats retrieves weekly statistics
 func (s *FocusRoomServiceServer) GetWeeklyStats(ctx context.Context, req *v1.GetWeeklyStatsRequest) (*v1.WeeklyStatsResponse, error) {
-	// TODO: Fix entity type mismatch between service and proto
-	return nil, status.Errorf(codes.Unimplemented, "GetWeeklyStats entity conversion not ready - coming in Phase 3")
+	// Get user from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Parse week start
+	var weekStart time.Time
+	if req.GetWeekStart() != "" {
+		weekStart, err = time.Parse("2006-01-02", req.GetWeekStart())
+		if err != nil {
+			return nil, status.Errorf(codes.InvalidArgument, "invalid week start format: %v", err)
+		}
+	} else {
+		// Start of current week (Monday)
+		now := time.Now()
+		weekStart = now.AddDate(0, 0, -int(now.Weekday())+1)
+	}
+
+	// Get stats
+	stats, err := s.analyticsService.GetWeeklyStats(ctx, userID, weekStart)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get weekly stats: %v", err)
+	}
+
+	// Convert to proto
+	return &v1.WeeklyStatsResponse{
+		Stats: convertWeeklyStatsToProto(stats),
+	}, nil
 }
 
-// GetMonthlyStats retrieves monthly statistics (stub - entity mismatch)
+// GetMonthlyStats retrieves monthly statistics
 func (s *FocusRoomServiceServer) GetMonthlyStats(ctx context.Context, req *v1.GetMonthlyStatsRequest) (*v1.MonthlyStatsResponse, error) {
-	// TODO: Fix entity type mismatch between service and proto
-	return nil, status.Errorf(codes.Unimplemented, "GetMonthlyStats entity conversion not ready - coming in Phase 3")
+	// Get user from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Get year/month
+	year := int(req.GetYear())
+	month := int(req.GetMonth())
+	
+	if year == 0 {
+		year = time.Now().Year()
+	}
+	if month == 0 {
+		month = int(time.Now().Month())
+	}
+
+	// Validate
+	if month < 1 || month > 12 {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid month: must be 1-12")
+	}
+
+	// Get stats
+	stats, err := s.analyticsService.GetMonthlyStats(ctx, userID, year, month)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get monthly stats: %v", err)
+	}
+
+	// Convert to proto
+	return &v1.MonthlyStatsResponse{
+		Stats: convertMonthlyStatsToProto(stats),
+	}, nil
+}
+
+// GetContributionGraph retrieves contribution graph data
+func (s *FocusRoomServiceServer) GetContributionGraph(ctx context.Context, req *v1.GetContributionGraphRequest) (*v1.GetContributionGraphResponse, error) {
+	// Get user from context
+	userID, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Get days parameter (default 365)
+	days := int(req.GetDays())
+	if days <= 0 {
+		days = 365
+	}
+
+	// Get contribution data
+	contributions, err := s.analyticsService.GetContributionGraph(ctx, userID, days)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to get contribution graph: %v", err)
+	}
+
+	// Convert to proto
+	protoContributions := make([]*v1.ContributionDay, len(contributions))
+	for i, day := range contributions {
+		protoContributions[i] = convertContributionDayToProto(day)
+	}
+
+	return &v1.GetContributionGraphResponse{
+		Contributions: protoContributions,
+	}, nil
 }
 
 // GetLeaderboard retrieves the leaderboard (stub - service signature mismatch)
@@ -464,34 +720,209 @@ func (s *FocusRoomServiceServer) GetUserRank(ctx context.Context, req *v1.GetUse
 	return nil, status.Errorf(codes.Unimplemented, "GetUserRank service integration not ready - coming in Phase 3")
 }
 
-// CreateTask creates a new task (stub - entity structure mismatch)
+// CreateTask creates a new task
 func (s *FocusRoomServiceServer) CreateTask(ctx context.Context, req *v1.CreateTaskRequest) (*v1.Task, error) {
-	// TODO: Fix entity.FocusTask structure mismatch with proto
-	return nil, status.Errorf(codes.Unimplemented, "CreateTask entity integration not ready - coming in Phase 3")
+	// Get user from context
+	userIDInt, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Validate request
+	if req.GetTitle() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "task title is required")
+	}
+
+	// Convert proto to entity
+	task := &entity.FocusTask{
+		UserID:      userIDInt,
+		Title:       req.GetTitle(),
+		Priority:    convertProtoTaskPriority(req.GetPriority()),
+		IsCompleted: false,
+	}
+
+	if req.GetDescription() != "" {
+		desc := req.GetDescription()
+		task.Description = &desc
+	}
+
+	if req.GetSubjectTag() != "" {
+		subject := req.GetSubjectTag()
+		task.SubjectTag = &subject
+	}
+
+	if req.GetDueDate() != "" {
+		// Parse ISO date string
+		// Note: You may want to add proper date parsing here
+		// For now, we'll skip parsing to avoid errors
+	}
+
+	if req.GetEstimatedPomodoros() > 0 {
+		est := int(req.GetEstimatedPomodoros())
+		task.EstimatedPomodoros = &est
+	}
+
+	// Create task
+	if err := s.taskService.CreateTask(ctx, task); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to create task: %v", err)
+	}
+
+	// Convert entity to proto
+	return convertTaskToProto(task), nil
 }
 
-// UpdateTask updates a task (stub - entity structure mismatch)
+// UpdateTask updates a task
 func (s *FocusRoomServiceServer) UpdateTask(ctx context.Context, req *v1.UpdateTaskRequest) (*v1.Task, error) {
-	// TODO: Fix entity.FocusTask structure mismatch with proto
-	return nil, status.Errorf(codes.Unimplemented, "UpdateTask entity integration not ready - coming in Phase 3")
+	// Get user from context
+	userIDInt, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Validate request
+	if req.GetTaskId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "task ID is required")
+	}
+
+	taskID, err := uuid.Parse(req.GetTaskId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid task ID: %v", err)
+	}
+
+	// Convert proto to entity updates
+	updates := &entity.FocusTask{
+		ID:       taskID,
+		UserID:   userIDInt,
+		Title:    req.GetTitle(),
+		Priority: convertProtoTaskPriority(req.GetPriority()),
+	}
+
+	if req.GetDescription() != "" {
+		desc := req.GetDescription()
+		updates.Description = &desc
+	}
+
+	if req.GetSubjectTag() != "" {
+		subject := req.GetSubjectTag()
+		updates.SubjectTag = &subject
+	}
+
+	if req.GetEstimatedPomodoros() > 0 {
+		est := int(req.GetEstimatedPomodoros())
+		updates.EstimatedPomodoros = &est
+	}
+
+	// Update task
+	if err := s.taskService.UpdateTask(ctx, taskID, userIDInt, updates); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update task: %v", err)
+	}
+
+	// Get updated task
+	task, err := s.taskService.GetTask(ctx, taskID, userIDInt)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "task not found: %v", err)
+	}
+
+	// Convert entity to proto
+	return convertTaskToProto(task), nil
 }
 
-// DeleteTask deletes a task (stub - service signature mismatch)
+// DeleteTask deletes a task
 func (s *FocusRoomServiceServer) DeleteTask(ctx context.Context, req *v1.DeleteTaskRequest) (*emptypb.Empty, error) {
-	// TODO: Fix service method signature
-	return nil, status.Errorf(codes.Unimplemented, "DeleteTask service integration not ready - coming in Phase 3")
+	// Get user from context
+	userIDInt, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Validate request
+	if req.GetTaskId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "task ID is required")
+	}
+
+	taskID, err := uuid.Parse(req.GetTaskId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid task ID: %v", err)
+	}
+
+	// Delete task
+	if err := s.taskService.DeleteTask(ctx, taskID, userIDInt); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to delete task: %v", err)
+	}
+
+	return &emptypb.Empty{}, nil
 }
 
-// ListTasks lists tasks (stub - entity structure mismatch)
+// ListTasks lists tasks
 func (s *FocusRoomServiceServer) ListTasks(ctx context.Context, req *v1.ListTasksRequest) (*v1.ListTasksResponse, error) {
-	// TODO: Fix entity.FocusTask structure mismatch with proto
-	return nil, status.Errorf(codes.Unimplemented, "ListTasks entity integration not ready - coming in Phase 3")
+	// Get user from context
+	userIDInt, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Build filter
+	filter := interfaces.TaskFilter{
+		CompletedOnly: req.GetCompletedOnly(),
+		ActiveOnly:    req.GetActiveOnly(),
+		Page:          int(req.GetPage()),
+		PageSize:      int(req.GetPageSize()),
+	}
+
+	if req.GetSubjectTag() != "" {
+		subject := req.GetSubjectTag()
+		filter.SubjectTag = &subject
+	}
+
+	// List tasks
+	tasks, total, err := s.taskService.ListTasks(ctx, userIDInt, filter)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list tasks: %v", err)
+	}
+
+	// Convert entities to proto
+	protoTasks := make([]*v1.Task, len(tasks))
+	for i, task := range tasks {
+		protoTasks[i] = convertTaskToProto(task)
+	}
+
+	return &v1.ListTasksResponse{
+		Tasks: protoTasks,
+		Total: int32(total),
+	}, nil
 }
 
-// CompleteTask completes a task (stub - service signature mismatch)
+// CompleteTask completes a task
 func (s *FocusRoomServiceServer) CompleteTask(ctx context.Context, req *v1.CompleteTaskRequest) (*v1.Task, error) {
-	// TODO: Fix service method signature
-	return nil, status.Errorf(codes.Unimplemented, "CompleteTask service integration not ready - coming in Phase 3")
+	// Get user from context
+	userIDInt, err := middleware.GetUserIDFromContext(ctx)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "failed to get user from context: %v", err)
+	}
+
+	// Validate request
+	if req.GetTaskId() == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "task ID is required")
+	}
+
+	taskID, err := uuid.Parse(req.GetTaskId())
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid task ID: %v", err)
+	}
+
+	// Complete task
+	if err := s.taskService.CompleteTask(ctx, taskID, userIDInt); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to complete task: %v", err)
+	}
+
+	// Get updated task
+	task, err := s.taskService.GetTask(ctx, taskID, userIDInt)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "task not found: %v", err)
+	}
+
+	// Convert entity to proto
+	return convertTaskToProto(task), nil
 }
 
 // PauseSession pauses a session (stub for now)

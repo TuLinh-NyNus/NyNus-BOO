@@ -1,0 +1,481 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "MapCode Service API",
+    "description": "gRPC service for managing question classification codes (MapCode) - Version management, translation, and analytics",
+    "version": "2.0.0",
+    "contact": {
+      "name": "NyNus Team",
+      "email": "api-support@nynus.edu.vn"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:50051",
+      "description": "Development gRPC server"
+    },
+    {
+      "url": "http://localhost:8080",
+      "description": "Development gRPC-Gateway (HTTP/REST proxy)"
+    }
+  ],
+  "paths": {
+    "/v1/mapcode/versions": {
+      "get": {
+        "summary": "List all MapCode versions",
+        "operationId": "GetVersions",
+        "tags": ["Version Management"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "schema": { "type": "integer", "default": 50 },
+            "description": "Number of results per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of MapCode versions retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" },
+                    "versions": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/MapCodeVersion" }
+                    },
+                    "total": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/mapcode/versions/{version_id}": {
+      "get": {
+        "summary": "Get specific MapCode version",
+        "operationId": "GetVersion",
+        "tags": ["Version Management"],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "MapCode version retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" },
+                    "version": { "$ref": "#/components/schemas/MapCodeVersion" }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Version not found"
+          }
+        }
+      }
+    },
+    "/v1/mapcode/versions/create": {
+      "post": {
+        "summary": "Create new MapCode version",
+        "operationId": "CreateVersion",
+        "tags": ["Version Management"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["version", "name"],
+                "properties": {
+                  "version": {
+                    "type": "string",
+                    "example": "v2025-01-19",
+                    "description": "Version identifier (e.g., v2025-01-19)"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Q1 2025 Update",
+                    "description": "Display name for the version"
+                  },
+                  "description": {
+                    "type": "string",
+                    "example": "Added new chapters for grade 12",
+                    "description": "Optional description of changes"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "MapCode file content (Markdown format) - Optional for importing"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Version created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" },
+                    "version": { "$ref": "#/components/schemas/MapCodeVersion" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request - validation failed"
+          }
+        }
+      }
+    },
+    "/v1/mapcode/versions/{version_id}/activate": {
+      "post": {
+        "summary": "Set version as active (production)",
+        "operationId": "SetActiveVersion",
+        "tags": ["Version Management"],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version activated successfully. Cache invalidated and pre-caching initiated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/mapcode/versions/{version_id}/delete": {
+      "delete": {
+        "summary": "Delete inactive version",
+        "operationId": "DeleteVersion",
+        "tags": ["Version Management"],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Version deleted successfully"
+          },
+          "400": {
+            "description": "Cannot delete active version"
+          }
+        }
+      }
+    },
+    "/v1/mapcode/translate": {
+      "post": {
+        "summary": "Translate single question code",
+        "operationId": "TranslateQuestionCode",
+        "tags": ["Translation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["question_code"],
+                "properties": {
+                  "question_code": {
+                    "type": "string",
+                    "example": "0P1N1",
+                    "description": "Question code (ID5 or ID6 format)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Translation successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" },
+                    "translation": { "type": "string", "example": "Lớp 10 > Đại số > Chương 1 > Nhận biết > Mệnh đề" },
+                    "hierarchy_path": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/mapcode/translate/batch": {
+      "post": {
+        "summary": "Translate multiple question codes (batch)",
+        "operationId": "TranslateQuestionCodes",
+        "tags": ["Translation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["question_codes"],
+                "properties": {
+                  "question_codes": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "example": ["0P1N1", "0P2H2", "1D5V3"],
+                    "description": "Array of question codes"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch translation successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" },
+                    "translations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "question_code": { "type": "string" },
+                          "translation": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/mapcode/metrics": {
+      "get": {
+        "summary": "Get performance metrics",
+        "operationId": "GetMetrics",
+        "tags": ["Analytics"],
+        "description": "Returns cache statistics, translation performance, and error rates",
+        "responses": {
+          "200": {
+            "description": "Metrics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" },
+                    "metrics": { "$ref": "#/components/schemas/MapCodeMetrics" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/mapcode/versions/{version_id}/export": {
+      "get": {
+        "summary": "Export version in multiple formats",
+        "operationId": "ExportVersion",
+        "tags": ["Export"],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["markdown", "json", "csv"],
+              "description": "Export format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "$ref": "#/components/schemas/Response" },
+                    "content": { "type": "string", "description": "Exported content" },
+                    "filename": { "type": "string", "example": "MapCode-2025-01-19.md" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Response": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean" },
+          "message": { "type": "string" },
+          "code": { "type": "string" }
+        }
+      },
+      "MapCodeVersion": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "version": { "type": "string", "example": "v2025-01-19" },
+          "name": { "type": "string", "example": "Q1 2025 Update" },
+          "description": { "type": "string" },
+          "is_active": { "type": "boolean" },
+          "created_by": { "type": "string", "format": "email" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MapCodeMetrics": {
+        "type": "object",
+        "properties": {
+          "total_translations": { "type": "integer", "description": "Total number of translations performed" },
+          "cache_hits": { "type": "integer", "description": "Number of translations from cache" },
+          "cache_misses": { "type": "integer", "description": "Number of cache misses" },
+          "cache_hit_rate": { "type": "number", "format": "double", "example": 0.85, "description": "Cache hit rate (0.0-1.0)" },
+          "avg_translation_time_ms": { "type": "number", "format": "double", "example": 2.5, "description": "Average translation time in milliseconds" },
+          "active_version_id": { "type": "string" },
+          "last_version_switch": { "type": "string", "format": "date-time" },
+          "translation_errors": { "type": "integer", "description": "Number of translation errors" }
+        }
+      },
+      "QuestionCode": {
+        "type": "object",
+        "properties": {
+          "grade": { "type": "string", "example": "0", "description": "Grade level (0=Grade 10, 1=Grade 11, 2=Grade 12)" },
+          "subject": { "type": "string", "example": "P", "description": "Subject code" },
+          "chapter": { "type": "string", "example": "1", "description": "Chapter number" },
+          "level": { "type": "string", "example": "N", "enum": ["N", "T", "V", "C"], "description": "Difficulty level" },
+          "lesson": { "type": "string", "example": "1", "description": "Lesson number" },
+          "form": { "type": "string", "example": "2", "description": "Form (ID6 only)" }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Version Management",
+      "description": "Manage MapCode versions - create, activate, delete, and list versions"
+    },
+    {
+      "name": "Translation",
+      "description": "Translate question codes to human-readable descriptions"
+    },
+    {
+      "name": "Analytics",
+      "description": "Monitor performance metrics and cache statistics"
+    },
+    {
+      "name": "Export",
+      "description": "Export MapCode versions in multiple formats"
+    }
+  ],
+  "x-examples": {
+    "create_version_with_file": {
+      "summary": "Create version by uploading file",
+      "endpoint": "POST /v1/mapcode/versions/create",
+      "request": {
+        "version": "v2025-01-19",
+        "name": "Q1 2025 Update",
+        "content": "# MapCode Configuration\n\n## [N] Nhận biết\n## [T] Thông hiểu\n...",
+        "created_by": "admin10@nynus.edu.vn"
+      }
+    },
+    "translate_code": {
+      "summary": "Translate single question code",
+      "endpoint": "POST /v1/mapcode/translate",
+      "request": {
+        "question_code": "0P1N1"
+      },
+      "response": {
+        "status": { "success": true },
+        "translation": "Lớp 10 > Đại số > Chương 1 > Nhận biết > Mệnh đề",
+        "hierarchy_path": "Lớp 10 > Đại số > Chương 1 > Nhận biết > Mệnh đề"
+      }
+    },
+    "batch_translate": {
+      "summary": "Translate multiple codes",
+      "endpoint": "POST /v1/mapcode/translate/batch",
+      "request": {
+        "question_codes": ["0P1N1", "0P2H2", "1D5V3"]
+      }
+    },
+    "get_metrics": {
+      "summary": "Get performance metrics",
+      "endpoint": "GET /v1/mapcode/metrics",
+      "response": {
+        "total_translations": 15000,
+        "cache_hits": 12750,
+        "cache_misses": 2250,
+        "cache_hit_rate": 0.85,
+        "avg_translation_time_ms": 2.5,
+        "translation_errors": 0
+      }
+    }
+  }
+}
+
+

@@ -12,7 +12,11 @@ import { PomodoroTimer } from "@/components/features/focus/timer/PomodoroTimer";
 import { RoomHeader } from "@/components/features/focus/room/RoomHeader";
 import { ParticipantList, type Participant } from "@/components/features/focus/room/ParticipantList";
 import { SoundMixer } from "@/components/features/focus/sound";
+import { ChatPanel } from "@/components/features/focus/chat";
+import { TaskList } from "@/components/features/focus/tasks";
 import { formatDuration } from "@/lib/focus/time.utils";
+import { AuthHelpers } from "@/lib/utils/auth-helpers";
+import { useAuth } from "@/contexts/auth-context-grpc";
 
 /**
  * Focus Room Detail Page
@@ -23,7 +27,12 @@ export default function FocusRoomDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const roomId = params.roomId as string;
+  
+  // Get auth token for WebSocket
+  const authToken = AuthHelpers.getAccessToken() || "";
+  const currentUserId = user?.id?.toString() || "";
 
   // Room data state
   const [room, setRoom] = useState<FocusRoom | null>(null);
@@ -125,10 +134,11 @@ export default function FocusRoomDetailPage() {
   }
 
   // Mock participants data (typed with Participant interface)
+  // TODO: Replace with real-time data from WebSocket once presence tracking is fully integrated
   const mockParticipants: Participant[] = [
-    { id: 1, name: "User 1", avatar: "👤", isFocusing: true, task: "Học Toán" },
-    { id: 2, name: "User 2", avatar: "👨", isFocusing: false, task: "" },
-    { id: 3, name: "User 3", avatar: "👩", isFocusing: true, task: "Ôn Lý" },
+    { id: 1, name: "User 1", avatar: "👤", status: "focusing", task: "Học Toán" },
+    { id: 2, name: "User 2", avatar: "👨", status: "online", task: "" },
+    { id: 3, name: "User 3", avatar: "👩", status: "focusing", task: "Ôn Lý" },
   ];
 
   return (
@@ -171,47 +181,33 @@ export default function FocusRoomDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Chat Panel */}
-          <Card>
-            <CardHeader>
-              <CardTitle>💬 Chat</CardTitle>
-              <CardDescription>Text chat với các thành viên</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="h-64 border rounded-lg p-4 bg-muted/30 overflow-y-auto">
-                  <p className="text-sm text-center text-muted-foreground">
-                    Chat chưa được implement (Phase 2)
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Nhập tin nhắn..."
-                    className="flex-1 px-3 py-2 border rounded-md"
-                    disabled
-                  />
-                  <Button disabled>Gửi</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Chat Panel - Phase 2.2 ✅ */}
+          {authToken ? (
+            <ChatPanel
+              roomId={roomId}
+              token={authToken}
+              currentUserId={currentUserId}
+              className="h-[600px]"
+            />
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>💬 Chat</CardTitle>
+                <CardDescription>Vui lòng đăng nhập để sử dụng chat</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-center text-muted-foreground py-4">
+                  Đang tải...
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Sound Mixer - Phase 2.1 Sprint ✅ */}
           <SoundMixer />
 
-          {/* Tasks Panel */}
-          <Card>
-            <CardHeader>
-              <CardTitle>✅ Tasks</CardTitle>
-              <CardDescription>Nhiệm vụ cần làm</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-center text-muted-foreground py-4">
-                Task manager chưa được implement (Phase 3)
-              </p>
-            </CardContent>
-          </Card>
+          {/* Tasks Panel - Phase 3.1 ✅ */}
+          <TaskList />
         </div>
       </div>
     </div>

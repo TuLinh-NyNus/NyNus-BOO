@@ -1,56 +1,44 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, TrendingUp, Flame, Clock, Target } from "lucide-react";
-import { FocusRoomService } from "@/services/grpc/focus-room.service";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/ui/use-toast";
-import { StatsCard } from "@/components/features/focus/analytics/StatsCard";
+import { 
+  ContributionGraph, 
+  DailyChart, 
+  SubjectBreakdown,
+  StreakDisplay
+} from "@/components/features/focus/analytics";
+import { 
+  useDailyStats, 
+  useWeeklyStats, 
+  useMonthlyStats, 
+  useContributionGraph 
+} from "@/hooks/focus/useAnalytics";
+import { FocusRoomService } from "@/services/grpc";
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Analytics Page
- * Hiển thị thống kê học tập của user
- * Refactored: Sử dụng StatsCard component
+ * Hiển thị thống kê học tập của user với charts
  */
 export default function AnalyticsPage() {
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [streakData, setStreakData] = useState<any>(null);
   const [timeRange, setTimeRange] = useState<"day" | "week" | "month">("week");
 
-  // Fetch streak data
-  useEffect(() => {
-    const fetchStreak = async () => {
-      try {
-        setLoading(true);
-        const streak = await FocusRoomService.getStreak();
-        setStreakData(streak);
-      } catch (error) {
-        console.error("Failed to fetch streak:", error);
-        toast({
-          title: "❌ Lỗi",
-          description: "Không thể tải thống kê",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Fetch data with React Query
+  const { data: streakData, isLoading: streakLoading } = useQuery({
+    queryKey: ['focus', 'streak'],
+    queryFn: () => FocusRoomService.getStreak(),
+  });
 
-    fetchStreak();
-  }, [toast]);
+  const { data: weeklyStats, isLoading: weeklyLoading } = useWeeklyStats();
+  const { data: monthlyStats, isLoading: monthlyLoading } = useMonthlyStats();
+  const { data: contributionData, isLoading: contributionLoading } = useContributionGraph();
 
-  if (loading) {
-    return (
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
-        <div className="text-center py-20">
-          <p className="text-2xl text-muted-foreground">⏳ Đang tải thống kê...</p>
-        </div>
-      </div>
-    );
-  }
+  // Get daily breakdown from weekly stats for chart
+  const dailyBreakdown = weeklyStats?.dailyBreakdown || [];
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-7xl">
@@ -83,95 +71,34 @@ export default function AnalyticsPage() {
         ))}
       </div>
 
-      {/* Stats Grid - Refactored to use StatsCard component */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatsCard
-          title="Streak Hiện Tại"
-          icon={Flame}
-          iconColor="text-orange-500"
-          value={streakData?.currentStreak || 0}
-          unit="ngày liên tiếp"
-          loading={loading}
-        />
-        
-        <StatsCard
-          title="Streak Dài Nhất"
-          icon={TrendingUp}
-          iconColor="text-blue-500"
-          value={streakData?.longestStreak || 0}
-          unit="ngày kỷ lục"
-          loading={loading}
-        />
-        
-        <StatsCard
-          title="Tổng Ngày Học"
-          icon={Target}
-          iconColor="text-green-500"
-          value={streakData?.totalStudyDays || 0}
-          unit="ngày tích cóp"
-          loading={loading}
-        />
-        
-        <StatsCard
-          title="Học Gần Nhất"
-          icon={Clock}
-          iconColor="text-purple-500"
-          value={
-            streakData?.lastStudyDate
-              ? new Date(streakData.lastStudyDate).toLocaleDateString("vi-VN")
-              : "Chưa có"
-          }
-          unit="thời gian gần nhất"
-          loading={loading}
+      {/* Streak Display */}
+      <div className="mb-8">
+        <StreakDisplay 
+          streakData={streakData} 
+          isLoading={streakLoading} 
         />
       </div>
 
-      {/* Contribution Graph Section */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>🎯 Biểu Đồ Hoạt Động (365 Ngày)</CardTitle>
-          <CardDescription>
-            Màu sắc đậm hơn = bạn học nhiều hơn trong ngày đó
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-muted/30 p-6 rounded-lg text-center">
-            <p className="text-muted-foreground">
-              💡 Biểu đồ sẽ được hiển thị khi có đủ dữ liệu
-            </p>
-            <p className="text-xs text-muted-foreground mt-2">
-              Hãy hoàn thành vài sessions để xem biểu đồ
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Contribution Graph */}
+      <div className="mb-8">
+        <ContributionGraph 
+          data={contributionData || []} 
+          isLoading={contributionLoading} 
+        />
+      </div>
 
-      {/* Tips Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>💡 Mẹo Tăng Productivity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm">
-            <li className="flex gap-2">
-              <span className="text-blue-500">✓</span>
-              <span>Học ít nhất 30 phút mỗi ngày để duy trì streak</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-blue-500">✓</span>
-              <span>Sử dụng Pomodoro timer (25 phút focus) để hiệu quả hơn</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-blue-500">✓</span>
-              <span>Tham gia group study rooms để tăng motivation</span>
-            </li>
-            <li className="flex gap-2">
-              <span className="text-blue-500">✓</span>
-              <span>Ghi lại task trước khi học để tập trung tốt hơn</span>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <DailyChart 
+          data={dailyBreakdown} 
+          isLoading={weeklyLoading} 
+        />
+        
+        <SubjectBreakdown 
+          subjects={monthlyStats?.topSubjects || []} 
+          isLoading={monthlyLoading} 
+        />
+      </div>
 
       {/* Back to Room */}
       <div className="mt-8 text-center">
