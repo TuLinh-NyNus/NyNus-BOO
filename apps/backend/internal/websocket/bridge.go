@@ -11,8 +11,8 @@ import (
 	"exam-bank-system/apps/backend/internal/redis"
 )
 
-// RedisBridge connects Redis Pub/Sub with WebSocket manager
-// Implements task 3.1.1: Create RedisBridge struct
+// RedisBridge connects Redis Pub/Sub with WebSocket manager.
+// Implements task 3.1.1: Create RedisBridge struct.
 type RedisBridge struct {
 	redisPubSub   *redis.PubSubClient
 	wsManager     *ConnectionManager
@@ -32,7 +32,7 @@ type RedisBridge struct {
 	cancel context.CancelFunc
 }
 
-// NewRedisBridge creates a new Redis-WebSocket bridge
+// NewRedisBridge creates a new Redis-WebSocket bridge.
 func NewRedisBridge(
 	redisPubSub *redis.PubSubClient,
 	wsManager *ConnectionManager,
@@ -54,8 +54,8 @@ func NewRedisBridge(
 	}
 }
 
-// Start starts the bridge
-// Implements task 3.1.2: Subscribe to Redis channels and handle messages
+// Start starts the bridge.
+// Implements task 3.1.2: Subscribe to Redis channels and handle messages.
 func (b *RedisBridge) Start(workerPoolSize int) error {
 	b.logger.Printf("[INFO] Starting Redis-WebSocket bridge")
 

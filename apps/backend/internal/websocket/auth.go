@@ -7,20 +7,20 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-// JWTAuthenticator implements TokenAuthenticator interface for JWT validation
+// JWTAuthenticator implements TokenAuthenticator interface for JWT validation.
 type JWTAuthenticator struct {
 	secret []byte
 }
 
-// NewJWTAuthenticator creates a new JWT authenticator
+// NewJWTAuthenticator creates a new JWT authenticator.
 func NewJWTAuthenticator(secret string) *JWTAuthenticator {
 	return &JWTAuthenticator{
 		secret: []byte(secret),
 	}
 }
 
-// ValidateToken validates JWT token and returns user ID and role
-// Implements task 2.2.4: Validate JWT token
+// ValidateToken validates JWT token and returns user ID and role.
+// Implements task 2.2.4: Validate JWT token.
 func (a *JWTAuthenticator) ValidateToken(tokenString string) (userID string, role string, err error) {
 	if tokenString == "" {
 		return "", "", fmt.Errorf("token is empty")
@@ -82,7 +82,7 @@ func (a *JWTAuthenticator) ValidateToken(tokenString string) (userID string, rol
 	return userID, role, nil
 }
 
-// CreateToken creates a new JWT token (for testing purposes)
+// CreateToken creates a new JWT token (for testing purposes).
 func (a *JWTAuthenticator) CreateToken(userID, role string, expiresIn time.Duration) (string, error) {
 	now := time.Now()
 
