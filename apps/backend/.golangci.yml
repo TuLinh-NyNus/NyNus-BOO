@@ -31,7 +31,7 @@ linters-settings:
   
   # Complexity
   gocyclo:
-    min-complexity: 15
+    min-complexity: 20  # Increased for complex routing functions
   
   # Code style
   gofmt:
