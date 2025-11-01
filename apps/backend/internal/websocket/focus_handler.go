@@ -7,9 +7,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/google/uuid"
+
 	"exam-bank-system/apps/backend/internal/repository/interfaces"
 	"exam-bank-system/apps/backend/internal/service/focus"
-	"github.com/google/uuid"
 )
 
 // FocusRoomHandler handles Focus Room specific WebSocket events.

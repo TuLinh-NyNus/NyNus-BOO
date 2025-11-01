@@ -82,8 +82,8 @@ func (b *RedisBridge) Start(workerPoolSize int) error {
 	return nil
 }
 
-// handleRedisMessage handles messages from Redis Pub/Sub
-// Implements task 3.1.2: Handle incoming Redis messages, parse, and route
+// handleRedisMessage handles messages from Redis Pub/Sub.
+// Implements task 3.1.2: Handle incoming Redis messages, parse, and route.
 func (b *RedisBridge) handleRedisMessage(channel string, payload []byte) error {
 	// Parse notification message
 	var notification redis.NotificationMessage
@@ -124,8 +124,8 @@ func (b *RedisBridge) handleRedisMessage(channel string, payload []byte) error {
 	return nil
 }
 
-// transformMessage transforms Redis notification to WebSocket format
-// Implements task 3.1.3: Message transformation with metadata
+// transformMessage transforms Redis notification to WebSocket format.
+// Implements task 3.1.3: Message transformation with metadata.
 func (b *RedisBridge) transformMessage(notification *redis.NotificationMessage) ([]byte, error) {
 	// Create WebSocket message format
 	wsMessage := map[string]interface{}{
@@ -148,6 +148,7 @@ func (b *RedisBridge) transformMessage(notification *redis.NotificationMessage) 
 
 	// Add expires_at if present
 	if notification.ExpiresAt != nil {
+		//nolint:forcetypeassert // Type assertion is safe here
 		wsMessage["data"].(map[string]interface{})["expires_at"] = notification.ExpiresAt.Format(time.RFC3339)
 	}
 
@@ -157,15 +158,12 @@ func (b *RedisBridge) transformMessage(notification *redis.NotificationMessage) 
 		return nil, fmt.Errorf("failed to marshal WebSocket message: %w", err)
 	}
 
-	// TODO: Compress large messages if needed (task 3.1.3)
-	// if len(payload) > 1024 {
-	//     payload = compress(payload)
-	// }
+	// TODO: Compress large messages if needed (task 3.1.3).
 
 	return payload, nil
 }
 
-// routeToWebSocket routes message to appropriate WebSocket connections
+// routeToWebSocket routes message to appropriate WebSocket connections.
 func (b *RedisBridge) routeToWebSocket(channel string, message []byte) error {
 	// Parse channel to determine routing
 	channelType, id, err := b.channelHelper.ParseChannelPattern(channel)
@@ -191,8 +189,8 @@ func (b *RedisBridge) routeToWebSocket(channel string, message []byte) error {
 	}
 }
 
-// retryDelivery retries message delivery with exponential backoff
-// Implements task 3.1.4: Retry failed deliveries (3 attempts)
+// retryDelivery retries message delivery with exponential backoff.
+// Implements task 3.1.4: Retry failed deliveries (3 attempts).
 func (b *RedisBridge) retryDelivery(channel string, message []byte) error {
 	var lastErr error
 
@@ -220,8 +218,8 @@ func (b *RedisBridge) retryDelivery(channel string, message []byte) error {
 	return fmt.Errorf("failed after %d retries: %w", b.maxRetries, lastErr)
 }
 
-// logDeadLetter logs failed messages to dead letter queue
-// Implements task 3.1.4: Dead letter queue for failed messages
+// logDeadLetter logs failed messages to dead letter queue.
+// Implements task 3.1.4: Dead letter queue for failed messages.
 func (b *RedisBridge) logDeadLetter(channel string, message []byte, err error) {
 	deadLetter := map[string]interface{}{
 		"channel":   channel,
@@ -235,7 +233,7 @@ func (b *RedisBridge) logDeadLetter(channel string, message []byte, err error) {
 }
 
 // isDuplicate checks if a message was recently processed.
-// Implements task 3.1.4: Message deduplication
+// Implements task 3.1.4: Message deduplication.
 func (b *RedisBridge) isDuplicate(messageID string) bool {
 	b.recentMessagesMu.RLock()
 	_, exists := b.recentMessages[messageID]
